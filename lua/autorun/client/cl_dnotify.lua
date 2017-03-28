@@ -24,38 +24,22 @@ end
 local HUDPaint
 HUDPaint = function()
   local yShift = 0
-  local x = {
-    X_SHIFT_CVAR = GetInt()
-  }
-  local y = {
-    Y_SHIFT_CVAR = GetInt()
-  }
+  local x = X_SHIFT_CVAR:GetInt()
+  local y = Y_SHIFT_CVAR:GetInt()
   for k, func in pairs(DNotify.NotificationsSlideLeft) do
-    if {
-      func = IsValid()
-    } then
-      local currShift = {
-        func = Draw(x, y + yShift)
-      }
+    if func:IsValid() then
+      local currShift = func:Draw(x, y + yShift)
       yShift = yShift + currShift
     else
       DNotify.NotificationsSlideLeft[k] = nil
     end
   end
   yShift = 0
-  x = ScrW() - {
-    X_SHIFT_CVAR = GetInt()
-  }
-  y = {
-    Y_SHIFT_CVAR = GetInt()
-  }
+  x = ScrW() - X_SHIFT_CVAR:GetInt()
+  y = Y_SHIFT_CVAR:GetInt()
   for k, func in pairs(DNotify.NotificationsSlideRight) do
-    if {
-      func = IsValid()
-    } then
-      local currShift = {
-        func = Draw(x, y + yShift)
-      }
+    if func:IsValid() then
+      local currShift = func:Draw(x, y + yShift)
       yShift = yShift + currShift
     else
       DNotify.NotificationsSlideRight[k] = nil

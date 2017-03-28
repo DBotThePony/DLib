@@ -43,24 +43,24 @@ DNotify.allowedOrign = (enum) ->
 HUDPaint = ->
 	yShift = 0
 	
-	x = X_SHIFT_CVAR:GetInt()
-	y = Y_SHIFT_CVAR:GetInt()
+	x = X_SHIFT_CVAR\GetInt()
+	y = Y_SHIFT_CVAR\GetInt()
 	
 	for k, func in pairs DNotify.NotificationsSlideLeft
-		if func:IsValid()
-			currShift = func:Draw(x, y + yShift)
+		if func\IsValid()
+			currShift = func\Draw(x, y + yShift)
 			yShift += currShift
 		else
 			DNotify.NotificationsSlideLeft[k] = nil
 
 	
 	yShift = 0
-	x = ScrW! - X_SHIFT_CVAR:GetInt()
-	y = Y_SHIFT_CVAR:GetInt()
+	x = ScrW! - X_SHIFT_CVAR\GetInt()
+	y = Y_SHIFT_CVAR\GetInt()
 	
 	for k, func in pairs DNotify.NotificationsSlideRight
-		if func:IsValid()
-			currShift = func:Draw(x, y + yShift)
+		if func\IsValid()
+			currShift = func\Draw(x, y + yShift)
 			yShift += currShift
 		else
 			DNotify.NotificationsSlideRight[k] = nil
