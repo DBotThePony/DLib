@@ -67,5 +67,6 @@ end
 hook.Add('HUDPaint', 'DNotify', HUDPaint)
 hook.Add('Think', 'DNotify', Think)
 include('dnotify/font_obj.lua')
+include('dnotify/base_class.lua')
 include('dnotify/slide_class.lua')
 return nil
