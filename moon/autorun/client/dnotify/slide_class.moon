@@ -117,6 +117,8 @@ class SlideNotify
 		
 		return @
 	
+	SetTextAlign: (...) => @SetAlign(...)
+	
 	SetColor: (val = Color(255, 255, 255)) =>
 		assert(@IsValid!, 'tried to use a finished Slide Notification!')
 		assert(val.r and val.g and val.b and val.a, 'Not a valid color')
@@ -151,7 +153,7 @@ class SlideNotify
 		assert(@IsValid!, 'tried to use a finished Slide Notification!')
 		@m_font = val
 		@FixFont!
-		@m_fontobj:SetFont(val)
+		@m_fontobj\SetFont(val)
 		@CompileCache!
 		return @
 
@@ -258,7 +260,7 @@ class SlideNotify
 		@ResetTimer!
 		return @
 		
-	SetThink: (val = function() end) =>
+	SetThink: (val = (->)) =>
 		assert(type(val) == 'function', 'must be a function')
 		@m_thinkf = val
 		return @
@@ -283,8 +285,8 @@ class SlideNotify
 			if type(object) == 'table' -- But we will skip colors
 				if object.m_dnotify_type
 					if object.m_dnotify_type == 'font'
-						surface.SetFont(object:GetFont())
-						lastFont = object:GetFont()
+						surface.SetFont(object\GetFont())
+						lastFont = object\GetFont()
 				else
 					lastColor = object
 			elseif type(object) == 'string'
@@ -295,7 +297,7 @@ class SlideNotify
 					sizeX, sizeY = surface.GetTextSize(str)
 					
 					if not first -- Going to new line
-						maxY += 2
+						maxY += 4
 						
 						insert(@m_cache, {content: currentLine, :lineX, shiftX: 0, :maxY, :nextY})
 						currentLine = {}
@@ -311,7 +313,10 @@ class SlideNotify
 					lineX += sizeX
 					if sizeY > maxY then maxY = sizeY
 		
+		@m_sizeOfTextY += maxY
 		insert(@m_cache, {content: currentLine, :lineX, shiftX: 0, :maxY, :nextY})
+		
+		@m_sizeOfTextX = maxX
 		
 		if @m_align == TEXT_ALIGN_RIGHT
 			for i, line in pairs @m_cache
@@ -339,7 +344,7 @@ class SlideNotify
 			maxY = line.maxY
 			nextY = line.nextY
 			
-			for i, strData in line.currentLine
+			for i, strData in pairs line.content
 				SetFont(strData.font)
 				SetTextColor(strData.color)
 				SetTextPos(x + shiftX + strData.x + 2, y + nextY + 2)
@@ -366,9 +371,9 @@ class SlideNotify
 				deltaIn = @m_start + 1 - cTime
 				deltaOut = cTime - @m_finish
 				
-				if deltaIn > 0 and deltaIn < 1 and @m_animin
+				if deltaIn >= 0 and deltaIn <= 1 and @m_animin
 					@m_shift = -150 * deltaIn
-				elseif deltaOut > 0 and deltaOut < 1 and @m_animout
+				elseif deltaOut >= 0 and deltaOut < 1 and @m_animout
 					@m_shift = -150 * deltaOut
 				else
 					@m_shift = 0

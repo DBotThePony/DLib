@@ -34,7 +34,7 @@ DNOTIFY_SIDE_RIGHT = 2
 DNOTIFY_POS_TOP = 3
 DNOTIFY_POS_BOTTOM = 4
 
-DNotify.newLines = (str = '') -> string.Explode('\r?\n', str)
+DNotify.newLines = (str = '') -> string.Explode('\n', str)
 DNotify.allowedOrign = (enum) ->
 	enum == TEXT_ALIGN_LEFT or
 	enum == TEXT_ALIGN_RIGHT or
@@ -48,8 +48,11 @@ HUDPaint = ->
 	
 	for k, func in pairs DNotify.NotificationsSlideLeft
 		if func\IsValid()
-			currShift = func\Draw(x, y + yShift)
-			yShift += currShift
+			status, currShift = pcall(func.Draw, func, x, y + yShift)
+			if status
+				yShift += currShift
+			else
+				print('[DNotify] ERROR ', currShift)
 		else
 			DNotify.NotificationsSlideLeft[k] = nil
 
@@ -60,8 +63,11 @@ HUDPaint = ->
 	
 	for k, func in pairs DNotify.NotificationsSlideRight
 		if func\IsValid()
-			currShift = func\Draw(x, y + yShift)
-			yShift += currShift
+			status, currShift = pcall(func.Draw, func, x, y + yShift)
+			if status
+				yShift += currShift
+			else
+				print('[DNotify] ERROR ', currShift)
 		else
 			DNotify.NotificationsSlideRight[k] = nil
 
@@ -74,3 +80,8 @@ Think = ->
 
 hook.Add('HUDPaint', 'DNotify', HUDPaint)
 hook.Add('Think', 'DNotify', Think)
+
+include 'dnotify/font_obj.lua'
+include 'dnotify/slide_class.lua'
+
+return nil

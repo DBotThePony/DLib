@@ -127,6 +127,9 @@ do
       self:CompileCache()
       return self
     end,
+    SetTextAlign = function(self, ...)
+      return self:SetAlign(...)
+    end,
     SetColor = function(self, val)
       if val == nil then
         val = Color(255, 255, 255)
@@ -177,9 +180,7 @@ do
       assert(self:IsValid(), 'tried to use a finished Slide Notification!')
       self.m_font = val
       self:FixFont()
-      local _ = {
-        [self.m_fontobj] = SetFont(val)
-      }
+      self.m_fontobj:SetFont(val)
       self:CompileCache()
       return self
     end,
@@ -315,7 +316,7 @@ do
     end,
     SetThink = function(self, val)
       if val == nil then
-        val = function()(end)
+        val = (function() end)
       end
       assert(type(val) == 'function', 'must be a function')
       self.m_thinkf = val
@@ -337,12 +338,8 @@ do
         if type(object) == 'table' then
           if object.m_dnotify_type then
             if object.m_dnotify_type == 'font' then
-              surface.SetFont({
-                object = GetFont()
-              })
-              lastFont = {
-                object = GetFont()
-              }
+              surface.SetFont(object:GetFont())
+              lastFont = object:GetFont()
             end
           else
             lastColor = object
@@ -353,7 +350,7 @@ do
           for i, str in pairs(split) do
             local sizeX, sizeY = surface.GetTextSize(str)
             if not first then
-              maxY = maxY + 2
+              maxY = maxY + 4
               insert(self.m_cache, {
                 content = currentLine,
                 lineX = lineX,
@@ -384,6 +381,7 @@ do
           end
         end
       end
+      self.m_sizeOfTextY = self.m_sizeOfTextY + maxY
       insert(self.m_cache, {
         content = currentLine,
         lineX = lineX,
@@ -391,6 +389,7 @@ do
         maxY = maxY,
         nextY = nextY
       })
+      self.m_sizeOfTextX = maxX
       if self.m_align == TEXT_ALIGN_RIGHT then
         for i, line in pairs(self.m_cache) do
           line.shiftX = self.m_sizeOfTextX - line.lineX
@@ -425,7 +424,7 @@ do
         local shiftX = line.shiftX
         local maxY = line.maxY
         local nextY = line.nextY
-        for i, strData in line.currentLine do
+        for i, strData in pairs(line.content) do
           SetFont(strData.font)
           SetTextColor(strData.color)
           SetTextPos(x + shiftX + strData.x + 2, y + nextY + 2)
@@ -450,9 +449,9 @@ do
         if self.m_animated then
           local deltaIn = self.m_start + 1 - cTime
           local deltaOut = cTime - self.m_finish
-          if deltaIn > 0 and deltaIn < 1 and self.m_animin then
+          if deltaIn >= 0 and deltaIn <= 1 and self.m_animin then
             self.m_shift = -150 * deltaIn
-          elseif deltaOut > 0 and deltaOut < 1 and self.m_animout then
+          elseif deltaOut >= 0 and deltaOut < 1 and self.m_animout then
             self.m_shift = -150 * deltaOut
           else
             self.m_shift = 0

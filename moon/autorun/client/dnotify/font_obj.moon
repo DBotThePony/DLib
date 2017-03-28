@@ -20,7 +20,6 @@ class DNotifyFont
 		@m_font = val
 		@m_dnotify_type = 'font'
 		@FixFont!
-		
 	
 	Setup: =>
 		surface.SetFont(@m_font)
