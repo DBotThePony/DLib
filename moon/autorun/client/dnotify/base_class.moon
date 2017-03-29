@@ -73,6 +73,9 @@ class DNotifyBase
 		@SetStart!
 		insert(DNotify.RegisteredThinks, @)
 		
+		MsgC(Color(0, 255, 0), '[DNotify] ', @m_color, unpack(@m_text))
+		MsgC('\n')
+		
 		return @
 	
 	Remove: =>

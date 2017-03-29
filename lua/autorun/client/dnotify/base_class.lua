@@ -74,6 +74,8 @@ do
       end
       self:SetStart()
       insert(DNotify.RegisteredThinks, self)
+      MsgC(Color(0, 255, 0), '[DNotify] ', self.m_color, unpack(self.m_text))
+      MsgC('\n')
       return self
     end,
     Remove = function(self)
