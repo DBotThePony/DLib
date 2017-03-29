@@ -46,6 +46,9 @@ class SlideNotify extends DNotifyAnimated
 		else
 			@m_shift = 0
 		
+		if @m_side == DNOTIFY_SIDE_RIGHT
+			@m_shift = -@m_shift
+		
 		if @m_side == DNOTIFY_SIDE_LEFT
 			insert(DNotify.NotificationsSlideLeft, @)
 		else
@@ -71,6 +74,9 @@ class SlideNotify extends DNotifyAnimated
 		import SetTextPos, SetDrawColor, DrawRect, SetFont, SetTextColor, DrawText from surface
 		
 		x += @m_shift
+		
+		if @m_side == DNOTIFY_SIDE_RIGHT
+			x -= @m_sizeOfTextX + 4
 		
 		SetTextPos(x + 2, y + 2)
 		
@@ -111,6 +117,9 @@ class SlideNotify extends DNotifyAnimated
 				@m_shift = 0
 		else
 			@m_shift = 0
+		
+		if @m_side == DNOTIFY_SIDE_RIGHT
+			@m_shift = -@m_shift
 
 DNotify.Slide = SlideNotify
 DNotify.slide = SlideNotify

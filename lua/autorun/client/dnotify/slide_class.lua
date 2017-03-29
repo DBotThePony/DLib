@@ -38,6 +38,9 @@ do
       else
         self.m_shift = 0
       end
+      if self.m_side == DNOTIFY_SIDE_RIGHT then
+        self.m_shift = -self.m_shift
+      end
       if self.m_side == DNOTIFY_SIDE_LEFT then
         insert(DNotify.NotificationsSlideLeft, self)
       else
@@ -77,6 +80,9 @@ do
         SetTextPos, SetDrawColor, DrawRect, SetFont, SetTextColor, DrawText = _obj_0.SetTextPos, _obj_0.SetDrawColor, _obj_0.DrawRect, _obj_0.SetFont, _obj_0.SetTextColor, _obj_0.DrawText
       end
       x = x + self.m_shift
+      if self.m_side == DNOTIFY_SIDE_RIGHT then
+        x = x - (self.m_sizeOfTextX + 4)
+      end
       SetTextPos(x + 2, y + 2)
       if self.m_background then
         SetDrawColor(self.m_backgroundColor)
@@ -114,6 +120,9 @@ do
         end
       else
         self.m_shift = 0
+      end
+      if self.m_side == DNOTIFY_SIDE_RIGHT then
+        self.m_shift = -self.m_shift
       end
     end
   }
