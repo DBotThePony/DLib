@@ -39,7 +39,7 @@ do
         return self
       end
       if self.m_animated and self.m_animin then
-        self.m_shift = -150
+        self.m_shift = -(self.m_sizeOfTextX * 1.2)
       else
         self.m_shift = 0
       end
@@ -117,9 +117,9 @@ do
         local deltaIn = self.m_start + 1 - cTime
         local deltaOut = cTime - self.m_finish
         if deltaIn >= 0 and deltaIn <= 1 and self.m_animin then
-          self.m_shift = -150 * deltaIn
+          self.m_shift = -(self.m_sizeOfTextX * 1.2) * deltaIn
         elseif deltaOut >= 0 and deltaOut < 1 and self.m_animout then
-          self.m_shift = -150 * deltaOut
+          self.m_shift = -(self.m_sizeOfTextX * 1.2) * deltaOut
         else
           self.m_shift = 0
         end

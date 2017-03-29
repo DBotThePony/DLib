@@ -49,7 +49,7 @@ class SlideNotify extends DNotifyAnimated
 		if @m_isDrawn then return @
 		
 		if @m_animated and @m_animin
-			@m_shift = -150
+			@m_shift = -(@m_sizeOfTextX * 1.2)
 		else
 			@m_shift = 0
 		
@@ -117,9 +117,9 @@ class SlideNotify extends DNotifyAnimated
 			deltaOut = cTime - @m_finish
 			
 			if deltaIn >= 0 and deltaIn <= 1 and @m_animin
-				@m_shift = -150 * deltaIn
+				@m_shift = -(@m_sizeOfTextX * 1.2) * deltaIn
 			elseif deltaOut >= 0 and deltaOut < 1 and @m_animout
-				@m_shift = -150 * deltaOut
+				@m_shift = -(@m_sizeOfTextX * 1.2) * deltaOut
 			else
 				@m_shift = 0
 		else
