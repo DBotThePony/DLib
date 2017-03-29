@@ -238,9 +238,11 @@ class DNotifyBase
 			elseif type(object) == 'string'
 				split = newLines(object)
 				first = true
+				firstHitX = 0
 				
 				for i, str in pairs split
 					sizeX, sizeY = surface.GetTextSize(str)
+					firstHitX = sizeX
 					
 					if not first -- Going to new line
 						maxY += 4
@@ -258,6 +260,8 @@ class DNotifyBase
 					insert(currentLine, {color: lastColor, content: str, x: lineX, font: lastFont})
 					lineX += sizeX
 					if sizeY > maxY then maxY = sizeY
+				
+				if maxX == 0 then maxX = firstHitX
 		
 		@m_sizeOfTextY += maxY
 		insert(@m_cache, {content: currentLine, :lineX, shiftX: 0, :maxY, :nextY})

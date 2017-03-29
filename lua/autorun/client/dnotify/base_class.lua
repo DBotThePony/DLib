@@ -271,8 +271,10 @@ do
         elseif type(object) == 'string' then
           local split = newLines(object)
           local first = true
+          local firstHitX = 0
           for i, str in pairs(split) do
             local sizeX, sizeY = surface.GetTextSize(str)
+            firstHitX = sizeX
             if not first then
               maxY = maxY + 4
               insert(self.m_cache, {
@@ -302,6 +304,9 @@ do
             if sizeY > maxY then
               maxY = sizeY
             end
+          end
+          if maxX == 0 then
+            maxX = firstHitX
           end
         end
       end
