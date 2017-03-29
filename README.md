@@ -1,5 +1,2 @@
 
-SmartNotify Library
-Another f* gmod library
-
-Use it for displaying not-fancy notifications
+DNotify is a notifications library for garrysmod
