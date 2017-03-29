@@ -16,67 +16,51 @@
 -- 
 
 import insert, remove from table
-import newLines, allowedOrign, DNotifyBase, DNotifyAnimated from DNotify
+import newLines, allowedOrign, DNotifyAnimated from DNotify
 
-class SlideNotify extends DNotifyAnimated
+surface.CreateFont('DNotifyCentered', {
+	font: 'Roboto'
+	size: 18
+	weight: 600
+})
+
+class CenteredNotify extends DNotifyAnimated
 	new: (...) =>
-		@m_side = DNOTIFY_SIDE_LEFT
-		@m_defSide = DNOTIFY_SIDE_LEFT
-		@m_allowedSides = {DNOTIFY_SIDE_LEFT, DNOTIFY_SIDE_RIGHT}
+		@m_side = DNOTIFY_POS_TOP
+		@m_defSide = DNOTIFY_POS_TOP
+		@m_allowedSides = {DNOTIFY_POS_TOP, DNOTIFY_POS_BOTTOM}
 		
-		@m_shift = -150
-		@m_background = true
-		@m_backgroundColor = Color(0, 0, 0, 150)
-		@m_shadow = false
+		@m_color = Color(10, 185, 200)
+		
+		@m_alpha = 0
+		@m_align = TEXT_ALIGN_CENTER
+		@m_font = 'DNotifyCentered'
 		
 		super(...)
-	
-	GetBackgroundColor: => @m_backgroundColor
-	GetBackColor: => @m_backgroundColor
-	ShouldDrawBackground: => @m_background
-	ShouldDrawBack: => @m_background
+		
 	GetSide: => @m_side
 	
 	Start: =>
 		assert(@IsValid!, 'tried to use a finished Slide Notification!')
 		if @m_isDrawn then return @
 		
-		if @m_animated and @m_animin
-			@m_shift = -150
-		else
-			@m_shift = 0
+		if @m_animated and @m_animin then @m_alpha = 0 else @m_alpha = 1
 		
-		if @m_side == DNOTIFY_SIDE_LEFT
-			insert(DNotify.NotificationsSlideLeft, @)
+		if @m_side == DNOTIFY_POS_TOP
+			insert(DNotify.NotificationsCenterTop, @)
 		else
-			insert(DNotify.NotificationsSlideRight, @)
+			insert(DNotify.NotificationsCenterBottom, @)
 		
 		return super!
 	
-	SetBackgroundColor: (val = Color(255, 255, 255)) =>
-		assert(@IsValid!, 'tried to use a finished Slide Notification!')
-		assert(val.r and val.g and val.b and val.a, 'Not a valid color')
-		@m_backgroundColor = val
-		return @
-	
 	SetSide: DNotify.SetSideFunc
 	
-	SetShouldDrawBackground: (val = true) =>
-		assert(@IsValid!, 'tried to use a finished Slide Notification!')
-		assert(type(val) == 'boolean', 'must be a boolean')
-		@m_background = val
-		return @
-	
 	Draw: (x = 0, y = 0) =>
-		import SetTextPos, SetDrawColor, DrawRect, SetFont, SetTextColor, DrawText from surface
+		import SetTextPos, SetFont, SetTextColor, DrawText from surface
 		
-		x += @m_shift
+		x -= @m_sizeOfTextX / 2
 		
 		SetTextPos(x + 2, y + 2)
-		
-		if @m_background
-			SetDrawColor(@m_backgroundColor)
-			DrawRect(x, y, @m_sizeOfTextX + 4, @m_sizeOfTextY + 4)
 		
 		for i, line in pairs @m_cache
 			lineX = line.lineX
@@ -88,11 +72,11 @@ class SlideNotify extends DNotifyAnimated
 				SetFont(strData.font)
 				
 				if @m_shadow
-					SetTextColor(0, 0, 0)
+					SetTextColor(0, 0, 0, @m_alpha * 255)
 					SetTextPos(x + shiftX + strData.x + 2 + @m_shadowSize, y + nextY + 2 + @m_shadowSize)
 					DrawText(strData.content)
 				
-				SetTextColor(strData.color)
+				SetTextColor(strData.color.r, strData.color.g, strData.color.b, @m_alpha * 255)
 				SetTextPos(x + shiftX + strData.x + 2, y + nextY + 2)
 				DrawText(strData.content)
 		
@@ -104,14 +88,16 @@ class SlideNotify extends DNotifyAnimated
 			deltaOut = cTime - @m_finish
 			
 			if deltaIn >= 0 and deltaIn <= 1 and @m_animin
-				@m_shift = -150 * deltaIn
+				@m_alpha = 1 - deltaIn
 			elseif deltaOut >= 0 and deltaOut < 1 and @m_animout
-				@m_shift = -150 * deltaOut
+				@m_alpha = 1 - deltaOut
 			else
-				@m_shift = 0
+				@m_alpha = 1
 		else
-			@m_shift = 0
+			@m_alpha = 1
 
-DNotify.Slide = SlideNotify
-DNotify.slide = SlideNotify
-DNotify.SlideNotify = SlideNotify
+DNotify.CenteredNotify = CenteredNotify
+DNotify.centered = CenteredNotify
+DNotify.centerednotify = CenteredNotify
+DNotify.center = CenteredNotify
+DNotify.centernotify = CenteredNotify

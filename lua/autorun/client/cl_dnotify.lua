@@ -2,10 +2,12 @@ DNotify = { }
 DNotify.RegisteredThinks = { }
 DNotify.NotificationsSlideLeft = { }
 DNotify.NotificationsSlideRight = { }
+DNotify.NotificationsCenterTop = { }
+DNotify.NotificationsCenterBottom = { }
 local X_SHIFT_CVAR = CreateConVar('dnofity_x_shift', '0', {
   FCVAR_ARCHIVE
 }, 'Shift at X of DNotify slide notifications')
-local Y_SHIFT_CVAR = CreateConVar('dnofity_x_shift', '15', {
+local Y_SHIFT_CVAR = CreateConVar('dnofity_y_shift', '45', {
   FCVAR_ARCHIVE
 }, 'Shift at Y of DNotify slide notifications')
 DNOTIFY_SIDE_LEFT = 1
@@ -53,6 +55,34 @@ HUDPaint = function()
       DNotify.NotificationsSlideRight[k] = nil
     end
   end
+  yShift = 0
+  x = ScrW() / 2
+  y = ScrH() * 0.26
+  for k, func in pairs(DNotify.NotificationsCenterTop) do
+    if func:IsValid() then
+      local status, currShift = pcall(func.Draw, func, x, y + yShift)
+      if status then
+        yShift = yShift + currShift
+      else
+        print('[DNotify] ERROR ', currShift)
+      end
+    else
+      DNotify.NotificationsCenterTop[k] = nil
+    end
+  end
+  y = ScrH() * 0.75
+  for k, func in pairs(DNotify.NotificationsCenterBottom) do
+    if func:IsValid() then
+      local status, currShift = pcall(func.Draw, func, x, y + yShift)
+      if status then
+        yShift = yShift + currShift
+      else
+        print('[DNotify] ERROR ', currShift)
+      end
+    else
+      DNotify.NotificationsCenterBottom[k] = nil
+    end
+  end
 end
 local Think
 Think = function()
@@ -68,5 +98,8 @@ hook.Add('HUDPaint', 'DNotify', HUDPaint)
 hook.Add('Think', 'DNotify', Think)
 include('dnotify/font_obj.lua')
 include('dnotify/base_class.lua')
+include('dnotify/templates.lua')
+include('dnotify/animated_base.lua')
 include('dnotify/slide_class.lua')
+include('dnotify/centered_class.lua')
 return nil

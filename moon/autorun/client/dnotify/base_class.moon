@@ -16,32 +16,32 @@
 -- 
 
 import insert, remove from table
-import newLines, allowedOrign, DNotifyBase from DNotify
+import newLines, allowedOrign from DNotify
 
 class DNotifyBase
 	new: (contents = {'Sample Text'}) =>
 		if type(contents) == 'string'
 			contents = {contents}
 		
-		@m_sound = ''
 		@m_text = contents
-		@m_font = 'Default'
-		@m_color = Color(255, 255, 255)
+		if not @m_sound then @m_sound = ''
+		if not @m_font then @m_font = 'Default'
+		if not @m_color then @m_color = Color(255, 255, 255)
+		if not @m_length then @m_length = 4
+		
 		@m_lastThink = CurTime!
 		@m_created = @m_lastThink
 		@m_start = @m_created
-		@m_finish = @m_start + 4
-		@m_finishFinal = @m_finish + 1
-		
-		@m_length = 4
-		@m_lengthFinal = 5
+		@m_finish = @m_start + @m_length
 		
 		@m_timer = true
 		
-		@m_align = TEXT_ALIGN_LEFT
+		if not @m_align then @m_align = TEXT_ALIGN_LEFT
 		
 		@m_isDrawn = false
 		@m_isValid = true
+		if @m_shadow == nil then @m_shadow = true
+		if @m_shadowSize == nil then @m_shadowSize = 2
 		
 		@m_fontobj = DNotify.Font(@m_font)
 		@CompileCache!
@@ -59,7 +59,9 @@ class DNotifyBase
 	GetText: => @m_text
 	GetFont: => @m_font
 	GetColor: => @m_color
-	GetStamp: => @m_created
+	GetColor: => @m_color
+	GetDrawShadow: => @m_shadow
+	GetShadowSize: => @m_shadowSize
 	
 	IsValid: => @m_isValid
 	
@@ -89,6 +91,18 @@ class DNotifyBase
 	
 	SetTextAlign: (...) => @SetAlign(...)
 	
+	SetDrawShadow: (val = true) =>
+		assert(@IsValid!, 'tried to use a finished Slide Notification!')
+		assert(type(val) == 'boolean', 'must be boolean')
+		@m_shadow = val
+		return @
+	
+	SetShadowSize: (val = 2) =>
+		assert(@IsValid!, 'tried to use a finished Slide Notification!')
+		assert(type(val) == 'number', 'must be number')
+		@m_shadowSize = val
+		return @
+	
 	SetColor: (val = Color(255, 255, 255)) =>
 		assert(@IsValid!, 'tried to use a finished Slide Notification!')
 		assert(val.r and val.g and val.b and val.a, 'Not a valid color')
@@ -98,7 +112,11 @@ class DNotifyBase
 	FixFont: =>
 		assert(@IsValid!, 'tried to use a finished Slide Notification!')
 		result = pcall(surface.SetFont, @m_font)
-		if not result then @m_font = 'Default'
+		if not result
+			print '[DNotify] ERROR: Invalid font: ' .. @m_font
+			print debug.traceback!
+			@m_font = 'Default'
+		
 		return @
 	
 	SetFont: (val = 'Default') =>

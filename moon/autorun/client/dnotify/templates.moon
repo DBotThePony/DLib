@@ -15,9 +15,18 @@
 -- limitations under the License.
 -- 
 
-AddCSLuaFile 'autorun/client/dnotify/font_obj.lua'
-AddCSLuaFile 'autorun/client/dnotify/base_class.lua'
-AddCSLuaFile 'autorun/client/dnotify/templates.lua'
-AddCSLuaFile 'autorun/client/dnotify/animated_base.lua'
-AddCSLuaFile 'autorun/client/dnotify/slide_class.lua'
-AddCSLuaFile 'autorun/client/dnotify/centered_class.lua'
+import HasValue from table
+
+DNotify.SetSideFunc = (val = @m_defSide, affectAlign = true) =>
+	assert(@IsValid!, 'tried to use a finished Slide Notification!')
+	assert(HasValue(@m_allowedSides, val), 'Only left or right sides are allowed')
+	assert(type(affectAlign) == 'boolean', 'Only left or right sides are allowed')
+	assert(not @m_isDrawn, 'Can not change side while drawing')
+	@m_side = val
+	
+	if affectAlign and val == DNOTIFY_SIDE_RIGHT
+		@SetAlign(TEXT_ALIGN_RIGHT)
+	elseif affectAlign and val == DNOTIFY_SIDE_LEFT
+		@SetAlign(TEXT_ALIGN_LEFT)
+	
+	return @

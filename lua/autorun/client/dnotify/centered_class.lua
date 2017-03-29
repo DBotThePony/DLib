@@ -3,28 +3,21 @@ do
   local _obj_0 = table
   insert, remove = _obj_0.insert, _obj_0.remove
 end
-local newLines, allowedOrign, DNotifyBase, DNotifyAnimated
+local newLines, allowedOrign, DNotifyAnimated
 do
   local _obj_0 = DNotify
-  newLines, allowedOrign, DNotifyBase, DNotifyAnimated = _obj_0.newLines, _obj_0.allowedOrign, _obj_0.DNotifyBase, _obj_0.DNotifyAnimated
+  newLines, allowedOrign, DNotifyAnimated = _obj_0.newLines, _obj_0.allowedOrign, _obj_0.DNotifyAnimated
 end
-local SlideNotify
+surface.CreateFont('DNotifyCentered', {
+  font = 'Roboto',
+  size = 18,
+  weight = 600
+})
+local CenteredNotify
 do
   local _class_0
   local _parent_0 = DNotifyAnimated
   local _base_0 = {
-    GetBackgroundColor = function(self)
-      return self.m_backgroundColor
-    end,
-    GetBackColor = function(self)
-      return self.m_backgroundColor
-    end,
-    ShouldDrawBackground = function(self)
-      return self.m_background
-    end,
-    ShouldDrawBack = function(self)
-      return self.m_background
-    end,
     GetSide = function(self)
       return self.m_side
     end,
@@ -34,36 +27,18 @@ do
         return self
       end
       if self.m_animated and self.m_animin then
-        self.m_shift = -150
+        self.m_alpha = 0
       else
-        self.m_shift = 0
+        self.m_alpha = 1
       end
-      if self.m_side == DNOTIFY_SIDE_LEFT then
-        insert(DNotify.NotificationsSlideLeft, self)
+      if self.m_side == DNOTIFY_POS_TOP then
+        insert(DNotify.NotificationsCenterTop, self)
       else
-        insert(DNotify.NotificationsSlideRight, self)
+        insert(DNotify.NotificationsCenterBottom, self)
       end
       return _class_0.__parent.__base.Start(self)
     end,
-    SetBackgroundColor = function(self, val)
-      if val == nil then
-        val = Color(255, 255, 255)
-      end
-      assert(self:IsValid(), 'tried to use a finished Slide Notification!')
-      assert(val.r and val.g and val.b and val.a, 'Not a valid color')
-      self.m_backgroundColor = val
-      return self
-    end,
     SetSide = DNotify.SetSideFunc,
-    SetShouldDrawBackground = function(self, val)
-      if val == nil then
-        val = true
-      end
-      assert(self:IsValid(), 'tried to use a finished Slide Notification!')
-      assert(type(val) == 'boolean', 'must be a boolean')
-      self.m_background = val
-      return self
-    end,
     Draw = function(self, x, y)
       if x == nil then
         x = 0
@@ -71,17 +46,13 @@ do
       if y == nil then
         y = 0
       end
-      local SetTextPos, SetDrawColor, DrawRect, SetFont, SetTextColor, DrawText
+      local SetTextPos, SetFont, SetTextColor, DrawText
       do
         local _obj_0 = surface
-        SetTextPos, SetDrawColor, DrawRect, SetFont, SetTextColor, DrawText = _obj_0.SetTextPos, _obj_0.SetDrawColor, _obj_0.DrawRect, _obj_0.SetFont, _obj_0.SetTextColor, _obj_0.DrawText
+        SetTextPos, SetFont, SetTextColor, DrawText = _obj_0.SetTextPos, _obj_0.SetFont, _obj_0.SetTextColor, _obj_0.DrawText
       end
-      x = x + self.m_shift
+      x = x - (self.m_sizeOfTextX / 2)
       SetTextPos(x + 2, y + 2)
-      if self.m_background then
-        SetDrawColor(self.m_backgroundColor)
-        DrawRect(x, y, self.m_sizeOfTextX + 4, self.m_sizeOfTextY + 4)
-      end
       for i, line in pairs(self.m_cache) do
         local lineX = line.lineX
         local shiftX = line.shiftX
@@ -90,11 +61,11 @@ do
         for i, strData in pairs(line.content) do
           SetFont(strData.font)
           if self.m_shadow then
-            SetTextColor(0, 0, 0)
+            SetTextColor(0, 0, 0, self.m_alpha * 255)
             SetTextPos(x + shiftX + strData.x + 2 + self.m_shadowSize, y + nextY + 2 + self.m_shadowSize)
             DrawText(strData.content)
           end
-          SetTextColor(strData.color)
+          SetTextColor(strData.color.r, strData.color.g, strData.color.b, self.m_alpha * 255)
           SetTextPos(x + shiftX + strData.x + 2, y + nextY + 2)
           DrawText(strData.content)
         end
@@ -106,14 +77,14 @@ do
         local deltaIn = self.m_start + 1 - cTime
         local deltaOut = cTime - self.m_finish
         if deltaIn >= 0 and deltaIn <= 1 and self.m_animin then
-          self.m_shift = -150 * deltaIn
+          self.m_alpha = 1 - deltaIn
         elseif deltaOut >= 0 and deltaOut < 1 and self.m_animout then
-          self.m_shift = -150 * deltaOut
+          self.m_alpha = 1 - deltaOut
         else
-          self.m_shift = 0
+          self.m_alpha = 1
         end
       else
-        self.m_shift = 0
+        self.m_alpha = 1
       end
     end
   }
@@ -121,20 +92,20 @@ do
   setmetatable(_base_0, _parent_0.__base)
   _class_0 = setmetatable({
     __init = function(self, ...)
-      self.m_side = DNOTIFY_SIDE_LEFT
-      self.m_defSide = DNOTIFY_SIDE_LEFT
+      self.m_side = DNOTIFY_POS_TOP
+      self.m_defSide = DNOTIFY_POS_TOP
       self.m_allowedSides = {
-        DNOTIFY_SIDE_LEFT,
-        DNOTIFY_SIDE_RIGHT
+        DNOTIFY_POS_TOP,
+        DNOTIFY_POS_BOTTOM
       }
-      self.m_shift = -150
-      self.m_background = true
-      self.m_backgroundColor = Color(0, 0, 0, 150)
-      self.m_shadow = false
+      self.m_color = Color(10, 185, 200)
+      self.m_alpha = 0
+      self.m_align = TEXT_ALIGN_CENTER
+      self.m_font = 'DNotifyCentered'
       return _class_0.__parent.__init(self, ...)
     end,
     __base = _base_0,
-    __name = "SlideNotify",
+    __name = "CenteredNotify",
     __parent = _parent_0
   }, {
     __index = function(cls, name)
@@ -158,8 +129,10 @@ do
   if _parent_0.__inherited then
     _parent_0.__inherited(_parent_0, _class_0)
   end
-  SlideNotify = _class_0
+  CenteredNotify = _class_0
 end
-DNotify.Slide = SlideNotify
-DNotify.slide = SlideNotify
-DNotify.SlideNotify = SlideNotify
+DNotify.CenteredNotify = CenteredNotify
+DNotify.centered = CenteredNotify
+DNotify.centerednotify = CenteredNotify
+DNotify.center = CenteredNotify
+DNotify.centernotify = CenteredNotify

@@ -3,11 +3,12 @@ do
   local _obj_0 = table
   insert, remove = _obj_0.insert, _obj_0.remove
 end
-local newLines, allowedOrign, DNotifyBase
+local newLines, allowedOrign
 do
   local _obj_0 = DNotify
-  newLines, allowedOrign, DNotifyBase = _obj_0.newLines, _obj_0.allowedOrign, _obj_0.DNotifyBase
+  newLines, allowedOrign = _obj_0.newLines, _obj_0.allowedOrign
 end
+local DNotifyBase
 do
   local _class_0
   local _base_0 = {
@@ -50,8 +51,14 @@ do
     GetColor = function(self)
       return self.m_color
     end,
-    GetStamp = function(self)
-      return self.m_created
+    GetColor = function(self)
+      return self.m_color
+    end,
+    GetDrawShadow = function(self)
+      return self.m_shadow
+    end,
+    GetShadowSize = function(self)
+      return self.m_shadowSize
     end,
     IsValid = function(self)
       return self.m_isValid
@@ -89,6 +96,24 @@ do
     SetTextAlign = function(self, ...)
       return self:SetAlign(...)
     end,
+    SetDrawShadow = function(self, val)
+      if val == nil then
+        val = true
+      end
+      assert(self:IsValid(), 'tried to use a finished Slide Notification!')
+      assert(type(val) == 'boolean', 'must be boolean')
+      self.m_shadow = val
+      return self
+    end,
+    SetShadowSize = function(self, val)
+      if val == nil then
+        val = 2
+      end
+      assert(self:IsValid(), 'tried to use a finished Slide Notification!')
+      assert(type(val) == 'number', 'must be number')
+      self.m_shadowSize = val
+      return self
+    end,
     SetColor = function(self, val)
       if val == nil then
         val = Color(255, 255, 255)
@@ -102,6 +127,8 @@ do
       assert(self:IsValid(), 'tried to use a finished Slide Notification!')
       local result = pcall(surface.SetFont, self.m_font)
       if not result then
+        print('[DNotify] ERROR: Invalid font: ' .. self.m_font)
+        print(debug.traceback())
         self.m_font = 'Default'
       end
       return self
@@ -348,21 +375,35 @@ do
           contents
         }
       end
-      self.m_sound = ''
       self.m_text = contents
-      self.m_font = 'Default'
-      self.m_color = Color(255, 255, 255)
+      if not self.m_sound then
+        self.m_sound = ''
+      end
+      if not self.m_font then
+        self.m_font = 'Default'
+      end
+      if not self.m_color then
+        self.m_color = Color(255, 255, 255)
+      end
+      if not self.m_length then
+        self.m_length = 4
+      end
       self.m_lastThink = CurTime()
       self.m_created = self.m_lastThink
       self.m_start = self.m_created
-      self.m_finish = self.m_start + 4
-      self.m_finishFinal = self.m_finish + 1
-      self.m_length = 4
-      self.m_lengthFinal = 5
+      self.m_finish = self.m_start + self.m_length
       self.m_timer = true
-      self.m_align = TEXT_ALIGN_LEFT
+      if not self.m_align then
+        self.m_align = TEXT_ALIGN_LEFT
+      end
       self.m_isDrawn = false
       self.m_isValid = true
+      if self.m_shadow == nil then
+        self.m_shadow = true
+      end
+      if self.m_shadowSize == nil then
+        self.m_shadowSize = 2
+      end
       self.m_fontobj = DNotify.Font(self.m_font)
       return self:CompileCache()
     end,
