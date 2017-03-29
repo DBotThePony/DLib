@@ -8,6 +8,11 @@ do
   local _obj_0 = DNotify
   newLines, allowedOrign, DNotifyBase, DNotifyAnimated = _obj_0.newLines, _obj_0.allowedOrign, _obj_0.DNotifyBase, _obj_0.DNotifyAnimated
 end
+surface.CreateFont('DNotifySlide', {
+  font = 'Roboto',
+  size = 16,
+  weight = 500
+})
 local SlideNotify
 do
   local _class_0
@@ -140,6 +145,7 @@ do
       self.m_background = true
       self.m_backgroundColor = Color(0, 0, 0, 150)
       self.m_shadow = false
+      self.m_font = 'DNotifySlide'
       return _class_0.__parent.__init(self, ...)
     end,
     __base = _base_0,

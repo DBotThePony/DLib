@@ -18,6 +18,12 @@
 import insert, remove from table
 import newLines, allowedOrign, DNotifyBase, DNotifyAnimated from DNotify
 
+surface.CreateFont('DNotifySlide', {
+	font: 'Roboto'
+	size: 16
+	weight: 500
+})
+
 class SlideNotify extends DNotifyAnimated
 	new: (...) =>
 		@m_side = DNOTIFY_SIDE_LEFT
@@ -28,6 +34,7 @@ class SlideNotify extends DNotifyAnimated
 		@m_background = true
 		@m_backgroundColor = Color(0, 0, 0, 150)
 		@m_shadow = false
+		@m_font = 'DNotifySlide'
 		
 		super(...)
 	
