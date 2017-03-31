@@ -42,9 +42,6 @@ do
     GetLength = function(self)
       return self.m_length
     end,
-    GetFinishFinal = function(self)
-      return self.m_finishFinal
-    end,
     FinishesOn = function(self)
       return self.m_finish
     end,
@@ -188,6 +185,10 @@ do
       local tryFirst = tryTable[1]
       if type(tryFirst) == 'string' then
         self:__setTextInternal(tryTable)
+        self:CompileCache()
+        if not self.m_isDrawn then
+          self:CalculateTimer()
+        end
         return self
       elseif type(tryFirst) == 'table' then
         if (not tryFirst.r or not tryFirst.g or not tryFirst.b or not tryFirst.a) and not tryFirst.m_dnotify_type then
@@ -195,11 +196,14 @@ do
         else
           self:__setTextInternal(tryTable)
         end
+        self:CompileCache()
+        if not self.m_isDrawn then
+          self:CalculateTimer()
+        end
         return self
       else
         error('Unknown argument!')
       end
-      self:CompileCache()
       return self
     end,
     SetStart = function(self, val, resetTimer)
@@ -214,7 +218,7 @@ do
       assert(type(resetTimer) == 'boolean', '#2 must be a boolean')
       self.m_start = val
       if resetTimer then
-        self:ResetTimer()
+        self:ResetTimer(false)
       end
       return self
     end,
@@ -232,11 +236,15 @@ do
       self.m_sound = newSound
       return self
     end,
-    ResetTimer = function(self)
+    ResetTimer = function(self, affectStart)
+      if affectStart == nil then
+        affectStart = true
+      end
       assert(self:IsValid(), 'tried to use a finished Slide Notification!')
-      self.m_start = CurTime()
+      if affectStart then
+        self.m_start = CurTime()
+      end
       self.m_finish = self.m_start + self.m_length
-      self.m_finishFinal = self.m_finish + 1
       return self
     end,
     StopTimer = function(self)
@@ -259,8 +267,37 @@ do
         new = 3
       end
       self.m_length = new
-      self.m_lengthFinal = new + 1
       self:ResetTimer()
+      return self
+    end,
+    SetFinish = function(self, new)
+      if new == nil then
+        new = CurTime() + 4
+      end
+      assert(self:IsValid(), 'tried to use a finished Slide Notification!')
+      assert(type(new) == 'number', 'must be a number')
+      self.m_finish = new
+      self.m_length = new - self.m_start
+      return self
+    end,
+    CalculateTimer = function(self)
+      assert(self:IsValid(), 'tried to use a finished Slide Notification!')
+      local newLen = 2
+      for i, object in pairs(self.m_text) do
+        if type(object) == 'string' then
+          newLen = newLen + ((#object) ^ (1 / 2))
+        end
+      end
+      self.m_calculatedLength = math.Clamp(newLen, 4, 10)
+      self:SetLength(self.m_calculatedLength)
+      return self
+    end,
+    ExtendTimer = function(self, val)
+      if val == nil then
+        val = self.m_calculatedLength
+      end
+      assert(type(val) == 'number', 'must be a number')
+      self:SetFinish(CurTime() + val)
       return self
     end,
     SetThink = function(self, val)
@@ -366,25 +403,25 @@ do
       print(debug.traceback())
       return 0
     end,
+    ThinkNotTimer = function(self) end,
+    ThinkTimer = function(self) end,
+    GetNonValidTime = function(self)
+      return self.m_finish
+    end,
     Think = function(self)
       assert(self:IsValid(), 'tried to use a finished Slide Notification!')
       local deltaThink = CurTime() - self.m_lastThink
       if not self.m_timer then
         self.m_created = self.m_created + deltaThink
         self.m_finish = self.m_finish + deltaThink
-        self.m_finishFinal = self.m_finishFinal + deltaThink
-        if self.ThinkNotTimer then
-          self:ThinkNotTimer(deltaThink)
-        end
+        self:ThinkNotTimer(deltaThink)
       else
         local cTime = CurTime()
-        if self.m_finishFinal <= cTime then
+        if self:GetNonValidTime() <= cTime then
           self:Remove()
           return false
         end
-        if self.ThinkTimer then
-          self:ThinkTimer(deltaThink, cTime)
-        end
+        self:ThinkTimer(deltaThink, cTime)
       end
       if self.m_thinkf then
         self:m_thinkf()
@@ -436,7 +473,8 @@ do
         self.m_shadowSize = 2
       end
       self.m_fontobj = DNotify.Font(self.m_font)
-      return self:CompileCache()
+      self:CompileCache()
+      return self:CalculateTimer()
     end,
     __base = _base_0,
     __name = "DNotifyBase"

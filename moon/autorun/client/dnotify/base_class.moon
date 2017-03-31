@@ -46,7 +46,7 @@ class DNotifyBase
 		
 		@m_fontobj = DNotify.Font(@m_font)
 		@CompileCache!
-	
+		@CalculateTimer!
 	
 	Bind: (obj) =>
 		@dispatcher = obj
@@ -62,7 +62,6 @@ class DNotifyBase
 	HasSound: => @m_sound ~= ''
 	GetStart: => @m_start
 	GetLength: => @m_length
-	GetFinishFinal: => @m_finishFinal
 	FinishesOn: => @m_finish
 	StopsOn: => @m_finish
 	IsTimer: => @m_timer
@@ -164,6 +163,9 @@ class DNotifyBase
 		
 		if type(tryFirst) == 'string'
 			@__setTextInternal(tryTable)
+			@CompileCache!
+			if not @m_isDrawn then @CalculateTimer!
+			
 			return @
 		elseif type(tryFirst) == 'table'
 			if (not tryFirst.r or not tryFirst.g or not tryFirst.b or not tryFirst.a) and not tryFirst.m_dnotify_type
@@ -171,11 +173,12 @@ class DNotifyBase
 			else
 				@__setTextInternal(tryTable)
 			
+			@CompileCache!
+			if not @m_isDrawn then @CalculateTimer!
+			
 			return @
 		else
 			error('Unknown argument!')
-		
-		@CompileCache!
 		
 		return @
 	
@@ -184,7 +187,7 @@ class DNotifyBase
 		assert(type(val) == 'number', '#1 must be a number')
 		assert(type(resetTimer) == 'boolean', '#2 must be a boolean')
 		@m_start = val
-		if resetTimer then @ResetTimer!
+		if resetTimer then @ResetTimer(false)
 		return @
 	
 	ClearSound: =>
@@ -198,11 +201,10 @@ class DNotifyBase
 		@m_sound = newSound
 		return @
 		
-	ResetTimer: =>
+	ResetTimer: (affectStart = true) =>
 		assert(@IsValid!, 'tried to use a finished Slide Notification!')
-		@m_start = CurTime()
+		if affectStart then @m_start = CurTime()
 		@m_finish = @m_start + @m_length
-		@m_finishFinal = @m_finish + 1
 		
 		return @
 	
@@ -222,8 +224,31 @@ class DNotifyBase
 		if new < 3 then new = 3
 		
 		@m_length = new
-		@m_lengthFinal = new + 1
 		@ResetTimer!
+		return @
+	
+	SetFinish: (new = CurTime! + 4) =>
+		assert(@IsValid!, 'tried to use a finished Slide Notification!')
+		assert(type(new) == 'number', 'must be a number')
+		@m_finish = new
+		@m_length = new - @m_start
+		return @
+	
+	CalculateTimer: =>
+		assert(@IsValid!, 'tried to use a finished Slide Notification!')
+		newLen = 2
+		
+		for i, object in pairs @m_text
+			if type(object) == 'string'
+				newLen += (#object) ^ (1 / 2)
+		
+		@m_calculatedLength = math.Clamp(newLen, 4, 10)
+		@SetLength(@m_calculatedLength)
+		return @
+	
+	ExtendTimer: (val = @m_calculatedLength) =>
+		assert(type(val) == 'number', 'must be a number')
+		@SetFinish(CurTime! + val)
 		return @
 		
 	SetThink: (val = (->)) =>
@@ -302,6 +327,14 @@ class DNotifyBase
 		print debug.traceback!
 		return 0
 	
+	ThinkNotTimer: =>
+		-- Override
+	
+	ThinkTimer: =>
+		-- Override
+	
+	GetNonValidTime: => @m_finish
+	
 	Think: =>
 		assert(@IsValid!, 'tried to use a finished Slide Notification!')
 		deltaThink = CurTime() - @m_lastThink
@@ -309,21 +342,18 @@ class DNotifyBase
 		if not @m_timer
 			@m_created += deltaThink
 			@m_finish += deltaThink
-			@m_finishFinal += deltaThink
 			
-			if @ThinkNotTimer
-				@ThinkNotTimer(deltaThink)
+			@ThinkNotTimer(deltaThink)
 		else
 			cTime = CurTime()
 			
-			if @m_finishFinal <= cTime
+			if @GetNonValidTime! <= cTime
 				@Remove!
 				return false
 			
-			if @ThinkTimer
-				@ThinkTimer(deltaThink, cTime)
-		
+			@ThinkTimer(deltaThink, cTime)
 		if @m_thinkf then @m_thinkf!
+		
 		return @
 
 class DNotifyDispatcherBase

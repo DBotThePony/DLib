@@ -25,6 +25,22 @@ do
     GetAnimatedOut = function(self)
       return self.m_animout
     end,
+    GetFinishFinal = function(self)
+      return self.m_finishFinal
+    end,
+    ResetTimer = function(self)
+      _class_0.__parent.__base.ResetTimer(self)
+      self.m_finishFinal = self.m_finish + 1
+      return self
+    end,
+    SetLength = function(self, new)
+      if new == nil then
+        new = 4
+      end
+      _class_0.__parent.__base.SetLength(self, new)
+      self.m_lengthFinal = new + 1
+      return self
+    end,
     ResetTimer = function(self)
       _class_0.__parent.__base.ResetTimer(self)
       self.m_finishFinal = self.m_finish + 1
@@ -56,6 +72,20 @@ do
       assert(type(val) == 'boolean', 'must be a boolean')
       self.m_animated = val
       return self
+    end,
+    SetFinish = function(self, new)
+      if new == nil then
+        new = CurTime() + 4
+      end
+      _class_0.__parent.__base.SetFinish(self, new)
+      self.m_finishFinal = self.m_finish + 1
+      return self
+    end,
+    ThinkNotTimer = function(self, deltaThink)
+      self.m_finishFinal = self.m_finishFinal + deltaThink
+    end,
+    GetNonValidTime = function(self)
+      return self.m_finishFinal
     end
   }
   _base_0.__index = _base_0

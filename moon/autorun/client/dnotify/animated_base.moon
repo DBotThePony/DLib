@@ -32,6 +32,17 @@ class DNotifyAnimated extends DNotifyBase
 	GetIsAnimated: => @m_animated
 	GetAnimatedIn: => @m_animin
 	GetAnimatedOut: => @m_animout
+	GetFinishFinal: => @m_finishFinal
+	
+	ResetTimer: =>
+		super!
+		@m_finishFinal = @m_finish + 1
+		return @
+	
+	SetLength: (new = 4) =>
+		super(new)
+		@m_lengthFinal = new + 1
+		return @
 	
 	ResetTimer: =>
 		super!
@@ -55,5 +66,15 @@ class DNotifyAnimated extends DNotifyBase
 		assert(type(val) == 'boolean', 'must be a boolean')
 		@m_animated = val
 		return @
+	
+	SetFinish: (new = CurTime! + 4) =>
+		super(new)
+		@m_finishFinal = @m_finish + 1
+		return @
+	
+	ThinkNotTimer: (deltaThink) =>
+		@m_finishFinal += deltaThink
 
+	GetNonValidTime: => @m_finishFinal
+		
 DNotify.DNotifyAnimated = DNotifyAnimated

@@ -37,7 +37,6 @@ class SlideNotify extends DNotifyAnimated
 		@m_font = 'DNotifySlide'
 		
 		super(...)
-		@CalculateTimer!
 	
 	GetBackgroundColor: => @m_backgroundColor
 	GetBackColor: => @m_backgroundColor
@@ -77,22 +76,6 @@ class SlideNotify extends DNotifyAnimated
 		assert(@IsValid!, 'tried to use a finished Slide Notification!')
 		assert(type(val) == 'boolean', 'must be a boolean')
 		@m_background = val
-		return @
-	
-	SetText: (...) =>
-		super(...)
-		@CalculateTimer!
-		return @
-	
-	CalculateTimer: =>
-		assert(@IsValid!, 'tried to use a finished Slide Notification!')
-		newLen = 2
-		
-		for i, object in pairs @m_text
-			if type(object) == 'string'
-				newLen += (#object) ^ (1 / 2)
-		
-		@SetLength(math.Clamp(newLen, 4, 10))
 		return @
 	
 	Draw: (x = 0, y = 0) =>

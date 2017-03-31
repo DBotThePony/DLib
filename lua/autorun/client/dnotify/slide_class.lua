@@ -73,22 +73,6 @@ do
       self.m_background = val
       return self
     end,
-    SetText = function(self, ...)
-      _class_0.__parent.__base.SetText(self, ...)
-      self:CalculateTimer()
-      return self
-    end,
-    CalculateTimer = function(self)
-      assert(self:IsValid(), 'tried to use a finished Slide Notification!')
-      local newLen = 2
-      for i, object in pairs(self.m_text) do
-        if type(object) == 'string' then
-          newLen = newLen + ((#object) ^ (1 / 2))
-        end
-      end
-      self:SetLength(math.Clamp(newLen, 4, 10))
-      return self
-    end,
     Draw = function(self, x, y)
       if x == nil then
         x = 0
@@ -170,8 +154,7 @@ do
       self.m_backgroundColor = Color(0, 0, 0, 150)
       self.m_shadow = false
       self.m_font = 'DNotifySlide'
-      _class_0.__parent.__init(self, ...)
-      return self:CalculateTimer()
+      return _class_0.__parent.__init(self, ...)
     end,
     __base = _base_0,
     __name = "SlideNotify",
