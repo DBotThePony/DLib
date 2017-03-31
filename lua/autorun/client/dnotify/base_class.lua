@@ -174,6 +174,8 @@ do
           insert(self.m_text, value)
         elseif type(value) == 'string' then
           insert(self.m_text, value)
+        elseif type(value) == 'number' then
+          insert(self.m_text, tostring(value))
         end
       end
     end,
@@ -183,7 +185,7 @@ do
         ...
       }
       local tryFirst = tryTable[1]
-      if type(tryFirst) == 'string' then
+      if type(tryFirst) == 'string' or type(tryFirst) == 'number' then
         self:__setTextInternal(tryTable)
         self:CompileCache()
         if not self.m_isDrawn then

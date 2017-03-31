@@ -155,13 +155,15 @@ class DNotifyBase
 				insert(@m_text, value)
 			elseif type(value) == 'string'
 				insert(@m_text, value)
+			elseif type(value) == 'number'
+				insert(@m_text, tostring(value))
 	
 	SetText: (...) =>
 		assert(@IsValid!, 'tried to use a finished Slide Notification!')
 		tryTable = {...}
 		tryFirst = tryTable[1]
 		
-		if type(tryFirst) == 'string'
+		if type(tryFirst) == 'string' or type(tryFirst) == 'number'
 			@__setTextInternal(tryTable)
 			@CompileCache!
 			if not @m_isDrawn then @CalculateTimer!
