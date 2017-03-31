@@ -134,17 +134,22 @@ class SlideNotify extends DNotifyAnimated
 			deltaIn = @m_start + 1 - cTime
 			deltaOut = cTime - @m_finish
 			
-			if deltaIn >= 0 and deltaIn <= 1 and @m_animin
-				@m_shift = -(@m_sizeOfTextX * 1.2) * deltaIn
-			elseif deltaOut >= 0 and deltaOut < 1 and @m_animout
-				@m_shift = -(@m_sizeOfTextX * 1.2) * deltaOut
+			if @m_side == DNOTIFY_SIDE_RIGHT
+				if deltaIn >= 0 and deltaIn <= 1 and @m_animin
+					@m_shift = Lerp(0.2, @m_shift, (@m_sizeOfTextX * 1.2) * deltaIn)
+				elseif deltaOut >= 0 and deltaOut < 1 and @m_animout
+					@m_shift = Lerp(0.2, @m_shift, (@m_sizeOfTextX * 1.2) * deltaOut)
+				else
+					@m_shift = Lerp(0.2, @m_shift, 0)
 			else
-				@m_shift = 0
+				if deltaIn >= 0 and deltaIn <= 1 and @m_animin
+					@m_shift = Lerp(0.2, @m_shift, -(@m_sizeOfTextX * 1.2) * deltaIn)
+				elseif deltaOut >= 0 and deltaOut < 1 and @m_animout
+					@m_shift = Lerp(0.2, @m_shift, -(@m_sizeOfTextX * 1.2) * deltaOut)
+				else
+					@m_shift = Lerp(0.2, @m_shift, 0)
 		else
 			@m_shift = 0
-		
-		if @m_side == DNOTIFY_SIDE_RIGHT
-			@m_shift = -@m_shift
 
 DNotify.SlideNotify = SlideNotify
 

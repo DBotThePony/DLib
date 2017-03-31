@@ -133,18 +133,25 @@ do
       if self.m_animated then
         local deltaIn = self.m_start + 1 - cTime
         local deltaOut = cTime - self.m_finish
-        if deltaIn >= 0 and deltaIn <= 1 and self.m_animin then
-          self.m_shift = -(self.m_sizeOfTextX * 1.2) * deltaIn
-        elseif deltaOut >= 0 and deltaOut < 1 and self.m_animout then
-          self.m_shift = -(self.m_sizeOfTextX * 1.2) * deltaOut
+        if self.m_side == DNOTIFY_SIDE_RIGHT then
+          if deltaIn >= 0 and deltaIn <= 1 and self.m_animin then
+            self.m_shift = Lerp(0.2, self.m_shift, (self.m_sizeOfTextX * 1.2) * deltaIn)
+          elseif deltaOut >= 0 and deltaOut < 1 and self.m_animout then
+            self.m_shift = Lerp(0.2, self.m_shift, (self.m_sizeOfTextX * 1.2) * deltaOut)
+          else
+            self.m_shift = Lerp(0.2, self.m_shift, 0)
+          end
         else
-          self.m_shift = 0
+          if deltaIn >= 0 and deltaIn <= 1 and self.m_animin then
+            self.m_shift = Lerp(0.2, self.m_shift, -(self.m_sizeOfTextX * 1.2) * deltaIn)
+          elseif deltaOut >= 0 and deltaOut < 1 and self.m_animout then
+            self.m_shift = Lerp(0.2, self.m_shift, -(self.m_sizeOfTextX * 1.2) * deltaOut)
+          else
+            self.m_shift = Lerp(0.2, self.m_shift, 0)
+          end
         end
       else
         self.m_shift = 0
-      end
-      if self.m_side == DNOTIFY_SIDE_RIGHT then
-        self.m_shift = -self.m_shift
       end
     end
   }
