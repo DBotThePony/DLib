@@ -18,6 +18,12 @@ do
       self.dispatcher.ySmoothPositions[self.thinkID] = nil
       return self
     end,
+    GetDrawInConsole = function(self)
+      return self.m_console
+    end,
+    GetNotifyInConsole = function(self)
+      return self.m_console
+    end,
     GetAlign = function(self)
       return self.m_align
     end,
@@ -80,8 +86,10 @@ do
         surface.PlaySound(self.m_sound)
       end
       self:SetStart()
-      MsgC(Color(0, 255, 0), '[DNotify] ', self.m_color, unpack(self.m_text))
-      MsgC('\n')
+      if self.m_console then
+        MsgC(Color(0, 255, 0), '[DNotify] ', self.m_color, unpack(self.m_text))
+        MsgC('\n')
+      end
       return self
     end,
     Remove = function(self)
@@ -90,6 +98,15 @@ do
       end
       self.m_isValid = false
       return true
+    end,
+    SetNotifyInConsole = function(self, val)
+      if val == nil then
+        val = true
+      end
+      assert(self:IsValid(), 'tried to use a finished Slide Notification!')
+      assert(type(val) == 'boolean', 'must be boolean')
+      self.m_console = val
+      return self
     end,
     SetAlign = function(self, val)
       if val == nil then
@@ -405,6 +422,7 @@ do
       self.m_created = self.m_lastThink
       self.m_start = self.m_created
       self.m_finish = self.m_start + self.m_length
+      self.m_console = true
       self.m_timer = true
       if not self.m_align then
         self.m_align = TEXT_ALIGN_LEFT

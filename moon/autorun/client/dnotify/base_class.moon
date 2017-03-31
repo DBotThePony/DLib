@@ -33,6 +33,7 @@ class DNotifyBase
 		@m_created = @m_lastThink
 		@m_start = @m_created
 		@m_finish = @m_start + @m_length
+		@m_console = true
 		
 		@m_timer = true
 		
@@ -53,6 +54,8 @@ class DNotifyBase
 		@dispatcher.ySmoothPositions[@thinkID] = nil
 		return @
 	
+	GetDrawInConsole: => @m_console
+	GetNotifyInConsole: => @m_console
 	GetAlign: => @m_align
 	GetTextAlign: => @m_align
 	GetSound: => @m_sound
@@ -80,8 +83,9 @@ class DNotifyBase
 		if @m_sound ~= '' then surface.PlaySound(@m_sound)
 		@SetStart!
 		
-		MsgC(Color(0, 255, 0), '[DNotify] ', @m_color, unpack(@m_text))
-		MsgC('\n')
+		if @m_console
+			MsgC(Color(0, 255, 0), '[DNotify] ', @m_color, unpack(@m_text))
+			MsgC('\n')
 		
 		return @
 	
@@ -89,6 +93,12 @@ class DNotifyBase
 		if not @m_isDrawn then return false
 		@m_isValid = false
 		return true
+	
+	SetNotifyInConsole: (val = true) =>
+		assert(@IsValid!, 'tried to use a finished Slide Notification!')
+		assert(type(val) == 'boolean', 'must be boolean')
+		@m_console = val
+		return @
 	
 	SetAlign: (val = TEXT_ALIGN_LEFT) =>
 		assert(@IsValid!, 'tried to use a finished Slide Notification!')
