@@ -3,10 +3,10 @@ do
   local _obj_0 = table
   insert, remove = _obj_0.insert, _obj_0.remove
 end
-local newLines, allowedOrign, DNotifyAnimated
+local newLines, allowedOrign, DNotifyAnimated, DNotifyDispatcherBase
 do
   local _obj_0 = DNotify
-  newLines, allowedOrign, DNotifyAnimated = _obj_0.newLines, _obj_0.allowedOrign, _obj_0.DNotifyAnimated
+  newLines, allowedOrign, DNotifyAnimated, DNotifyDispatcherBase = _obj_0.newLines, _obj_0.allowedOrign, _obj_0.DNotifyAnimated, _obj_0.DNotifyDispatcherBase
 end
 surface.CreateFont('DNotifyCentered', {
   font = 'Roboto',
@@ -23,6 +23,7 @@ do
     end,
     Start = function(self)
       assert(self:IsValid(), 'tried to use a finished Slide Notification!')
+      assert(self.dispatcher, 'Not bound to a dispatcher!')
       if self.m_isDrawn then
         return self
       end
@@ -32,9 +33,9 @@ do
         self.m_alpha = 1
       end
       if self.m_side == DNOTIFY_POS_TOP then
-        insert(DNotify.NotificationsCenterTop, self)
+        insert(self.dispatcher.top, self)
       else
-        insert(DNotify.NotificationsCenterBottom, self)
+        insert(self.dispatcher.bottom, self)
       end
       return _class_0.__parent.__base.Start(self)
     end,
@@ -132,7 +133,85 @@ do
   CenteredNotify = _class_0
 end
 DNotify.CenteredNotify = CenteredNotify
-DNotify.centered = CenteredNotify
-DNotify.centerednotify = CenteredNotify
-DNotify.center = CenteredNotify
-DNotify.centernotify = CenteredNotify
+local CenteredNotifyDispatcher
+do
+  local _class_0
+  local _parent_0 = DNotifyDispatcherBase
+  local _base_0 = {
+    Draw = function(self)
+      local yShift = 0
+      local x = self.width / 2
+      local y = self.height * 0.26
+      for k, func in pairs(self.top) do
+        if y + yShift >= self.height then
+          break
+        end
+        if func:IsValid() then
+          local status, currShift = pcall(func.Draw, func, x, y + yShift)
+          if status then
+            yShift = yShift + currShift
+          else
+            print('[DNotify] ERROR ', currShift)
+          end
+        else
+          self.top[k] = nil
+        end
+      end
+      y = self.height * 0.75
+      for k, func in pairs(self.bottom) do
+        if y + yShift >= self.height then
+          break
+        end
+        if func:IsValid() then
+          local status, currShift = pcall(func.Draw, func, x, y + yShift)
+          if status then
+            yShift = yShift + currShift
+          else
+            print('[DNotify] ERROR ', currShift)
+          end
+        else
+          self.bottom[k] = nil
+        end
+      end
+    end
+  }
+  _base_0.__index = _base_0
+  setmetatable(_base_0, _parent_0.__base)
+  _class_0 = setmetatable({
+    __init = function(self, data)
+      if data == nil then
+        data = { }
+      end
+      self.top = { }
+      self.bottom = { }
+      self.obj = CenteredNotify
+      return _class_0.__parent.__init(self, data)
+    end,
+    __base = _base_0,
+    __name = "CenteredNotifyDispatcher",
+    __parent = _parent_0
+  }, {
+    __index = function(cls, name)
+      local val = rawget(_base_0, name)
+      if val == nil then
+        local parent = rawget(cls, "__parent")
+        if parent then
+          return parent[name]
+        end
+      else
+        return val
+      end
+    end,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  if _parent_0.__inherited then
+    _parent_0.__inherited(_parent_0, _class_0)
+  end
+  CenteredNotifyDispatcher = _class_0
+end
+DNotify.CenteredNotifyDispatcher = CenteredNotifyDispatcher

@@ -1,9 +1,5 @@
 DNotify = { }
-DNotify.RegisteredThinks = { }
-DNotify.NotificationsSlideLeft = { }
-DNotify.NotificationsSlideRight = { }
-DNotify.NotificationsCenterTop = { }
-DNotify.NotificationsCenterBottom = { }
+DNotify.DefaultDispatchers = { }
 local X_SHIFT_CVAR = CreateConVar('dnofity_x_shift', '0', {
   FCVAR_ARCHIVE
 }, 'Shift at X of DNotify slide notifications')
@@ -20,82 +16,62 @@ DNotify.newLines = function(str)
   end
   return string.Explode('\n', str)
 end
-DNotify.allowedOrign = function(enum)
+DNotify.allowedOrigin = function(enum)
   return enum == TEXT_ALIGN_LEFT or enum == TEXT_ALIGN_RIGHT or enum == TEXT_ALIGN_CENTER
+end
+DNotify.Clear = function()
+  for i, obj in pairs(DNotify.DefaultDispatchers) do
+    obj:Clear()
+  end
+end
+DNotify.CreateSlide = function(...)
+  return DNotify.DefaultDispatchers.slide:Create(...)
+end
+DNotify.CreateCentered = function(...)
+  return DNotify.DefaultDispatchers.center:Create(...)
+end
+DNotify.CreateDefaultDispatchers = function()
+  DNotify.DefaultDispatchers = { }
+  local slideData = {
+    x = X_SHIFT_CVAR:GetInt(),
+    getx = function(self)
+      return X_SHIFT_CVAR:GetInt()
+    end,
+    y = Y_SHIFT_CVAR:GetInt(),
+    gety = function(self)
+      return Y_SHIFT_CVAR:GetInt()
+    end,
+    width = ScrW(),
+    height = ScrH(),
+    getheight = ScrH,
+    getwidth = ScrW
+  }
+  local centerData = {
+    x = 0,
+    y = 0,
+    width = ScrW(),
+    height = ScrH(),
+    getheight = ScrH,
+    getwidth = ScrW
+  }
+  DNotify.DefaultDispatchers.slide = DNotify.SlideNotifyDispatcher(slideData)
+  DNotify.DefaultDispatchers.center = DNotify.CenteredNotifyDispatcher(centerData)
 end
 local HUDPaint
 HUDPaint = function()
-  local yShift = 0
-  local x = X_SHIFT_CVAR:GetInt()
-  local y = Y_SHIFT_CVAR:GetInt()
-  for k, func in pairs(DNotify.NotificationsSlideLeft) do
-    if func:IsValid() then
-      local status, currShift = pcall(func.Draw, func, x, y + yShift)
-      if status then
-        yShift = yShift + currShift
-      else
-        print('[DNotify] ERROR ', currShift)
-      end
-    else
-      DNotify.NotificationsSlideLeft[k] = nil
-    end
-  end
-  yShift = 0
-  x = ScrW() - X_SHIFT_CVAR:GetInt()
-  y = Y_SHIFT_CVAR:GetInt()
-  for k, func in pairs(DNotify.NotificationsSlideRight) do
-    if func:IsValid() then
-      local status, currShift = pcall(func.Draw, func, x, y + yShift)
-      if status then
-        yShift = yShift + currShift
-      else
-        print('[DNotify] ERROR ', currShift)
-      end
-    else
-      DNotify.NotificationsSlideRight[k] = nil
-    end
-  end
-  yShift = 0
-  x = ScrW() / 2
-  y = ScrH() * 0.26
-  for k, func in pairs(DNotify.NotificationsCenterTop) do
-    if func:IsValid() then
-      local status, currShift = pcall(func.Draw, func, x, y + yShift)
-      if status then
-        yShift = yShift + currShift
-      else
-        print('[DNotify] ERROR ', currShift)
-      end
-    else
-      DNotify.NotificationsCenterTop[k] = nil
-    end
-  end
-  y = ScrH() * 0.75
-  for k, func in pairs(DNotify.NotificationsCenterBottom) do
-    if func:IsValid() then
-      local status, currShift = pcall(func.Draw, func, x, y + yShift)
-      if status then
-        yShift = yShift + currShift
-      else
-        print('[DNotify] ERROR ', currShift)
-      end
-    else
-      DNotify.NotificationsCenterBottom[k] = nil
-    end
+  for i, dsp in pairs(DNotify.DefaultDispatchers) do
+    dsp:Draw()
   end
 end
 local Think
 Think = function()
-  for k, func in pairs(DNotify.RegisteredThinks) do
-    if func:IsValid() then
-      func:Think()
-    else
-      DNotify.RegisteredThinks[k] = nil
-    end
+  for i, dsp in pairs(DNotify.DefaultDispatchers) do
+    dsp:Think()
   end
 end
 hook.Add('HUDPaint', 'DNotify', HUDPaint)
 hook.Add('Think', 'DNotify', Think)
+timer.Simple(0, DNotify.CreateDefaultDispatchers)
 include('dnotify/font_obj.lua')
 include('dnotify/base_class.lua')
 include('dnotify/templates.lua')

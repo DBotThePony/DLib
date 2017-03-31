@@ -3,15 +3,20 @@ do
   local _obj_0 = table
   insert, remove = _obj_0.insert, _obj_0.remove
 end
-local newLines, allowedOrign
+local newLines, allowedOrigin
 do
   local _obj_0 = DNotify
-  newLines, allowedOrign = _obj_0.newLines, _obj_0.allowedOrign
+  newLines, allowedOrigin = _obj_0.newLines, _obj_0.allowedOrigin
 end
 local DNotifyBase
 do
   local _class_0
   local _base_0 = {
+    Bind = function(self, obj)
+      self.dispatcher = obj
+      insert(self.dispatcher.thinkHooks, self)
+      return self
+    end,
     GetAlign = function(self)
       return self.m_align
     end,
@@ -65,6 +70,7 @@ do
     end,
     Start = function(self)
       assert(self:IsValid(), 'tried to use a finished Slide Notification!')
+      assert(self.dispatcher, 'Not bound to a dispatcher!')
       if self.m_isDrawn then
         return self
       end
@@ -73,7 +79,6 @@ do
         surface.PlaySound(self.m_sound)
       end
       self:SetStart()
-      insert(DNotify.RegisteredThinks, self)
       MsgC(Color(0, 255, 0), '[DNotify] ', self.m_color, unpack(self.m_text))
       MsgC('\n')
       return self
@@ -90,7 +95,7 @@ do
         val = TEXT_ALIGN_LEFT
       end
       assert(self:IsValid(), 'tried to use a finished Slide Notification!')
-      assert(allowedOrign(val), 'Not a valid align')
+      assert(allowedOrigin(val), 'Not a valid align')
       self.m_align = val
       self:CompileCache()
       return self
@@ -427,4 +432,85 @@ do
   _base_0.__class = _class_0
   DNotifyBase = _class_0
 end
+local DNotifyDispatcherBase
+do
+  local _class_0
+  local _base_0 = {
+    Create = function(self, ...)
+      return self.obj(...):Bind(self)
+    end,
+    Clear = function(self)
+      for i, obj in pairs(self.thinkHooks) do
+        obj:Remove()
+      end
+    end,
+    Draw = function(self)
+      print('Non-overriden version!')
+      print(debug.traceback())
+      return self
+    end,
+    Think = function(self)
+      if type(self.xFunc) == 'function' then
+        self.x_start = self:xFunc(unpack(self.xArgs)) or self.x_start
+      end
+      if type(self.yFunc) == 'function' then
+        self.y_start = self:yFunc(unpack(self.yArgs)) or self.y_start
+      end
+      if type(self.heightFunc) == 'function' then
+        self.height = self:heightFunc(unpack(self.heightArgs)) or self.height
+      end
+      if type(self.widthFunc) == 'function' then
+        self.width = self:widthFunc(unpack(self.widthArgs)) or self.width
+      end
+      for k, func in pairs(self.thinkHooks) do
+        if func:IsValid() then
+          local status, err = pcall(func.Think, func)
+          if not status then
+            print('[DNotify] ERROR ', err)
+          end
+        else
+          self.thinkHooks[k] = nil
+        end
+      end
+      return self
+    end
+  }
+  _base_0.__index = _base_0
+  _class_0 = setmetatable({
+    __init = function(self, data)
+      if data == nil then
+        data = { }
+      end
+      self.x_start = data.x or 0
+      self.y_start = data.y or 0
+      self.width = data.width or ScrW()
+      self.height = data.height or ScrH()
+      self.heightFunc = data.getheight
+      self.xFunc = data.getx
+      self.widthFunc = data.getwidth
+      self.yFunc = data.gety
+      self.heightArgs = data.height_func_args or { }
+      self.widthArgs = data.width_func_args or { }
+      self.xArgs = data.x_func_args or { }
+      self.yArgs = data.y_func_args or { }
+      self.data = data
+      if not self.obj then
+        self.obj = DNotifyBase
+      end
+      self.thinkHooks = { }
+    end,
+    __base = _base_0,
+    __name = "DNotifyDispatcherBase"
+  }, {
+    __index = _base_0,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  DNotifyDispatcherBase = _class_0
+end
 DNotify.DNotifyBase = DNotifyBase
+DNotify.DNotifyDispatcherBase = DNotifyDispatcherBase

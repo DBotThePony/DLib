@@ -22,11 +22,7 @@ export DNOTIFY_POS_TOP
 export DNOTIFY_POS_BOTTOM
 
 DNotify = {}
-DNotify.RegisteredThinks = {}
-DNotify.NotificationsSlideLeft = {}
-DNotify.NotificationsSlideRight = {}
-DNotify.NotificationsCenterTop = {}
-DNotify.NotificationsCenterBottom = {}
+DNotify.DefaultDispatchers = {}
 
 X_SHIFT_CVAR = CreateConVar('dnofity_x_shift', '0', {FCVAR_ARCHIVE}, 'Shift at X of DNotify slide notifications')
 Y_SHIFT_CVAR = CreateConVar('dnofity_y_shift', '45', {FCVAR_ARCHIVE}, 'Shift at Y of DNotify slide notifications')
@@ -37,80 +33,53 @@ DNOTIFY_POS_TOP = 3
 DNOTIFY_POS_BOTTOM = 4
 
 DNotify.newLines = (str = '') -> string.Explode('\n', str)
-DNotify.allowedOrign = (enum) ->
+DNotify.allowedOrigin = (enum) ->
 	enum == TEXT_ALIGN_LEFT or
 	enum == TEXT_ALIGN_RIGHT or
 	enum == TEXT_ALIGN_CENTER
 
-HUDPaint = ->
-	yShift = 0
-	
-	x = X_SHIFT_CVAR\GetInt()
-	y = Y_SHIFT_CVAR\GetInt()
-	
-	for k, func in pairs DNotify.NotificationsSlideLeft
-		if func\IsValid()
-			status, currShift = pcall(func.Draw, func, x, y + yShift)
-			if status
-				yShift += currShift
-			else
-				print('[DNotify] ERROR ', currShift)
-		else
-			DNotify.NotificationsSlideLeft[k] = nil
+DNotify.Clear = -> for i, obj in pairs DNotify.DefaultDispatchers do obj\Clear!
 
+DNotify.CreateSlide = (...) -> DNotify.DefaultDispatchers.slide\Create(...)
+DNotify.CreateCentered = (...) -> DNotify.DefaultDispatchers.center\Create(...)
+
+DNotify.CreateDefaultDispatchers = ->
+	DNotify.DefaultDispatchers = {}
 	
-	yShift = 0
-	x = ScrW! - X_SHIFT_CVAR\GetInt()
-	y = Y_SHIFT_CVAR\GetInt()
+	slideData = {
+		x: X_SHIFT_CVAR\GetInt()
+		getx: => X_SHIFT_CVAR\GetInt()
+		y: Y_SHIFT_CVAR\GetInt()
+		gety: => Y_SHIFT_CVAR\GetInt()
+		
+		width: ScrW!
+		height: ScrH!
+		getheight: ScrH
+		getwidth: ScrW
+	}
 	
-	for k, func in pairs DNotify.NotificationsSlideRight
-		if func\IsValid()
-			status, currShift = pcall(func.Draw, func, x, y + yShift)
-			
-			if status
-				yShift += currShift
-			else
-				print('[DNotify] ERROR ', currShift)
-		else
-			DNotify.NotificationsSlideRight[k] = nil
+	centerData = {
+		x: 0
+		y: 0
+		
+		width: ScrW!
+		height: ScrH!
+		getheight: ScrH
+		getwidth: ScrW
+	}
 	
-	yShift = 0
-	x = ScrW! / 2
-	y = ScrH! * 0.26
-	
-	for k, func in pairs DNotify.NotificationsCenterTop
-		if func\IsValid()
-			status, currShift = pcall(func.Draw, func, x, y + yShift)
-			
-			if status
-				yShift += currShift
-			else
-				print('[DNotify] ERROR ', currShift)
-		else
-			DNotify.NotificationsCenterTop[k] = nil
-	
-	y = ScrH! * 0.75
-	
-	for k, func in pairs DNotify.NotificationsCenterBottom
-		if func\IsValid()
-			status, currShift = pcall(func.Draw, func, x, y + yShift)
-			
-			if status
-				yShift += currShift
-			else
-				print('[DNotify] ERROR ', currShift)
-		else
-			DNotify.NotificationsCenterBottom[k] = nil
+	DNotify.DefaultDispatchers.slide = DNotify.SlideNotifyDispatcher(slideData)
+	DNotify.DefaultDispatchers.center = DNotify.CenteredNotifyDispatcher(centerData)
+
+HUDPaint = ->
+	for i, dsp in pairs DNotify.DefaultDispatchers do dsp\Draw!
 
 Think = ->
-	for k, func in pairs DNotify.RegisteredThinks
-		if func\IsValid!
-			func\Think!
-		else
-			DNotify.RegisteredThinks[k] = nil
+	for i, dsp in pairs DNotify.DefaultDispatchers do dsp\Think!
 
 hook.Add('HUDPaint', 'DNotify', HUDPaint)
 hook.Add('Think', 'DNotify', Think)
+timer.Simple(0, DNotify.CreateDefaultDispatchers)
 
 include 'dnotify/font_obj.lua'
 include 'dnotify/base_class.lua'

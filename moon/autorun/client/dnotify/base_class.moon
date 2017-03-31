@@ -16,7 +16,7 @@
 -- 
 
 import insert, remove from table
-import newLines, allowedOrign from DNotify
+import newLines, allowedOrigin from DNotify
 
 class DNotifyBase
 	new: (contents = {'Sample Text'}) =>
@@ -46,6 +46,12 @@ class DNotifyBase
 		@m_fontobj = DNotify.Font(@m_font)
 		@CompileCache!
 	
+	
+	Bind: (obj) =>
+		@dispatcher = obj
+		insert(@dispatcher.thinkHooks, @)
+		return @
+	
 	GetAlign: => @m_align
 	GetTextAlign: => @m_align
 	GetSound: => @m_sound
@@ -67,11 +73,11 @@ class DNotifyBase
 	
 	Start: =>
 		assert(@IsValid!, 'tried to use a finished Slide Notification!')
+		assert(@dispatcher, 'Not bound to a dispatcher!')
 		if @m_isDrawn then return @
 		@m_isDrawn = true
 		if @m_sound ~= '' then surface.PlaySound(@m_sound)
 		@SetStart!
-		insert(DNotify.RegisteredThinks, @)
 		
 		MsgC(Color(0, 255, 0), '[DNotify] ', @m_color, unpack(@m_text))
 		MsgC('\n')
@@ -85,7 +91,7 @@ class DNotifyBase
 	
 	SetAlign: (val = TEXT_ALIGN_LEFT) =>
 		assert(@IsValid!, 'tried to use a finished Slide Notification!')
-		assert(allowedOrign(val), 'Not a valid align')
+		assert(allowedOrigin(val), 'Not a valid align')
 		@m_align = val
 		
 		@CompileCache!
@@ -309,4 +315,62 @@ class DNotifyBase
 		if @m_thinkf then @m_thinkf!
 		return @
 
+class DNotifyDispatcherBase
+	new: (data = {}) =>
+		@x_start = data.x or 0
+		@y_start = data.y or 0
+		@width = data.width or ScrW!
+		@height = data.height or ScrH!
+		
+		@heightFunc = data.getheight
+		@xFunc = data.getx
+		@widthFunc = data.getwidth
+		@yFunc = data.gety
+		
+		@heightArgs = data.height_func_args or {}
+		@widthArgs = data.width_func_args or {}
+		
+		@xArgs = data.x_func_args or {}
+		@yArgs = data.y_func_args or {}
+		
+		@data = data
+		
+		if not @obj then @obj = DNotifyBase
+		
+		@thinkHooks = {}
+	
+	Create: (...) => self.obj(...)\Bind(@)
+	
+	Clear: => for i, obj in pairs @thinkHooks do obj\Remove()
+	
+	Draw: =>
+		print 'Non-overriden version!'
+		print debug.traceback!
+		return @
+	
+	Think: =>
+		if type(@xFunc) == 'function'
+			@x_start = @xFunc(unpack(@xArgs)) or @x_start
+		
+		if type(@yFunc) == 'function'
+			@y_start = @yFunc(unpack(@yArgs)) or @y_start
+		
+		if type(@heightFunc) == 'function'
+			@height = @heightFunc(unpack(@heightArgs)) or @height
+		
+		if type(@widthFunc) == 'function'
+			@width = @widthFunc(unpack(@widthArgs)) or @width
+		
+		for k, func in pairs @thinkHooks
+			if func\IsValid()
+				status, err = pcall(func.Think, func)
+				
+				if not status
+					print '[DNotify] ERROR ', err
+			else
+				@thinkHooks[k] = nil
+		
+		return @
+
 DNotify.DNotifyBase = DNotifyBase
+DNotify.DNotifyDispatcherBase = DNotifyDispatcherBase

@@ -16,7 +16,7 @@
 -- 
 
 import insert, remove from table
-import newLines, allowedOrign, DNotifyBase, DNotifyAnimated from DNotify
+import newLines, allowedOrign, DNotifyBase, DNotifyAnimated, DNotifyDispatcherBase from DNotify
 
 surface.CreateFont('DNotifySlide', {
 	font: 'Roboto'
@@ -47,6 +47,7 @@ class SlideNotify extends DNotifyAnimated
 	
 	Start: =>
 		assert(@IsValid!, 'tried to use a finished Slide Notification!')
+		assert(@dispatcher, 'Not bound to a dispatcher!')
 		if @m_isDrawn then return @
 		
 		if @m_animated and @m_animin
@@ -58,9 +59,9 @@ class SlideNotify extends DNotifyAnimated
 			@m_shift = -@m_shift
 		
 		if @m_side == DNOTIFY_SIDE_LEFT
-			insert(DNotify.NotificationsSlideLeft, @)
+			insert(@dispatcher.left, @)
 		else
-			insert(DNotify.NotificationsSlideRight, @)
+			insert(@dispatcher.right, @)
 		
 		return super!
 	
@@ -145,6 +146,49 @@ class SlideNotify extends DNotifyAnimated
 		if @m_side == DNOTIFY_SIDE_RIGHT
 			@m_shift = -@m_shift
 
-DNotify.Slide = SlideNotify
-DNotify.slide = SlideNotify
 DNotify.SlideNotify = SlideNotify
+
+class SlideNotifyDispatcher extends DNotifyDispatcherBase
+	new: (dspData) =>
+		@left = {}
+		@right = {}
+		@obj = SlideNotify
+		super(dspData)
+	
+	Draw: =>
+		yShift = 0
+		
+		x = @x_start
+		y = @y_start
+		
+		for k, func in pairs @left
+			if y + yShift >= @height then break
+			
+			if func\IsValid()
+				status, currShift = pcall(func.Draw, func, x, y + yShift)
+				
+				if status
+					yShift += currShift
+				else
+					print('[DNotify] ERROR ', currShift)
+			else
+				@left[k] = nil
+
+		
+		yShift = 0
+		x = @width
+		
+		for k, func in pairs @right
+			if y + yShift >= @height then break
+			
+			if func\IsValid()
+				status, currShift = pcall(func.Draw, func, x, y + yShift)
+				
+				if status
+					yShift += currShift
+				else
+					print('[DNotify] ERROR ', currShift)
+			else
+				@right[k] = nil
+
+DNotify.SlideNotifyDispatcher = SlideNotifyDispatcher

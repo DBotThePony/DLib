@@ -16,7 +16,7 @@
 -- 
 
 import insert, remove from table
-import newLines, allowedOrign, DNotifyAnimated from DNotify
+import newLines, allowedOrign, DNotifyAnimated, DNotifyDispatcherBase from DNotify
 
 surface.CreateFont('DNotifyCentered', {
 	font: 'Roboto'
@@ -42,14 +42,15 @@ class CenteredNotify extends DNotifyAnimated
 	
 	Start: =>
 		assert(@IsValid!, 'tried to use a finished Slide Notification!')
+		assert(@dispatcher, 'Not bound to a dispatcher!')
 		if @m_isDrawn then return @
 		
 		if @m_animated and @m_animin then @m_alpha = 0 else @m_alpha = 1
 		
 		if @m_side == DNOTIFY_POS_TOP
-			insert(DNotify.NotificationsCenterTop, @)
+			insert(@dispatcher.top, @)
 		else
-			insert(DNotify.NotificationsCenterBottom, @)
+			insert(@dispatcher.bottom, @)
 		
 		return super!
 	
@@ -97,7 +98,45 @@ class CenteredNotify extends DNotifyAnimated
 			@m_alpha = 1
 
 DNotify.CenteredNotify = CenteredNotify
-DNotify.centered = CenteredNotify
-DNotify.centerednotify = CenteredNotify
-DNotify.center = CenteredNotify
-DNotify.centernotify = CenteredNotify
+
+class CenteredNotifyDispatcher extends DNotifyDispatcherBase
+	new: (data = {}) =>
+		@top = {}
+		@bottom = {}
+		@obj = CenteredNotify
+		super(data)
+	
+	Draw: =>
+		yShift = 0
+		x = @width / 2
+		y = @height * 0.26
+		
+		for k, func in pairs @top
+			if y + yShift >= @height then break
+			
+			if func\IsValid()
+				status, currShift = pcall(func.Draw, func, x, y + yShift)
+				
+				if status
+					yShift += currShift
+				else
+					print('[DNotify] ERROR ', currShift)
+			else
+				@top[k] = nil
+		
+		y = @height * 0.75
+		
+		for k, func in pairs @bottom
+			if y + yShift >= @height then break
+			
+			if func\IsValid()
+				status, currShift = pcall(func.Draw, func, x, y + yShift)
+				
+				if status
+					yShift += currShift
+				else
+					print('[DNotify] ERROR ', currShift)
+			else
+				@bottom[k] = nil
+
+DNotify.CenteredNotifyDispatcher = CenteredNotifyDispatcher
