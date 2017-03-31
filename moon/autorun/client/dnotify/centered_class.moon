@@ -114,8 +114,11 @@ class CenteredNotifyDispatcher extends DNotifyDispatcherBase
 		for k, func in pairs @top
 			if y + yShift >= @height then break
 			
+			newSmoothPos = Lerp(0.2, @ySmoothPositions[func.thinkID] or y + yShift, y + yShift)
+			@ySmoothPositions[func.thinkID] = newSmoothPos
+			
 			if func\IsValid()
-				status, currShift = pcall(func.Draw, func, x, y + yShift)
+				status, currShift = pcall(func.Draw, func, x, newSmoothPos)
 				
 				if status
 					yShift += currShift
@@ -129,8 +132,11 @@ class CenteredNotifyDispatcher extends DNotifyDispatcherBase
 		for k, func in pairs @bottom
 			if y + yShift >= @height then break
 			
+			newSmoothPos = Lerp(0.2, @ySmoothPositions[func.thinkID] or y + yShift, y + yShift)
+			@ySmoothPositions[func.thinkID] = newSmoothPos
+			
 			if func\IsValid()
-				status, currShift = pcall(func.Draw, func, x, y + yShift)
+				status, currShift = pcall(func.Draw, func, x, newSmoothPos)
 				
 				if status
 					yShift += currShift

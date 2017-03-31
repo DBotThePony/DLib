@@ -49,7 +49,8 @@ class DNotifyBase
 	
 	Bind: (obj) =>
 		@dispatcher = obj
-		insert(@dispatcher.thinkHooks, @)
+		@thinkID = insert(@dispatcher.thinkHooks, @)
+		@dispatcher.ySmoothPositions[@thinkID] = nil
 		return @
 	
 	GetAlign: => @m_align
@@ -338,6 +339,7 @@ class DNotifyDispatcherBase
 		if not @obj then @obj = DNotifyBase
 		
 		@thinkHooks = {}
+		@ySmoothPositions = {}
 	
 	Create: (...) => self.obj(...)\Bind(@)
 	
@@ -369,6 +371,7 @@ class DNotifyDispatcherBase
 					print '[DNotify] ERROR ', err
 			else
 				@thinkHooks[k] = nil
+				@ySmoothPositions[func.thinkID] = nil
 		
 		return @
 

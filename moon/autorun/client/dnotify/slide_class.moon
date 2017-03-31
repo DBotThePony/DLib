@@ -164,8 +164,11 @@ class SlideNotifyDispatcher extends DNotifyDispatcherBase
 		for k, func in pairs @left
 			if y + yShift >= @height then break
 			
+			newSmoothPos = Lerp(0.2, @ySmoothPositions[func.thinkID] or y + yShift, y + yShift)
+			@ySmoothPositions[func.thinkID] = newSmoothPos
+			
 			if func\IsValid()
-				status, currShift = pcall(func.Draw, func, x, y + yShift)
+				status, currShift = pcall(func.Draw, func, x, newSmoothPos)
 				
 				if status
 					yShift += currShift
@@ -181,8 +184,11 @@ class SlideNotifyDispatcher extends DNotifyDispatcherBase
 		for k, func in pairs @right
 			if y + yShift >= @height then break
 			
+			newSmoothPos = Lerp(0.2, @ySmoothPositions[func.thinkID] or y + yShift, y + yShift)
+			@ySmoothPositions[func.thinkID] = newSmoothPos
+			
 			if func\IsValid()
-				status, currShift = pcall(func.Draw, func, x, y + yShift)
+				status, currShift = pcall(func.Draw, func, x, newSmoothPos)
 				
 				if status
 					yShift += currShift

@@ -207,8 +207,10 @@ do
         if y + yShift >= self.height then
           break
         end
+        local newSmoothPos = Lerp(0.2, self.ySmoothPositions[func.thinkID] or y + yShift, y + yShift)
+        self.ySmoothPositions[func.thinkID] = newSmoothPos
         if func:IsValid() then
-          local status, currShift = pcall(func.Draw, func, x, y + yShift)
+          local status, currShift = pcall(func.Draw, func, x, newSmoothPos)
           if status then
             yShift = yShift + currShift
           else
@@ -224,8 +226,10 @@ do
         if y + yShift >= self.height then
           break
         end
+        local newSmoothPos = Lerp(0.2, self.ySmoothPositions[func.thinkID] or y + yShift, y + yShift)
+        self.ySmoothPositions[func.thinkID] = newSmoothPos
         if func:IsValid() then
-          local status, currShift = pcall(func.Draw, func, x, y + yShift)
+          local status, currShift = pcall(func.Draw, func, x, newSmoothPos)
           if status then
             yShift = yShift + currShift
           else

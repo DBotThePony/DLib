@@ -14,7 +14,8 @@ do
   local _base_0 = {
     Bind = function(self, obj)
       self.dispatcher = obj
-      insert(self.dispatcher.thinkHooks, self)
+      self.thinkID = insert(self.dispatcher.thinkHooks, self)
+      self.dispatcher.ySmoothPositions[self.thinkID] = nil
       return self
     end,
     GetAlign = function(self)
@@ -470,6 +471,7 @@ do
           end
         else
           self.thinkHooks[k] = nil
+          self.ySmoothPositions[func.thinkID] = nil
         end
       end
       return self
@@ -498,6 +500,7 @@ do
         self.obj = DNotifyBase
       end
       self.thinkHooks = { }
+      self.ySmoothPositions = { }
     end,
     __base = _base_0,
     __name = "DNotifyDispatcherBase"
