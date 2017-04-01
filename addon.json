@@ -1,0 +1,16 @@
+{
+	"title"		:	"DNotify",
+	"type"		:	"tool",
+	"tags"		:	[],
+	"ignore"	:
+	[
+		"*.psd",
+		"*.vcproj",
+		"*.svn*",
+		"*.git*",
+		"moon*",
+		"build.sh",
+		"README.md",
+		"LICENSE"
+	]
+}
