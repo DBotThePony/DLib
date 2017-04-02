@@ -1,0 +1,8 @@
+buildmod:
+   script:
+     - rm lua/ -fR
+     - mkdir lua
+     - sh build.sh
+   artifacts:
+      paths:
+        - lua/*
