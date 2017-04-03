@@ -84,7 +84,7 @@ class BadgeNotifyDispatcher extends DNotifyDispatcherBase
 		maximalY = 0
 		
 		x = @x_start + @width / 2
-		y = @y_start + @height * 0.2
+		y = @y_start
 		
 		wrapperSizeTop = {0}
 		wrapperSizeBottom = {0}
@@ -112,7 +112,6 @@ class BadgeNotifyDispatcher extends DNotifyDispatcherBase
 		prevSize = 0
 		
 		for k, func in pairs @top
-			if yShift + y > @height then break
 			xShift += func.m_sizeOfTextX + 8
 			
 			if xShift + 250 > @width
@@ -129,15 +128,14 @@ class BadgeNotifyDispatcher extends DNotifyDispatcherBase
 		xShift = 0
 		prevSize = 0
 		
-		y = @y_start + @height * 0.83
+		y = @y_start + @height
 		
 		for k, func in pairs @bottom
-			if yShift + y > @height then break
 			xShift += func.m_sizeOfTextX + 8
 			
 			if xShift + 250 > @width
 				xShift = 0
-				yShift += maximalY
+				yShift -= maximalY
 				wrapperSizeBottom = {0}
 			else
 				wrapperSizeBottom[1] += prevSize

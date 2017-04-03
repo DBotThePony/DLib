@@ -66,7 +66,21 @@ DNotify.CreateDefaultDispatchers = ->
 		
 		width: ScrW!
 		height: ScrH!
+		
 		getheight: ScrH
+		getwidth: ScrW
+	}
+	
+	badgeData = {
+		x: 0
+		y: ScrH! * 0.2
+		
+		gety: => ScrH! * 0.2
+		
+		width: ScrW!
+		height: ScrH!
+		
+		getheight: => ScrH! * 0.6
 		getwidth: ScrW
 	}
 	
@@ -83,7 +97,7 @@ DNotify.CreateDefaultDispatchers = ->
 	
 	DNotify.DefaultDispatchers.slide = DNotify.SlideNotifyDispatcher(slideData)
 	DNotify.DefaultDispatchers.center = DNotify.CenteredNotifyDispatcher(centerData)
-	DNotify.DefaultDispatchers.badges = DNotify.BadgeNotifyDispatcher(centerData)
+	DNotify.DefaultDispatchers.badges = DNotify.BadgeNotifyDispatcher(badgeData)
 	DNotify.DefaultDispatchers.legacy = DNotify.LegacyNotifyDispatcher(legacyData)
 
 HUDPaint = ->
