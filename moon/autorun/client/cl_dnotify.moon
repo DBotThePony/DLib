@@ -73,12 +73,12 @@ DNotify.CreateDefaultDispatchers = ->
 	legacyData = {
 		x: 50
 		y: 0
-		gety: => ScrH! * 0.6
+		gety: => ScrH! * 0.55
 		
 		width: ScrW! - 50
 		getwidth: => ScrW! - 50
-		height: ScrH! * 0.4
-		getheight: => ScrH! * 0.4
+		height: ScrH! * 0.45
+		getheight: => ScrH! * 0.45
 	}
 	
 	DNotify.DefaultDispatchers.slide = DNotify.SlideNotifyDispatcher(slideData)
@@ -91,6 +91,24 @@ HUDPaint = ->
 
 Think = ->
 	for i, dsp in pairs DNotify.DefaultDispatchers do dsp\Think!
+
+legacyColors = {
+	[NOTIFY_GENERIC]: color_white
+	[NOTIFY_ERROR]: Color(200, 120, 120)
+	[NOTIFY_UNDO]: Color(108, 166, 247)
+	[NOTIFY_HINT]: Color(147, 247, 108)
+	[NOTIFY_CLEANUP]: Color(108, 219, 247)
+}
+
+notification.AddLegacy = (text, type, time) ->
+	time = math.Clamp(time or 4, 4, 60)
+	type = type or NOTIFY_GENERIC
+	
+	notif = DNotify.CreateLegacy({legacyColors[type], text})
+	notif\SetLength(time)
+	notif\SetNotifyInConsole(false)
+	notif\Start()
+	
 
 hook.Add('HUDPaint', 'DNotify', HUDPaint)
 hook.Add('Think', 'DNotify', Think)
