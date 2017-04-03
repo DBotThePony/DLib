@@ -43,6 +43,7 @@ DNotify.Clear = -> for i, obj in pairs DNotify.DefaultDispatchers do obj\Clear!
 DNotify.CreateSlide = (...) -> DNotify.DefaultDispatchers.slide\Create(...)
 DNotify.CreateCentered = (...) -> DNotify.DefaultDispatchers.center\Create(...)
 DNotify.CreateBadge = (...) -> DNotify.DefaultDispatchers.badges\Create(...)
+DNotify.CreateLegacy = (...) -> DNotify.DefaultDispatchers.legacy\Create(...)
 
 DNotify.CreateDefaultDispatchers = ->
 	DNotify.DefaultDispatchers = {}
@@ -69,9 +70,21 @@ DNotify.CreateDefaultDispatchers = ->
 		getwidth: ScrW
 	}
 	
+	legacyData = {
+		x: 50
+		y: 0
+		gety: => ScrH! * 0.6
+		
+		width: ScrW! - 50
+		getwidth: => ScrW! - 50
+		height: ScrH! * 0.4
+		getheight: => ScrH! * 0.4
+	}
+	
 	DNotify.DefaultDispatchers.slide = DNotify.SlideNotifyDispatcher(slideData)
 	DNotify.DefaultDispatchers.center = DNotify.CenteredNotifyDispatcher(centerData)
 	DNotify.DefaultDispatchers.badges = DNotify.BadgeNotifyDispatcher(centerData)
+	DNotify.DefaultDispatchers.legacy = DNotify.LegacyNotifyDispatcher(legacyData)
 
 HUDPaint = ->
 	for i, dsp in pairs DNotify.DefaultDispatchers do dsp\Draw!
@@ -90,5 +103,6 @@ include 'dnotify/animated_base.lua'
 include 'dnotify/slide_class.lua'
 include 'dnotify/centered_class.lua'
 include 'dnotify/badges.lua'
+include 'dnotify/legacy.lua'
 
 return nil

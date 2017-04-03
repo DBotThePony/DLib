@@ -83,8 +83,8 @@ class BadgeNotifyDispatcher extends DNotifyDispatcherBase
 		xShift = 0
 		maximalY = 0
 		
-		x = @width / 2
-		y = @height * 0.2
+		x = @x_start + @width / 2
+		y = @y_start + @height * 0.2
 		
 		wrapperSizeTop = {0}
 		wrapperSizeBottom = {0}
@@ -129,7 +129,7 @@ class BadgeNotifyDispatcher extends DNotifyDispatcherBase
 		xShift = 0
 		prevSize = 0
 		
-		y = @height * 0.83
+		y = @y_start + @height * 0.83
 		
 		for k, func in pairs @bottom
 			if yShift + y > @height then break

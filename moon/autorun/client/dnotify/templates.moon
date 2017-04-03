@@ -19,8 +19,8 @@ import HasValue from table
 
 DNotify.SetSideFunc = (val = @m_defSide, affectAlign = true) =>
 	assert(@IsValid!, 'tried to use a finished Slide Notification!')
-	assert(HasValue(@m_allowedSides, val), 'Only left or right sides are allowed')
-	assert(type(affectAlign) == 'boolean', 'Only left or right sides are allowed')
+	assert(HasValue(@m_allowedSides, val), 'Invalid side on ' .. @@.__name)
+	assert(type(affectAlign) == 'boolean', 'Only booleans are allowed')
 	assert(not @m_isDrawn, 'Can not change side while drawing')
 	@m_side = val
 	
