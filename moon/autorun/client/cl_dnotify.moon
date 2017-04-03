@@ -42,6 +42,7 @@ DNotify.Clear = -> for i, obj in pairs DNotify.DefaultDispatchers do obj\Clear!
 
 DNotify.CreateSlide = (...) -> DNotify.DefaultDispatchers.slide\Create(...)
 DNotify.CreateCentered = (...) -> DNotify.DefaultDispatchers.center\Create(...)
+DNotify.CreateBadge = (...) -> DNotify.DefaultDispatchers.badges\Create(...)
 
 DNotify.CreateDefaultDispatchers = ->
 	DNotify.DefaultDispatchers = {}
@@ -70,6 +71,7 @@ DNotify.CreateDefaultDispatchers = ->
 	
 	DNotify.DefaultDispatchers.slide = DNotify.SlideNotifyDispatcher(slideData)
 	DNotify.DefaultDispatchers.center = DNotify.CenteredNotifyDispatcher(centerData)
+	DNotify.DefaultDispatchers.badges = DNotify.BadgeNotifyDispatcher(centerData)
 
 HUDPaint = ->
 	for i, dsp in pairs DNotify.DefaultDispatchers do dsp\Draw!
@@ -87,5 +89,6 @@ include 'dnotify/templates.lua'
 include 'dnotify/animated_base.lua'
 include 'dnotify/slide_class.lua'
 include 'dnotify/centered_class.lua'
+include 'dnotify/badges.lua'
 
 return nil

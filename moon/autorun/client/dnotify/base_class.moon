@@ -23,11 +23,12 @@ class DNotifyBase
 		if type(contents) == 'string'
 			contents = {contents}
 		
-		@m_text = contents
 		if not @m_sound then @m_sound = ''
 		if not @m_font then @m_font = 'Default'
 		if not @m_color then @m_color = Color(255, 255, 255)
 		if not @m_length then @m_length = 4
+		
+		@m_text = contents
 		
 		@m_lastThink = CurTime!
 		@m_created = @m_lastThink
@@ -51,6 +52,7 @@ class DNotifyBase
 	Bind: (obj) =>
 		@dispatcher = obj
 		@thinkID = insert(@dispatcher.thinkHooks, @)
+		@dispatcher.xSmoothPositions[@thinkID] = nil
 		@dispatcher.ySmoothPositions[@thinkID] = nil
 		return @
 	
@@ -68,7 +70,7 @@ class DNotifyBase
 	GetText: => @m_text
 	GetFont: => @m_font
 	GetColor: => @m_color
-	GetColor: => @m_color
+	GetTextColor: => @m_color
 	GetDrawShadow: => @m_shadow
 	GetShadowSize: => @m_shadowSize
 	
@@ -126,6 +128,7 @@ class DNotifyBase
 		assert(@IsValid!, 'tried to use a finished Slide Notification!')
 		assert(val.r and val.g and val.b and val.a, 'Not a valid color')
 		@m_color = val
+		@CompileCache!
 		return @
 	
 	FixFont: =>
@@ -270,7 +273,7 @@ class DNotifyBase
 		nextY = 0
 		
 		currentLine = {}
-		lastColor = @m_color
+		lastColor = @GetColor!
 		lastFont = @m_font
 		surface.SetFont(@m_font)
 		
@@ -382,6 +385,7 @@ class DNotifyDispatcherBase
 		
 		@thinkHooks = {}
 		@ySmoothPositions = {}
+		@xSmoothPositions = {}
 	
 	Create: (...) => self.obj(...)\Bind(@)
 	
