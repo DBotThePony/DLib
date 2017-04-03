@@ -85,7 +85,7 @@ class LegacyNotification extends BadgeNotify
 			deltaOut = cTime - @m_finish
 			
 			if deltaIn >= 0 and deltaIn <= 1 and @m_animin
-				@m_topShift = Lerp(0.3, @m_topShift, shiftTopLambdaFunction(deltaIn * 2))
+				@m_topShift = Lerp(0.3, @m_topShift, shiftTopLambdaFunction(deltaIn * 6))
 				@m_slideShift = Lerp(0.3, @m_slideShift, 0)
 			elseif deltaOut >= 0 and deltaOut < 1 and @m_animout
 				@m_topShift = Lerp(0.3, @m_topShift, 0)
