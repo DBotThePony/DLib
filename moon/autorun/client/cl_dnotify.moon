@@ -106,6 +106,19 @@ HUDPaint = ->
 Think = ->
 	for i, dsp in pairs DNotify.DefaultDispatchers do dsp\Think!
 
+NetHook = ->
+	mode = net.ReadUInt(4)
+	mes = net.ReadString!
+	
+	if mode == HUD_PRINTCENTER
+		notif = DNotify.CreateCentered({color_white, mes})
+		notif\Start()
+	elseif mode == HUD_PRINTTALK
+		print(color_white, mes)
+		chat.AddText(mes)
+	elseif mode == HUD_PRINTCONSOLE or mode == HUD_PRINTNOTIFY
+		print(color_white, mes)
+
 legacyColors = {
 	[NOTIFY_GENERIC]: color_white
 	[NOTIFY_ERROR]: Color(200, 120, 120)
@@ -125,6 +138,7 @@ notification.AddLegacy = (text, type, time) ->
 	
 
 hook.Add('HUDPaint', 'DNotify', HUDPaint)
+net.Receive('DNotify.PrintMessage', NetHook)
 hook.Add('Think', 'DNotify', Think)
 timer.Simple(0, DNotify.CreateDefaultDispatchers)
 

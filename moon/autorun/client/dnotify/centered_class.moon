@@ -37,6 +37,7 @@ class CenteredNotify extends DNotifyAnimated
 		@m_font = 'DNotifyCentered'
 		
 		super(...)
+		@m_shadowSize = 1
 		
 	GetSide: => @m_side
 	

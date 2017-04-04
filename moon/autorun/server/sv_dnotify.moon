@@ -15,6 +15,30 @@
 -- limitations under the License.
 -- 
 
+export PrintMessage
+
+util.AddNetworkString('DNotify.PrintMessage')
+
+PrintMessage = (mode, message) ->
+	if message\sub(#message) == '\n'
+		message = message\sub(1, #message - 1)
+	
+	net.Start('DNotify.PrintMessage')
+	net.WriteUInt(mode, 4)
+	net.WriteString(message)
+	net.Broadcast()
+
+plyMeta = FindMetaTable 'Player'
+
+plyMeta.PrintMessage = (mode, message) =>
+	if message\sub(#message) == '\n'
+		message = message\sub(1, #message - 1)
+	
+	net.Start('DNotify.PrintMessage')
+	net.WriteUInt(mode, 4)
+	net.WriteString(message)
+	net.Send(self)
+
 AddCSLuaFile 'autorun/client/dnotify/font_obj.lua'
 AddCSLuaFile 'autorun/client/dnotify/base_class.lua'
 AddCSLuaFile 'autorun/client/dnotify/templates.lua'
