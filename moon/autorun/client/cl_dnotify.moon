@@ -114,10 +114,10 @@ NetHook = ->
 		notif = DNotify.CreateCentered({color_white, mes})
 		notif\Start()
 	elseif mode == HUD_PRINTTALK
-		print(color_white, mes)
+		print(mes)
 		chat.AddText(mes)
 	elseif mode == HUD_PRINTCONSOLE or mode == HUD_PRINTNOTIFY
-		print(color_white, mes)
+		print(mes)
 
 legacyColors = {
 	[NOTIFY_GENERIC]: color_white
