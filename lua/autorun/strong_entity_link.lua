@@ -15,7 +15,7 @@
 -- limitations under the License.
 --
 
-local VERSION = 201706051836
+local VERSION = 201706051850
 
 if _G.StrongEntityLinkVersion and _G.StrongEntityLinkVersion >= VERSION then return end
 _G.StrongEntityLinkVersion = VERSION
@@ -26,7 +26,6 @@ local WRAPPED_FUNCTIONS = {}
 local entMeta = FindMetaTable('Entity')
 local isValid = entMeta.IsValid
 local getTable = entMeta.GetTable
-local entToString = entMeta.__tostring
 local ent__eq = entMeta.__eq
 local entIndex = entMeta.EntIndex
 entMeta.GetEntity = function(self) return self end
@@ -90,14 +89,6 @@ local StrongLinkMetadata = {
 
     EntIndex = function(self)
         return self.__strong_entity_link_id
-    end,
-
-    __tostring = function(self)
-        return entToString(self.__strong_entity_link)
-    end,
-
-    __eq = function(self, target)
-        return ent__eq(self.__strong_entity_link, target)
     end
 }
 
@@ -166,6 +157,17 @@ local metaData = {
                 self.__strong_entity_table[key] = UniqueNoValue
             end
         end
+    end,
+
+    __tostring = function(self)
+        return tostring(self.__strong_entity_link)
+    end,
+
+    __eq = function(self, target)
+        local ent = self.__strong_entity_link
+        local tType = type(target)
+        local validEnt = tType ~= 'number' and tType ~= 'string'
+        return ent == target or validEnt and (ent == target.__strong_entity_link or target.EntIndex and target.EntIndex == self.__strong_entity_link_id)
     end
 }
 

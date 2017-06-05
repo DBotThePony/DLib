@@ -13,8 +13,9 @@ print(myEntity:IsValid())
 <...> more as usual...
 ```
 
-### BUT!
+## BUT!
 
+### Using in native functions
 ```lua
 local myEntity = StrongEntity(84)
 local anotherEntity = StrongEntity(104)
@@ -28,5 +29,24 @@ anotherEntity:SetParent(myEntity:GetEntity()) -- Valid
 myEntity:GetEntity():SetParent(anotherEntity:GetEntity()) -- Valid too
 anotherEntity:GetEntity():SetParent(myEntity:GetEntity()) -- Valid too
 ```
+
+### Comparing
+```lua
+local myEntity = StrongEntity(84)
+local anotherEntity = StrongEntity(104)
+
+local myEntityNative = Entity(84)
+local anotherEntityNative = Entity(104)
+
+print(myEntity == anotherEntity) -- Valid
+print(myEntityNative == anotherEntityNative) -- Valid
+print(myEntity == anotherEntityNative) -- Invalid :(
+print(anotherEntity == anotherEntityNative) -- Invalid :(
+
+print(anotherEntity == StrongEntity(anotherEntityNative)) -- Valid :)
+print(myEntity == StrongEntity(myEntityNative)) -- Valid :)
+```
+
+I know that comparing is quite broken, but that's gmod :(
 
 That's all.
