@@ -24,6 +24,8 @@ local entToString = entMeta.__tostring
 local ent__eq = entMeta.__eq
 local entIndex = entMeta.EntIndex
 
+local UniqueNoValue = 'STRONG_ENTITY_RESERVED_NO_VALUE'
+
 local StrongLinkMetadata = {
     GetTable = function(self)
         local upvalue = self
@@ -58,7 +60,11 @@ local StrongLinkMetadata = {
                 end
 
                 if not isValid(upvalue.__strong_entity_link) then
-                    ourTable[key] = value
+                    if value ~= nil then
+                        ourTable[key] = value
+                    else
+                        ourTable[key] = UniqueNoValue
+                    end
                 else
                     getTable(upvalue.__strong_entity_link)[key] = value
                 end
@@ -98,7 +104,12 @@ local metaData = {
         if isValid(self.__strong_entity_link) then
             return self.__strong_entity_link[key]
         else
-            return self.__strong_entity_table[key]
+            local value = self.__strong_entity_table[key]
+            if value ~= UniqueNoValue then
+                return value
+            else
+                return nil
+            end
         end
     end,
 
@@ -110,7 +121,11 @@ local metaData = {
         if isValid(self.__strong_entity_link) then
             getTable(self.__strong_entity_link)[key] = value
         else
-            self.__strong_entity_table[key] = value
+            if value ~= nil then
+                self.__strong_entity_table[key] = value
+            else
+                self.__strong_entity_table[key] = UniqueNoValue
+            end
         end
     end
 }
@@ -137,9 +152,15 @@ if CLIENT then
         local id = self:EntIndex()
 
         if not ENTITIES_REGISTRY[id] then return end
-        local tab = self:Gettable()
-        for key, value in pairs(ENTITIES_REGISTRY[id].__strong_entity_table) do
-            tab[key] = value
+        local tab = self:GetTable()
+        local strongTable = ENTITIES_REGISTRY[id].__strong_entity_table
+        for key, value in pairs(strongTable) do
+            if value ~= UniqueNoValue then
+                tab[key] = value
+            else
+                tab[key] = nil
+                strongTable[key] = nil
+            end
         end
     end)
 
