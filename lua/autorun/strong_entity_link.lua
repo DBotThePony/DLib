@@ -15,7 +15,7 @@
 -- limitations under the License.
 --
 
-local VERSION = 201706051850
+local VERSION = 201706051854
 
 if _G.StrongEntityLinkVersion and _G.StrongEntityLinkVersion >= VERSION then return end
 _G.StrongEntityLinkVersion = VERSION
@@ -28,7 +28,15 @@ local isValid = entMeta.IsValid
 local getTable = entMeta.GetTable
 local ent__eq = entMeta.__eq
 local entIndex = entMeta.EntIndex
-entMeta.GetEntity = function(self) return self end
+entMeta.GetEntity = function(self, ...)
+    local oldVal = self:GetTable().GetEntity
+
+    if oldVal then
+        return oldVal(self, ...)
+    end
+
+    return self
+end
 
 local UniqueNoValue = 'STRONG_ENTITY_RESERVED_NO_VALUE'
 
@@ -172,10 +180,6 @@ local metaData = {
 }
 
 local function InitStrongEntity(entIndex)
-    if ENTITIES_REGISTRY[entIndex] then
-        return ENTITIES_REGISTRY[entIndex]
-    end
-
     if type(entIndex) ~= 'number' then
         if IsValid(entIndex) then
             entIndex = entIndex:EntIndex()
@@ -186,6 +190,10 @@ local function InitStrongEntity(entIndex)
         else
             entIndex = -1
         end
+    end
+    
+    if ENTITIES_REGISTRY[entIndex] then
+        return ENTITIES_REGISTRY[entIndex]
     end
 
     local newObject = {}

@@ -45,6 +45,7 @@ print(anotherEntity == anotherEntityNative) -- Invalid :(
 
 print(anotherEntity == StrongEntity(anotherEntityNative)) -- Valid :)
 print(myEntity == StrongEntity(myEntityNative)) -- Valid :)
+print(StrongEntity(myEntity) == StrongEntity(myEntityNative)) -- Valid :)
 ```
 
 I know that comparing is quite broken, but that's gmod :(
