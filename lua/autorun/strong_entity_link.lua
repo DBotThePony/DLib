@@ -15,7 +15,7 @@
 -- limitations under the License.
 --
 
-local VERSION = 201706051741
+local VERSION = 201706051757
 
 if _G.StrongEntityLinkVersion and _G.StrongEntityLinkVersion >= VERSION then return end
 _G.StrongEntityLinkVersion = VERSION
@@ -73,6 +73,7 @@ local StrongLinkMetadata = {
                     end
                 else
                     getTable(upvalue.__strong_entity_link)[key] = value
+                    ourTable[key] = value
                 end
             end
         })
@@ -142,6 +143,7 @@ local metaData = {
 
         if isValid(self.__strong_entity_link) then
             getTable(self.__strong_entity_link)[key] = value
+            self.__strong_entity_table[key] = value
         else
             if value ~= nil then
                 self.__strong_entity_table[key] = value
@@ -240,4 +242,3 @@ function net.ReadStrongEntity()
         return InitStrongEntity(-1)
     end
 end
-
