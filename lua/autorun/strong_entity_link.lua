@@ -15,12 +15,13 @@
 -- limitations under the License.
 --
 
-local VERSION = 201706051651
+local VERSION = 201706051741
 
 if _G.StrongEntityLinkVersion and _G.StrongEntityLinkVersion >= VERSION then return end
 _G.StrongEntityLinkVersion = VERSION
 
 local ENTITIES_REGISTRY = {}
+local WRAPPED_FUNCTIONS = {}
 
 local entMeta = FindMetaTable('Entity')
 local isValid = entMeta.IsValid
@@ -107,7 +108,23 @@ local metaData = {
         end
 
         if isValid(self.__strong_entity_link) then
-            return self.__strong_entity_link[key]
+            local val = self.__strong_entity_link[key]
+
+            if type(val) == 'function' then
+                if not self.__strong_entity_funcs[val] then
+                    self.__strong_entity_funcs[val] = function(self2, ...)
+                        if self == self2 then
+                            self2 = self.__strong_entity_link
+                        end
+
+                        return val(self2, ...)
+                    end
+                end
+
+                return self.__strong_entity_funcs[val]
+            end
+
+            return val
         else
             local value = self.__strong_entity_table[key]
             if value ~= UniqueNoValue then
@@ -135,13 +152,26 @@ local metaData = {
     end
 }
 
-local function StrongEntity(entIndex)
+local function InitStrongEntity(entIndex)
     if ENTITIES_REGISTRY[entIndex] then
         return ENTITIES_REGISTRY[entIndex]
     end
 
+    if type(entIndex) ~= 'number' then
+        if IsValid(entIndex) then
+            entIndex = entIndex:EntIndex()
+
+            if entIndex < 0 then
+                return NULL
+            end
+        else
+            entIndex = -1
+        end
+    end
+
     local newObject = {}
     newObject.__strong_entity_table = {}
+    newObject.__strong_entity_funcs = {}
     newObject.__strong_entity_link = Entity(entIndex)
     newObject.__strong_entity_link_id = entIndex
 
@@ -150,7 +180,7 @@ local function StrongEntity(entIndex)
     return newObject
 end
 
-_G.StrongEntity = StrongEntity
+_G.StrongEntity = InitStrongEntity
 
 if CLIENT then
     hook.Add('NetworkEntityCreated', 'StrongEntity', function(self)
@@ -184,9 +214,14 @@ end
 
 function net.WriteStrongEntity(ent)
     if type(ent) == 'number' then
-        net.WriteUInt(ent, 16)
+        local isValidEntity = ent >= 0
+        net.WriteBool(isValidEntity)
+
+        if isValidEntity then
+            net.WriteUInt(ent, 16)
+        end
     else
-        local isValidEntity = isValid(ent) and entIndex(ent) >= 1
+        local isValidEntity = IsValid(ent) and ent:EntIndex() >= 1 or ent == Entity(0)
         net.WriteBool(isValidEntity)
 
         if isValidEntity then
@@ -196,10 +231,13 @@ function net.WriteStrongEntity(ent)
 end
 
 function net.ReadStrongEntity()
-    if net.ReadBool() then
-        return StrongEntity(net.ReadUInt(16))
+    local isValidEntity = net.ReadBool()
+
+    if isValidEntity then
+        local val = net.ReadUInt(16)
+        return InitStrongEntity(val)
     else
-        return NULL
+        return InitStrongEntity(-1)
     end
 end
 
