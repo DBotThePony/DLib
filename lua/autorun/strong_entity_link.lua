@@ -15,7 +15,7 @@
 -- limitations under the License.
 --
 
-local VERSION = 201706051757
+local VERSION = 201706051832
 
 if _G.StrongEntityLinkVersion and _G.StrongEntityLinkVersion >= VERSION then return end
 _G.StrongEntityLinkVersion = VERSION
@@ -33,6 +33,14 @@ local entIndex = entMeta.EntIndex
 local UniqueNoValue = 'STRONG_ENTITY_RESERVED_NO_VALUE'
 
 local StrongLinkMetadata = {
+    GetEntity = function(self)
+        if not isValid(self.__strong_entity_link) then
+            self.__strong_entity_link = Entity(self.__strong_entity_link_id)
+        end
+
+        return self.__strong_entity_link
+    end,
+
     GetTable = function(self)
         local upvalue = self
         if not isValid(self.__strong_entity_link) then
@@ -113,12 +121,18 @@ local metaData = {
 
             if type(val) == 'function' then
                 if not self.__strong_entity_funcs[val] then
-                    self.__strong_entity_funcs[val] = function(self2, ...)
-                        if self == self2 then
-                            self2 = self.__strong_entity_link
+                    self.__strong_entity_funcs[val] = function(...)
+                        local upvalueEntity = self.__strong_entity_link
+                        local args = {...}
+                        local len = #args
+
+                        for i = 1, len do
+                            if args[i] == self then
+                                args[i] = upvalueEntity
+                            end
                         end
 
-                        return val(self2, ...)
+                        return val(unpack(args))
                     end
                 end
 
@@ -174,6 +188,7 @@ local function InitStrongEntity(entIndex)
     local newObject = {}
     newObject.__strong_entity_table = {}
     newObject.__strong_entity_funcs = {}
+    newObject.__strong_entity = true
     newObject.__strong_entity_link = Entity(entIndex)
     newObject.__strong_entity_link_id = entIndex
 
@@ -207,7 +222,7 @@ if CLIENT then
 else
     util.AddNetworkString('StrongEntity.Removed')
 
-    hook.Add('EntityRemoved', 'StringEntity', function(self)
+    hook.Add('EntityRemoved', 'StrongEntity', function(self)
         net.Start('StrongEntity.Removed')
         net.WriteUInt(self:EntIndex(), 16)
         net.Broadcast()

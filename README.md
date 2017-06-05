@@ -9,7 +9,24 @@ Basic usage:
 ```lua
 local myEntity = StrongEntity(4)
 print(myEntity)
-<...> Do something...
+print(myEntity:IsValid())
+<...> more as usual...
+```
+
+### BUT!
+
+```lua
+local myEntity = StrongEntity(84)
+local anotherEntity = StrongEntity(104)
+
+myEntity:SetParent(anotherEntity) -- WRONG!
+anotherEntity:SetParent(myEntity) -- WRONG!
+
+myEntity:SetParent(anotherEntity:GetEntity()) -- Valid
+anotherEntity:SetParent(myEntity:GetEntity()) -- Valid
+
+myEntity:GetEntity():SetParent(anotherEntity:GetEntity()) -- Valid too
+anotherEntity:GetEntity():SetParent(myEntity:GetEntity()) -- Valid too
 ```
 
 That's all.
