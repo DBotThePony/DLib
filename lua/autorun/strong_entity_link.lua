@@ -17,7 +17,7 @@
 
 local VERSION = 201706051651
 
-if _G.StrongEntityLinkVersion and _G.StrongEntityLinkVersion > VERSION then return end
+if _G.StrongEntityLinkVersion and _G.StrongEntityLinkVersion >= VERSION then return end
 _G.StrongEntityLinkVersion = VERSION
 
 local ENTITIES_REGISTRY = {}
