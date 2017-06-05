@@ -15,7 +15,7 @@
 -- limitations under the License.
 --
 
-local VERSION = 201706051832
+local VERSION = 201706051836
 
 if _G.StrongEntityLinkVersion and _G.StrongEntityLinkVersion >= VERSION then return end
 _G.StrongEntityLinkVersion = VERSION
@@ -29,6 +29,7 @@ local getTable = entMeta.GetTable
 local entToString = entMeta.__tostring
 local ent__eq = entMeta.__eq
 local entIndex = entMeta.EntIndex
+entMeta.GetEntity = function(self) return self end
 
 local UniqueNoValue = 'STRONG_ENTITY_RESERVED_NO_VALUE'
 
