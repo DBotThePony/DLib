@@ -49,3 +49,77 @@ function HUDCommons.SoftSkyrimBar(x, y, w, h, color, name, speed)
 	
 	HUDCommons.DrawBox(x - HUDCommons.BarData[name] / 2, y, HUDCommons.BarData[name], h, color)
 end
+
+function HUDCommons.BarWithText(x, y, w, h, mult, bg, barbg, bar, text)
+    surface.SetDrawColor(bg)
+    surface.DrawRect(x - 4, y - 4, w + 8, h + 8)
+
+    surface.SetDrawColor(barbg)
+    surface.DrawRect(x, y, w, h)
+
+    surface.SetDrawColor(bar)
+    surface.DrawRect(x, y, w * mult, h)
+
+    surface.SetDrawColor(bg)
+    local W, H = surface.GetTextSize(text)
+    surface.DrawRect(x - 4, y - 12 - H, W + 8, H + 8)
+    surface.SetTextPos(x, y - H - 8)
+    surface.DrawText(text)
+end
+
+function HUDCommons.BarWithTextCentered(x, y, w, h, mult, bg, barbg, bar, text)
+    surface.SetDrawColor(bg)
+    surface.DrawRect(x - w / 2 - 4, y - 4, w + 8, h + 8)
+
+    surface.SetDrawColor(barbg)
+    surface.DrawRect(x - w / 2, y, w, h)
+
+    surface.SetDrawColor(bar)
+    surface.DrawRect(x - w / 2, y, w * mult, h)
+
+    surface.SetDrawColor(bg)
+    local W, H = surface.GetTextSize(text)
+    surface.DrawRect(x - w / 2 - 4, y - 12 - H, W + 8, H + 8)
+    surface.SetTextPos(x - w / 2, y - H - 8)
+    surface.DrawText(text)
+end
+
+-- Same as HUDCommons.WordBox, but supports new lines
+-- Similar to draw.DrawText(), but works faster
+-- because it doesn't calculate tabs
+function HUDCommons.AdvancedWordBox(text, font, x, y, col, colBox, center)
+	if font then
+		surface.SetFont(font)
+	end
+	
+	if col then
+		surface.SetTextColor(col)
+	end
+	
+    local W, H = surface.GetTextSize('W')
+	local w, h = surface.GetTextSize(text)
+	
+    if center then
+	    HUDCommons.DrawBox(x - 4 - w / 2, y - 2, w + 8, h + 4, colBox)
+    else
+	    HUDCommons.DrawBox(x - 4, y - 2, w + 8, h + 4, colBox)
+    end
+
+    for ntext in string.gmatch(text, '[^\n]*') do
+        if ntext ~= '' then
+            local w2, h2 = surface.GetTextSize(ntext)
+
+            if center then
+                surface.SetTextPos(x - w2 / 2, y)
+            else
+                surface.SetTextPos(x, y)
+            end
+
+            surface.DrawText(text)
+        else
+            y = y + H
+        end
+    end
+
+    return w, h
+end

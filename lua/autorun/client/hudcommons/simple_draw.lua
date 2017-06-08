@@ -58,4 +58,6 @@ function HUDCommons.WordBox(text, font, x, y, col, colBox, center)
 	HUDCommons.DrawBox(x - 4, y - 2, w + 8, h + 4, colBox)
 	surface.SetTextPos(x, y)
 	surface.DrawText(text)
+
+    return w, h
 end
