@@ -31,6 +31,14 @@ HUDCommons.YPositions_original = HUDCommons.YPositions_original or {}
 HUDCommons.Multipler = 1
 
 function HUDCommons.DefinePosition(name, x, y)
+	if x < 1 then
+		x = ScrW() * x
+	end
+	
+	if y < 1 then
+		y = ScrH() * y
+	end
+
 	HUDCommons.XPositions_original[name] = x
 	HUDCommons.YPositions_original[name] = y
 	
@@ -46,7 +54,7 @@ function HUDCommons.DefinePosition(name, x, y)
 	end
 
 	return function()
-		return HUDCommons.XPositions_modified[elem], HUDCommons.YPositions_modified[elem]
+		return HUDCommons.XPositions_modified[name], HUDCommons.YPositions_modified[name]
 	end
 end
 
