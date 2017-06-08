@@ -16,6 +16,7 @@
 --
 
 HUDCommons.BarData = HUDCommons.BarData or {}
+HUDCommons.WordBarData = HUDCommons.WordBarData or {}
 
 local function InInterval(val, min, max)
 	return val > min and val < max
@@ -59,6 +60,82 @@ function HUDCommons.BarWithText(x, y, w, h, mult, bg, barbg, bar, text)
 
     surface.SetDrawColor(bar)
     surface.DrawRect(x, y, w * mult, h)
+
+    surface.SetDrawColor(bg)
+    local W, H = surface.GetTextSize(text)
+    surface.DrawRect(x - 4, y - 12 - H, W + 8, H + 8)
+    surface.SetTextPos(x, y - H - 8)
+    surface.DrawText(text)
+end
+
+function HUDCommons.SkyrimBarWithText(x, y, w, h, mult, bg, barbg, bar, text)
+    surface.SetDrawColor(bg)
+    surface.DrawRect(x - 4, y - 4, w + 8, h + 8)
+
+    surface.SetDrawColor(barbg)
+    surface.DrawRect(x, y, w, h)
+
+    local targetwidth = w * mult
+    surface.SetDrawColor(bar)
+    surface.DrawRect(x + w / 2 - targetwidth / 2, y, targetwidth, h)
+
+    surface.SetDrawColor(bg)
+    local W, H = surface.GetTextSize(text)
+    surface.DrawRect(x - 4, y - 12 - H, W + 8, H + 8)
+    surface.SetTextPos(x, y - H - 8)
+    surface.DrawText(text)
+end
+
+function HUDCommons.SoftBarWithText(x, y, w, h, mult, bg, barbg, bar, text, barid, speed)
+    speed = speed or .1
+    local targetwidth = w * mult
+	HUDCommons.WordBarData[barid] = HUDCommons.WordBarData[barid] or targetwidth
+	
+	local delta = targetwidth - HUDCommons.WordBarData[barid]
+	
+	if not InInterval(delta, -0.3, 0.3) then
+		HUDCommons.WordBarData[barid] = HUDCommons.WordBarData[barid] + delta * speed * HUDCommons.Multipler
+	else
+		HUDCommons.WordBarData[barid] = HUDCommons.WordBarData[barid] + delta
+	end
+
+    surface.SetDrawColor(bg)
+    surface.DrawRect(x - 4, y - 4, w + 8, h + 8)
+
+    surface.SetDrawColor(barbg)
+    surface.DrawRect(x, y, w, h)
+
+    surface.SetDrawColor(bar)
+    surface.DrawRect(x, y, HUDCommons.WordBarData[barid], h)
+
+    surface.SetDrawColor(bg)
+    local W, H = surface.GetTextSize(text)
+    surface.DrawRect(x - 4, y - 12 - H, W + 8, H + 8)
+    surface.SetTextPos(x, y - H - 8)
+    surface.DrawText(text)
+end
+
+function HUDCommons.SoftSkyrimBarWithText(x, y, w, h, mult, bg, barbg, bar, text, barid, speed)
+    speed = speed or .1
+    local targetwidth = w * mult
+	HUDCommons.WordBarData[barid] = HUDCommons.WordBarData[barid] or targetwidth
+	
+	local delta = targetwidth - HUDCommons.WordBarData[barid]
+	
+	if not InInterval(delta, -0.3, 0.3) then
+		HUDCommons.WordBarData[barid] = HUDCommons.WordBarData[barid] + delta * speed * HUDCommons.Multipler
+	else
+		HUDCommons.WordBarData[barid] = HUDCommons.WordBarData[barid] + delta
+	end
+
+    surface.SetDrawColor(bg)
+    surface.DrawRect(x - 4, y - 4, w + 8, h + 8)
+
+    surface.SetDrawColor(barbg)
+    surface.DrawRect(x, y, w, h)
+
+    surface.SetDrawColor(bar)
+    surface.DrawRect(x + w / 2 - HUDCommons.WordBarData[barid] / 2, y, HUDCommons.WordBarData[barid], h)
 
     surface.SetDrawColor(bg)
     local W, H = surface.GetTextSize(text)
