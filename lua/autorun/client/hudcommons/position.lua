@@ -28,6 +28,8 @@ HUDCommons.YPositions_modified = HUDCommons.YPositions_modified or {}
 HUDCommons.XPositions_original = HUDCommons.XPositions_original or {}
 HUDCommons.YPositions_original = HUDCommons.YPositions_original or {}
 
+HUDCommons.Multipler = 1
+
 function HUDCommons.DefinePosition(name, x, y)
 	HUDCommons.XPositions_original[name] = x
 	HUDCommons.YPositions_original[name] = y
