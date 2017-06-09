@@ -192,7 +192,7 @@ function HUDCommons.AdvancedWordBox(text, font, x, y, col, colBox, center)
                 surface.SetTextPos(x, y)
             end
 
-            surface.DrawText(text)
+            surface.DrawText(ntext)
         else
             y = y + H
         end
