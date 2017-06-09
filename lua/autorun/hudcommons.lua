@@ -19,8 +19,8 @@ local VERSION = 201706081640
 
 if CLIENT then
     _G.HUDCommons = _G.HUDCommons or {}
-    --if _G.HUDCommons and _G.HUDCommons.VERSION and _G.HUDCommons.VERSION >= VERSION then return end
-    --_G.HUDCommons.VERSION = VERSION
+    if _G.HUDCommons and _G.HUDCommons.VERSION and _G.HUDCommons.VERSION >= VERSION then return end
+    _G.HUDCommons.VERSION = VERSION
     include('autorun/client/hudcommons/simple_draw.lua')
     include('autorun/client/hudcommons/advanced_draw.lua')
     include('autorun/client/hudcommons/position.lua')
