@@ -15,7 +15,7 @@
 -- limitations under the License.
 --
 
-local VERSION = 201706141145
+local VERSION = 201706141214
 
 if _G.StrongEntityLinkVersion and _G.StrongEntityLinkVersion >= VERSION then return end
 _G.StrongEntityLinkVersion = VERSION
@@ -102,11 +102,10 @@ local StrongLinkMetadata = {
 
 local metaData = {
     __index = function(self, key)
-        if key == '__strong_entity_link' then return rawget(self, '__strong_entity_link') end
-        if key == '__strong_entity_link_id' then return rawget(self, '__strong_entity_link_id') end
-        if key == '__strong_entity_funcs' then return rawget(self, '__strong_entity_funcs') end
-        if key == '__strong_entity_table' then return rawget(self, '__strong_entity_table') end
-        if key == '__strong_entity' then return true end
+        if key == '__strong_entity_meta' then return debug.getmetatable(self) end
+        if key == '__strong_entity_link' then return debug.getmetatable(self).__strong_entity_link end
+        if key == '__strong_entity_link_id' then return debug.getmetatable(self).__strong_entity_link_id end
+        if key == '__strong_entity_table' then return debug.getmetatable(self).__strong_entity_table end
 
         local value = rawget(self, key)
 
@@ -114,21 +113,21 @@ local metaData = {
             return value
         end
 
-        if not isValid(self.__strong_entity_link) then
-            self.__strong_entity_link = Entity(self.__strong_entity_link_id)
+        if not isValid(self.__strong_entity_meta.__strong_entity_link) then
+            self.__strong_entity_meta.__strong_entity_link = Entity(self.__strong_entity_meta.__strong_entity_link_id)
         end
 
         if StrongLinkMetadata[key] ~= nil then
             return StrongLinkMetadata[key]
         end
 
-        if isValid(self.__strong_entity_link) then
-            local val = self.__strong_entity_link[key]
+        if isValid(self.__strong_entity_meta.__strong_entity_link) then
+            local val = self.__strong_entity_meta.__strong_entity_link[key]
 
             if type(val) == 'function' then
-                if not self.__strong_entity_funcs[val] then
-                    self.__strong_entity_funcs[val] = function(...)
-                        local upvalueEntity = self.__strong_entity_link
+                if not self.__strong_entity_meta.__strong_entity_funcs[val] then
+                    self.__strong_entity_meta.__strong_entity_funcs[val] = function(...)
+                        local upvalueEntity = self.__strong_entity_meta.__strong_entity_link
                         local args = {...}
                         local len = #args
 
@@ -142,12 +141,12 @@ local metaData = {
                     end
                 end
 
-                return self.__strong_entity_funcs[val]
+                return self.__strong_entity_meta.__strong_entity_funcs[val]
             end
 
             return val
         else
-            local value = self.__strong_entity_table[key]
+            local value = self.__strong_entity_meta.__strong_entity_table[key]
             if value ~= UniqueNoValue then
                 return value
             else
@@ -157,28 +156,30 @@ local metaData = {
     end,
 
     __newindex = function(self, key, value)
-        if not isValid(self.__strong_entity_link) then
-            self.__strong_entity_link = Entity(self.__strong_entity_link_id)
+        local self2 = self.__strong_entity_meta
+
+        if not isValid(self2.__strong_entity_link) then
+            self2.__strong_entity_link = Entity(self2.__strong_entity_link_id)
         end
 
-        if isValid(self.__strong_entity_link) then
-            getTable(self.__strong_entity_link)[key] = value
-            self.__strong_entity_table[key] = value
+        if isValid(self2.__strong_entity_link) then
+            getTable(self2.__strong_entity_link)[key] = value
+            self2.__strong_entity_table[key] = value
         else
             if value ~= nil then
-                self.__strong_entity_table[key] = value
+                self2.__strong_entity_table[key] = value
             else
-                self.__strong_entity_table[key] = UniqueNoValue
+                self2.__strong_entity_table[key] = UniqueNoValue
             end
         end
     end,
 
     __tostring = function(self)
-        return tostring(self.__strong_entity_link)
+        return tostring(self.__strong_entity_meta.__strong_entity_link)
     end,
 
     __eq = function(self, target)
-        local ent = self.__strong_entity_link
+        local ent = self.__strong_entity_meta.__strong_entity_link
         local tType = type(target)
         local validEnt = tType ~= 'number' and tType ~= 'string'
         return ent == target or validEnt and (ent == target.__strong_entity_link or target.EntIndex and target.EntIndex == self.__strong_entity_link_id)
@@ -202,14 +203,20 @@ local function InitStrongEntity(entIndex)
         return ENTITIES_REGISTRY[entIndex]
     end
 
-    local newObject = {}
-    newObject.__strong_entity_table = {}
-    newObject.__strong_entity_funcs = {}
-    newObject.__strong_entity = true
-    newObject.__strong_entity_link = Entity(entIndex)
-    newObject.__strong_entity_link_id = entIndex
+    local newMeta = {
+        __index = metaData.__index,
+        __newindex = metaData.__newindex,
+        __eq = metaData.__eq,
+        __tostring = metaData.__tostring,
+        __strong_entity_table = {},
+        __strong_entity_funcs = {},
+        __strong_entity = true,
+        __strong_entity_link_id = entIndex,
+        __strong_entity_link = Entity(entIndex),
+    }
 
-    setmetatable(newObject, metaData)
+    local newObject = setmetatable({}, newMeta)
+
     ENTITIES_REGISTRY[entIndex] = newObject
     return newObject
 end
@@ -222,7 +229,11 @@ if CLIENT then
 
         if not ENTITIES_REGISTRY[id] then return end
         local tab = self:GetTable()
-        local strongTable = ENTITIES_REGISTRY[id].__strong_entity_table
+		
+        local strongEnt = ENTITIES_REGISTRY[id]
+        local strongTableMeta = debug.getmetatable(strongTable)
+		local strongTable = strongTableMeta.__strong_entity_table
+		
         for key, value in pairs(strongTable) do
             if value ~= UniqueNoValue then
                 tab[key] = value
@@ -231,6 +242,8 @@ if CLIENT then
                 strongTable[key] = nil
             end
         end
+		
+		strongTableMeta.__strong_entity_link = self
     end)
 
     net.Receive('StrongEntity.Removed', function()
