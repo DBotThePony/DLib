@@ -15,7 +15,7 @@
 -- limitations under the License.
 --
 
-local VERSION = 201706141214
+local VERSION = 201706141218
 
 if _G.StrongEntityLinkVersion and _G.StrongEntityLinkVersion >= VERSION then return end
 _G.StrongEntityLinkVersion = VERSION
@@ -112,22 +112,24 @@ local metaData = {
         if value ~= nil then
             return value
         end
+		
+		local self2 = self.__strong_entity_meta
 
-        if not isValid(self.__strong_entity_meta.__strong_entity_link) then
-            self.__strong_entity_meta.__strong_entity_link = Entity(self.__strong_entity_meta.__strong_entity_link_id)
+        if not isValid(self2.__strong_entity_link) then
+            self2.__strong_entity_link = Entity(self2.__strong_entity_link_id)
         end
 
         if StrongLinkMetadata[key] ~= nil then
             return StrongLinkMetadata[key]
         end
 
-        if isValid(self.__strong_entity_meta.__strong_entity_link) then
-            local val = self.__strong_entity_meta.__strong_entity_link[key]
+        if isValid(self2.__strong_entity_link) then
+            local val = self2.__strong_entity_link[key]
 
             if type(val) == 'function' then
-                if not self.__strong_entity_meta.__strong_entity_funcs[val] then
-                    self.__strong_entity_meta.__strong_entity_funcs[val] = function(...)
-                        local upvalueEntity = self.__strong_entity_meta.__strong_entity_link
+                if not self2.__strong_entity_funcs[val] then
+                    self2.__strong_entity_funcs[val] = function(...)
+                        local upvalueEntity = self2.__strong_entity_link
                         local args = {...}
                         local len = #args
 
@@ -141,12 +143,12 @@ local metaData = {
                     end
                 end
 
-                return self.__strong_entity_meta.__strong_entity_funcs[val]
+                return self2.__strong_entity_funcs[val]
             end
 
             return val
         else
-            local value = self.__strong_entity_meta.__strong_entity_table[key]
+            local value = self2.__strong_entity_table[key]
             if value ~= UniqueNoValue then
                 return value
             else
