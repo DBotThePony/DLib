@@ -15,7 +15,7 @@
 -- limitations under the License.
 --
 
-local VERSION = 201706051854
+local VERSION = 201706141145
 
 if _G.StrongEntityLinkVersion and _G.StrongEntityLinkVersion >= VERSION then return end
 _G.StrongEntityLinkVersion = VERSION
@@ -102,6 +102,12 @@ local StrongLinkMetadata = {
 
 local metaData = {
     __index = function(self, key)
+        if key == '__strong_entity_link' then return rawget(self, '__strong_entity_link') end
+        if key == '__strong_entity_link_id' then return rawget(self, '__strong_entity_link_id') end
+        if key == '__strong_entity_funcs' then return rawget(self, '__strong_entity_funcs') end
+        if key == '__strong_entity_table' then return rawget(self, '__strong_entity_table') end
+        if key == '__strong_entity' then return true end
+
         local value = rawget(self, key)
 
         if value ~= nil then
