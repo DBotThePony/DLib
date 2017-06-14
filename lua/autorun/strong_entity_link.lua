@@ -15,7 +15,7 @@
 -- limitations under the License.
 --
 
-local VERSION = 201706141218
+local VERSION = 201706141939
 
 if _G.StrongEntityLinkVersion and _G.StrongEntityLinkVersion >= VERSION then return end
 _G.StrongEntityLinkVersion = VERSION
@@ -233,7 +233,7 @@ if CLIENT then
         local tab = self:GetTable()
 		
         local strongEnt = ENTITIES_REGISTRY[id]
-        local strongTableMeta = debug.getmetatable(strongTable)
+        local strongTableMeta = debug.getmetatable(strongEnt)
 		local strongTable = strongTableMeta.__strong_entity_table
 		
         for key, value in pairs(strongTable) do
