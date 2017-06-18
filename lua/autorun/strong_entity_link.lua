@@ -15,7 +15,7 @@
 -- limitations under the License.
 --
 
-local VERSION = 201706141939
+local VERSION = 201706180722
 
 if _G.StrongEntityLinkVersion and _G.StrongEntityLinkVersion >= VERSION then return end
 _G.StrongEntityLinkVersion = VERSION
@@ -28,8 +28,15 @@ local isValid = entMeta.IsValid
 local getTable = entMeta.GetTable
 local ent__eq = entMeta.__eq
 local entIndex = entMeta.EntIndex
+
+entMeta.GetStrongEntity = function(self, ...)
+    return self
+end
+
 entMeta.GetEntity = function(self, ...)
-    local oldVal = self:GetTable().GetEntity
+    local tab = self:GetTable()
+    if not tab then return self end
+    local oldVal = tab.GetEntity
 
     if oldVal then
         return oldVal(self, ...)
@@ -42,6 +49,14 @@ local UniqueNoValue = 'STRONG_ENTITY_RESERVED_NO_VALUE'
 
 local StrongLinkMetadata = {
     GetEntity = function(self)
+        if not isValid(self.__strong_entity_link) then
+            self.__strong_entity_link = Entity(self.__strong_entity_link_id)
+        end
+
+        return self.__strong_entity_link
+    end,
+    
+	GetStrongEntity = function(self)
         if not isValid(self.__strong_entity_link) then
             self.__strong_entity_link = Entity(self.__strong_entity_link_id)
         end
