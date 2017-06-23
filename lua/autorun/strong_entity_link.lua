@@ -15,7 +15,7 @@
 -- limitations under the License.
 --
 
-local VERSION = 201706180722
+local VERSION = 201706231257
 
 if _G.StrongEntityLinkVersion and _G.StrongEntityLinkVersion >= VERSION then return end
 _G.StrongEntityLinkVersion = VERSION
@@ -261,6 +261,7 @@ if CLIENT then
         end
 		
 		strongTableMeta.__strong_entity_link = self
+        hook.Call('StrongEntityLinkUpdates', nil, strongEnt, self)
     end)
 
     net.Receive('StrongEntity.Removed', function()
