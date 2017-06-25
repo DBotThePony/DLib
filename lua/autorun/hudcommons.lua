@@ -18,8 +18,8 @@
 local VERSION = 201706081640
 
 if CLIENT then
-    _G.HUDCommons = _G.HUDCommons or {}
-    if _G.HUDCommons and _G.HUDCommons.VERSION and _G.HUDCommons.VERSION >= VERSION then return end
+    --_G.HUDCommons = _G.HUDCommons or {}
+    --if _G.HUDCommons and _G.HUDCommons.VERSION and _G.HUDCommons.VERSION >= VERSION then return end
     _G.HUDCommons.VERSION = VERSION
     include('autorun/client/hudcommons/simple_draw.lua')
     include('autorun/client/hudcommons/advanced_draw.lua')
@@ -27,6 +27,7 @@ if CLIENT then
     include('autorun/client/hudcommons/menu.lua')
     include('autorun/client/hudcommons/functions.lua')
     include('autorun/client/hudcommons/colors.lua')
+    include('autorun/client/hudcommons/matrix.lua')
 else
     AddCSLuaFile('autorun/client/hudcommons/simple_draw.lua')
     AddCSLuaFile('autorun/client/hudcommons/advanced_draw.lua')
@@ -34,4 +35,5 @@ else
     AddCSLuaFile('autorun/client/hudcommons/menu.lua')
     AddCSLuaFile('autorun/client/hudcommons/functions.lua')
     AddCSLuaFile('autorun/client/hudcommons/colors.lua')
+    AddCSLuaFile('autorun/client/hudcommons/matrix.lua')
 end
