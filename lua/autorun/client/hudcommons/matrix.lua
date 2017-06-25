@@ -37,7 +37,7 @@ function HUDCommons.DrawCenteredMatrix(x, y, width, height, ang)
 end
 
 function HUDCommons.DrawCustomMatrix(x, y)
-    HUDCommons.DrawMatrix(x, y, HUDCommons.MatrixAngle())
+    HUDCommons.DrawMatrix(x, y, HUDCommons.MatrixAngle(0.1))
 end
 
 function HUDCommons.DrawCustomCenteredMatrix(x, y, width, height)
