@@ -15,7 +15,7 @@
 -- limitations under the License.
 --
 
-local VERSION = 201707151341
+local VERSION = 201707151354
 
 if _G.StrongEntityLinkVersion and _G.StrongEntityLinkVersion >= VERSION then return end
 _G.StrongEntityLinkVersion = VERSION
@@ -270,6 +270,35 @@ if CLIENT then
     end)
 else
     util.AddNetworkString('StrongEntity.Removed')
+    local avaliableEntities = {}
+
+    local function checkEntities()
+        local hash = {}
+
+        for i, ent in pairs(ents.GetAll()) do
+            hash[ent] = {ent, ent:EntIndex()}
+        end
+
+        for ent, data in pairs(avaliableEntities) do
+            if not hash[ent] then
+                local entIndex = data[2]
+                net.Start('StrongEntity.Removed')
+                net.WriteUInt(entIndex, 16)
+                net.Broadcast()
+                STRONG_ENTITIES_REGISTRY[entIndex] = nil
+            end
+        end
+
+        avaliableEntities = hash
+    end
+
+    local function updateList()
+        for i, ent in pairs(ents.GetAll()) do
+            avaliableEntities[ent] = {ent, ent:EntIndex()}
+        end
+    end
+
+    updateList()
 
     -- For some reason, some of entities are not being passed to this function
     -- Example - ragdolls with posed flexes
@@ -279,6 +308,12 @@ else
         net.WriteUInt(entIndex, 16)
         net.Broadcast()
         STRONG_ENTITIES_REGISTRY[entIndex] = nil
+        avaliableEntities[self] = nil
+        timer.Create('StrongEntityDeletedCheck', 0, 1, checkEntities)
+    end)
+    
+    hook.Add('OnEntityCreated', 'StrongEntity', function(self)
+        timer.Create('StrongEntityCreatedCheck', 0, 1, updateList)
     end)
 end
 
