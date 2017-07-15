@@ -15,12 +15,12 @@
 -- limitations under the License.
 --
 
-local VERSION = 201706231257
+local VERSION = 201707151341
 
 if _G.StrongEntityLinkVersion and _G.StrongEntityLinkVersion >= VERSION then return end
 _G.StrongEntityLinkVersion = VERSION
 
-local ENTITIES_REGISTRY = {}
+local STRONG_ENTITIES_REGISTRY = {}
 local WRAPPED_FUNCTIONS = {}
 
 local entMeta = FindMetaTable('Entity')
@@ -216,8 +216,8 @@ local function InitStrongEntity(entIndex)
         end
     end
     
-    if ENTITIES_REGISTRY[entIndex] then
-        return ENTITIES_REGISTRY[entIndex]
+    if STRONG_ENTITIES_REGISTRY[entIndex] then
+        return STRONG_ENTITIES_REGISTRY[entIndex]
     end
 
     local newMeta = {
@@ -234,7 +234,7 @@ local function InitStrongEntity(entIndex)
 
     local newObject = setmetatable({}, newMeta)
 
-    ENTITIES_REGISTRY[entIndex] = newObject
+    STRONG_ENTITIES_REGISTRY[entIndex] = newObject
     return newObject
 end
 
@@ -244,10 +244,10 @@ if CLIENT then
     hook.Add('NetworkEntityCreated', 'StrongEntity', function(self)
         local id = self:EntIndex()
 
-        if not ENTITIES_REGISTRY[id] then return end
+        if not STRONG_ENTITIES_REGISTRY[id] then return end
         local tab = self:GetTable()
 		
-        local strongEnt = ENTITIES_REGISTRY[id]
+        local strongEnt = STRONG_ENTITIES_REGISTRY[id]
         local strongTableMeta = debug.getmetatable(strongEnt)
 		local strongTable = strongTableMeta.__strong_entity_table
 		
@@ -265,15 +265,20 @@ if CLIENT then
     end)
 
     net.Receive('StrongEntity.Removed', function()
-        ENTITIES_REGISTRY[net.ReadUInt(16)] = nil
+        local entIndex = net.ReadUInt(16)
+        STRONG_ENTITIES_REGISTRY[entIndex] = nil
     end)
 else
     util.AddNetworkString('StrongEntity.Removed')
 
+    -- For some reason, some of entities are not being passed to this function
+    -- Example - ragdolls with posed flexes
     hook.Add('EntityRemoved', 'StrongEntity', function(self)
+        local entIndex = self:EntIndex()
         net.Start('StrongEntity.Removed')
-        net.WriteUInt(self:EntIndex(), 16)
+        net.WriteUInt(entIndex, 16)
         net.Broadcast()
+        STRONG_ENTITIES_REGISTRY[entIndex] = nil
     end)
 end
 
