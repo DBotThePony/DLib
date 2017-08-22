@@ -16,6 +16,9 @@
 --
 
 HUDCommons.BarData = HUDCommons.BarData or {}
+HUDCommons.BarData2 = HUDCommons.BarData2 or {}
+HUDCommons.BarData3 = HUDCommons.BarData3 or {}
+HUDCommons.BarData4 = HUDCommons.BarData4 or {}
 HUDCommons.WordBarData = HUDCommons.WordBarData or {}
 
 local function InInterval(val, min, max)
@@ -36,18 +39,51 @@ function HUDCommons.SoftBar(x, y, w, h, color, name)
 	HUDCommons.DrawBox(x, y, HUDCommons.BarData[name], h, color)
 end
 
-function HUDCommons.SoftBarBackground(x, y, w, h, color, bgcolor, name)
-	HUDCommons.BarData[name] = HUDCommons.BarData[name] or w
+function HUDCommons.SoftBarMult(x, y, w, h, mult, color, bgcolor, name)
+    HUDCommons.DrawBox(x, y, w, h, bgcolor)
+    w = w * mult
+	HUDCommons.BarData2[name] = HUDCommons.BarData2[name] or w
 	
-	local delta = w - HUDCommons.BarData[name]
+	local delta = w - HUDCommons.BarData2[name]
 	
 	if not InInterval(delta, -0.3, 0.3) then
-		HUDCommons.BarData[name] = HUDCommons.BarData[name] + delta * .1 * HUDCommons.Multipler
+		HUDCommons.BarData2[name] = HUDCommons.BarData2[name] + delta * .1 * HUDCommons.Multipler
 	else
-		HUDCommons.BarData[name] = HUDCommons.BarData[name] + delta
+		HUDCommons.BarData2[name] = HUDCommons.BarData2[name] + delta
 	end
 	
-	HUDCommons.DrawBox(x, y, HUDCommons.BarData[name], h, bgcolor)
+	HUDCommons.DrawBox(x, y, HUDCommons.BarData2[name], h, color)
+end
+
+function HUDCommons.SoftBarBackground(x, y, w, h, color, bgcolor, name)
+	HUDCommons.BarData3[name] = HUDCommons.BarData3[name] or w
+	
+	local delta = w - HUDCommons.BarData3[name]
+	
+	if not InInterval(delta, -0.3, 0.3) then
+		HUDCommons.BarData3[name] = HUDCommons.BarData3[name] + delta * .1 * HUDCommons.Multipler
+	else
+		HUDCommons.BarData3[name] = HUDCommons.BarData3[name] + delta
+	end
+	
+	HUDCommons.DrawBox(x, y, HUDCommons.BarData3[name], h, bgcolor)
+    HUDCommons.DrawBox(x, y, w, h, color)
+end
+
+function HUDCommons.SoftBarBackgroundMult(x, y, w, h, mult, color, bgcolor1, bgcolor2, name)
+    HUDCommons.DrawBox(x, y, w, h, bgcolor)
+    w = w * mult
+	HUDCommons.BarData4[name] = HUDCommons.BarData4[name] or w
+	
+	local delta = w - HUDCommons.BarData4[name]
+	
+	if not InInterval(delta, -0.3, 0.3) then
+		HUDCommons.BarData4[name] = HUDCommons.BarData4[name] + delta * .1 * HUDCommons.Multipler
+	else
+		HUDCommons.BarData4[name] = HUDCommons.BarData4[name] + delta
+	end
+	
+	HUDCommons.DrawBox(x, y, HUDCommons.BarData4[name], h, bgcolor)
     HUDCommons.DrawBox(x, y, w, h, color)
 end
 
