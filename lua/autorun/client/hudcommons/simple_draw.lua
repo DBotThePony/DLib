@@ -61,3 +61,13 @@ function HUDCommons.WordBox(text, font, x, y, col, colBox, center)
 
     return w, h
 end
+
+function HUDCommons.VerticalBar(x, y, w, h, mult, color)
+	local mult2 = 1 - mult
+	y = y + h * mult2
+	if color then
+		surface.SetDrawColor(color)
+	end
+	
+	surface.DrawRect(x, y, w, h * mult)
+end

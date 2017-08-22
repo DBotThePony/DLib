@@ -28,6 +28,7 @@ if CLIENT then
     include('autorun/client/hudcommons/functions.lua')
     include('autorun/client/hudcommons/colors.lua')
     include('autorun/client/hudcommons/matrix.lua')
+    include('autorun/client/hudcommons/stripped.lua')
 else
     AddCSLuaFile('autorun/client/hudcommons/simple_draw.lua')
     AddCSLuaFile('autorun/client/hudcommons/advanced_draw.lua')
@@ -36,4 +37,5 @@ else
     AddCSLuaFile('autorun/client/hudcommons/functions.lua')
     AddCSLuaFile('autorun/client/hudcommons/colors.lua')
     AddCSLuaFile('autorun/client/hudcommons/matrix.lua')
+    AddCSLuaFile('autorun/client/hudcommons/stripped.lua')
 end

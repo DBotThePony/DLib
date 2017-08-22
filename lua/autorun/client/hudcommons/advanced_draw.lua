@@ -36,6 +36,21 @@ function HUDCommons.SoftBar(x, y, w, h, color, name)
 	HUDCommons.DrawBox(x, y, HUDCommons.BarData[name], h, color)
 end
 
+function HUDCommons.SoftBarBackground(x, y, w, h, color, bgcolor, name)
+	HUDCommons.BarData[name] = HUDCommons.BarData[name] or w
+	
+	local delta = w - HUDCommons.BarData[name]
+	
+	if not InInterval(delta, -0.3, 0.3) then
+		HUDCommons.BarData[name] = HUDCommons.BarData[name] + delta * .1 * HUDCommons.Multipler
+	else
+		HUDCommons.BarData[name] = HUDCommons.BarData[name] + delta
+	end
+	
+	HUDCommons.DrawBox(x, y, HUDCommons.BarData[name], h, bgcolor)
+    HUDCommons.DrawBox(x, y, w, h, color)
+end
+
 function HUDCommons.SoftSkyrimBar(x, y, w, h, color, name, speed)
 	speed = speed or .1
 	HUDCommons.BarData[name] = HUDCommons.BarData[name] or w
