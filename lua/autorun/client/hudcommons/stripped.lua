@@ -67,7 +67,7 @@ function HUDCommons.VerticalStripped(drawData)
         else
             surface.SetDrawColor(bgcolor)
 			surface.DrawRect(x, y, width, height)
-            local toDraw = middle - walkedDist
+            local toDraw = math.min(middle - walkedDist, height)
             surface.SetDrawColor(color)
 			surface.DrawRect(x, y, width, toDraw)
 			y = y + height
