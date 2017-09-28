@@ -25,4 +25,6 @@ register('core/fsutil.lua').export(file)
 register('core/loader.lua')
 
 DLib.Loader.shmodule('strong_entity_link.lua')
+DLib.Loader.shmodule('sh_cami.lua')
+
 DLib.Loader.loadPureCS('dlib/modules/hudcommons')
