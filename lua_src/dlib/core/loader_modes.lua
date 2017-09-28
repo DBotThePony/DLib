@@ -155,7 +155,7 @@ end
 
 function Loader.loadPureCSTop(targetDir)
 	local output = {}
-	local files = file.FindVisible(targetDir .. '/*', 'LUA')
+	local files = file.FindVisiblePrepend(targetDir, 'LUA')
 
 	if SERVER then
 		for i, fil in ipairs(files) do
@@ -173,7 +173,7 @@ end
 function Loader.loadPureSVTop(targetDir)
 	if CLIENT then return end
 	local output = {}
-	local files = file.FindVisible(targetDir, 'LUA')
+	local files = file.FindVisiblePrepend(targetDir, 'LUA')
 
 	for i, fil in ipairs(files) do
 		table.insert(output, {fil, Loader.include(fil)})
@@ -184,7 +184,7 @@ end
 
 function Loader.loadPureSHTop(targetDir)
 	local output = {}
-	local files = file.FindVisible(targetDir .. '/*', 'LUA')
+	local files = file.FindVisiblePrepend(targetDir, 'LUA')
 
 	if SERVER then
 		for i, fil in ipairs(files) do

@@ -14,7 +14,7 @@
 -- limitations under the License.
 
 DLib.Loader.start('DNotify')
-DLib.Loader.include('dlib/modules/dnotify/client/cl_init.lua')
+DLib.Loader.include('dlib/modules/notify/client/cl_init.lua')
 DLib.Loader.finish()
 
 DLib.Notify = DNotify
