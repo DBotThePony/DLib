@@ -15,3 +15,7 @@
 
 DLib.Loader.csModule('dlib/modules/dnotify/client')
 DLib.Loader.svmodule('dnotify/sv_dnotify.lua')
+
+DLib.Loader.loadPureSHTop('dlib/autorun')
+DLib.Loader.loadPureSVTop('dlib/autorun/server')
+DLib.Loader.loadPureCSTop('dlib/autorun/client')

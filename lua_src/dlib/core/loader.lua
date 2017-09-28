@@ -83,94 +83,6 @@ function Loader.filter(inFiles)
 	return Loader.filterShared(inFiles), Loader.filterClient(inFiles), Loader.filterServer(inFiles)
 end
 
-function Loader.load(targetDir)
-	local output = {}
-	local files = file.FindRecursive(targetDir)
-
-	local sh, cl, sv = Loader.filter(files)
-
-	if SERVER then
-		for i, fil in ipairs(sh) do
-			AddCSLuaFile(fil)
-			table.insert(output, {fil, include(fil)})
-		end
-
-		for i, fil in ipairs(cl) do
-			AddCSLuaFile(fil)
-		end
-
-		for i, fil in ipairs(sv) do
-			table.insert(output, {fil, include(fil)})
-		end
-	else
-		for i, fil in ipairs(sh) do
-			table.insert(output, {fil, include(fil)})
-		end
-
-		for i, fil in ipairs(cl) do
-			table.insert(output, {fil, include(fil)})
-		end
-	end
-
-	return output
-end
-
-function Loader.loadCS(targetDir)
-	local output = {}
-	local files = file.FindRecursive(targetDir)
-
-	local sh, cl = Loader.filter(files)
-
-	if SERVER then
-		for i, fil in ipairs(sh) do
-			AddCSLuaFile(fil)
-		end
-
-		for i, fil in ipairs(cl) do
-			AddCSLuaFile(fil)
-		end
-	else
-		for i, fil in ipairs(sh) do
-			table.insert(output, {fil, include(fil)})
-		end
-
-		for i, fil in ipairs(cl) do
-			table.insert(output, {fil, include(fil)})
-		end
-	end
-
-	return output
-end
-
-function Loader.loadPureCS(targetDir)
-	local output = {}
-	local files = file.FindRecursive(targetDir)
-
-	if SERVER then
-		for i, fil in ipairs(files) do
-			AddCSLuaFile(fil)
-		end
-	else
-		for i, fil in ipairs(files) do
-			table.insert(output, {fil, include(fil)})
-		end
-	end
-
-	return output
-end
-
-function Loader.csModule(targetDir)
-	if CLIENT then return {} end
-	local output = {}
-	local files = file.FindRecursive(targetDir)
-
-	for i, fil in ipairs(files) do
-		AddCSLuaFile(fil)
-	end
-
-	return output
-end
-
 function Loader.shmodule(fil)
 	if SERVER then AddCSLuaFile('dlib/modules/' .. fil) end
 	return include('dlib/modules/' .. fil)
@@ -200,6 +112,12 @@ function Loader.finish(allowGlobal)
 	currentModuleEnv = nil
 
 	return created
+end
+
+include_('loader_modes.lua')
+
+if SERVER then
+	AddCSLuaFile('loader_modes.lua')
 end
 
 return Loader

@@ -31,7 +31,7 @@ return function(moduleName)
 	end
 
 	function self.register()
-		DLib[moduleName] = {}
+		DLib[moduleName] = DLib[moduleName] or {}
 		return self.export(DLib[moduleName])
 	end
 

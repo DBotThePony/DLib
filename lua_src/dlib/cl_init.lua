@@ -18,3 +18,6 @@ DLib.Loader.include('dlib/modules/dnotify/client/cl_init.lua')
 DLib.Loader.finish()
 
 DLib.Notify = DNotify
+
+DLib.Loader.loadPureSHTop('dlib/autorun')
+DLib.Loader.loadPureCSTop('dlib/autorun/client')
