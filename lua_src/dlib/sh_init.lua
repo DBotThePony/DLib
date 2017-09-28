@@ -20,6 +20,9 @@ local function register(fil)
 end
 
 DLib.module = include('dlib/core/module.lua')
+DLib.MessageMaker = include('dlib/util/message.lua')
+DLib.MessageMaker(DLib, 'DLib')
+
 register('core/tableutil.lua').export(table)
 register('core/fsutil.lua').export(file)
 register('core/loader.lua')
@@ -27,4 +30,7 @@ register('core/loader.lua')
 DLib.Loader.shmodule('strong_entity_link.lua')
 DLib.Loader.shmodule('sh_cami.lua')
 
+DLib.Loader.start('HUDCommons')
 DLib.Loader.loadPureCS('dlib/modules/hudcommons')
+DLib.Loader.finish()
+

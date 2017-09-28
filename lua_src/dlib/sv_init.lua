@@ -13,18 +13,5 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
-local AddCSLuaFile_ = AddCSLuaFile
-local include_ = include
-
-local function AddCSLuaFile(fil)
-	return AddCSLuaFile_('dlib/' .. fil)
-end
-
-local function csmodule(fil)
-	return AddCSLuaFile_('dlib/modules/' .. fil)
-end
-
-local function shmodule(fil)
-	AddCSLuaFile_('dlib/modules/' .. fil)
-	return include_('dlib/modules/' .. fil)
-end
+DLib.Loader.csModule('dlib/modules/dnotify/client')
+DLib.Loader.svmodule('dnotify/sv_dnotify.lua')

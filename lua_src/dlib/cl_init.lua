@@ -13,12 +13,8 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
-local include_ = include
+DLib.Loader.start('DNotify')
+DLib.Loader.include('dlib/modules/dnotify/client/cl_init.lua')
+DLib.Loader.finish()
 
-local function include(fil)
-	return include_('dlib/' .. fil)
-end
-
-local function csmodule(fil)
-	return include_('dlib/modules/' .. fil)
-end
+DLib.Notify = DNotify
