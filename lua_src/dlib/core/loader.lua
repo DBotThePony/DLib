@@ -15,13 +15,11 @@
 
 local Loader = DLib.module('Loader')
 
-local include_ = include
 local currentModule, currentModuleEnv
 
-local include
-function include(filIn)
+function Loader.include(filIn)
 	if not currentModule then
-		return include_(filIn)
+		return include(filIn)
 	else
 		local currentModule, currentModuleEnv = currentModule, currentModuleEnv
 		local compiled = CompileFile(filIn)
@@ -52,8 +50,6 @@ function include(filIn)
 		return compiled()
 	end
 end
-
-Loader.include = include
 
 function Loader.findShared(inFiles)
 	return table.filterNew(inFiles, function(_, value) return value:sub(1, 3) == 'sh_' end)
@@ -114,7 +110,7 @@ function Loader.finish(allowGlobal)
 	return created
 end
 
-include_('loader_modes.lua')
+include('loader_modes.lua')
 
 if SERVER then
 	AddCSLuaFile('loader_modes.lua')

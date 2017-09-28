@@ -23,8 +23,8 @@ DLib.module = include('dlib/core/module.lua')
 DLib.MessageMaker = include('dlib/util/message.lua')
 DLib.MessageMaker(DLib, 'DLib')
 
-register('core/tableutil.lua').export(table)
-register('core/fsutil.lua').export(file)
+register('core/tableutil.lua').export(_G.table)
+register('core/fsutil.lua').export(_G.file)
 register('core/loader.lua')
 
 DLib.Loader.shmodule('strong_entity_link.lua')
