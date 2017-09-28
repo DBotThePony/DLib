@@ -28,12 +28,3 @@ local function shmodule(fil)
 	AddCSLuaFile_('dlib/modules/' .. fil)
 	return include_('dlib/modules/' .. fil)
 end
-
-csmodule('hudcommons/simple_draw.lua')
-csmodule('hudcommons/advanced_draw.lua')
-csmodule('hudcommons/position.lua')
-csmodule('hudcommons/menu.lua')
-csmodule('hudcommons/functions.lua')
-csmodule('hudcommons/colors.lua')
-csmodule('hudcommons/matrix.lua')
-csmodule('hudcommons/stripped.lua')

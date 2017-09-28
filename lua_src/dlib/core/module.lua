@@ -13,14 +13,27 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
-_G.DLib = _G.DLib or {}
+return function(moduleName)
+	local self = {}
 
-if SERVER then
-	AddCSLuaFile('dlib/cl_init.lua')
-	AddCSLuaFile('dlib/sh_init.lua')
-	include('dlib/sh_init.lua')
-	include('dlib/sv_init.lua')
-else
-	include('dlib/sh_init.lua')
-	include('dlib/cl_init.lua')
+	function self:Name()
+		return moduleName
+	end
+
+	function self.export(target)
+		for k, v in pairs(self) do
+			if type(v) == 'function' then
+				target[k] = v
+			end
+		end
+
+		return target
+	end
+
+	function self.register()
+		DLib[moduleName] = {}
+		return self.export(DLib[moduleName])
+	end
+
+	return self
 end

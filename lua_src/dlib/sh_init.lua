@@ -13,12 +13,16 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
-local AddCSLuaFile_ = AddCSLuaFile
-local include_ = include
-
-local function shmodule(fil)
-	if SERVER then AddCSLuaFile_('dlib/modules/' .. fil) end
-	return include_('dlib/modules/' .. fil)
+local function register(fil)
+	if SERVER then AddCSLuaFile('dlib/' .. fil) end
+	local result = include('dlib/' .. fil)
+	return result.register()
 end
 
-shmodule('strong_entity_link.lua')
+DLib.module = include('dlib/core/module.lua')
+register('core/tableutil.lua').export(table)
+register('core/fsutil.lua').export(file)
+register('core/loader.lua')
+
+DLib.Loader.shmodule('strong_entity_link.lua')
+DLib.Loader.loadPureCS('dlib/modules/hudcommons')

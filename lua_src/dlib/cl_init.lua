@@ -13,7 +13,6 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
-
 local include_ = include
 
 local function include(fil)
@@ -23,12 +22,3 @@ end
 local function csmodule(fil)
 	return include_('dlib/modules/' .. fil)
 end
-
-csmodule('hudcommons/simple_draw.lua')
-csmodule('hudcommons/advanced_draw.lua')
-csmodule('hudcommons/position.lua')
-csmodule('hudcommons/menu.lua')
-csmodule('hudcommons/functions.lua')
-csmodule('hudcommons/colors.lua')
-csmodule('hudcommons/matrix.lua')
-csmodule('hudcommons/stripped.lua')
