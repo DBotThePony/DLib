@@ -13,11 +13,9 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
-DLib.Loader.start('DNotify')
+DLib.Loader.start('Notify', true)
 DLib.Loader.include('dlib/modules/notify/client/cl_init.lua')
-DLib.Loader.finish()
-
-DLib.Notify = DNotify
+DLib.Loader.finish(false)
 
 DLib.Loader.loadPureSHTop('dlib/autorun')
 DLib.Loader.loadPureCSTop('dlib/autorun/client')

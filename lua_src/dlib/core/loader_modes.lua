@@ -17,7 +17,7 @@ local Loader = DLib.Loader
 
 function Loader.load(targetDir)
 	local output = {}
-	local files = file.FindRecursiveVisible(targetDir)
+	local files = DLib.fs.FindRecursiveVisible(targetDir)
 
 	local sh, cl, sv = Loader.filter(files)
 
@@ -81,7 +81,7 @@ end
 
 function Loader.loadCS(targetDir)
 	local output = {}
-	local files = file.FindRecursiveVisible(targetDir)
+	local files = DLib.fs.FindRecursiveVisible(targetDir)
 
 	local sh, cl = Loader.filter(files)
 
@@ -108,7 +108,7 @@ end
 
 function Loader.loadPureCS(targetDir)
 	local output = {}
-	local files = file.FindRecursiveVisible(targetDir)
+	local files = DLib.fs.FindRecursiveVisible(targetDir)
 
 	if SERVER then
 		for i, fil in ipairs(files) do
@@ -126,7 +126,7 @@ end
 function Loader.loadPureSV(targetDir)
 	if CLIENT then return end
 	local output = {}
-	local files = file.FindRecursiveVisible(targetDir)
+	local files = DLib.fs.FindRecursiveVisible(targetDir)
 
 	for i, fil in ipairs(files) do
 		table.insert(output, {fil, Loader.include(fil)})
@@ -137,7 +137,7 @@ end
 
 function Loader.loadPureSH(targetDir)
 	local output = {}
-	local files = file.FindRecursiveVisible(targetDir)
+	local files = DLib.fs.FindRecursiveVisible(targetDir)
 
 	if SERVER then
 		for i, fil in ipairs(files) do
@@ -155,7 +155,7 @@ end
 
 function Loader.loadPureCSTop(targetDir)
 	local output = {}
-	local files = file.FindVisiblePrepend(targetDir, 'LUA')
+	local files = DLib.fs.FindVisiblePrepend(targetDir, 'LUA')
 
 	if SERVER then
 		for i, fil in ipairs(files) do
@@ -173,7 +173,7 @@ end
 function Loader.loadPureSVTop(targetDir)
 	if CLIENT then return end
 	local output = {}
-	local files = file.FindVisiblePrepend(targetDir, 'LUA')
+	local files = DLib.fs.FindVisiblePrepend(targetDir, 'LUA')
 
 	for i, fil in ipairs(files) do
 		table.insert(output, {fil, Loader.include(fil)})
@@ -184,7 +184,7 @@ end
 
 function Loader.loadPureSHTop(targetDir)
 	local output = {}
-	local files = file.FindVisiblePrepend(targetDir, 'LUA')
+	local files = DLib.fs.FindVisiblePrepend(targetDir, 'LUA')
 
 	if SERVER then
 		for i, fil in ipairs(files) do
@@ -203,7 +203,7 @@ end
 function Loader.csModule(targetDir)
 	if CLIENT then return {} end
 	local output = {}
-	local files = file.FindRecursiveVisible(targetDir)
+	local files = DLib.fs.FindRecursiveVisible(targetDir)
 
 	for i, fil in ipairs(files) do
 		AddCSLuaFile(fil)

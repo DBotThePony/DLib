@@ -21,7 +21,7 @@ function Loader.include(filIn)
 	if not currentModule then
 		return include(filIn)
 	else
-		local currentModule, currentModuleEnv = currentModule, currentModuleEnv
+		local currentModule2, currentModuleEnv2 = currentModule, currentModuleEnv
 		local compiled = CompileFile(filIn)
 
 		if not compiled then
@@ -29,22 +29,27 @@ function Loader.include(filIn)
 			return
 		end
 
-		local getFEnv = getfenv(compiled) or _G
-
 		setfenv(compiled, setmetatable({}, {
 			__index = function(self, key)
-				if key == currentModule then
-					return currentModuleEnv
+				if currentModule and key == 'DLib' then print(key, debug.traceback()) end
+				if key == currentModule2 then
+					return currentModuleEnv2
 				end
 
 				if key == 'include' then
-					return include
+					return Loader.include
 				end
 
-				return getFEnv[key]
+				return _G[key]
 			end,
 
-			__newindex = getFEnv
+			__newindex = function(self, key, value)
+				if key == currentModule2 then
+					return
+				end
+
+				_G[key] = value
+			end
 		}))
 
 		return compiled()
@@ -89,16 +94,36 @@ function Loader.svmodule(fil)
 	return include('dlib/modules/' .. fil)
 end
 
-function Loader.start(moduleName)
+function Loader.start(moduleName, noGlobal)
 	currentModuleEnv = DLib[moduleName] or {}
+
+	if DLib[moduleName] then
+		local hit = false
+
+		for k, v in pairs(DLib[moduleName]) do
+			hit = true
+			break
+		end
+
+		if not hit then
+			DLib[moduleName] = {}
+			currentModuleEnv = DLib[moduleName]
+		end
+	end
+
+	DLib[moduleName] = currentModuleEnv
 	currentModule = moduleName
-	_G[moduleName] = currentModuleEnv
+
+	if not noGlobal then
+		_G[moduleName] = currentModuleEnv
+	end
+
 	return currentModuleEnv
 end
 
-function Loader.finish(allowGlobal)
-	DLib[currentModule] = currentModuleEnv
+function Loader.finish(allowGlobal, renameHack)
 	local created = currentModuleEnv
+	local createdModule = currentModule
 
 	if not allowGlobal then
 		_G[currentModule] = nil
@@ -106,6 +131,8 @@ function Loader.finish(allowGlobal)
 
 	currentModule = nil
 	currentModuleEnv = nil
+
+	DLib[renameHack or createdModule] = created
 
 	return created
 end

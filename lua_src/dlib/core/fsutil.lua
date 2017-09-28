@@ -33,8 +33,8 @@ local function findRecursive(dirTarget)
 end
 
 local function findRecursiveVisible(dirTarget)
-	local findFiles = file.FindVisible(dirTarget .. endfix, searchIn)
-	local _, findDirs = file.FindVisible(dirTarget .. '/*', searchIn)
+	local findFiles = file.FindVisible(dirTarget, searchIn)
+	local _, findDirs = file.FindVisible(dirTarget, searchIn)
 	table.prependString(findFiles, dirTarget .. '/')
 	table.prependString(findDirs, dirTarget .. '/')
 	table.append(files, findFiles)
@@ -46,7 +46,7 @@ local function findRecursiveVisible(dirTarget)
 end
 
 function fsutil.FindVisible(dir, searchIn)
-	local fileFind, dirFind = file.Find(dir .. '/*', searchIn)
+	local fileFind, dirFind = file.Find(dir .. '/*', searchIn or 'LUA')
 	table.filter(fileFind, function(key, val) return val:sub(1, 1) ~= '.' end)
 	table.filter(dirFind, function(key, val) return val:sub(1, 1) ~= '.' end)
 	return fileFind, dirFind

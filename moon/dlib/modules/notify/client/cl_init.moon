@@ -15,13 +15,11 @@
 -- limitations under the License.
 --
 
-export Notify
 export Notify_SIDE_LEFT
 export Notify_SIDE_RIGHT
 export Notify_POS_TOP
 export Notify_POS_BOTTOM
 
-Notify = {}
 Notify.DefaultDispatchers = {}
 
 X_SHIFT_CVAR = CreateConVar('dnofity_x_shift', '0', {FCVAR_ARCHIVE}, 'Shift at X of Notify slide notifications')
@@ -167,4 +165,4 @@ include 'legacy.lua'
 
 timer.Simple(0, Notify.CreateDefaultDispatchers)
 
-return nil
+return Notify
