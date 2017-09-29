@@ -106,6 +106,8 @@ function tableutil.unshift(tableIn, ...)
 	local values = {...}
 	local count = #values
 
+	if count == 0 then return tableIn end
+
 	for i = #tableIn + count, count, -1 do
 		tableIn[i] = tableIn[i - count]
 	end

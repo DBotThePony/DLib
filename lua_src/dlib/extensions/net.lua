@@ -34,7 +34,7 @@ function net.WriteArray(input)
 end
 
 function net.ReadArray()
-	return table.construct({}, net.ReadType, net.ReadUInt(16))
+	return table.construct({}, net.ReadType, net.ReadUInt(16), nil)
 end
 
 return net

@@ -17,10 +17,27 @@ net.pool('DLib.AddChatText')
 
 local chat = DLib.module('chat', 'chat')
 
-function chat.player(ply, ...)
-	net.Start('DLib.AddChatText')
-	net.WriteArray({...})
-	net.Send(ply)
+function chat.generate(name, targetTable)
+	local nw = 'DLib.AddChatText.' .. name
+	net.pool(nw)
+
+	local newModule = targetTable or {}
+
+	function newModule.player(ply, ...)
+		net.Start(nw, true)
+		net.WriteArray({...})
+		net.Send(ply)
+	end
+
+	function newModule.all(...)
+		net.Start(nw, true)
+		net.WriteArray({...})
+		net.Broadcast()
+	end
+
+	return newModule
 end
+
+chat.generate('default', chat)
 
 return chat

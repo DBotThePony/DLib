@@ -13,6 +13,19 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
-net.receive('DLib.AddChatText', function()
-	chat.AddText(unpack(net.ReadArray()))
-end)
+local chat = DLib.module('chat', 'chat')
+
+function chat.registerChat(vname, ...)
+	local nw = 'DLib.AddChatText.' .. vname
+	local values = {...}
+
+	net.receive(nw, function()
+		chat.AddText(unpack(table.unshift(net.ReadArray(), unpack(values))))
+	end)
+
+	return nw
+end
+
+chat.registerChat('default')
+
+return chat
