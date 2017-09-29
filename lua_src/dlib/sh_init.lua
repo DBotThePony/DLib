@@ -36,6 +36,9 @@ DLib.register('core/loader.lua')
 DLib.register('extensions/string.lua')
 DLib.register('extensions/net.lua').export(_G.net)
 
+DLib.Loader.shmodule('sh_cami.lua')
+DLib.Loader.shmodule('strong_entity_link.lua')
+
 DLib.Loader.start('HUDCommons')
 DLib.Loader.loadPureCS('dlib/modules/hudcommons')
 DLib.Loader.finish()

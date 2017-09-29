@@ -22,6 +22,7 @@ end
 DLib.Loader.csModule('dlib/modules/dnotify/client')
 DLib.Loader.svmodule('notify/sv_dnotify.lua')
 DLib.Loader.csModule('dlib/util/client')
+DLib.Loader.svmodule('dmysql.lua')
 
 DLib.registerSV('util/server/chat.lua')
 
