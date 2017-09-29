@@ -39,4 +39,8 @@ function string.tformat(time)
 	return str
 end
 
+function string.qdate(time)
+	return os.date('%H:%M:%S - %d/%m/%Y', time)
+end
+
 return string
