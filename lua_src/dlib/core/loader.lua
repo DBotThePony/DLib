@@ -89,6 +89,11 @@ function Loader.shmodule(fil)
 	return include('dlib/modules/' .. fil)
 end
 
+function Loader.shclass(fil)
+	if SERVER then AddCSLuaFile('dlib/classes/' .. fil) end
+	return include('dlib/classes/' .. fil)
+end
+
 function Loader.svmodule(fil)
 	if CLIENT then return end
 	return include('dlib/modules/' .. fil)

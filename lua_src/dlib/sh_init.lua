@@ -40,6 +40,11 @@ DLib.register('extensions/net.lua').export(_G.net)
 DLib.Loader.shmodule('sh_cami.lua')
 DLib.Loader.shmodule('strong_entity_link.lua')
 
+DLib.Loader.shclass('modifier_base.lua')
+DLib.Loader.shclass('networked_data.lua')
+DLib.Loader.shclass('sequence_base.lua')
+DLib.Loader.shclass('sequence_holder.lua')
+
 DLib.Loader.start('HUDCommons')
 DLib.Loader.loadPureCS('dlib/modules/hudcommons')
 DLib.Loader.finish()
