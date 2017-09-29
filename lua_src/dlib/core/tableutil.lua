@@ -82,4 +82,22 @@ function tableutil.filterNew(target, filterFunc)
 	return filtered
 end
 
+function tableutil.qmerge(into, inv)
+	for i, val in ipairs(inv) do
+		into[i] = val
+	end
+
+	return into
+end
+
+function tableutil.qcopy(input)
+	local reply = {}
+
+	for i, val in ipairs(input) do
+		reply[i] = val
+	end
+
+	return reply
+end
+
 return tableutil
