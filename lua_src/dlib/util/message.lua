@@ -125,6 +125,8 @@ return function(tableTarget, moduleName, moduleColor)
 		tableTo.repackMessage = RepackMessage
 		tableTo.FormatMessage = FormatMessage
 		tableTo.formatMessage = FormatMessage
+		tableTo.prefix = PREFIX
+		tableTo.textcolor = DEFAULT_TEXT_COLOR
 
 		if CLIENT then
 			tableTo.Chat = Chat
@@ -134,6 +136,7 @@ return function(tableTarget, moduleName, moduleColor)
 		end
 	end
 
+	tableTarget = tableTarget or {}
 	export(tableTarget)
-	return export
+	return export, tableTarget
 end
