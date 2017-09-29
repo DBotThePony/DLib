@@ -45,45 +45,85 @@ end
 
 update()
 
-function ents.GetAll()
-	return KnownEntities
-end
+do
+	local IsValid = FindMetaTable('Entity').IsValid
 
-function player.GetAll()
-	return KnownPlayers
-end
+	function ents.GetAll()
+		for i, ent in ipairs(KnownEntities) do
+			if not IsValid(ent) then
+				update()
+				break
+			end
+		end
 
-function ents.FindByClass(byStr)
-	local matchedStart, matchedEnd = string.find(byStr, '*', 1, false)
+		return KnownEntities
+	end
 
-	if matchedStart then
-		local matchFor = string.sub(byStr, 1, matchedStart)
+	function player.GetAll()
+		for i, ent in ipairs(KnownPlayers) do
+			if not IsValid(ent) then
+				update()
+				break
+			end
+		end
 
-		if not findByClassCache[matchFor] then
-			local reply = {}
+		return KnownPlayers
+	end
 
-			for k, v in ipairs(KnownEntitiesByClass) do
-				if string.sub(v[2], 1, matchedStart) == byStr then
-					reply[#reply + 1] = v[1]
+	function ents.FindByClass(byStr, ignore)
+		local matchedStart, matchedEnd = string.find(byStr, '*', 1, false)
+
+		if matchedStart then
+			local matchFor = string.sub(byStr, 1, matchedStart)
+
+			if not findByClassCache[matchFor] then
+				local reply = {}
+
+				for k, v in ipairs(KnownEntitiesByClass) do
+					if string.sub(v[2], 1, matchedStart) == byStr then
+						reply[#reply + 1] = v[1]
+					end
 				end
+
+				findByClassCache[matchFor] = reply
+
+				return reply
+			else
+				if not ignore then
+					for i, ent in ipairs(findByClassCache[matchFor]) do
+						if not IsValid(ent) then
+							update()
+							return ents.FindByClass(byStr, true)
+						end
+					end
+				end
+
+				return findByClassCache[matchFor]
 			end
-
-			findByClassCache[matchFor] = reply
-
-			return reply
 		else
-			return findByClassCache[matchFor]
-		end
-	else
-		local reply = {}
+			if not findByClassCache[byStr] then
+				local reply = {}
 
-		for k, v in ipairs(KnownEntitiesByClass) do
-			if v[2] == byStr then
-				reply[#reply + 1] = v[1]
+				for k, v in ipairs(KnownEntitiesByClass) do
+					if v[2] == byStr then
+						reply[#reply + 1] = v[1]
+					end
+				end
+
+				return reply
+			else
+				if not ignore then
+					for i, ent in ipairs(findByClassCache[byStr]) do
+						if not IsValid(ent) then
+							update()
+							return ents.FindByClass(byStr, true)
+						end
+					end
+				end
+
+				return findByClassCache[byStr]
 			end
 		end
-
-		return reply
 	end
 end
 
