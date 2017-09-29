@@ -49,6 +49,8 @@ do
 	local IsValid = FindMetaTable('Entity').IsValid
 
 	function ents.GetAll()
+		-- if true then return ents.GetAllDLib() end
+
 		for i, ent in ipairs(KnownEntities) do
 			if not IsValid(ent) then
 				update()
@@ -71,6 +73,7 @@ do
 	end
 
 	function ents.FindByClass(byStr, ignore)
+		-- if true then return ents.FindByClassDLib(byStr) end
 		local matchedStart, matchedEnd = string.find(byStr, '*', 1, false)
 
 		if matchedStart then
@@ -158,14 +161,22 @@ local function OnEntityCreated(ent2)
 	local getClass = GET_CLASS(ent2)
 	table.insert(KnownEntities, ent2)
 	table.insert(KnownEntitiesByClass, {ent2, getClass})
+
 	if getClass == 'player' then
 		table.insert(KnownPlayers, ent2)
 	end
+
+	timer.Create('DEntityCache.Update', 0, 1, update)
+end
+
+local function EntitySpawned(ent2)
+	update()
 	timer.Create('DEntityCache.Update', 0, 1, update)
 end
 
 hook.Add('EntityRemoved', 'DEntityCache', EntityRemoved)
 hook.Add('OnEntityCreated', 'DEntityCache', OnEntityCreated)
+hook.Add('EntitySpawned', 'DEntityCache', EntitySpawned)
 
 do
 	local plyMeta = FindMetaTable('Player')
@@ -269,6 +280,14 @@ end
 do
 	local entMeta = FindMetaTable('Entity')
 	local entMeta_GetTable = entMeta.GetTable
+	entMeta.SpawnDLib = entMeta.SpawnDLib or entMeta.Spawn
+	local entMeta_Spawn = entMeta.SpawnDLib
+
+	function entMeta:Spawn()
+		local val = entMeta_Spawn(self)
+		hook.Run('EntitySpawned', self)
+		return val
+	end
 
 	function entMeta:__index(key)
 		local val = entMeta[key]
@@ -289,6 +308,7 @@ do
 	local entMeta = FindMetaTable('Entity')
 	local weaponMeta = FindMetaTable('Weapon')
 	local entMeta_GetTable = entMeta.GetTable
+	local entMeta_GetOwner = entMeta.GetOwner
 
 	function weaponMeta:__index(key)
 		local val = weaponMeta[key]
@@ -296,6 +316,10 @@ do
 
 		val = entMeta[key]
 		if val ~= nil then return val end
+
+		if key == 'Owner' then
+			return entMeta_GetOwner(self)
+		end
 
 		local tab = entMeta_GetTable(self)
 
