@@ -40,7 +40,7 @@ function HUDCommons.VerticalStripped(drawData)
 	local height = drawData.height or 5
 	local x = drawData.x or 0
 	local y = drawData.y or 0
-	local mult = drawData.mult or 0.5
+	local mult = math.Clamp(drawData.mult or 0.5, 0, 1)
 
 	local middleBar = math.floor(bars * mult + 0.5)
     local calcHeight = spacing * (bars - 1) + bars * height

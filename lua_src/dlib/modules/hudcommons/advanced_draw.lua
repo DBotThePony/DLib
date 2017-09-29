@@ -27,62 +27,62 @@ end
 
 function HUDCommons.SoftBar(x, y, w, h, color, name)
 	HUDCommons.BarData[name] = HUDCommons.BarData[name] or w
-	
+
 	local delta = w - HUDCommons.BarData[name]
-	
+
 	if not InInterval(delta, -0.3, 0.3) then
 		HUDCommons.BarData[name] = HUDCommons.BarData[name] + delta * .1 * HUDCommons.Multipler
 	else
 		HUDCommons.BarData[name] = HUDCommons.BarData[name] + delta
 	end
-	
+
 	HUDCommons.DrawBox(x, y, HUDCommons.BarData[name], h, color)
 end
 
 function HUDCommons.SoftBarMult(x, y, w, h, mult, color, bgcolor, name)
     HUDCommons.DrawBox(x, y, w, h, bgcolor)
-    w = w * mult
+    w = w * math.Clamp(mult, 0, 1)
 	HUDCommons.BarData2[name] = HUDCommons.BarData2[name] or w
-	
+
 	local delta = w - HUDCommons.BarData2[name]
-	
+
 	if not InInterval(delta, -0.3, 0.3) then
 		HUDCommons.BarData2[name] = HUDCommons.BarData2[name] + delta * .1 * HUDCommons.Multipler
 	else
 		HUDCommons.BarData2[name] = HUDCommons.BarData2[name] + delta
 	end
-	
+
 	HUDCommons.DrawBox(x, y, HUDCommons.BarData2[name], h, color)
 end
 
 function HUDCommons.SoftBarBackground(x, y, w, h, color, bgcolor, name)
 	HUDCommons.BarData3[name] = HUDCommons.BarData3[name] or w
-	
+
 	local delta = w - HUDCommons.BarData3[name]
-	
+
 	if not InInterval(delta, -0.3, 0.3) then
 		HUDCommons.BarData3[name] = HUDCommons.BarData3[name] + delta * .1 * HUDCommons.Multipler
 	else
 		HUDCommons.BarData3[name] = HUDCommons.BarData3[name] + delta
 	end
-	
+
 	HUDCommons.DrawBox(x, y, HUDCommons.BarData3[name], h, bgcolor)
     HUDCommons.DrawBox(x, y, w, h, color)
 end
 
 function HUDCommons.SoftBarBackgroundMult(x, y, w, h, mult, color, bgcolor1, bgcolor2, name)
     HUDCommons.DrawBox(x, y, w, h, bgcolor)
-    w = w * mult
+    w = w * math.Clamp(mult, 0, 1)
 	HUDCommons.BarData4[name] = HUDCommons.BarData4[name] or w
-	
+
 	local delta = w - HUDCommons.BarData4[name]
-	
+
 	if not InInterval(delta, -0.3, 0.3) then
 		HUDCommons.BarData4[name] = HUDCommons.BarData4[name] + delta * .1 * HUDCommons.Multipler
 	else
 		HUDCommons.BarData4[name] = HUDCommons.BarData4[name] + delta
 	end
-	
+
 	HUDCommons.DrawBox(x, y, HUDCommons.BarData4[name], h, bgcolor)
     HUDCommons.DrawBox(x, y, w, h, color)
 end
@@ -90,15 +90,15 @@ end
 function HUDCommons.SoftSkyrimBar(x, y, w, h, color, name, speed)
 	speed = speed or .1
 	HUDCommons.BarData[name] = HUDCommons.BarData[name] or w
-	
+
 	local delta = w - HUDCommons.BarData[name]
-	
+
 	if not InInterval(delta, -0.3, 0.3) then
 		HUDCommons.BarData[name] = HUDCommons.BarData[name] + delta * speed * HUDCommons.Multipler
 	else
 		HUDCommons.BarData[name] = HUDCommons.BarData[name] + delta
 	end
-	
+
 	HUDCommons.DrawBox(x - HUDCommons.BarData[name] / 2, y, HUDCommons.BarData[name], h, color)
 end
 
@@ -110,7 +110,7 @@ function HUDCommons.BarWithText(x, y, w, h, mult, bg, barbg, bar, text)
     surface.DrawRect(x, y, w, h)
 
     surface.SetDrawColor(bar)
-    surface.DrawRect(x, y, w * mult, h)
+    surface.DrawRect(x, y, w * math.Clamp(mult, 0, 1), h)
 
     surface.SetDrawColor(bg)
     local W, H = surface.GetTextSize(text)
@@ -126,7 +126,7 @@ function HUDCommons.SkyrimBarWithText(x, y, w, h, mult, bg, barbg, bar, text)
     surface.SetDrawColor(barbg)
     surface.DrawRect(x, y, w, h)
 
-    local targetwidth = w * mult
+    local targetwidth = w * math.Clamp(mult, 0, 1)
     surface.SetDrawColor(bar)
     surface.DrawRect(x + w / 2 - targetwidth / 2, y, targetwidth, h)
 
@@ -139,11 +139,11 @@ end
 
 function HUDCommons.SoftBarWithText(x, y, w, h, mult, bg, barbg, bar, text, barid, speed)
     speed = speed or .1
-    local targetwidth = w * mult
+    local targetwidth = w * math.Clamp(mult, 0, 1)
 	HUDCommons.WordBarData[barid] = HUDCommons.WordBarData[barid] or targetwidth
-	
+
 	local delta = targetwidth - HUDCommons.WordBarData[barid]
-	
+
 	if not InInterval(delta, -0.3, 0.3) then
 		HUDCommons.WordBarData[barid] = HUDCommons.WordBarData[barid] + delta * speed * HUDCommons.Multipler
 	else
@@ -168,11 +168,11 @@ end
 
 function HUDCommons.SoftSkyrimBarWithText(x, y, w, h, mult, bg, barbg, bar, text, barid, speed)
     speed = speed or .1
-    local targetwidth = w * mult
+    local targetwidth = w * math.Clamp(mult, 0, 1)
 	HUDCommons.WordBarData[barid] = HUDCommons.WordBarData[barid] or targetwidth
-	
+
 	local delta = targetwidth - HUDCommons.WordBarData[barid]
-	
+
 	if not InInterval(delta, -0.3, 0.3) then
 		HUDCommons.WordBarData[barid] = HUDCommons.WordBarData[barid] + delta * speed * HUDCommons.Multipler
 	else
@@ -219,14 +219,14 @@ function HUDCommons.AdvancedWordBox(text, font, x, y, col, colBox, center)
 	if font then
 		surface.SetFont(font)
 	end
-	
+
 	if col then
 		surface.SetTextColor(col)
 	end
-	
+
     local W, H = surface.GetTextSize('W')
 	local w, h = surface.GetTextSize(text)
-	
+
     if center then
 	    HUDCommons.DrawBox(x - 4 - w / 2, y - 2, w + 8, h + 4, colBox)
     else
