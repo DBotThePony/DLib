@@ -17,13 +17,13 @@
 
 export PrintMessage
 
-util.AddNetworkString('DLib.Notify.PrintMessage')
+net.pool('DLib.Notify.PrintMessage')
 
 PrintMessage = (mode, message) ->
 	if message\sub(#message) == '\n'
 		message = message\sub(1, #message - 1)
 
-	net.Start('Notify.PrintMessage')
+	net.Start('DLib.Notify.PrintMessage')
 	net.WriteUInt(mode, 4)
 	net.WriteString(message)
 	net.Broadcast()
@@ -34,7 +34,7 @@ plyMeta.PrintMessage = (mode, message) =>
 	if message\sub(#message) == '\n'
 		message = message\sub(1, #message - 1)
 
-	net.Start('Notify.PrintMessage')
+	net.Start('DLib.Notify.PrintMessage')
 	net.WriteUInt(mode, 4)
 	net.WriteString(message)
 	net.Send(self)
