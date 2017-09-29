@@ -21,6 +21,7 @@ function DLib.register(fil)
 end
 
 DLib.module = include('dlib/core/module.lua')
+DLib.manifest = include('dlib/core/manifest.lua')
 DLib.MessageMaker = include('dlib/util/message.lua')
 DLib.MessageMaker(DLib, 'DLib')
 

@@ -15,6 +15,9 @@
 -- limitations under the License.
 --
 
+-- Badly works on server, but client
+if SERVER then return end
+
 ents.GetAllDLib = ents.GetAllDLib or ents.GetAll
 ents.FindByClassDLib = ents.FindByClassDLib or ents.FindByClass
 player.GetAllDLib = player.GetAllDLib or player.GetAll

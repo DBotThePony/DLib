@@ -19,6 +19,11 @@ function DLib.registerSV(fil)
 	return result.register()
 end
 
+AddCSLuaFile('dlib/core/module.lua')
+AddCSLuaFile('dlib/core/manifest.lua')
+AddCSLuaFile('dlib/util/message.lua')
+AddCSLuaFile('dlib/util/alias.lua')
+
 DLib.Loader.csModule('dlib/modules/dnotify/client')
 DLib.Loader.svmodule('notify/sv_dnotify.lua')
 DLib.Loader.csModule('dlib/util/client')
