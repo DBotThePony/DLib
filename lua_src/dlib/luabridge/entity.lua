@@ -51,23 +51,23 @@ do
 	function ents.GetAll()
 		-- if true then return ents.GetAllDLib() end
 
-		for i, ent in ipairs(KnownEntities) do
-			if not IsValid(ent) then
-				update()
-				break
-			end
-		end
+		-- for i, ent in ipairs(KnownEntities) do
+		-- 	if not IsValid(ent) then
+		-- 		update()
+		-- 		break
+		-- 	end
+		-- end
 
 		return KnownEntities
 	end
 
 	function player.GetAll()
-		for i, ent in ipairs(KnownPlayers) do
-			if not IsValid(ent) then
-				update()
-				break
-			end
-		end
+		-- for i, ent in ipairs(KnownPlayers) do
+		-- 	if not IsValid(ent) then
+		-- 		update()
+		-- 		break
+		-- 	end
+		-- end
 
 		return KnownPlayers
 	end
@@ -171,7 +171,7 @@ end
 
 local function EntitySpawned(ent2)
 	update()
-	timer.Create('DEntityCache.Update', 0, 1, update)
+	timer.Remove('DEntityCache.Update')
 end
 
 hook.Add('EntityRemoved', 'DEntityCache', EntityRemoved)
