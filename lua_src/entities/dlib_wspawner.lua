@@ -15,6 +15,8 @@
 
 AddCSLuaFile()
 
+local grabBaseclass = baseclass.Get('base_entity')
+
 ENT.Type = 'anim'
 ENT.Author = 'DBot'
 ENT.Base = 'dlib_espawner'
@@ -25,10 +27,19 @@ ENT.SPAWN_HOOK_CALL = 'PlayerSpawnSWEP'
 ENT.SPAWNED_HOOK_CALL = 'PlayerSpawnedSWEP'
 ENT.IS_SPAWNER = true
 
-local grabBaseclass = baseclass.Get('base_entity')
-
 function ENT:SpawnFunction(ply, tr, class)
-	return grabBaseclass.SpawnFunction(self, ply, tr, class)
+	if not tr.Hit then return end
+
+	local can = hook.Run(self.SPAWN_HOOK_CALL, ply, self.CLASS, self.TABLE)
+	if can == false then return end
+
+	local ent = ents.Create(class)
+	ent:SetPos(tr.HitPos + tr.HitNormal * 3)
+	ent:SetModel(self.DefaultModel)
+	ent:Spawn()
+	ent:Activate()
+
+	return ent
 end
 
 function ENT:DoSpawn(ply)
@@ -41,7 +52,7 @@ function ENT:DoSpawn(ply)
 	self.LastGun = ent
 	self.LastPly = ply
 
-	self:SetNextRespawn(CurTime() + (self.ResetTimer or self.RESET_TIMER:GetFloat()))
+	self:SetNextSpawn(CurTime() + (self.ResetTimer or self.RESET_TIMER:GetFloat()))
 
 	return true
 end

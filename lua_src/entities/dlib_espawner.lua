@@ -20,6 +20,7 @@ local RESET_TIMER = CreateConVar('dlib_spawner_timer', '10', {FCVAR_ARCHIVE, FCV
 
 ENT.Type = 'anim'
 ENT.Author = 'DBot'
+ENT.Base = 'base_entity'
 ENT.PrintName = 'Enitity Spawner Base'
 ENT.RenderGroup = RENDERGROUP_BOTH
 ENT.DefaultModel = 'models/items/item_item_crate.mdl'
@@ -113,7 +114,6 @@ function ENT:Initialize()
 	if CLIENT then
 		self:ClientsideEntity()
 		self.CurrAngle = Angle()
-		return
 	end
 end
 
@@ -212,7 +212,7 @@ function ENT:DoSpawn(ply)
 	self.LastEntity = ent
 	self.LastPly = ply
 
-	self:SetNextRespawn(CurTime() + (self.ResetTimer or RESET_TIMER:GetFloat()))
+	self:SetNextSpawn(CurTime() + (self.ResetTimer or RESET_TIMER:GetFloat()))
 
 	undo.Create('SENT')
 	undo.AddEntity(ent)
