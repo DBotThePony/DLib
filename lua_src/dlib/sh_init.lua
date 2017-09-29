@@ -29,6 +29,7 @@ DLib.CMessage = DLib.MessageMaker
 DLib.ConstructMessage = DLib.MessageMaker
 
 include('dlib/util/alias.lua')
+include('dlib/util/color.lua')
 
 DLib.register('core/tableutil.lua').export(_G.table)
 DLib.register('core/fsutil.lua').export(_G.file)
