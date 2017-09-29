@@ -23,13 +23,13 @@ function chat.generate(name, targetTable)
 
 	local newModule = targetTable or {}
 
-	function newModule.player(ply, ...)
+	function newModule.chatPlayer(ply, ...)
 		net.Start(nw, true)
 		net.WriteArray({...})
 		net.Send(ply)
 	end
 
-	function newModule.all(...)
+	function newModule.chatAll(...)
 		net.Start(nw, true)
 		net.WriteArray({...})
 		net.Broadcast()
@@ -38,6 +38,29 @@ function chat.generate(name, targetTable)
 	return newModule
 end
 
+function chat.generateWithMessages(targetTable, name)
+	targetTable = targetTable or {}
+
+	DLib.CMessage(targetTable, name)
+	chat.generate(name, targetTable)
+
+	targetTable.chatPlayer2 = targetTable.chatPlayer
+
+	function targetTable.chatPlayer(ply, ...)
+		if not IsValid(ply) then
+			targetTable.Message(...)
+			return
+		end
+
+		return targetTable.chatPlayer2(ply, ...)
+	end
+
+	return targetTable
+end
+
 chat.generate('default', chat)
+
+chat.player = chat.chatPlayer
+chat.all = chat.chatAll
 
 return chat

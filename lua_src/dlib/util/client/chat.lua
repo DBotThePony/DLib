@@ -18,12 +18,31 @@ local chat = DLib.module('chat', 'chat')
 function chat.registerChat(vname, ...)
 	local nw = 'DLib.AddChatText.' .. vname
 	local values = {...}
+	local func = values[1]
 
-	net.receive(nw, function()
-		chat.AddText(unpack(table.unshift(net.ReadArray(), unpack(values))))
-	end)
+	if type(func) ~= 'function' then
+		net.receive(nw, function()
+			chat.AddText(unpack(table.unshift(net.ReadArray(), unpack(values))))
+		end)
+	else
+		net.receive(nw, function()
+			chat.AddText(func(net.ReadArray()))
+		end)
+	end
 
 	return nw
+end
+
+function chat.registerWithMessages(target, vname)
+	target = target or {}
+	DLib.CMessage(target, vname)
+
+	local function input(incomingTable)
+		return unpack(target.formatMessage(unpack(incomingTable)))
+	end
+
+	chat.registerChat(vname, input)
+	return target
 end
 
 chat.registerChat('default')
