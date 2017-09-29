@@ -36,7 +36,7 @@ local FUNCTION_COLOR = Color(62, 106, 255)
 local TABLE_COLOR = Color(107, 200, 224)
 local URL_COLOR = Color(174, 124, 192)
 
-local function FormatMessage(tabIn)
+local function FormatMessageInternal(tabIn)
 	local prevColor = DEFAULT_TEXT_COLOR
 	local output = {prevColor}
 
@@ -68,6 +68,7 @@ local function FormatMessage(tabIn)
 				table.insert(output, ' (' .. val:SteamName() .. ')')
 			end
 
+			table.insert(output, STEAMID_COLOR)
 			table.insert(output, '<')
 			table.insert(output, val:SteamID())
 			table.insert(output, '>')
@@ -106,16 +107,20 @@ return function(tableTarget, moduleName, moduleColor)
 	local PREFIX_COLOR = moduleColor or Color(0, 200, 0)
 
 	local function Message(...)
-		local formatted = FormatMessage({...})
+		local formatted = FormatMessageInternal({...})
 		MsgC(PREFIX_COLOR, PREFIX, unpack(formatted))
 		MsgC('\n')
 		return formatted
 	end
 
 	local function Chat(...)
-		local formatted = FormatMessage({...})
+		local formatted = FormatMessageInternal({...})
 		chat.AddText(PREFIX_COLOR, PREFIX, unpack(formatted))
 		return formatted
+	end
+
+	local function FormatMessage(...)
+		return FormatMessageInternal({PREFIX_COLOR, PREFIX, DEFAULT_TEXT_COLOR, ...})
 	end
 
 	local function export(tableTo)

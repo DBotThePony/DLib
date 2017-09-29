@@ -93,11 +93,28 @@ end
 function tableutil.qcopy(input)
 	local reply = {}
 
+	reply[#input] = input[#input]
+
 	for i, val in ipairs(input) do
 		reply[i] = val
 	end
 
 	return reply
+end
+
+function tableutil.unshift(tableIn, ...)
+	local values = {...}
+	local count = #values
+
+	for i = #tableIn + count, count, -1 do
+		tableIn[i] = tableIn[i - count]
+	end
+
+	for i, value in ipairs(values) do
+		tableIn[i] = value
+	end
+
+	return tableIn
 end
 
 function tableutil.construct(input, funcToCall, times, ...)
