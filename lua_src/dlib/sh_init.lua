@@ -27,6 +27,8 @@ register('core/tableutil.lua').export(_G.table)
 register('core/fsutil.lua').export(_G.file)
 register('core/loader.lua')
 
+register('extensions/string.lua')
+
 DLib.Loader.shmodule('strong_entity_link.lua')
 DLib.Loader.shmodule('sh_cami.lua')
 

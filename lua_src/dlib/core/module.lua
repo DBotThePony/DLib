@@ -13,7 +13,21 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
-return function(moduleName)
+local metaTable = {
+	__index = function(self, key)
+		local val = rawget(self, key)
+
+		if val ~= nil then
+			return val
+		end
+
+		return rawget(self, '__base')[key]
+	end,
+
+	__newindex = rawset
+}
+
+return function(moduleName, basedOn)
 	local self = {}
 
 	function self:Name()
@@ -32,7 +46,14 @@ return function(moduleName)
 
 	function self.register()
 		DLib[moduleName] = DLib[moduleName] or {}
+		setmetatable(DLib[moduleName], getmetatable(self))
+		DLib[moduleName].__base = self.__base
 		return self.export(DLib[moduleName])
+	end
+
+	if basedOn then
+		self.__base = type(basedOn) == 'string' and _G[basedOn] or basedOn
+		setmetatable(self, metaTable)
 	end
 
 	return self
