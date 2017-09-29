@@ -136,6 +136,7 @@ return function(tableTarget, moduleName, moduleColor)
 		if CLIENT then
 			tableTo.Chat = Chat
 			tableTo.ChatMessage = Chat
+			tableTo.ChatPrint = Chat
 			tableTo.AddChat = Chat
 			tableTo.chatMessage = Chat
 		end
