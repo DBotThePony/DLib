@@ -17,5 +17,7 @@ DLib.Loader.start('Notify', true)
 DLib.Loader.include('dlib/modules/notify/client/cl_init.lua')
 DLib.Loader.finish(false)
 
+DLib.register('util/client/chat.lua')
+
 DLib.Loader.loadPureSHTop('dlib/autorun')
 DLib.Loader.loadPureCSTop('dlib/autorun/client')

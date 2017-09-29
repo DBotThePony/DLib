@@ -13,18 +13,28 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
-function DLib.registerSV(fil)
-	local result = include('dlib/' .. fil)
-	if not result then return end
-	return result.register()
+local net = DLib.module('net', 'net')
+
+function net.WritePlayer(ply)
+	local i = ply:EntIndex()
+	net.WriteUInt(i, 8)
+	return i
 end
 
-DLib.Loader.csModule('dlib/modules/dnotify/client')
-DLib.Loader.svmodule('notify/sv_dnotify.lua')
-DLib.Loader.csModule('dlib/util/client')
+function net.ReadPlayer()
+	return Entity(net.ReadUInt(8))
+end
 
-DLib.registerSV('util/server/chat.lua')
+function net.WriteArray(input)
+	net.WriteUInt(#input, 16)
 
-DLib.Loader.loadPureSHTop('dlib/autorun')
-DLib.Loader.loadPureSVTop('dlib/autorun/server')
-DLib.Loader.loadPureCSTop('dlib/autorun/client')
+	for i, value in ipairs(input) do
+		net.WriteType(value)
+	end
+end
+
+function net.ReadArray()
+	return table.construct({}, net.ReadType, net.ReadUInt(16))
+end
+
+return net

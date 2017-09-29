@@ -170,6 +170,8 @@ function Loader.loadPureCSTop(targetDir)
 	return output
 end
 
+Loader.loadPureCLTop = Loader.loadPureCSTop
+
 function Loader.loadPureSVTop(targetDir)
 	if CLIENT then return end
 	local output = {}

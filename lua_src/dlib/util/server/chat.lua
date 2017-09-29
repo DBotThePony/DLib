@@ -13,18 +13,14 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
-function DLib.registerSV(fil)
-	local result = include('dlib/' .. fil)
-	if not result then return end
-	return result.register()
+net.pool('DLib.AddChatText')
+
+local chat = DLib.module('chat', 'chat')
+
+function chat.player(ply, ...)
+	net.Start('DLib.AddChatText')
+	net.WriteArray({...})
+	net.Send(ply)
 end
 
-DLib.Loader.csModule('dlib/modules/dnotify/client')
-DLib.Loader.svmodule('notify/sv_dnotify.lua')
-DLib.Loader.csModule('dlib/util/client')
-
-DLib.registerSV('util/server/chat.lua')
-
-DLib.Loader.loadPureSHTop('dlib/autorun')
-DLib.Loader.loadPureSVTop('dlib/autorun/server')
-DLib.Loader.loadPureCSTop('dlib/autorun/client')
+return chat

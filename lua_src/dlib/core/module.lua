@@ -27,6 +27,22 @@ local metaTable = {
 	__newindex = rawset
 }
 
+local indexLookup = {
+	__index = function(self, key)
+		local index = rawget(self, '__base')
+
+		if _G[index] then
+			return _G[index][key]
+		end
+
+		return nil
+	end
+}
+
+local function setupLookup(index)
+	return setmetatable({__base = index}, indexLookup)
+end
+
 return function(moduleName, basedOn)
 	local self = {}
 
@@ -52,7 +68,7 @@ return function(moduleName, basedOn)
 	end
 
 	if basedOn then
-		self.__base = type(basedOn) == 'string' and _G[basedOn] or basedOn
+		self.__base = type(basedOn) == 'string' and (_G[basedOn] or setupLookup(basedOn)) or basedOn
 		setmetatable(self, metaTable)
 	end
 

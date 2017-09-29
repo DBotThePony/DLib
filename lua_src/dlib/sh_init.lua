@@ -13,9 +13,10 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
-local function register(fil)
+function DLib.register(fil)
 	if SERVER then AddCSLuaFile('dlib/' .. fil) end
 	local result = include('dlib/' .. fil)
+	if not result then return end
 	return result.register()
 end
 
@@ -23,14 +24,17 @@ DLib.module = include('dlib/core/module.lua')
 DLib.MessageMaker = include('dlib/util/message.lua')
 DLib.MessageMaker(DLib, 'DLib')
 
-register('core/tableutil.lua').export(_G.table)
-register('core/fsutil.lua').export(_G.file)
-register('core/loader.lua')
+DLib.CMessage = DLib.MessageMaker
+DLib.ConstructMessage = DLib.MessageMaker
 
-register('extensions/string.lua')
+include('dlib/util/alias.lua')
 
-DLib.Loader.shmodule('strong_entity_link.lua')
-DLib.Loader.shmodule('sh_cami.lua')
+DLib.register('core/tableutil.lua').export(_G.table)
+DLib.register('core/fsutil.lua').export(_G.file)
+DLib.register('core/loader.lua')
+
+DLib.register('extensions/string.lua')
+DLib.register('extensions/net.lua').export(_G.net)
 
 DLib.Loader.start('HUDCommons')
 DLib.Loader.loadPureCS('dlib/modules/hudcommons')

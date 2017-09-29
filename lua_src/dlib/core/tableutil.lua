@@ -100,4 +100,14 @@ function tableutil.qcopy(input)
 	return reply
 end
 
+function tableutil.construct(input, funcToCall, times, ...)
+	input = input or {}
+
+	for i = 1, times do
+		input[#input + 1] = funcToCall(...)
+	end
+
+	return input
+end
+
 return tableutil
