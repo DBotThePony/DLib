@@ -130,6 +130,10 @@ do
 		local val = entMeta[key]
 		if val ~= nil then return val end
 
+		if key == 'Entity' then
+			return self
+		end
+
 		local tab = entMeta_GetTable(self)
 
 		if tab then
