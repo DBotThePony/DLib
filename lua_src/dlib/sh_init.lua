@@ -33,6 +33,8 @@ include('dlib/util/color.lua')
 
 DLib.register('util/combathelper.lua')
 
+DLib.node = include('dlib/util/node.lua')
+
 file.mkdir('dlib')
 
 DLib.register('core/tableutil.lua').export(_G.table)
