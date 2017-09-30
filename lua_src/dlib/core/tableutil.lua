@@ -161,4 +161,38 @@ function tableutil.construct(input, funcToCall, times, ...)
 	return input
 end
 
+function tableutil.frandom(tableIn)
+	return tableIn[math.random(1, #tableIn)]
+end
+
+function tableutil.qhasValue(findIn, value)
+	for i, val in ipairs(findIn) do
+		if val == value then return true end
+	end
+
+	return false
+end
+
+function tableutil.flipIntoHash(tableIn)
+	local output = {}
+
+	for i, value in ipairs(output) do
+		output[value] = i
+	end
+
+	return output
+end
+
+function tableutil.sortedFind(findIn, findWhat, ifNone)
+	local hash = table.flipIntoHash(findIN)
+
+	for i, valueFind in ipairs(findWhat) do
+		if hash[valueFind] then
+			return valueFind
+		end
+	end
+
+	return ifNone
+end
+
 return tableutil

@@ -98,4 +98,12 @@ function string.fdistance(m)
 	return string.format('%.1fm', m / string.HU_IN_M)
 end
 
+function string.niceName(ent)
+	if not IsValid(ent) then return '' end
+	if ent.Nick then return ent:Nick() end
+	if ent.PrintName and ent.PrintName ~= '' then return ent.PrintName end
+	if ent.GetPrintName then return ent:GetPrintName() end
+	return ent:GetClass()
+end
+
 return string

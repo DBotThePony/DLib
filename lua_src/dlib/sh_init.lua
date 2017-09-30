@@ -31,6 +31,8 @@ DLib.ConstructMessage = DLib.MessageMaker
 include('dlib/util/alias.lua')
 include('dlib/util/color.lua')
 
+DLib.register('util/combathelper.lua')
+
 file.mkdir('dlib')
 
 DLib.register('core/tableutil.lua').export(_G.table)
@@ -38,6 +40,8 @@ DLib.register('core/fsutil.lua').export(_G.file)
 DLib.register('core/loader.lua')
 
 DLib.register('extensions/string.lua')
+DLib.register('extensions/ctakedmg.lua')
+DLib.register('extensions/player.lua').export(_G.player)
 DLib.register('extensions/net.lua').export(_G.net)
 
 DLib.Loader.shmodule('sh_cami.lua')
