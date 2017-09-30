@@ -54,6 +54,10 @@ DLib.Loader.start('HUDCommons')
 DLib.Loader.loadPureCS('dlib/modules/hudcommons')
 DLib.Loader.finish()
 
+DLib.Loader.start('nw')
+DLib.Loader.load('dlib/modules/nwvar')
+DLib.Loader.finish()
+
 DLib.Loader.loadPureCS('dlib/vgui')
 
 DLib.Loader.loadPureSH('dlib/luabridge')

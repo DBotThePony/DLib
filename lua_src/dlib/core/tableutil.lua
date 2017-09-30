@@ -63,6 +63,27 @@ function tableutil.filter(target, filterFunc)
 	return filtered
 end
 
+function tableutil.qfilter(target, filterFunc)
+	if not filterFunc then error('table.filter - missing filter function') end
+
+	local filtered = {}
+	local toRemove = {}
+
+	for key, value in ipairs(target) do
+		local status = filterFunc(key, value, target)
+		if not status then
+			table.insert(filtered, value)
+			table.insert(toRemove, key)
+		end
+	end
+
+	for v, i in ipairs(toRemove) do
+		table.remove(target, i - v + 1)
+	end
+
+	return filtered
+end
+
 function tableutil.filterNew(target, filterFunc)
 	if not filterFunc then error('table.filterNew - missing filter function') end
 
@@ -71,11 +92,22 @@ function tableutil.filterNew(target, filterFunc)
 	for key, value in pairs(target) do
 		local status = filterFunc(key, value, target)
 		if status then
-			if type(key) == 'number' then
-				table.insert(filtered, value)
-			else
-				filtered[key] = value
-			end
+			table.insert(filtered, value)
+		end
+	end
+
+	return filtered
+end
+
+function tableutil.qfilterNew(target, filterFunc)
+	if not filterFunc then error('table.filterNew - missing filter function') end
+
+	local filtered = {}
+
+	for key, value in ipairs(target) do
+		local status = filterFunc(key, value, target)
+		if status then
+			table.insert(filtered, value)
 		end
 	end
 

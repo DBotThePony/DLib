@@ -57,31 +57,31 @@ function Loader.include(filIn)
 end
 
 function Loader.findShared(inFiles)
-	return table.filterNew(inFiles, function(_, value) return value:sub(1, 3) == 'sh_' end)
+	return table.filterNew(inFiles, function(_, value) return value:find('/?sh_') end)
 end
 
 function Loader.findClient(inFiles)
-	return table.filterNew(inFiles, function(_, value) return value:sub(1, 3) == 'cl_' end)
+	return table.filterNew(inFiles, function(_, value) return value:find('/?cl_') end)
 end
 
 function Loader.findServer(inFiles)
-	return table.filterNew(inFiles, function(_, value) return value:sub(1, 3) == 'sv_' end)
+	return table.filterNew(inFiles, function(_, value) return value:find('/?sv_') end)
 end
 
 function Loader.filterShared(inFiles)
-	return table.filter(inFiles, function(_, value) return value:sub(1, 3) == 'sh_' end)
+	return table.filter(inFiles, function(_, value) return value:find('/?sh_') end)
 end
 
 function Loader.filterClient(inFiles)
-	return table.filter(inFiles, function(_, value) return value:sub(1, 3) == 'cl_' end)
+	return table.filter(inFiles, function(_, value) return value:find('/?cl_') end)
 end
 
 function Loader.filterServer(inFiles)
-	return table.filter(inFiles, function(_, value) return value:sub(1, 3) == 'sv_' end)
+	return table.filter(inFiles, function(_, value) return value:find('/?sv_') end)
 end
 
 function Loader.filter(inFiles)
-	return Loader.filterShared(inFiles), Loader.filterClient(inFiles), Loader.filterServer(inFiles)
+	return Loader.findShared(inFiles), Loader.findClient(inFiles), Loader.findServer(inFiles)
 end
 
 function Loader.shmodule(fil)

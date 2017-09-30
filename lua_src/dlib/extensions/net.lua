@@ -21,11 +21,7 @@ function net.WritePlayer(ply)
 	return i
 end
 
-function net.ReadPlayer()
-	return Entity(net.ReadUInt(8))
-end
-
-function net.WriteArray(input)
+function net.WriteTypedArray(input, callFunc)
 	net.WriteUInt(#input, 16)
 
 	for i, value in ipairs(input) do
@@ -33,8 +29,69 @@ function net.WriteArray(input)
 	end
 end
 
+function net.ReadTypedArray(callFunc)
+	return table.construct({}, callFunc, net.ReadUInt(16), nil)
+end
+
+function net.ReadPlayer()
+	return Entity(net.ReadUInt(8))
+end
+
+function net.WriteArray(input)
+	net.WriteTypedArray(input, net.WriteType)
+end
+
 function net.ReadArray()
 	return table.construct({}, net.ReadType, net.ReadUInt(16), nil)
+end
+
+function net.WriteStringArray(input)
+	net.WriteTypedArray(input, net.WriteString)
+end
+
+function net.ReadStringArray()
+	return table.construct({}, net.ReadString, net.ReadUInt(16), nil)
+end
+
+function net.WriteEntityArray(input)
+	net.WriteTypedArray(input, net.WriteEntity)
+end
+
+function net.ReadEntityArray()
+	return table.construct({}, net.ReadEntity, net.ReadUInt(16), nil)
+end
+
+function net.WriteBigint(num, base)
+	base = base or 63
+	local reply = {}
+	local signed = num < 0
+	num = math.abs(num)
+
+	while num > 0 do
+		local div = num % 2
+		num = (num - div) / 2
+		table.insert(reply, div)
+	end
+
+	for i = 1, base do
+		net.WriteBit(reply[base - i + 1] or 0)
+	end
+
+	net.WriteBool(signed)
+end
+
+function net.ReadBigint(base)
+	base = base or 63
+	local reply = {}
+	local output = 0
+
+	for i = 1, base do
+		output = output + preProcessed[base - i + 1] * net.ReadBit()
+	end
+
+	local signed = net.ReadBool()
+
+	return not signed and output or -output
 end
 
 return net
