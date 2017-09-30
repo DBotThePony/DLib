@@ -27,7 +27,7 @@ function entMeta:SetDLibVar(var, val)
 	if isGlobal and data[var] ~= val then
 		local uid = self:EntIndex()
 		net.Start('DLib.NetworkedVar')
-		net.WriteUInt(nw.NetworkVars[var].crc, 32)
+		net.WriteUInt(nw.NetworkVars[var].crcnw, 32)
 		net.WriteUInt(uid, 12)
 		nw.NetworkVars[var].send(val)
 		net.Broadcast()
@@ -63,7 +63,7 @@ local function SendTo(ply, tosend)
 
 	for var, val in pairs(data) do
 		if type(var) == 'string' and type(val) ~= 'table' and nw.NetworkVars[var] then
-			net.WriteUInt(nw.NetworkVars[var].crc, 32)
+			net.WriteUInt(nw.NetworkVars[var].crcnw, 32)
 			nw.NetworkVars[var].send(val)
 		end
 	end

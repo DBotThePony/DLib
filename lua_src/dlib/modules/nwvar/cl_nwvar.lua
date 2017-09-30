@@ -33,7 +33,7 @@ local function NetworkedVar()
 	local data, var
 
 	for k, v in pairs(nw.NetworkVars) do
-		if v.crc == id then
+		if v.crcnw == id then
 			data = v
 			var = k
 			break
@@ -67,7 +67,7 @@ local function NetworkedEntityVars()
 		local data, var
 
 		for k, v in pairs(nw.NetworkVars) do
-			if v.crc == id then
+			if v.crcnw == id then
 				data = v
 				var = k
 				break

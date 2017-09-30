@@ -29,7 +29,7 @@ function entMeta:DLibVar(var, ifNothing)
 			if ifNothing ~= nil then
 				return ifNothing
 			else
-				return nw.NetworkVars[var].default
+				return nw.NetworkVars[var].default()
 			end
 		end
 
@@ -41,7 +41,7 @@ function entMeta:DLibVar(var, ifNothing)
 			if ifNothing ~= nil then
 				return ifNothing
 			else
-				return nw.NetworkVars[var].default
+				return nw.NetworkVars[var].default()
 			end
 		end
 
@@ -61,7 +61,7 @@ function nw.GetNetworkDataTable(self)
 	end
 end
 
-function nw.var(id, send, receive, type, default)
+function nw.var(id, send, receive, itype, default)
 	if type(default) ~= 'function' then
 		local dval = default
 		default = function() return dval end
@@ -72,11 +72,13 @@ function nw.var(id, send, receive, type, default)
 	nw.NetworkVars[id] = {
 		send = send,
 		receive = receive,
-		type = type,
+		type = itype,
 		default = default,
 		ID = id,
 		crc = util.CRC(id)
 	}
+
+	nw.NetworkVars[id].crcnw = tonumber(nw.NetworkVars[id].crc)
 end
 
 nw.pool = nw.var
