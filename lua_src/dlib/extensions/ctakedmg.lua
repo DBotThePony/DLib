@@ -73,4 +73,30 @@ end
 
 meta.TypesArray = ctakedmg.TypesArray
 
+function ctakedmg:Copy(copyDataInto)
+	copyDataInto = copyDataInto or DamageInfo()
+	copyDataInto:SetAttacker(self:GetAttacker())
+	copyDataInto:SetInflictor(self:GetInflictor())
+	copyDataInto:SetDamage(self:GetDamage())
+	copyDataInto:SetMaxDamage(self:GetMaxDamage())
+	copyDataInto:SetReportedPosition(self:GetReportedPosition())
+	copyDataInto:SetDamagePosition(self:GetDamagePosition())
+	copyDataInto:SetDamageType(self:GetDamageType())
+	return copyDataInto
+end
+
+function ctakedmg:Receive(from)
+	self:SetAttacker(from:GetAttacker())
+	self:SetInflictor(from:GetInflictor())
+	self:SetDamage(from:GetDamage())
+	self:SetMaxDamage(from:GetMaxDamage())
+	self:SetReportedPosition(from:GetReportedPosition())
+	self:SetDamagePosition(from:GetDamagePosition())
+	self:SetDamageType(from:GetDamageType())
+	return self
+end
+
+meta.Copy = ctakedmg.Copy
+meta.Receive = ctakedmg.Receive
+
 return ctakedmg

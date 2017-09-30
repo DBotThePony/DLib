@@ -80,5 +80,21 @@ function nw.var(id, send, receive, default)
 	nw.NetworkVars[id].crcnw = tonumber(nw.NetworkVars[id].crc)
 end
 
+function nw.poolInt(id, default, val)
+	return nw.var(id, net.GWriteInt(val or 32), net.GReadInt(val or 32), default or 0)
+end
+
+function nw.poolUInt(id, default, val)
+	return nw.var(id, net.GWriteUInt(val or 32), net.GReadUInt(val or 32), default or 0)
+end
+
+function nw.poolString(id, default)
+	return nw.var(id, net.WriteString, net.ReadString, default or '')
+end
+
+function nw.poolEntity(id, default)
+	return nw.var(id, net.WriteEntity, net.ReadEntity, default or '')
+end
+
 nw.pool = nw.var
 nw.RegisterNetworkVar = nw.RegisterNetworkVar
