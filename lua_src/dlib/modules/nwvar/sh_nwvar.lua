@@ -61,7 +61,7 @@ function nw.GetNetworkDataTable(self)
 	end
 end
 
-function nw.var(id, send, receive, itype, default)
+function nw.var(id, send, receive, default)
 	if type(default) ~= 'function' then
 		local dval = default
 		default = function() return dval end
@@ -72,7 +72,6 @@ function nw.var(id, send, receive, itype, default)
 	nw.NetworkVars[id] = {
 		send = send,
 		receive = receive,
-		type = itype,
 		default = default,
 		ID = id,
 		crc = util.CRC(id)
