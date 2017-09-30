@@ -94,4 +94,28 @@ function net.ReadBigint(base)
 	return not signed and output or -output
 end
 
+function net.GReadUInt(val)
+	return function()
+		return net.ReadUInt(val)
+	end
+end
+
+function net.GWriteUInt(val)
+	return function(val2)
+		return net.ReadUInt(val2, val)
+	end
+end
+
+function net.GReadInt(val)
+	return function()
+		return net.ReadInt(val)
+	end
+end
+
+function net.GWriteInt(val)
+	return function(val2)
+		return net.ReadInt(val2, val)
+	end
+end
+
 return net
