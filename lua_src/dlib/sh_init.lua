@@ -32,6 +32,8 @@ include('dlib/util/alias.lua')
 include('dlib/util/color.lua')
 
 DLib.register('util/combathelper.lua')
+DLib.register('util/util.lua')
+DLib.register('util/constraint.lua')
 
 DLib.node = include('dlib/util/node.lua')
 
