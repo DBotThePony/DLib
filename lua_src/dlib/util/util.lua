@@ -22,4 +22,8 @@ function util.copy(var)
 	return var
 end
 
+function util.randomVector(mx, my, mz)
+	return Vector(math.Rand(-mx, mx), math.Rand(-my, my), math.Rand(-mz, mz))
+end
+
 return util
