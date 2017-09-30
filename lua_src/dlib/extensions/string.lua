@@ -59,4 +59,43 @@ function string.qdate(time)
 	return os.date('%H:%M:%S - %d/%m/%Y', time)
 end
 
+string.HU_IN_M = 40
+string.HU_IN_CM = string.HU_IN_M / 100
+
+function string.ddistance(z, newline, from)
+	if newline == nil then
+		newline = true
+	end
+
+	local delta
+
+	if from then
+		delta = from - z
+	else
+		delta = LocalPlayer():GetPos().z - z
+	end
+
+	if delta > 200 and not newline then
+		return string.fdistance(delta) .. ' lower'
+	end
+
+	if delta > 200 and newline then
+		return '\n' .. string.fdistance(delta) .. ' lower'
+	end
+
+	if -delta > 200 and not newline then
+		return string.fdistance(delta) .. 'upper'
+	end
+
+	if -delta > 200 and newline then
+		return '\n' .. string.fdistance(delta) .. 'upper'
+	end
+
+	return ''
+end
+
+function string.fdistance(m)
+	return string.format('%.1fm', m / string.HU_IN_M)
+end
+
 return string
