@@ -15,3 +15,4 @@
 
 net.pool = util.AddNetworkString
 net.receive = net.Receive
+file.mkdir = file.CreateDir

@@ -17,6 +17,12 @@
 
 export PrintMessage
 
+_G.NOTIFY_GENERIC = 0
+_G.NOTIFY_ERROR = 1
+_G.NOTIFY_UNDO = 2
+_G.NOTIFY_HINT = 3
+_G.NOTIFY_CLEANUP = 4
+
 net.pool('DLib.Notify.PrintMessage')
 
 PrintMessage = (mode, message) ->

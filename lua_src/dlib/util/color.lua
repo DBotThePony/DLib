@@ -40,3 +40,7 @@ function DLib.AddColor(addFrom, addTo, affertAlpha)
 		return Color(r, g, b)
 	end
 end
+
+function DLib.RandomColor()
+	return Color(math.random(0, 255), math.random(0, 255), math.random(0, 255))
+end

@@ -31,6 +31,8 @@ DLib.ConstructMessage = DLib.MessageMaker
 include('dlib/util/alias.lua')
 include('dlib/util/color.lua')
 
+file.mkdir('dlib')
+
 DLib.register('core/tableutil.lua').export(_G.table)
 DLib.register('core/fsutil.lua').export(_G.file)
 DLib.register('core/loader.lua')
@@ -45,9 +47,13 @@ DLib.Loader.shclass('modifier_base.lua')
 DLib.Loader.shclass('networked_data.lua')
 DLib.Loader.shclass('sequence_base.lua')
 DLib.Loader.shclass('sequence_holder.lua')
+DLib.Loader.shclass('astar.lua')
+DLib.Loader.clclass('keybinds.lua').register()
 
 DLib.Loader.start('HUDCommons')
 DLib.Loader.loadPureCS('dlib/modules/hudcommons')
 DLib.Loader.finish()
+
+DLib.Loader.loadPureCS('dlib/vgui')
 
 DLib.Loader.loadPureSH('dlib/luabridge')

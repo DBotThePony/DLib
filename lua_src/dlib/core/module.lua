@@ -60,11 +60,19 @@ return function(moduleName, basedOn)
 		return target
 	end
 
+	function self.exportAll(target)
+		for k, v in pairs(self) do
+			target[k] = v
+		end
+
+		return target
+	end
+
 	function self.register()
 		DLib[moduleName] = DLib[moduleName] or {}
 		setmetatable(DLib[moduleName], getmetatable(self))
 		DLib[moduleName].__base = self.__base
-		return self.export(DLib[moduleName])
+		return self.exportAll(DLib[moduleName])
 	end
 
 	if basedOn then
