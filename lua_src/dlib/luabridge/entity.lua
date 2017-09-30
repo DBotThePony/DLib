@@ -15,172 +15,6 @@
 -- limitations under the License.
 --
 
--- Badly works on server, but client
-if SERVER then return end
-
-ents.GetAllDLib = ents.GetAllDLib or ents.GetAll
-ents.FindByClassDLib = ents.FindByClassDLib or ents.FindByClass
-player.GetAllDLib = player.GetAllDLib or player.GetAll
-
-local KnownEntities = {}
-local KnownEntitiesByClass = {}
-local KnownPlayers = {}
-local findByClassCache = {}
-local GET_CLASS = FindMetaTable('Entity').GetClass
-
-local function update()
-	KnownEntities = ents.GetAllDLib()
-	KnownEntitiesByClass = {}
-	KnownPlayers = {}
-	findByClassCache = {}
-	local nextID = 1
-
-	for k, v in ipairs(KnownEntities) do
-		local getClass = GET_CLASS(v)
-		KnownEntitiesByClass[nextID] = {v, getClass}
-		nextID = nextID + 1
-
-		if getClass == 'player' then
-			table.insert(KnownPlayers, v)
-		end
-	end
-end
-
-update()
-
-do
-	local IsValid = FindMetaTable('Entity').IsValid
-
-	function ents.GetAll()
-		-- if true then return ents.GetAllDLib() end
-
-		-- for i, ent in ipairs(KnownEntities) do
-		-- 	if not IsValid(ent) then
-		-- 		update()
-		-- 		break
-		-- 	end
-		-- end
-
-		return KnownEntities
-	end
-
-	function player.GetAll()
-		-- for i, ent in ipairs(KnownPlayers) do
-		-- 	if not IsValid(ent) then
-		-- 		update()
-		-- 		break
-		-- 	end
-		-- end
-
-		return KnownPlayers
-	end
-
-	function ents.FindByClass(byStr, ignore)
-		-- if true then return ents.FindByClassDLib(byStr) end
-		local matchedStart, matchedEnd = string.find(byStr, '*', 1, false)
-
-		if matchedStart then
-			local matchFor = string.sub(byStr, 1, matchedStart)
-
-			if not findByClassCache[matchFor] then
-				local reply = {}
-
-				for k, v in ipairs(KnownEntitiesByClass) do
-					if string.sub(v[2], 1, matchedStart) == byStr then
-						reply[#reply + 1] = v[1]
-					end
-				end
-
-				findByClassCache[matchFor] = reply
-
-				return reply
-			else
-				if not ignore then
-					for i, ent in ipairs(findByClassCache[matchFor]) do
-						if not IsValid(ent) then
-							update()
-							return ents.FindByClass(byStr, true)
-						end
-					end
-				end
-
-				return findByClassCache[matchFor]
-			end
-		else
-			if not findByClassCache[byStr] then
-				local reply = {}
-
-				for k, v in ipairs(KnownEntitiesByClass) do
-					if v[2] == byStr then
-						reply[#reply + 1] = v[1]
-					end
-				end
-
-				return reply
-			else
-				if not ignore then
-					for i, ent in ipairs(findByClassCache[byStr]) do
-						if not IsValid(ent) then
-							update()
-							return ents.FindByClass(byStr, true)
-						end
-					end
-				end
-
-				return findByClassCache[byStr]
-			end
-		end
-	end
-end
-
-local function EntityRemoved(ent2)
-	for i, ent in ipairs(KnownEntities) do
-		if ent == ent2 then
-			table.remove(KnownEntities, i)
-			break
-		end
-	end
-
-	for i, ent in ipairs(KnownEntitiesByClass) do
-		if ent[1] == ent2 then
-			table.remove(KnownEntitiesByClass, i)
-			break
-		end
-	end
-
-	for i, ent in ipairs(KnownPlayers) do
-		if ent == ent2 then
-			table.remove(KnownPlayers, i)
-			break
-		end
-	end
-
-	timer.Create('DEntityCache.Update', 0, 1, update)
-
-	findByClassCache = {}
-end
-
-local function OnEntityCreated(ent2)
-	local getClass = GET_CLASS(ent2)
-	table.insert(KnownEntities, ent2)
-	table.insert(KnownEntitiesByClass, {ent2, getClass})
-
-	if getClass == 'player' then
-		table.insert(KnownPlayers, ent2)
-	end
-
-	timer.Create('DEntityCache.Update', 0, 1, update)
-end
-
-local function EntitySpawned(ent2)
-	update()
-	timer.Remove('DEntityCache.Update')
-end
-
-hook.Add('EntityRemoved', 'DEntityCache', EntityRemoved)
-hook.Add('OnEntityCreated', 'DEntityCache', OnEntityCreated)
-hook.Add('EntitySpawned', 'DEntityCache', EntitySpawned)
-
 do
 	local plyMeta = FindMetaTable('Player')
 	local entMeta = FindMetaTable('Entity')
@@ -334,3 +168,202 @@ do
 		return nil
 	end
 end
+
+local DISABLED = true
+
+ents.GetAllDLib = ents.GetAllDLib or ents.GetAll
+ents.FindByClassDLib = ents.FindByClassDLib or ents.FindByClass
+player.GetAllDLib = player.GetAllDLib or player.GetAll
+
+if DISABLED then
+	ents.GetAll = ents.GetAllDLib
+	ents.FindByClass = ents.FindByClassDLib
+	player.GetAll = player.GetAllDLib
+	hook.Remove('EntityRemoved', 'DEntityCache')
+	hook.Remove('OnEntityCreated', 'DEntityCache')
+	hook.Remove('EntitySpawned', 'DEntityCache')
+	return
+end
+
+local DO_PROTECTION = true
+local KnownEntities = {}
+local KnownEntitiesByClass = {}
+local KnownPlayers = {}
+local findByClassCache = {}
+local GET_CLASS = FindMetaTable('Entity').GetClass
+
+local protected = {
+	__index = rawget,
+	__newindex = function(self, key, value)
+		if DO_PROTECTION then return end
+		rawset(self, key, value)
+	end
+}
+
+local function update()
+	KnownEntities = table.qcopy(ents.GetAllDLib()) -- prevent from garbage collection
+	KnownEntitiesByClass = {}
+	KnownPlayers = {}
+	findByClassCache = {}
+
+	for k, v in ipairs(KnownEntities) do
+		local getClass = GET_CLASS(v)
+		KnownEntitiesByClass[#KnownEntitiesByClass + 1] = {v, getClass}
+
+		if getClass == 'player' then
+			table.insert(KnownPlayers, v)
+		end
+	end
+
+	setmetatable(KnownEntities, protected)
+	setmetatable(KnownEntitiesByClass, protected)
+	setmetatable(KnownPlayers, protected)
+end
+
+update()
+
+do
+	local IsValid = FindMetaTable('Entity').IsValid
+
+	function ents.GetAll()
+		-- if true then return ents.GetAllDLib() end
+
+		-- for i, ent in ipairs(KnownEntities) do
+		-- 	if not IsValid(ent) then
+		-- 		update()
+		-- 		break
+		-- 	end
+		-- end
+
+		return KnownEntities
+	end
+
+	function player.GetAll()
+		-- for i, ent in ipairs(KnownPlayers) do
+		-- 	if not IsValid(ent) then
+		-- 		update()
+		-- 		break
+		-- 	end
+		-- end
+
+		return KnownPlayers
+	end
+
+	function ents.FindByClass(byStr, ignore)
+		-- if true then return ents.FindByClassDLib(byStr) end
+		local matchedStart, matchedEnd = string.find(byStr, '*', 1, false)
+
+		if matchedStart then
+			local matchFor = string.sub(byStr, 1, matchedStart)
+
+			if not findByClassCache[matchFor] then
+				local reply = {}
+
+				for k, v in ipairs(KnownEntitiesByClass) do
+					if string.sub(v[2], 1, matchedStart) == byStr then
+						reply[#reply + 1] = v[1]
+					end
+				end
+
+				findByClassCache[matchFor] = reply
+				setmetatable(reply, protected)
+
+				return reply
+			else
+				if not ignore then
+					for i, ent in ipairs(findByClassCache[matchFor]) do
+						if not IsValid(ent) then
+							update()
+							return ents.FindByClass(byStr, true)
+						end
+					end
+				end
+
+				return findByClassCache[matchFor]
+			end
+		else
+			if not findByClassCache[byStr] then
+				local reply = {}
+
+				for k, v in ipairs(KnownEntitiesByClass) do
+					if v[2] == byStr then
+						reply[#reply + 1] = v[1]
+					end
+				end
+
+				findByClassCache[byStr] = reply
+
+				setmetatable(reply, protected)
+
+				return reply
+			else
+				if not ignore then
+					for i, ent in ipairs(findByClassCache[byStr]) do
+						if not IsValid(ent) then
+							update()
+							return ents.FindByClass(byStr, true)
+						end
+					end
+				end
+
+				return findByClassCache[byStr]
+			end
+		end
+	end
+end
+
+local function EntityRemoved(ent2)
+	DO_PROTECTION = false
+
+	for i, ent in ipairs(KnownEntities) do
+		if ent == ent2 then
+			table.remove(KnownEntities, i)
+			break
+		end
+	end
+
+	for i, ent in ipairs(KnownEntitiesByClass) do
+		if ent[1] == ent2 then
+			table.remove(KnownEntitiesByClass, i)
+			break
+		end
+	end
+
+	for i, ent in ipairs(KnownPlayers) do
+		if ent == ent2 then
+			table.remove(KnownPlayers, i)
+			break
+		end
+	end
+
+	DO_PROTECTION = true
+
+	timer.Create('DEntityCache.Update', 0, 1, update)
+
+	findByClassCache = {}
+end
+
+local function OnEntityCreated(ent2)
+	local getClass = GET_CLASS(ent2)
+	DO_PROTECTION = false
+
+	table.insert(KnownEntities, ent2)
+	table.insert(KnownEntitiesByClass, {ent2, getClass})
+
+	if getClass == 'player' then
+		table.insert(KnownPlayers, ent2)
+	end
+
+	DO_PROTECTION = true
+
+	timer.Create('DEntityCache.Update', 0, 1, update)
+end
+
+local function EntitySpawned(ent2)
+	update()
+	timer.Create('DEntityCache.Update', 0, 1, update)
+end
+
+hook.Add('EntityRemoved', 'DEntityCache', EntityRemoved)
+hook.Add('OnEntityCreated', 'DEntityCache', OnEntityCreated)
+hook.Add('EntitySpawned', 'DEntityCache', EntitySpawned)
