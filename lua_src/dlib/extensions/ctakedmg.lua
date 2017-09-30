@@ -74,14 +74,22 @@ end
 meta.TypesArray = ctakedmg.TypesArray
 
 function ctakedmg:Copy(copyDataInto)
+	local a = self:GetAttacker()
+	local b = self:GetInflictor()
+	local c = self:GetDamage()
+	local d = self:GetMaxDamage()
+	local e = self:GetReportedPosition()
+	local j = self:GetDamagePosition()
+	local g = self:GetDamageType()
+
 	copyDataInto = copyDataInto or DamageInfo()
-	copyDataInto:SetAttacker(self:GetAttacker())
-	copyDataInto:SetInflictor(self:GetInflictor())
-	copyDataInto:SetDamage(self:GetDamage())
-	copyDataInto:SetMaxDamage(self:GetMaxDamage())
-	copyDataInto:SetReportedPosition(self:GetReportedPosition())
-	copyDataInto:SetDamagePosition(self:GetDamagePosition())
-	copyDataInto:SetDamageType(self:GetDamageType())
+	copyDataInto:SetAttacker(a)
+	copyDataInto:SetInflictor(b)
+	copyDataInto:SetDamage(c)
+	copyDataInto:SetMaxDamage(d)
+	copyDataInto:SetReportedPosition(e)
+	copyDataInto:SetDamagePosition(j)
+	copyDataInto:SetDamageType(g)
 	return copyDataInto
 end
 
