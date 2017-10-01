@@ -25,22 +25,22 @@ function DLib.simpleInclude(fil)
 	return include('dlib/' .. fil)
 end
 
-DLib.module = include('dlib/core/module.lua')
-DLib.manifest = include('dlib/core/manifest.lua')
-DLib.MessageMaker = include('dlib/util/message.lua')
+DLib.module = DLib.simpleInclude('core/module.lua')
+DLib.manifest = DLib.simpleInclude('core/manifest.lua')
+DLib.MessageMaker = DLib.simpleInclude('util/message.lua')
 DLib.MessageMaker(DLib, 'DLib')
 
 DLib.CMessage = DLib.MessageMaker
 DLib.ConstructMessage = DLib.MessageMaker
 
-include('dlib/util/alias.lua')
-include('dlib/util/color.lua')
+DLib.simpleInclude('util/alias.lua')
+DLib.simpleInclude('util/color.lua')
 
 DLib.register('util/combathelper.lua')
 DLib.register('util/util.lua')
 DLib.register('util/constraint.lua')
 
-DLib.node = include('dlib/util/node.lua')
+DLib.node = DLib.simpleInclude('util/node.lua')
 
 file.mkdir('dlib')
 
@@ -79,3 +79,5 @@ DLib.Loader.finish()
 DLib.Loader.loadPureCS('dlib/vgui')
 
 DLib.Loader.loadPureSH('dlib/luabridge')
+
+DLib.hl2wdata = DLib.simpleInclude('data/hl2sweps.lua')

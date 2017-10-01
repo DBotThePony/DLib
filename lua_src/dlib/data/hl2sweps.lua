@@ -13,21 +13,46 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
-function DLib.registerSV(fil)
-	local result = include('dlib/' .. fil)
-	if not result then return end
-	return result.register()
-end
+return {
+	weapon_crowbar = {
+		damage = 25,
+		name = 'Crowbar',
+		pellets = 1,
+		dtype = DMG_CLUB
+	},
 
-AddCSLuaFile('dlib/modules/notify/client/cl_init.lua')
+	weapon_pistol = {
+		damage = 5,
+		name = '9mm Pistol',
+		pellets = 1,
+		dtype = DMG_BULLET
+	},
 
-DLib.Loader.csModule('dlib/modules/dnotify/client')
-DLib.Loader.svmodule('notify/sv_dnotify.lua')
-DLib.Loader.csModule('dlib/util/client')
-DLib.Loader.svmodule('dmysql.lua')
+	weapon_357 = {
+		damage = 75,
+		name = '.357 magnum',
+		pellets = 1,
+		dtype = DMG_BULLET
+	},
 
-DLib.registerSV('util/server/chat.lua')
+	weapon_smg1 = {
+		damage = 4,
+		name = 'SMG',
+		pellets = 1,
+		dtype = DMG_BULLET
+	},
 
-DLib.Loader.loadPureSHTop('dlib/autorun')
-DLib.Loader.loadPureSVTop('dlib/autorun/server')
-DLib.Loader.loadPureCSTop('dlib/autorun/client')
+	weapon_ar2 = {
+		damage = 8,
+		name = 'SMG',
+		pellets = 1,
+		dtype = DMG_BULLET
+	},
+
+	weapon_shotgun = {
+		damage = 8,
+		name = 'Shotgun',
+		pellets = 6,
+		dtype = DMG_BUCKSHOT
+	},
+}

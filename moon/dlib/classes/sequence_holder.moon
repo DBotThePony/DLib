@@ -26,8 +26,8 @@ class DLib.SequenceHolder extends DLib.ModifierBase
 	@NEXT_HOOK_ID = 0
 	@SequenceObject = DLib.SequenceBase
 
-	new: (data) =>
-		super(data)
+	new: =>
+		super()
 		@hooks = {}
 		@@NEXT_HOOK_ID += 1
 		@fid = @@NEXT_HOOK_ID
