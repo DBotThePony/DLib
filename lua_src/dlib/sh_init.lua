@@ -20,6 +20,11 @@ function DLib.register(fil)
 	return result.register()
 end
 
+function DLib.simpleInclude(fil)
+	if SERVER then AddCSLuaFile('dlib/' .. fil) end
+	return include('dlib/' .. fil)
+end
+
 DLib.module = include('dlib/core/module.lua')
 DLib.manifest = include('dlib/core/manifest.lua')
 DLib.MessageMaker = include('dlib/util/message.lua')
@@ -42,7 +47,7 @@ file.mkdir('dlib')
 DLib.register('core/tableutil.lua').export(_G.table)
 DLib.register('core/fsutil.lua').export(_G.file)
 DLib.register('core/loader.lua')
-DLib.register('core/loader_modes.lua')
+DLib.simpleInclude('core/loader_modes.lua')
 
 DLib.register('extensions/string.lua')
 DLib.register('extensions/ctakedmg.lua')
