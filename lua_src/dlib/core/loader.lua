@@ -14,6 +14,7 @@
 -- limitations under the License.
 
 local Loader = DLib.module('Loader')
+DLib.Loader = Loader
 
 local currentModule, currentModuleEnv
 
