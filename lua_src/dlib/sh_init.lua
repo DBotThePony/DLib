@@ -42,6 +42,7 @@ file.mkdir('dlib')
 DLib.register('core/tableutil.lua').export(_G.table)
 DLib.register('core/fsutil.lua').export(_G.file)
 DLib.register('core/loader.lua')
+DLib.register('core/loader_modes.lua')
 
 DLib.register('extensions/string.lua')
 DLib.register('extensions/ctakedmg.lua')

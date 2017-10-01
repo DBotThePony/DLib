@@ -13,7 +13,7 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
-local Loader = DLib.Loader
+local Loader = DLib.module('Loader')
 
 function Loader.load(targetDir)
 	local output = {}

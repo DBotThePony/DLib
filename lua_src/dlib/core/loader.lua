@@ -14,7 +14,6 @@
 -- limitations under the License.
 
 local Loader = DLib.module('Loader')
-DLib.Loader = Loader
 
 local currentModule, currentModuleEnv
 
@@ -150,12 +149,6 @@ function Loader.finish(allowGlobal, renameHack)
 	DLib[renameHack or createdModule] = created
 
 	return created
-end
-
-include('loader_modes.lua')
-
-if SERVER then
-	AddCSLuaFile('loader_modes.lua')
 end
 
 return Loader
