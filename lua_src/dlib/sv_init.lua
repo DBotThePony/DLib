@@ -25,6 +25,7 @@ AddCSLuaFile('dlib/util/message.lua')
 AddCSLuaFile('dlib/util/alias.lua')
 AddCSLuaFile('dlib/util/color.lua')
 AddCSLuaFile('dlib/util/node.lua')
+AddCSLuaFile('dlib/modules/notify/client/cl_init.lua')
 
 DLib.Loader.csModule('dlib/modules/dnotify/client')
 DLib.Loader.svmodule('notify/sv_dnotify.lua')
