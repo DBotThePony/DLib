@@ -22,9 +22,6 @@ export Notify_POS_BOTTOM
 
 Notify.DefaultDispatchers = {}
 
-X_SHIFT_CVAR = CreateConVar('dnofity_x_shift', '0', {FCVAR_ARCHIVE}, 'Shift at X of Notify slide notifications')
-Y_SHIFT_CVAR = CreateConVar('dnofity_y_shift', '45', {FCVAR_ARCHIVE}, 'Shift at Y of Notify slide notifications')
-
 Notify_SIDE_LEFT = 1
 Notify_SIDE_RIGHT = 2
 Notify_POS_TOP = 3
@@ -54,14 +51,23 @@ Notify.CreateLegacy = (...) ->
 	Notify.CreateDefaultDispatchers() if not Notify.DefaultDispatchers or not IsValid(Notify.DefaultDispatchers.legacy)
 	Notify.DefaultDispatchers.legacy\Create(...)
 
+SLIDE_POS = DLib.HUDCommons.DefinePosition('notify_main', 0, 30)
+CENTER_POS = DLib.HUDCommons.DefinePosition('notify_center', 0, 0)
+BADGE_POS = DLib.HUDCommons.DefinePosition('notify_badge', 0, 0.2)
+LEGACY_POS = DLib.HUDCommons.DefinePosition('notify_badge', 50, 0.55)
+
+flipPos = (input) ->
+	x, y = input()
+	return y
+
 Notify.CreateDefaultDispatchers = ->
 	Notify.DefaultDispatchers = {}
 
 	slideData = {
-		x: X_SHIFT_CVAR\GetInt()
-		getx: => X_SHIFT_CVAR\GetInt()
-		y: Y_SHIFT_CVAR\GetInt()
-		gety: => Y_SHIFT_CVAR\GetInt()
+		x: SLIDE_POS()
+		getx: SLIDE_POS
+		y: flipPos(SLIDE_POS)
+		gety: => flipPos(SLIDE_POS)
 
 		width: ScrW!
 		height: ScrH!
@@ -70,8 +76,10 @@ Notify.CreateDefaultDispatchers = ->
 	}
 
 	centerData = {
-		x: 0
-		y: 0
+		x: CENTER_POS()
+		getx: CENTER_POS
+		y: flipPos(CENTER_POS)
+		gety: => flipPos(CENTER_POS)
 
 		width: ScrW!
 		height: ScrH!
@@ -81,10 +89,10 @@ Notify.CreateDefaultDispatchers = ->
 	}
 
 	badgeData = {
-		x: 0
-		y: ScrH! * 0.2
-
-		gety: => ScrH! * 0.2
+		x: BADGE_POS()
+		getx: BADGE_POS
+		y: flipPos(BADGE_POS)
+		gety: => flipPos(BADGE_POS)
 
 		width: ScrW!
 		height: ScrH!
@@ -94,9 +102,10 @@ Notify.CreateDefaultDispatchers = ->
 	}
 
 	legacyData = {
-		x: 50
-		y: 0
-		gety: => ScrH! * 0.55
+		x: LEGACY_POS()
+		getx: LEGACY_POS
+		y: flipPos(LEGACY_POS)
+		gety: => flipPos(LEGACY_POS)
 
 		width: ScrW! - 50
 		getwidth: => ScrW! - 50
