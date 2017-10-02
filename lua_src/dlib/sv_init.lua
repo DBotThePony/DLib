@@ -21,7 +21,7 @@ end
 
 AddCSLuaFile('dlib/modules/notify/client/cl_init.lua')
 
-DLib.Loader.csModule('dlib/modules/dnotify/client')
+DLib.Loader.csModule('dlib/modules/notify/client')
 DLib.Loader.svmodule('notify/sv_dnotify.lua')
 DLib.Loader.csModule('dlib/util/client')
 DLib.Loader.svmodule('dmysql.lua')

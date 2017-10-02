@@ -204,8 +204,11 @@ end
 
 function Loader.csModule(targetDir)
 	if CLIENT then return {} end
+
 	local output = {}
 	local files = DLib.fs.FindRecursiveVisible(targetDir)
+
+	if #files == 0 then error('Empty module ' .. targetDir) end
 
 	for i, fil in ipairs(files) do
 		AddCSLuaFile(fil)
