@@ -387,6 +387,8 @@ class NotifyDispatcherBase
 		@ySmoothPositions = {}
 		@xSmoothPositions = {}
 
+	IsValid: => true
+
 	Create: (...) => self.obj(...)\Bind(@)
 
 	Clear: => for i, obj in pairs @thinkHooks do obj\Remove()

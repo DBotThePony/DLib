@@ -109,8 +109,8 @@ class CentereNotifyDispatcher extends NotifyDispatcherBase
 
 	Draw: =>
 		yShift = 0
-		x = @width / 2
-		y = @height * 0.26
+		x = @width / 2 + @x_start
+		y = @height * 0.26 + @y_start
 
 		for k, func in pairs @top
 			if y + yShift >= @height then break

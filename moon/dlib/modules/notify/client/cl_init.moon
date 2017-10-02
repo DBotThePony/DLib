@@ -54,7 +54,7 @@ Notify.CreateLegacy = (...) ->
 SLIDE_POS = DLib.HUDCommons.DefinePosition('notify_main', 0, 30)
 CENTER_POS = DLib.HUDCommons.DefinePosition('notify_center', 0, 0)
 BADGE_POS = DLib.HUDCommons.DefinePosition('notify_badge', 0, 0.2)
-LEGACY_POS = DLib.HUDCommons.DefinePosition('notify_badge', 50, 0.55)
+LEGACY_POS = DLib.HUDCommons.DefinePosition('notify_legacy', 50, 0.55)
 
 flipPos = (input) ->
 	x, y = input()
