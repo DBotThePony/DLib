@@ -106,4 +106,7 @@ function string.niceName(ent)
 	return ent:GetClass()
 end
 
+-- fuck https://github.com/Facepunch/garrysmod/pull/1176
+string.StartsWith = string.StartWith
+
 return string
