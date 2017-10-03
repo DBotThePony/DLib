@@ -134,6 +134,13 @@ do
 		local val = entMeta[key]
 		if val ~= nil then return val end
 
+		local tab = entMeta_GetTable(self)
+
+		if tab then
+			val = tab[key]
+			if val ~= nil then return val end
+		end
+
 		if key == 'Entity' then
 			local p = entMeta_GetClass(self)
 
@@ -154,13 +161,6 @@ do
 			end
 
 			return entMeta_GetOwner(self)
-		end
-
-		local tab = entMeta_GetTable(self)
-
-		if tab then
-			val = tab[key]
-			if val ~= nil then return val end
 		end
 
 		return nil
@@ -183,6 +183,13 @@ do
 		val = entMeta[key]
 		if val ~= nil then return val end
 
+		local tab = entMeta_GetTable(self)
+
+		if tab then
+			val = tab[key]
+			if val ~= nil then return val end
+		end
+
 		if key == 'Entity' then
 			local p = entMeta_GetClass(self)
 
@@ -203,13 +210,6 @@ do
 			end
 
 			return entMeta_GetOwner(self)
-		end
-
-		local tab = entMeta_GetTable(self)
-
-		if tab then
-			val = tab[key]
-			if val ~= nil then return val end
 		end
 
 		return nil
