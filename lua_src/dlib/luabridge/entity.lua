@@ -123,6 +123,7 @@ do
 	local entMeta_GetClass = entMeta.GetClass
 	local warnings1 = {}
 	local warnings2 = {}
+	local print = function() end
 
 	function entMeta:Spawn()
 		local val = entMeta_Spawn(self)
@@ -175,6 +176,7 @@ do
 	local entMeta_GetClass = entMeta.GetClass
 	local warnings1 = {}
 	local warnings2 = {}
+	local print = function() end
 
 	function weaponMeta:__index(key)
 		local val = weaponMeta[key]
