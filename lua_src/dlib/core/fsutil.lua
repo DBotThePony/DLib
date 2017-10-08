@@ -33,8 +33,7 @@ local function findRecursive(dirTarget)
 end
 
 local function findRecursiveVisible(dirTarget)
-	local findFiles = file.FindVisible(dirTarget, searchIn)
-	local _, findDirs = file.FindVisible(dirTarget, searchIn)
+	local findFiles, findDirs = file.FindVisible(dirTarget, searchIn)
 	table.prependString(findFiles, dirTarget .. '/')
 	table.prependString(findDirs, dirTarget .. '/')
 	table.append(files, findFiles)
