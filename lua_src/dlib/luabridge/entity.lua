@@ -121,9 +121,6 @@ do
 	local entMeta_Spawn = entMeta.SpawnDLib
 	local entMeta_GetOwner = entMeta.GetOwner
 	local entMeta_GetClass = entMeta.GetClass
-	local warnings1 = {}
-	local warnings2 = {}
-	local print = function() end
 
 	function entMeta:Spawn()
 		local val = entMeta_Spawn(self)
@@ -143,24 +140,10 @@ do
 		end
 
 		if key == 'Entity' then
-			local p = entMeta_GetClass(self)
-
-			if not warnings1[p] then
-				print(debug.traceback('Deprecation warning: Please use Entity directly instead of self.Entity!'))
-				warnings1[p] = true
-			end
-
 			return self
 		end
 
 		if key == 'Owner' then
-			local p = entMeta_GetClass(self)
-
-			if not warnings2[p] then
-				print(debug.traceback('Deprecation warning: Please use Entity:GetOwner() instead!'))
-				warnings2[p] = true
-			end
-
 			return entMeta_GetOwner(self)
 		end
 
@@ -174,9 +157,6 @@ do
 	local entMeta_GetTable = entMeta.GetTable
 	local entMeta_GetOwner = entMeta.GetOwner
 	local entMeta_GetClass = entMeta.GetClass
-	local warnings1 = {}
-	local warnings2 = {}
-	local print = function() end
 
 	function weaponMeta:__index(key)
 		local val = weaponMeta[key]
@@ -193,24 +173,10 @@ do
 		end
 
 		if key == 'Entity' then
-			local p = entMeta_GetClass(self)
-
-			if not warnings1[p] then
-				print(debug.traceback('Deprecation warning: Please use Entity directly instead of self.Entity!'))
-				warnings1[p] = true
-			end
-
 			return self
 		end
 
 		if key == 'Owner' then
-			local p = entMeta_GetClass(self)
-
-			if not warnings2[p] then
-				print(debug.traceback('Deprecation warning: Please use Entity:GetOwner() instead!'))
-				warnings2[p] = true
-			end
-
 			return entMeta_GetOwner(self)
 		end
 
