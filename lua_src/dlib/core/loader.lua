@@ -31,7 +31,6 @@ function Loader.include(filIn)
 
 		setfenv(compiled, setmetatable({}, {
 			__index = function(self, key)
-				if currentModule and key == 'DLib' then print(key, debug.traceback()) end
 				if key == currentModule2 then
 					return currentModuleEnv2
 				end
