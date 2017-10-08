@@ -19,16 +19,19 @@ string_format = string.format
 
 class DLib.HashSet extends DLib.Set
 	add: (object) =>
+		return false if object == nil
 		p = string_format('%p', object)
 		return false if @values[p] ~= nil
 		@values[p] = object
 		return true, p
 
 	has: (object) =>
+		return false if object == nil
 		p = string_format('%p', object)
 		return @values[p] ~= nil
 
 	remove: (object) =>
+		return false if object == nil
 		p = string_format('%p', object)
 		return false if @values[p] == nil
 		@values[p] = nil

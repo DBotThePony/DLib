@@ -20,6 +20,7 @@ class DLib.Set
 		@values = {}
 
 	add: (object) =>
+		return false if object == nil
 		for i, val in ipairs @values
 			if val == object
 				return false
@@ -27,6 +28,7 @@ class DLib.Set
 		return table.insert(@values, object)
 
 	has: (object) =>
+		return false if object == nil
 		for i, val in ipairs @values
 			if val == object
 				return true
@@ -37,6 +39,7 @@ class DLib.Set
 	contains: (...) => @has(...)
 
 	remove: (object) =>
+		return false if object == nil
 		for i, val in ipairs @values
 			if val == object
 				table.remove(@values, i)
