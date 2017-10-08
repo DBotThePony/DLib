@@ -15,56 +15,9 @@
 -- limitations under the License.
 --
 
-class DLib.Average
-	new: (steps = 100, timeout = 1, def = 0) =>
-		@steps = steps
-		@nextvalue = 1
-		@timeout = timeout
-		@def = def
-		@rebuild()
-
-	add: (val = @def, update = true) =>
-		time = CurTime()
-		@values[@nextvalue] = {val, time}
-		@nextvalue += 1
-		@nextvalue = 1 if @nextvalue < @steps
-		@update() if update
-
-	rebuild: =>
-		time = CurTime()
-		@values = [{@def, time} for i = 1, @steps]
-
-	update: =>
-		time = CurTime()
-		@values = for valData in *@values
-			if valData[2] + @timeout < time
-				{@def, time}
-			else
-				valData
-
+class DLib.Average extends DLib.Collector
 	calculate: =>
 		average = 0
 		values = @steps
 		average += val[1] for val in *@values
 		return average / values
-
-	think: => @update()
-	Think: => @update()
-	Update: => @update()
-
-	setSteps: (steps = @steps) =>
-		@steps = steps
-		@nextvalue = 1
-		@rebuild()
-
-	setTimeout: (timeout = @timeout) =>
-		@timeout = timeout
-		@rebuild()
-
-	setTimeout: (timeout = @timeout) =>
-		@timeout = timeout
-		@rebuild()
-
-	setDefault: (def = @def) =>
-		@def = def
-		@rebuild()
