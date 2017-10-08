@@ -102,7 +102,7 @@ end
 
 function net.GWriteUInt(val)
 	return function(val2)
-		return net.ReadUInt(val2, val)
+		return net.WriteUInt(val2, val)
 	end
 end
 
@@ -114,7 +114,7 @@ end
 
 function net.GWriteInt(val)
 	return function(val2)
-		return net.ReadInt(val2, val)
+		return net.WriteInt(val2, val)
 	end
 end
 
