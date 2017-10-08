@@ -62,6 +62,7 @@ DLib.Loader.shclass('networked_data.lua')
 DLib.Loader.shclass('sequence_base.lua')
 DLib.Loader.shclass('sequence_holder.lua')
 DLib.Loader.shclass('astar.lua')
+DLib.Loader.shclass('average.lua')
 DLib.Loader.clclass('keybinds.lua').register()
 
 DLib.Loader.start('HUDCommons')
