@@ -118,4 +118,14 @@ function net.GWriteInt(val)
 	end
 end
 
+function net.ChooseOptimalBits(amount)
+	local bits = 1
+
+	while 2 ^ bits <= amount do
+		bits = bits + 1
+	end
+
+	return bits
+end
+
 return net

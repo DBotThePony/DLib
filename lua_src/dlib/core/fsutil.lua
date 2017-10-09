@@ -33,7 +33,7 @@ local function findRecursive(dirTarget)
 end
 
 local function findRecursiveVisible(dirTarget)
-	local findFiles, findDirs = file.FindVisible(dirTarget, searchIn)
+	local findFiles, findDirs = fsutil.FindVisible(dirTarget, searchIn)
 	table.prependString(findFiles, dirTarget .. '/')
 	table.prependString(findDirs, dirTarget .. '/')
 	table.append(files, findFiles)
@@ -72,10 +72,8 @@ function fsutil.FindRecursive(dir, endfixTo, searchIn2)
 	return files, dirs
 end
 
-function fsutil.FindRecursiveVisible(dir, endfixTo, searchIn2)
-	endfixTo = endfixTo or '/*'
+function fsutil.FindRecursiveVisible(dir, searchIn2)
 	searchIn2 = searchIn2 or 'LUA'
-	endfix = endfixTo
 	searchIn = searchIn2
 	files, dirs = {}, {}
 

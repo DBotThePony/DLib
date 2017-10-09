@@ -24,6 +24,8 @@ AddCSLuaFile('dlib/modules/notify/client/cl_init.lua')
 DLib.Loader.csModule('dlib/modules/notify/client')
 DLib.Loader.svmodule('notify/sv_dnotify.lua')
 DLib.Loader.csModule('dlib/util/client')
+DLib.Loader.csModule('dlib/modules/client')
+DLib.Loader.loadPureSVTop('dlib/modules/server')
 DLib.Loader.svmodule('dmysql.lua')
 
 DLib.registerSV('util/server/chat.lua')

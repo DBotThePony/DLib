@@ -13,13 +13,22 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
-DLib.Loader.start('Notify', true)
-DLib.Loader.include('dlib/modules/notify/client/cl_init.lua')
-DLib.Loader.finish(false)
+class DLib.Enum
+	new: (...) =>
+		@enums = {...}
+		@enumsInversed = {v, i for i, v in ipairs @enums}
 
-DLib.register('util/client/chat.lua')
+	encode: (val, indexFail = 1) =>
+		return indexFail if @enumsInversed[val] == nil
+		return @enumsInversed[val]
 
-DLib.Loader.loadPureCSTop('dlib/modules/client')
+	decode: (val, indexFail = 1) =>
+		val = tonumber(val) if type(val) ~= 'number'
+		return @enums[indexFail] if @enums[val] == nil
+		return @enums[val]
 
-DLib.Loader.loadPureSHTop('dlib/autorun')
-DLib.Loader.loadPureCSTop('dlib/autorun/client')
+	write: (val, ifNone) =>
+		net.WriteUInt(@encode(val, ifNone), net.ChooseOptimalBits(#@enums))
+
+	read: (ifNone) =>
+		@decode(net.ReadUInt(net.ChooseOptimalBits(#@enums)), ifNone)
