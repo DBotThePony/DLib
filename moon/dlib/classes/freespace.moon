@@ -23,6 +23,7 @@ class DLib.Freespace
 		@addition = Vector(0, 0, 0)
 		@usehull = true
 		@filter = DLib.Set()
+		@mask = MASK_SOLID
 
 	getMins: => @mins
 	getMaxs: => @maxs
@@ -33,6 +34,9 @@ class DLib.Freespace
 
 	getAddition: => @addition
 	setAddition: (val) => @addition = val
+
+	getMask: => @mask
+	setMask: (val) => @mask = val
 
 	getStep: => @step
 	getRadius: => @radius
@@ -46,6 +50,7 @@ class DLib.Freespace
 				endpos: target + @addition
 				mins: @mins
 				maxs: @maxs
+				mask: @mask
 				filter: @filter\getValues()
 			})
 
@@ -54,6 +59,7 @@ class DLib.Freespace
 			tr = util.TraceLine({
 				start: @pos
 				endpos: target + @addition
+				mask: @mask
 				filter: @filter\getValues()
 			})
 
