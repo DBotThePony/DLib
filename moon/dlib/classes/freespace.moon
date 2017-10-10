@@ -34,6 +34,8 @@ class DLib.Freespace
 
 	getAddition: => @addition
 	setAddition: (val) => @addition = val
+	getAABB: => @mins, @maxs
+	setAABB: (val1, val2) => @mins, @maxs = val1, val2
 
 	getMask: => @mask
 	setMask: (val) => @mask = val
@@ -71,15 +73,15 @@ class DLib.Freespace
 
 		for radius = 1, @radius
 			for x = -radius, radius
-				pos = @pos + Vector(x, radius, 0)
+				pos = @pos + Vector(x * @step, radius * @step, 0)
 				return pos if @check(pos)
-				pos = @pos + Vector(x, -radius, 0)
+				pos = @pos + Vector(x * @step, -radius * @step, 0)
 				return pos if @check(pos)
 
 			for y = -radius, radius
-				pos = @pos + Vector(radius, y, 0)
+				pos = @pos + Vector(radius * @step, y * @step, 0)
 				return pos if @check(pos)
-				pos = @pos + Vector(-radius, y, 0)
+				pos = @pos + Vector(-radius * @step, y * @step, 0)
 				return pos if @check(pos)
 
 		return false
@@ -90,15 +92,15 @@ class DLib.Freespace
 
 		for radius = 1, @radius
 			for x = -radius, radius
-				pos = @pos + Vector(x, radius, 0)
+				pos = @pos + Vector(x * @step, radius * @step, 0)
 				output\insert(pos) if @check(pos)
-				pos = @pos + Vector(x, -radius, 0)
+				pos = @pos + Vector(x * @step, -radius * @step, 0)
 				output\insert(pos) if @check(pos)
 
 			for y = -radius, radius
-				pos = @pos + Vector(radius, y, 0)
+				pos = @pos + Vector(radius * @step, y * @step, 0)
 				output\insert(pos) if @check(pos)
-				pos = @pos + Vector(-radius, y, 0)
+				pos = @pos + Vector(-radius * @step, y * @step, 0)
 				output\insert(pos) if @check(pos)
 
 		return output
