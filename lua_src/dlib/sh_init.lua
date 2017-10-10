@@ -51,6 +51,7 @@ DLib.simpleInclude('core/loader_modes.lua')
 
 DLib.register('extensions/string.lua')
 DLib.register('extensions/ctakedmg.lua')
+DLib.register('extensions/table.lua')
 DLib.register('extensions/player.lua').export(_G.player)
 DLib.register('extensions/net.lua').export(_G.net)
 
