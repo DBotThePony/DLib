@@ -25,6 +25,7 @@ function DLib.simpleInclude(fil)
 	return include('dlib/' .. fil)
 end
 
+DLib.simpleInclude('util/alias.lua')
 DLib.module = DLib.simpleInclude('core/module.lua')
 DLib.manifest = DLib.simpleInclude('core/manifest.lua')
 DLib.MessageMaker = DLib.simpleInclude('util/message.lua')
@@ -33,7 +34,6 @@ DLib.MessageMaker(DLib, 'DLib')
 DLib.CMessage = DLib.MessageMaker
 DLib.ConstructMessage = DLib.MessageMaker
 
-DLib.simpleInclude('util/alias.lua')
 DLib.simpleInclude('util/color.lua')
 
 DLib.register('util/combathelper.lua')
