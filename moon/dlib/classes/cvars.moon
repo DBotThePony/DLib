@@ -33,7 +33,7 @@ class DLib.Convars
 				name = name\Trim()
 				return messaging.MessagePlayer(ply, 'No access!') if IsValid(ply) and not ply\IsSuperAdmin()
 				return messaging.MessagePlayer(ply, 'Invalid Console Variable - sv_' .. @namespace .. '_' .. name) if not @convars[name]
-				return messaging.MessagePlayer(ply, 'Value is missing') if args[2]
+				return messaging.MessagePlayer(ply, 'Value is missing') if not args[2]
 				table.remove(args, 1)
 				@set(name, table.concat(args, ' '))
 
