@@ -53,7 +53,7 @@ class DLib.Convars
 		return false if not @convars[name]
 
 		if CLIENT
-			RunConsoleCommand(@setname, ...)
+			RunConsoleCommand(@setname, name, ...)
 		else
 			RunConsoleCommand('sv_' .. @namespace .. '_' .. name, ...)
 
@@ -70,10 +70,13 @@ class DLib.Convars
 
 	checkbox: (pnlTarget, name) =>
 		with pnlTarget\CheckBox(@help[name], 'sv_' .. @namespace .. '_' .. name)
+			cvar = @convars[name]
 			.Button.Think = -> \SetChecked(@getBool(name))
-			.Button.DoClick = @clickfunc(name)
+			.Button.DoClick = ->
+				@set(name, not cvar\GetBool() and '1' or '0')
+
 	checkboxes: (pnlTarget) =>
-		output = [@checkbox(pnlTarget, name) for name in pairs @convars]
+		output = [@checkbox(pnlTarget, name) for name, cvar in pairs @convars]
 		return output
 
 	getBool: (name, ifFail = false) =>
