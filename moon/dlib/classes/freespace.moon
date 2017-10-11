@@ -26,7 +26,8 @@ class DLib.Freespace
 		@mask = MASK_SOLID
 		@strict = false
 		@smins = Vector(-16, -16, 0)
-		@smaxs = Vector(16, 16, 70)
+		@smaxs = Vector(16, 16, 0)
+		@sheight = 70
 
 	getMins: => @mins
 	getMaxs: => @maxs
@@ -52,6 +53,32 @@ class DLib.Freespace
 	setStep: (val) => @step = val
 	setRadius: (val) => @radius = val
 
+	GetMins: => @mins
+	GetMaxs: => @maxs
+	SetMins: (val) => @mins = val
+	SetMaxs: (val) => @maxs = val
+	GetPos: => @pos
+	SetPos: (val) => @pos = val
+
+	GetAddition: => @addition
+	SetAddition: (val) => @addition = val
+	GetStrict: => @strict
+	GetStrictHeight: => @sheight
+	SetStrict: (val) => @strict = val
+	SetStrictHeight: (val) => @sheight = val
+	GetAABB: => @mins, @maxs
+	GetSAABB: => @smins, @smaxs
+	SetAABB: (val1, val2) => @mins, @maxs = val1, val2
+	SetSAABB: (val1, val2) => @smins, @smaxs = val1, val2
+
+	GetMask: => @mask
+	SetMask: (val) => @mask = val
+
+	GetStep: => @step
+	GetRadius: => @radius
+	SetStep: (val) => @step = val
+	SetRadius: (val) => @radius = val
+
 	check: (target) =>
 		if @usehull
 			tr = util.TraceHull({
@@ -66,7 +93,7 @@ class DLib.Freespace
 			if @strict and not tr.Hit
 				tr2 = util.TraceHull({
 					start: target + @addition
-					endpos: target + @addition + Vector(0, 0, 1)
+					endpos: target + @addition + Vector(0, 0, @sheight)
 					mins: @smins
 					maxs: @smaxs
 					mask: @mask
@@ -87,7 +114,7 @@ class DLib.Freespace
 			if @strict and not tr.Hit
 				tr2 = util.TraceHull({
 					start: target + @addition
-					endpos: target + @addition + Vector(0, 0, 1)
+					endpos: target + @addition + Vector(0, 0, @sheight)
 					mins: @smins
 					maxs: @smaxs
 					mask: @mask
