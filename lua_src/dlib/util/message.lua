@@ -103,6 +103,9 @@ local function FormatMessageInternal(tabIn)
 end
 
 return function(tableTarget, moduleName, moduleColor)
+	local nwname = 'DLib.Message.' .. util.CRC(moduleName)
+
+	if SERVER then net.pool(nwname) end
 	local PREFIX = '[' .. moduleName .. '] '
 	local PREFIX_COLOR = moduleColor or Color(0, 200, 0)
 
@@ -123,6 +126,25 @@ return function(tableTarget, moduleName, moduleColor)
 		return FormatMessageInternal({PREFIX_COLOR, PREFIX, DEFAULT_TEXT_COLOR, ...})
 	end
 
+	local function MessagePlayer(ply, ...)
+		if CLIENT then return end
+
+		if type(ply) == 'table' or type(ply) == 'Player' then
+			net.Start(nwname)
+			net.WriteArray({...})
+			net.Send(ply)
+		else
+			Message(...)
+		end
+	end
+
+	if CLIENT then
+		net.receive(nwname, function()
+			local array = net.ReadArray()
+			Message(unpack(array))
+		end)
+	end
+
 	local function export(tableTo)
 		tableTo.Message = Message
 		tableTo.message = Message
@@ -139,6 +161,10 @@ return function(tableTarget, moduleName, moduleColor)
 			tableTo.ChatPrint = Chat
 			tableTo.AddChat = Chat
 			tableTo.chatMessage = Chat
+		else
+			tableTo.MessagePlayer = MessagePlayer
+			tableTo.messagePlayer = MessagePlayer
+			tableTo.messageP = MessagePlayer
 		end
 	end
 

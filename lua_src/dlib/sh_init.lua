@@ -70,6 +70,7 @@ DLib.Loader.shclass('set.lua')
 DLib.Loader.shclass('hashset.lua')
 DLib.Loader.shclass('enum.lua')
 DLib.Loader.shclass('freespace.lua')
+DLib.Loader.shclass('cvars.lua')
 DLib.Loader.clclass('keybinds.lua').register()
 
 DLib.Loader.start('HUDCommons')

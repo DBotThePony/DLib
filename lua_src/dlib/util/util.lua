@@ -26,4 +26,18 @@ function util.randomVector(mx, my, mz)
 	return Vector(math.Rand(-mx, mx), math.Rand(-my, my), math.Rand(-mz, mz))
 end
 
+function util.composeEnums(input, ...)
+	local num = 0
+
+	if type(input) == 'table' then
+		for k, v in ipairs(input) do
+			num = num:bor(v)
+		end
+	else
+		num = input
+	end
+
+	return num:bor(...)
+end
+
 return util

@@ -17,7 +17,7 @@ local meta = {}
 local math = math
 
 function meta:__index(key)
-	return math[key]
+	return math[key] or bit[key]
 end
 
 debug.setmetatable(1, meta)
