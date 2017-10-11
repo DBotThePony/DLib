@@ -35,7 +35,9 @@ class DLib.Convars
 				return messaging.MessagePlayer(ply, 'Invalid Console Variable - sv_' .. @namespace .. '_' .. name) if not @convars[name]
 				return messaging.MessagePlayer(ply, 'Value is missing') if not args[2]
 				table.remove(args, 1)
-				@set(name, table.concat(args, ' '))
+				newval = table.concat(args, ' ')
+				@set(name, newval)
+				messaging.Message(ply, ' has changed sv_' .. @namespace .. '_' .. name .. ' to ', newval)
 
 	create: (name, defvalue = '0', flags = 0, desc = '') =>
 		error('_set is reserved') if name == 'set'
