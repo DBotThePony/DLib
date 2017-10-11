@@ -24,6 +24,9 @@ class DLib.Freespace
 		@usehull = true
 		@filter = DLib.Set()
 		@mask = MASK_SOLID
+		@strict = false
+		@smins = Vector(-16, -16, 0)
+		@smaxs = Vector(16, 16, 70)
 
 	getMins: => @mins
 	getMaxs: => @maxs
@@ -34,8 +37,12 @@ class DLib.Freespace
 
 	getAddition: => @addition
 	setAddition: (val) => @addition = val
+	getStrict: => @strict
+	setStrict: (val) => @strict = val
 	getAABB: => @mins, @maxs
+	getSAABB: => @smins, @smaxs
 	setAABB: (val1, val2) => @mins, @maxs = val1, val2
+	setSAABB: (val1, val2) => @smins, @smaxs = val1, val2
 
 	getMask: => @mask
 	setMask: (val) => @mask = val
@@ -56,6 +63,18 @@ class DLib.Freespace
 				filter: @filter\getValues()
 			})
 
+			if @strict and not tr.Hit
+				tr2 = util.TraceHull({
+					start: target + @addition
+					endpos: target + @addition + Vector(0, 0, 1)
+					mins: @smins
+					maxs: @smaxs
+					mask: @mask
+					filter: @filter\getValues()
+				})
+
+				return not tr2.Hit, tr, tr2
+
 			return not tr.Hit, tr
 		else
 			tr = util.TraceLine({
@@ -64,6 +83,18 @@ class DLib.Freespace
 				mask: @mask
 				filter: @filter\getValues()
 			})
+
+			if @strict and not tr.Hit
+				tr2 = util.TraceHull({
+					start: target + @addition
+					endpos: target + @addition + Vector(0, 0, 1)
+					mins: @smins
+					maxs: @smaxs
+					mask: @mask
+					filter: @filter\getValues()
+				})
+
+				return not tr2.Hit, tr, tr2
 
 			return not tr.Hit, tr
 
