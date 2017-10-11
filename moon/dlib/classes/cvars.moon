@@ -21,6 +21,8 @@ class DLib.Convars
 		error('No namespace!') if not namespace
 		@namespace = namespace
 		@convars = {}
+		@help = {}
+		@defaults = {}
 		@setname = @namespace .. '_set'
 		@cami = false
 		-- lets trust gmod networking for now
@@ -43,6 +45,8 @@ class DLib.Convars
 		error('_set is reserved') if name == 'set'
 		flags = DLib.util.composeEnums(flags, FCVAR_ARCHIVE, FCVAR_REPLICATED)
 		@convars[name] = CreateConVar('sv_' .. @namespace .. '_' .. name, defvalue, flags, desc)
+		@help[name] = desc
+		@defaults[name] = defvalue
 		return @convars[name]
 
 	set: (name, ...) =>
@@ -56,6 +60,21 @@ class DLib.Convars
 		return true
 
 	get: (name) => @convars[name]
+
+	clickfunc: (name) =>
+		return (pnl, newVal) ->
+			if type(newVal) == 'boolean'
+				@set(name, newVal and '1' or '0')
+			else
+				@set(name, newVal)
+
+	checkbox: (pnlTarget, name) =>
+		with pnlTarget\CheckBox(@help[name], 'sv_' .. @namespace .. '_' .. name)
+			.Button.Think = -> \SetChecked(@getBool(name))
+			.Button.DoClick = @clickfunc(name)
+	checkboxes: (pnlTarget) =>
+		output = [@checkbox(pnlTarget, name) for name in pairs @convars]
+		return output
 
 	getBool: (name, ifFail = false) =>
 		return ifFail if not @convars[name]
