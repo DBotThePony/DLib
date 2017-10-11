@@ -27,6 +27,8 @@ class DLib.Set
 
 		return table.insert(@values, object)
 
+	addArray: (objects) => @add(object) for object in *objects
+
 	has: (object) =>
 		return false if object == nil
 		for i, val in ipairs @values
