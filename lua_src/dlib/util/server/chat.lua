@@ -29,6 +29,16 @@ function chat.generate(name, targetTable)
 		net.Send(ply)
 	end
 
+	function newModule.chatPlayer2(ply, ...)
+		if IsValid(ply) and not ply:IsBot() then
+			net.Start(nw, true)
+			net.WriteArray({...})
+			net.Send(ply)
+		elseif newModule.Message then
+			newModule.Message(ply, ' -> ', ...)
+		end
+	end
+
 	function newModule.chatAll(...)
 		net.Start(nw, true)
 		net.WriteArray({...})
@@ -44,7 +54,7 @@ function chat.generateWithMessages(targetTable, name)
 	DLib.CMessage(targetTable, name)
 	chat.generate(name, targetTable)
 
-	targetTable.chatPlayer2 = targetTable.chatPlayer
+	targetTable.chatPlayerMessage = targetTable.chatPlayer
 
 	function targetTable.chatPlayer(ply, ...)
 		if not IsValid(ply) then
@@ -52,7 +62,7 @@ function chat.generateWithMessages(targetTable, name)
 			return
 		end
 
-		return targetTable.chatPlayer2(ply, ...)
+		return targetTable.chatPlayerMessage(ply, ...)
 	end
 
 	return targetTable
