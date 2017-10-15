@@ -32,7 +32,7 @@ HUDCommons.Positions_funcs = HUDCommons.Positions_funcs or {}
 HUDCommons.Multipler = 1
 
 function HUDCommons.DefinePosition(name, x, y, shouldShift)
-	if shouldShift and type(shouldShift) ~= 'function' then
+	if shouldShift ~= nil and type(shouldShift) ~= 'function' then
 		local l = shouldShift
 		shouldShift = function() return l end
 	else
