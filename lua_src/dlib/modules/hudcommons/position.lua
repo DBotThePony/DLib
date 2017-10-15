@@ -27,41 +27,59 @@ HUDCommons.XPositions_modified = HUDCommons.XPositions_modified or {}
 HUDCommons.YPositions_modified = HUDCommons.YPositions_modified or {}
 HUDCommons.XPositions_original = HUDCommons.XPositions_original or {}
 HUDCommons.YPositions_original = HUDCommons.YPositions_original or {}
+HUDCommons.Positions_funcs = HUDCommons.Positions_funcs or {}
 
 HUDCommons.Multipler = 1
 
-function HUDCommons.DefinePosition(name, x, y)
+function HUDCommons.DefinePosition(name, x, y, shouldShift)
+	if shouldShift and type(shouldShift) ~= 'function' then
+		local l = shouldShift
+		shouldShift = function() return l end
+	else
+		shouldShift = function() return true end
+	end
+
 	if x < 1 then
 		x = ScrW() * x
 	end
-	
+
 	if y < 1 then
 		y = ScrH() * y
 	end
 
 	HUDCommons.XPositions_original[name] = x
 	HUDCommons.YPositions_original[name] = y
-	
+
 	HUDCommons.XPositions_modified[name] = x
 	HUDCommons.YPositions_modified[name] = y
-	
+
 	if not table.HasValue(HUDCommons.XPositions, name) then
 		table.insert(HUDCommons.XPositions, name)
 	end
-	
+
 	if not table.HasValue(HUDCommons.YPositions, name) then
 		table.insert(HUDCommons.YPositions, name)
 	end
 
+	HUDCommons.Positions_funcs[name] = shouldShift
+
 	return function()
-		return HUDCommons.XPositions_modified[name], HUDCommons.YPositions_modified[name]
+		if shouldShift() then
+			return HUDCommons.XPositions_modified[name], HUDCommons.YPositions_modified[name]
+		else
+			return HUDCommons.XPositions_original[name], HUDCommons.YPositions_original[name]
+		end
 	end
 end
 
 HUDCommons.CreatePosition = HUDCommons.DefinePosition
 
 function HUDCommons.GetPos(elem)
-	return HUDCommons.XPositions_modified[elem] or 0, HUDCommons.YPositions_modified[elem] or 0
+	if not HUDCommons.Positions_funcs[elem] or HUDCommons.Positions_funcs[elem]() then
+		return HUDCommons.XPositions_modified[elem] or 0, HUDCommons.YPositions_modified[elem] or 0
+	else
+		return HUDCommons.XPositions_original[elem] or 0, HUDCommons.YPositions_original[elem] or 0
+	end
 end
 
 HUDCommons.GetPosition = HUDCommons.GetPos
@@ -71,7 +89,7 @@ local function UpdatePositions()
 		for k, v in pairs(HUDCommons.XPositions) do
 			HUDCommons.XPositions_modified[v] = HUDCommons.XPositions_original[v] + HUDCommons.ShiftX
 		end
-		
+
 		for k, v in pairs(HUDCommons.YPositions) do
 			HUDCommons.YPositions_modified[v] = HUDCommons.YPositions_original[v] + HUDCommons.ShiftY
 		end
@@ -79,7 +97,7 @@ local function UpdatePositions()
 		for k, v in pairs(HUDCommons.XPositions) do
 			HUDCommons.XPositions_modified[v] = HUDCommons.XPositions_original[v]
 		end
-		
+
 		for k, v in pairs(HUDCommons.YPositions) do
 			HUDCommons.YPositions_modified[v] = HUDCommons.YPositions_original[v]
 		end
@@ -88,18 +106,18 @@ end
 
 local function UpdateShift()
 	if not ENABLE_SHIFTING:GetBool() then return end
-	
+
 	local ply = HUDCommons.SelectPlayer()
 	local ang = ply:EyeAngles()
-	
+
 	local changePitch = math.AngleDifference(ang.p, HUDCommons.LastAngle.p)
 	local changeYaw = math.AngleDifference(ang.y, HUDCommons.LastAngle.y)
-	
+
 	HUDCommons.LastAngle = ang
-	
+
 	HUDCommons.ShiftX = math.Clamp(HUDCommons.ShiftX + changeYaw * 1.8, -150, 150)
 	HUDCommons.ShiftY = math.Clamp(HUDCommons.ShiftY - changePitch * 1.8, -80, 80)
-	
+
 	HUDCommons.ShiftX = HUDCommons.ShiftX - HUDCommons.ShiftX * 0.05 * HUDCommons.Multipler
 	HUDCommons.ShiftY = HUDCommons.ShiftY - HUDCommons.ShiftY * 0.05 * HUDCommons.Multipler
 end

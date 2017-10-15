@@ -51,17 +51,17 @@ Notify.CreateLegacy = (...) ->
 	Notify.CreateDefaultDispatchers() if not Notify.DefaultDispatchers or not IsValid(Notify.DefaultDispatchers.legacy)
 	Notify.DefaultDispatchers.legacy\Create(...)
 
-SLIDE_POS = DLib.HUDCommons.DefinePosition('notify_main', 0, 30)
-CENTER_POS = DLib.HUDCommons.DefinePosition('notify_center', 0, 0)
-BADGE_POS = DLib.HUDCommons.DefinePosition('notify_badge', 0, 0.2)
-LEGACY_POS = DLib.HUDCommons.DefinePosition('notify_legacy', 50, 0.55)
-
 flipPos = (input) ->
 	x, y = input()
 	return y
 
 Notify.CreateDefaultDispatchers = ->
 	Notify.DefaultDispatchers = {}
+
+	SLIDE_POS = DLib.HUDCommons.DefinePosition('notify_main', 0, 30, -> _G.DHUD2 ~= nil)
+	CENTER_POS = DLib.HUDCommons.DefinePosition('notify_center', 0, 0, -> _G.DHUD2 ~= nil)
+	BADGE_POS = DLib.HUDCommons.DefinePosition('notify_badge', 0, 0.2, -> _G.DHUD2 ~= nil)
+	LEGACY_POS = DLib.HUDCommons.DefinePosition('notify_legacy', 50, 0.55, -> _G.DHUD2 ~= nil)
 
 	slideData = {
 		x: SLIDE_POS()
