@@ -183,3 +183,17 @@ do
 		return nil
 	end
 end
+
+local entMeta = FindMetaTable('Entity')
+
+function entMeta:IsClientsideEntity()
+	return false
+end
+
+if CLIENT then
+	local CSEnt = FindMetaTable('CSEnt')
+
+	function CSEnt:IsClientsideEntity()
+		return true
+	end
+end
