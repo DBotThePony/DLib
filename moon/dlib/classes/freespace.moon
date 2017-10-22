@@ -24,34 +24,11 @@ class DLib.Freespace
 		@usehull = true
 		@filter = DLib.Set()
 		@mask = MASK_SOLID
+		@maskReachable = MASK_SOLID
 		@strict = false
 		@smins = Vector(-16, -16, 0)
 		@smaxs = Vector(16, 16, 0)
 		@sheight = 70
-
-	getMins: => @mins
-	getMaxs: => @maxs
-	setMins: (val) => @mins = val
-	setMaxs: (val) => @maxs = val
-	getPos: => @pos
-	setPos: (val) => @pos = val
-
-	getAddition: => @addition
-	setAddition: (val) => @addition = val
-	getStrict: => @strict
-	setStrict: (val) => @strict = val
-	getAABB: => @mins, @maxs
-	getSAABB: => @smins, @smaxs
-	setAABB: (val1, val2) => @mins, @maxs = val1, val2
-	setSAABB: (val1, val2) => @smins, @smaxs = val1, val2
-
-	getMask: => @mask
-	setMask: (val) => @mask = val
-
-	getStep: => @step
-	getRadius: => @radius
-	setStep: (val) => @step = val
-	setRadius: (val) => @radius = val
 
 	GetMins: => @mins
 	GetMaxs: => @maxs
@@ -74,6 +51,9 @@ class DLib.Freespace
 	GetMask: => @mask
 	SetMask: (val) => @mask = val
 
+	GetMaskReachable: => @maskReachable
+	SetMaskReachable: (val) => @maskReachable = val
+
 	GetStep: => @step
 	GetRadius: => @radius
 	SetStep: (val) => @step = val
@@ -86,7 +66,7 @@ class DLib.Freespace
 				endpos: target + @addition
 				mins: @mins
 				maxs: @maxs
-				mask: @mask
+				mask: @maskReachable
 				filter: @filter\getValues()
 			})
 
@@ -107,7 +87,7 @@ class DLib.Freespace
 			tr = util.TraceLine({
 				start: @pos
 				endpos: target + @addition
-				mask: @mask
+				mask: @maskReachable
 				filter: @filter\getValues()
 			})
 
@@ -125,7 +105,7 @@ class DLib.Freespace
 
 			return not tr.Hit, tr
 
-	search: =>
+	Search: =>
 		if @check(@pos)
 			return @pos
 
@@ -144,7 +124,7 @@ class DLib.Freespace
 
 		return false
 
-	searchAll: =>
+	SearchAll: =>
 		output = table()
 		output\insert(@pos) if @check(@pos)
 
