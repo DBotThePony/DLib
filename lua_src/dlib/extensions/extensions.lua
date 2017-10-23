@@ -28,8 +28,8 @@ PhysObj.DLibEnableMotion = PhysObj.DLibEnableMotion or PhysObj.EnableMotion
 PhysObj.DLibEnableGravity = PhysObj.DLibEnableGravity or PhysObj.EnableGravity
 
 function PhysObj:SetMass(newMass)
-	if newMass < 1 then
-		error('Mass can not be lower than 1!')
+	if newMass <= 0 then
+		error('Mass can not be lower or equal to 0!')
 	end
 
 	return self:DLibSetMass(newMass)
