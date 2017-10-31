@@ -15,7 +15,7 @@
 -- limitations under the License.
 --
 
-ENABLE_SHIFTING = CreateConVar('hudcommons_shifting', '1', {FCVAR_ARCHIVE}, 'Enable HUD shifting')
+local ENABLE_SHIFTING = CreateConVar('dlib_hud_shift', '1', {FCVAR_ARCHIVE}, 'Enable HUD shifting')
 
 HUDCommons.ShiftX = 0
 HUDCommons.ShiftY = 0
@@ -113,13 +113,13 @@ local function UpdateShift()
 	local changePitch = math.AngleDifference(ang.p, HUDCommons.LastAngle.p)
 	local changeYaw = math.AngleDifference(ang.y, HUDCommons.LastAngle.y)
 
-	HUDCommons.LastAngle = ang
+	HUDCommons.LastAngle = LerpAngle(FrameTime() * 33, HUDCommons.LastAngle, ang)
 
-	HUDCommons.ShiftX = math.Clamp(HUDCommons.ShiftX + changeYaw * 1.8, -150, 150)
-	HUDCommons.ShiftY = math.Clamp(HUDCommons.ShiftY - changePitch * 1.8, -80, 80)
+	HUDCommons.ShiftX = math.Clamp(HUDCommons.ShiftX + changeYaw * 1.8, -30, 30)
+	HUDCommons.ShiftY = math.Clamp(HUDCommons.ShiftY - changePitch * 1.8, -20, 20)
 
-	HUDCommons.ShiftX = HUDCommons.ShiftX - HUDCommons.ShiftX * 0.05 * HUDCommons.Multipler
-	HUDCommons.ShiftY = HUDCommons.ShiftY - HUDCommons.ShiftY * 0.05 * HUDCommons.Multipler
+	HUDCommons.ShiftX = HUDCommons.ShiftX - HUDCommons.ShiftX * FrameTime() * 22
+	HUDCommons.ShiftY = HUDCommons.ShiftY - HUDCommons.ShiftY * FrameTime() * 22
 end
 
 local function Think()
