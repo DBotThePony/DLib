@@ -15,11 +15,6 @@
 -- limitations under the License.
 --
 
-local VERSION = 201707151354
-
-if _G.StrongEntityLinkVersion and _G.StrongEntityLinkVersion >= VERSION then return end
-_G.StrongEntityLinkVersion = VERSION
-
 local STRONG_ENTITIES_REGISTRY = {}
 local WRAPPED_FUNCTIONS = {}
 
@@ -55,7 +50,7 @@ local StrongLinkMetadata = {
 
         return self.__strong_entity_link
     end,
-    
+
 	GetStrongEntity = function(self)
         if not isValid(self.__strong_entity_link) then
             self.__strong_entity_link = Entity(self.__strong_entity_link_id)
@@ -127,7 +122,7 @@ local metaData = {
         if value ~= nil then
             return value
         end
-		
+
 		local self2 = self.__strong_entity_meta
 
         if not isValid(self2.__strong_entity_link) then
@@ -208,14 +203,16 @@ local function InitStrongEntity(entIndex)
         if IsValid(entIndex) then
             entIndex = entIndex:EntIndex()
 
-            if entIndex < 0 then
-                return NULL
+			if entIndex < 0 then
+				if SERVER then
+					return NULL
+				end
             end
         else
             entIndex = -1
         end
     end
-    
+
     if STRONG_ENTITIES_REGISTRY[entIndex] then
         return STRONG_ENTITIES_REGISTRY[entIndex]
     end
@@ -246,11 +243,11 @@ if CLIENT then
 
         if not STRONG_ENTITIES_REGISTRY[id] then return end
         local tab = self:GetTable()
-		
+
         local strongEnt = STRONG_ENTITIES_REGISTRY[id]
         local strongTableMeta = debug.getmetatable(strongEnt)
 		local strongTable = strongTableMeta.__strong_entity_table
-		
+
         for key, value in pairs(strongTable) do
             if value ~= UniqueNoValue then
                 tab[key] = value
@@ -259,7 +256,7 @@ if CLIENT then
                 strongTable[key] = nil
             end
         end
-		
+
 		strongTableMeta.__strong_entity_link = self
         hook.Call('StrongEntityLinkUpdates', nil, strongEnt, self)
     end)
@@ -267,7 +264,12 @@ if CLIENT then
     net.Receive('StrongEntity.Removed', function()
         local entIndex = net.ReadUInt(16)
         STRONG_ENTITIES_REGISTRY[entIndex] = nil
-    end)
+	end)
+
+	hook.Add('EntityRemoved', 'StrongEntityClientside', function(ent)
+		-- Clientside entity
+		STRONG_ENTITIES_REGISTRY[ent] = nil
+	end)
 else
     util.AddNetworkString('StrongEntity.Removed')
     local avaliableEntities = {}
@@ -311,7 +313,7 @@ else
         avaliableEntities[self] = nil
         timer.Create('StrongEntityDeletedCheck', 0, 1, checkEntities)
     end)
-    
+
     hook.Add('OnEntityCreated', 'StrongEntity', function(self)
         timer.Create('StrongEntityCreatedCheck', 0, 1, updateList)
     end)
