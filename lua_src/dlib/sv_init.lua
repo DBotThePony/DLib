@@ -30,6 +30,8 @@ DLib.Loader.svmodule('dmysql.lua')
 
 DLib.registerSV('util/server/chat.lua')
 
-DLib.Loader.loadPureSHTop('dlib/autorun')
-DLib.Loader.loadPureSVTop('dlib/autorun/server')
-DLib.Loader.loadPureCSTop('dlib/autorun/client')
+if not VLL_CURR_FILE then
+	DLib.Loader.loadPureSHTop('dlib/autorun')
+	DLib.Loader.loadPureSVTop('dlib/autorun/server')
+	DLib.Loader.loadPureCSTop('dlib/autorun/client')
+end
