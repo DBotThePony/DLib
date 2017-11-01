@@ -106,6 +106,10 @@ function string.niceName(ent)
 	return ent:GetClass()
 end
 
+function string.split(stringIn, explodeIn, ...)
+	return string.Explode(explodeIn, stringIn, ...)
+end
+
 -- fuck https://github.com/Facepunch/garrysmod/pull/1176
 string.StartsWith = string.StartWith
 
