@@ -22,6 +22,7 @@ local function friendstatus(len, ply)
 	local amount = net.ReadUInt(8)
 	ply.DLibFriends = {}
 	local status = ply.DLibFriends
+	local reply = {}
 
 	for i = 1, amount do
 		local readPly = net.ReadPlayer()
@@ -29,7 +30,22 @@ local function friendstatus(len, ply)
 
 		if IsValid(readPly) then
 			status[readPly] = readEnum
+			table.insert(reply, {readPly, readEnum})
 		end
+	end
+
+	if #reply ~= 0 then
+		net.Start('DLib.friendstatus')
+
+		net.WritePlayer(ply)
+		net.WriteUInt(#reply, 8)
+
+		for i, plyData in ipairs(reply) do
+			net.WritePlayer(plyData[1])
+			enums:write(plyData[2])
+		end
+
+		net.SendOmit(ply)
 	end
 end
 

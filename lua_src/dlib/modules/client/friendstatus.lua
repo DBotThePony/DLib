@@ -13,7 +13,23 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
+local LocalPlayer = LocalPlayer
+local net = net
 local plyMeta = FindMetaTable('Player')
+
+plyMeta.GetFriendStatusDLib = plyMeta.GetFriendStatusDLib or plyMeta.GetFriendStatus
+
+function plyMeta:GetFriendStatus(targetPly)
+	local lply = LocalPlayer()
+	targetPly = targetPly or lply
+
+	if lply == targetPly then
+		return self:GetFriendStatusDLib()
+	end
+
+	local status = self.DLibFriends
+	return status and status[targetPly] or 'none'
+end
 
 function plyMeta:IsFriend()
 	local f = self:GetFriendStatus()
@@ -68,3 +84,23 @@ local function update()
 end
 
 timer.Create('DLib.FriendStatus', 5, 0, update)
+
+local function friendstatus()
+	local ply = net.ReadEntity()
+	if not IsValid(ply) then return end
+
+	local amount = net.ReadUInt(8)
+	ply.DLibFriends = {}
+	local status = ply.DLibFriends
+
+	for i = 1, amount do
+		local readPly = net.ReadPlayer()
+		local readEnum = enums:read()
+
+		if IsValid(readPly) then
+			status[readPly] = readEnum
+		end
+	end
+end
+
+net.receive('DLib.friendstatus', friendstatus)
