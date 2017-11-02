@@ -31,18 +31,18 @@ function plyMeta:GetFriendStatus(targetPly)
 	return status and status[targetPly] or 'none'
 end
 
-function plyMeta:IsFriend()
-	local f = self:GetFriendStatus()
+function plyMeta:IsFriend(target)
+	local f = self:GetFriendStatus(target)
 	return f == 'friend' or f == 'requested'
 end
 
-function plyMeta:IsSteamFriend()
-	local f = self:GetFriendStatus()
+function plyMeta:IsSteamFriend(target)
+	local f = self:GetFriendStatus(target)
 	return f == 'friend' or f == 'requested'
 end
 
-function plyMeta:IsSteamBlocked()
-	local f = self:GetFriendStatus()
+function plyMeta:IsSteamBlocked(target)
+	local f = self:GetFriendStatus(target)
 	return f == 'blocked'
 end
 
