@@ -54,7 +54,8 @@ function PhysObj:EnableDrag(newStatus)
 	worldspawnPhys = worldspawnPhys or worldspawn:GetPhysicsObject()
 
 	if worldspawnPhys == self then
-		error('Attempt to call :EnableDrag() on World PhysObj!')
+		print(debug.traceback('Attempt to call :EnableDrag() on World PhysObj!'))
+		return
 	end
 
 	return self:DLibEnableDrag(newStatus)
@@ -65,7 +66,8 @@ function PhysObj:EnableMotion(newStatus)
 	worldspawnPhys = worldspawnPhys or worldspawn:GetPhysicsObject()
 
 	if worldspawnPhys == self then
-		error('Attempt to call :EnableMotion() on World PhysObj!')
+		print(debug.traceback('Attempt to call :EnableMotion() on World PhysObj!'))
+		return
 	end
 
 	return self:DLibEnableMotion(newStatus)
@@ -76,7 +78,8 @@ function PhysObj:EnableGravity(newStatus)
 	worldspawnPhys = worldspawnPhys or worldspawn:GetPhysicsObject()
 
 	if worldspawnPhys == self then
-		error('Attempt to call :EnableGravity() on World PhysObj!')
+		print(debug.traceback('Attempt to call :EnableGravity() on World PhysObj!'))
+		return
 	end
 
 	return self:DLibEnableGravity(newStatus)
