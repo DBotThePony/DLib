@@ -163,6 +163,8 @@ function hook.Add(event, stringID, funcToCall, priority)
 
 	__table[event][priority] = __table[event][priority] or {}
 	__table[event][priority][stringID] = hookData
+	__tableGmod[event] = __tableGmod[event] or {}
+	__tableGmod[event][stringID] = funcToCall
 
 	hook.Reconstruct(event)
 	return true, hookData
@@ -306,7 +308,7 @@ _G.hook = hook
 for event, priorityTable in pairs(oldHooks) do
 	for priority, hookTable in pairs(priorityTable) do
 		for hookID, hookFunc in pairs(hookTable) do
-			hook.Add(event, hookID, hookFunc, priority)
+			hook.Add(event, hookID, hookFunc.fn, priority)
 		end
 	end
 end
