@@ -23,6 +23,7 @@ local tostring = tostring
 local tonumber = tonumber
 local type = type
 local traceback = debug.traceback
+local DLib = DLib
 
 DLib.hook = DLib.hook or {}
 local ghook = _G.hook
@@ -69,7 +70,13 @@ if ghook ~= hook then
 		local linclude = hook.include
 
 		function _G.include(fil)
-			if fil:find('ulib') and fil:find('hook') then return end
+			if fil:find('ulib') and fil:find('hook') then
+				DLib.Message('--------------------')
+				DLib.Message('ULib hook system is DISABLED')
+				DLib.Message('--------------------')
+				return
+			end
+
 			return linclude(fil)
 		end
 
@@ -99,7 +106,7 @@ local function transformStringID(stringID, transformFuncCall, event)
 
 		if not success then
 			stringID = tostring(stringID)
-			print(traceback('hook.Add - hook ID is not a string and not a valid object! Using tostring() instead. ' .. type(funcToCall)))
+			DLib.Message(traceback('hook.Add - hook ID is not a string and not a valid object! Using tostring() instead. ' .. type(funcToCall)))
 			--return
 		elseif transformFuncCall and event then
 			return stringID, function(...)
@@ -120,12 +127,12 @@ function hook.Add(event, stringID, funcToCall, priority)
 	__table[event] = __table[event] or {}
 
 	if type(event) ~= 'string' then
-		print(traceback('hook.Add - event is not a string! ' .. type(event)))
+		DLib.Message(traceback('hook.Add - event is not a string! ' .. type(event)))
 		return false
 	end
 
 	if type(funcToCall) ~= 'function' then
-		print(traceback('hook.Add - function is not a function! ' .. type(funcToCall)))
+		DLib.Message(traceback('hook.Add - function is not a function! ' .. type(funcToCall)))
 		return false
 	end
 
@@ -305,10 +312,12 @@ end
 ghook = hook
 _G.hook = hook
 
-for event, priorityTable in pairs(oldHooks) do
-	for priority, hookTable in pairs(priorityTable) do
-		for hookID, hookFunc in pairs(hookTable) do
-			hook.Add(event, hookID, hookFunc.fn, priority)
+if oldHooks then
+	for event, priorityTable in pairs(oldHooks) do
+		for priority, hookTable in pairs(priorityTable) do
+			for hookID, hookFunc in pairs(hookTable) do
+				hook.Add(event, hookID, hookFunc.fn, priority)
+			end
 		end
 	end
 end
