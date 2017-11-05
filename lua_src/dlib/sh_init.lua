@@ -57,6 +57,7 @@ DLib.register('extensions/extensions.lua')
 DLib.register('extensions/player.lua').export(_G.player)
 DLib.register('extensions/net.lua').export(_G.net)
 
+DLib.Loader.shmodule('hook.lua')
 DLib.Loader.shmodule('sh_cami.lua')
 DLib.Loader.shmodule('strong_entity_link.lua')
 
