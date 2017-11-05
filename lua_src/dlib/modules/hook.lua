@@ -15,6 +15,8 @@
 
 -- performance and functionality to the core
 
+jit.on()
+
 local pairs = pairs
 local ipairs = ipairs
 local print = print
@@ -243,6 +245,7 @@ function hook.Reconstruct(eventToReconstruct)
 		__tableOptimized[eventToReconstruct] = {}
 		local ordered = {}
 		local priorityTable = __table[eventToReconstruct]
+		local inboundgmod = __tableGmod[eventToReconstruct]
 
 		if priorityTable then
 			for priority = maximalPriority, minimalPriority do
@@ -250,21 +253,32 @@ function hook.Reconstruct(eventToReconstruct)
 
 				if hookList then
 					for stringID, hookData in pairs(hookList) do
-						table.insert(ordered, hookData)
+						if hookData.typeof == false then
+							if hookData.id:IsValid() then
+								table.insert(ordered, hookData)
+							else
+								hookList[stringID] = nil
+								inboundgmod[stringID] = nil
+							end
+						else
+							table.insert(ordered, hookData)
+						end
 					end
 				end
 			end
 		end
 
-		if #ordered == 0 then
+		local cnt = #ordered
+
+		if cnt == 0 then
 			__tableOptimized[eventToReconstruct] = nil
 		else
 			table.sort(ordered, hook.HookDataSorter)
 
 			local target = __tableOptimized[eventToReconstruct]
 
-			for i, hookData in ipairs(ordered) do
-				table.insert(target, hookData.funcToCall)
+			for i = 1, cnt do
+				table.insert(target, ordered[i].funcToCall)
 			end
 		end
 
