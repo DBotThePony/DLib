@@ -179,6 +179,8 @@ end
 
 function hook.Remove(event, stringID)
 	if not __table[event] then return false end
+	__tableGmod[event] = __tableGmod[event] or {}
+	__tableGmod[event][stringID] = nil
 
 	stringID = transformStringID(stringID, nil, event)
 
@@ -188,11 +190,11 @@ function hook.Remove(event, stringID)
 		if eventsTable and eventsTable[stringID] then
 			local oldData = eventsTable[stringID]
 			eventsTable[stringID] = nil
+			hook.Reconstruct(event)
 			return true, oldData
 		end
 	end
 
-	hook.Reconstruct(event)
 	return false
 end
 
@@ -263,7 +265,7 @@ end
 function hook.Call2(event, hookTable, ...)
 	local events = __tableOptimized[event]
 
-	if events then
+	if events and events[1] then
 		local i = 1
 		local nextevent = events[i]
 
