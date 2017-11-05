@@ -187,11 +187,13 @@ function hook.Remove(event, stringID)
 	for priority = maximalPriority, minimalPriority do
 		local eventsTable = __table[event][priority]
 
-		if eventsTable and eventsTable[stringID] then
+		if eventsTable ~= nil then
 			local oldData = eventsTable[stringID]
-			eventsTable[stringID] = nil
-			hook.Reconstruct(event)
-			return true, oldData
+			if oldData ~= nil then
+				eventsTable[stringID] = nil
+				hook.Reconstruct(event)
+				return true, oldData
+			end
 		end
 	end
 
@@ -223,12 +225,16 @@ function hook.Reconstruct(eventToReconstruct)
 		end
 
 		for event, order in pairs(ordered) do
-			__tableOptimized[event] = {}
-			local look = __tableOptimized[event]
-			table.sort(order, hook.HookDataSorter)
+			if #order == 0 then
+				__tableOptimized[event] = nil
+			else
+				__tableOptimized[event] = {}
+				local look = __tableOptimized[event]
+				table.sort(order, hook.HookDataSorter)
 
-			for i, hookData in ipairs(order) do
-				table.insert(look, hookData.funcToCall)
+				for i, hookData in ipairs(order) do
+					table.insert(look, hookData.funcToCall)
+				end
 			end
 		end
 
@@ -250,12 +256,16 @@ function hook.Reconstruct(eventToReconstruct)
 			end
 		end
 
-		table.sort(ordered, hook.HookDataSorter)
+		if #ordered == 0 then
+			__tableOptimized[eventToReconstruct] = nil
+		else
+			table.sort(ordered, hook.HookDataSorter)
 
-		local target = __tableOptimized[eventToReconstruct]
+			local target = __tableOptimized[eventToReconstruct]
 
-		for i, hookData in ipairs(ordered) do
-			table.insert(target, hookData.funcToCall)
+			for i, hookData in ipairs(ordered) do
+				table.insert(target, hookData.funcToCall)
+			end
 		end
 
 		return __tableOptimized, ordered
@@ -265,27 +275,48 @@ end
 function hook.Call2(event, hookTable, ...)
 	local events = __tableOptimized[event]
 
-	if events and events[1] then
-		local i = 1
-		local nextevent = events[i]
+	if events == nil then
+		if hookTable == nil then
+			return
+		end
 
-		repeat
-			local a, b, c, d, e, f, g, m, l = nextevent(...)
+		local gamemodeFunction = hookTable[event]
 
-			if a ~= nil then
-				return a, b, c, d, e, f, g, m, l
-			end
+		if gamemodeFunction == nil then
+			return
+		end
 
-			i = i + 1
-			nextevent = events[i]
-		until nextevent == nil
-	end
-
-	local gamemodeFunction = hookTable and hookTable[event]
-
-	if gamemodeFunction then
 		return gamemodeFunction(hookTable, ...)
 	end
+
+	local i = 1
+	local nextevent = events[i]
+
+	::loop::
+	local a, b, c, d, e, f, g, m, l = nextevent(...)
+
+	if a ~= nil then
+		return a, b, c, d, e, f, g, m, l
+	end
+
+	i = i + 1
+	nextevent = events[i]
+
+	if nextevent ~= nil then
+		goto loop
+	end
+
+	if hookTable == nil then
+		return
+	end
+
+	local gamemodeFunction = hookTable[event]
+
+	if gamemodeFunction == nil then
+		return
+	end
+
+	return gamemodeFunction(hookTable, ...)
 end
 
 if gmod then
@@ -323,3 +354,11 @@ if oldHooks then
 		end
 	end
 end
+
+DLib.benchhook = {
+	Add = hook.Add,
+	Call = hook.Call2,
+	Run = hook.Run2,
+	Remove = hook.Remove,
+	GetTable = hook.GetTable,
+}
