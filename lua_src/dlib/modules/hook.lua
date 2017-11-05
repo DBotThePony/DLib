@@ -26,6 +26,7 @@ local tonumber = tonumber
 local type = type
 local traceback = debug.traceback
 local DLib = DLib
+local unpack = unpack
 
 DLib.hook = DLib.hook or {}
 local ghook = _G.hook
@@ -34,10 +35,19 @@ local hook = DLib.hook
 hook.__tableOptimized = hook.__tableOptimized or {}
 hook.__table = hook.__table or {}
 hook.__tableGmod = hook.__tableGmod or {}
+hook.__tableModifiers = hook.__tableModifiers or {}
+hook.__tableModifiersOptimized = hook.__tableModifiersOptimized or {}
+hook.__tableModifiersPost = hook.__tableModifiersPost or {}
+hook.__tableModifiersPostOptimized = hook.__tableModifiersPostOptimized or {}
 
 local __table = hook.__table
 local __tableOptimized = hook.__tableOptimized
 local __tableGmod = hook.__tableGmod
+local __tableModifiers = hook.__tableModifiers
+local __tableModifiersPost = hook.__tableModifiersPost
+local __tableModifiersPost = hook.__tableModifiersPost
+local __tableModifiersOptimized = hook.__tableModifiersOptimized
+local __tableModifiersPostOptimized = hook.__tableModifiersPostOptimized
 
 local maximalPriority = -10
 local minimalPriority = 10
@@ -48,6 +58,10 @@ end
 
 function hook.GetDLibOptimizedTable()
 	return __tableOptimized
+end
+
+function hook.GetDLibModifiers()
+	return __tableModifiers
 end
 
 function hook.GetDLibSortedTable()
@@ -202,6 +216,180 @@ function hook.Remove(event, stringID)
 	return false
 end
 
+function hook.AddModifier(event, stringID, funcToCall)
+	__tableModifiers[event] = __tableModifiers[event] or {}
+
+	if type(event) ~= 'string' then
+		DLib.Message(traceback('hook.AddModifier - event is not a string! ' .. type(event)))
+		return false
+	end
+
+	if type(funcToCall) ~= 'function' then
+		DLib.Message(traceback('hook.AddModifier - function is not a function! ' .. type(funcToCall)))
+		return false
+	end
+
+	stringID, funcToCall = transformStringID(stringID, funcToCall, event)
+
+	local hookData = {
+		event = event,
+		funcToCall = funcToCall,
+		id = stringID,
+		idString = tostring(stringID),
+		registeredAt = RealTime(),
+		typeof = type(stringID) == 'string'
+	}
+
+	__tableModifiers[event][stringID] = hookData
+	hook.ReconstructModifiers(event)
+	return true, hookData
+end
+
+function hook.RemoveModifier(event, stringID)
+	if not __tableModifiers[event] then return false end
+
+	stringID = transformStringID(stringID, nil, event)
+	if __tableModifiers[event][stringID] then
+		local old = __tableModifiers[event][stringID]
+		__tableModifiers[event][stringID] = nil
+		hook.ReconstructModifiers(event)
+		return true, old
+	end
+
+	return false
+end
+
+function hook.ReconstructModifiers(eventToReconstruct)
+	if not eventToReconstruct then
+		for event, tab in pairs(__tableModifiers) do
+			hook.ReconstructModifiers(event)
+		end
+
+		return
+	end
+
+	__tableModifiersOptimized[eventToReconstruct] = {}
+	local event = __tableModifiers[eventToReconstruct]
+
+	local ordered = {}
+
+	if event then
+		for stringID, hookData in pairs(event) do
+			if hookData.typeof == false then
+				if hookData.id:IsValid() then
+					table.insert(ordered, hookData)
+				else
+					event[stringID] = nil
+				end
+			else
+				table.insert(ordered, hookData)
+			end
+		end
+	end
+
+	local cnt = #ordered
+
+	if cnt == 0 then
+		__tableModifiersOptimized[eventToReconstruct] = nil
+	else
+		table.sort(ordered, hook.HookDataSorter)
+		local target = __tableModifiersOptimized[eventToReconstruct]
+
+		for i = 1, cnt do
+			table.insert(target, ordered[i].funcToCall)
+		end
+	end
+
+	return __tableModifiersOptimized, ordered
+end
+
+function hook.AddPostModifier(event, stringID, funcToCall)
+	__tableModifiersPost[event] = __tableModifiersPost[event] or {}
+
+	if type(event) ~= 'string' then
+		DLib.Message(traceback('hook.AddPostModifier - event is not a string! ' .. type(event)))
+		return false
+	end
+
+	if type(funcToCall) ~= 'function' then
+		DLib.Message(traceback('hook.AddPostModifier - function is not a function! ' .. type(funcToCall)))
+		return false
+	end
+
+	stringID, funcToCall = transformStringID(stringID, funcToCall, event)
+
+	local hookData = {
+		event = event,
+		funcToCall = funcToCall,
+		id = stringID,
+		idString = tostring(stringID),
+		registeredAt = RealTime(),
+		typeof = type(stringID) == 'string'
+	}
+
+	__tableModifiersPost[event][stringID] = hookData
+	hook.ReconstructPostModifiers(event)
+	return true, hookData
+end
+
+function hook.RemovePostModifier(event, stringID)
+	if not __tableModifiersPost[event] then return false end
+
+	stringID = transformStringID(stringID, nil, event)
+	if __tableModifiersPost[event][stringID] then
+		local old = __tableModifiersPost[event][stringID]
+		__tableModifiersPost[event][stringID] = nil
+		hook.ReconstructPostModifiers(event)
+		return true, old
+	end
+
+	return false
+end
+
+function hook.ReconstructPostModifiers(eventToReconstruct)
+	if not eventToReconstruct then
+		for event, tab in pairs(__tableModifiers) do
+			hook.ReconstructPostModifiers(event)
+		end
+
+		return
+	end
+
+	__tableModifiersPostOptimized[eventToReconstruct] = {}
+	local event = __tableModifiersPost[eventToReconstruct]
+
+	local ordered = {}
+
+	if event then
+		for stringID, hookData in pairs(event) do
+			if hookData.typeof == false then
+				if hookData.id:IsValid() then
+					table.insert(ordered, hookData)
+				else
+					event[stringID] = nil
+				end
+			else
+				table.insert(ordered, hookData)
+			end
+		end
+	end
+
+	local cnt = #ordered
+
+	if cnt == 0 then
+		__tableModifiersPostOptimized[eventToReconstruct] = nil
+	else
+		table.sort(ordered, hook.HookDataSorter)
+		local target = __tableModifiersPostOptimized[eventToReconstruct]
+
+		for i = 1, cnt do
+			table.insert(target, ordered[i].funcToCall)
+		end
+	end
+
+	return __tableModifiersPostOptimized, ordered
+end
+
 function hook.HookDataSorter(a, b)
 	return a.priority < b.priority and a.idString < b.idString
 end
@@ -287,6 +475,25 @@ function hook.Reconstruct(eventToReconstruct)
 end
 
 function hook.Call2(event, hookTable, ...)
+	local args = {...}
+	local modifiers = __tableModifiersOptimized[event]
+	local post = __tableModifiersPostOptimized[event]
+
+	if modifiers ~= nil then
+		local i = 1
+		local nextevent = modifiers[i]
+
+		::modifiers_loop::
+		args = {nextevent(unpack(args))}
+
+		i = i + 1
+		nextevent = modifiers[i]
+
+		if nextevent ~= nil then
+			goto modifiers_loop
+		end
+	end
+
 	local events = __tableOptimized[event]
 
 	if events == nil then
@@ -300,17 +507,52 @@ function hook.Call2(event, hookTable, ...)
 			return
 		end
 
-		return gamemodeFunction(hookTable, ...)
+		if post == nil then
+			return gamemodeFunction(hookTable, unpack(args))
+		end
+
+		local Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M, M = gamemodeFunction(hookTable, unpack(args))
+		local i = 1
+		local nextevent = post[i]
+
+		::post_mloop1::
+		Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M, M = nextevent(Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M, M)
+
+		i = i + 1
+		nextevent = post[i]
+
+		if nextevent ~= nil then
+			goto post_mloop1
+		end
+
+		return Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M, M
 	end
 
 	local i = 1
 	local nextevent = events[i]
 
 	::loop::
-	local a, b, c, d, e, f, g, m, l = nextevent(...)
+	local Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M, M = nextevent(unpack(args))
 
-	if a ~= nil then
-		return a, b, c, d, e, f, g, m, l
+	if Q ~= nil then
+		if post == nil then
+			return Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M, M
+		end
+
+		local i = 1
+		local nextevent = post[i]
+
+		::post_mloop2::
+		Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M, M = nextevent(Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M, M)
+
+		i = i + 1
+		nextevent = post[i]
+
+		if nextevent ~= nil then
+			goto post_mloop2
+		end
+
+		return Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M, M
 	end
 
 	i = i + 1
@@ -330,7 +572,25 @@ function hook.Call2(event, hookTable, ...)
 		return
 	end
 
-	return gamemodeFunction(hookTable, ...)
+	if post == nil then
+		return gamemodeFunction(hookTable, unpack(args))
+	end
+
+	local Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M, M = gamemodeFunction(hookTable, unpack(args))
+	local i = 1
+	local nextevent = post[i]
+
+	::post_mloop3::
+	Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M, M = nextevent(Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M, M)
+
+	i = i + 1
+	nextevent = post[i]
+
+	if nextevent ~= nil then
+		goto post_mloop3
+	end
+
+	return Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M, M
 end
 
 if gmod then
@@ -368,6 +628,12 @@ if oldHooks then
 		end
 	end
 end
+
+setmetatable(hook, {
+	__call = function(self, ...)
+		return self.Add(...)
+	end
+})
 
 DLib.benchhook = {
 	Add = hook.Add,
