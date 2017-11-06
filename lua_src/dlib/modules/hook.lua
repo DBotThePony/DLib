@@ -474,8 +474,8 @@ function hook.Reconstruct(eventToReconstruct)
 	end
 end
 
-function hook.Call2(event, hookTable, ...)
-	local args = {...}
+function hook.Call2(event, hookTable, Q1, W1, E1, R1, T1, Y1, U1, I1, O1, P1, A1, S1, D1, F1, G1, H1, J1, K1, L1, Z1, X1, C1, V1, B1, N1, M1,
+	Q2, W2, E2, R2, T2, Y2, U2, I2, O2, P2, A2, S2, D2, F2, G2, H2, J2, K2, L2, Z2, X2, C2, V2, B2, N2, M2)
 	local modifiers = __tableModifiersOptimized[event]
 	local post = __tableModifiersPostOptimized[event]
 
@@ -484,7 +484,9 @@ function hook.Call2(event, hookTable, ...)
 		local nextevent = modifiers[i]
 
 		::modifiers_loop::
-		args = {nextevent(unpack(args, 1, 20))}
+		Q1, W1, E1, R1, T1, Y1, U1, I1, O1, P1, A1, S1, D1, F1, G1, H1, J1, K1, L1, Z1, X1, C1, V1, B1, N1, M1,
+		Q2, W2, E2, R2, T2, Y2, U2, I2, O2, P2, A2, S2, D2, F2, G2, H2, J2, K2, L2, Z2, X2, C2, V2, B2, N2, M2 = nextevent(Q1, W1, E1, R1, T1, Y1, U1, I1, O1, P1, A1, S1, D1, F1, G1, H1, J1, K1, L1, Z1, X1, C1, V1, B1, N1, M1,
+		Q2, W2, E2, R2, T2, Y2, U2, I2, O2, P2, A2, S2, D2, F2, G2, H2, J2, K2, L2, Z2, X2, C2, V2, B2, N2, M2)
 
 		i = i + 1
 		nextevent = modifiers[i]
@@ -508,10 +510,12 @@ function hook.Call2(event, hookTable, ...)
 		end
 
 		if post == nil then
-			return gamemodeFunction(hookTable, unpack(args, 1, 20))
+			return gamemodeFunction(hookTable, Q1, W1, E1, R1, T1, Y1, U1, I1, O1, P1, A1, S1, D1, F1, G1, H1, J1, K1, L1, Z1, X1, C1, V1, B1, N1, M1,
+			Q2, W2, E2, R2, T2, Y2, U2, I2, O2, P2, A2, S2, D2, F2, G2, H2, J2, K2, L2, Z2, X2, C2, V2, B2, N2, M2)
 		end
 
-		local Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M, M = gamemodeFunction(hookTable, unpack(args, 1, 20))
+		local Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M, M = gamemodeFunction(hookTable, Q1, W1, E1, R1, T1, Y1, U1, I1, O1, P1, A1, S1, D1, F1, G1, H1, J1, K1, L1, Z1, X1, C1, V1, B1, N1, M1,
+		Q2, W2, E2, R2, T2, Y2, U2, I2, O2, P2, A2, S2, D2, F2, G2, H2, J2, K2, L2, Z2, X2, C2, V2, B2, N2, M2)
 		local i = 1
 		local nextevent = post[i]
 
@@ -532,7 +536,8 @@ function hook.Call2(event, hookTable, ...)
 	local nextevent = events[i]
 
 	::loop::
-	local Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M, M = nextevent(unpack(args, 1, 20))
+	local Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M, M = nextevent(Q1, W1, E1, R1, T1, Y1, U1, I1, O1, P1, A1, S1, D1, F1, G1, H1, J1, K1, L1, Z1, X1, C1, V1, B1, N1, M1,
+	Q2, W2, E2, R2, T2, Y2, U2, I2, O2, P2, A2, S2, D2, F2, G2, H2, J2, K2, L2, Z2, X2, C2, V2, B2, N2, M2)
 
 	if Q ~= nil then
 		if post == nil then
@@ -573,10 +578,12 @@ function hook.Call2(event, hookTable, ...)
 	end
 
 	if post == nil then
-		return gamemodeFunction(hookTable, unpack(args, 1, 20))
+		return gamemodeFunction(hookTable, Q1, W1, E1, R1, T1, Y1, U1, I1, O1, P1, A1, S1, D1, F1, G1, H1, J1, K1, L1, Z1, X1, C1, V1, B1, N1, M1,
+		Q2, W2, E2, R2, T2, Y2, U2, I2, O2, P2, A2, S2, D2, F2, G2, H2, J2, K2, L2, Z2, X2, C2, V2, B2, N2, M2)
 	end
 
-	local Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M, M = gamemodeFunction(hookTable, unpack(args, 1, 20))
+	local Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M, M = gamemodeFunction(hookTable, Q1, W1, E1, R1, T1, Y1, U1, I1, O1, P1, A1, S1, D1, F1, G1, H1, J1, K1, L1, Z1, X1, C1, V1, B1, N1, M1,
+	Q2, W2, E2, R2, T2, Y2, U2, I2, O2, P2, A2, S2, D2, F2, G2, H2, J2, K2, L2, Z2, X2, C2, V2, B2, N2, M2)
 	local i = 1
 	local nextevent = post[i]
 
