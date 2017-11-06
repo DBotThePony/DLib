@@ -614,9 +614,22 @@ if gmod then
 	function hook.Run2(event, ...)
 		return hook.Call2(event, GetGamemode(), ...)
 	end
+
+	function gamemode.Call(event, ...)
+		local gm = GetGamemode()
+
+		if gm == nil then return false end
+		if gm[event] == nil then return false end
+
+		return hook.Call2(event, gm, ...)
+	end
 else
 	function hook.Run2(event, ...)
 		return hook.Call2(event, GAMEMODE, ...)
+	end
+
+	function gamemode.Call()
+		return false
 	end
 end
 
