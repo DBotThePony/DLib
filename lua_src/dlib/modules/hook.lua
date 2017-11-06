@@ -484,7 +484,7 @@ function hook.Call2(event, hookTable, ...)
 		local nextevent = modifiers[i]
 
 		::modifiers_loop::
-		args = {nextevent(unpack(args))}
+		args = {nextevent(unpack(args, 1, #args))}
 
 		i = i + 1
 		nextevent = modifiers[i]
@@ -508,10 +508,10 @@ function hook.Call2(event, hookTable, ...)
 		end
 
 		if post == nil then
-			return gamemodeFunction(hookTable, unpack(args))
+			return gamemodeFunction(hookTable, unpack(args, 1, #args))
 		end
 
-		local Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M, M = gamemodeFunction(hookTable, unpack(args))
+		local Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M, M = gamemodeFunction(hookTable, unpack(args, 1, #args))
 		local i = 1
 		local nextevent = post[i]
 
@@ -532,7 +532,7 @@ function hook.Call2(event, hookTable, ...)
 	local nextevent = events[i]
 
 	::loop::
-	local Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M, M = nextevent(unpack(args))
+	local Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M, M = nextevent(unpack(args, 1, #args))
 
 	if Q ~= nil then
 		if post == nil then
@@ -573,10 +573,10 @@ function hook.Call2(event, hookTable, ...)
 	end
 
 	if post == nil then
-		return gamemodeFunction(hookTable, unpack(args))
+		return gamemodeFunction(hookTable, unpack(args, 1, #args))
 	end
 
-	local Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M, M = gamemodeFunction(hookTable, unpack(args))
+	local Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M, M = gamemodeFunction(hookTable, unpack(args, 1, #args))
 	local i = 1
 	local nextevent = post[i]
 
