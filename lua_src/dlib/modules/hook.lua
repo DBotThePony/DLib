@@ -49,6 +49,14 @@ local __tableModifiersPost = hook.__tableModifiersPost
 local __tableModifiersOptimized = hook.__tableModifiersOptimized
 local __tableModifiersPostOptimized = hook.__tableModifiersPostOptimized
 
+-- ULib compatibility
+-- ugh
+_G.HOOK_MONITOR_HIGH = -2
+_G.HOOK_HIGH = -1
+_G.HOOK_NORMAL = 0
+_G.HOOK_LOW = 1
+_G.HOOK_MONITOR_LOW = 2
+
 local maximalPriority = -10
 local minimalPriority = 10
 
