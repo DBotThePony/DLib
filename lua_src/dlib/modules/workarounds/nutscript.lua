@@ -15,6 +15,7 @@
 
 local HOOK_CACHE
 local SCHEMA = {}
+local IN_CALL = false
 
 local function patchHook(event)
 	local hookTab = HOOK_CACHE[event]
@@ -24,6 +25,8 @@ local function patchHook(event)
 	end
 
 	return hook.Add(event, 'nutscript', function(...)
+		if IN_CALL then return end
+
 		for funcID, func in pairs(hookTab) do
 			local args = {func(funcID, ...)}
 
@@ -73,4 +76,16 @@ timer.Simple(0, function()
 	for event, eventData in pairs(HOOK_CACHE) do
 		patchHook(event)
 	end
+
+	DLib.defininghook = true
+
+	function hook.NutCall(...)
+		IN_CALL = true
+		local args = {hook.Call2(...)}
+		IN_CALL = false
+
+		return unpack(args, 1, #args)
+	end
+
+	DLib.defininghook = false
 end)

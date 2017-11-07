@@ -66,6 +66,10 @@ function hook.GetTable()
 	return __tableGmod
 end
 
+local function GetTable()
+	return __tableGmod
+end
+
 function hook.GetDLibOptimizedTable()
 	return __tableOptimized
 end
@@ -644,6 +648,15 @@ end
 -- Engine permanently remembers function address
 -- So we need to transmit the call to our subfunction in order to modify it on the fly (with no runtime costs because JIT is <3)
 -- and local "hook" will never point at wrong table
+
+local function Call(...)
+	return hook.Call2(...)
+end
+
+local function Run(...)
+	return hook.Run2(...)
+end
+
 function hook.Call(...)
 	return hook.Call2(...)
 end
@@ -679,6 +692,12 @@ setmetatable(hook, {
 		return self.Add(...)
 	end
 })
+
+timer.Create('DLib.nohook', 1, 0, function()
+	rawset(hook, 'Call', Call)
+	rawset(hook, 'Run', Run)
+	rawset(hook, 'GetTable', GetTable)
+end)
 
 DLib.benchhook = {
 	Add = hook.Add,
