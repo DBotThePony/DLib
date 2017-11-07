@@ -32,6 +32,8 @@ DLib.hook = DLib.hook or {}
 local ghook = _G.hook
 local hook = DLib.hook
 
+DLib.defininghook = true
+
 hook.__tableOptimized = hook.__tableOptimized or {}
 hook.__table = hook.__table or {}
 hook.__tableGmod = hook.__tableGmod or {}
@@ -658,6 +660,15 @@ if oldHooks then
 end
 
 setmetatable(hook, {
+	__newindex = function(self, key, value)
+		if DLib.defininghook then
+			rawset(self, key, value)
+			return
+		end
+
+		DLib.Message(traceback('yo dude what the fuk hook.' .. tostring(key) .. ' -> ' .. tostring(value)))
+	end,
+
 	__call = function(self, ...)
 		return self.Add(...)
 	end
@@ -670,3 +681,5 @@ DLib.benchhook = {
 	Remove = hook.Remove,
 	GetTable = hook.GetTable,
 }
+
+DLib.defininghook = false
