@@ -54,7 +54,7 @@ timer.Simple(0, function()
 
 	-- lets guess
 	if upvalName ~= 'HOOK_CACHE' then
-		upvalValue = _G.HOOK_CACHE or nut.HOOK_CACHE or nut.plugin.HOOK_CACHE
+		upvalValue = _G.HOOK_CACHE or GAMEMODE.HOOK_CACHE or nut.HOOK_CACHE or nut.plugin.HOOK_CACHE
 	end
 
 	if not upvalValue then
