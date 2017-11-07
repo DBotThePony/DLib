@@ -494,12 +494,6 @@ end
 function hook.Call2(event, hookTable, Q1, W1, E1, R1, T1, Y1, U1, I1, O1, P1, A1, S1, D1, F1, G1, H1, J1, K1, L1, Z1, X1, C1, V1, B1, N1, M1,
 	Q2, W2, E2, R2, T2, Y2, U2, I2, O2, P2, A2, S2, D2, F2, G2, H2, J2, K2, L2, Z2, X2, C2, V2, B2, N2, M2)
 
-	if hook.Call ~= Call then
-		rawset(hook, 'Call', Call)
-		rawset(hook, 'Run', Run)
-		rawset(hook, 'GetTable', GetTable)
-	end
-
 	local modifiers = __tableModifiersOptimized[event]
 	local post = __tableModifiersPostOptimized[event]
 
