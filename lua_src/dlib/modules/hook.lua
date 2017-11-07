@@ -29,10 +29,9 @@ local DLib = DLib
 local unpack = unpack
 
 DLib.hook = DLib.hook or {}
+DLib.ghook = DLib.ghook or {}
 local ghook = _G.hook
 local hook = DLib.hook
-
-DLib.defininghook = true
 
 hook.__tableOptimized = hook.__tableOptimized or {}
 hook.__table = hook.__table or {}
@@ -62,10 +61,6 @@ _G.HOOK_MONITOR_LOW = 2
 local maximalPriority = -10
 local minimalPriority = 10
 
-function hook.GetTable()
-	return __tableGmod
-end
-
 local function GetTable()
 	return __tableGmod
 end
@@ -92,7 +87,7 @@ end
 
 local oldHooks
 
-if ghook ~= hook then
+if ghook ~= DLib.ghook then
 	if ghook.GetULibTable then
 		oldHooks = ghook.GetULibTable()
 	else
@@ -488,8 +483,23 @@ function hook.Reconstruct(eventToReconstruct)
 	end
 end
 
+local function Call(...)
+	return hook.Call2(...)
+end
+
+local function Run(...)
+	return hook.Run2(...)
+end
+
 function hook.Call2(event, hookTable, Q1, W1, E1, R1, T1, Y1, U1, I1, O1, P1, A1, S1, D1, F1, G1, H1, J1, K1, L1, Z1, X1, C1, V1, B1, N1, M1,
 	Q2, W2, E2, R2, T2, Y2, U2, I2, O2, P2, A2, S2, D2, F2, G2, H2, J2, K2, L2, Z2, X2, C2, V2, B2, N2, M2)
+
+	if hook.Call ~= Call then
+		rawset(hook, 'Call', Call)
+		rawset(hook, 'Run', Run)
+		rawset(hook, 'GetTable', GetTable)
+	end
+
 	local modifiers = __tableModifiersOptimized[event]
 	local post = __tableModifiersPostOptimized[event]
 
@@ -649,24 +659,11 @@ end
 -- So we need to transmit the call to our subfunction in order to modify it on the fly (with no runtime costs because JIT is <3)
 -- and local "hook" will never point at wrong table
 
-local function Call(...)
-	return hook.Call2(...)
-end
+hook.Call = Call
+hook.Run = Run
+hook.GetTable = GetTable
 
-local function Run(...)
-	return hook.Run2(...)
-end
-
-function hook.Call(...)
-	return hook.Call2(...)
-end
-
-function hook.Run(...)
-	return hook.Run2(...)
-end
-
-ghook = hook
-_G.hook = hook
+_G.hook = DLib.ghook
 
 if oldHooks then
 	for event, priorityTable in pairs(oldHooks) do
@@ -679,25 +676,25 @@ if oldHooks then
 end
 
 setmetatable(hook, {
-	__newindex = function(self, key, value)
-		if DLib.defininghook then
-			rawset(self, key, value)
-			return
-		end
+	__call = function(self, ...)
+		return self.Add(...)
+	end
+})
 
+setmetatable(DLib.ghook, {
+	__index = function(self, key)
+		return hook[key]
+	end,
+
+	__newindex = function(self, key, value)
 		DLib.Message(traceback('yo dude what the fuk hook.' .. tostring(key) .. ' -> ' .. tostring(value)))
+		hook.Call('DLibHookChange', nil, key, value)
 	end,
 
 	__call = function(self, ...)
 		return self.Add(...)
 	end
 })
-
-timer.Create('DLib.nohook', 1, 0, function()
-	rawset(hook, 'Call', Call)
-	rawset(hook, 'Run', Run)
-	rawset(hook, 'GetTable', GetTable)
-end)
 
 DLib.benchhook = {
 	Add = hook.Add,
@@ -706,5 +703,3 @@ DLib.benchhook = {
 	Remove = hook.Remove,
 	GetTable = hook.GetTable,
 }
-
-DLib.defininghook = false

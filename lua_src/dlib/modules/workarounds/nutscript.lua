@@ -13,12 +13,12 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
-local HOOK_CACHE
+local HOOKS_CACHE
 local SCHEMA = {}
 local IN_CALL = false
 
 local function patchHook(event)
-	local hookTab = HOOK_CACHE[event]
+	local hookTab = HOOKS_CACHE[event]
 	if not hookTab then
 		DLib.Message(debug.traceback('Nutscript event ' .. event .. ' is empty/missing!'))
 		return
@@ -43,7 +43,8 @@ local function patchHook(event)
 	end, -10) -- as i understand nutscript wants to run in the front of all
 end
 
-timer.Simple(0, function()
+local function patch()
+	timer.Remove('DLib.PatchNutscript')
 	if not nut then return end
 	if not nut.plugin then return end
 	if not nut.plugin.load then return end
@@ -53,8 +54,8 @@ timer.Simple(0, function()
 	local upvalName, upvalValue = debug.getupvalue(nut.plugin.load, 1)
 
 	-- lets guess
-	if upvalName ~= 'HOOK_CACHE' then
-		upvalValue = _G.HOOK_CACHE or GAMEMODE.HOOK_CACHE or nut.HOOK_CACHE or nut.plugin.HOOK_CACHE
+	if upvalName ~= 'HOOKS_CACHE' then
+		upvalValue = _G.HOOKS_CACHE or GAMEMODE.HOOKS_CACHE or nut.HOOKS_CACHE or nut.plugin.HOOKS_CACHE
 	end
 
 	if not upvalValue then
@@ -64,22 +65,20 @@ timer.Simple(0, function()
 		return
 	end
 
-	HOOK_CACHE = upvalValue
+	HOOKS_CACHE = upvalValue
 
-	setmetatable(HOOK_CACHE, {
+	setmetatable(HOOKS_CACHE, {
 		__newindex = function(self, key, value)
 			rawset(self, key, value)
 			patchHook(key)
 		end
 	})
 
-	for event, eventData in pairs(HOOK_CACHE) do
+	for event, eventData in pairs(HOOKS_CACHE) do
 		patchHook(event)
 	end
 
-	DLib.defininghook = true
-
-	function hook.NutCall(...)
+	function DLib.hook.NutCall(...)
 		IN_CALL = true
 		local args = {hook.Call2(...)}
 		IN_CALL = false
@@ -87,5 +86,16 @@ timer.Simple(0, function()
 		return unpack(args, 1, #args)
 	end
 
-	DLib.defininghook = false
+	DLib.Message('------------------------------')
+	DLib.Message('Nutscript successfully patched!')
+	DLib.Message('------------------------------')
+end
+
+timer.Create('DLib.PatchNutscript', 0, 1, patch)
+
+hook.Add('DLibHookChange', 'NutscriptPatch', function(key)
+	if key == 'NutCall' then
+		patch()
+		hook.Remove('DLibHookChange', 'NutscriptPatch')
+	end
 end)
