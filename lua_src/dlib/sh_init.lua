@@ -90,5 +90,6 @@ DLib.Loader.finish()
 DLib.Loader.loadPureCS('dlib/vgui')
 
 DLib.Loader.loadPureSHTop('dlib/luabridge')
+DLib.Loader.loadPureSHTop('dlib/modules/workarounds')
 
 DLib.hl2wdata = DLib.simpleInclude('data/hl2sweps.lua')
