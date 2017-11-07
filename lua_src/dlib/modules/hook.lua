@@ -635,6 +635,12 @@ else
 	end
 end
 
+for k, v in pairs(hook) do
+	if type(v) == 'function' then
+		hook[k:sub(1, 1):lower() .. k:sub(2)] = v
+	end
+end
+
 -- Engine permanently remembers function address
 -- So we need to transmit the call to our subfunction in order to modify it on the fly (with no runtime costs because JIT is <3)
 -- and local "hook" will never point at wrong table
