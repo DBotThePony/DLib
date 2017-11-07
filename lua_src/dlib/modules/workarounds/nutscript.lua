@@ -15,18 +15,18 @@
 
 local HOOKS_CACHE
 local SCHEMA = {}
-local IN_CALL = false
 
 local function patchHook(event)
 	local hookTab = HOOKS_CACHE[event]
+
 	if not hookTab then
 		DLib.Message(debug.traceback('Nutscript event ' .. event .. ' is empty/missing!'))
 		return
 	end
 
-	return hook.Add(event, 'nutscript', function(...)
-		if IN_CALL then return end
+	DLib.Message('Patched Nutscript ' .. event .. ' event')
 
+	return hook.Add(event, 'nutscript', function(...)
 		for funcID, func in pairs(hookTab) do
 			local args = {func(funcID, ...)}
 
@@ -45,6 +45,7 @@ end
 
 local function patch()
 	timer.Remove('DLib.PatchNutscript')
+
 	if not nut then return end
 	if not nut.plugin then return end
 	if not nut.plugin.load then return end
@@ -76,14 +77,6 @@ local function patch()
 
 	for event, eventData in pairs(HOOKS_CACHE) do
 		patchHook(event)
-	end
-
-	function DLib.hook.NutCall(...)
-		IN_CALL = true
-		local args = {hook.Call2(...)}
-		IN_CALL = false
-
-		return unpack(args, 1, #args)
 	end
 
 	DLib.Message('------------------------------')
