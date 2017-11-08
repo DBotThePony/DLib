@@ -14,12 +14,37 @@
 -- limitations under the License.
 
 local tableutil = DLib.module('table')
+local ipairs = ipairs
+local pairs = pairs
+local table = table
+local remove = table.remove
+local insert = table.insert
 
 -- Appends numeric indexed tables
 function tableutil.append(destination, source)
 	for i, value in ipairs(source) do
-		table.insert(destination, value)
+		insert(destination, value)
 	end
+
+	return destination
+end
+
+function tableutil.gappend(destination, source)
+	if #source == 0 then return destination end
+
+	local i, nextelement = 1, source[1]
+
+	::append::
+
+	destination[#destination + 1] = source[i]
+	i = i + 1
+	nextelement = source[i]
+
+	if nextelement ~= nil then
+		goto append
+	end
+
+	return destination
 end
 
 function tableutil.prependString(destination, prepend)
@@ -47,8 +72,8 @@ function tableutil.filter(target, filterFunc)
 		local status = filterFunc(key, value, target)
 		if not status then
 			if type(key) == 'number' then
-				table.insert(filtered, value)
-				table.insert(toRemove, key)
+				insert(filtered, value)
+				insert(toRemove, key)
 			else
 				filtered[key] = value
 				target[key] = nil
@@ -57,14 +82,14 @@ function tableutil.filter(target, filterFunc)
 	end
 
 	for v, i in ipairs(toRemove) do
-		table.remove(target, i - v + 1)
+		remove(target, i - v + 1)
 	end
 
 	return filtered
 end
 
 function tableutil.qfilter(target, filterFunc)
-	if not filterFunc then error('table.filter - missing filter function') end
+	if not filterFunc then error('table.qfilter - missing filter function') end
 
 	local filtered = {}
 	local toRemove = {}
@@ -72,13 +97,57 @@ function tableutil.qfilter(target, filterFunc)
 	for key, value in ipairs(target) do
 		local status = filterFunc(key, value, target)
 		if not status then
-			table.insert(filtered, value)
-			table.insert(toRemove, key)
+			insert(filtered, value)
+			insert(toRemove, key)
 		end
 	end
 
 	for v, i in ipairs(toRemove) do
-		table.remove(target, i - v + 1)
+		remove(target, i - v + 1)
+	end
+
+	return filtered
+end
+
+function tableutil.gfilter(target, filterFunc)
+	if not filterFunc then error('table.gfilter - missing filter function') end
+	if #target == 0 then return {} end
+
+	local filtered = {}
+	local toRemove = {}
+
+	local i = 1
+	local nextelement = target[i]
+
+	::filter::
+
+	local status = filterFunc(i, nextelement, target)
+
+	if not status then
+		filtered[#filtered + 1] = nextelement
+		toRemove[#toRemove + 1] = i
+	end
+
+	i = i + 1
+	nextelement = target[i]
+
+	if nextelement ~= nil then
+		goto filter
+	end
+
+	if #toRemove ~= 0 then
+		i = 1
+		nextelement = toRemove[i]
+
+		::rem::
+		remove(target, toRemove[i] - i + 1)
+
+		i = i + 1
+		nextelement = toRemove[i]
+
+		if nextelement ~= nil then
+			goto rem
+		end
 	end
 
 	return filtered
@@ -92,7 +161,7 @@ function tableutil.filterNew(target, filterFunc)
 	for key, value in pairs(target) do
 		local status = filterFunc(key, value, target)
 		if status then
-			table.insert(filtered, value)
+			insert(filtered, value)
 		end
 	end
 
@@ -107,7 +176,7 @@ function tableutil.qfilterNew(target, filterFunc)
 	for key, value in ipairs(target) do
 		local status = filterFunc(key, value, target)
 		if status then
-			table.insert(filtered, value)
+			insert(filtered, value)
 		end
 	end
 
@@ -146,6 +215,31 @@ function tableutil.unshift(tableIn, ...)
 
 	for i, value in ipairs(values) do
 		tableIn[i] = value
+	end
+
+	return tableIn
+end
+
+function tableutil.gunshift(tableIn, ...)
+	local values = {...}
+	local count = #values
+
+	if count == 0 then return tableIn end
+
+	for i = #tableIn + count, count, -1 do
+		tableIn[i] = tableIn[i - count]
+	end
+
+	local i, nextelement = 1, values[1]
+
+	::unshift::
+
+	tableIn[i] = nextelement
+	i = i + 1
+	nextelement = values[i]
+
+	if nextelement ~= nil then
+		goto unshift
 	end
 
 	return tableIn
