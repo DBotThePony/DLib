@@ -675,6 +675,11 @@ setmetatable(hook, {
 	end
 })
 
+rawset(DLib.ghook, 'Run', Run)
+rawset(DLib.ghook, 'Call', Call)
+rawset(DLib.ghook, 'GetTable', GetTable)
+rawset(DLib.ghook, 'Add', Add)
+
 setmetatable(DLib.ghook, {
 	__index = function(self, key)
 		return hook[key]
