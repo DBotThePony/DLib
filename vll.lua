@@ -891,7 +891,6 @@ function VLL.CopyTable(tab)
 end
 
 file.__index = file --Snort Snort
-hook.__index = hook --Snort Snort
 
 local fileFuncs = {
 	Find = VLL.__FileFind,
@@ -922,7 +921,7 @@ setmetatable(fileFuncs, {
 	__newindex = _G.file,
 })
 
-setmetatable(hookFuncs, hook)
+setmetatable(hookFuncs, {__index = hook})
 
 function VLL.AdminMessage(...)
 	VLL.Message(...)
