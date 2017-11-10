@@ -15,6 +15,8 @@
 -- limitations under the License.
 --
 
+local ENABLE_SHIFTING = CreateConVar('dlib_hud_shift', '1', {FCVAR_ARCHIVE}, 'Enable HUD shifting')
+
 HUDCommons.ShiftX = 0
 HUDCommons.ShiftY = 0
 HUDCommons.LastAngle = Angle(0, 0, 0)
@@ -85,16 +87,28 @@ end
 HUDCommons.GetPosition = HUDCommons.GetPos
 
 local function UpdatePositions()
-	for k, v in pairs(HUDCommons.XPositions) do
-		HUDCommons.XPositions_modified[v] = HUDCommons.XPositions_original[v] + HUDCommons.ShiftX
-	end
+	if ENABLE_SHIFTING:GetBool() then
+		for k, v in pairs(HUDCommons.XPositions) do
+			HUDCommons.XPositions_modified[v] = HUDCommons.XPositions_original[v] + HUDCommons.ShiftX
+		end
 
-	for k, v in pairs(HUDCommons.YPositions) do
-		HUDCommons.YPositions_modified[v] = HUDCommons.YPositions_original[v] + HUDCommons.ShiftY
+		for k, v in pairs(HUDCommons.YPositions) do
+			HUDCommons.YPositions_modified[v] = HUDCommons.YPositions_original[v] + HUDCommons.ShiftY
+		end
+	else
+		for k, v in pairs(HUDCommons.XPositions) do
+			HUDCommons.XPositions_modified[v] = HUDCommons.XPositions_original[v]
+		end
+
+		for k, v in pairs(HUDCommons.YPositions) do
+			HUDCommons.YPositions_modified[v] = HUDCommons.YPositions_original[v]
+		end
 	end
 end
 
 local function UpdateShift()
+	if not ENABLE_SHIFTING:GetBool() then return end
+
 	local ply = HUDCommons.SelectPlayer()
 	local ang = ply:EyeAngles()
 
