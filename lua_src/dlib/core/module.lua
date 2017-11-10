@@ -43,8 +43,8 @@ local function setupLookup(index)
 	return setmetatable({__base = index}, indexLookup)
 end
 
-return function(moduleName, basedOn)
-	local self = {}
+return function(moduleName, basedOn, isCached)
+	local self = isCached and DLib[moduleName] or {}
 
 	function self:Name()
 		return moduleName
