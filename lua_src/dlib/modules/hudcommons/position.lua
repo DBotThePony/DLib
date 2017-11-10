@@ -15,7 +15,7 @@
 -- limitations under the License.
 --
 
-local ENABLE_SHIFTING = CreateConVar('dlib_hud_shift', '1', {FCVAR_ARCHIVE}, 'Enable HUD shifting')
+local ENABLE_SHIFTING = CreateConVar('dlib_hud_shift', '1', {}, 'Enable HUD shifting')
 
 HUDCommons.ShiftX = 0
 HUDCommons.ShiftY = 0
