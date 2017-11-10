@@ -35,6 +35,8 @@ function HUDCommons.DefinePosition(name, x, y, shouldShift)
 			local l = shouldShift
 			shouldShift = function() return l end
 		end
+	else
+		shouldShift = function() return true end
 	end
 
 	if x < 1 then
