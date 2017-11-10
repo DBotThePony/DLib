@@ -153,12 +153,14 @@ function hook.Add(event, stringID, funcToCall, priority)
 
 	if type(event) ~= 'string' then
 		DLib.Message(traceback('hook.Add - event is not a string! ' .. type(event)))
-		return false
+		-- return false
+		return
 	end
 
 	if type(funcToCall) ~= 'function' then
 		DLib.Message(traceback('hook.Add - function is not a function! ' .. type(funcToCall)))
-		return false
+		-- return false
+		return
 	end
 
 	stringID, funcToCall = transformStringID(stringID, funcToCall, event)
@@ -199,11 +201,13 @@ function hook.Add(event, stringID, funcToCall, priority)
 	__tableGmod[event][stringID] = funcToCall
 
 	hook.Reconstruct(event)
-	return true, hookData
+	-- return true, hookData
+	return
 end
 
 function hook.Remove(event, stringID)
-	if not __table[event] then return false end
+	-- if not __table[event] then return false end
+	if not __table[event] then return end
 	__tableGmod[event] = __tableGmod[event] or {}
 	__tableGmod[event][stringID] = nil
 
@@ -217,12 +221,13 @@ function hook.Remove(event, stringID)
 			if oldData ~= nil then
 				eventsTable[stringID] = nil
 				hook.Reconstruct(event)
-				return true, oldData
+				-- return true, oldData
+				return
 			end
 		end
 	end
 
-	return false
+	-- return false
 end
 
 function hook.AddModifier(event, stringID, funcToCall)
