@@ -685,9 +685,7 @@ setmetatable(hook, {
 })
 
 setmetatable(DLib.ghook, {
-	__index = function(self, key)
-		return hook[key]
-	end,
+	__index = hook,
 
 	__newindex = function(self, key, value)
 		DLib.Message(traceback('yo dude what the fuk hook.' .. tostring(key) .. ' -> ' .. tostring(value)))
