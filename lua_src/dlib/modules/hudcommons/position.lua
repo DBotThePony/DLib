@@ -16,6 +16,7 @@
 --
 
 local ENABLE_SHIFTING = CreateConVar('dlib_hud_shift', '1', {FCVAR_ARCHIVE}, 'Enable HUD shifting')
+local ENABLE_SHIFTING_SV = CreateConVar('sv_dlib_hud_shift', '1', {FCVAR_REPLICATED, FCVAR_NOTIFY}, 'SV Override: Enable HUD shifting')
 
 HUDCommons.ShiftX = 0
 HUDCommons.ShiftY = 0
@@ -87,7 +88,7 @@ end
 HUDCommons.GetPosition = HUDCommons.GetPos
 
 local function UpdatePositions()
-	if ENABLE_SHIFTING:GetBool() then
+	if ENABLE_SHIFTING:GetBool() and ENABLE_SHIFTING_SV:GetBool() then
 		for k, v in pairs(HUDCommons.XPositions) do
 			HUDCommons.XPositions_modified[v] = HUDCommons.XPositions_original[v] + HUDCommons.ShiftX
 		end
@@ -108,6 +109,7 @@ end
 
 local function UpdateShift()
 	if not ENABLE_SHIFTING:GetBool() then return end
+	if not ENABLE_SHIFTING_SV:GetBool() then return end
 
 	local ply = HUDCommons.SelectPlayer()
 	local ang = ply:EyeAngles()
