@@ -15,8 +15,6 @@
 -- limitations under the License.
 --
 
-local ENABLE_SHIFTING = CreateConVar('dlib_hud_shift', '1', {}, 'Enable HUD shifting')
-
 HUDCommons.ShiftX = 0
 HUDCommons.ShiftY = 0
 HUDCommons.LastAngle = Angle(0, 0, 0)
@@ -32,11 +30,11 @@ HUDCommons.Positions_funcs = HUDCommons.Positions_funcs or {}
 HUDCommons.Multipler = 1
 
 function HUDCommons.DefinePosition(name, x, y, shouldShift)
-	if shouldShift ~= nil and type(shouldShift) ~= 'function' then
-		local l = shouldShift
-		shouldShift = function() return l end
-	else
-		shouldShift = function() return true end
+	if shouldShift ~= nil then
+		if type(shouldShift) ~= 'function' then
+			local l = shouldShift
+			shouldShift = function() return l end
+		end
 	end
 
 	if x < 1 then
@@ -85,28 +83,16 @@ end
 HUDCommons.GetPosition = HUDCommons.GetPos
 
 local function UpdatePositions()
-	if ENABLE_SHIFTING:GetBool() then
-		for k, v in pairs(HUDCommons.XPositions) do
-			HUDCommons.XPositions_modified[v] = HUDCommons.XPositions_original[v] + HUDCommons.ShiftX
-		end
+	for k, v in pairs(HUDCommons.XPositions) do
+		HUDCommons.XPositions_modified[v] = HUDCommons.XPositions_original[v] + HUDCommons.ShiftX
+	end
 
-		for k, v in pairs(HUDCommons.YPositions) do
-			HUDCommons.YPositions_modified[v] = HUDCommons.YPositions_original[v] + HUDCommons.ShiftY
-		end
-	else
-		for k, v in pairs(HUDCommons.XPositions) do
-			HUDCommons.XPositions_modified[v] = HUDCommons.XPositions_original[v]
-		end
-
-		for k, v in pairs(HUDCommons.YPositions) do
-			HUDCommons.YPositions_modified[v] = HUDCommons.YPositions_original[v]
-		end
+	for k, v in pairs(HUDCommons.YPositions) do
+		HUDCommons.YPositions_modified[v] = HUDCommons.YPositions_original[v] + HUDCommons.ShiftY
 	end
 end
 
 local function UpdateShift()
-	if not ENABLE_SHIFTING:GetBool() then return end
-
 	local ply = HUDCommons.SelectPlayer()
 	local ang = ply:EyeAngles()
 
