@@ -36,18 +36,13 @@ local hook = DLib.hook
 hook.__tableOptimized = hook.__tableOptimized or {}
 hook.__table = hook.__table or {}
 hook.__tableGmod = hook.__tableGmod or {}
-hook.__tableModifiers = hook.__tableModifiers or {}
-hook.__tableModifiersOptimized = hook.__tableModifiersOptimized or {}
 hook.__tableModifiersPost = hook.__tableModifiersPost or {}
 hook.__tableModifiersPostOptimized = hook.__tableModifiersPostOptimized or {}
 
 local __table = hook.__table
 local __tableOptimized = hook.__tableOptimized
 local __tableGmod = hook.__tableGmod
-local __tableModifiers = hook.__tableModifiers
 local __tableModifiersPost = hook.__tableModifiersPost
-local __tableModifiersPost = hook.__tableModifiersPost
-local __tableModifiersOptimized = hook.__tableModifiersOptimized
 local __tableModifiersPostOptimized = hook.__tableModifiersPostOptimized
 
 -- ULib compatibility
@@ -70,7 +65,7 @@ function hook.GetDLibOptimizedTable()
 end
 
 function hook.GetDLibModifiers()
-	return __tableModifiers
+	return __tableModifiersPost
 end
 
 function hook.GetDLibSortedTable()
@@ -230,93 +225,6 @@ function hook.Remove(event, stringID)
 	-- return false
 end
 
-function hook.AddModifier(event, stringID, funcToCall)
-	__tableModifiers[event] = __tableModifiers[event] or {}
-
-	if type(event) ~= 'string' then
-		DLib.Message(traceback('hook.AddModifier - event is not a string! ' .. type(event)))
-		return false
-	end
-
-	if type(funcToCall) ~= 'function' then
-		DLib.Message(traceback('hook.AddModifier - function is not a function! ' .. type(funcToCall)))
-		return false
-	end
-
-	stringID, funcToCall = transformStringID(stringID, funcToCall, event)
-
-	local hookData = {
-		event = event,
-		funcToCall = funcToCall,
-		id = stringID,
-		idString = tostring(stringID),
-		registeredAt = RealTime(),
-		typeof = type(stringID) == 'string'
-	}
-
-	__tableModifiers[event][stringID] = hookData
-	hook.ReconstructModifiers(event)
-	return true, hookData
-end
-
-function hook.RemoveModifier(event, stringID)
-	if not __tableModifiers[event] then return false end
-
-	stringID = transformStringID(stringID, nil, event)
-	if __tableModifiers[event][stringID] then
-		local old = __tableModifiers[event][stringID]
-		__tableModifiers[event][stringID] = nil
-		hook.ReconstructModifiers(event)
-		return true, old
-	end
-
-	return false
-end
-
-function hook.ReconstructModifiers(eventToReconstruct)
-	if not eventToReconstruct then
-		for event, tab in pairs(__tableModifiers) do
-			hook.ReconstructModifiers(event)
-		end
-
-		return
-	end
-
-	__tableModifiersOptimized[eventToReconstruct] = {}
-	local event = __tableModifiers[eventToReconstruct]
-
-	local ordered = {}
-
-	if event then
-		for stringID, hookData in pairs(event) do
-			if hookData.typeof == false then
-				if hookData.id:IsValid() then
-					table.insert(ordered, hookData)
-				else
-					event[stringID] = nil
-				end
-			else
-				table.insert(ordered, hookData)
-			end
-		end
-	end
-
-	local cnt = #ordered
-
-	if cnt == 0 then
-		__tableModifiersOptimized[eventToReconstruct] = nil
-	else
-		table.sort(ordered, hook.HookDataSorter2)
-		local target = __tableModifiersOptimized[eventToReconstruct]
-
-		for i = 1, cnt do
-			table.insert(target, ordered[i].funcToCall)
-		end
-	end
-
-	return __tableModifiersOptimized, ordered
-end
-
 function hook.AddPostModifier(event, stringID, funcToCall)
 	__tableModifiersPost[event] = __tableModifiersPost[event] or {}
 
@@ -362,7 +270,7 @@ end
 
 function hook.ReconstructPostModifiers(eventToReconstruct)
 	if not eventToReconstruct then
-		for event, tab in pairs(__tableModifiers) do
+		for event, tab in pairs(__tableModifiersPost) do
 			hook.ReconstructPostModifiers(event)
 		end
 
@@ -500,29 +408,8 @@ local function Run(...)
 	return hook.Run2(...)
 end
 
-function hook.Call2(event, hookTable, Q1, W1, E1, R1, T1, Y1, U1, I1, O1, P1, A1, S1, D1, F1, G1, H1, J1, K1, L1, Z1, X1, C1, V1, B1, N1, M1,
-	Q2, W2, E2, R2, T2, Y2, U2, I2, O2, P2, A2, S2, D2, F2, G2, H2, J2, K2, L2, Z2, X2, C2, V2, B2, N2, M2)
-
-	local modifiers = __tableModifiersOptimized[event]
+function hook.Call2(event, hookTable, ...)
 	local post = __tableModifiersPostOptimized[event]
-
-	if modifiers ~= nil then
-		local i = 1
-		local nextevent = modifiers[i]
-
-		::modifiers_loop::
-		Q1, W1, E1, R1, T1, Y1, U1, I1, O1, P1, A1, S1, D1, F1, G1, H1, J1, K1, L1, Z1, X1, C1, V1, B1, N1, M1,
-		Q2, W2, E2, R2, T2, Y2, U2, I2, O2, P2, A2, S2, D2, F2, G2, H2, J2, K2, L2, Z2, X2, C2, V2, B2, N2, M2 = nextevent(Q1, W1, E1, R1, T1, Y1, U1, I1, O1, P1, A1, S1, D1, F1, G1, H1, J1, K1, L1, Z1, X1, C1, V1, B1, N1, M1,
-		Q2, W2, E2, R2, T2, Y2, U2, I2, O2, P2, A2, S2, D2, F2, G2, H2, J2, K2, L2, Z2, X2, C2, V2, B2, N2, M2)
-
-		i = i + 1
-		nextevent = modifiers[i]
-
-		if nextevent ~= nil then
-			goto modifiers_loop
-		end
-	end
-
 	local events = __tableOptimized[event]
 
 	if events == nil then
@@ -537,12 +424,10 @@ function hook.Call2(event, hookTable, Q1, W1, E1, R1, T1, Y1, U1, I1, O1, P1, A1
 		end
 
 		if post == nil then
-			return gamemodeFunction(hookTable, Q1, W1, E1, R1, T1, Y1, U1, I1, O1, P1, A1, S1, D1, F1, G1, H1, J1, K1, L1, Z1, X1, C1, V1, B1, N1, M1,
-			Q2, W2, E2, R2, T2, Y2, U2, I2, O2, P2, A2, S2, D2, F2, G2, H2, J2, K2, L2, Z2, X2, C2, V2, B2, N2, M2)
+			return gamemodeFunction(hookTable, ...)
 		end
 
-		local Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M, M = gamemodeFunction(hookTable, Q1, W1, E1, R1, T1, Y1, U1, I1, O1, P1, A1, S1, D1, F1, G1, H1, J1, K1, L1, Z1, X1, C1, V1, B1, N1, M1,
-		Q2, W2, E2, R2, T2, Y2, U2, I2, O2, P2, A2, S2, D2, F2, G2, H2, J2, K2, L2, Z2, X2, C2, V2, B2, N2, M2)
+		local Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M, M = gamemodeFunction(hookTable, ...)
 		local i = 1
 		local nextevent = post[i]
 
@@ -563,8 +448,7 @@ function hook.Call2(event, hookTable, Q1, W1, E1, R1, T1, Y1, U1, I1, O1, P1, A1
 	local nextevent = events[i]
 
 	::loop::
-	local Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M, M = nextevent(Q1, W1, E1, R1, T1, Y1, U1, I1, O1, P1, A1, S1, D1, F1, G1, H1, J1, K1, L1, Z1, X1, C1, V1, B1, N1, M1,
-	Q2, W2, E2, R2, T2, Y2, U2, I2, O2, P2, A2, S2, D2, F2, G2, H2, J2, K2, L2, Z2, X2, C2, V2, B2, N2, M2)
+	local Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M, M = nextevent(...)
 
 	if Q ~= nil then
 		if post == nil then
@@ -605,12 +489,10 @@ function hook.Call2(event, hookTable, Q1, W1, E1, R1, T1, Y1, U1, I1, O1, P1, A1
 	end
 
 	if post == nil then
-		return gamemodeFunction(hookTable, Q1, W1, E1, R1, T1, Y1, U1, I1, O1, P1, A1, S1, D1, F1, G1, H1, J1, K1, L1, Z1, X1, C1, V1, B1, N1, M1,
-		Q2, W2, E2, R2, T2, Y2, U2, I2, O2, P2, A2, S2, D2, F2, G2, H2, J2, K2, L2, Z2, X2, C2, V2, B2, N2, M2)
+		return gamemodeFunction(hookTable, ...)
 	end
 
-	local Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M, M = gamemodeFunction(hookTable, Q1, W1, E1, R1, T1, Y1, U1, I1, O1, P1, A1, S1, D1, F1, G1, H1, J1, K1, L1, Z1, X1, C1, V1, B1, N1, M1,
-	Q2, W2, E2, R2, T2, Y2, U2, I2, O2, P2, A2, S2, D2, F2, G2, H2, J2, K2, L2, Z2, X2, C2, V2, B2, N2, M2)
+	local Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M, M = gamemodeFunction(hookTable, ...)
 	local i = 1
 	local nextevent = post[i]
 
