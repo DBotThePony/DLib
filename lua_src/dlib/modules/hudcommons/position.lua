@@ -122,8 +122,18 @@ local function UpdateShift()
 	HUDCommons.ShiftX = math.Clamp(HUDCommons.ShiftX + changeYaw * 1.8, -30, 30)
 	HUDCommons.ShiftY = math.Clamp(HUDCommons.ShiftY - changePitch * 1.8, -20, 20)
 
+	local oldX, oldY = HUDCommons.ShiftX, HUDCommons.ShiftY
+
 	HUDCommons.ShiftX = HUDCommons.ShiftX - HUDCommons.ShiftX * FrameTime() * 22
 	HUDCommons.ShiftY = HUDCommons.ShiftY - HUDCommons.ShiftY * FrameTime() * 22
+
+	if oldX > 0 and HUDCommons.ShiftX < 0 or oldX < 0 and HUDCommons.ShiftX > 0 then
+		HUDCommons.ShiftX = 0
+	end
+
+	if oldY > 0 and HUDCommons.ShiftY < 0 or oldY < 0 and HUDCommons.ShiftY > 0 then
+		HUDCommons.ShiftY = 0
+	end
 end
 
 local function Think()
