@@ -87,6 +87,10 @@ DLib.Loader.start('lang')
 DLib.Loader.load('dlib/modules/lang')
 DLib.Loader.finish()
 
+DLib.Loader.start('friends', true)
+DLib.Loader.load('dlib/modules/friendsystem')
+DLib.Loader.finish()
+
 DLib.Loader.loadPureCS('dlib/vgui')
 
 DLib.Loader.loadPureSHTop('dlib/luabridge')
