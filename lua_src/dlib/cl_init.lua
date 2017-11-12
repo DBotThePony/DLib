@@ -19,9 +19,9 @@ DLib.Loader.finish(false)
 
 DLib.register('util/client/chat.lua')
 
-if not VLL_CURR_FILE then
-	DLib.Loader.loadPureCSTop('dlib/modules/client')
+DLib.Loader.loadPureCSTop('dlib/modules/client')
 
+if not VLL_CURR_FILE then
 	DLib.Loader.loadPureSHTop('dlib/autorun')
 	DLib.Loader.loadPureCSTop('dlib/autorun/client')
 end
