@@ -13,7 +13,10 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
+local gplayer = _G.player
+local GetAll = gplayer.GetAll
 local player = DLib.module('player', 'player')
+local ipairs = ipairs
 
 player.all = player.GetAll
 player.getAll = player.GetAll
@@ -30,6 +33,35 @@ function player.inRange(position, range)
 	end
 
 	return output
+end
+
+-- Fix performance a bit
+function player.GetBySteamID(steamid)
+	steamid = steamid:upper()
+
+	for i, ply in ipairs(gplayer.GetAll()) do
+		if steamid == ply:SteamID() then return ply end
+	end
+
+	return false
+end
+
+function player.GetBySteamID64(steamid)
+	steamid = tostring(steamid)
+
+	for i, ply in ipairs(gplayer.GetAll()) do
+		if steamid == ply:SteamID64() then return ply end
+	end
+
+	return false
+end
+
+function player.GetByUniqueID(id)
+	for i, ply in ipairs(gplayer.GetAll()) do
+		if id == ply:UniqueID() then return ply end
+	end
+
+	return false
 end
 
 local plyMeta = FindMetaTable('Player')
