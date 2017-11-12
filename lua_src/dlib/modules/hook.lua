@@ -566,18 +566,26 @@ setmetatable(hook, {
 	end
 })
 
-setmetatable(DLib.ghook, {
-	__index = hook,
+do
+	local callframes = 0
 
-	__newindex = function(self, key, value)
-		DLib.Message(traceback('yo dude what the fuk hook.' .. tostring(key) .. ' -> ' .. tostring(value)))
-		hook.Call('DLibHookChange', nil, key, value)
-	end,
+	setmetatable(DLib.ghook, {
+		__index = hook,
 
-	__call = function(self, ...)
-		return self.Add(...)
-	end
-})
+		__newindex = function(self, key, value)
+			if callframes < 100 then
+				callframes = callframes + 1
+				DLib.Message(traceback('yo dude what the fuk hook.' .. tostring(key) .. ' -> ' .. tostring(value)))
+			end
+
+			hook.Call('DLibHookChange', nil, key, value)
+		end,
+
+		__call = function(self, ...)
+			return self.Add(...)
+		end
+	})
+end
 
 DLib.benchhook = {
 	Add = hook.Add,
