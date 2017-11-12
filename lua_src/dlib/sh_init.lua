@@ -61,6 +61,8 @@ DLib.Loader.shmodule('hook.lua')
 DLib.Loader.shmodule('sh_cami.lua')
 DLib.Loader.shmodule('strong_entity_link.lua')
 
+DLib.Loader.loadPureSHTop('dlib/enums')
+
 DLib.Loader.shclass('modifier_base.lua')
 DLib.Loader.shclass('networked_data.lua')
 DLib.Loader.shclass('sequence_base.lua')
