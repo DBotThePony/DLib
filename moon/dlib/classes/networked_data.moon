@@ -343,15 +343,15 @@ class DLib.NetworkedData extends DLib.ModifierBase
 			filter\RemovePlayer(@NW_Player) if IsValid(@NW_Player)
 			net.Send(filter)
 		else
-			before = net.BytesWritten()
 			@@NW_WaitID += 1
 			@waitID = @@NW_WaitID
 			net.Start(@@NW_Create)
+			before = net.BytesWritten()
 			net.WriteUInt(@waitID, 16)
 			@WriteNetworkData()
+			after = net.BytesWritten()
 			net.SendToServer()
 			@@NW_Waiting[@waitID] = @
-			after = net.BytesWritten()
 			return after - before
 	NetworkTo: (targets = {}) =>
 		net.Start(@@NW_Create)
