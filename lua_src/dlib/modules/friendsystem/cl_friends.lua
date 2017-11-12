@@ -16,7 +16,7 @@
 sql.Query([[
 	CREATE TABLE IF NOT EXISTS dlib_friends (
 		steamid VARCHAR(31) NOT NULL,
-		friendid VARCHAR(255) NOT NULL,
+		friendid VARCHAR(63) NOT NULL,
 		status BOOLEAN NOT NULL,
 		PRIMARY KEY (steamid, friendid)
 	)
@@ -78,19 +78,58 @@ function plyMeta:IsDLibFriendType(target, tp)
 	end
 end
 
+function friends.LoadPlayer(steamid)
+	local ply = player.GetBySteamID(steamid)
+
+	if ply and friends.currentStatus[ply] then
+		return friends.currentStatus[ply]
+	end
+
+	local data = sql.Query('SELECT friendid, status FROM dlib_friends WHERE steamid = ' .. SQLStr(steamid) .. ' AND friendid IN (' .. friends.GetIDsString() .. ')')
+
+	if not data then
+		return {
+			isFriend = false,
+			status = {}
+		}
+	end
+
+	local build = {}
+
+	for i, row in ipairs(data) do
+		build[row.friendid] = tobool(row.status)
+	end
+
+	return {
+		isFriend = true,
+		status = build
+	}
+end
+
+function friends.GetIDsString()
+	local keys = table.GetKeys(friends.typesCache)
+
+	for i, val in ipairs(keys) do
+		keys[i] = SQLStr(val)
+	end
+
+	return table.concat(keys, ',')
+end
+
 function friends.Reload()
 	friends.currentStatus = {}
-	friends.currentCount = 0
+	friends.currentCount = player.GetCount()
 
 	local targets = {}
 	local targetsH = {}
 	local targetsH2 = {}
 
-	for k, ply in ipairs(player.GetAll()) do
-		local steamid = ply:SteamID()
-		table.insert(targets, SQLStr(steamid))
+	sql.Query('BEGIN')
 
-		friends.currentCount = friends.currentCount + 1
+	for k, ply in ipairs(player.GetHumans()) do
+		local steamid = ply:SteamID()
+		local sq = SQLStr(steamid)
+		table.insert(targets, sq)
 
 		friends.currentStatus[ply] = {
 			isFriend = false,
@@ -105,6 +144,8 @@ function friends.Reload()
 			d[id] = false
 		end
 	end
+
+	sql.Query('COMMIT')
 
 	local keys = table.GetKeys(friends.typesCache)
 
@@ -124,7 +165,7 @@ function friends.Reload()
 			targetsH2[steamid].isFriend = true
 
 			if into and into[id] ~= nil then
-				into[id] = status
+				into[id] = tobool(status)
 			end
 		end
 	end
