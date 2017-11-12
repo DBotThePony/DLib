@@ -13,6 +13,8 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
+jit.on()
+
 local util = DLib.module('util', 'util')
 
 function util.copy(var)
@@ -38,6 +40,39 @@ function util.composeEnums(input, ...)
 	end
 
 	return num:bor(...)
+end
+
+function util.AccessorFuncJIT(target, variable, name)
+	local set, get = CompileString([==[
+		local variable = [[]==] .. variable .. [==[]]
+
+		local function Set(self, newVar)
+			self.]==] .. variable .. [==[ = newVar
+
+			local callback = self.OnDVariableChange
+
+			if callback then
+				callback(self, variable, newVar)
+			end
+
+			callback = self.On]==] .. name .. [==[Changes
+
+			if callback then
+				callback(self, newVar)
+			end
+
+			return self
+		end
+
+		local function Get(self)
+			return self.]==] .. variable .. [==[
+		end
+
+		return Set, Get
+	]==], 'DLib.util.AccessorFuncJIT')()
+
+	target['Get' .. name] = get
+	target['Set' .. name] = set
 end
 
 return util
