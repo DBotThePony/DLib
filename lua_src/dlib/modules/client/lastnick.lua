@@ -39,6 +39,18 @@ function DLib.LastNick(steamid)
 	return data[1].lastnick, data[1].lastname
 end
 
+function DLib.LastNickFormatted(steamid)
+	local nick, name = DLib.LastNick(steamid)
+
+	if not nick then return 'Unknown Pone #' .. util.CRC(steamid):sub(1, 4) end
+
+	if nick == name then
+		return nick
+	else
+		return nick .. '(' .. name .. ')'
+	end
+end
+
 function DLib.UpdateLastNicks()
 	sql.Query('BEGIN')
 
