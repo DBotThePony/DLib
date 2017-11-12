@@ -21,6 +21,7 @@ sql.Query([[
 	CREATE TABLE IF NOT EXISTS dlib_lastnick (
 		steamid VARCHAR(31) NOT NULL,
 		lastnick VARCHAR(255) NOT NULL,
+		lastname VARCHAR(255) NOT NULL,
 		PRIMARY KEY (steamid)
 	)
 ]])
@@ -32,20 +33,25 @@ function DLib.LastNick(steamid)
 		return ply:Nick()
 	end
 
-	local data = sql.Query('SELECT lastnick FROM dlib_lastnick WHERE steamid = ' .. SQLStr(steamid))
+	local data = sql.Query('SELECT lastnick, lastname FROM dlib_lastnick WHERE steamid = ' .. SQLStr(steamid))
 
 	if not data then return false end
-	return data[1].lastnick
+	return data[1].lastnick, data[1].lastname
 end
 
 function DLib.UpdateLastNicks()
 	sql.Query('BEGIN')
 
 	for i, ply in ipairs(player.GetHumans()) do
-		local steamid, nick = SQLStr(ply:SteamID()), SQLStr(ply:Nick())
+		local steamid, lastname = SQLStr(ply:SteamID()), SQLStr(ply:Nick())
+		local nick = lastname
+
+		if ply.SteamName then
+			lastname = SQLStr(ply:SteamName())
+		end
 
 		if not ply.__dlib_nickinsert then
-			sql.Query('INSERT INTO dlib_lastnick (steamid, lastnick) VALUES (' .. steamid .. ', ' .. nick .. ')')
+			sql.Query('INSERT INTO dlib_lastnick (steamid, lastnick, lastname) VALUES (' .. steamid .. ', ' .. nick .. ', ' .. lastname .. ')')
 			ply.__dlib_nickinsert = true
 		end
 
