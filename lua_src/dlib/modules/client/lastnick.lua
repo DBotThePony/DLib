@@ -30,7 +30,7 @@ function DLib.LastNick(steamid)
 	local ply = player.GetBySteamID(steamid)
 
 	if ply then
-		return ply:Nick()
+		return ply:Nick(), ply.SteamName and ply:SteamName() or ply:Nick()
 	end
 
 	local data = sql.Query('SELECT lastnick, lastname FROM dlib_lastnick WHERE steamid = ' .. SQLStr(steamid))
