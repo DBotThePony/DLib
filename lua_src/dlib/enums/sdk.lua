@@ -98,3 +98,12 @@ TEXTUREFLAGS_BORDER						   = 0x20000000
 
 TEXTUREFLAGS_UNUSED_40000000		       = 0x40000000
 TEXTUREFLAGS_UNUSED_80000000		       = 0x80000000
+
+-- settings for m_takedamage
+DAMAGE_MODE_NO = 0
+DAMAGE_MODE_GODMODE = 0
+DAMAGE_MODE_EVENTS_ONLY = 1	-- Call damage functions, but don't modify health
+DAMAGE_MODE_BUDDHA = 1	-- Call damage functions, but don't modify health
+DAMAGE_MODE_YES = 2
+DAMAGE_MODE_ENABLED = 2
+DAMAGE_MODE_AIM = 3
