@@ -106,6 +106,72 @@ function friends.LoadPlayer(steamid)
 	}
 end
 
+function friends.SaveDataFor(steamid, savedata)
+	if not savedata.isFriend then
+		friends.RemoveFriend(steamid)
+		return
+	end
+
+	sql.Query('BEGIN')
+	steamid = SQLStr(steamid)
+
+	sql.Query('DELETE FROM dlib_friends WHERE steamid = ' .. steamid)
+
+	for statusID, status in pairs(savedata.status) do
+		sql.Query('INSERT INTO dlib_friends (steamid, friendid, status) VALUES (' .. steamid .. ', ' .. statusID .. ', ' .. (status and '1' or '0') .. ')')
+	end
+
+	sql.Query('COMMIT')
+end
+
+function friends.RemoveFriend(steamid)
+	sql.Query('DELETE FROM dlib_friends WHERE steamid = ' .. SQLStr(steamid))
+
+	local ply = player.GetBySteamID(steamid)
+
+	if ply then
+		local build = {}
+
+		for id, data in pairs(friends.typesCache) do
+			build[id] = false
+		end
+
+		friends.currentStatus[ply] = {
+			isFriend = false,
+			status = build
+		}
+
+		friends.SendToServer()
+
+		return true
+	end
+
+	return false
+end
+
+function friends.CreateFriend(steamid, doSave)
+	local ply = player.GetBySteamID(steamid)
+
+	for id, data in pairs(friends.typesCache) do
+		build[id] = data.def
+	end
+
+	local data = {
+		isFriend = true,
+		status = build
+	}
+
+	if ply then
+		friends.currentStatus[ply] = data
+	end
+
+	if doSave then
+		friends.SaveDataFor(steamid, data)
+	end
+
+	return data
+end
+
 function friends.GetIDsString()
 	local keys = table.GetKeys(friends.typesCache)
 
