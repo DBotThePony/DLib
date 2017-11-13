@@ -47,12 +47,20 @@ function friends.Register(statusID, statusName, defaultValue)
 	data.def = defaultValue
 end
 
+function friends.IsRegistered(statusID)
+	return friends.typesCache[statusID] ~= nil or friends.typesCacheUID[statusID] ~= nil or friends.typesCacheCRC[statusID] ~= nil
+end
+
 function friends.Serealize(status)
 	net.WriteBool(status.isFriend)
 
 	for fID, fVal in pairs(status.status) do
-		net.WriteUInt(friends.typesCache[fID].uid, 32)
-		net.WriteBool(fVal)
+		local uid = friends.typesCache[fID]
+
+		if uid then
+			net.WriteUInt(uid.uid, 32)
+			net.WriteBool(fVal)
+		end
 	end
 
 	net.WriteUInt(0, 32)
