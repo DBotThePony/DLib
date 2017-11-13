@@ -35,6 +35,8 @@ function plyMeta:IsDLibFriendType(target, tp)
 	return tab[target].status[tp] or false
 end
 
+plyMeta.IsDLibFriendIn = plyMeta.IsDLibFriendType
+
 net.receive('DLib.friendsystem', function(len, ply)
 	if not IsValid(ply) then return end
 

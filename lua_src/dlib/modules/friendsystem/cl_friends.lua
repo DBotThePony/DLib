@@ -81,6 +81,8 @@ function plyMeta:IsDLibFriendType(target, tp)
 	end
 end
 
+plyMeta.IsDLibFriendIn = plyMeta.IsDLibFriendType
+
 function friends.LoadPlayer(steamid, returnIfNothing, withCreation)
 	local ply = player.GetBySteamID(steamid)
 

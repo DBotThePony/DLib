@@ -82,3 +82,13 @@ function friends.Read()
 
 	return rply, readData
 end
+
+local plyMeta = FindMetaTable('Player')
+
+function plyMeta:CheckDLibFriend(target)
+	return self:IsFriend(target) or self:IsDLibFriend(target)
+end
+
+function plyMeta:CheckDLibFriendIn(target, tp)
+	return self:IsFriend(target) or self:IsDLibFriendIn(target, tp)
+end
