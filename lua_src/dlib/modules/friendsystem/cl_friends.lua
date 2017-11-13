@@ -122,6 +122,8 @@ function friends.SaveDataFor(steamid, savedata)
 	end
 
 	sql.Query('COMMIT')
+
+	hook.Run('DLib_FriendSaved', steamid, savedata)
 end
 
 function friends.RemoveFriend(steamid)
@@ -143,8 +145,12 @@ function friends.RemoveFriend(steamid)
 
 		friends.SendToServer()
 
+		hook.Run('DLib_FriendRemoved', steamid, ply)
+
 		return true
 	end
+
+	hook.Run('DLib_FriendRemoved', steamid)
 
 	return false
 end
@@ -168,6 +174,8 @@ function friends.CreateFriend(steamid, doSave)
 	if doSave then
 		friends.SaveDataFor(steamid, data)
 	end
+
+	hook.Run('DLib_FriendCreated', steamid, doSave)
 
 	return data
 end
