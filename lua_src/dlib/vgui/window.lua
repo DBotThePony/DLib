@@ -20,7 +20,6 @@ local DFrame = DFrame
 -- TODO: Stretching
 
 function PANEL:Init()
-	DFrame.Init(self)
 	self:SetSize(ScrW() - 100, ScrH() - 100)
 	self:Center()
 	self:MakePopup()

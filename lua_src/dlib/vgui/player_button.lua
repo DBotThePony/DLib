@@ -18,7 +18,6 @@ DLib.VGUI.PlayerButton = PANEL
 local DButton = DButton
 
 function PANEL:Init()
-	DButton.Init(self)
 	self.isAddingNew = false
 	self:SetSize(64, 64)
 	self:SetMouseInputEnabled(true)

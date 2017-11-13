@@ -23,7 +23,6 @@ DLib.util.AccessorFuncJIT(PANEL, 'layoutSizeX', 'LayoutSizeX')
 DLib.util.AccessorFuncJIT(PANEL, 'layoutSizeY', 'LayoutSizeY')
 
 function PANEL:Init()
-	DScrollPanel.Init(self)
 	self.layoutSizeX = 64
 	self.layoutSizeY = 64
 	self.buttons = {}
@@ -93,8 +92,6 @@ end
 
 function PANEL:RebuildButtonsPositions(w, h)
 	if not w or not h then return end
-	if w == self.__lastW and h == self.__lastH then return self.buttonsPositions end
-	self.__lastW, self.__lastH = w, h
 	self.buttonsPositions = {}
 	local xm, ym = self.layoutSizeX + self.spacingX, self.layoutSizeY + self.spacingY
 
@@ -116,12 +113,18 @@ function PANEL:RebuildButtonsPositions(w, h)
 			x = newx,
 			y = newy
 		}
+
+		row = row + 1
 	end
+
+	self:GetCanvas():SetSize(w, (line + 1) * ym)
 
 	return self.buttonsPositions
 end
 
 function PANEL:PerformLayout(width, height)
+	if width == self.__lastW and height == self.__lastH then return end
+	self.__lastW, self.__lastH = width, height
 	DScrollPanel.PerformLayout(self, width, height)
 	self:RebuildButtonsPositions(self:GetSize())
 
