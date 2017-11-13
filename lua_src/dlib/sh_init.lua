@@ -49,6 +49,7 @@ DLib.register('core/fsutil.lua').export(_G.file)
 DLib.register('core/loader.lua')
 DLib.simpleInclude('core/loader_modes.lua')
 
+DLib.register('extensions/sql.lua')
 DLib.register('extensions/string.lua')
 DLib.register('extensions/ctakedmg.lua')
 DLib.register('extensions/table.lua')
