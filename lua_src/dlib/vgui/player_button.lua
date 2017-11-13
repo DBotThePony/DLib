@@ -28,6 +28,7 @@ function PANEL:Init()
 	self.label:SetContentAlignment(CONTENT_ALIGMENT_MIDDLECENTER)
 	self.nickname = 'unknown'
 	self:SetSize(128, 96)
+	self:SetSkin('DLib_Black')
 end
 
 function PANEL:DoClick()

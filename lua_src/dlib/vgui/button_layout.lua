@@ -29,6 +29,7 @@ function PANEL:Init()
 	self.buttonsPositions = {}
 	self.spacingX = 4
 	self.spacingY = 4
+	self:SetSkin('DLib_Black')
 end
 
 function PANEL:SetLayoutSize(x, y)

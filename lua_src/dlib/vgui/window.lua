@@ -24,6 +24,7 @@ function PANEL:Init()
 	self:Center()
 	self:MakePopup()
 	self:SetTitle('DLib Window')
+	self:SetSkin('DLib_Black')
 end
 
 function PANEL:UpdateSize(w, h)

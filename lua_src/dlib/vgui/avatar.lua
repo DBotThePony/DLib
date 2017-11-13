@@ -24,6 +24,7 @@ function PANEL:AvatarHide()
 	self.havatar:SetMouseInputEnabled(false)
 	self.havatar:SetKeyboardInputEnabled(false)
 	self.havatar.hover = false
+	self:SetSkin('DLib_Black')
 end
 
 function PANEL:OnMousePressed(key)
