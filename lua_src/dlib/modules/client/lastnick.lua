@@ -50,6 +50,11 @@ function DLib.LastNickFormatted(steamid)
 	end
 end
 
+function DLib.UpdateLastNick(steamid, nick, lastname)
+	lastname = lastname or nick
+	return sql.Query('INSERT INTO dlib_lastnick (steamid, lastnick, lastname) VALUES (' .. SQLStr(steamid) .. ', ' .. SQLStr(nick) .. ', ' .. SQLStr(lastname) .. ')')
+end
+
 function DLib.UpdateLastNicks()
 	sql.Query('BEGIN')
 
