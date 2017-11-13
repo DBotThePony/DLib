@@ -106,6 +106,17 @@ function friends.LoadPlayer(steamid)
 	}
 end
 
+function friends.ModifyFriend(steamid, savedata)
+	local ply = player.GetBySteamID(steamid)
+
+	if ply then
+		friends.currentStatus[ply] = savedata
+		hook.Run('DLib_FriendModified', ply, savedata)
+	end
+
+	friends.SaveDataFor(steamid, savedata)
+end
+
 function friends.SaveDataFor(steamid, savedata)
 	if not savedata.isFriend then
 		friends.RemoveFriend(steamid)
@@ -245,6 +256,8 @@ function friends.Reload()
 	end
 
 	friends.SendToServer()
+
+	hook.Run('DLib_FriendsReloaded')
 
 	return friends.currentStatus
 end
