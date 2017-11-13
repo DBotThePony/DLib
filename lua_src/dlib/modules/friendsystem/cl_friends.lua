@@ -38,9 +38,10 @@ function friends.FillGaps(statusID)
 
 	if steamids then
 		sql.Query('BEGIN')
+		local sidQ = SQLStr(statusID)
 
 		for i, row in ipairs(steamids) do
-			sql.Query('INSERT INTO dlib_friends (steamid, friendid, status) VALUES (' .. SQLStr(row.steamid) .. ', ' .. statusID .. ', ' .. defToInsert .. ')')
+			sql.Query('INSERT INTO dlib_friends (steamid, friendid, status) VALUES (' .. SQLStr(row.steamid) .. ', ' .. sidQ .. ', ' .. defToInsert .. ')')
 		end
 
 		sql.Query('COMMIT')
@@ -80,20 +81,37 @@ function plyMeta:IsDLibFriendType(target, tp)
 	end
 end
 
-function friends.LoadPlayer(steamid)
+function friends.LoadPlayer(steamid, returnIfNothing, withCreation)
 	local ply = player.GetBySteamID(steamid)
 
-	if ply and friends.currentStatus[ply] then
+	if ply and friends.currentStatus[ply] and friends.currentStatus[ply].isFriend then
 		return friends.currentStatus[ply]
 	end
 
 	local data = sql.Query('SELECT friendid, status FROM dlib_friends WHERE steamid = ' .. SQLStr(steamid))
 
 	if not data then
-		return {
-			isFriend = false,
-			status = {}
-		}
+		if returnIfNothing then
+			if not withCreation then
+				return {
+					isFriend = false,
+					status = {}
+				}
+			else
+				local build = {}
+
+				for id, data in pairs(friends.typesCache) do
+					build[id] = data.def
+				end
+
+				return {
+					isFriend = false,
+					status = build
+				}
+			end
+		end
+
+		return
 	end
 
 	local build = {}
@@ -131,7 +149,7 @@ function friends.SaveDataFor(steamid, savedata)
 	sql.Query('DELETE FROM dlib_friends WHERE steamid = ' .. steamid)
 
 	for statusID, status in pairs(savedata.status) do
-		sql.Query('INSERT INTO dlib_friends (steamid, friendid, status) VALUES (' .. steamid .. ', ' .. statusID .. ', ' .. (status and '1' or '0') .. ')')
+		sql.Query('INSERT INTO dlib_friends (steamid, friendid, status) VALUES (' .. steamid .. ', ' .. SQLStr(statusID) .. ', ' .. (status and '1' or '0') .. ')')
 	end
 
 	sql.Query('COMMIT')
@@ -170,6 +188,7 @@ end
 
 function friends.CreateFriend(steamid, doSave)
 	local ply = player.GetBySteamID(steamid)
+	local build = {}
 
 	for id, data in pairs(friends.typesCache) do
 		build[id] = data.def
@@ -180,15 +199,15 @@ function friends.CreateFriend(steamid, doSave)
 		status = build
 	}
 
-	if ply then
-		friends.currentStatus[ply] = data
-	end
-
 	if doSave then
 		friends.SaveDataFor(steamid, data)
-	end
 
-	hook.Run('DLib_FriendCreated', steamid, doSave)
+		if ply then
+			friends.currentStatus[ply] = data
+		end
+
+		hook.Run('DLib_FriendCreated', steamid)
+	end
 
 	return data
 end
