@@ -87,7 +87,7 @@ function friends.LoadPlayer(steamid)
 		return friends.currentStatus[ply]
 	end
 
-	local data = sql.Query('SELECT friendid, status FROM dlib_friends WHERE steamid = ' .. SQLStr(steamid) .. ' AND friendid IN (' .. friends.GetIDsString() .. ')')
+	local data = sql.Query('SELECT friendid, status FROM dlib_friends WHERE steamid = ' .. SQLStr(steamid))
 
 	if not data then
 		return {
@@ -234,13 +234,7 @@ function friends.Reload()
 
 	sql.Query('COMMIT')
 
-	local keys = table.GetKeys(friends.typesCache)
-
-	for i, val in ipairs(keys) do
-		keys[i] = SQLStr(val)
-	end
-
-	local data = sql.Query('SELECT * FROM dlib_friends WHERE steamid IN (' .. table.concat(targets, ',') .. ') AND friendid IN (' .. table.concat(keys, ',') .. ')')
+	local data = sql.Query('SELECT * FROM dlib_friends WHERE steamid IN (' .. table.concat(targets, ',') .. ')')
 
 	if data then
 		for i, row in ipairs(data) do
@@ -251,7 +245,7 @@ function friends.Reload()
 
 			targetsH2[steamid].isFriend = true
 
-			if into and into[id] ~= nil then
+			if into then
 				into[id] = tobool(status)
 			end
 		end
