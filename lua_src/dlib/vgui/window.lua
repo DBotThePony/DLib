@@ -26,6 +26,11 @@ function PANEL:Init()
 	self:SetTitle('DLib Window')
 end
 
+function PANEL:UpdateSize(w, h)
+	self:SetSize(w, h)
+	self:Center()
+end
+
 vgui.Register('DLib_Window', PANEL, 'DFrame')
 
 return PANEL

@@ -19,7 +19,7 @@ local DButton = DButton
 
 function PANEL:Init()
 	self.isAddingNew = false
-	self:SetSize(64, 64)
+	self:SetSize(64, 96)
 	self:SetMouseInputEnabled(true)
 	self:SetKeyboardInputEnabled(true)
 	self:SetText('')
