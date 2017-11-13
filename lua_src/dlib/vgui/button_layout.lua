@@ -98,7 +98,7 @@ function PANEL:RebuildButtonsPositions(w, h)
 
 	local line = 0
 	local row = 0
-	local limitX = math.floor(w / xm)
+	local limitX = math.max(math.floor(w / xm) - 1, 1)
 
 	for i, button in ipairs(self.buttons) do
 		if row > limitX then
