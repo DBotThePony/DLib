@@ -16,6 +16,20 @@
 jit.on()
 
 local util = DLib.module('util', 'util')
+local DLib = DLib
+local vgui = vgui
+local type = type
+local ipairs = ipairs
+local IsValid = IsValid
+
+function DLib.VCreate(pnlName, pnlParent)
+	if not IsValid(pnlParent) then
+		DLib.Message(debug.traceback('Attempt to create ' .. pnlName .. ' without valid parent!'))
+		return
+	end
+
+	return vgui.Create(pnlName, pnlParent)
+end
 
 function util.copy(var)
 	if type(var) == 'table' then return table.Copy(var) end
