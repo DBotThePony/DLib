@@ -23,8 +23,8 @@ DLib.util.AccessorFuncJIT(PANEL, 'layoutSizeX', 'LayoutSizeX')
 DLib.util.AccessorFuncJIT(PANEL, 'layoutSizeY', 'LayoutSizeY')
 
 function PANEL:Init()
-	self.layoutSizeX = 64
-	self.layoutSizeY = 96
+	self.layoutSizeX = 96
+	self.layoutSizeY = 64
 	self.buttons = {}
 	self.buttonsPositions = {}
 	self.spacingX = 4
@@ -57,7 +57,6 @@ function PANEL:AddButton(button)
 	button:SetParent(self:GetCanvas())
 	button:SetSize(self.layoutSizeX, self.layoutSizeY)
 	button.__dlibIsPopulated = false
-	button:SetSize(self.layoutSizeX, self.layoutSizeY)
 	self:InvalidateLayout()
 end
 
