@@ -35,10 +35,6 @@ function PANEL:DoClick()
 
 end
 
-function PANEL:Paint(w, h)
-
-end
-
 function PANEL:PerformLayout(w, h)
 	if not w or not h then return end
 	self.label:SizeToContents()

@@ -175,41 +175,47 @@ function SKIN.tex.Panels.Highlight(x, y, w, h) Simple_DrawBox(x, y, w, h, Skin.b
 
 skin.ButtonHoverColor = Color(200, 200, 200, 150)
 skin.ButtonAlpha = 150
+skin.ButtonDefColor = Color(0, 0, 0, 150)
+skin.ButtonDefColor2 = Color(140, 140, 140, 150)
 
 function SKIN.tex.Button(x, y, w, h, self)
 	if not self then return end
-
 	self.Neon = self.Neon or 0
-	Simple_DrawBox(x, y, w, h, Color(self.Neon, self.Neon, self.Neon, skin.ButtonAlpha))
 
-	self.Neon = math.max(self.Neon - 5 * (FrameTime() * 66), 0)
+	Simple_DrawBox(x, y, w, h, skin.ButtonDefColor)
+	Simple_DrawBox(x, y + h / 2 - h * self.Neon / 2, w, h * self.Neon, skin.ButtonDefColor2)
+
+	self.Neon = Lerp(FrameTime() * 8, self.Neon, 0)
 end
 
 function SKIN.tex.Button_Hovered(x, y, w, h, self)
 	if not self then return end
 	self.Neon = self.Neon or 0
 
-	Simple_DrawBox(x, y, w, h, Color(self.Neon, self.Neon, self.Neon, skin.ButtonAlpha))
+	Simple_DrawBox(x, y, w, h, skin.ButtonDefColor)
+	Simple_DrawBox(x, y + h / 2 - h * self.Neon / 2, w, h * self.Neon, skin.ButtonDefColor2)
 
-	self.Neon = math.min(self.Neon + 5 * (FrameTime() * 66), 150)
+	self.Neon = Lerp(FrameTime() * 8, self.Neon, 1)
 end
 
 function SKIN.tex.Button_Down(x, y, w, h, self)
 	if not self then return end
 	self.Neon = self.Neon or 0
 
-	Simple_DrawBox(x, y, w, h, skin.ButtonHoverColor)
+	Simple_DrawBox(x, y, w, h, skin.ButtonDefColor)
+	Simple_DrawBox(x, y + h / 2 - h * self.Neon / 2, w, h * self.Neon, skin.ButtonDefColor2)
 
-	self.Neon = math.min(self.Neon + 5 * (FrameTime() * 66), 150)
+	self.Neon = Lerp(FrameTime() * 8, self.Neon, 1)
 end
 
 function SKIN.tex.Button_Dead(x, y, w, h, self)
 	if not self then return end
 	self.Neon = self.Neon or 0
 
-	Simple_DrawBox(x, y, w, h, skin.ButtonHoverColor)
+	Simple_DrawBox(x, y, w, h, skin.ButtonDefColor)
+	Simple_DrawBox(x, y + h / 2 - h * self.Neon / 2, w, h * self.Neon, skin.ButtonDefColor2)
 
-	self.Neon = math.min(self.Neon + 5 * (FrameTime() * 66), 150)
+	self.Neon = Lerp(FrameTime() * 8, self.Neon, 0)
 end
 
 SKIN.tex.Shadow = GWEN.CreateTextureBorder(448, 0, 31, 31, 8, 8, 8, 8)
