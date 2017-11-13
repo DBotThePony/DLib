@@ -94,6 +94,10 @@ DLib.Loader.start('friends', true)
 DLib.Loader.load('dlib/modules/friendsystem')
 DLib.Loader.finish()
 
+if CLIENT then
+	DLib.VGUI = DLib.VGUI or {}
+end
+
 DLib.Loader.loadPureCS('dlib/vgui')
 
 DLib.Loader.loadPureSHTop('dlib/luabridge')

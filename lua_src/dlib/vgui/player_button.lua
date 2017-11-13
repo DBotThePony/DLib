@@ -14,7 +14,7 @@
 -- limitations under the License.
 
 local PANEL = {}
-DLib.PlayerButton = PANEL
+DLib.VGUI.PlayerButton = PANEL
 local DButton = DButton
 
 function PANEL:Init()
@@ -60,3 +60,5 @@ function PANEL:Populate()
 end
 
 vgui.Register('DLib_PlayerButton', PANEL, 'DButton')
+
+return PANEL

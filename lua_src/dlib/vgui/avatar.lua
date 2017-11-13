@@ -16,6 +16,7 @@
 --
 
 local PANEL = {}
+DLib.VGUI.Avatar = PANEL
 
 function PANEL:AvatarHide()
 	self.havatar:SetVisible(false)
@@ -122,3 +123,5 @@ function PANEL:OnRemove()
 end
 
 vgui.Register('DLib_Avatar', PANEL, 'EditablePanel')
+
+return PANEL

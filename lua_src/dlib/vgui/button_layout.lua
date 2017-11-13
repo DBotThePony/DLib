@@ -13,8 +13,8 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
-DLib.ButtonLayout = {}
-local PANEL = DLib.ButtonLayout
+local PANEL = {}
+DLib.VGUI.ButtonLayout = PANEL
 local DScrollPanel = DScrollPanel
 
 DLib.util.AccessorFuncJIT(PANEL, 'spacingX', 'SpacingX')
@@ -133,3 +133,5 @@ function PANEL:PerformLayout(width, height)
 end
 
 vgui.Register('DLib_ButtonLayout', PANEL, 'DScrollPanel')
+
+return PANEL
