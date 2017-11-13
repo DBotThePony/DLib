@@ -21,10 +21,10 @@ local DFrame = DFrame
 
 function PANEL:Init()
 	DFrame.Init(self)
-	frame:SetSize(ScrW() - 100, ScrH() - 100)
-	frame:Center()
-	frame:MakePopup()
-	frame:SetTitle('DLib Window')
+	self:SetSize(ScrW() - 100, ScrH() - 100)
+	self:Center()
+	self:MakePopup()
+	self:SetTitle('DLib Window')
 end
 
 vgui.Register('DLib_Window', PANEL, 'DFrame')
