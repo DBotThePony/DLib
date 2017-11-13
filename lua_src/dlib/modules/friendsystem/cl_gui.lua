@@ -37,7 +37,7 @@ function friends.OpenGUIForPlayer(steamid)
 	local boxes = {}
 
 	for stringID, status in pairs(getData.status) do
-		local name = friends.typesCache[stringID] and friends.typesCache[stringID].name or stringID
+		local name = friends.typesCache[stringID] and friends.typesCache[stringID].name or ('(foreign) ' .. stringID)
 		local box = vgui.Create('DCheckBoxLabel', canvas)
 		box:Dock(TOP)
 		box:DockMargin(4, 4, 4, 4)
@@ -112,45 +112,57 @@ function friends.OpenGUI()
 	div:SetBottom(serverplayers)
 	div:SetTopHeight(ScrH() / 2) -- lesser than current friends
 
-	local steamidsData = sql.Query('SELECT steamid FROM dlib_friends GROUP BY steamid')
-	local steamids = {}
+	local function Populate()
+		myfriends:Clear()
+		serverplayers:Clear()
 
-	if steamidsData then
-		for i, row in ipairs(steamidsData) do
-			steamids[row.steamid] = row.steamid
+		local steamidsData = sql.Query('SELECT steamid FROM dlib_friends GROUP BY steamid')
+		local steamids = {}
+
+		if steamidsData then
+			for i, row in ipairs(steamidsData) do
+				steamids[row.steamid] = row.steamid
+			end
 		end
-	end
 
-	local lply = LocalPlayer()
+		local lply = LocalPlayer()
 
-	for i, ply in ipairs(player.GetHumans()) do
-		if ply ~= lply then
-			local steamid = ply:SteamID()
-			local cfriend = friends.currentStatus[ply]
+		for i, ply in ipairs(player.GetHumans()) do
+			if ply ~= lply then
+				local steamid = ply:SteamID()
+				local cfriend = friends.currentStatus[ply]
 
-			if not steamids[steamid] and (not cfriend or not cfriend.isFriend) then
-				local button = DLib.VCreate('DLib_PlayerButton', serverplayers)
-				button:SetSteamID(steamid)
-				serverplayers:AddButton(button)
+				if not steamids[steamid] and (not cfriend or not cfriend.isFriend) then
+					local button = DLib.VCreate('DLib_PlayerButton', serverplayers)
+					button:SetSteamID(steamid)
+					serverplayers:AddButton(button)
 
-				function button.DoClick()
-					friends.OpenGUIForPlayer(steamid)
+					function button.DoClick()
+						friends.OpenGUIForPlayer(steamid)
+					end
+				elseif cfriend and cfriend.isFriend then
+					steamids[steamid] = steamid
 				end
-			elseif cfriend and cfriend.isFriend then
-				steamids[steamid] = steamid
+			end
+		end
+
+		for i, steamid in pairs(steamids) do
+			local button = DLib.VCreate('DLib_PlayerButton', myfriends)
+			button:SetSteamID(steamid)
+			myfriends:AddButton(button)
+
+			function button.DoClick()
+				friends.OpenGUIForPlayer(steamid)
 			end
 		end
 	end
 
-	for i, steamid in pairs(steamids) do
-		local button = DLib.VCreate('DLib_PlayerButton', myfriends)
-		button:SetSteamID(steamid)
-		myfriends:AddButton(button)
+	Populate()
+	local populatehook = DLib.WrappedQueueFunction(Populate)
 
-		function button.DoClick()
-			friends.OpenGUIForPlayer(steamid)
-		end
-	end
+	hook.Add('DLib_FriendModified', frame, populatehook)
+	hook.Add('DLib_FriendCreated', frame, populatehook)
+	hook.Add('DLib_FriendSaved', frame, populatehook)
 
 	return frame
 end

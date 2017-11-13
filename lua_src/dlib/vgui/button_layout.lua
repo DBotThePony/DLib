@@ -87,6 +87,7 @@ function PANEL:Clear()
 	end
 
 	self.buttons = {}
+	self.__lastW, self.__lastH = nil, nil
 	self:InvalidateLayout()
 end
 
