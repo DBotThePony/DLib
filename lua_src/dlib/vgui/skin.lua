@@ -15,32 +15,45 @@
 
 -- this needs cleanup
 
+local surface = surface
+local draw = draw
+local Color = Color
+local GWEN = GWEN
 local nomat = surface.GetTextureID('gui/corner8')
+local surface_SetTexture = surface.SetTexture
+local surface_DrawRect = surface.DrawRect
+local surface_GetTextSize = surface.GetTextSize
+local surface_SetTextColor = surface.SetTextColor
+local surface_SetTextPos = surface.SetTextPos
+local surface_DrawText = surface.DrawText
+local surface_SetFont = surface.SetFont
+local surface_SetDrawColor = surface.SetDrawColor
+local surface_DrawLine = surface.DrawLine
 
 local function Simple_DrawBox(x, y, w, h, color)
 	if color then
-		surface.SetDrawColor(color)
+		surface_SetDrawColor(color)
 	end
 
-	surface.SetTexture(nomat)
-	surface.DrawRect(x, y, w, h)
+	surface_SetTexture(nomat)
+	surface_DrawRect(x, y, w, h)
 end
 
 local function Simple_DrawText(text, font, x, y, col, center)
 	if font then
-		surface.SetFont(font)
+		surface_SetFont(font)
 	end
 
 	if center then
-		x = x - surface.GetTextSize(text) / 2
+		x = x - surface_GetTextSize(text) / 2
 	end
 
 	if col then
-		surface.SetTextColor(col.r, col.g, col.b, col.a)
+		surface_SetTextColor(col.r, col.g, col.b, col.a)
 	end
 
-	surface.SetTextPos(x, y)
-	surface.DrawText(text)
+	surface_SetTextPos(x, y)
+	surface_DrawText(text)
 end
 
 local colors = {}
@@ -65,21 +78,21 @@ local WINDOW_ALPHA = 200
 SKIN = {}
 local Skin, skin = SKIN, SKIN
 
-surface.CreateFont('FlatBlackRoboto', {
+surface.CreateFont('DLib.SkinRoboto', {
 	font = 'Roboto',
 	size = 18,
 	weight = 500,
 	extended = true,
 })
 
-SKIN.PrintName  = 'Flat Skin'
+SKIN.PrintName  = 'DLib FlatBlack Skin utilizing Lua draw functions'
 SKIN.Author  = 'DBot'
 SKIN.DermaVersion = 1
 SKIN.GwenTexture = Material('gwenskin/GModDefault.png')
-SKIN.fontFrame = 'FlatBlackRoboto'
+SKIN.fontFrame = 'DLib.SkinRoboto'
 SKIN.texGradientUp = Material('gui/gradient_up')
 SKIN.texGradientDown = Material('gui/gradient_down')
-SKIN.fontTab = 'FlatBlackRoboto'
+SKIN.fontTab = 'DLib.SkinRoboto'
 SKIN.fontCategoryHeader = 'TabLarge'
 
 --Colors
@@ -318,9 +331,9 @@ function SKIN.tex.Window.Close(x, y, w, h, self)
 
 	self.Neon = math.max(self.Neon - 5 * (FrameTime() * 66), 0)
 
-	surface.SetDrawColor(255, self.Neon * 3, self.Neon * 3, self.Neon * 3)
-	surface.DrawLine(x + 2, y + 5, w - 4, h - 16)
-	surface.DrawLine(x + 2, h - 16, w - 4, y + 5)
+	surface_SetDrawColor(255, self.Neon * 3, self.Neon * 3, self.Neon * 3)
+	surface_DrawLine(x + 2, y + 5, w - 4, h - 16)
+	surface_DrawLine(x + 2, h - 16, w - 4, y + 5)
 end
 
 function SKIN.tex.Window.Close_Hover(x, y, w, h, self)
@@ -330,9 +343,9 @@ function SKIN.tex.Window.Close_Hover(x, y, w, h, self)
 	Simple_DrawBox(x, y, w, h - 11, Color(200, 50 + self.Neon, 50 + self.Neon, skin.CloseAlpha))
 
 	self.Neon = math.min(self.Neon + 5 * (FrameTime() * 66), 50)
-	surface.SetDrawColor(255, self.Neon * 3, self.Neon * 3, self.Neon * 3)
-	surface.DrawLine(x + 2, y + 5, w - 4, h - 16)
-	surface.DrawLine(x + 2, h - 16, w - 4, y + 5)
+	surface_SetDrawColor(255, self.Neon * 3, self.Neon * 3, self.Neon * 3)
+	surface_DrawLine(x + 2, y + 5, w - 4, h - 16)
+	surface_DrawLine(x + 2, h - 16, w - 4, y + 5)
 end
 
 function SKIN.tex.Window.Close_Down(x, y, w, h, self)
@@ -343,9 +356,9 @@ function SKIN.tex.Window.Close_Down(x, y, w, h, self)
 
 	self.Neon = math.min(self.Neon + 5 * (FrameTime() * 66), 50)
 
-	surface.SetDrawColor(255, 200, 200)
-	surface.DrawLine(x + 2, y + 5, w - 4, h - 16)
-	surface.DrawLine(x + 2, h - 16, w - 4, y + 5)
+	surface_SetDrawColor(255, 200, 200)
+	surface_DrawLine(x + 2, y + 5, w - 4, h - 16)
+	surface_DrawLine(x + 2, h - 16, w - 4, y + 5)
 end
 
 --Maximize
@@ -357,11 +370,11 @@ function SKIN.tex.Window.Maxi(x, y, w, h, self)
 
 	self.Neon = math.max(self.Neon - 5 * (FrameTime() * 66), 0)
 
-	surface.SetDrawColor(125 + self.Neon * 2, 125 + self.Neon * 2, 125 + self.Neon * 2)
-	surface.DrawLine(x + 2, h - 16, w - 4, h - 16)
-	surface.DrawLine(x + 2, h - 24, w - 4, h - 24)
-	surface.DrawLine(x + 2, h - 16, x + 2, h - 24)
-	surface.DrawLine(w - 4, h - 16, w - 4, h - 24)
+	surface_SetDrawColor(125 + self.Neon * 2, 125 + self.Neon * 2, 125 + self.Neon * 2)
+	surface_DrawLine(x + 2, h - 16, w - 4, h - 16)
+	surface_DrawLine(x + 2, h - 24, w - 4, h - 24)
+	surface_DrawLine(x + 2, h - 16, x + 2, h - 24)
+	surface_DrawLine(w - 4, h - 16, w - 4, h - 24)
 end
 
 function SKIN.tex.Window.Maxi_Hover(x, y, w, h, self)
@@ -372,11 +385,11 @@ function SKIN.tex.Window.Maxi_Hover(x, y, w, h, self)
 
 	self.Neon = math.min(self.Neon + 5 * (FrameTime() * 66), 50)
 
-	surface.SetDrawColor(150 + self.Neon * 2, 150 + self.Neon * 2, 150 + self.Neon * 2)
-	surface.DrawLine(x + 2, h - 16, w - 4, h - 16)
-	surface.DrawLine(x + 2, h - 24, w - 4, h - 24)
-	surface.DrawLine(x + 2, h - 16, x + 2, h - 24)
-	surface.DrawLine(w - 4, h - 16, w - 4, h - 24)
+	surface_SetDrawColor(150 + self.Neon * 2, 150 + self.Neon * 2, 150 + self.Neon * 2)
+	surface_DrawLine(x + 2, h - 16, w - 4, h - 16)
+	surface_DrawLine(x + 2, h - 24, w - 4, h - 24)
+	surface_DrawLine(x + 2, h - 16, x + 2, h - 24)
+	surface_DrawLine(w - 4, h - 16, w - 4, h - 24)
 end
 
 local Col = Color(200, 200, 200)
@@ -389,11 +402,11 @@ function SKIN.tex.Window.Maxi_Down(x, y, w, h, self)
 
 	self.Neon = math.min(self.Neon + 5 * (FrameTime() * 66), 50)
 
-	surface.SetDrawColor(150 + self.Neon * 2, 150 + self.Neon * 2, 150 + self.Neon * 2)
-	surface.DrawLine(x + 2, h - 16, w - 4, h - 16)
-	surface.DrawLine(x + 2, h - 24, w - 4, h - 24)
-	surface.DrawLine(x + 2, h - 16, x + 2, h - 24)
-	surface.DrawLine(w - 4, h - 16, w - 4, h - 24)
+	surface_SetDrawColor(150 + self.Neon * 2, 150 + self.Neon * 2, 150 + self.Neon * 2)
+	surface_DrawLine(x + 2, h - 16, w - 4, h - 16)
+	surface_DrawLine(x + 2, h - 24, w - 4, h - 24)
+	surface_DrawLine(x + 2, h - 16, x + 2, h - 24)
+	surface_DrawLine(w - 4, h - 16, w - 4, h - 24)
 end
 
 function SKIN.tex.Window.Restore(x, y, w, h, self)
@@ -404,11 +417,11 @@ function SKIN.tex.Window.Restore(x, y, w, h, self)
 
 	self.Neon = math.max(self.Neon - 5 * (FrameTime() * 66), 0)
 
-	surface.SetDrawColor(125 + self.Neon * 2, 125 + self.Neon * 2, 125 + self.Neon * 2)
-	surface.DrawLine(x + 2, h - 16, w - 4, h - 16)
-	surface.DrawLine(x + 2, h - 28, w - 4, h - 28)
-	surface.DrawLine(x + 2, h - 16, x + 2, h - 28)
-	surface.DrawLine(w - 4, h - 16, w - 4, h - 28)
+	surface_SetDrawColor(125 + self.Neon * 2, 125 + self.Neon * 2, 125 + self.Neon * 2)
+	surface_DrawLine(x + 2, h - 16, w - 4, h - 16)
+	surface_DrawLine(x + 2, h - 28, w - 4, h - 28)
+	surface_DrawLine(x + 2, h - 16, x + 2, h - 28)
+	surface_DrawLine(w - 4, h - 16, w - 4, h - 28)
 end
 
 function SKIN.tex.Window.Restore_Hover(x, y, w, h, self)
@@ -419,11 +432,11 @@ function SKIN.tex.Window.Restore_Hover(x, y, w, h, self)
 
 	self.Neon = math.min(self.Neon + 5 * (FrameTime() * 66), 50)
 
-	surface.SetDrawColor(150 + self.Neon * 2, 150 + self.Neon * 2, 150 + self.Neon * 2)
-	surface.DrawLine(x + 2, h - 16, w - 4, h - 16)
-	surface.DrawLine(x + 2, h - 28, w - 4, h - 28)
-	surface.DrawLine(x + 2, h - 16, x + 2, h - 28)
-	surface.DrawLine(w - 4, h - 16, w - 4, h - 28)
+	surface_SetDrawColor(150 + self.Neon * 2, 150 + self.Neon * 2, 150 + self.Neon * 2)
+	surface_DrawLine(x + 2, h - 16, w - 4, h - 16)
+	surface_DrawLine(x + 2, h - 28, w - 4, h - 28)
+	surface_DrawLine(x + 2, h - 16, x + 2, h - 28)
+	surface_DrawLine(w - 4, h - 16, w - 4, h - 28)
 end
 
 function SKIN.tex.Window.Restore_Down(x, y, w, h, self)
@@ -434,11 +447,11 @@ function SKIN.tex.Window.Restore_Down(x, y, w, h, self)
 
 	self.Neon = math.min(self.Neon + 5 * (FrameTime() * 66), 50)
 
-	surface.SetDrawColor(150 + self.Neon * 2, 150 + self.Neon * 2, 150 + self.Neon * 2)
-	surface.DrawLine(x + 2, h - 16, w - 4, h - 16)
-	surface.DrawLine(x + 2, h - 28, w - 4, h - 28)
-	surface.DrawLine(x + 2, h - 16, x + 2, h - 28)
-	surface.DrawLine(w - 4, h - 16, w - 4, h - 28)
+	surface_SetDrawColor(150 + self.Neon * 2, 150 + self.Neon * 2, 150 + self.Neon * 2)
+	surface_DrawLine(x + 2, h - 16, w - 4, h - 16)
+	surface_DrawLine(x + 2, h - 28, w - 4, h - 28)
+	surface_DrawLine(x + 2, h - 16, x + 2, h - 28)
+	surface_DrawLine(w - 4, h - 16, w - 4, h - 28)
 end
 
 function SKIN.tex.Window.Mini(x, y, w, h, self)
@@ -449,8 +462,8 @@ function SKIN.tex.Window.Mini(x, y, w, h, self)
 
 	self.Neon = math.max(self.Neon - 5 * (FrameTime() * 66), 0)
 
-	surface.SetDrawColor(125 + self.Neon * 2, 125 + self.Neon * 2, 125 + self.Neon * 2)
-	surface.DrawLine(x + 2, h - 16, w - 4, h - 16)
+	surface_SetDrawColor(125 + self.Neon * 2, 125 + self.Neon * 2, 125 + self.Neon * 2)
+	surface_DrawLine(x + 2, h - 16, w - 4, h - 16)
 end
 
 function SKIN.tex.Window.Mini_Hover(x, y, w, h, self)
@@ -461,8 +474,8 @@ function SKIN.tex.Window.Mini_Hover(x, y, w, h, self)
 
 	self.Neon = math.min(self.Neon + 5 * (FrameTime() * 66), 50)
 
-	surface.SetDrawColor(125 + self.Neon * 2, 125 + self.Neon * 2, 125 + self.Neon * 2)
-	surface.DrawLine(x + 2, h - 16, w - 4, h - 16)
+	surface_SetDrawColor(125 + self.Neon * 2, 125 + self.Neon * 2, 125 + self.Neon * 2)
+	surface_DrawLine(x + 2, h - 16, w - 4, h - 16)
 end
 
 function SKIN.tex.Window.Mini_Down(x, y, w, h, self)
@@ -473,8 +486,8 @@ function SKIN.tex.Window.Mini_Down(x, y, w, h, self)
 
 	self.Neon = math.min(self.Neon + 5 * (FrameTime() * 66), 50)
 
-	surface.SetDrawColor(125 + self.Neon * 2, 125 + self.Neon * 2, 125 + self.Neon * 2)
-	surface.DrawLine(x + 2, h - 16, w - 4, h - 16)
+	surface_SetDrawColor(125 + self.Neon * 2, 125 + self.Neon * 2, 125 + self.Neon * 2)
+	surface_DrawLine(x + 2, h - 16, w - 4, h - 16)
 end
 
 SKIN.tex.Scroller = {}
@@ -1154,14 +1167,14 @@ end
 function SKIN:PaintTreeNode(panel, w, h)
 	if not panel.m_bDrawLines then return end
 
-	surface.SetDrawColor(self.Colours.Tree.Lines)
+	surface_SetDrawColor(self.Colours.Tree.Lines)
 
 	if panel.m_bLastChild then
-		surface.DrawRect(9, 0, 1, 7)
-		surface.DrawRect(9, 7, 9, 1)
+		surface_DrawRect(9, 0, 1, 7)
+		surface_DrawRect(9, 7, 9, 1)
 	else
-		surface.DrawRect(9, 0, 1, h)
-		surface.DrawRect(9, 7, 9, 1)
+		surface_DrawRect(9, 0, 1, h)
+		surface_DrawRect(9, 7, 9, 1)
 	end
 end
 
@@ -1198,13 +1211,13 @@ local function PaintNotches(x, y, w, h, num)
 
 	local space = w / num
 	for i=0, num do
-		surface.DrawRect(x + i * space, y + 4, 1,  5)
+		surface_DrawRect(x + i * space, y + 4, 1,  5)
 	end
 end
 
 function SKIN:PaintNumSlider(panel, w, h)
-	surface.SetDrawColor(Color(0, 0, 0, 100))
-	surface.DrawRect(8, h / 2 - 1, w - 15, 1)
+	surface_SetDrawColor(Color(0, 0, 0, 100))
+	surface_DrawRect(8, h / 2 - 1, w - 15, 1)
 
 	PaintNotches(8, h / 2 - 1, w - 16, 1, panel.m_iNotches)
 end
@@ -1229,23 +1242,23 @@ end
 function SKIN:PaintCategoryButton(panel, w, h)
 	if panel.AltLine then
 		if panel.Depressed or panel.m_bSelected then
-			surface.SetDrawColor(self.Colours.Category.LineAlt.Button_Selected)
+			surface_SetDrawColor(self.Colours.Category.LineAlt.Button_Selected)
 		elseif panel.Hovered then
-			surface.SetDrawColor(self.Colours.Category.LineAlt.Button_Hover)
+			surface_SetDrawColor(self.Colours.Category.LineAlt.Button_Hover)
 		else
-			surface.SetDrawColor(self.Colours.Category.LineAlt.Button)
+			surface_SetDrawColor(self.Colours.Category.LineAlt.Button)
 		end
 	else
 		if panel.Depressed or panel.m_bSelected then
-			surface.SetDrawColor(self.Colours.Category.Line.Button_Selected)
+			surface_SetDrawColor(self.Colours.Category.Line.Button_Selected)
 		elseif panel.Hovered then
-			surface.SetDrawColor(self.Colours.Category.Line.Button_Hover)
+			surface_SetDrawColor(self.Colours.Category.Line.Button_Hover)
 		else
-			surface.SetDrawColor(self.Colours.Category.Line.Button)
+			surface_SetDrawColor(self.Colours.Category.Line.Button)
 		end
 	end
 
-	surface.DrawRect(0, 0, w, h)
+	surface_DrawRect(0, 0, w, h)
 end
 
 function SKIN:PaintListViewLine(panel, w, h)
