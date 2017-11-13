@@ -13,6 +13,8 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
+local sql = DLib.sql
+
 sql.Query([[
 	CREATE TABLE IF NOT EXISTS dlib_friends (
 		steamid VARCHAR(31) NOT NULL,

@@ -32,6 +32,10 @@ function PANEL:UpdateSize(w, h)
 	self:Center()
 end
 
+function PANEL:SetLabel(str)
+	return self:SetTitle(str)
+end
+
 vgui.Register('DLib_Window', PANEL, 'DFrame')
 
 return PANEL

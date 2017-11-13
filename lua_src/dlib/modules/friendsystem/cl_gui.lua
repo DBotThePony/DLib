@@ -16,14 +16,16 @@
 function friends.OpenGUIForPlayer(steamid)
 	local nick = DLib.LastNickFormatted(steamid)
 	local getData = friends.LoadPlayer(steamid)
+	local wasfriend = getData and getData.isFriend
 
 	if not getData then
-		getData = friends.CreateFriend(steamid, true)
+		getData = friends.CreateFriend(steamid, false)
+		wasfriend = false
 	end
 
 	local frame = vgui.Create('DLib_Window')
 	frame:UpdateSize(400, 400)
-	frame:SetLabel('Editing ' .. nick .. ' <' .. steamid .. '>')
+	frame:SetTitle('Editing ' .. nick .. ' <' .. steamid .. '>')
 
 	local label = vgui.Create('DLabel', frame)
 	label:Dock(TOP)
@@ -34,7 +36,7 @@ function friends.OpenGUIForPlayer(steamid)
 	local canvas = scroll:GetCanvas()
 	local boxes = {}
 
-	for stringID, status in pairs(getData) do
+	for stringID, status in pairs(getData.status) do
 		local name = friends.typesCache[stringID] and friends.typesCache[stringID].name or stringID
 		local box = vgui.Create('DCheckBoxLabel', canvas)
 		box:Dock(TOP)
@@ -51,7 +53,7 @@ function friends.OpenGUIForPlayer(steamid)
 
 	function button.DoClick()
 		local newdata = {}
-		local hitvalid = false
+		local hitvalid = #boxes == 0
 
 		for i, box in ipairs(boxes) do
 			if box:GetChecked() then
@@ -74,20 +76,22 @@ function friends.OpenGUIForPlayer(steamid)
 		frame:Close()
 	end
 
+	if wasfriend then
+		button = vgui.Create('DButton', frame)
+		button:SetText('Remove friend')
+		button:Dock(BOTTOM)
+
+		function button.DoClick()
+			friends.RemoveFriend(steamid)
+			frame:Close()
+		end
+	end
+
 	button = vgui.Create('DButton', frame)
 	button:SetText('Decline')
 	button:Dock(BOTTOM)
 
 	function button.DoClick()
-		frame:Close()
-	end
-
-	button = vgui.Create('DButton', frame)
-	button:SetText('Remove friend')
-	button:Dock(BOTTOM)
-
-	function button.DoClick()
-		friends.RemoveFriend(steamid)
 		frame:Close()
 	end
 
@@ -108,7 +112,7 @@ function friends.OpenGUI()
 	div:SetBottom(serverplayers)
 	div:SetTopHeight(ScrH() / 2) -- lesser than current friends
 
-	local steamidsData = sql.Query('SELECT steamid FROM dlib_friends')
+	local steamidsData = sql.Query('SELECT steamid FROM dlib_friends GROUP BY steamid')
 	local steamids = {}
 
 	if steamidsData then
@@ -122,8 +126,9 @@ function friends.OpenGUI()
 	for i, ply in ipairs(player.GetHumans()) do
 		if ply ~= lply then
 			local steamid = ply:SteamID()
+			local cfriend = friends.currentStatus[ply]
 
-			if not steamids[steamid] then
+			if not steamids[steamid] and (not cfriend or not cfriend.isFriend) then
 				local button = DLib.VCreate('DLib_PlayerButton', serverplayers)
 				button:SetSteamID(steamid)
 				serverplayers:AddButton(button)
@@ -131,6 +136,8 @@ function friends.OpenGUI()
 				function button.DoClick()
 					friends.OpenGUIForPlayer(steamid)
 				end
+			elseif cfriend and cfriend.isFriend then
+				steamids[steamid] = steamid
 			end
 		end
 	end
