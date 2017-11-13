@@ -107,7 +107,7 @@ function friends.LoadPlayer(steamid, returnIfNothing, withCreation)
 				end
 
 				return {
-					isFriend = false,
+					isFriend = true,
 					status = build
 				}
 			end
@@ -137,6 +137,34 @@ function friends.ModifyFriend(steamid, savedata)
 	end
 
 	friends.SaveDataFor(steamid, savedata)
+end
+
+local steamidsCache = {}
+
+function friends.UpdateFriendType(steamid, ftype, fnew)
+	steamidsCache[steamid] = steamidsCache[steamid] or friends.LoadPlayer(steamid, true, true)
+	steamidsCache[steamid].status[ftype] = fnew
+
+	local isFriend = false
+
+	for i, status in pairs(steamidsCache[steamid].status) do
+		if status then
+			isFriend = true
+			break
+		end
+	end
+
+	steamidsCache[steamid].isFriend = isFriend
+
+	return steamidsCache[steamid]
+end
+
+function friends.Flush()
+	for steamid, data in pairs(steamidsCache) do
+		friends.SaveDataFor(steamid, data)
+	end
+
+	steamidsCache = {}
 end
 
 function friends.SaveDataFor(steamid, savedata)
