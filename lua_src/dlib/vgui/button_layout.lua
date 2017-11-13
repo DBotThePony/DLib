@@ -123,7 +123,7 @@ end
 
 function PANEL:PerformLayout(width, height)
 	DScrollPanel.PerformLayout(self, width, height)
-	self:RebuildButtonsPositions(width, height)
+	self:RebuildButtonsPositions(self:GetSize())
 
 	for i, button in ipairs(self:GetVisibleButtons()) do
 		if not button.__dlibIsPopulated then
