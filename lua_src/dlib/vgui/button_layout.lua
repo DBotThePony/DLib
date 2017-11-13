@@ -92,6 +92,7 @@ function PANEL:Clear()
 end
 
 function PANEL:RebuildButtonsPositions(w, h)
+	if not w or not h then return end
 	if w == self.__lastW and h == self.__lastH then return self.buttonsPositions end
 	self.__lastW, self.__lastH = w, h
 	self.buttonsPositions = {}

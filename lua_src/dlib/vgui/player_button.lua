@@ -55,7 +55,7 @@ function PANEL:Populate()
 	avatar:SetSize(48, 48)
 	avatar:SetPos(8, 0)
 	avatar:SetSteamID(self.steamid, 64)
-	self.nickname = DLib.LastNick(self.steamid)
+	self.nickname = DLib.LastNickFormatted(self.steamid)
 	self.label:SetText(self.nickname .. '\n' .. self.steamid)
 end
 
