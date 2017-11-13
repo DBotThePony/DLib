@@ -25,11 +25,11 @@ function friends.OpenGUIForPlayer(steamid)
 
 	local frame = vgui.Create('DLib_Window')
 	frame:UpdateSize(400, 400)
-	frame:SetTitle('Editing ' .. nick .. ' <' .. steamid .. '>')
+	frame:SetTitle((wasfriend and 'Editing ' or 'Adding ') .. nick .. ' <' .. steamid .. '>')
 
 	local label = vgui.Create('DLabel', frame)
 	label:Dock(TOP)
-	label:SetText('You are friend with ' .. nick .. ' in...')
+	label:SetText('You are ' .. (wasfriend and 'friend' or 'going to be a friend') .. ' with ' .. nick .. ' in...')
 
 	local scroll = vgui.Create('DScrollPanel', frame)
 	scroll:Dock(FILL)
