@@ -52,7 +52,15 @@ end
 
 function DLib.UpdateLastNick(steamid, nick, lastname)
 	lastname = lastname or nick
-	return sql.Query('INSERT INTO dlib_lastnick (steamid, lastnick, lastname) VALUES (' .. SQLStr(steamid) .. ', ' .. SQLStr(nick) .. ', ' .. SQLStr(lastname) .. ')')
+	steamid = SQLStr(steamid)
+	nick = SQLStr(nick)
+	lastname = SQLStr(lastname)
+
+	if sql.Query('SELECT steamid FROM dlib_lastnick WHERE steamid = ' .. steamid) then
+		return sql.Query('UPDATE dlib_lastnick SET lastnick = ' .. nick .. ', lastname = ' .. lastname .. ' WHERE steamid = ' .. steamid)
+	else
+		return sql.Query('INSERT INTO dlib_lastnick (steamid, lastnick, lastname) VALUES (' .. steamid .. ', ' .. nick .. ', ' .. lastname .. ')')
+	end
 end
 
 function DLib.UpdateLastNicks()
@@ -71,7 +79,7 @@ function DLib.UpdateLastNicks()
 			ply.__dlib_nickinsert = true
 		end
 
-		sql.Query('UPDATE dlib_lastnick WHERE')
+		sql.Query('UPDATE dlib_lastnick SET lastnick = ' .. nick .. ', lastname = ' .. lastname .. ' WHERE steamid = ' .. steamid)
 	end
 
 	sql.Query('COMMIT')
