@@ -19,15 +19,15 @@ local DButton = DButton
 
 function PANEL:Init()
 	self.isAddingNew = false
-	self:SetSize(96, 64)
 	self:SetMouseInputEnabled(true)
 	self:SetKeyboardInputEnabled(true)
 	self:SetText('')
 	self.label = vgui.Create('DLabel', self)
 	self.label:SetText('usernaem:tm:\nstaimid:tm:')
-	self.label:SetPos(0, 48)
+	self.label:SetPos(0, 64)
 	self.label:SetContentAlignment(CONTENT_ALIGMENT_MIDDLECENTER)
 	self.nickname = 'unknown'
+	self:SetSize(128, 96)
 end
 
 function PANEL:DoClick()
@@ -36,6 +36,17 @@ end
 
 function PANEL:Paint(w, h)
 
+end
+
+function PANEL:PerformLayout(w, h)
+	if not w or not h then return end
+	self.label:SizeToContents()
+	local W, H = self.label:GetSize()
+	self.label:SetSize(w, H)
+
+	if IsValid(self.avatar) then
+		self.avatar:SetPos(w / 2 - self.avatar:GetWide() / 2)
+	end
 end
 
 function PANEL:SetSteamID(steamid)
@@ -52,7 +63,7 @@ function PANEL:Populate()
 	self.avatar = vgui.Create('DLib_Avatar', self)
 	local avatar = self.avatar
 	avatar:SetSize(48, 48)
-	avatar:SetPos(8, 0)
+	avatar:SetPos(self:GetWide() / 2 - 24, 0)
 	avatar:SetSteamID(self.steamid, 64)
 	self.nickname = DLib.LastNickFormatted(self.steamid)
 	self.label:SetText(self.nickname .. '\n' .. self.steamid)

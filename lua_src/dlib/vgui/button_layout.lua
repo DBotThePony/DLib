@@ -23,8 +23,8 @@ DLib.util.AccessorFuncJIT(PANEL, 'layoutSizeX', 'LayoutSizeX')
 DLib.util.AccessorFuncJIT(PANEL, 'layoutSizeY', 'LayoutSizeY')
 
 function PANEL:Init()
-	self.layoutSizeX = 96
-	self.layoutSizeY = 64
+	self.layoutSizeX = 128
+	self.layoutSizeY = 96
 	self.buttons = {}
 	self.buttonsPositions = {}
 	self.spacingX = 4
