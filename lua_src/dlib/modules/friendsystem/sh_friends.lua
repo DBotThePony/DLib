@@ -92,3 +92,15 @@ end
 function plyMeta:CheckDLibFriendIn(target, tp)
 	return self:IsFriend(target) or self:IsDLibFriendIn(target, tp)
 end
+
+function plyMeta:GetAllFriends()
+	local reply = {}
+
+	for i, ply in ipairs(player.GetHumans()) do
+		if self:IsDLibFriend(ply) then
+			table.insert(reply, ply)
+		end
+	end
+
+	return reply
+end
