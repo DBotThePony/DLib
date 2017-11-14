@@ -29,7 +29,7 @@ function friends.OpenGUIForPlayer(steamid)
 
 	local label = vgui.Create('DLabel', frame)
 	label:Dock(TOP)
-	label:SetText('You are ' .. (wasfriend and 'friend' or 'going to be a friend') .. ' with ' .. nick .. ' in...')
+	label:SetText('You are ' .. (wasfriend and 'a friend' or 'going to be a friend') .. ' with ' .. nick .. ' in...')
 
 	local scroll = vgui.Create('DScrollPanel', frame)
 	scroll:Dock(FILL)
