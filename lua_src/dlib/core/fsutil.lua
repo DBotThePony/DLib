@@ -34,14 +34,15 @@ end
 
 local function findRecursiveVisible(dirTarget)
 	local findFiles, findDirs = fsutil.FindVisible(dirTarget, searchIn)
+
+	for i, dir in ipairs(findDirs) do
+		findRecursiveVisible(dirTarget .. '/' .. dir)
+	end
+
 	table.prependString(findFiles, dirTarget .. '/')
 	table.prependString(findDirs, dirTarget .. '/')
 	table.append(files, findFiles)
 	table.append(dirs, findDirs)
-
-	for i, dir in ipairs(findDirs) do
-		findRecursive(dirTarget .. '/' .. dir)
-	end
 end
 
 function fsutil.FindVisible(dir, searchIn)
