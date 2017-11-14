@@ -369,6 +369,7 @@ class bind.KeyBindsAdapter
 
 	OpenKeybindsMenu: =>
 		with frame = vgui.Create('DFrame')
+			\SetSkin('DLib_Black')
 			\SetSize(470, ScrH() - 200)
 			\SetTitle(@vname .. ' Keybinds')
 			\Center()
@@ -388,6 +389,7 @@ class bind.KeyBindsAdapter
 
 bind.PANEL_BIND_FIELD =
 	Init: =>
+		@SetSkin('DLib_Black')
 		@lastMousePress = 0
 		@lastMousePressRight = 0
 		@primary = true
@@ -481,6 +483,7 @@ bind.PANEL_BIND_FIELD =
 
 bind.PANEL_BIND_INFO =
 	Init: =>
+		@SetSkin('DLib_Black')
 		@SetMouseInputEnabled(true)
 		@SetKeyboardInputEnabled(true)
 		@bindid = ''
