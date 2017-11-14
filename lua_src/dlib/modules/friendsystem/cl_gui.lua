@@ -98,19 +98,45 @@ function friends.OpenGUIForPlayer(steamid)
 	return frame
 end
 
+surface.CreateFont('DLib.FriendsTooltip', {
+	font = 'Roboto',
+	size = 20,
+	weight = 600
+})
+
 function friends.OpenGUI()
 	local frame = vgui.Create('DLib_Window')
 	frame:SetTitle('DLib Friends')
 
-	local myfriends = DLib.VCreate('DLib_ButtonLayout', frame)
-	local serverplayers = DLib.VCreate('DLib_ButtonLayout', frame)
+	local topwrapper = DLib.VCreate('EditablePanel', frame)
+	local bottomwrapper = DLib.VCreate('EditablePanel', frame)
+
+	local myfriends = DLib.VCreate('DLib_ButtonLayout', topwrapper)
+	local serverplayers = DLib.VCreate('DLib_ButtonLayout', bottomwrapper)
 
 	local div = DLib.VCreate('DVerticalDivider', frame)
 	div:Dock(FILL)
 
-	div:SetTop(myfriends)
-	div:SetBottom(serverplayers)
+	div:SetTop(topwrapper)
+	div:SetBottom(bottomwrapper)
 	div:SetTopHeight(ScrH() / 2) -- lesser than current friends
+
+	local label = DLib.VCreate('DLabel', topwrapper)
+	label:SetFont('DLib.FriendsTooltip')
+	label:Dock(TOP)
+	label:DockMargin(4, 4, 4, 4)
+	label:SetText('Your friends ->')
+	label:SizeToContents()
+
+	label = DLib.VCreate('DLabel', serverplayers)
+	label:SetFont('DLib.FriendsTooltip')
+	label:Dock(TOP)
+	label:DockMargin(4, 4, 4, 4)
+	label:SetText('Server players ->')
+	label:SizeToContents()
+
+	myfriends:Dock(FILL)
+	serverplayers:Dock(FILL)
 
 	local function Populate()
 		myfriends:Clear()
