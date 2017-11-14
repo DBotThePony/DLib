@@ -15,7 +15,6 @@
 
 local PANEL = {}
 DLib.VGUI.TextInput = PANEL
-local DTextEntry = DTextEntry
 
 function PANEL:Init()
 	self:SetSize(140, 20)

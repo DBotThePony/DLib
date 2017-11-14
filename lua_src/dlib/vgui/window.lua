@@ -15,7 +15,6 @@
 
 local PANEL = {}
 DLib.VGUI.Window = PANEL
-local DFrame = DFrame
 
 -- TODO: Stretching
 

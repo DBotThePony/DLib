@@ -15,7 +15,6 @@
 
 local PANEL = {}
 DLib.VGUI.ButtonLayout = PANEL
-local DScrollPanel = DScrollPanel
 
 DLib.util.AccessorFuncJIT(PANEL, 'spacingX', 'SpacingX')
 DLib.util.AccessorFuncJIT(PANEL, 'spacingY', 'SpacingY')

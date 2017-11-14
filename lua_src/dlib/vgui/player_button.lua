@@ -15,7 +15,6 @@
 
 local PANEL = {}
 DLib.VGUI.PlayerButton = PANEL
-local DButton = DButton
 
 DLib.util.AccessorFuncJIT(PANEL, 'm_DisplayGreen', 'GreenIfOnline')
 

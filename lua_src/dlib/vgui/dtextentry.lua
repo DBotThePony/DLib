@@ -15,7 +15,6 @@
 
 local PANEL = {}
 DLib.VGUI.TextEntry = PANEL
-local DTextEntry = DTextEntry
 
 function PANEL:Init()
 	self:SetText('')
