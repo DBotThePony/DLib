@@ -13,15 +13,17 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
+if SERVER then return end
+
 timer.Simple(0, function()
 	for k, info in pairs(scripted_ents.GetList()) do
-		if info.t and info.t.ClassName and info.t.PrintName then
+		if info.t and info.t.ClassName and info.t.PrintName and info.t.PrintName:sub(1, 1) ~= '#' then
 			language.Add(info.t.ClassName, info.t.PrintName)
 		end
 	end
 
 	for i, info in ipairs(weapons.GetList()) do
-		if info.ClassName and info.PrintName then
+		if info.ClassName and info.PrintName and info.PrintName:sub(1, 1) ~= '#' then
 			language.Add(info.ClassName, info.PrintName)
 		end
 	end
