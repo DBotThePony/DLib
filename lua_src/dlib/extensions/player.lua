@@ -89,7 +89,7 @@ function plyMeta:GetInfoBool(convar, ifNone)
 	if convar == 'false' then return false end
 	if convar == 'true' then return true end
 
-	local num = tonumber(convar)
+	local num = tonumber(info)
 
 	if not num then
 		return ifNone
