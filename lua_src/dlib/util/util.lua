@@ -102,4 +102,12 @@ function util.SteamLink(steamid)
 	end
 end
 
+function util.CreateSharedConvar(cvarname, cvarvalue, description)
+	if CLIENT then
+		return CreateConVar(cvarname, cvarvalue, {FCVAR_REPLICATED}, description)
+	else
+		return CreateConVar(cvarname, cvarvalue, {FCVAR_REPLICATED, FCVAR_ARCHIVE, FCVAR_NOTIFY}, description)
+	end
+end
+
 return util
