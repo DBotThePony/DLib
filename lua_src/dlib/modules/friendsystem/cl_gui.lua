@@ -108,6 +108,19 @@ function friends.OpenGUI()
 	local frame = vgui.Create('DLib_Window')
 	frame:SetTitle('DLib Friends')
 
+	local steamidInput = DLib.VCreate('DLib_TextInput', frame)
+	steamidInput:SetPos(100, 3)
+	steamidInput:SetSize(400, 20)
+	steamidInput:SetText('STEAMID')
+
+	function steamidInput:OnEnter(value)
+		if DLib.util.ValidateSteamID(value) then
+			friends.OpenGUIForPlayer(value)
+		else
+			Derma_Message(value .. ' doesnt look like valid steamid!', 'Invalid SteamID', 'Okay :(')
+		end
+	end
+
 	local topwrapper = DLib.VCreate('EditablePanel', frame)
 	local bottomwrapper = DLib.VCreate('EditablePanel', frame)
 

@@ -89,4 +89,9 @@ function util.AccessorFuncJIT(target, variable, name)
 	target['Set' .. name] = set
 end
 
+function util.ValidateSteamID(input)
+	if not input then return false end
+	return input:match('STEAM_0:[0-1]:[0-9]+$') ~= nil
+end
+
 return util
