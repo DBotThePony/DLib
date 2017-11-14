@@ -24,6 +24,7 @@ DLib.skin.icons.tags = ["icon16/tag_#{color}.png" for color in *{'blue', 'green'
 DLib.skin.icons.tag = DLib.skin.icons.tags
 DLib.skin.icons.copy = DLib.skin.icons.tags
 DLib.skin.icons.bugs = ["icon16/#{n}.png" for n in *{'bug', 'bug_go', 'bug_delete', 'bug_error'}]
+DLib.skin.icons.url = {'icon16/link.png'}
 DLib.skin.icons.bug = DLib.skin.icons.bugs
 
 DLib.skin.icon = {key, (-> table.frandom(value)) for key, value in pairs DLib.skin.icons}

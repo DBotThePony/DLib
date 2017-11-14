@@ -38,6 +38,14 @@ function PANEL:DoClick()
 
 end
 
+function PANEL:DoRightClick()
+	local menu = vgui.Create('DLib_Menu')
+	menu:AddCopyOption('Copy SteamID', self.steamid)
+	menu:AddCopyOption('Copy Nickname', self.nickname)
+	menu:AddURLOption('Open Steam profile', DLib.util.SteamLink(self.steamid))
+	menu:Open()
+end
+
 local surface = surface
 local derma = derma
 

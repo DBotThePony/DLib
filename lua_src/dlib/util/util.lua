@@ -94,4 +94,12 @@ function util.ValidateSteamID(input)
 	return input:match('STEAM_0:[0-1]:[0-9]+$') ~= nil
 end
 
+function util.SteamLink(steamid)
+	if util.ValidateSteamID(steamid) then
+		return 'https://steamcommunity.com/profiles/' .. util.SteamIDTo64(steamid) .. '/'
+	else
+		return 'https://steamcommunity.com/profiles/' .. steamid .. '/'
+	end
+end
+
 return util
