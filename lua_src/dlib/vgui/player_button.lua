@@ -17,6 +17,8 @@ local PANEL = {}
 DLib.VGUI.PlayerButton = PANEL
 local DButton = DButton
 
+DLib.util.AccessorFuncJIT(PANEL, 'm_DisplayGreen', 'GreenIfOnline')
+
 function PANEL:Init()
 	self.isAddingNew = false
 	self:SetMouseInputEnabled(true)
@@ -29,10 +31,23 @@ function PANEL:Init()
 	self.nickname = 'unknown'
 	self:SetSize(128, 96)
 	self:SetSkin('DLib_Black')
+	self.m_DisplayGreen = false
 end
 
 function PANEL:DoClick()
 
+end
+
+local surface = surface
+local derma = derma
+
+function PANEL:Paint(w, h)
+	derma.SkinHook('Paint', 'Button', self, w, h)
+
+	if self.ply and self.m_DisplayGreen then
+		surface.SetDrawColor(20, 180, 24, 100)
+		surface.DrawRect(0, 0, w, h)
+	end
 end
 
 function PANEL:PerformLayout(w, h)
@@ -48,6 +63,7 @@ end
 
 function PANEL:SetSteamID(steamid)
 	self.steamid = steamid
+	self.ply = player.GetBySteamID(steamid)
 
 	if IsValid(self.avatar) then
 		self.avatar:SetSteamID(steamid, 64)

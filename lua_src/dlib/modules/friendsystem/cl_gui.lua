@@ -175,6 +175,7 @@ function friends.OpenGUI()
 		for i, steamid in pairs(steamids) do
 			local button = DLib.VCreate('DLib_PlayerButton', myfriends)
 			button:SetSteamID(steamid)
+			button:SetGreenIfOnline(true)
 			myfriends:AddButton(button)
 
 			function button.DoClick()
