@@ -57,7 +57,7 @@ hook.Add('Think', 'DLib.HUDPanelHidden', function()
 	DLib.HUDPanelHidden:SetKeyboardInputEnabled(false)
 	DLib.HUDPanelHidden:SetRenderInScreenshots(false)
 
-	DLib.HUDPanel.Paint = function(pnl, w, h)
+	DLib.HUDPanelHidden.Paint = function(pnl, w, h)
 		surface.DisableClipping(true)
 
 		hook.Run('HUDDrawHidden', w, h)
