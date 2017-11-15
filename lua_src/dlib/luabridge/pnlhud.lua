@@ -20,6 +20,7 @@ local DLib = DLib
 local surface = surface
 local ScrH = ScrH
 local ScrW = ScrW
+local IsValid = IsValid
 
 hook.Add('Think', 'DLib.HUDPanel', function()
 	if IsValid(DLib.HUDPanel) then
@@ -29,6 +30,7 @@ hook.Add('Think', 'DLib.HUDPanel', function()
 	end
 
 	DLib.HUDPanel = vgui.Create('EditablePanel')
+	if not IsValid(DLib.HUDPanel) then return end
 	DLib.HUDPanel:SetPos(0, 0)
 	DLib.HUDPanel:SetSize(ScrW(), ScrH())
 	DLib.HUDPanel:SetMouseInputEnabled(false)
@@ -51,6 +53,7 @@ hook.Add('Think', 'DLib.HUDPanelHidden', function()
 	end
 
 	DLib.HUDPanelHidden = vgui.Create('EditablePanel')
+	if not IsValid(DLib.HUDPanelHidden) then return end
 	DLib.HUDPanelHidden:SetPos(0, 0)
 	DLib.HUDPanelHidden:SetSize(ScrW(), ScrH())
 	DLib.HUDPanelHidden:SetMouseInputEnabled(false)
