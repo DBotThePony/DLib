@@ -14,7 +14,7 @@
 -- limitations under the License.
 
 HUDCommons = HUDCommons
-surface = surface
+util = util
 
 class HUDCommons.Pattern
 	new: (randomize = false, seed = 'HUDCommons.Pattern', iterations = 8, min = -2, max = 2) =>
