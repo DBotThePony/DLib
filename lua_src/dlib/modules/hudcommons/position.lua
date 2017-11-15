@@ -17,6 +17,7 @@
 
 local ENABLE_SHIFTING = CreateConVar('dlib_hud_shift', '1', {FCVAR_ARCHIVE}, 'Enable HUD shifting')
 local ENABLE_SHIFTING_SV = CreateConVar('sv_dlib_hud_shift', '1', {FCVAR_REPLICATED, FCVAR_NOTIFY}, 'SV Override: Enable HUD shifting')
+local HUDCommons = HUDCommons
 
 HUDCommons.ShiftX = 0
 HUDCommons.ShiftY = 0

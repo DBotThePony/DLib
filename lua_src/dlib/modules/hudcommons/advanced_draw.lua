@@ -15,6 +15,9 @@
 -- limitations under the License.
 --
 
+local HUDCommons = HUDCommons
+local surface = surface
+
 HUDCommons.BarData = HUDCommons.BarData or {}
 HUDCommons.BarData2 = HUDCommons.BarData2 or {}
 HUDCommons.BarData3 = HUDCommons.BarData3 or {}

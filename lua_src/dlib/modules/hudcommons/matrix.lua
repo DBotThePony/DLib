@@ -16,6 +16,10 @@
 --
 
 local clippingStack = 0
+local HUDCommons = HUDCommons
+local cam = cam
+local surface = surface
+local Matrix = Matrix
 
 function HUDCommons.DrawMatrix(x, y, ang)
     local matrix = Matrix()

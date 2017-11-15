@@ -15,23 +15,26 @@
 -- limitations under the License.
 --
 
+local HUDCommons = HUDCommons
+local surface = surface
+
 function HUDCommons.DrawBox(x, y, w, h, color)
 	if color then
 		surface.SetDrawColor(color)
 	end
-	
+
 	surface.DrawRect(x, y, w, h)
 end
 
 function HUDCommons.SimpleText(text, font, x, y, col)
-	if col then 
+	if col then
 		surface.SetTextColor(col)
 	end
-	
+
 	if font then
 		surface.SetFont(font)
 	end
-	
+
 	surface.SetTextPos(x, y)
 	surface.DrawText(text)
 end
@@ -44,17 +47,17 @@ function HUDCommons.WordBox(text, font, x, y, col, colBox, center)
 	if font then
 		surface.SetFont(font)
 	end
-	
+
 	if col then
 		surface.SetTextColor(col)
 	end
-	
+
 	local w, h = surface.GetTextSize(text)
-	
+
 	if center then
 		x = x - w / 2
 	end
-	
+
 	HUDCommons.DrawBox(x - 4, y - 2, w + 8, h + 4, colBox)
 	surface.SetTextPos(x, y)
 	surface.DrawText(text)
@@ -68,6 +71,6 @@ function HUDCommons.VerticalBar(x, y, w, h, mult, color)
 	if color then
 		surface.SetDrawColor(color)
 	end
-	
+
 	surface.DrawRect(x, y, w, h * mult)
 end
