@@ -22,29 +22,6 @@ local ScrH = ScrH
 local ScrW = ScrW
 local IsValid = IsValid
 
-hook.Add('Think', 'DLib.HUDPanel', function()
-	if IsValid(DLib.HUDPanel) then
-		DLib.HUDPanel:SetPos(0, 0)
-		DLib.HUDPanel:SetSize(ScrW(), ScrH())
-		return
-	end
-
-	DLib.HUDPanel = vgui.Create('EditablePanel')
-	if not IsValid(DLib.HUDPanel) then return end
-	DLib.HUDPanel:SetPos(0, 0)
-	DLib.HUDPanel:SetSize(ScrW(), ScrH())
-	DLib.HUDPanel:SetMouseInputEnabled(false)
-	DLib.HUDPanel:SetKeyboardInputEnabled(false)
-
-	DLib.HUDPanel.Paint = function(pnl, w, h)
-		surface.DisableClipping(true)
-
-		hook.Run('HUDDraw', w, h)
-
-		surface.DisableClipping(false)
-	end
-end)
-
 hook.Add('Think', 'DLib.HUDPanelHidden', function()
 	if IsValid(DLib.HUDPanelHidden) then
 		DLib.HUDPanelHidden:SetPos(0, 0)
