@@ -215,6 +215,7 @@ local function PopulateToolMenu()
 		self:Clear()
 		self:SetSkin('DLib_Black')
 		self:Button('Open Friends Menu', 'dlib_friends')
+		self:CheckBox('Treat steam friends as dlib friends', 'cl_dlib_steamfriends')
 	end)
 end
 
