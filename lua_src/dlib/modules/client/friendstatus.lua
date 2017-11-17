@@ -16,6 +16,7 @@
 local LocalPlayer = LocalPlayer
 local net = net
 local plyMeta = FindMetaTable('Player')
+local cl_dlib_steamfriends = CreateClientConVar('cl_dlib_steamfriends', '1', true, true, 'Treat Steam friends as ANY DLib buddy')
 
 plyMeta.GetFriendStatusDLib = plyMeta.GetFriendStatusDLib or plyMeta.GetFriendStatus
 
@@ -36,7 +37,19 @@ function plyMeta:IsFriend(target)
 	return f == 'friend' or f == 'requested'
 end
 
+function plyMeta:IsFriend2(target)
+	if not cl_dlib_steamfriends:GetBool() then return false end
+	local f = self:GetFriendStatus(target)
+	return f == 'friend' or f == 'requested'
+end
+
 function plyMeta:IsSteamFriend(target)
+	local f = self:GetFriendStatus(target)
+	return f == 'friend' or f == 'requested'
+end
+
+function plyMeta:IsSteamFriend2(target)
+	if not cl_dlib_steamfriends:GetBool() then return false end
 	local f = self:GetFriendStatus(target)
 	return f == 'friend' or f == 'requested'
 end

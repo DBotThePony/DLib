@@ -63,7 +63,19 @@ function plyMeta:IsFriend(target)
 	return f == 'friend' or f == 'requested'
 end
 
+function plyMeta:IsFriend2(target)
+	if not self:GetInfoBool('cl_dlib_steamfriends', true) then return false end
+	local f = self:GetFriendStatus(target)
+	return f == 'friend' or f == 'requested'
+end
+
 function plyMeta:IsSteamFriend(target)
+	local f = self:GetFriendStatus(target)
+	return f == 'friend' or f == 'requested'
+end
+
+function plyMeta:IsSteamFriend2(target)
+	if not self:GetInfoBool('cl_dlib_steamfriends', true) then return false end
 	local f = self:GetFriendStatus(target)
 	return f == 'friend' or f == 'requested'
 end

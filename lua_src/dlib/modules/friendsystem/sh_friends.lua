@@ -101,6 +101,14 @@ function plyMeta:CheckDLibFriendIn(target, tp)
 	return self:IsFriend(target) or self:IsDLibFriendIn(target, tp)
 end
 
+function plyMeta:CheckDLibFriend2(target)
+	return self:IsFriend2(target) or self:IsDLibFriend(target)
+end
+
+function plyMeta:CheckDLibFriendIn2(target, tp)
+	return self:IsFriend2(target) or self:IsDLibFriendIn(target, tp)
+end
+
 function plyMeta:GetAllFriends()
 	local reply = {}
 
