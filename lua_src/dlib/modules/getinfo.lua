@@ -94,7 +94,7 @@ end
 getinfo.Rebuild()
 
 if CLIENT then
-	timer.Create('DLib.getinfo.replication', 5, 0, function()
+	timer.Create('DLib.getinfo.replication', 10, 0, function()
 		local ply = LocalPlayer()
 		if not IsValid(ply) then return end
 
@@ -104,13 +104,13 @@ if CLIENT then
 			data.cvar = data.cvar or GetConVar(data.id)
 			local val = data.cvar:GetByType(data.valuetype)
 
-			if val ~= data.oldval then
+			--if val ~= data.oldval then
 				net.WriteUInt(data.uid, 32)
 				data.writeFunc(val)
 
 				ply:SetDLibVar(data.id, val)
 				data.oldval = val
-			end
+			--end
 		end
 
 		net.WriteUInt(0, 32)
