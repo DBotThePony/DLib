@@ -65,6 +65,10 @@ DLib.Loader.shmodule('sh_cami.lua')
 DLib.Loader.shmodule('getinfo.lua').register()
 DLib.Loader.shmodule('strong_entity_link.lua')
 
+DLib.Loader.start('nw')
+DLib.Loader.load('dlib/modules/nwvar')
+DLib.Loader.finish()
+
 DLib.register('util/queue.lua')
 
 DLib.Loader.loadPureSHTop('dlib/enums')
@@ -86,10 +90,6 @@ DLib.Loader.clclass('keybinds.lua').register()
 
 DLib.Loader.start('HUDCommons')
 DLib.Loader.loadPureCS('dlib/modules/hudcommons')
-DLib.Loader.finish()
-
-DLib.Loader.start('nw')
-DLib.Loader.load('dlib/modules/nwvar')
 DLib.Loader.finish()
 
 DLib.Loader.start('lang')

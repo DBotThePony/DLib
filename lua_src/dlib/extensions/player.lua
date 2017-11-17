@@ -17,6 +17,11 @@ local gplayer = _G.player
 local GetAll = gplayer.GetAll
 local player = DLib.module('player', 'player')
 local ipairs = ipairs
+local math = math
+local tonumber = tonumber
+local tostring = tostring
+local table = table
+local type = type
 
 player.all = player.GetAll
 player.getAll = player.GetAll
@@ -68,22 +73,26 @@ local plyMeta = FindMetaTable('Player')
 
 function plyMeta:GetInfoInt(convar, ifNone)
 	ifNone = ifNone or 0
-	local info = self:GetInfo(convar)
+	local info = self:GetInfoDLib(convar)
 	return math.floor(tonumber(info or ifNone) or ifNone)
 end
 
 function plyMeta:GetInfoFloat(convar, ifNone)
 	ifNone = ifNone or 0
-	local info = self:GetInfo(convar)
+	local info = self:GetInfoDLib(convar)
 	return tonumber(info or ifNone) or ifNone
 end
 
 function plyMeta:GetInfoBool(convar, ifNone)
 	if ifNone == nil then ifNone = false end
-	local info = self:GetInfo(convar)
+	local info = self:GetInfoDLib(convar)
 
 	if type(info) == 'nil' or type(info) == 'no value' then
 		return ifNone
+	end
+
+	if type(info) == 'boolean' then
+		return info
 	end
 
 	if convar == 'false' then return false end
@@ -102,7 +111,7 @@ end
 function plyMeta:GetInfoString(convar, ifNone)
 	ifNone = ifNone or ''
 
-	local info = self:GetInfo(convar)
+	local info = self:GetInfoDLib(convar)
 
 	if type(info) == 'nil' or type(info) == 'no value' then
 		return ifNone

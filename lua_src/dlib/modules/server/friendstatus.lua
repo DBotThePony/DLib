@@ -17,6 +17,8 @@ net.pool('DLib.friendstatus')
 local IsValid = FindMetaTable('Entity').IsValid
 local enums = DLib.Enum('none', 'friend', 'blocked', 'requested')
 
+DLib.getinfo.Replicate('cl_dlib_steamfriends')
+
 local function friendstatus(len, ply)
 	if not IsValid(ply) then return end
 	local amount = net.ReadUInt(8)

@@ -133,8 +133,12 @@ else
 	end)
 end
 
-function plyMeta:GetInfoDLib(var)
-	return self:GetInfO(var) or self:DLibVar(var)
+function plyMeta:GetInfoDLib(cvarname)
+	if getinfo.bank[cvarname] then
+		return self:DLibVar(cvarname)
+	else
+		return self:GetInfo(cvarname)
+	end
 end
 
 return getinfo
