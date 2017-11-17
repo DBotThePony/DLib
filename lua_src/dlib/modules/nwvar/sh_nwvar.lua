@@ -81,15 +81,25 @@ function nw.var(id, send, receive, default)
 end
 
 function nw.poolInt(id, default, val)
-	return nw.var(id, net.GWriteInt(val or 32), net.GReadInt(val or 32), default or 0)
+	val = val or 32
+	return nw.var(id, net.GWriteInt(val), net.GReadInt(val), default or 0)
 end
 
 function nw.poolUInt(id, default, val)
-	return nw.var(id, net.GWriteUInt(val or 32), net.GReadUInt(val or 32), default or 0)
+	val = val or 32
+	return nw.var(id, net.GWriteUInt(val), net.GReadUInt(val), default or 0)
 end
 
 function nw.poolString(id, default)
 	return nw.var(id, net.WriteString, net.ReadString, default or '')
+end
+
+function nw.poolBoolean(id, default)
+	return nw.var(id, net.WriteBool, net.ReadBool, default or '')
+end
+
+function nw.poolFloat(id, default)
+	return nw.var(id, net.WriteFloat, net.ReadFloat, default or '')
 end
 
 function nw.poolEntity(id, default)
