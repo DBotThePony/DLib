@@ -28,6 +28,7 @@ if SERVER then
 	net.pool('DLib.getinfo.replicate')
 end
 
+local plyMeta = FindMetaTable('Player')
 local getinfo = DLib.module('getinfo', nil, true)
 
 getinfo.bank = getinfo.bank or {}
@@ -130,6 +131,10 @@ else
 			nextID = net.ReadUInt(32)
 		end
 	end)
+end
+
+function plyMeta:GetInfoDLib(var)
+	return self:GetInfO(var) or self:DLibVar(var)
 end
 
 return getinfo

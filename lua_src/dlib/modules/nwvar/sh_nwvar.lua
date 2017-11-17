@@ -20,6 +20,7 @@ nw.NetworkVars = nw.NetworkVars or {}
 
 function entMeta:DLibVar(var, ifNothing)
 	var = var:lower()
+	if not nw.NetworkVars[var] then return ifNothing end
 	local uid = self:EntIndex()
 
 	if uid > 0 then
