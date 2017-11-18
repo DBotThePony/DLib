@@ -33,6 +33,7 @@ class DLib.CAMIWatchdog
 		@trackedRepliesPly = {} if SERVER
 		@Track(...)
 		timer.Create 'DLib.CAMIWatchdog.' .. @identifier, repeatSpeed, 0, -> @TriggerUpdate()
+		@TriggerUpdate()
 
 	Track: (...) =>
 		@tracked\addArray({...})

@@ -14,10 +14,20 @@
 -- limitations under the License.
 
 local entMeta = FindMetaTable('Entity')
+local plyMeta = FindMetaTable('Player')
+local npcMeta = FindMetaTable('NPC')
 
 function entMeta:IsClientsideEntity()
 	return false
 end
+
+function plyMeta:GetActiveWeaponClass()
+	local weapon = self:GetActiveWeapon()
+	if not weapon:IsValid() then return nil end
+	return weapon:GetClass()
+end
+
+npcMeta.GetActiveWeaponClass = plyMeta.GetActiveWeaponClass
 
 if CLIENT then
 	local CSEnt = FindMetaTable('CSEnt')
