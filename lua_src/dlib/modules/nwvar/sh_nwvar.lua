@@ -96,15 +96,16 @@ function nw.poolString(id, default)
 end
 
 function nw.poolBoolean(id, default)
-	return nw.var(id, net.WriteBool, net.ReadBool, default or '')
+	if default == nil then default = false end
+	return nw.var(id, net.WriteBool, net.ReadBool, default)
 end
 
 function nw.poolFloat(id, default)
-	return nw.var(id, net.WriteFloat, net.ReadFloat, default or '')
+	return nw.var(id, net.WriteFloat, net.ReadFloat, 0)
 end
 
 function nw.poolEntity(id, default)
-	return nw.var(id, net.WriteEntity, net.ReadEntity, default or '')
+	return nw.var(id, net.WriteEntity, net.ReadEntity, 0)
 end
 
 nw.pool = nw.var
