@@ -39,6 +39,9 @@
 
 jit.on()
 
+local HUDCommons = HUDCommons
+local type = type
+
 local stuff = {
 	q = {'357Round', '357Bullet'},
 	p = '9MM',
@@ -169,5 +172,37 @@ for char, names in pairs(stuff) do
 	for i, name in ipairs(type(names) == 'table' and names or {names}) do
 		local fcomp = toComp:format(name, char, name, char, name, char, name, char, name, char)
 		CompileString(fcomp, 'dlib/modules/hudcommons/hl2icons.lua')()
+	end
+end
+
+do
+	local funcs = {
+		weapon_357 = '357Round',
+		weapon_pistol = '9MM',
+		weapon_smg1 = 'SMGRound',
+		weapon_shotgun = 'Buckshot',
+		weapon_rpg = 'RPGRound',
+		weapon_ar2 = 'PulseRound',
+		weapon_frag = 'GrenadeRound',
+		weapon_crossbow = 'CrossbowBolt',
+	}
+
+	for i, size in ipairs({'', 'Small', 'VerySmall', 'Tiny', 'Big'}) do
+		local funcsMap = {}
+
+		for wep, func in pairs(funcs) do
+			funcsMap[wep] = HUDCommons['Draw' .. func .. size]
+		end
+
+		HUDCommons['GetWeaponAmmoIcon' .. size] = function(weaponIn)
+			local classIn = type(weaponIn) ~= 'string' and weaponIn:GetClass() or weaponIn
+			return funcsMap[classIn]
+		end
+
+		HUDCommons['DrawWeaponAmmoIcon' .. size] = function(weaponIn, ...)
+			local classIn = type(weaponIn) ~= 'string' and weaponIn:GetClass() or weaponIn
+			local val = funcsMap[classIn]
+			if val then val(...) end
+		end
 	end
 end
