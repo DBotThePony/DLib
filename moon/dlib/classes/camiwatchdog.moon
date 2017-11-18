@@ -25,14 +25,14 @@ timer = timer
 
 class DLib.CAMIWatchdog
 	new: (idetifier, repeatSpeed = 10, ...) =>
-		error('No identifier!') if not idetifier
+		error('No idetifier!') if not idetifier
 		@repeatSpeed = repeatSpeed
-		@identifier = identifier
+		@idetifier = idetifier
 		@tracked = DLib.Set()
 		@trackedReplies = {} if CLIENT
 		@trackedRepliesPly = {} if SERVER
 		@Track(...)
-		timer.Create 'DLib.CAMIWatchdog.' .. @identifier, repeatSpeed, 0, -> @TriggerUpdate()
+		timer.Create 'DLib.CAMIWatchdog.' .. @idetifier, repeatSpeed, 0, -> @TriggerUpdate()
 		@TriggerUpdate()
 
 	Track: (...) =>
@@ -48,7 +48,7 @@ class DLib.CAMIWatchdog
 
 	TriggerUpdate: =>
 		@TriggerUpdateClient() if CLIENT
-		@TriggerUpdateServer() if CLIENT
+		@TriggerUpdateServer() if SERVER
 
 	TriggerUpdateClient: =>
 		ply = LocalPlayer()
