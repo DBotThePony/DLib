@@ -61,7 +61,7 @@ local stuff = {
 	j = 'Bugbait',
 	k = 'Grenade',
 	l = {'PulseRifle', 'AR2', 'OSIPR'},
-	z = 'PulseEnergy',
+	z = {'PulseEnergy', 'PulseBall', 'CombineBall'},
 	x = 'RPGRound',
 	c = 'Crowbar',
 	v = 'GrenadeRound',
@@ -187,11 +187,21 @@ do
 		weapon_crossbow = 'CrossbowBolt',
 	}
 
+	local funcsSecondary = {
+		weapon_smg1 = 'SMGGrenade',
+		weapon_ar2 = 'CombineBall',
+	}
+
 	for i, size in ipairs({'', 'Small', 'VerySmall', 'Tiny', 'Big'}) do
 		local funcsMap = {}
+		local funcsMap2 = {}
 
 		for wep, func in pairs(funcs) do
 			funcsMap[wep] = HUDCommons['Draw' .. func .. size]
+		end
+
+		for wep, func in pairs(funcsSecondary) do
+			funcsMap2[wep] = HUDCommons['Draw' .. func .. size]
 		end
 
 		HUDCommons['GetWeaponAmmoIcon' .. size] = function(weaponIn)
@@ -202,6 +212,17 @@ do
 		HUDCommons['DrawWeaponAmmoIcon' .. size] = function(weaponIn, ...)
 			local classIn = type(weaponIn) ~= 'string' and weaponIn:GetClass() or weaponIn
 			local val = funcsMap[classIn]
+			if val then val(...) end
+		end
+
+		HUDCommons['GetWeaponSecondaryAmmoIcon' .. size] = function(weaponIn)
+			local classIn = type(weaponIn) ~= 'string' and weaponIn:GetClass() or weaponIn
+			return funcsMap2[classIn]
+		end
+
+		HUDCommons['DrawWeaponSecondaryAmmoIcon' .. size] = function(weaponIn, ...)
+			local classIn = type(weaponIn) ~= 'string' and weaponIn:GetClass() or weaponIn
+			local val = funcsMap2[classIn]
 			if val then val(...) end
 		end
 	end
