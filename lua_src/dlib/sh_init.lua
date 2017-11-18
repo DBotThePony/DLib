@@ -86,6 +86,7 @@ DLib.Loader.shclass('enum.lua')
 DLib.Loader.shclass('freespace.lua')
 DLib.Loader.shclass('cvars.lua')
 DLib.Loader.shclass('rainbow.lua')
+DLib.Loader.shclass('camiwatchdog.lua')
 DLib.Loader.clclass('keybinds.lua').register()
 
 DLib.Loader.start('HUDCommons')
