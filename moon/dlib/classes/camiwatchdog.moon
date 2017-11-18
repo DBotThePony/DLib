@@ -34,7 +34,9 @@ class DLib.CAMIWatchdog
 		@Track(...)
 		timer.Create 'DLib.CAMIWatchdog.' .. @identifier, repeatSpeed, 0, -> @TriggerUpdate()
 
-	Track: (...) => @tracked\addArray({...})
+	Track: (...) =>
+		@tracked\addArray({...})
+		return @
 
 	HasPermission: (ply, perm) =>
 		if CLIENT
