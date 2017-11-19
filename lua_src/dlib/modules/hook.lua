@@ -400,12 +400,20 @@ function hook.Reconstruct(eventToReconstruct)
 	end
 end
 
-local function Call(...)
-	return hook.Call2(...)
+local CURRENT_EVENT = ''
+
+local function chaseError(err)
+	DLib.Message('ERROR ON EVENT ' .. CURRENT_EVENT .. ': ->\n', traceback(err))
 end
 
-local function Run(...)
-	return hook.Run2(...)
+local function Call(event, ...)
+	CURRENT_EVENT = event
+	return xpcall(hook.Call2, chaseError, event, ...)
+end
+
+local function Run(event, ...)
+	CURRENT_EVENT = event
+	return xpcall(hook.Run2, chaseError, event, ...)
 end
 
 function hook.Call2(event, hookTable, ...)
