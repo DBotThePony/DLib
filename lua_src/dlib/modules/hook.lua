@@ -27,6 +27,7 @@ local type = type
 local traceback = debug.traceback
 local DLib = DLib
 local unpack = unpack
+local gxpcall = xpcall
 
 DLib.hook = DLib.hook or {}
 DLib.ghook = DLib.ghook or {}
@@ -406,14 +407,19 @@ local function chaseError(err)
 	DLib.Message('ERROR ON EVENT ' .. CURRENT_EVENT .. ': ->\n', traceback(err))
 end
 
+local function xpcall(func, ...)
+	local _, Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M, M = gxpcall(func, chaseError, ...)
+	return Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M, M
+end
+
 local function Call(event, ...)
 	CURRENT_EVENT = event
-	return xpcall(hook.Call2, chaseError, event, ...)
+	return xpcall(hook.Call2, event, ...)
 end
 
 local function Run(event, ...)
 	CURRENT_EVENT = event
-	return xpcall(hook.Run2, chaseError, event, ...)
+	return xpcall(hook.Run2, event, ...)
 end
 
 function hook.Call2(event, hookTable, ...)
