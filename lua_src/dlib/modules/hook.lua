@@ -587,7 +587,7 @@ setmetatable(DLib.ghook, {
 	__index = hook,
 
 	__newindex = function(self, key, value)
-		DLib.Message(traceback('DEPRECATED: Dont mess with hook system directly! hook.' .. tostring(key) .. ' -> ' .. tostring(value)))
+		DLib.Message(traceback('DEPRECATED: Do NOT mess with hook system directly! https://goo.gl/NDAQqY\n Report this message to addon which is involved in this stack trace:\nhook.' .. tostring(key) .. ' (' .. tostring(hook[key]) .. ') -> ' .. tostring(value)))
 		local status = hook.Call('DLibHookChange', nil, key, value)
 		if status == false then return end
 		rawset(hook, key, value)
