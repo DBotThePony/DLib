@@ -410,7 +410,7 @@ end
 local function xpcall(func, ...)
 	local _STATUS, Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M, M = gxpcall(func, chaseError, ...)
 
-	if _STATUS then
+	if _STATUS and Q ~= nil then
 		return Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M, M
 	end
 end
@@ -588,7 +588,7 @@ setmetatable(DLib.ghook, {
 
 	__newindex = function(self, key, value)
 		if hook[key] == value then return end
-		DLib.Message(traceback('DEPRECATED: Do NOT mess with hook system directly! https://goo.gl/NDAQqY\n Report this message to addon which is involved in this stack trace:\nhook.' .. tostring(key) .. ' (' .. tostring(hook[key]) .. ') -> ' .. tostring(value)))
+		DLib.Message(traceback('DEPRECATED: Do NOT mess with hook system directly! https://goo.gl/NDAQqY\n Report this message to addon author which is involved in this stack trace:\nhook.' .. tostring(key) .. ' (' .. tostring(hook[key]) .. ') -> ' .. tostring(value)))
 		local status = hook.Call('DLibHookChange', nil, key, value)
 		if status == false then return end
 		rawset(hook, key, value)
