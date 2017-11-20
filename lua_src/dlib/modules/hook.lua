@@ -401,28 +401,12 @@ function hook.Reconstruct(eventToReconstruct)
 	end
 end
 
-local CURRENT_EVENT = ''
-
-local function chaseError(err)
-	DLib.Message('ERROR ON EVENT ' .. CURRENT_EVENT .. ': ->\n', traceback(err))
+local function Call(...)
+	return hook.Call2(...)
 end
 
-local function xpcall(func, ...)
-	local _STATUS, Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M, M = gxpcall(func, chaseError, ...)
-
-	if _STATUS and Q ~= nil then
-		return Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M, M
-	end
-end
-
-local function Call(event, ...)
-	CURRENT_EVENT = event
-	return xpcall(hook.Call2, event, ...)
-end
-
-local function Run(event, ...)
-	CURRENT_EVENT = event
-	return xpcall(hook.Run2, event, ...)
+local function Run(...)
+	return hook.Run2(...)
 end
 
 function hook.Call2(event, hookTable, ...)
