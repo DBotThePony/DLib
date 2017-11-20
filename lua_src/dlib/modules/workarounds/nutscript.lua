@@ -105,5 +105,6 @@ hook.Add('DLibHookChange', 'NutscriptPatch', function(key)
 	if key == 'NutCall' then
 		DLib.patchNutscript()
 		hook.Remove('DLibHookChange', 'NutscriptPatch')
+		return false
 	end
 end)

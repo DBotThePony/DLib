@@ -302,7 +302,6 @@ function hook.ReconstructPostModifiers(eventToReconstruct)
 	if cnt == 0 then
 		__tableModifiersPostOptimized[eventToReconstruct] = nil
 	else
-		table.sort(ordered, hook.HookDataSorter2)
 		local target = __tableModifiersPostOptimized[eventToReconstruct]
 
 		for i = 1, cnt do
@@ -314,12 +313,13 @@ function hook.ReconstructPostModifiers(eventToReconstruct)
 end
 
 function hook.HookDataSorter(a, b)
-	return a.priority < b.priority and a.idString < b.idString
+	--return a.priority < b.priority and a.idString < b.idString
+	return a.priority < b.priority
 end
 
-function hook.HookDataSorter2(a, b)
-	return a.idString < b.idString
-end
+-- function hook.HookDataSorter2(a, b)
+-- 	return a.idString < b.idString
+-- end
 
 function hook.Reconstruct(eventToReconstruct)
 	if not eventToReconstruct then
@@ -583,26 +583,20 @@ setmetatable(hook, {
 	end
 })
 
-do
-	local callframes = 0
+setmetatable(DLib.ghook, {
+	__index = hook,
 
-	setmetatable(DLib.ghook, {
-		__index = hook,
+	__newindex = function(self, key, value)
+		DLib.Message(traceback('DEPRECATED: Dont mess with hook system directly! hook.' .. tostring(key) .. ' -> ' .. tostring(value)))
+		local status = hook.Call('DLibHookChange', nil, key, value)
+		if status == false then return end
+		rawset(hook, key, value)
+	end,
 
-		__newindex = function(self, key, value)
-			if callframes < 100 then
-				callframes = callframes + 1
-				DLib.Message(traceback('yo dude what the fuk hook.' .. tostring(key) .. ' -> ' .. tostring(value)))
-			end
-
-			hook.Call('DLibHookChange', nil, key, value)
-		end,
-
-		__call = function(self, ...)
-			return self.Add(...)
-		end
-	})
-end
+	__call = function(self, ...)
+		return self.Add(...)
+	end
+})
 
 DLib.benchhook = {
 	Add = hook.Add,
