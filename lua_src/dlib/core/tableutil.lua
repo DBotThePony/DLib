@@ -277,6 +277,16 @@ function tableutil.flipIntoHash(tableIn)
 	return output
 end
 
+function tableutil.flip(tableIn)
+	local values = {}
+
+	for i = #tableIn, 1, -1 do
+		values[#values + 1] = tableIn[i]
+	end
+
+	return values
+end
+
 function tableutil.sortedFind(findIn, findWhat, ifNone)
 	local hash = table.flipIntoHash(findIN)
 

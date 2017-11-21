@@ -58,12 +58,15 @@ DLib.register('extensions/extensions.lua')
 DLib.register('extensions/cvar.lua')
 DLib.register('extensions/entity.lua')
 DLib.register('extensions/player.lua').export(_G.player)
-DLib.register('extensions/net.lua').export(_G.net)
 
+DLib.Loader.shmodule('bitworker.lua').register()
+DLib.Loader.shmodule('net.lua')
 DLib.Loader.shmodule('hook.lua')
 DLib.Loader.shmodule('sh_cami.lua')
 DLib.Loader.shmodule('getinfo.lua').register()
 DLib.Loader.shmodule('strong_entity_link.lua')
+
+DLib.register('extensions/net.lua').export(_G.net)
 
 DLib.Loader.start('nw')
 DLib.Loader.load('dlib/modules/nwvar')
