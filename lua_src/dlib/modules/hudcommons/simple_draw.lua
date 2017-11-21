@@ -88,3 +88,5 @@ function HUDCommons.DrawRotatedRect(x, y, w, h, deg)
 	surface.DrawPoly(rect)
 	return rect
 end
+
+surface.DrawRotatedRect = HUDCommons.DrawRotatedRect
