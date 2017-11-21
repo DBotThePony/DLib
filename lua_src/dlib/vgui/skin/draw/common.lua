@@ -90,8 +90,8 @@ function DLib.skin.tex.Checkbox(x, y, w, h)
 
 	local size = math.min(w, h) * 0.8
 
-	DLib.HUDCommons.DrawRotatedRect(x + size * 0.25, y + size * 0.15, size * 1.2, size * 0.15, 45)
-	DLib.HUDCommons.DrawRotatedRect(x + size * 0.15, y + size, size * 1.2, size * 0.15, -45)
+	HUDCommons.DrawRotatedRect(x + size * 0.25, y + size * 0.15, size * 1.2, size * 0.15, 45)
+	HUDCommons.DrawRotatedRect(x + size * 0.15, y + size, size * 1.2, size * 0.15, -45)
 end
 
 function DLib.skin.tex.CheckboxD_Checked(x, y, w, h)
@@ -110,8 +110,8 @@ function DLib.skin.tex.CheckboxD(x, y, w, h)
 
 	local size = math.min(w, h) * 0.8
 
-	DLib.HUDCommons.DrawRotatedRect(x + size * 0.25, y + size * 0.15, size * 1.2, size * 0.15, 45)
-	DLib.HUDCommons.DrawRotatedRect(x + size * 0.15, y + size, size * 1.2, size * 0.15, -45)
+	HUDCommons.DrawRotatedRect(x + size * 0.25, y + size * 0.15, size * 1.2, size * 0.15, 45)
+	HUDCommons.DrawRotatedRect(x + size * 0.15, y + size, size * 1.2, size * 0.15, -45)
 end
 
 -- Menu
