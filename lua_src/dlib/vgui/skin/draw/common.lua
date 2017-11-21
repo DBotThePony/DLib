@@ -29,6 +29,7 @@ local surface_SetDrawColor = surface.SetDrawColor
 local surface_DrawLine = surface.DrawLine
 local Simple_DrawBox = DLib.skin.Simple_DrawBox
 local Simple_DrawText = DLib.skin.Simple_DrawText
+local HUDCommons = DLib.HUDCommons
 
 -- Buttons
 function DLib.skin.tex.Button(x, y, w, h, self)
@@ -75,22 +76,42 @@ end
 
 function DLib.skin.tex.Checkbox_Checked(x, y, w, h)
 	Simple_DrawBox(x, y, w, h, DLib.skin.CheckBoxBG)
-	Simple_DrawBox(x + 2, y + 2, w - 4, h - 4, DLib.skin.CheckBoxC)
+	surface_SetDrawColor(DLib.skin.CheckBoxC)
+
+	local size = math.min(w, h) * 0.8
+
+	HUDCommons.DrawRotatedRect(x + size * 0.2, y + size * 0.7, size * 0.5, size * 0.15, 45)
+	HUDCommons.DrawRotatedRect(x + size * .4, y + size * .47 + size * 0.6, size, size * 0.15, -45)
 end
 
 function DLib.skin.tex.Checkbox(x, y, w, h)
 	Simple_DrawBox(x, y, w, h, DLib.skin.CheckBoxBG)
-	Simple_DrawBox(x + 2, y + 2, w - 4, h - 4, DLib.skin.CheckBoxU)
+	surface_SetDrawColor(DLib.skin.CheckBoxU)
+
+	local size = math.min(w, h) * 0.8
+
+	DLib.HUDCommons.DrawRotatedRect(x + size * 0.25, y + size * 0.15, size * 1.2, size * 0.15, 45)
+	DLib.HUDCommons.DrawRotatedRect(x + size * 0.15, y + size, size * 1.2, size * 0.15, -45)
 end
 
 function DLib.skin.tex.CheckboxD_Checked(x, y, w, h)
 	Simple_DrawBox(x, y, w, h, DLib.skin.CheckBoxBGD)
-	Simple_DrawBox(x + 2, y + 2, w - 4, h - 4, DLib.skin.CheckBoxC)
+	surface_SetDrawColor(DLib.skin.CheckBoxC)
+
+	local size = math.min(w, h) * 0.8
+
+	HUDCommons.DrawRotatedRect(x + size * 0.2, y + size * 0.7, size * 0.5, size * 0.15, 45)
+	HUDCommons.DrawRotatedRect(x + size * .4, y + size * .47 + size * 0.6, size, size * 0.15, -45)
 end
 
 function DLib.skin.tex.CheckboxD(x, y, w, h)
 	Simple_DrawBox(x, y, w, h, DLib.skin.CheckBoxBGD)
-	Simple_DrawBox(x + 2, y + 2, w - 4, h - 4, DLib.skin.CheckBoxU)
+	surface_SetDrawColor(DLib.skin.CheckBoxU)
+
+	local size = math.min(w, h) * 0.8
+
+	DLib.HUDCommons.DrawRotatedRect(x + size * 0.25, y + size * 0.15, size * 1.2, size * 0.15, 45)
+	DLib.HUDCommons.DrawRotatedRect(x + size * 0.15, y + size, size * 1.2, size * 0.15, -45)
 end
 
 -- Menu
