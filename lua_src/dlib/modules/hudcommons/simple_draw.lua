@@ -17,6 +17,7 @@
 
 local HUDCommons = HUDCommons
 local surface = surface
+local draw = draw
 
 function HUDCommons.DrawBox(x, y, w, h, color)
 	if color then
@@ -76,6 +77,8 @@ function HUDCommons.VerticalBar(x, y, w, h, mult, color)
 end
 
 function HUDCommons.DrawRotatedRect(x, y, w, h, deg)
+	draw.NoTexture()
+
 	local rect = {
 		{x = 0, y = 0},
 		{x = w, y = 0},
