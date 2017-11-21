@@ -41,6 +41,7 @@ jit.on()
 
 local HUDCommons = HUDCommons
 local type = type
+local surface = surface
 
 local stuff = {
 	q = {'357Round', '357Bullet'},
@@ -94,84 +95,33 @@ surface.CreateFont('WeaponIconsBig', {
 	weight = 500
 })
 
-local toComp = [[
-	local surface = surface
-
-	function HUDCommons.Draw%s(x, y, color, g, b, a)
-		surface.SetFont('WeaponIcons')
-
-		if x then
-			surface.SetTextPos(x, y)
-		end
-
-		if color then
-			surface.SetTextColor(color, g, b, a)
-		end
-
-		surface.DrawText('%s')
-	end
-
-	function HUDCommons.Draw%sSmall(x, y, color, g, b, a)
-		surface.SetFont('WeaponIconsSmall')
-
-		if x then
-			surface.SetTextPos(x, y)
-		end
-
-		if color then
-			surface.SetTextColor(color, g, b, a)
-		end
-
-		surface.DrawText('%s')
-	end
-
-	function HUDCommons.Draw%sVerySmall(x, y, color, g, b, a)
-		surface.SetFont('WeaponIconsVerySmall')
-
-		if x then
-			surface.SetTextPos(x, y)
-		end
-
-		if color then
-			surface.SetTextColor(color, g, b, a)
-		end
-
-		surface.DrawText('%s')
-	end
-
-	function HUDCommons.Draw%sBig(x, y, color, g, b, a)
-		surface.SetFont('WeaponIconsBig')
-
-		if x then
-			surface.SetTextPos(x, y)
-		end
-
-		if color then
-			surface.SetTextColor(color, g, b, a)
-		end
-
-		surface.DrawText('%s')
-	end
-
-	function HUDCommons.Draw%sTiny(x, y, color, g, b, a)
-		surface.SetFont('WeaponIconsTiny')
-
-		if x then
-			surface.SetTextPos(x, y)
-		end
-
-		if color then
-			surface.SetTextColor(color, g, b, a)
-		end
-
-		surface.DrawText('%s')
-	end
-]]
+local sizes = {
+	'',
+	'Tiny',
+	'Small',
+	'VerySmall',
+	'Big'
+}
 
 for char, names in pairs(stuff) do
 	for i, name in ipairs(type(names) == 'table' and names or {names}) do
-		local fcomp = toComp:format(name, char, name, char, name, char, name, char, name, char)
-		CompileString(fcomp, 'dlib/modules/hudcommons/hl2icons.lua')()
+		for i, size in ipairs(sizes) do
+			local fontName = 'WeaponIcons' .. size
+
+			HUDCommons['Draw' .. name .. size] = function(x, y, color, g, b, a)
+				surface.SetFont(fontName)
+
+				if x then
+					surface.SetTextPos(x, y)
+				end
+
+				if color then
+					surface.SetTextColor(color, g, b, a)
+				end
+
+				surface.DrawText(char)
+			end
+		end
 	end
 end
 
