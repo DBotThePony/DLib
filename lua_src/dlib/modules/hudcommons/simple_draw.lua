@@ -93,3 +93,25 @@ function HUDCommons.DrawRotatedRect(x, y, w, h, deg)
 end
 
 surface.DrawRotatedRect = HUDCommons.DrawRotatedRect
+
+function HUDCommons.DrawCheckboxChecked(x, y, w, h, color, g, b, a)
+	if color then
+		surface.SetDrawColor(color, g, b, a)
+	end
+
+	local size = math.min(w, h) * 0.8
+
+	HUDCommons.DrawRotatedRect(x + size * 0.2, y + size * 0.7, size * 0.5, size * 0.15, 45)
+	HUDCommons.DrawRotatedRect(x + size * .4, y + size * .47 + size * 0.6, size, size * 0.15, -45)
+end
+
+function HUDCommons.DrawCheckboxUnchecked(x, y, w, h, color, g, b, a)
+	if color then
+		surface.SetDrawColor(color, g, b, a)
+	end
+
+	local size = math.min(w, h) * 0.8
+
+	HUDCommons.DrawRotatedRect(x + size * 0.25, y + size * 0.15, size * 1.2, size * 0.15, 45)
+	HUDCommons.DrawRotatedRect(x + size * 0.15, y + size, size * 1.2, size * 0.15, -45)
+end
