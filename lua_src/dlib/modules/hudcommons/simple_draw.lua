@@ -74,3 +74,17 @@ function HUDCommons.VerticalBar(x, y, w, h, mult, color)
 
 	surface.DrawRect(x, y, w, h * mult)
 end
+
+function HUDCommons.DrawRotatedRect(x, y, w, h, deg)
+	local rect = {
+		{x = 0, y = 0},
+		{x = w, y = 0},
+		{x = w, y = h},
+		{x = 0, y = h},
+	}
+
+	HUDCommons.RotatePolyMatrix(rect, deg)
+	HUDCommons.TranslatePolyMatrix(rect, x, y)
+	surface.DrawPoly(rect)
+	return rect
+end
