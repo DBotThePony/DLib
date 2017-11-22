@@ -312,15 +312,6 @@ function hook.ReconstructPostModifiers(eventToReconstruct)
 	return __tableModifiersPostOptimized, ordered
 end
 
-function hook.HookDataSorter(a, b)
-	--return a.priority < b.priority and a.idString < b.idString
-	return a.priority < b.priority
-end
-
--- function hook.HookDataSorter2(a, b)
--- 	return a.idString < b.idString
--- end
-
 function hook.Reconstruct(eventToReconstruct)
 	if not eventToReconstruct then
 		__tableOptimized = {}
@@ -347,7 +338,6 @@ function hook.Reconstruct(eventToReconstruct)
 			else
 				__tableOptimized[event] = {}
 				local look = __tableOptimized[event]
-				table.sort(order, hook.HookDataSorter)
 
 				for i, hookData in ipairs(order) do
 					table.insert(look, hookData.funcToCall)
@@ -388,8 +378,6 @@ function hook.Reconstruct(eventToReconstruct)
 		if cnt == 0 then
 			__tableOptimized[eventToReconstruct] = nil
 		else
-			table.sort(ordered, hook.HookDataSorter)
-
 			local target = __tableOptimized[eventToReconstruct]
 
 			for i = 1, cnt do
