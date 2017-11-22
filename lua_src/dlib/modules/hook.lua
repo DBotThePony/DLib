@@ -30,7 +30,6 @@ local unpack = unpack
 local gxpcall = xpcall
 
 DLib.hook = DLib.hook or {}
-DLib.ghook = DLib.ghook or {}
 local ghook = _G.hook
 local hook = DLib.hook
 
@@ -537,8 +536,6 @@ hook.Call = Call
 hook.Run = Run
 hook.GetTable = GetTable
 
-_G.hook = DLib.ghook
-
 if oldHooks then
 	for event, priorityTable in pairs(oldHooks) do
 		for priority, hookTable in pairs(priorityTable) do
@@ -555,21 +552,30 @@ setmetatable(hook, {
 	end
 })
 
-setmetatable(DLib.ghook, {
-	__index = hook,
 
-	__newindex = function(self, key, value)
-		if hook[key] == value then return end
-		DLib.Message(traceback('DEPRECATED: Do NOT mess with hook system directly! https://goo.gl/NDAQqY\n Report this message to addon author which is involved in this stack trace:\nhook.' .. tostring(key) .. ' (' .. tostring(hook[key]) .. ') -> ' .. tostring(value)))
-		local status = hook.Call('DLibHookChange', nil, key, value)
-		if status == false then return end
-		rawset(hook, key, value)
-	end,
+if ghook ~= DLib.ghook then
+	DLib.ghook = ghook
 
-	__call = function(self, ...)
-		return self.Add(...)
+	for k, v in pairs(ghook) do
+		rawset(ghook, k, nil)
 	end
-})
+
+	setmetatable(DLib.ghook, {
+		__index = hook,
+
+		__newindex = function(self, key, value)
+			if hook[key] == value then return end
+			DLib.Message(traceback('DEPRECATED: Do NOT mess with hook system directly! https://goo.gl/NDAQqY\n Report this message to addon author which is involved in this stack trace:\nhook.' .. tostring(key) .. ' (' .. tostring(hook[key]) .. ') -> ' .. tostring(value)))
+			local status = hook.Call('DLibHookChange', nil, key, value)
+			if status == false then return end
+			rawset(hook, key, value)
+		end,
+
+		__call = function(self, ...)
+			return self.Add(...)
+		end
+	})
+end
 
 DLib.benchhook = {
 	Add = hook.Add,
