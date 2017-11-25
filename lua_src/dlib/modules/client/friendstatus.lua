@@ -48,7 +48,12 @@ function plyMeta:IsFriend(target)
 end
 
 function plyMeta:IsFriend2(target)
-	if self == LocalPlayer() and not cl_dlib_steamfriends:GetBool() or self ~= LocalPlayer() and not self:GetInfoBool('cl_dlib_steamfriends', true) then return false end
+	if self == LocalPlayer() then
+		if not cl_dlib_steamfriends:GetBool() then return false end
+	else
+		if not self:GetInfoBool('cl_dlib_steamfriends', true) then return false end
+	end
+
 	local f = self:GetFriendStatus(target)
 	return f == 'friend' or f == 'requested'
 end
@@ -59,7 +64,12 @@ function plyMeta:IsSteamFriend(target)
 end
 
 function plyMeta:IsSteamFriend2(target)
-	if self == LocalPlayer() and not cl_dlib_steamfriends:GetBool() or self ~= LocalPlayer() and not self:GetInfoBool('cl_dlib_steamfriends', true) then return false end
+	if self == LocalPlayer() then
+		if not cl_dlib_steamfriends:GetBool() then return false end
+	else
+		if not self:GetInfoBool('cl_dlib_steamfriends', true) then return false end
+	end
+
 	local f = self:GetFriendStatus(target)
 	return f == 'friend' or f == 'requested'
 end
