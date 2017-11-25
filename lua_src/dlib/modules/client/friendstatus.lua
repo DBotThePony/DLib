@@ -23,12 +23,20 @@ DLib.getinfo.Replicate('cl_dlib_steamfriends')
 plyMeta.GetFriendStatusDLib = plyMeta.GetFriendStatusDLib or plyMeta.GetFriendStatus
 
 function plyMeta:GetFriendStatus(targetPly)
-	local lply = LocalPlayer()
-	targetPly = targetPly or lply
-
-	if lply == targetPly then
+	if not targetPly then
 		return self:GetFriendStatusDLib()
 	end
+
+	if not IsValid(targetPly) then
+		return 'none'
+	end
+
+	-- local lply = LocalPlayer()
+	-- targetPly = targetPly or lply
+
+	-- if lply == targetPly then
+	-- 	return self:GetFriendStatusDLib()
+	-- end
 
 	local status = self.DLibFriends
 	return status and status[targetPly] or 'none'
