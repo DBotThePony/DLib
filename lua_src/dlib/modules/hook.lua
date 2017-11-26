@@ -565,7 +565,7 @@ if ghook ~= DLib.ghook then
 
 		__newindex = function(self, key, value)
 			if hook[key] == value then return end
-			DLib.Message(traceback('DEPRECATED: Do NOT mess with hook system directly! https://goo.gl/NDAQqY\n Report this message to addon author which is involved in this stack trace:\nhook.' .. tostring(key) .. ' (' .. tostring(hook[key]) .. ') -> ' .. tostring(value)))
+			DLib.Message(traceback('DEPRECATED: Do NOT mess with hook system directly! https://goo.gl/NDAQqY\nReport this message to addon author which is involved in this stack trace:\nhook.' .. tostring(key) .. ' (' .. tostring(hook[key]) .. ') -> ' .. tostring(value), 2))
 			local status = hook.Call('DLibHookChange', nil, key, value)
 			if status == false then return end
 			rawset(hook, key, value)
