@@ -18,7 +18,7 @@ if SERVER then
 	net.pool('DLib.physgun.playerAngles')
 end
 
-local ply, ent, holder
+local ply, ent, holder, holderStatus
 
 local function PhysgunPickup(Uply, Uent)
 	ply, ent = Uply, Uent
@@ -42,6 +42,16 @@ local function PhysgunDrop(Uply, Uent)
 	Uent.__dlibUpcomingEyeAngles = nil
 end
 
+-- Lets handle this mess by ourself
+-- as admin addons doesnt even care
+local function PlayerNoClip(ply)
+	if CLIENT and holderStatus and IsValid(holder) then
+		return false
+	elseif SERVER and IsValid(ply.__dlibPhysgunHolder) then
+		return false
+	end
+end
+
 local function PhysgunPickupPost(status)
 	if not IsValid(ply) or not IsValid(ent) then return status end
 	if not ent:IsPlayer() then return status end
@@ -62,7 +72,11 @@ local function PhysgunPickupPost(status)
 end
 
 local function StartCommand(ply, cmd)
-	--if CLIENT and IsValid(holder) or SERVER and IsValid(ent.__dlibPhysgunHolder) then
+	if CLIENT and holderStatus and IsValid(holder) then
+		cmd:SetMouseX(0)
+		cmd:SetMouseY(0)
+	end
+
 	if SERVER and IsValid(ply.__dlibPhysgunHolder) then
 		cmd:SetMouseX(0)
 		cmd:SetMouseY(0)
@@ -98,9 +112,9 @@ end
 
 if CLIENT then
 	net.receive('DLib.physgun.player', function()
-		local status = net.ReadBool()
+		holderStatus = net.ReadBool()
 
-		if status then
+		if holderStatus then
 			holder = net.ReadPlayer()
 		else
 			holder = NULL
@@ -115,4 +129,6 @@ end
 hook.Add('StartCommand', 'DLib.PhysgunModifier', StartCommand, -10)
 hook.Add('PhysgunPickup', 'DLib.PhysgunModifier', PhysgunPickup, -10)
 hook.Add('PhysgunDrop', 'DLib.PhysgunModifier', PhysgunDrop, -10)
+hook.Add('PlayerNoClip', 'DLib.PhysgunModifier', PlayerNoClip, -10)
+hook.Add('CanPlayerEnterVehicle', 'DLib.PhysgunModifier', CanPlayerEnterVehicle, -10)
 hook.AddPostModifier('PhysgunPickup', 'DLib.PhysgunModifier', PhysgunPickupPost)
