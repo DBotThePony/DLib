@@ -119,7 +119,7 @@ end
 timer.Create('DLib.FriendStatus', 5, 0, update)
 
 local function friendstatus()
-	local ply = net.ReadEntity()
+	local ply = net.ReadPlayer()
 	if not IsValid(ply) then return end
 
 	local amount = net.ReadUInt(8)
