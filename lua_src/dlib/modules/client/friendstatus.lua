@@ -31,12 +31,9 @@ function plyMeta:GetFriendStatus(targetPly)
 		return 'none'
 	end
 
-	-- local lply = LocalPlayer()
-	-- targetPly = targetPly or lply
-
-	-- if lply == targetPly then
-	-- 	return self:GetFriendStatusDLib()
-	-- end
+	if self == LocalPlayer() then
+		return targetPly:GetFriendStatusDLib()
+	end
 
 	local status = self.DLibFriends
 	return status and status[targetPly] or 'none'
