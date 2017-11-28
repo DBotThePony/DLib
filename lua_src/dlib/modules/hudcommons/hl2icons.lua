@@ -15,27 +15,29 @@
 
 -- https://i.dbot.serealia.ca/2017/11/f9aa5d67b6_hl2_2017-11-15_16-55-37.png
 
--- local chars = 'qwertyuiopasdfghjklzxcvbnm'
+--[[
+local chars = 'qwertyuiopasdfghjklzxcvbnm1234567890[]{}'
 
--- hook.Add('HUDPaint', 'test', function()
--- 	surface.SetTextPos(40, 40)
--- 	surface.SetTextColor(255, 255, 255)
--- 	local next = 0
--- 	local next2 = 0
+hook.Add('HUDPaint', 'test', function()
+	surface.SetTextPos(40, 40)
+	surface.SetTextColor(255, 255, 255)
+	local next = 0
+	local next2 = 0
 
--- 	for i in string.gmatch(chars, '.') do
--- 		surface.SetFont('Trebuchet24')
--- 		surface.DrawText(i .. ' === ')
--- 		surface.SetFont('WeaponIcons')
--- 		surface.DrawText(i)
--- 		next = next + 1
--- 		if next > 4 then
--- 			next2 = next2 + 1
--- 			next = 0
--- 		end
--- 		surface.SetTextPos(next2 * 180 + 40, next * 60 + 40)
--- 	end
--- end)
+	for i in string.gmatch(chars, '.') do
+		surface.SetFont('Trebuchet24')
+		surface.DrawText(i .. ' === ')
+		surface.SetFont('QuickInfo')
+		surface.DrawText(i)
+		next = next + 1
+		if next > 6 then
+			next2 = next2 + 1
+			next = 0
+		end
+		surface.SetTextPos(next2 * 180 + 40, next * 60 + 40)
+	end
+end)
+]]
 
 jit.on()
 
