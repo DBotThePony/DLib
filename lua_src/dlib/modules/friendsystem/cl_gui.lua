@@ -141,7 +141,7 @@ function friends.OpenGUI()
 	label:SetText('Your friends ->')
 	label:SizeToContents()
 
-	label = DLib.VCreate('DLabel', serverplayers)
+	label = DLib.VCreate('DLabel', bottomwrapper)
 	label:SetFont('DLib.FriendsTooltip')
 	label:Dock(TOP)
 	label:DockMargin(4, 4, 4, 4)

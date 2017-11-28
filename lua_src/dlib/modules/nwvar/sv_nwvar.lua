@@ -74,7 +74,7 @@ end
 local RED = Color(200, 100, 100)
 
 local function NetworkError(Message)
-	DLib.Message(RED, debug.traceback(Message))
+	DLib.Message(RED, debug.traceback(Message, 2))
 end
 
 local function SendTimer()

@@ -17,6 +17,10 @@ DLib.Loader.start('Notify', true)
 DLib.Loader.include('dlib/modules/notify/client/cl_init.lua')
 DLib.Loader.finish(false)
 
+function DLib.GetSkin()
+	return 'DLib_Black'
+end
+
 DLib.register('util/client/chat.lua')
 
 DLib.Loader.loadPureCSTop('dlib/modules/client')

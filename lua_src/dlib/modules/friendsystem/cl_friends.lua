@@ -255,6 +255,7 @@ end
 function friends.Reload()
 	friends.currentStatus = {}
 	friends.currentCount = player.GetCount()
+	local lply = LocalPlayer()
 
 	local targets = {}
 	local targetsH = {}
@@ -263,21 +264,23 @@ function friends.Reload()
 	sql.Query('BEGIN')
 
 	for k, ply in ipairs(player.GetHumans()) do
-		local steamid = ply:SteamID()
-		local sq = SQLStr(steamid)
-		table.insert(targets, sq)
+		if lply ~= ply then
+			local steamid = ply:SteamID()
+			local sq = SQLStr(steamid)
+			table.insert(targets, sq)
 
-		friends.currentStatus[ply] = {
-			isFriend = false,
-			status = {}
-		}
+			friends.currentStatus[ply] = {
+				isFriend = false,
+				status = {}
+			}
 
-		local d = friends.currentStatus[ply].status
-		targetsH[steamid] = d
-		targetsH2[steamid] = friends.currentStatus[ply]
+			local d = friends.currentStatus[ply].status
+			targetsH[steamid] = d
+			targetsH2[steamid] = friends.currentStatus[ply]
 
-		for id, data in pairs(friends.typesCache) do
-			d[id] = false
+			for id, data in pairs(friends.typesCache) do
+				d[id] = false
+			end
 		end
 	end
 

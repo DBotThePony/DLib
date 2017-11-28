@@ -23,11 +23,16 @@ DLib.getinfo.Replicate('cl_dlib_steamfriends')
 plyMeta.GetFriendStatusDLib = plyMeta.GetFriendStatusDLib or plyMeta.GetFriendStatus
 
 function plyMeta:GetFriendStatus(targetPly)
-	local lply = LocalPlayer()
-	targetPly = targetPly or lply
-
-	if lply == targetPly then
+	if not targetPly then
 		return self:GetFriendStatusDLib()
+	end
+
+	if not IsValid(targetPly) then
+		return 'none'
+	end
+
+	if self == LocalPlayer() then
+		return targetPly:GetFriendStatusDLib()
 	end
 
 	local status = self.DLibFriends
@@ -40,7 +45,12 @@ function plyMeta:IsFriend(target)
 end
 
 function plyMeta:IsFriend2(target)
-	if self == LocalPlayer() and not cl_dlib_steamfriends:GetBool() or self ~= LocalPlayer() and not self:GetInfoBool('cl_dlib_steamfriends', true) then return false end
+	if self == LocalPlayer() then
+		if not cl_dlib_steamfriends:GetBool() then return false end
+	else
+		if not self:GetInfoBool('cl_dlib_steamfriends', true) then return false end
+	end
+
 	local f = self:GetFriendStatus(target)
 	return f == 'friend' or f == 'requested'
 end
@@ -51,7 +61,12 @@ function plyMeta:IsSteamFriend(target)
 end
 
 function plyMeta:IsSteamFriend2(target)
-	if self == LocalPlayer() and not cl_dlib_steamfriends:GetBool() or self ~= LocalPlayer() and not self:GetInfoBool('cl_dlib_steamfriends', true) then return false end
+	if self == LocalPlayer() then
+		if not cl_dlib_steamfriends:GetBool() then return false end
+	else
+		if not self:GetInfoBool('cl_dlib_steamfriends', true) then return false end
+	end
+
 	local f = self:GetFriendStatus(target)
 	return f == 'friend' or f == 'requested'
 end
@@ -101,7 +116,7 @@ end
 timer.Create('DLib.FriendStatus', 5, 0, update)
 
 local function friendstatus()
-	local ply = net.ReadEntity()
+	local ply = net.ReadPlayer()
 	if not IsValid(ply) then return end
 
 	local amount = net.ReadUInt(8)

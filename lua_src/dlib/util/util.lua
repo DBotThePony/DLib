@@ -24,7 +24,7 @@ local IsValid = IsValid
 
 function DLib.VCreate(pnlName, pnlParent)
 	if not IsValid(pnlParent) then
-		DLib.Message(debug.traceback('Attempt to create ' .. pnlName .. ' without valid parent!'))
+		DLib.Message(debug.traceback('Attempt to create ' .. pnlName .. ' without valid parent!', 2))
 		return
 	end
 
