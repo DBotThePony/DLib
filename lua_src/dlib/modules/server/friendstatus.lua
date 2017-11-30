@@ -17,6 +17,10 @@ net.pool('DLib.friendstatus')
 local IsValid = FindMetaTable('Entity').IsValid
 local enums = DLib.Enum('none', 'friend', 'blocked', 'requested')
 
+local table = table
+local net = net
+local DLib = DLib
+
 DLib.getinfo.Replicate('cl_dlib_steamfriends')
 
 local function friendstatus(len, ply)
@@ -66,7 +70,9 @@ function plyMeta:IsFriend(target)
 end
 
 function plyMeta:IsFriend2(target)
+	if not IsValid(self) or not IsValid(target) then return false end
 	if not self:GetInfoBool('cl_dlib_steamfriends', true) then return false end
+	if not target:GetInfoBool('cl_dlib_steamfriends', true) then return false end
 	local f = self:GetFriendStatus(target)
 	return f == 'friend' or f == 'requested'
 end
@@ -77,7 +83,9 @@ function plyMeta:IsSteamFriend(target)
 end
 
 function plyMeta:IsSteamFriend2(target)
+	if not IsValid(self) or not IsValid(target) then return false end
 	if not self:GetInfoBool('cl_dlib_steamfriends', true) then return false end
+	if not target:GetInfoBool('cl_dlib_steamfriends', true) then return false end
 	local f = self:GetFriendStatus(target)
 	return f == 'friend' or f == 'requested'
 end
