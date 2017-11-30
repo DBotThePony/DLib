@@ -21,6 +21,10 @@ end
 local ply, ent, holder, holderStatus
 
 local function PhysgunPickup(Uply, Uent)
+	if Uent:IsPlayer() and Uent:InVehicle() then
+		return false
+	end
+
 	ply, ent = Uply, Uent
 end
 
