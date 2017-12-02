@@ -110,3 +110,38 @@ function messageMeta:WriteUInt(input, bitCount)
 
 	return self
 end
+
+function messageMeta:WriteFloat(input, bitsInteger, bitsFloat)
+	if self.isReading then error('Message is read-only') end
+
+	bitsInteger = bitsInteger or 24
+	bitsFloat = bitsFloat or 8
+
+	input = tonumber(input)
+	bitsFloat = tonumber(bitsFloat)
+	bitsInteger = tonumber(bitsInteger)
+	if type(input) ~= 'number' then error('Input is not a number!') end
+	if type(bitsInteger) ~= 'number' then error('Integer part Bit amount is not a number!') end
+	if type(bitsFloat) ~= 'number' then error('Float part Bit amount is not a number!') end
+
+	local totalBits = bitsInteger + bitsFloat
+
+	input = math.floor(input + 0.5)
+	bitCount = math.floor(bitCount)
+	if bitCount > 127 or bitCount < 2 then error('Integer part Bit amount overflow') end
+	if bitsFloat > 32 or bitsFloat < 2 then error('Float part Bit amount overflow') end
+
+	local output = DLib.bitworker.FloatToBinary(numberIn, bitsFloat)
+
+	self:WriteBitRaw(output[1])
+
+	for i = 1, totalBits - #output do
+		self:WriteBitRaw(0)
+	end
+
+	for i = 2, #output do
+		self:WriteBitRaw(output[i])
+	end
+
+	return self
+end

@@ -65,3 +65,27 @@ function messageMeta:ReadUInt(bitCount)
 	local buffer = self:ReadBuffer(bitCount)
 	return DLib.bitworker.BinaryToUInteger(buffer)
 end
+
+function messageMeta:ReadFloat(bitsInteger, bitsFloat)
+	bitsInteger = bitsInteger or 24
+	bitsFloat = bitsFloat or 8
+
+	bitsFloat = tonumber(bitsFloat)
+	bitsInteger = tonumber(bitsInteger)
+
+	if type(bitsInteger) ~= 'number' then error('Integer part Bit amount is not a number!') end
+	if type(bitsFloat) ~= 'number' then error('Float part Bit amount is not a number!') end
+
+	if bitCount > 127 or bitCount < 2 then error('Integer part Bit amount overflow') end
+	if bitsFloat > 32 or bitsFloat < 2 then error('Float part Bit amount overflow') end
+
+	local totalBits = bitsInteger + bitsFloat
+
+	if totalBits > self.length then
+		ErrorNoHalt('Out of range')
+		return 0
+	end
+
+	local buffer = self:ReadBuffer(totalBits)
+	return DLib.bitworker.BinaryToFloat(buffer)
+end
