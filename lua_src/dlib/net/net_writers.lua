@@ -200,3 +200,7 @@ function messageMeta:WriteData(binaryData, bytesToSend)
 
 	return self
 end
+
+function messageMeta:WriteDouble(value)
+	return self:WriteFloat(value, 32, 64)
+end

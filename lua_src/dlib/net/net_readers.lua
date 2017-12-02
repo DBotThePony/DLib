@@ -94,11 +94,11 @@ end
 local Angle, Vector = Angle, Vector
 
 function messageMeta:ReadVector()
-	return Vector(self:ReadFlaot(24, 4), self:ReadFlaot(24, 4), self:ReadFlaot(24, 4))
+	return Vector(self:ReadFloat(24, 4), self:ReadFloat(24, 4), self:ReadFloat(24, 4))
 end
 
 function messageMeta:ReadAngle()
-	return Angle(self:ReadFlaot(24, 4), self:ReadFlaot(24, 4), self:ReadFlaot(24, 4))
+	return Angle(self:ReadFloat(24, 4), self:ReadFloat(24, 4), self:ReadFloat(24, 4))
 end
 
 function messageMeta:ReadData(bytesRead)
@@ -121,4 +121,8 @@ function messageMeta:ReadData(bytesRead)
 
 	local bits = self:ReadBuffer(bitsRead)
 	return string.char(unpack(bits))
+end
+
+function messageMeta:ReadDouble()
+	return self:ReadFloat(32, 64)
 end
