@@ -95,13 +95,13 @@ end
 function bitworker.FloatToBinary(numberIn, precision)
 	precision = precision or 6
 	local bits = bitworker.IntegerToBinary(numberIn)
-	local float = numberIn % 1
+	local float = math.abs(numberIn % 1)
 	local lastMult = float
 
 	for i = 1, precision do
 		local mult = lastMult * 2
 
-		if mult > 1 then
+		if mult >= 1 then
 			table.insert(bits, 1)
 			mult = mult - 1
 		else
@@ -126,9 +126,9 @@ function bitworker.BinaryToFloat(inputTable, precision)
 	local integer = bitworker.BinaryToInteger(integerPart)
 	local float = 0
 
-	for i = amount - precision, amount do
+	for i = amount - precision + 1, amount do
 		if inputTable[i] > 0 then
-			float = float + math.pow(2, amount - precision - 1 - i)
+			float = float + math.pow(2, amount - precision - i)
 		end
 	end
 
