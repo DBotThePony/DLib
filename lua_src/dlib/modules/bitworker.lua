@@ -20,7 +20,7 @@ local bitworker = DLib.module('bitworker')
 
 function bitworker.IntegerToBinary(numberIn)
 	local bits = {}
-	local sign = numberIn > 0 and 0 or 1
+	local sign = numberIn >= 0 and 0 or 1
 	numberIn = math.abs(numberIn)
 
 	repeat
@@ -39,6 +39,37 @@ function bitworker.IntegerToBinary(numberIn)
 	table.insert(bits, sign)
 
 	return table.flip(bits)
+end
+
+function bitworker.BinaryToUInteger(inputTable)
+	local amount = #inputTable
+	local output = 0
+
+	for i = 1, amount do
+		if inputTable[i] > 0 then
+			output = output + math.pow(2, amount - i)
+		end
+	end
+
+	return output
+end
+
+function bitworker.BinaryToInteger(inputTable)
+	local direction = inputTable[1]
+	local amount = #inputTable
+	local output = 0
+
+	for i = 2, amount do
+		if inputTable[i] > 0 then
+			output = output + math.pow(2, amount - i)
+		end
+	end
+
+	if direction == 0 then
+		return output
+	else
+		return -output
+	end
 end
 
 function bitworker.UIntegerToBinary(numberIn)
@@ -81,6 +112,31 @@ function bitworker.FloatToBinary(numberIn, precision)
 	end
 
 	return bits
+end
+
+function bitworker.BinaryToFloat(inputTable, precision)
+	local amount = #inputTable
+	precision = precision or 6
+
+	local integerPart = {}
+	for i = 1, amount - precision do
+		table.insert(integerPart, inputTable[i])
+	end
+
+	local integer = bitworker.BinaryToInteger(integerPart)
+	local float = 0
+
+	for i = amount - precision, amount do
+		if inputTable[i] > 0 then
+			float = float + math.pow(2, amount - precision - 1 - i)
+		end
+	end
+
+	if inputTable[1] == 0 then
+		return integer + float
+	else
+		return integer - float
+	end
 end
 
 return bitworker
