@@ -60,7 +60,7 @@ function messageMeta:WriteInt(input, bitCount)
 	local output = DLib.bitworker.IntegerToBinary(numberIn)
 
 	if #output > bitCount then
-		ErrorNoHalt('WriteInt - input integer is larger than can be reproduced with ' .. bitCount .. ' bits!')
+		ErrorNoHalt('WriteInt - input integer is larger than integer that can be represented with ' .. bitCount .. ' bits!')
 	end
 
 	self:WriteBitRaw(output[1])

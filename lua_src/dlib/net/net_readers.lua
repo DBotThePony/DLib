@@ -39,9 +39,8 @@ function messageMeta:ReadBool()
 end
 
 function messageMeta:ReadInt(bitCount)
-	if type(bitCount) ~= 'number' then
-		error('Must be a number')
-	end
+	bitCount = tonumber(bitCount)
+	if type(bitCount) ~= 'number' then error('Bit amount is not a number!') end
 
 	if bitCount > self.length or bitCount < 2 then
 		ErrorNoHalt('Out of range')
@@ -50,4 +49,5 @@ function messageMeta:ReadInt(bitCount)
 
 	bitCount = math.floor(bitCount)
 	local buffer = self:ReadBuffer(bitCount)
+	return DLib.bitworker.BinaryToInteger(buffer)
 end
