@@ -19,6 +19,7 @@ local table = table
 local ipairs = ipairs
 local pairs = pairs
 local math = math
+local string = string
 
 local traceback = debug.traceback
 local nnet = DLib.nativeNet
@@ -166,6 +167,36 @@ function messageMeta:WriteAngle(angleIn)
 	self:WriteFloat(vecIn.p, 24, 4)
 	self:WriteFloat(vecIn.y, 24, 4)
 	self:WriteFloat(vecIn.r, 24, 4)
+
+	return self
+end
+
+function messageMeta:WriteData(binaryData, bytesToSend)
+	if type(binaryData) ~= 'string' then
+		error('WriteData - input is not a string!')
+	end
+
+	if type(bytesToSend) ~= 'number' then
+		error('WriteData - length is not a number!')
+	end
+
+	bytesToSend = math.floor(bytesToSend)
+
+	if bytesToSend < 1 then
+		error('WriteData - length overflow')
+	end
+
+	bytesToSend = math.min(#binaryData, bytesToSend)
+
+	local chars = {binaryData:byte(1, bytesToSend)}
+
+	for i, char in ipairs(chars) do
+		local newBits = DLib.bitworker.UIntegerToBinary(char)
+
+		for i, bit in ipairs(newBits) do
+			self:WriteBitRaw(bit)
+		end
+	end
 
 	return self
 end

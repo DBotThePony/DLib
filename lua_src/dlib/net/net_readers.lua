@@ -19,6 +19,7 @@ local table = table
 local ipairs = ipairs
 local pairs = pairs
 local math = math
+local string = string
 
 local traceback = debug.traceback
 local nnet = DLib.nativeNet
@@ -98,4 +99,26 @@ end
 
 function messageMeta:ReadAngle()
 	return Angle(self:ReadFlaot(24, 4), self:ReadFlaot(24, 4), self:ReadFlaot(24, 4))
+end
+
+function messageMeta:ReadData(bytesRead)
+	if type(bytesRead) ~= 'number' then
+		error('WriteData - length is not a number!')
+	end
+
+	bytesRead = math.floor(bytesRead)
+
+	if bytesRead < 1 then
+		error('WriteData - length overflow')
+	end
+
+	local bitsRead = bytesRead * 8
+
+	if self.pointer + bitsRead + 1 > self.length then
+		ErrorNoHalt('ReadData - out of bounds, clamping read range...')
+		bitsRead = self.length - self.pointer
+	end
+
+	local bits = self:ReadBuffer(bitsRead)
+	return string.char(unpack(bits))
 end
