@@ -126,3 +126,15 @@ end
 function messageMeta:ReadDouble()
 	return self:ReadFloat(32, 64)
 end
+
+function messageMeta:ReadString()
+	local nextChar = DLib.bitworker.BinaryToUInteger(self:ReadBuffer(8))
+	local readString = {}
+
+	while nextChar ~= 0 do
+		table.insert(readString, nextChar)
+		nextChar = DLib.bitworker.BinaryToUInteger(self:ReadBuffer(8))
+	end
+
+	return string.char(unpack(readString))
+end

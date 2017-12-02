@@ -204,3 +204,26 @@ end
 function messageMeta:WriteDouble(value)
 	return self:WriteFloat(value, 32, 64)
 end
+
+function messageMeta:WriteString(stringIn)
+	if type(stringIn) ~= 'string' then
+		error('WriteString - input is not a string!')
+	end
+
+	for i, char in ipairs({stringIn:byte(1, #stringIn)}) do
+		for i, bit in ipairs(DLib.bitworker.UIntegerToBinary(char)) do
+			self:WriteBitRaw(bit)
+		end
+	end
+
+	self:WriteBitRaw(0)
+	self:WriteBitRaw(0)
+	self:WriteBitRaw(0)
+	self:WriteBitRaw(0)
+	self:WriteBitRaw(0)
+	self:WriteBitRaw(0)
+	self:WriteBitRaw(0)
+	self:WriteBitRaw(0)
+
+	return self
+end
