@@ -20,6 +20,7 @@ local ipairs = ipairs
 local pairs = pairs
 local math = math
 local string = string
+local IsValid = IsValid
 
 local traceback = debug.traceback
 local nnet = DLib.nativeNet
@@ -224,6 +225,16 @@ function messageMeta:WriteString(stringIn)
 	self:WriteBitRaw(0)
 	self:WriteBitRaw(0)
 	self:WriteBitRaw(0)
+
+	return self
+end
+
+function messageMeta:WriteEntity(ent)
+	if IsValid(ent) then
+		self:WriteUInt(math.max(ent:EntIndex()), 16)
+	else
+		self:WriteUInt(0, 16)
+	end
 
 	return self
 end

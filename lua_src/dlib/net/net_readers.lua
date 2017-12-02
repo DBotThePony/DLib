@@ -20,6 +20,8 @@ local ipairs = ipairs
 local pairs = pairs
 local math = math
 local string = string
+local Entity = Entity
+local IsValid = IsValid
 
 local traceback = debug.traceback
 local nnet = DLib.nativeNet
@@ -137,4 +139,14 @@ function messageMeta:ReadString()
 	end
 
 	return string.char(unpack(readString))
+end
+
+function messageMeta:ReadEntity()
+	local ent = Entity(self:ReadUint(16))
+
+	if IsValid(ent) then
+		return ent
+	else
+		return Entity(0)
+	end
 end
