@@ -48,6 +48,7 @@ messageMeta.WriteBool = messageMeta.WriteBit
 
 function messageMeta:WriteInt(input, bitCount)
 	if self.isReading then error('Message is read-only') end
+
 	input = tonumber(input)
 	bitCount = tonumber(bitCount)
 	if type(input) ~= 'number' then error('Input is not a number!') end
@@ -70,6 +71,40 @@ function messageMeta:WriteInt(input, bitCount)
 	end
 
 	for i = 2, #output do
+		self:WriteBitRaw(output[i])
+	end
+
+	return self
+end
+
+function messageMeta:WriteUInt(input, bitCount)
+	if self.isReading then error('Message is read-only') end
+
+	input = tonumber(input)
+	bitCount = tonumber(bitCount)
+	if type(input) ~= 'number' then error('Input is not a number!') end
+	if type(bitCount) ~= 'number' then error('Bit amount is not a number!') end
+
+	input = math.floor(input + 0.5)
+	bitCount = math.floor(bitCount)
+	if bitCount > 127 or bitCount < 1 then error('Bit amount overflow') end
+
+	if input < 0 then
+		ErrorNoHalt('WriteUInt - input integer is lesser than 0! To keep backward compability, it gets bit shift to flip')
+		input = math.pow(2, bitCount) + input
+	end
+
+	local output = DLib.bitworker.UIntegerToBinary(numberIn)
+
+	if #output > bitCount then
+		ErrorNoHalt('WriteUInt - input integer is larger than integer that can be represented with ' .. bitCount .. ' bits!')
+	end
+
+	for i = 1, bitCount - #output do
+		self:WriteBitRaw(0)
+	end
+
+	for i = 1, #output do
 		self:WriteBitRaw(output[i])
 	end
 
