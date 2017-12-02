@@ -150,3 +150,7 @@ function messageMeta:ReadEntity()
 		return Entity(0)
 	end
 end
+
+function messageMeta:ReadNormal()
+	return Vector(self:ReadFloat(3, 8), self:ReadFloat(3, 8), self:ReadFloat(3, 8))
+end

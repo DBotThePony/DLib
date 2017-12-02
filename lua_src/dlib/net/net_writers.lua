@@ -238,3 +238,17 @@ function messageMeta:WriteEntity(ent)
 
 	return self
 end
+
+function messageMeta:WriteNormal(vectorIn)
+	if type(vecIn) ~= 'Vector' then
+		error('WriteNormal - input is not a vector!')
+	end
+
+	local vector = vectorIn:GetNormalized()
+
+	self:WriteFloat(vector.x, 3, 8)
+	self:WriteFloat(vector.y, 3, 8)
+	self:WriteFloat(vector.z, 3, 8)
+
+	return self
+end
