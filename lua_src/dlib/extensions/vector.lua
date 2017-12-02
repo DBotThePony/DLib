@@ -14,6 +14,7 @@
 -- limitations under the License.
 
 local vectorMeta = FindMetaTable('Vector')
+local Color = Color
 
 function vectorMeta:Copy()
 	return Vector(self)
@@ -29,4 +30,8 @@ function vectorMeta:RotateAroundAxis(axis, rotation)
 	local ang = self:Angle()
 	ang:RotateAroundAxis(axis, rotation)
 	return self:Receive(ang:Forward() * self:Length())
+end
+
+function vectorMeta:ToColor()
+	return Color(self.x * 255, self.y * 255, self.z * 255)
 end
