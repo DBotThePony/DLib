@@ -121,13 +121,21 @@ function net.CreateMessage(length, read)
 	obj.isIncoming = read
 	obj.isReading = read
 
-	for i = 1, length do
-		table.insert(obj.bits, 0)
-	end
-
 	if read then
 		obj:ReadNetwork()
+	else
+		for i = 1, length do
+			table.insert(obj.bits, 0)
+		end
 	end
+end
+
+function messageMeta:ReadNetwork(length)
+	for i = 1, length do
+		table.insert(self.bits, ReadBitNative())
+	end
+
+	return self
 end
 
 function messageMeta:Reset()
