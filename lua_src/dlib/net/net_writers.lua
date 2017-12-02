@@ -300,3 +300,19 @@ function messageMeta:WriteTable(tableIn)
 
 	return self
 end
+
+function messageMeta:WriteMatrix(matrixIn)
+	if type(matrixIn) ~= 'VMatrix' then
+		error('WriteMatrix - input is not a VMatrix!')
+	end
+
+	local toTable = matrixIn:ToTable()
+
+	for row = 1, 4 do
+		for field = 1, 4 do
+			self:WriteDouble(toTable[row][field])
+		end
+	end
+
+	return self
+end

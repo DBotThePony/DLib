@@ -28,6 +28,7 @@ local math = math
 local string = string
 local Entity = Entity
 local IsValid = IsValid
+local Matrix = Matrix
 
 local traceback = debug.traceback
 local nnet = DLib.nativeNet
@@ -199,4 +200,18 @@ function messageMeta:ReadTable()
 	until readKey == nil or readValue == nil
 
 	return output
+end
+
+function messageMeta:ReadMatrix()
+	local tableOutput = {}
+
+	for row = 1, 4 do
+		tableOutput[row] = {}
+
+		for field = 1, 4 do
+			tableOutput[row][field] = self:ReadDouble()
+		end
+	end
+
+	return Matrix(tableOutput)
 end
