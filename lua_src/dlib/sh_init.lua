@@ -67,8 +67,6 @@ DLib.Loader.shmodule('sh_cami.lua')
 DLib.Loader.shmodule('getinfo.lua').register()
 DLib.Loader.shmodule('strong_entity_link.lua')
 
-DLib.register('extensions/net.lua').export(_G.net)
-
 DLib.Loader.start('nw')
 DLib.Loader.load('dlib/modules/nwvar')
 DLib.Loader.finish()
