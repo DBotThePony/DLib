@@ -21,6 +21,7 @@ local pairs = pairs
 local math = math
 local string = string
 local IsValid = IsValid
+local TypeID = TypeID
 
 local traceback = debug.traceback
 local nnet = DLib.nativeNet
@@ -251,4 +252,30 @@ function messageMeta:WriteNormal(vectorIn)
 	self:WriteFloat(vector.z, 3, 8)
 
 	return self
+end
+
+messageMeta.WriteFunctions = {
+	[TYPE_NIL] = function(self, valueIn) end,
+	[TYPE_STRING] = function(self, valueIn) self:WriteString(valueIn) end,
+	[TYPE_NUMBER] = function(self, valueIn) self:WriteDouble(valueIn) end,
+	[TYPE_TABLE] = function(self, valueIn) self:WriteTable(valueIn) end,
+	[TYPE_BOOL] = function(self, valueIn) self:WriteBool(valueIn) end,
+	[TYPE_ENTITY] = function(self, valueIn) self:WriteEntity(valueIn) end,
+	[TYPE_VECTOR] = function(self, valueIn) self:WriteVector(valueIn) end,
+	[TYPE_ANGLE] = function(self, valueIn) self:WriteAngle(valueIn) end,
+	[TYPE_MATRIX] = function(self, valueIn) self:WriteMatrix(valueIn) end,
+	[TYPE_COLOR] = function(self, valueIn) self:WriteColor(valueIn) end,
+}
+
+function messageMeta:WriteType(valueIn)
+	local typeid = IsColor(valueIn) and TYPE_COLOR or TypeID(valueIn)
+	local writeFunc = self.WriteFunctions[typeid]
+
+	if writeFunc then
+		self:WriteUInt(typeid, 8)
+		writeFunc(self, valueIn)
+		return self
+	end
+
+	error('WriteType - type is not networkable - ' .. type(valueIn) .. ' (type ID is ' .. typeid .. ')')
 end

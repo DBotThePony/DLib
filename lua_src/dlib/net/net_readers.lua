@@ -154,3 +154,28 @@ end
 function messageMeta:ReadNormal()
 	return Vector(self:ReadFloat(3, 8), self:ReadFloat(3, 8), self:ReadFloat(3, 8))
 end
+
+messageMeta.ReadFunctions = {
+	[TYPE_NIL] = function(self) return nil end,
+	[TYPE_STRING] = function(self) return self:ReadString() end,
+	[TYPE_NUMBER] = function(self) return self:ReadDouble() end,
+	[TYPE_TABLE] = function(self) return self:ReadTable() end,
+	[TYPE_BOOL] = function(self) return self:ReadBool() end,
+	[TYPE_ENTITY] = function(self) return self:ReadEntity() end,
+	[TYPE_VECTOR] = function(self) return self:ReadVector() end,
+	[TYPE_ANGLE] = function(self) return self:ReadAngle() end,
+	[TYPE_MATRIX] = function(self) return self:ReadMatrix() end,
+	[TYPE_COLOR] = function(self) return self:ReadColor() end,
+}
+
+function messageMeta:ReadType(typeid)
+	typeid = typeid or self:ReadUInt(8)
+
+	local readFunc = self.ReadFunctions[typeid]
+
+	if readFunc then
+		return readFunc(self)
+	end
+
+	error('ReadType - corrupted or invalid typeid - ' .. typeid)
+end
