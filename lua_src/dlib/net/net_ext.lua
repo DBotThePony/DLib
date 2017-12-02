@@ -15,11 +15,17 @@
 
 local net = DLib.netModule
 local messageMeta = FindMetaTable('LNetworkMessage')
+local table = table
+local Entity = Entity
 
 function messageMeta:WritePlayer(ply)
 	local i = ply:EntIndex()
 	self:WriteUInt(i, 8)
 	return i
+end
+
+function messageMeta:ReadPlayer()
+	return Entity(self:ReadUInt(8))
 end
 
 function messageMeta:WriteTypedArray(input, callFunc)
@@ -34,12 +40,9 @@ function messageMeta:ReadTypedArray(callFunc)
 	return table.construct({}, callFunc, self:ReadUInt(16), self)
 end
 
-function messageMeta:ReadPlayer()
-	return Entity(self:ReadUInt(8))
-end
-
 function messageMeta:WriteArray(input)
-	messageMeta:WriteTypedArray(input, self.WriteType)
+	self:WriteTypedArray(input, self.WriteType)
+	return self
 end
 
 function messageMeta:ReadArray()
@@ -47,7 +50,8 @@ function messageMeta:ReadArray()
 end
 
 function messageMeta:WriteStringArray(input)
-	messageMeta:WriteTypedArray(input, self.WriteString)
+	self:WriteTypedArray(input, self.WriteString)
+	return self
 end
 
 function messageMeta:ReadStringArray()
@@ -55,11 +59,21 @@ function messageMeta:ReadStringArray()
 end
 
 function messageMeta:WriteEntityArray(input)
-	messageMeta:WriteTypedArray(input, self.WriteEntity)
+	self:WriteTypedArray(input, self.WriteEntity)
+	return self
 end
 
 function messageMeta:ReadEntityArray()
 	return table.construct({}, self.ReadEntity, self:ReadUInt(16), self)
+end
+
+function messageMeta:WritePlayerArray(input)
+	self:WriteTypedArray(input, self.WritePlayer)
+	return self
+end
+
+function messageMeta:ReadPlayerArray()
+	return table.construct({}, self.ReadPlayer, self:ReadUInt(16), self)
 end
 
 function net.GReadUInt(val)
@@ -95,3 +109,10 @@ function net.ChooseOptimalBits(amount)
 
 	return bits
 end
+
+net.RegisterWrapper('Player')
+net.RegisterWrapper('TypedArray')
+net.RegisterWrapper('Array')
+net.RegisterWrapper('EntityArray')
+net.RegisterWrapper('StringArray')
+net.RegisterWrapper('PlayerArray')
