@@ -145,3 +145,27 @@ function messageMeta:WriteFloat(input, bitsInteger, bitsFloat)
 
 	return self
 end
+
+function messageMeta:WriteVector(vecIn)
+	if type(vecIn) ~= 'Vector' then
+		error('WriteVector - input is not a vector!')
+	end
+
+	self:WriteFloat(vecIn.x, 24, 4)
+	self:WriteFloat(vecIn.y, 24, 4)
+	self:WriteFloat(vecIn.z, 24, 4)
+
+	return self
+end
+
+function messageMeta:WriteAngle(angleIn)
+	if type(vecIn) ~= 'Angle' then
+		error('WriteAngle - input is not an angle!')
+	end
+
+	self:WriteFloat(vecIn.p, 24, 4)
+	self:WriteFloat(vecIn.y, 24, 4)
+	self:WriteFloat(vecIn.r, 24, 4)
+
+	return self
+end

@@ -63,6 +63,28 @@ net.receive = net.Receive
 local CURRENT_OBJECT
 local CURRENT_SEND_OBJECT
 
+function net.RegisterWrapper(nameIn)
+	local read, write = 'Read' .. nameIn, 'Write' .. nameIn
+
+	net[read] = function(...)
+		if not CURRENT_OBJECT then
+			ErrorNoHalt('Not currently reading a message.')
+			return
+		end
+
+		return CURRENT_OBJECT[read](CURRENT_OBJECT, ...)
+	end
+
+	net[write] = function(...)
+		if not CURRENT_SEND_OBJECT then
+			ErrorNoHalt('Not currently writing a message.')
+			return
+		end
+
+		return CURRENT_OBJECT[write](CURRENT_OBJECT, ...)
+	end
+end
+
 function net.Incoming2(length, ply)
 	local indetifier = ReadHeader()
 	local strName = NetworkIDToString(indetifier)

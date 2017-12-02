@@ -89,3 +89,13 @@ function messageMeta:ReadFloat(bitsInteger, bitsFloat)
 	local buffer = self:ReadBuffer(totalBits)
 	return DLib.bitworker.BinaryToFloat(buffer)
 end
+
+local Angle, Vector = Angle, Vector
+
+function messageMeta:ReadVector()
+	return Vector(self:ReadFlaot(24, 4), self:ReadFlaot(24, 4), self:ReadFlaot(24, 4))
+end
+
+function messageMeta:ReadAngle()
+	return Angle(self:ReadFlaot(24, 4), self:ReadFlaot(24, 4), self:ReadFlaot(24, 4))
+end
