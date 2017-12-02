@@ -62,7 +62,7 @@ DLib.register('extensions/entity.lua')
 DLib.register('extensions/player.lua').export(_G.player)
 
 DLib.Loader.shmodule('bitworker.lua').register()
-DLib.Loader.shmodule('net.lua')
+DLib.simpleInclude('net/net.lua')
 DLib.Loader.shmodule('hook.lua')
 DLib.Loader.shmodule('sh_cami.lua')
 DLib.Loader.shmodule('getinfo.lua').register()

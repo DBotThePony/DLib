@@ -268,5 +268,5 @@ function messageMeta:WriteBitRaw(bitIn)
 	return self
 end
 
-DLib.Loader.shmodule('net_readers.lua')
-DLib.Loader.shmodule('net_writers.lua')
+DLib.simpleInclude('net/net_readers.lua')
+DLib.simpleInclude('net/net_writers.lua')

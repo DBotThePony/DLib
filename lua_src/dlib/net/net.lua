@@ -107,4 +107,4 @@ function net.CreateMessage(length, read)
 	end
 end
 
-DLib.Loader.shmodule('net_object.lua')
+DLib.simpleInclude('net/net_object.lua')
