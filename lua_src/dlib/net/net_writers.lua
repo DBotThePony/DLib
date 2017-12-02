@@ -279,3 +279,18 @@ function messageMeta:WriteType(valueIn)
 
 	error('WriteType - type is not networkable - ' .. type(valueIn) .. ' (type ID is ' .. typeid .. ')')
 end
+
+function messageMeta:WriteTable(tableIn)
+	if type(tableIn) ~= 'table' then
+		return 'Invalid table input!'
+	end
+
+	for key, value in pairs(tableIn) do
+		self:WriteType(key)
+		self:WriteType(value)
+	end
+
+	self:WriteType(nil)
+
+	return self
+end

@@ -179,3 +179,18 @@ function messageMeta:ReadType(typeid)
 
 	error('ReadType - corrupted or invalid typeid - ' .. typeid)
 end
+
+function messageMeta:ReadTable()
+	local output = {}
+	local readKey, readValue
+
+	repeat
+		readKey = self:ReadType()
+		if readKey == nil then break end
+		readValue = self:ReadType()
+		if readValue == nil then break end
+		output[readKey] = readValue
+	until readKey == nil or readValue == nil
+
+	return output
+end
