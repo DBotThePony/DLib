@@ -40,7 +40,7 @@ end
 
 function messageMeta:ReadBit()
 	if self.pointer == self.length then
-		ErrorNoHalt('ReadBit - Out of range')
+		self:ReportOutOfRange('ReadBit', 1)
 		return 0
 	end
 
@@ -57,7 +57,7 @@ function messageMeta:ReadInt(bitCount)
 	if type(bitCount) ~= 'number' then error('Bit amount is not a number!') end
 
 	if self.pointer + bitCount > self.length or bitCount < 2 then
-		ErrorNoHalt('ReadInt - Out of range')
+		self:ReportOutOfRange('ReadInt', bitCount)
 		return 0
 	end
 
@@ -71,7 +71,7 @@ function messageMeta:ReadUInt(bitCount)
 	if type(bitCount) ~= 'number' then error('Bit amount is not a number!') end
 
 	if self.pointer + bitCount > self.length or bitCount < 2 then
-		ErrorNoHalt('ReadUInt - Out of range')
+		self:ReportOutOfRange('ReadUInt', bitCount)
 		return 0
 	end
 
@@ -96,7 +96,7 @@ function messageMeta:ReadFloat(bitsInteger, bitsFloat)
 	local totalBits = bitsInteger + bitsFloat
 
 	if self.pointer + totalBits > self.length then
-		ErrorNoHalt('ReadFloat - Out of range')
+		self:ReportOutOfRange('ReadFloat', totalBits)
 		return 0
 	end
 
