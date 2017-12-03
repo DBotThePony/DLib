@@ -99,11 +99,11 @@ VLL.DOWNLOADING = VLL.DOWNLOADING or {}
 
 local function Remove(name)
 	local i
-	
+
 	for k, v in ipairs(VLL.DOWNLOADING) do
 		if v == name then i = k break end
 	end
-	
+
 	if i then
 		table.remove(VLL.DOWNLOADING, i)
 	end
@@ -114,50 +114,50 @@ local GMAWait = 0
 local function ContinueMountGMA(path, listname, nolist)
 	VLL.Message('Mounting ' .. path)
 	local status, models = game.MountGMA(path)
-	
+
 	GMAWait = CurTime() + 3
-	
+
 	if not CLIENT then return end
-	
+
 	if not (status and models) then return end
 	local new = {}
-	
+
 	for k, v in ipairs(models) do
 		if v:find('.mdl') then
 			table.insert(new, v)
 		end
 	end
-	
+
 	VLL.SPAWNLISTS[listname or path] = new
-	
+
 	if nolist or #new == 0 then return end
-	
+
 	VLL.PSPAWNLISTS[listname or path] = {}
-	
+
 	local self = VLL.PSPAWNLISTS[listname or path]
 	self.parentid = VLL.SPAWNLIST
 	self.icon = 'icon16/page.png'
-	
+
 	self.id = VLL.SPAWNLIST_NEXT
 	VLL.SPAWNLIST_NEXT = VLL.SPAWNLIST_NEXT + 1
-	
+
 	self.contents = {'reserved', 'reserved'}
-	
+
 	for k, model in ipairs(new) do
 		table.insert(self.contents, {
 			type = 'model',
 			model = model,
 		})
 	end
-	
+
 	self.total = #self.contents - 2
 	self.name = ('%s (%s)'):format(listname or path, self.total)
-	
+
 	self.contents[1] = {
 		type = 'header',
 		text = listname
 	}
-	
+
 	self.contents[2] = {
 		type = 'header',
 		text = 'Total models in that category: ' .. self.total
@@ -177,7 +177,7 @@ local function MountGMA(path, listname, nolist)
 	end
 
 	VLL.Message('Adding GMA ' .. path .. ' to mount queue')
-	
+
 	table.insert(VLL.CMOUNTING_GMA, {path, listname, nolist})
 end
 
@@ -193,65 +193,65 @@ function VLL.LoadGMAAs(URL, path, noreplicate)
 	if not noreplicate then
 		VLL.REPLICATED_GMAAS[path] = URL
 	end
-	
+
 	if table.HasValue(VLL.DOWNLOADING, path) then return end
 	VLL.Message('GMA file ' .. path .. ' was required.')
-	
+
 	local INDEX = table.insert(VLL.DOWNLOADING, path)
-	
+
 	if not file.Exists('vll/' .. path .. '.gma.txt', 'DATA') then
 		VLL.Message('Downloading ' .. path)
-		
+
 		local req = {}
 		local oreq = req
 		req.method = 'get'
 		req.url = URL .. '.z'
-		
+
 		req.headers = {
 			Referer = Reffer(),
 		}
-		
+
 		req.success = function(code, body, headers)
 			if code ~= 200 then
 				VLL.Message('No compressed ' .. path .. '. Trying to download uncompressed file')
-				
+
 				local req = {}
 				req.method = 'get'
 				req.url = URL
-				
+
 				req.success = function(code, body, headers)
 					if code ~= 200 then
 						VLL.Message('Failed to download ' .. path .. '!')
 						Remove(path)
 						return
 					end
-					
+
 					file.Write('vll/' .. path .. '.gma.txt', body)
 					MountGMA('data/vll/' .. path .. '.gma.txt', path)
-					
+
 					Remove(path)
 				end
-				
+
 				req.failed = oreq.failed
-				
+
 				HTTP(req)
-				
+
 				return
 			end
-			
+
 			local uncompress = util.Decompress(body)
 			VLL.Message('Unpacking ' .. path)
 			file.Write('vll/' .. path .. '.gma.txt', uncompress)
 			MountGMA('data/vll/' .. path .. '.gma.txt', path)
-			
+
 			Remove(path)
 		end
-		
+
 		req.failed = function(reason)
 			VLL.Message('ATTENTION! Failed to download ' .. path .. ': ', reason)
 			Remove(path)
 		end
-		
+
 		HTTP(req)
 	else
 		MountGMA('data/vll/' .. path .. '.gma.txt', path)
@@ -267,19 +267,19 @@ file.CreateDir('vll/wcache')
 
 function VLL.LoadWorkshop(id, nolist)
 	VLL.Message('Trying to download workshop addon ' .. id .. '.')
-	
+
 	VLL.REPLICATED_WORK[tostring(id)] = id
-	
+
 	--nuh
 	if SERVER then
 		VLL.Message('Serverside have no SteamWorks! Trying to lookup file on VLL server')
 		VLL.LoadGMAAs(VLL.URL .. 'wcache/' .. id .. '.gma', 'wcache/' .. id, false)
 		return
 	end
-	
+
 	VLL.WDOWNLOADING = VLL.WDOWNLOADING + 1
 	VLL.WINFO = VLL.WINFO + 1
-	
+
 	steamworks.FileInfo(id, function(data)
 		if not data then
 			VLL.Message('Unknown error from steamworks, occured, check message above. (' .. id .. ')')
@@ -287,13 +287,13 @@ function VLL.LoadWorkshop(id, nolist)
 			VLL.WDOWNLOADING = VLL.WDOWNLOADING - 1
 			return
 		end
-		
+
 		VLL.Message('GOT FILE INFO FOR ' .. id .. ' (' .. data.title .. ')!')
-		
+
 		VLL.WINFO = VLL.WINFO - 1
-		
+
 		local path = 'cache/workshop/' .. data.fileid .. '.cache'
-		
+
 		if file.Exists(path, 'GAME') then
 			VLL.Message('Mounting ' .. id .. ' (' .. data.title .. ') as ' .. path)
 			MountGMA(path, data.title, nolist)
@@ -311,24 +311,24 @@ end
 
 function VLL.ParseContent(contents)
 	local split = string.Explode(VLL.PACK_SEPERATOR, contents)
-	
+
 	if #split == 0 then
 		return false
 	end
-	
+
 	table.remove(split)
-	
+
 	return split
 end
 
 function VLL.SetupFiles(contents, bundle)
 	local parsed = VLL.ParseContent(contents)
-	
+
 	if not parsed then
 		VLL.Message('No such bundle - ' .. bundle)
 		return
 	end
-	
+
 	VLL.BUNDLE_STATUS[bundle] = VLL.RUNNING
 	VLL.BUNDLE_DATA[bundle] = {
 		total = #parsed / 2,
@@ -336,7 +336,7 @@ function VLL.SetupFiles(contents, bundle)
 		started = CurTime(),
 		status = '0',
 	}
-	
+
 	for i = 1, #parsed, 2 do
 		local FILE = parsed[i]
 		local body = parsed[i + 1]
@@ -351,17 +351,17 @@ function VLL.LoadBundle(contents, bundle)
 		VLL.Message('Hack')
 		return
 	end
-	
+
 	if contents == 'No bundle!' then
 		VLL.Message('No bundle!')
 		return
 	end
-	
+
 	if contents == '' then
 		VLL.Message('No bundle!')
 		return
 	end
-	
+
 	VLL.PurgeBundle(bundle)
 	VLL.SetupFiles(contents, bundle)
 	VLL.RunBundle(bundle)
@@ -369,35 +369,35 @@ end
 
 function VLL.LoadFromURL(url, bundle)
 	VLL.Message('Loading bundle ' .. bundle)
-	
+
 	local req = {}
-	
+
 	req.method = 'get'
 	req.url = url
-	
+
 	req.headers = {
 		Referer = Reffer(),
 	}
-	
+
 	function req.failed(reason)
 		VLL.Message('ATTENTION: Failed to load bundle - ' .. bundle .. ': ' .. reason)
 	end
-	
+
 	function req.success(code, body, headers)
 		VLL.LoadBundle(body, bundle)
 	end
-	
+
 	HTTP(req)
 end
 
 function VLL.Load(bundle, silent, noreplicate)
 	local URL = VLL.URL .. 'get_pack.php?bundle=' .. bundle
 	VLL.LoadFromURL(URL, bundle)
-	
+
 	if not noreplicate then
 		VLL.REPLICATED[bundle] = true
 	end
-	
+
 	if SERVER and not silent then
 		net.Start('VLL.Load')
 		net.WriteString(bundle)
@@ -420,10 +420,10 @@ end
 
 function VLL.FixFilePath(path)
 	local split = string.Explode('/', path)
-	
+
 	local currentIndex = 1
 	local newSplit = {}
-	
+
 	for k, v in ipairs(split) do
 		if v == '..' then
 			currentIndex = currentIndex - 1
@@ -438,7 +438,7 @@ function VLL.FixFilePath(path)
 			currentIndex = currentIndex + 1
 		end
 	end
-	
+
 	return table.concat(newSplit, '/')
 end
 
@@ -453,11 +453,11 @@ end
 function VLL.__compileString(str, err, handle)
 	local env = getfenv(2)
 	local func = CompileString(str, err, handle)
-	
+
 	if isfunction(func) then
 		setfenv(func, env)
 	end
-	
+
 	return func
 end
 
@@ -475,11 +475,11 @@ end
 
 function VLL.__addHook(event, id, func, priority)
 	local bundle = getfenv(2).VLL_BUNDLE
-	
+
 	hook.Add(event, id, func, priority)
-	
+
 	if not bundle then return end
-	
+
 	VLL.HOOKS[bundle] = VLL.HOOKS[bundle] or {}
 	VLL.HOOKS[bundle][event] = VLL.HOOKS[bundle][event] or {}
 	VLL.HOOKS[bundle][event][id] = {func = func, priority = priority}
@@ -487,7 +487,7 @@ end
 
 function VLL.UnloadHooks(bundle)
 	VLL.HOOKS[bundle] = VLL.HOOKS[bundle] or {}
-	
+
 	for event, data in pairs(VLL.HOOKS[bundle]) do
 		for id, Data in pairs(data) do
 			hook.Remove(event, id)
@@ -500,13 +500,13 @@ function VLL.DirectoryContent(path)
 	local reply = {}
 	local reply2 = {}
 	local reply3 = {}
-	
+
 	for k, v in pairs(VLL.FILE_MEMORY) do
 		local sub = string.sub(k, 1, len)
 		if sub ~= path then continue end
-		
+
 		if string.sub(k, len + 1, len + 1) == '.' then continue end
-		
+
 		local subnext = string.sub(k, len + 2)
 		if not string.find(subnext, '/') then
 			table.insert(reply, subnext)
@@ -515,11 +515,11 @@ function VLL.DirectoryContent(path)
 			reply2[dir] = dir
 		end
 	end
-	
+
 	for k, v in pairs(reply2) do
 		table.insert(reply3, k)
 	end
-	
+
 	return reply, reply3
 end
 
@@ -527,7 +527,7 @@ function VLL.DirectoryFolders(path)
 	local len = #path
 	local reply = {}
 	local reply2 = {}
-	
+
 	for k, v in pairs(VLL.FILE_MEMORY) do
 		local sub = string.sub(k, 1, len)
 		if sub ~= path then continue end
@@ -536,17 +536,17 @@ function VLL.DirectoryFolders(path)
 		local dir = string.Explode('/', subnext)[1]
 		reply2[dir] = dir
 	end
-	
+
 	for k, v in pairs(reply2) do
 		table.insert(reply, k)
 	end
-	
+
 	return reply
 end
 
 function VLL.StringLine(str, line)
 	local split = string.Explode('\n', str)
-	
+
 	return split[line]
 end
 
@@ -559,7 +559,7 @@ function VLL.HasValue(tab, val)
 	for k, v in ipairs(tab) do
 		if v == val then return true end
 	end
-	
+
 	return false
 end
 
@@ -567,74 +567,74 @@ function VLL.__FileFind(File, Dir)
 	if Dir ~= 'LUA' then return file.Find(File, Dir) end
 	local split = string.Explode('/', File)
 	local lastToken = split[#split]
-	
+
 	local one, dirs = VLL.DirectoryContent(table.concat(split, '/', 1, #split - 1))
 	local two, tdirs = file.Find(File, Dir)
-	
+
 	local reply = {}
 	local replyDirs = {}
-	
+
 	for k, v in ipairs(one) do
 		if not VLL.HasValue(reply, v) then
 			table.insert(reply, v)
 		end
 	end
-	
+
 	for k, v in ipairs(two) do
 		if not VLL.HasValue(reply, v) then
 			table.insert(reply, v)
 		end
 	end
-	
+
 	for k, v in ipairs(dirs) do
 		if not VLL.HasValue(replyDirs, v) then
 			table.insert(replyDirs, v)
 		end
 	end
-	
+
 	for k, v in ipairs(tdirs) do
 		if not VLL.HasValue(replyDirs, v) then
 			table.insert(replyDirs, v)
 		end
 	end
-	
+
 	if lastToken == '*' then
 		return reply, replyDirs
 	else
 		local newToken = lastToken:gsub('%.', '%%%.'):gsub('%*', '.*')
-		
+
 		local newReply, newReplyDirs = {}, {}
-		
+
 		for k, v in ipairs(reply) do
 			if not VLL.HasValue(newReply, v) and v:find(newToken) then
 				table.insert(newReply, v)
 			end
 		end
-		
+
 		for k, v in ipairs(replyDirs) do
 			if not VLL.HasValue(newReplyDirs, v) and v:find(newToken) then
 				table.insert(newReplyDirs, v)
 			end
 		end
-		
+
 		return newReply, newReplyDirs
 	end
-	
+
 	return {}, {} -- ???
 end
 
 function VLL.IsDir(Path, Dir)
 	if Dir ~= 'LUA' then return file.IsDir(Path, Dir) end
-	
+
 	if VLL.DIRECTORY_MEMORY[Path] then return true end
 	return file.IsDir(Path, Dir)
 end
 
 function VLL.FileRead(File, Dir)
 	if Dir ~= 'LUA' then return file.Read(File, Dir) end
-	
+
 	if not VLL.IsMyFile(File) then return file.Read(File, Dir) end
-	
+
 	return VLL.ReadFile(File)
 end
 
@@ -647,7 +647,7 @@ end
 
 function VLL.ErrorHandler(err)
 	local trace = debug.traceback()
-	
+
 	if SERVER then
 		VLL.AdminMessage(Color(200, 50, 50), 'SERVERSIDE LUA ERROR: ' .. (err or ''))
 		VLL.AdminMessage(Color(255, 255, 255), trace)
@@ -665,7 +665,7 @@ function VLL.ErrorHandlerSilent(err)
 		VLL.Message(Color(200, 50, 50), 'LUA ERROR')
 		VLL.Message(Color(255, 255, 255), err)
 	end
-	
+
 	Error('')
 end
 
@@ -677,7 +677,7 @@ function VLL.ErrorHandlerSilentNoHalt(err)
 		VLL.Message(Color(200, 50, 50), 'LUA ERROR')
 		VLL.Message(Color(255, 255, 255), err)
 	end
-	
+
 	if VLL.IS_TESTING then
 		VLL.Message('[..FAIL..] ', err)
 		VLL.Message(debug.traceback())
@@ -693,42 +693,42 @@ function VLL.Include(path)
 	local sayFunc = VLL.SILENT_INCLUDE and VLL.EMPTY_FUNCTION or VLL.Message
 	local env = getfenv(2)
 	local dir = env.VLL_CURR_DIR
-	
+
 	if not path and dir then VLL.Message(Color(255, 0, 0), 'File being loaded without path. Directory: ' .. dir) return end
-	
+
 	local path2
-	
+
 	if dir then
 		path2 = VLL.FixFilePath(dir .. '/' .. path)
 	end
-	
+
 	path = VLL.FixFilePath(path)
 	local Exists1 = VLL.IsMyFile(path)
 	local Exists2
-	
+
 	if path2 then
 		Exists2 = VLL.IsMyFile(path2)
 	end
-	
+
 	local fpath = Exists1 and path or Exists2 and path2
-	
+
 	if not fpath then
 		local ErrMessage = ''
 		local function ErrorHandler(err)
 			ErrMessage = err
-			
+
 			if VLL.IS_TESTING then
 				VLL.Message(VLL.ERROR_COLOR, '[..FAIL..] ERROR! ', VLL.DEFAULT_COLOR, err)
 			else
 				VLL.Message(VLL.ERROR_COLOR, 'ERROR! ', VLL.DEFAULT_COLOR, err)
 			end
-			
+
 			VLL.Message(debug.traceback())
 		end
-		
+
 		local reply = {}
 		local actualFile = ''
-		
+
 		if path2 and VLL.__FileExists(path2, 'LUA') then
 			reply = {xpcall(VLL.Compile(path2), ErrorHandler)}
 			actualFile = path2
@@ -742,7 +742,7 @@ function VLL.Include(path)
 				VLL.AdminMessage(VLL.WARN_COLOR, '[..WARN..] Tried to load non-exist file: ' .. (path2 or '<undefined>') .. ' || ' .. (path or '<undefined>'))
 			end
 		end
-		
+
 		if VLL.IS_TESTING then
 			if reply[1] then
 				sayFunc('[.. OK ..] Compiled and runned file     : ' .. actualFile)
@@ -756,12 +756,12 @@ function VLL.Include(path)
 		else
 			sayFunc('Running File: ' .. actualFile)
 		end
-		
+
 		return unpack(reply, 2)
 	end
-	
+
 	--Catch em all
-	
+
 	if not VLL.IS_TESTING then
 		sayFunc('Running File: ' .. fpath)
 		local reply = {xpcall(VLL.Compile(fpath), VLL.ErrorHandler)}
@@ -770,24 +770,24 @@ function VLL.Include(path)
 		local ErrMessage = ''
 		local function ErrorHandler(err)
 			ErrMessage = err
-			
+
 			if VLL.IS_TESTING then
 				VLL.Message(VLL.ERROR_COLOR, '[..FAIL..] ERROR! ', VLL.DEFAULT_COLOR, err)
 			else
 				VLL.Message(VLL.ERROR_COLOR, 'ERROR! ', VLL.DEFAULT_COLOR, err)
 			end
-			
+
 			VLL.Message(debug.traceback())
 		end
-		
+
 		local reply = {xpcall(VLL.Compile(fpath), ErrorHandler)}
-		
+
 		if reply[1] then
 			sayFunc('[.. OK ..] Compiled and runned file     : ' .. fpath)
 		else
 			sayFunc(VLL.ERROR_COLOR, '[..FAIL..] File filed to compile/execute: ' .. fpath .. ' || ', VLL.DEFAULT_COLOR, ErrMessage)
 		end
-		
+
 		return unpack(reply, 2)
 	end
 end
@@ -802,7 +802,7 @@ function VLL.Require(File)
 			data = {VLL.Include(File)},
 			time = RealTime()
 		}
-		
+
 		return unpack(VLL.REQUIRE_CACHE[File].data)
 	end
 end
@@ -812,7 +812,7 @@ function VLL.CSLua(File)
 	local env = getfenv(2)
 	local path = env.VLL_CURR_DIR
 	if VLL.IsMyFile(File) or (path and VLL.IsMyFile(path .. '/' .. File)) then return end
-	
+
 	if file.Exists(File, 'LUA') then
 		AddCSLuaFile(File)
 	elseif path and file.Exists(path .. '/' .. File, 'LUA') then
@@ -823,7 +823,7 @@ function VLL.CSLua(File)
 		else
 			VLL.Message(VLL.WARN_COLOR, '[..WARN..] AddCSLuaFile() - Failed to find specified file - ' .. File)
 		end
-	end	
+	end
 end
 
 function VLL.SaveFile(Path, Contents, Bundle)
@@ -831,18 +831,18 @@ function VLL.SaveFile(Path, Contents, Bundle)
 		content = Contents,
 		bundle = Bundle,
 	}
-	
+
 	local split = string.Explode('/', Path)
 	table.remove(split)
-	
+
 	local prev = ''
-	
+
 	for k, v in ipairs(split) do
 		local new = prev .. '/' .. v
 		VLL.DIRECTORY_MEMORY[new] = new
 		prev = new
 	end
-	
+
 	VLL.COMPILED_MEMORY[Path] = nil
 end
 
@@ -855,17 +855,17 @@ VLL.FileExists = VLL.IsMyFile
 function VLL.FileDirectory(FILE)
 	local arr = string.Explode('/', FILE)
 	local str = ''
-	
+
 	for k = 1, #arr - 1 do
 		str = str .. '/' .. arr[k]
 	end
-	
+
 	return string.sub(str, 2)
 end
 
 function VLL.CopyTable(tab)
 	local reply = {}
-	
+
 	for k, v in pairs(tab) do
 		if k == '__index' or k == '__newindex' then continue end
 		if type(v) ~= 'table' then
@@ -874,19 +874,19 @@ function VLL.CopyTable(tab)
 			reply[k] = VLL.CopyTable(tab)
 		end
 	end
-	
+
 	if tab.__index == tab then
 		reply.__index = reply
 	else
 		reply.__index = tab.__index
 	end
-	
+
 	if tab.__newindex == tab then
 		reply.__newindex = reply
 	else
 		reply.__newindex = tab.__newindex
 	end
-	
+
 	return reply
 end
 
@@ -925,7 +925,7 @@ setmetatable(hookFuncs, {__index = hook})
 
 function VLL.AdminMessage(...)
 	VLL.Message(...)
-	
+
 	if SERVER then
 		net.Start('VLL.Admin')
 		net.WriteTable({...})
@@ -939,21 +939,21 @@ end
 
 function VLL.__Compile(path)
 	local compiled, fenv = VLL.Compile(path)
-	
+
 	local sayFunc = VLL.SILENT_INCLUDE and VLL.EMPTY_FUNCTION or VLL.Message
 	local ErrMessage = 'undefined'
-	
+
 	local function ErrorHandler(err)
 		ErrMessage = err
 		VLL.Message(VLL.ERROR_COLOR, 'ERROR! ', VLL.DEFAULT_COLOR, err)
 		VLL.Message(debug.traceback())
 	end
-	
+
 	local newFunc
 	function newFunc(...)
 		setfenv(compiled, getfenv(newFunc))
 		local reply = {xpcall(compiled, ErrorHandler, ...)}
-		
+
 		if reply[1] then
 			if not VLL.IS_TESTING then
 				sayFunc('Running File: ' .. path)
@@ -967,10 +967,10 @@ function VLL.__Compile(path)
 				VLL.Message(VLL.ERROR_COLOR, '[..FAIL..] File filed to compile/execute: ' .. path .. ' || ' .. ErrMessage)
 			end
 		end
-		
+
 		return unpack(reply, 2)
 	end
-	
+
 	setfenv(newFunc, fenv)
 	return newFunc
 end
@@ -980,20 +980,20 @@ VLL.MSG_COLOR = Color(0, 200, 200)
 
 function VLL.__print(...)
 	print(...)
-	
+
 	if VLL.SendOutputTo then
 		local tab = {VLL.PRINT_COLOR, ...}
 		table.insert(VLL.SendOutputTo, tab)
-		
+
 		local last = tab[#tab]
 		local hit = false
-		
+
 		if type(last) == 'string' then
 			if last:find('\n') then
 				hit = true
 			end
 		end
-		
+
 		if not hit then
 			table.insert(VLL.SendOutputTo, {'\n'})
 		end
@@ -1002,51 +1002,51 @@ end
 
 function VLL.__msg(...)
 	Msg(...)
-	
+
 	if VLL.SendOutputTo then
 		local tab = {VLL.MSG_COLOR, ...}
 		local last = tab[#tab]
-		
+
 		if type(last) == 'string' then
 			last = last:gsub('\r\n', '\n')
 		end
-		
+
 		table.insert(VLL.SendOutputTo, tab)
 	end
 end
 
 function VLL.__msgc(...)
 	MsgC(...)
-	
+
 	if VLL.SendOutputTo then
 		local tab = {VLL.MSG_COLOR, ...}
 		local last = tab[#tab]
-		
+
 		if type(last) == 'string' then
 			last = last:gsub('\r\n', '\n')
 		end
-		
+
 		table.insert(VLL.SendOutputTo, tab)
 	end
 end
 
 function VLL.module(name, ...)
 	local oldEnv = getfenv(2)
-	
+
 	local newEnv = {
 		VLL_CURR_FILE = oldEnv.VLL_CURR_FILE,
 		VLL_BUNDLE = oldEnv.VLL_BUNDLE,
 		VLL_CURR_DIR = oldEnv.VLL_CURR_DIR,
 	}
-	
+
 	local moduleTable = _G[name] or {}
 	_G[name] = moduleTable
-	
+
 	moduleTable[name] = moduleTable
 	moduleTable._M = moduleTable
-	
+
 	local useGlobals = false
-	
+
 	for k, func in ipairs{...} do
 		if func == package.seeall then
 			useGlobals = true
@@ -1054,30 +1054,30 @@ function VLL.module(name, ...)
 			func(moduleTable)
 		end
 	end
-	
+
 	local meta = {
 		__newindex = function(self, key, val)
 			moduleTable[key] = val
 		end,
-		
+
 		__index = function(self, key)
 			if moduleTable[key] ~= nil then
 				return moduleTable[key]
 			end
-			
+
 			if useGlobals then
 				if oldEnv[key] ~= nil then
 					return oldEnv[key]
 				end
 			end
-			
+
 			return rawget(newEnv, key)
 		end,
 	}
-	
+
 	setmetatable(newEnv, meta)
 	setfenv(2, newEnv)
-	
+
 	return moduleTable
 end
 
@@ -1100,25 +1100,25 @@ function VLL.Compile(File)
 		hook = hookFuncs,
 		error = VLL.ErrorHandlerLua,
 		Error = VLL.ErrorHandlerSilent,
-		ErrorNoHalt = VLL.ErrorHandlerSilentNoHalt,
+		--ErrorNoHalt = VLL.ErrorHandlerSilentNoHalt,
 		_G = _G,
 	}
-	
+
 	setmetatable(Env, EnvMeta)
-	
+
 	local content = VLL.ReadFile(File)
 	local status
-	
+
 	if #content < 10 then --Oops
 		local estatus, nstatus = pcall(CompileFile, File)
-		
+
 		if not estatus then
 			local ostatus = status
-			
+
 			status = function()
 				if not VLL.IS_TESTING then
 					VLL.AdminMessage('Tried to load file ' .. File .. ' with next error: ' .. status)
-					
+
 					string.gsub(ostatus, ':[0-9]+:', function(w)
 						local new = string.sub(w, 2, #w - 1)
 						print(VLL.StringLine(VLL.ReadFile(File), tonumber(new)))
@@ -1129,7 +1129,7 @@ function VLL.Compile(File)
 						local new = string.sub(w, 2, #w - 1)
 						str = VLL.StringLine(VLL.ReadFile(File), tonumber(new))
 					end)
-					
+
 					error('ERROR: ' .. ostatus .. ' (' .. str .. ')')
 				end
 			end
@@ -1146,14 +1146,14 @@ function VLL.Compile(File)
 		end
 	else
 		status = CompileString(content, '[VLL: ' .. VLL.FileBundle(File) .. ' - ' .. File .. ']', false)
-		
+
 		if not isfunction(status) then
 			local ostatus = status
-			
+
 			status = function()
 				if not VLL.IS_TESTING then
 					VLL.AdminMessage('Tried to load file ' .. File .. ' with next parse error: ' .. ostatus)
-					
+
 					string.gsub(ostatus, ':[0-9]+:', function(w)
 						local new = string.sub(w, 2, #w - 1)
 						print(VLL.StringLine(VLL.ReadFile(File), tonumber(new)))
@@ -1164,7 +1164,7 @@ function VLL.Compile(File)
 						local new = string.sub(w, 2, #w - 1)
 						str = VLL.StringLine(VLL.ReadFile(File), tonumber(new))
 					end)
-					
+
 					error('PARSE ERROR: ' .. ostatus .. ' (' .. str .. ')')
 				end
 			end
@@ -1172,14 +1172,14 @@ function VLL.Compile(File)
 	end
 
 	setfenv(status, Env)
-	
+
 	return status, Env
 end
 
 function VLL.Message(...)
 	MsgC(Color(0, 200, 0), '[DBot\'s VLL] ', Color(200, 200, 200), ...)
 	MsgC('\n')
-	
+
 	if VLL.SendOutputTo then
 		table.insert(VLL.SendOutputTo, {Color(0, 200, 0), '[DBot\'s VLL] ', Color(200, 200, 200), ...})
 		table.insert(VLL.SendOutputTo, {'\n'})
@@ -1188,64 +1188,64 @@ end
 
 function VLL.BundleFiles(bundle)
 	local reply = {}
-	
+
 	for k, v in pairs(VLL.FILE_MEMORY) do
 		if v.bundle ~= bundle then continue end
 		table.insert(reply, k)
 	end
-	
+
 	return reply
 end
 
 function VLL.RunBundle(bundle)
 	VLL.Message('Running bundle: ' .. bundle)
-	
+
 	local t = SysTime()
-	
+
 	if VLL.BUNDLE_DATA[bundle].status == '2' then
 		VLL.Include(bundle .. '.lua')
 		return
 	end
-	
+
 	--[[local contents = VLL.DirectoryContent('includes/modules')
 	table.sort(contents)
-	
+
 	for k, v in pairs(contents) do
 		if VLL.FileBundle('includes/modules/' .. v) ~= bundle then continue end
 		VLL.Include('includes/modules/' .. v)
 	end]]
-	
+
 	local contents = VLL.DirectoryContent('autorun')
 	table.sort(contents)
-	
+
 	for k, v in pairs(contents) do
 		if VLL.FileBundle('autorun/' .. v) ~= bundle then continue end
 		VLL.Include('autorun/' .. v)
 	end
-	
+
 	if DLib then
 		local contents = VLL.DirectoryContent('dlib/autorun')
 		table.sort(contents)
-		
+
 		for k, v in pairs(contents) do
 			if VLL.FileBundle('dlib/autorun/' .. v) ~= bundle then continue end
 			VLL.Include('dlib/autorun/' .. v)
 		end
 	end
-	
+
 	if SERVER then
 		local contents = VLL.DirectoryContent('autorun/server')
 		table.sort(contents)
-	
+
 		for k, v in pairs(contents) do
 			if VLL.FileBundle('autorun/server/' .. v) ~= bundle then continue end
 			VLL.Include('autorun/server/' .. v)
 		end
-		
+
 		if DLib then
 			local contents = VLL.DirectoryContent('dlib/autorun/server')
 			table.sort(contents)
-		
+
 			for k, v in pairs(contents) do
 				if VLL.FileBundle('dlib/autorun/server/' .. v) ~= bundle then continue end
 				VLL.Include('dlib/autorun/server/' .. v)
@@ -1254,167 +1254,167 @@ function VLL.RunBundle(bundle)
 	else
 		local contents = VLL.DirectoryContent('autorun/client')
 		table.sort(contents)
-	
+
 		for k, v in pairs(contents) do
 			if VLL.FileBundle('autorun/client/' .. v) ~= bundle then continue end
 			VLL.Include('autorun/client/' .. v)
 		end
-		
+
 		if DLib then
 			local contents = VLL.DirectoryContent('dlib/autorun/client')
 			table.sort(contents)
-		
+
 			for k, v in pairs(contents) do
 				if VLL.FileBundle('dlib/autorun/client/' .. v) ~= bundle then continue end
 				VLL.Include('dlib/autorun/client/' .. v)
 			end
 		end
 	end
-	
+
 	local folders = VLL.DirectoryFolders('weapons')
 	table.sort(folders)
-	
+
 	for k, f in pairs(folders) do
 		SWEP = {}
 		SWEP.Folder = 'weapons/' .. f
 		SWEP.Primary = {}
 		SWEP.Secondary = {}
-		
+
 		local hit = false
-		
-		if SERVER and VLL.FileBundle('weapons/' .. f .. '/init.lua') == bundle then 
+
+		if SERVER and VLL.FileBundle('weapons/' .. f .. '/init.lua') == bundle then
 			VLL.Include('weapons/' .. f .. '/init.lua')
 			hit = true
 		end
-		
-		if CLIENT and VLL.FileBundle('weapons/' .. f .. '/cl_init.lua') == bundle then 
+
+		if CLIENT and VLL.FileBundle('weapons/' .. f .. '/cl_init.lua') == bundle then
 			VLL.Include('weapons/' .. f .. '/cl_init.lua')
 			hit = true
 		end
-		
-		if VLL.FileBundle('weapons/' .. f .. '/shared.lua') == bundle then 
+
+		if VLL.FileBundle('weapons/' .. f .. '/shared.lua') == bundle then
 			VLL.Include('weapons/' .. f .. '/shared.lua')
 			hit = true
 		end
-		
+
 		if hit then
 			weapons.Register(SWEP, f)
 			baseclass.Set(f, SWEP)
 		end
-		
+
 		SWEP = nil
 	end
-	
+
 	local contents = VLL.DirectoryContent('weapons')
 	table.sort(contents)
-	
+
 	for k, v in pairs(contents) do
 		if VLL.FileBundle('weapons/' .. v) ~= bundle then continue end
-		
+
 		SWEP = {}
 		SWEP.Folder = 'weapons'
 		SWEP.Primary = {}
 		SWEP.Secondary = {}
-		
+
 		VLL.Include('weapons/' .. v)
-		
+
 		weapons.Register(SWEP, string.sub(v, 1, -5))
 		baseclass.Set(string.sub(v, 1, -5), SWEP)
 		SWEP = nil
 	end
-	
+
 	local folders = VLL.DirectoryFolders('entities')
 	table.sort(folders)
-	
+
 	for k, f in pairs(folders) do
 		ENT = {}
 		ENT.Folder = 'entities/' .. f
-		
+
 		local hit = false
-		
-		if SERVER and VLL.FileBundle('entities/' .. f .. '/init.lua') == bundle then 
+
+		if SERVER and VLL.FileBundle('entities/' .. f .. '/init.lua') == bundle then
 			VLL.Include('entities/' .. f .. '/init.lua')
 			hit = true
 		end
-		
-		if CLIENT and VLL.FileBundle('entities/' .. f .. '/cl_init.lua') == bundle then 
+
+		if CLIENT and VLL.FileBundle('entities/' .. f .. '/cl_init.lua') == bundle then
 			VLL.Include('entities/' .. f .. '/cl_init.lua')
 			hit = true
 		end
-		
-		if VLL.FileBundle('entities/' .. f .. '/shared.lua') == bundle then 
+
+		if VLL.FileBundle('entities/' .. f .. '/shared.lua') == bundle then
 			VLL.Include('entities/' .. f .. '/shared.lua')
 			hit = true
 		end
-		
+
 		if hit then
 			scripted_ents.Register(ENT, f)
 			baseclass.Set(f, ENT)
 		end
-		
+
 		ENT = nil
 	end
-	
+
 	local contents = VLL.DirectoryContent('entities')
 	table.sort(contents)
-	
+
 	for k, v in pairs(contents) do
 		if VLL.FileBundle('entities/' .. v) ~= bundle then continue end
-		
+
 		ENT = {}
 		ENT.Folder = 'entities'
-		
+
 		VLL.Include('entities/' .. v)
-		
+
 		scripted_ents.Register(ENT, string.sub(v, 1, -5))
 		baseclass.Set(string.sub(v, 1, -5), ENT)
 	end
-	
+
 	if CLIENT then
 		local contents = VLL.DirectoryContent('effects')
 		table.sort(contents)
-		
+
 		for k, v in pairs(contents) do
 			if VLL.FileBundle('effects/' .. v) ~= bundle then continue end
-			
+
 			EFFECT = {}
-			
+
 			VLL.Include('effects/' .. v)
-			
+
 			effects.Register(EFFECT, string.sub(v, 1, -5))
 		end
 	end
-	
+
 	--[[
 	local toolgunHit = false
-	
+
 	local contents = VLL.DirectoryContent('weapons/gmod_tool/stools')
-	
+
 	for k, fil in ipairs(contents) do
 		if VLL.FileBundle('weapons/gmod_tool/stools/' .. fil) == bundle then
 			toolgunHit = true
 			break
 		end
 	end
-	
+
 	if toolgunHit then
 		VLL.Message('Toolgun changes detected, reloading toolgun SWEP')
-		
+
 		SWEP = {}
 		SWEP.Folder = 'weapons/gmod_tool'
 		SWEP.Primary = {}
 		SWEP.Secondary = {}
-		
+
 		if SERVER then
 			VLL.Include('weapons/gmod_tool/init.lua')
 		else
 			VLL.Include('weapons/gmod_tool/cl_init.lua')
 		end
-		
+
 		scripted_ents.Register(SWEP, 'gmod_tool')
 	end
 	]]
-	
+
 	VLL.Message('Initialized bundle ' .. bundle .. ' in ' .. math.floor((SysTime() - t) * 100000) / 100 .. ' ms')
 end
 
@@ -1423,11 +1423,11 @@ VLL.SendOutputTo = nil
 function VLL.TestBundle(contents, bundle, output)
 	output = output or {}
 	local parsed = VLL.ParseContent(contents)
-	
+
 	if not parsed then
 		return
 	end
-	
+
 	VLL.BUNDLE_STATUS[bundle] = VLL.RUNNING
 	VLL.BUNDLE_DATA[bundle] = {
 		total = #parsed / 2,
@@ -1435,7 +1435,7 @@ function VLL.TestBundle(contents, bundle, output)
 		started = CurTime(),
 		status = '0',
 	}
-	
+
 	for i = 1, #parsed, 2 do
 		local FILE = parsed[i]
 		local body = parsed[i + 1]
@@ -1443,32 +1443,32 @@ function VLL.TestBundle(contents, bundle, output)
 		if not body then continue end
 		VLL.SaveFile(FILE, body, bundle)
 	end
-	
+
 	VLL.IS_TESTING = true
 	VLL.SendOutputTo = output
 	VLL.RunBundle(bundle)
 	VLL.SendOutputTo = nil
 	VLL.IS_TESTING = false
-	
+
 	local strout = {}
-	
+
 	for k, data in ipairs(output) do
 		for k, v in ipairs(data) do
 			if type(v) == 'string' then
 				table.insert(strout, v)
 			end
-			
+
 			if type(v) == 'table' and v.a and v.r and v.g and v.b then
 				table.insert(strout, VLL.Format256Color(v))
 			end
 		end
-		
+
 		table.insert(strout, VLL.Format256Color(color_white))
 	end
-	
+
 	local stringToOut = table.concat(strout, '')
 	file.Write('vll_bundletest.txt', stringToOut)
-	
+
 	return strout, stringToOut
 end
 
@@ -1476,9 +1476,9 @@ function VLL.FileLoaded(code, body, FILE, bundle)
 	VLL.Message('File loaded: ' .. FILE .. ' for bundle ' .. bundle .. ' with status code: ' .. code)
 	VLL.SaveFile(FILE, body, bundle)
 	VLL.BUNDLE_DATA[bundle].done = VLL.BUNDLE_DATA[bundle].done + 1
-	
+
 	VLL.BUNDLE_STATUS[bundle] = VLL.LOADING_IN_PROCESS
-	
+
 	if VLL.BUNDLE_DATA[bundle].done >= VLL.BUNDLE_DATA[bundle].total then
 		VLL.BUNDLE_STATUS[bundle] = VLL.LOADED
 		VLL.RunBundle(bundle)
@@ -1489,7 +1489,7 @@ end
 function VLL.LoadBundleFiles(array, bundle, status)
 	VLL.Message('Loading Bundle: ' .. bundle)
 	VLL.Message('Total Files: ' .. #array)
-	
+
 	for k, v in pairs(array) do
 		VLL.LoadFile(v, bundle, status)
 	end
@@ -1506,7 +1506,7 @@ VLL.ColorMapping = {
 	{Color(0, 255, 255), '36'},     -- Cyan
 	{Color(200, 200, 200), '37'},   -- Light gray
 	{Color(100, 100, 100), '90'},   -- Dark gray
-	
+
 	{Color(255, 100, 100), '91'},   -- Light Red
 	{Color(100, 255, 100), '92'},   -- Light Green
 	{Color(255, 255, 100), '93'},   -- Light Yellow
@@ -1520,7 +1520,7 @@ VLL.ColorMapping256 = {{'0', Color(0, 0, 0)}, {'1', Color(128, 0, 0)}, {'2', Col
 function VLL.GetColorCode(col)
 	for k, v in ipairs(VLL.ColorMapping) do
 		local curr = v[1]
-		
+
 		if curr.r == col.r and curr.g == col.g and curr.b == col.b then
 			return v[2]
 		end
@@ -1530,7 +1530,7 @@ end
 function VLL.GetColorCode256(col)
 	for k, v in ipairs(VLL.ColorMapping256) do
 		local curr = v[2]
-		
+
 		if curr.r == col.r and curr.g == col.g and curr.b == col.b then
 			return v[1]
 		end
@@ -1540,38 +1540,38 @@ end
 function VLL.GetNearestColor(col)
 	local new
 	local cdelta = 1000
-	
+
 	for k, v in ipairs(VLL.ColorMapping) do
 		local curr = v[1]
-		
+
 		local deltaR, deltaG, deltaB = math.abs(col.r - curr.r), math.abs(col.g - curr.g), math.abs(col.b - curr.b)
 		local summ = deltaR + deltaG + deltaB
-		
+
 		if summ < cdelta then
 			new = curr
 			cdelta = summ
 		end
 	end
-	
+
 	return new
 end
 
 function VLL.GetNearestColor256(col)
 	local new
 	local cdelta = 1000
-	
+
 	for k, v in ipairs(VLL.ColorMapping256) do
 		local curr = v[2]
-		
+
 		local deltaR, deltaG, deltaB = math.abs(col.r - curr.r), math.abs(col.g - curr.g), math.abs(col.b - curr.b)
 		local summ = deltaR + deltaG + deltaB
-		
+
 		if summ < cdelta then
 			new = curr
 			cdelta = summ
 		end
 	end
-	
+
 	return new
 end
 
@@ -1609,63 +1609,63 @@ end
 
 concommand.Add('vll_load', function(ply, cmd, args)
 	if IsValid(ply) and SERVER then return end
-	
+
 	if not args[1] then
 		VLL.Message('No Bundle!')
 		return
 	end
-	
+
 	VLL.Load(args[1])
 end)
 
 concommand.Add('vll_workshop', function(ply, cmd, args)
 	if IsValid(ply) and SERVER then return end
-	
+
 	if not args[1] then
 		VLL.Message('Not a valid workshop ID')
 		return
 	end
-	
+
 	if not tonumber(args[1]) then
 		VLL.Message('Not a valid workshop ID')
 		return
 	end
-	
+
 	VLL.LoadWorkshop(args[1])
 end)
 
 concommand.Add('vll_load_silent', function(ply, cmd, args)
 	if IsValid(ply) and SERVER then return end
-	
+
 	if not args[1] then
 		VLL.Message('No Bundle!')
 		return
 	end
-	
+
 	VLL.Load(args[1], true)
 end)
 
 concommand.Add('vll_unload_hooks', function(ply, cmd, args)
 	if IsValid(ply) and SERVER then return end
-	
+
 	if not args[1] then
 		VLL.Message('No Bundle!')
 		return
 	end
-	
+
 	VLL.Message('Unloading hooks for ' .. args[1])
 	VLL.UnloadHooks(args[1])
 end)
 
 concommand.Add('vll_reload', function(ply, cmd, args)
 	if IsValid(ply) and SERVER then return end
-	
+
 	http.Fetch('https://dbot.serealia.ca/vll/vll.lua', function(b) RunString(b, 'VLL') end)
 end)
 
 concommand.Add('vll_reload_silent', function(ply, cmd, args)
 	if IsValid(ply) and SERVER then return end
-	
+
 	http.Fetch('https://dbot.serealia.ca/vll/vll.lua', function(b)
 		VLL.LoadSilent = true
 		RunString(b, 'VLL')
@@ -1674,11 +1674,11 @@ end)
 
 concommand.Add('vll_mountall', function(ply, cmd, args)
 	if IsValid(ply) and SERVER then return end
-	
+
 	for i, val in ipairs(VLL.CMOUNTING_GMA) do
 		ContinueMountGMA(unpack(val))
 	end
-	
+
 	VLL.CMOUNTING_GMA = {}
 end)
 
@@ -1715,54 +1715,54 @@ local DisplayColor = Color(188, 15, 20)
 local function HUDPaint()
 	if #VLL.CMOUNTING_GMA ~= 0 then
 		local x, y = ScrW() / 2, 200
-	
+
 		draw.DrawText('VLL is mounting content', 'VLL.Warning1', x, y, DisplayColor, TEXT_ALIGN_CENTER)
 		draw.DrawText(#VLL.CMOUNTING_GMA .. ' files in queue\nvll_mountall in console to mount all files instantly', 'VLL.Warning2', x, y + 30, DisplayColor, TEXT_ALIGN_CENTER)
 	end
-	
+
 	if VLL.WDOWNLOADING ~= 0 then
 		local x, y = ScrW() / 2, 150
-	
+
 		draw.DrawText('Downloading ' .. VLL.WDOWNLOADING .. ' workshop addons', 'VLL.Warning3', x, y + 30, DisplayColor, TEXT_ALIGN_CENTER)
 	end
-	
+
 	if VLL.WINFO ~= 0 then
 		local x, y = ScrW() / 2, 130
-	
+
 		draw.DrawText('Receiving info about ' .. VLL.WINFO .. ' workshop addons', 'VLL.Warning3', x, y + 30, DisplayColor, TEXT_ALIGN_CENTER)
 	end
-	
+
 	if #VLL.DOWNLOADING == 0 then return end
-	
+
 	if nextdot < CurTime() then
 		dot = dot + 1
 		if dot > #dottab then
 			dot = 1
 		end
-		
+
 		nextdot = CurTime() + .1
 	end
-	
+
 	dots = dottab[dot]
-	
+
 	surface.SetDrawColor(0, 0, 0, 150)
 	surface.SetTextColor(255, 255, 255)
 	surface.SetFont('VLL.Roboto')
-	
+
 	local text = 'VLL - Downloading GMAs: ' .. #VLL.DOWNLOADING .. ' ' .. dots
-	
+
 	local w, h = surface.GetTextSize(text)
 	local x, y = ScrW() - w - 4, 0
-	
+
 	surface.DrawRect(x - 2, y, w + 2, h)
 	surface.SetTextPos(x, y)
 	surface.DrawText(text)
-	
+
 	for k, v in ipairs(VLL.DOWNLOADING) do
 		y = y + h + 3
-		
+
 		local text = 'GMA: ' .. v .. '.gma'
-		
+
 		local w, h = surface.GetTextSize(text)
 		surface.DrawRect(x - 2, y, w + 2, h)
 		surface.SetTextPos(x, y)
@@ -1773,7 +1773,7 @@ end
 local function PopulatePropMenuPost()
 	local list = VLL.TOPLIST
 	spawnmenu.AddPropCategory('vll_spawnlist', 'VLL GMA\'s', list.contents, list.icon, list.id, list.parentid)
-	
+
 	for name, data in pairs(VLL.PSPAWNLISTS) do
 		spawnmenu.AddPropCategory('vll_spawnlist/' .. name, string.format('(%s) %s', data.total, name), data.contents, data.icon, data.id, data.parentid)
 	end
@@ -1786,14 +1786,14 @@ end
 VLL.ContentLayoutFunc = function(self)
 	local w, h = self:GetSize()
 	local CurrX, CurrY = 0, 0
-	
+
 	for k, pnl in ipairs(self.Content) do
 		if pnl.Type then
 			if CurrX ~= 0 then
 				CurrY = CurrY + 34
 				CurrX = 0
 			end
-			
+
 			pnl:SetPos(0, CurrY)
 			CurrY = CurrY + 34
 		else
@@ -1801,12 +1801,12 @@ VLL.ContentLayoutFunc = function(self)
 				CurrY = CurrY + 66
 				CurrX = 0
 			end
-			
+
 			pnl:SetPos(CurrX * 66, CurrY)
 			CurrX = CurrX + 1
 		end
 	end
-	
+
 	if self.oPerformLayout then
 		self:oPerformLayout()
 	end
@@ -1817,16 +1817,16 @@ VLL.SpawnIconMeta = {
 		surface.PlaySound('ui/buttonclickrelease.wav')
 		RunConsoleCommand('gm_spawn', self:GetModelName())
 	end,
-	
+
 	OpenMenu = function(self)
 		local menu = DermaMenu()
-		
+
 		menu:AddOption('Copy to Clipboard', function() SetClipboardText(self:GetModelName():gsub('\\', '/')) end)
-		
+
 		local submenu = menu:AddSubMenu('Re-Render', function() self:RebuildSpawnIcon() end)
 		submenu:AddOption('This Icon', function() self:RebuildSpawnIcon() end)
 		submenu:AddOption('All Icons', function() container:RebuildAll() end)
-		
+
 		menu:Open()
 	end
 }
@@ -1836,16 +1836,16 @@ VLL.NodeClickFunc = function(self)
 		self.pnlParent:SwitchPanel(self.Contents)
 		return self.Contents
 	end
-	
+
 	self.Contents = vgui.Create('DScrollPanel', self.pnlParent)
 	self.Contents:SetVisible(true)
 	self.Contents.Content = {}
-	
+
 	self.Contents.oPerformLayout = self.Contents.PerformLayout
 	self.Contents.PerformLayout = VLL.ContentLayoutFunc
 	local pnl = self.Contents
 	local canvas = pnl:GetCanvas()
-	
+
 	for k, v in ipairs(self.vll_data.contents) do
 		if v.type == 'header' then
 			local lab = vgui.Create('DLabel', canvas)
@@ -1866,7 +1866,7 @@ VLL.NodeClickFunc = function(self)
 			table.insert(pnl.Content, icon)
 		end
 	end
-	
+
 	self.pnlParent:SwitchPanel(self.Contents)
 	return pnl
 end
@@ -1876,13 +1876,13 @@ local function AddSpawnmenuNode(pnlParent, tree, data)
 	node.vll_data = data
 	node.pnlParent = pnlParent
 	node.DoClick = VLL.NodeClickFunc
-	
+
 	return node
 end
 
 local function PopulateContent(pnl, treeNode, node)
 	local parent = AddSpawnmenuNode(pnl, treeNode, VLL.TOPLIST)
-	
+
 	for name, data in pairs(VLL.PSPAWNLISTS) do
 		AddSpawnmenuNode(pnl, parent, data)
 	end
@@ -1894,88 +1894,88 @@ if CLIENT then
 		VLL.Message('Server required load bundle: ' .. bundle)
 		VLL.Load(bundle)
 	end)
-	
+
 	net.Receive('VLL.LoadGMA', function()
 		local gma = net.ReadString()
 		VLL.Message('Server required load GMA: ' .. gma)
 		VLL.LoadGMA(gma)
 	end)
-	
+
 	net.Receive('VLL.LoadWorkshop', function()
 		local gma = net.ReadString()
 		VLL.Message('Server required load workshop addon: ' .. gma)
 		VLL.LoadWorkshop(gma)
 	end)
-	
+
 	net.Receive('VLL.LoadGMAAs', function()
 		local gma = net.ReadString()
 		local url = net.ReadString()
 		VLL.Message('Server required load GMA: ' .. gma)
 		VLL.LoadGMAAs(url, gma)
 	end)
-	
+
 	net.Receive('VLL.Message', function()
 		VLL.Message(unpack(net.ReadTable()))
 	end)
-	
+
 	net.Receive('VLL.Admin', function()
 		VLL.Message(Color(190, 0, 215), '[ADMIN MESSAGE] ', Color(200, 200, 200), unpack(net.ReadTable()))
 	end)
-	
+
 	if not VLL.LoadSilent then
 		timer.Simple(4, function()
 			net.Start('VLL.Require')
 			net.SendToServer()
 		end)
 	end
-	
+
 	concommand.Add('vll_clear_spawnlists', function()
 		VLL.SPAWNLISTS = {}
 		VLL.PSPAWNLISTS = {}
 	end)
-	
+
 	surface.CreateFont('VLL.Roboto', {
 		font = 'Roboto',
 		extended = true,
 		size = 16,
 		weight = 500,
 	})
-	
+
 	surface.CreateFont('VLL.Warning1', {
 		font = 'Roboto',
 		extended = true,
 		size = 32,
 		weight = 800,
 	})
-	
+
 	surface.CreateFont('VLL.Warning2', {
 		font = 'Roboto',
 		extended = true,
 		size = 26,
 		weight = 800,
 	})
-	
+
 	surface.CreateFont('VLL.Warning3', {
 		font = 'Roboto',
 		extended = true,
 		size = 20,
 		weight = 800,
 	})
-	
+
 	surface.CreateFont('VLL.SpawnlistText', {
 		font = 'Roboto',
 		extended = true,
 		size = 32,
 		weight = 800,
 	})
-	
+
 	hook.Add('HUDPaint', 'VLL', HUDPaint)
 	hook.Add('PopulatePropMenu', 'VLL', PopulatePropMenu)
 	hook.Add('PopulateContent', 'VLL', PopulateContent)
 else
 	HUDPaint = nil
 	PopulatePropMenu = nil
-	
+
 	function VLL.MessagePlayer(ply, ...)
 		if IsValid(ply) then
 			net.Start('VLL.Message')
@@ -1985,84 +1985,84 @@ else
 			VLL.Message(...)
 		end
 	end
-	
+
 	concommand.Add('vll_load_server', function(ply, cmd, args)
 		if IsValid(ply) and not ply:IsSuperAdmin() then VLL.MessagePlayer(ply, 'Not a Super Admin!') return end
-		
+
 		if not args[1] then
 			VLL.MessagePlayer(ply, 'No Bundle!')
 			return
 		end
-		
+
 		VLL.Load(args[1])
 	end)
-	
+
 	concommand.Add('vll_load_server_silent', function(ply, cmd, args)
 		if IsValid(ply) and not ply:IsSuperAdmin() then VLL.MessagePlayer(ply, 'Not a Super Admin!') return end
-		
+
 		if not args[1] then
 			VLL.MessagePlayer(ply, 'No Bundle!')
 			return
 		end
-		
+
 		VLL.Load(args[1], true)
 	end)
-	
+
 	concommand.Add('vll_unreplicate', function(ply, cmd, args)
 		if IsValid(ply) and not ply:IsSuperAdmin() then VLL.MessagePlayer(ply, 'Not a Super Admin!') return end
-		
+
 		if not args[1] then
 			VLL.MessagePlayer(ply, 'No Bundle!')
 			return
 		end
-		
+
 		if not VLL.REPLICATED[args[1]] then
 			VLL.MessagePlayer(ply, 'Bundle is not replicated')
 			return
 		end
-		
+
 		VLL.MessagePlayer(ply, 'Bundle is not longer replicated')
 		VLL.REPLICATED[args[1]] = nil
 	end)
-	
+
 	hook.Add('PlayerInitialSpawn', 'VLL.REPLICATED', function(ply)
 		timer.Simple(10, function()
 			if not IsValid(ply) then return end
 			ply:SendLua([[http.Fetch('https://dbot.serealia.ca/vll/vll.lua',function(b)RunString(b,'VLL')end)]])
 		end)
 	end)
-	
+
 	for k, v in pairs(player.GetAll()) do
 		v:SendLua([[http.Fetch('https://dbot.serealia.ca/vll/vll.lua',function(b)RunString(b,'VLL')end)]])
 	end
-	
+
 	function VLL.ReplicateTo(ply)
 		for k, v in pairs(VLL.REPLICATED) do
 			net.Start('VLL.Load')
 			net.WriteString(k)
 			net.Send(ply)
 		end
-		
+
 		for k, v in pairs(VLL.REPLICATED_GMA) do
 			net.Start('VLL.LoadGMA')
 			net.WriteString(k)
 			net.Send(ply)
 		end
-		
+
 		for k, v in pairs(VLL.REPLICATED_GMAAS) do
 			net.Start('VLL.LoadGMAAs')
 			net.WriteString(k)
 			net.WriteString(v)
 			net.Send(ply)
 		end
-		
+
 		for k, v in pairs(VLL.REPLICATED_WORK) do
 			net.Start('VLL.LoadWorkshop')
 			net.WriteString(k)
 			net.Send(ply)
 		end
 	end
-	
+
 	net.Receive('VLL.Require', function(len, ply)
 		VLL.ReplicateTo(ply)
 	end)
