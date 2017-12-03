@@ -122,13 +122,14 @@ end
 
 function messageMeta:ReadData(bytesRead)
 	if type(bytesRead) ~= 'number' then
-		error('WriteData - length is not a number!')
+		error('ReadData - length is not a number!')
 	end
 
 	bytesRead = math.floor(bytesRead)
 
-	if bytesRead < 1 then
-		error('WriteData - length overflow')
+	if bytesRead < 0 then
+		-- error('ReadData - length overflow')
+		return ''
 	end
 
 	local bitsRead = bytesRead * 8

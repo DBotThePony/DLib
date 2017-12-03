@@ -192,6 +192,11 @@ function messageMeta:WriteData(binaryData, bytesToSend)
 
 	bytesToSend = math.floor(bytesToSend)
 
+	if bytesToSend == 0 then
+		-- error('WriteData - length overflow')
+		return
+	end
+
 	if bytesToSend < 0 then
 		error('WriteData - length overflow')
 	end
