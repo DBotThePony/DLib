@@ -50,7 +50,7 @@ function net.CreateMessage(length, read)
 	obj.isReading = read
 
 	if read then
-		obj:ReadNetwork()
+		obj:ReadNetwork(length)
 	else
 		for i = 1, length do
 			table.insert(obj.bits, 0)
