@@ -29,9 +29,13 @@ local math = math
 local ProtectedCall = ProtectedCall
 
 local NetworkIDToString = util.NetworkIDToString
+local NetworkStringToID = util.NetworkStringToID
 local traceback = debug.traceback
 local nnet = DLib.nativeNet
 local net = DLib.netModule
+
+net.NetworkIDToString = NetworkIDToString
+net.NetworkStringToID = NetworkStringToID
 
 local ReadHeader = nnet.ReadHeader
 local WriteBitNative = nnet.WriteBit
@@ -66,6 +70,8 @@ end
 net.pool = util.AddNetworkString
 net.receive = net.Receive
 
+net.CURRENT_OBJECT_TRACE = nil
+
 local CURRENT_OBJECT
 local CURRENT_SEND_OBJECT
 
@@ -87,7 +93,7 @@ function net.RegisterWrapper(nameIn)
 			return
 		end
 
-		return CURRENT_OBJECT[write](CURRENT_OBJECT, ...)
+		return CURRENT_SEND_OBJECT[write](CURRENT_SEND_OBJECT, ...)
 	end
 end
 
@@ -105,7 +111,11 @@ function net.Incoming2(length, ply)
 	end
 
 	length = length - 16
-	local status = ProtectedCall(function() triggerNetworkEvent(length, ply) end)
+
+	-- safety rule, read extra 7 bits to make sure we are received entrie message
+	CURRENT_OBJECT = net.CreateMessage((length - 3) * 8 + 7, true)
+	CURRENT_OBJECT:SetMessageName(strName)
+	local status = ProtectedCall(function() triggerNetworkEvent(length, ply, CURRENT_OBJECT) end)
 
 	if not status then
 		DLib.Message('Listener on ' .. strName .. ' has failed!')
@@ -135,6 +145,67 @@ function net.CreateMessage(length, read)
 	end
 end
 
+function net.Start(messageName, unreliable)
+	if not messageName then
+		error('net.Start - no message name was specified at all!')
+	end
+
+	if type(messageName) ~= 'string' or type(messageName) ~= 'number' then
+		error('net.Start - input name is not a string and not a number!')
+	end
+
+	if type(messageName) ~= 'number' then
+		local num = messageName
+		messageName = NetworkIDToString(messageName)
+
+		if not messageName then
+			error('net.Send - no such a network string with ID ' .. num)
+		end
+	end
+
+	messageName = messageName:lower()
+	local convert = NetworkStringToID(messageName)
+	unreliable = unreliable or false
+
+	if convert == 0 then
+		error('Starting unpooled message! Messages MUST be pooled first, because of bandwidth reasons. http://wiki.garrysmod.com/page/util/AddNetworkString')
+	end
+
+	if net.CURRENT_OBJECT_TRACE then
+		ErrorNoHalt2('Starting new net message without finishing old one!\n------------------------\nOLD:\n' .. net.CURRENT_OBJECT_TRACE .. '\n------------------------\nNEW:\n' .. traceback())
+	end
+
+	net.CURRENT_OBJECT_TRACE = traceback()
+
+	CURRENT_SEND_OBJECT = net.CreateMessage(0, false)
+	CURRENT_SEND_OBJECT:SetUnreliable(unreliable)
+	CURRENT_SEND_OBJECT:SetMessageName(messageName)
+
+	return true, CURRENT_SEND_OBJECT
+end
+
+do
+	local sendFuncs = {
+		'Send',
+		'SendOmit',
+		'SendPAS',
+		'SendPVS',
+		'Broadcast',
+		'SendToServer'
+	}
+
+	for i, func in ipairs(sendFuncs) do
+		net[func] = function(...)
+			if not CURRENT_SEND_OBJECT then
+				ErrorNoHalt('net. - Not currently writing a message.')
+				return
+			end
+
+			return CURRENT_SEND_OBJECT[func](CURRENT_SEND_OBJECT, ...)
+		end
+	end
+end
+
 DLib.simpleInclude('net/net_object.lua')
 DLib.simpleInclude('net/net_ext.lua')
 
@@ -154,3 +225,4 @@ net.RegisterWrapper('Int')
 net.RegisterWrapper('UInt')
 net.RegisterWrapper('Normal')
 net.RegisterWrapper('Type')
+net.RegisterWrapper('Header')

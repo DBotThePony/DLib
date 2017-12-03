@@ -316,3 +316,7 @@ function messageMeta:WriteMatrix(matrixIn)
 
 	return self
 end
+
+function messageMeta:WriteHeader(intIn)
+	return self:WriteUInt(intIn, 16)
+end

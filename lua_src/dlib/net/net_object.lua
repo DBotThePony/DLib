@@ -98,15 +98,15 @@ function messageMeta:ReadBuffer(bits, start, movePointer)
 end
 
 DLib.util.AccessorFuncJIT(messageMeta, 'm_MessageName', 'MessageName')
+DLib.util.AccessorFuncJIT(messageMeta, 'm_isUnreliable', 'Unreliable')
 
-function messageMeta:SendToServer(messageName)
+function messageMeta:SendToServer()
 	if SERVER then error('Not a client!') end
-	if messageName then self:SetMessageName(messageName) end
 
 	local msg = self:GetMessageName()
 	if not msg then error('Starting a net message without name!') end
 
-	nnet.Start(msg)
+	nnet.Start(msg, self:GetUnreliable())
 
 	for i, bit in ipairs(self.bits) do
 		WriteBitNative(bit)
@@ -136,45 +136,44 @@ local function CheckSendInput(targets)
 	return true
 end
 
-function messageMeta:Send(targets, unreliable, messageName)
+function messageMeta:Send(targets)
 	if CLIENT then error('Not a server!') end
-	if messageName then self:SetMessageName(messageName) end
 	local status = CheckSendInput(targets)
 	if not status then return end
 
 	local msg = self:GetMessageName()
 	if not msg then error('Starting a net message without name!') end
 
-	nnet.Start(msg, unreliable)
+	nnet.Start(msg, self:GetUnreliable())
 
 	for i, bit in ipairs(self.bits) do
 		WriteBitNative(bit)
 	end
 
 	nnet.Send(targets)
+	net.CURRENT_OBJECT_TRACE = nil
 end
 
-function messageMeta:SendOmit(targets, unreliable, messageName)
+function messageMeta:SendOmit(targets)
 	if CLIENT then error('Not a server!') end
-	if messageName then self:SetMessageName(messageName) end
 	local status = CheckSendInput(targets)
 	if not status then return end
 
 	local msg = self:GetMessageName()
 	if not msg then error('Starting a net message without name!') end
 
-	nnet.Start(msg, unreliable)
+	nnet.Start(msg, self:GetUnreliable())
 
 	for i, bit in ipairs(self.bits) do
 		WriteBitNative(bit)
 	end
 
 	nnet.SendOmit(targets)
+	net.CURRENT_OBJECT_TRACE = nil
 end
 
-function messageMeta:SendPAS(targetPos, unreliable, messageName)
+function messageMeta:SendPAS(targetPos)
 	if CLIENT then error('Not a server!') end
-	if messageName then self:SetMessageName(messageName) end
 
 	if type(targetPos) ~= 'Vector' then
 		error('Invalid vector input. typeof ' .. type(targetPos))
@@ -183,18 +182,18 @@ function messageMeta:SendPAS(targetPos, unreliable, messageName)
 	local msg = self:GetMessageName()
 	if not msg then error('Starting a net message without name!') end
 
-	nnet.Start(msg, unreliable)
+	nnet.Start(msg, self:GetUnreliable())
 
 	for i, bit in ipairs(self.bits) do
 		WriteBitNative(bit)
 	end
 
 	nnet.SendPAS(targetPos)
+	net.CURRENT_OBJECT_TRACE = nil
 end
 
-function messageMeta:SendPVS(targetPos, unreliable, messageName)
+function messageMeta:SendPVS(targetPos)
 	if CLIENT then error('Not a server!') end
-	if messageName then self:SetMessageName(messageName) end
 
 	if type(targetPos) ~= 'Vector' then
 		error('Invalid vector input. typeof ' .. type(targetPos))
@@ -203,23 +202,23 @@ function messageMeta:SendPVS(targetPos, unreliable, messageName)
 	local msg = self:GetMessageName()
 	if not msg then error('Starting a net message without name!') end
 
-	nnet.Start(msg, unreliable)
+	nnet.Start(msg, self:GetUnreliable())
 
 	for i, bit in ipairs(self.bits) do
 		WriteBitNative(bit)
 	end
 
 	nnet.SendPVS(targetPos)
+	net.CURRENT_OBJECT_TRACE = nil
 end
 
-function messageMeta:Broadcast(unreliable, messageName)
+function messageMeta:Broadcast()
 	if CLIENT then error('Not a server!') end
-	if messageName then self:SetMessageName(messageName) end
 
 	local msg = self:GetMessageName()
 	if not msg then error('Starting a net message without name!') end
 
-	nnet.Start(msg, unreliable)
+	nnet.Start(msg, self:GetUnreliable())
 
 	for i, bit in ipairs(self.bits) do
 		WriteBitNative(bit)

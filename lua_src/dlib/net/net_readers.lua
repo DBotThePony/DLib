@@ -215,3 +215,7 @@ function messageMeta:ReadMatrix()
 
 	return Matrix(tableOutput)
 end
+
+function messageMeta:ReadHeader()
+	return self:ReadUInt(16)
+end
