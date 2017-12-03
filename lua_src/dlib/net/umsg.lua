@@ -61,7 +61,9 @@ function umsg.End()
 	oldTrace = nil
 
 	if SERVER then
+		net.QUIET_SEND = true
 		net.Send(cPlayers)
+		net.QUIET_SEND = false
 	else
 		net.SendToServer()
 	end
