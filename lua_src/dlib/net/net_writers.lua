@@ -216,7 +216,7 @@ function messageMeta:WriteData(binaryData, bytesToSend)
 end
 
 function messageMeta:WriteDouble(value)
-	return self:WriteNumber(value, 12, 52)
+	return self:WriteNumber(value, 24, 52)
 end
 
 local endString = {
