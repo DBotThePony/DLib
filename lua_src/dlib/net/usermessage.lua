@@ -59,7 +59,8 @@ function usermessage.Hook(msgName, funcIn, ...)
 
 	usermessage.hooks[msgName] = {
 		Function = funcIn,
-		PreArgs = {...}
+		PreArgs = {...},
+		msgName = msgName
 	}
 
 	usermessage.hooks_crc[util.CRC(msgName)] = usermessage.hooks[msgName]
@@ -129,7 +130,11 @@ net.receive('dlib.umsg', function(len, ply, networkObject)
 	newObject.ply = ply
 	setmetatable(newObject, messageMeta)
 	local triggerNetworkMessage = data.Function
-	triggerNetworkMessage(newObject, unpack(data.PreArgs, 1, #data.PreArgs))
+	local status = ProtectedCall(function() triggerNetworkMessage(newObject, unpack(data.PreArgs, 1, #data.PreArgs)) end)
+
+	if not status then
+		DLib.Message('Usermessage hook on ' .. data.msgName .. ' has failed!')
+	end
 end)
 
 if gusermessage ~= DLib.gusermessage then
