@@ -197,7 +197,16 @@ function messageMeta:WriteData(binaryData, bytesToSend)
 	end
 
 	bytesToSend = math.min(#binaryData, bytesToSend)
-	local chars = {binaryData:byte(1, bytesToSend)}
+
+	local chars = {}
+
+	if bytesToSend > 1000 then
+		for i = 1, bytesToSend, 1000 do
+			table.append(chars, {binaryData:byte(i, math.min(i + 999, bytesToSend))})
+		end
+	else
+		chars = {binaryData:byte(1, bytesToSend)}
+	end
 
 	for i, char in ipairs(chars) do
 		self:WriteBitsRaw(DLib.bitworker.UIntegerToBinary(char), 8)

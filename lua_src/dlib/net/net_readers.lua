@@ -145,11 +145,22 @@ function messageMeta:ReadData(bytesRead)
 		table.insert(bits, DLib.bitworker.BinaryToUInteger(self:ReadBuffer(8)))
 	end
 
-	return string.char(unpack(bits))
+	if #bits <= 500 then
+		return string.char(unpack(bits))
+	else
+		local output = ''
+		local amount = #bits
+
+		for i = 1, amount, 500 do
+			output = output .. string.char(unpack(bits, i, math.min(i + 499, amount)))
+		end
+
+		return output
+	end
 end
 
 function messageMeta:ReadDouble()
-	return self:ReadNumber(12, 52)
+	return self:ReadNumber(24, 52)
 end
 
 function messageMeta:ReadString()
