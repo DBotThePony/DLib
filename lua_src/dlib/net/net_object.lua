@@ -98,8 +98,12 @@ function messageMeta:ResetBuffer()
 end
 
 function messageMeta:ReportOutOfRange(func, bitsToAdd)
-	self.outboundsScore = self.outboundsScore + bitsToAdd
-	ErrorNoHalt(string.format('%s - Read buffer overflow. Message length is %i bits (~%i b/%.2f kb); Pointer: %i, reading %i bits -> %i bits outside from message bounds (%i total).', func, self.length, self.length / 8, self.length / 8192, self.pointer, bitsToAdd, self.pointer + bitsToAdd - self.length, self.outboundsScore))
+	if bitsToAdd + self.pointer < self.length then
+		ErrorNoHalt(string.format('%s - Read bits amount is smaller than possible! %i bits were provided', func, bitsToAdd))
+	else
+		self.outboundsScore = self.outboundsScore + bitsToAdd
+		ErrorNoHalt(string.format('%s - Read buffer overflow. Message length is %i bits (~%i b/%.2f kb); Pointer: %i, reading %i bits -> %i bits outside from message bounds (%i total).', func, self.length, self.length / 8, self.length / 8192, self.pointer, bitsToAdd, self.pointer + bitsToAdd - self.length, self.outboundsScore))
+	end
 end
 
 function messageMeta:ReadBuffer(bits, start, movePointer)

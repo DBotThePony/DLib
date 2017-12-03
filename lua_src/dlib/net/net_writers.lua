@@ -154,7 +154,7 @@ function messageMeta:WriteNumber(input, bitsInteger, bitsFloat)
 end
 
 function messageMeta:WriteFloat(floatIn)
-	return self:WriteNumber(floatIn, 24, 8)
+	return self:WriteNumber(floatIn, 8, 24)
 end
 
 function messageMeta:WriteVector(vecIn)
@@ -162,9 +162,9 @@ function messageMeta:WriteVector(vecIn)
 		error('WriteVector - input is not a vector!')
 	end
 
-	self:WriteNumber(vecIn.x, 16, 4)
-	self:WriteNumber(vecIn.y, 16, 4)
-	self:WriteNumber(vecIn.z, 16, 4)
+	self:WriteNumber(vecIn.x, 16, 8)
+	self:WriteNumber(vecIn.y, 16, 8)
+	self:WriteNumber(vecIn.z, 16, 8)
 
 	return self
 end
@@ -174,9 +174,9 @@ function messageMeta:WriteAngle(angleIn)
 		error('WriteAngle - input is not an angle!')
 	end
 
-	self:WriteNumber(angleIn.p, 16, 4)
-	self:WriteNumber(angleIn.y, 16, 4)
-	self:WriteNumber(angleIn.r, 16, 4)
+	self:WriteNumber(angleIn.p, 16, 8)
+	self:WriteNumber(angleIn.y, 16, 8)
+	self:WriteNumber(angleIn.r, 16, 8)
 
 	return self
 end
@@ -207,7 +207,7 @@ function messageMeta:WriteData(binaryData, bytesToSend)
 end
 
 function messageMeta:WriteDouble(value)
-	return self:WriteNumber(value, 32, 32)
+	return self:WriteNumber(value, 12, 52)
 end
 
 local endString = {

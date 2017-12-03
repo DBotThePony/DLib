@@ -107,7 +107,7 @@ function net.ChooseOptimalBits(amount)
 		bits = bits + 1
 	end
 
-	return bits
+	return math.max(bits, 4)
 end
 
 net.RegisterWrapper('Player')

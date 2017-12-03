@@ -107,17 +107,17 @@ function messageMeta:ReadNumber(bitsInteger, bitsFloat)
 end
 
 function messageMeta:ReadFloat()
-	return self:ReadNumber(24, 8)
+	return self:ReadNumber(8, 24)
 end
 
 local Angle, Vector = Angle, Vector
 
 function messageMeta:ReadVector()
-	return Vector(self:ReadNumber(16, 4), self:ReadNumber(16, 4), self:ReadNumber(16, 4))
+	return Vector(self:ReadNumber(16, 8), self:ReadNumber(16, 8), self:ReadNumber(16, 8))
 end
 
 function messageMeta:ReadAngle()
-	return Angle(self:ReadNumber(16, 4), self:ReadNumber(16, 4), self:ReadNumber(16, 4))
+	return Angle(self:ReadNumber(16, 8), self:ReadNumber(16, 8), self:ReadNumber(16, 8))
 end
 
 function messageMeta:ReadData(bytesRead)
@@ -149,7 +149,7 @@ function messageMeta:ReadData(bytesRead)
 end
 
 function messageMeta:ReadDouble()
-	return self:ReadNumber(32, 32)
+	return self:ReadNumber(12, 52)
 end
 
 function messageMeta:ReadString()
