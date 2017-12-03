@@ -68,17 +68,22 @@ end
 
 local messageMeta = DLib.umsgMessageMeta or {}
 DLib.umsgMessageMeta = messageMeta
-messageMeta.__index = messageMeta
+function messageMeta:__index(key)
+	if key == 'length' then
+		return self.nwobject.length
+	elseif key == 'pointer' then
+		return self.nwobject.pointer
+	end
+
+	return messageMeta[key] or rawget(self, key)
+end
 
 debug.getregistry().LUsermessageBuffer = messageMeta
 
 do
 	local bridged = {
 		'Angle',
-		'Bool',
 		'Entity',
-		'Float',
-		'String',
 		'Vector',
 	}
 
@@ -91,15 +96,33 @@ do
 	end
 end
 
+function messageMeta:ReadString()
+	if self.length < self.pointer + 8 then return '' end
+	return self.nwobject:ReadString()
+end
+
+function messageMeta:ReadFloat()
+	if self.length < self.pointer + 32 then return 0 end
+	return self.nwobject:ReadFloat()
+end
+
+function messageMeta:ReadBool()
+	if self.length < self.pointer + 1 then return false end
+	return self.nwobject:ReadBool()
+end
+
 function messageMeta:ReadChar()
+	if self.length < self.pointer + 8 then return 0 end
 	return self.nwobject:ReadInt(8)
 end
 
 function messageMeta:ReadLong()
+	if self.length < self.pointer + 32 then return 0 end
 	return self.nwobject:ReadInt(32)
 end
 
 function messageMeta:ReadShort()
+	if self.length < self.pointer + 16 then return 0 end
 	return self.nwobject:ReadInt(16)
 end
 
