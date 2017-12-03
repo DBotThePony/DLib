@@ -263,3 +263,6 @@ if toImport then
 		net.Receive(key, value)
 	end
 end
+
+DLib.simpleInclude('net/umsg.lua')
+DLib.simpleInclude('net/usermessage.lua')
