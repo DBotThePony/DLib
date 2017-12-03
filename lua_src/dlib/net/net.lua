@@ -160,7 +160,7 @@ function net.Start(messageName, unreliable)
 		error('net.Start - input name is not a string and is not a number!', 2)
 	end
 
-	if type(messageName) ~= 'number' then
+	if type(messageName) == 'number' then
 		local num = messageName
 		messageName = NetworkIDToString(messageName)
 
