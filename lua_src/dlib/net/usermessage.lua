@@ -84,7 +84,7 @@ do
 	for i, map in ipairs(bridged) do
 		local fname = 'Read' .. map
 
-		messageMeta[fname] = function()
+		messageMeta[fname] = function(self)
 			return self.nwobject[fname](self.nwobject)
 		end
 	end
