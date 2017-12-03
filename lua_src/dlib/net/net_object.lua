@@ -37,7 +37,8 @@ local function ErrorNoHalt(message)
 	return ErrorNoHalt2(traceback(message) .. '\n')
 end
 
-local messageMeta = {}
+local messageMeta = DLib.netMessageMeta or {}
+DLib.netMessageMeta = messageMeta
 
 function net.CreateMessage(length, read)
 	local obj = setmetatable({}, messageMeta)
@@ -260,7 +261,7 @@ function messageMeta:BytesWritten()
 end
 
 function messageMeta:BitsWritten()
-	return self.length + 24
+	return self.length
 end
 
 function messageMeta:Seek(moveTo)

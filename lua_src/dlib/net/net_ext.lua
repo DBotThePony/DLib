@@ -55,7 +55,7 @@ function messageMeta:WriteStringArray(input)
 end
 
 function messageMeta:ReadStringArray()
-	return table.construct({}, self.ReadString, self.ReadUInt(16), self)
+	return table.construct({}, self.ReadString, self:ReadUInt(16), self)
 end
 
 function messageMeta:WriteEntityArray(input)

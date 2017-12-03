@@ -14,7 +14,7 @@
 -- limitations under the License.
 
 DLib.netModule = DLib.netModule or {}
-DLib.nativeNet = DLib.nativeNet or table.Copy(net)
+DLib.nativeNet = DLib.nativeNet or table.Copy(_G.net)
 
 local DLib = DLib
 local util = util
@@ -44,7 +44,7 @@ local ReadBitNative = nnet.ReadBit
 local toImport
 
 local function ErrorNoHalt(message)
-	return ErrorNoHalt2(traceback(message, 3) .. '\n')
+	return ErrorNoHalt2(traceback(message) .. '\n')
 end
 
 net.Hooks = net.Hooks or {}
@@ -77,29 +77,28 @@ net.pool = util.AddNetworkString
 net.receive = net.Receive
 
 net.CURRENT_OBJECT_TRACE = nil
-
-local CURRENT_OBJECT
-local CURRENT_SEND_OBJECT
+net.CURRENT_OBJECT = nil
+net.CURRENT_SEND_OBJECT = nil
 
 function net.RegisterWrapper(nameIn)
 	local read, write = 'Read' .. nameIn, 'Write' .. nameIn
 
 	net[read] = function(...)
-		if not CURRENT_OBJECT then
-			ErrorNoHalt('Not currently reading a message.')
+		if not net.CURRENT_OBJECT then
+			ErrorNoHalt('net.' .. read .. ' - Not currently reading a message.')
 			return
 		end
 
-		return CURRENT_OBJECT[read](CURRENT_OBJECT, ...)
+		return net.CURRENT_OBJECT[read](net.CURRENT_OBJECT, ...)
 	end
 
 	net[write] = function(...)
-		if not CURRENT_SEND_OBJECT then
-			ErrorNoHalt('Not currently writing a message.')
+		if not net.CURRENT_SEND_OBJECT then
+			ErrorNoHalt('net.' .. read .. ' - Not currently writing a message.')
 			return
 		end
 
-		return CURRENT_SEND_OBJECT[write](CURRENT_SEND_OBJECT, ...)
+		return net.CURRENT_SEND_OBJECT[write](net.CURRENT_SEND_OBJECT, ...)
 	end
 end
 
@@ -120,11 +119,10 @@ function net.Incoming2(length, ply)
 
 	-- print(length, strName)
 
-	-- safety rule, read extra 7 bits to make sure we are received entrie message
-	CURRENT_OBJECT = net.CreateMessage(length + 7, true)
-	CURRENT_OBJECT:SetMessageName(strName)
-	local status = ProtectedCall(function() triggerNetworkEvent(length, ply, CURRENT_OBJECT) end)
-	CURRENT_OBJECT = nil
+	net.CURRENT_OBJECT = net.CreateMessage(length, true)
+	net.CURRENT_OBJECT:SetMessageName(strName)
+	local status = ProtectedCall(function() triggerNetworkEvent(length, ply, net.CURRENT_OBJECT) end)
+	net.CURRENT_OBJECT = nil
 
 	if not status then
 		DLib.Message('Listener on ' .. strName .. ' has failed!')
@@ -167,11 +165,11 @@ function net.Start(messageName, unreliable)
 
 	net.CURRENT_OBJECT_TRACE = traceback()
 
-	CURRENT_SEND_OBJECT = net.CreateMessage(0, false)
-	CURRENT_SEND_OBJECT:SetUnreliable(unreliable)
-	CURRENT_SEND_OBJECT:SetMessageName(messageName)
+	net.CURRENT_SEND_OBJECT = net.CreateMessage(0, false)
+	net.CURRENT_SEND_OBJECT:SetUnreliable(unreliable)
+	net.CURRENT_SEND_OBJECT:SetMessageName(messageName)
 
-	return true, CURRENT_SEND_OBJECT
+	return true, net.CURRENT_SEND_OBJECT
 end
 
 do
@@ -191,13 +189,13 @@ do
 
 	for i, func in ipairs(sendFuncs) do
 		net[func] = function(...)
-			if not CURRENT_SEND_OBJECT then
+			if not net.CURRENT_SEND_OBJECT then
 				ErrorNoHalt('net.' .. func .. ' - Not currently writing a message.')
 				return
 			end
 
-			local obj = CURRENT_SEND_OBJECT
-			CURRENT_SEND_OBJECT = nil
+			local obj = net.CURRENT_SEND_OBJECT
+			net.CURRENT_SEND_OBJECT = nil
 			net.CURRENT_OBJECT_TRACE = nil
 
 			return obj[func](obj, ...)
@@ -206,12 +204,12 @@ do
 
 	for i, func in ipairs(sendFuncs2) do
 		net[func] = function(...)
-			if not CURRENT_SEND_OBJECT then
+			if not net.CURRENT_SEND_OBJECT then
 				ErrorNoHalt('net.' .. func .. ' - Not currently writing a message.')
 				return
 			end
 
-			return CURRENT_SEND_OBJECT[func](CURRENT_SEND_OBJECT, ...)
+			return net.CURRENT_SEND_OBJECT[func](net.CURRENT_SEND_OBJECT, ...)
 		end
 	end
 end

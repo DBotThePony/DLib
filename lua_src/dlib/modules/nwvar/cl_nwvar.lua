@@ -55,7 +55,9 @@ local function NetworkedVar()
 	end
 end
 
-local function NetworkedEntityVars()
+local function NetworkedEntityVars(len)
+	--print(len)
+	if true then return end
 	local uid = net.ReadUInt(12)
 	local count = net.ReadUInt(16)
 

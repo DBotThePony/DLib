@@ -97,9 +97,9 @@ class DLib.NetworkedData extends DLib.ModifierBase
 			util.AddNetworkString(@NW_Rejected)
 			util.AddNetworkString(@NW_Broadcast)
 
-		net.Receive @NW_Create, (len = 0, ply = NULL) -> @OnNetworkedCreated(ply, len)
-		net.Receive @NW_Modify, (len = 0, ply = NULL) -> @OnNetworkedModify(ply, len)
-		net.Receive @NW_Remove, (len = 0, ply = NULL) -> @OnNetworkedDelete(ply, len)
+		net.Receive @NW_Create, (len = 0, ply = NULL, obj) -> @OnNetworkedCreated(ply, len, obj)
+		net.Receive @NW_Modify, (len = 0, ply = NULL, obj) -> @OnNetworkedModify(ply, len, obj)
+		net.Receive @NW_Remove, (len = 0, ply = NULL, obj) -> @OnNetworkedDelete(ply, len, obj)
 		net.Receive @NW_ReceiveID, (len = 0, ply = NULL) ->
 			return if SERVER
 			waitID = net.ReadUInt(16)
@@ -160,7 +160,7 @@ class DLib.NetworkedData extends DLib.ModifierBase
 
 	@NW_ClientsideCreation = false
 	@NW_RemoveOnPlayerLeave = true
-	@OnNetworkedCreated = (ply = NULL, len = 0) =>
+	@OnNetworkedCreated = (ply = NULL, len = 0, nwobj) =>
 		return if SERVER and not @NW_ClientsideCreation
 		if CLIENT
 			netID = net.ReadUInt(16)
