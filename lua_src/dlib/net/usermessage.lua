@@ -124,6 +124,9 @@ net.receive('dlib.umsg', function(len, ply, networkObject)
 
 	local newObject = {}
 	newObject.nwobject = networkObject
+	newObject.player = ply
+	newObject.client = ply
+	newObject.ply = ply
 	setmetatable(newObject, messageMeta)
 	local triggerNetworkMessage = data.Function
 	triggerNetworkMessage(newObject, unpack(data.PreArgs, 1, #data.PreArgs))

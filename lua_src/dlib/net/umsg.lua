@@ -13,7 +13,9 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
-net.pool('dlib.umsg')
+if SERVER then
+	net.pool('dlib.umsg')
+end
 
 DLib.umsg = DLib.umsg or table.Copy(umsg or {})
 local gumsg = umsg
@@ -87,7 +89,7 @@ function umsg.String(stringIn)
 end
 
 function umsg.Bool(bitIn)
-	net.WriteString(tobool(bitIn))
+	net.WriteBit(tobool(bitIn))
 end
 
 function umsg.Char(valueIn)
