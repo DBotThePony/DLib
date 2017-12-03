@@ -94,8 +94,16 @@ end
 
 function bitworker.FloatToBinary(numberIn, precision)
 	precision = precision or 6
-	local float = math.abs(numberIn % 1)
-	local bits = bitworker.IntegerToBinary(numberIn - float)
+	local float = math.abs(numberIn) % 1
+	local bits
+	local dir = numberIn < 0
+
+	if dir then
+		bits = bitworker.IntegerToBinary(numberIn + float)
+	else
+		bits = bitworker.IntegerToBinary(numberIn - float)
+	end
+
 	local lastMult = float
 
 	for i = 1, precision do
@@ -132,10 +140,10 @@ function bitworker.BinaryToFloat(inputTable, precision)
 		end
 	end
 
-	if inputTable[1] == 0 then
-		return integer + float
-	else
+	if integer < 0 then
 		return integer - float
+	else
+		return integer + float
 	end
 end
 
