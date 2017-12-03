@@ -113,11 +113,11 @@ end
 local Angle, Vector = Angle, Vector
 
 function messageMeta:ReadVector()
-	return Vector(self:ReadNumber(24, 4), self:ReadNumber(24, 4), self:ReadNumber(24, 4))
+	return Vector(self:ReadNumber(16, 4), self:ReadNumber(16, 4), self:ReadNumber(16, 4))
 end
 
 function messageMeta:ReadAngle()
-	return Angle(self:ReadNumber(24, 4), self:ReadNumber(24, 4), self:ReadNumber(24, 4))
+	return Angle(self:ReadNumber(16, 4), self:ReadNumber(16, 4), self:ReadNumber(16, 4))
 end
 
 function messageMeta:ReadData(bytesRead)

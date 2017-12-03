@@ -162,9 +162,9 @@ function messageMeta:WriteVector(vecIn)
 		error('WriteVector - input is not a vector!')
 	end
 
-	self:WriteNumber(vecIn.x, 24, 4)
-	self:WriteNumber(vecIn.y, 24, 4)
-	self:WriteNumber(vecIn.z, 24, 4)
+	self:WriteNumber(vecIn.x, 16, 4)
+	self:WriteNumber(vecIn.y, 16, 4)
+	self:WriteNumber(vecIn.z, 16, 4)
 
 	return self
 end
@@ -174,9 +174,9 @@ function messageMeta:WriteAngle(angleIn)
 		error('WriteAngle - input is not an angle!')
 	end
 
-	self:WriteNumber(angleIn.p, 24, 4)
-	self:WriteNumber(angleIn.y, 24, 4)
-	self:WriteNumber(angleIn.r, 24, 4)
+	self:WriteNumber(angleIn.p, 16, 4)
+	self:WriteNumber(angleIn.y, 16, 4)
+	self:WriteNumber(angleIn.r, 16, 4)
 
 	return self
 end
@@ -210,23 +210,25 @@ function messageMeta:WriteDouble(value)
 	return self:WriteNumber(value, 32, 32)
 end
 
+local endString = {
+	0, 0, 0, 0, 0, 0, 0, 0
+}
+
 function messageMeta:WriteString(stringIn)
 	if type(stringIn) ~= 'string' then
 		error('WriteString - input is not a string!')
+	end
+
+	if #stringIn == 0 then
+		self:WriteBitsRaw(endString)
+		return self
 	end
 
 	for i, char in ipairs({stringIn:byte(1, #stringIn)}) do
 		self:WriteBitsRaw(DLib.bitworker.UIntegerToBinary(char), 8)
 	end
 
-	self:WriteBitRaw(0)
-	self:WriteBitRaw(0)
-	self:WriteBitRaw(0)
-	self:WriteBitRaw(0)
-	self:WriteBitRaw(0)
-	self:WriteBitRaw(0)
-	self:WriteBitRaw(0)
-	self:WriteBitRaw(0)
+	self:WriteBitsRaw(endString)
 
 	return self
 end
