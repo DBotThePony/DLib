@@ -198,15 +198,10 @@ function messageMeta:WriteData(binaryData, bytesToSend)
 	end
 
 	bytesToSend = math.min(#binaryData, bytesToSend)
-
 	local chars = {binaryData:byte(1, bytesToSend)}
 
 	for i, char in ipairs(chars) do
-		local newBits = DLib.bitworker.UIntegerToBinary(char)
-
-		for i, bit in ipairs(newBits) do
-			self:WriteBitRaw(bit)
-		end
+		self:WriteBitsRaw(DLib.bitworker.UIntegerToBinary(char), 8)
 	end
 
 	return self
