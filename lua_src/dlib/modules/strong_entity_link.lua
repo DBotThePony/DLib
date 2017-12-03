@@ -319,31 +319,38 @@ else
     end)
 end
 
-function net.WriteStrongEntity(ent)
-    if type(ent) == 'number' then
+local net = DLib.netModule
+local messageMeta = FindMetaTable('LNetworkMessage')
+
+function messageMeta:WriteStrongEntity(ent)
+	if type(ent) == 'number' then
         local isValidEntity = ent >= 0
-        net.WriteBool(isValidEntity)
+        self:WriteBool(isValidEntity)
 
         if isValidEntity then
-            net.WriteUInt(ent, 16)
+            self:WriteUInt(ent, 16)
         end
     else
         local isValidEntity = IsValid(ent) and ent:EntIndex() >= 1 or ent == Entity(0)
-        net.WriteBool(isValidEntity)
+        self:WriteBool(isValidEntity)
 
         if isValidEntity then
-            net.WriteUInt(ent:EntIndex(), 16)
+            self:WriteUInt(ent:EntIndex(), 16)
         end
     end
+
+	return self
 end
 
-function net.ReadStrongEntity()
-    local isValidEntity = net.ReadBool()
+function messageMeta:ReadStrongEntity()
+	local isValidEntity = self:ReadBool()
 
-    if isValidEntity then
-        local val = net.ReadUInt(16)
-        return InitStrongEntity(val)
-    else
-        return InitStrongEntity(-1)
-    end
+	if isValidEntity then
+		local val = self:ReadUInt(16)
+		return InitStrongEntity(val)
+	else
+		return InitStrongEntity(-1)
+	end
 end
+
+net.RegisterWrapper('StrongEntity')

@@ -40,7 +40,7 @@ end
 
 function messageMeta:ReadBit()
 	if self.pointer == self.length then
-		ErrorNoHalt('Out of range')
+		ErrorNoHalt('ReadBit - Out of range')
 		return 0
 	end
 
@@ -57,7 +57,7 @@ function messageMeta:ReadInt(bitCount)
 	if type(bitCount) ~= 'number' then error('Bit amount is not a number!') end
 
 	if self.pointer + bitCount > self.length or bitCount < 2 then
-		ErrorNoHalt('Out of range')
+		ErrorNoHalt('ReadInt - Out of range')
 		return 0
 	end
 
@@ -71,7 +71,7 @@ function messageMeta:ReadUInt(bitCount)
 	if type(bitCount) ~= 'number' then error('Bit amount is not a number!') end
 
 	if self.pointer + bitCount > self.length or bitCount < 2 then
-		ErrorNoHalt('Out of range')
+		ErrorNoHalt('ReadUInt - Out of range')
 		return 0
 	end
 
@@ -96,7 +96,7 @@ function messageMeta:ReadFloat(bitsInteger, bitsFloat)
 	local totalBits = bitsInteger + bitsFloat
 
 	if self.pointer + totalBits > self.length then
-		ErrorNoHalt('Out of range')
+		ErrorNoHalt('ReadFloat - Out of range')
 		return 0
 	end
 
@@ -157,7 +157,7 @@ function messageMeta:ReadString()
 
 	while nextChar ~= 0 do
 		if self.length < self.pointer + 8 then
-			ErrorNoHalt('net.ReadString - string has no NULL terminator!')
+			ErrorNoHalt('net.ReadString - string has no NULL terminator! Buffer overflow!')
 			return ''
 		end
 
