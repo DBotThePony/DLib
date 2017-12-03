@@ -108,7 +108,7 @@ function bitworker.FloatToBinary(numberIn, precision)
 			table.insert(bits, 0)
 		end
 
-		return
+		return bits
 	end
 
 	precision = precision or 6
