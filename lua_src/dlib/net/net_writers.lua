@@ -79,7 +79,7 @@ function messageMeta:WriteInt(input, bitCount)
 		self:WriteBitRaw(0)
 	end
 
-	for i = 2, #output do
+	for i = 2, math.min(#output, bitCount) do
 		self:WriteBitRaw(output[i])
 	end
 
@@ -113,7 +113,7 @@ function messageMeta:WriteUInt(input, bitCount)
 		self:WriteBitRaw(0)
 	end
 
-	for i = 1, #output do
+	for i = 1, math.min(#output, bitCount) do
 		self:WriteBitRaw(output[i])
 	end
 
@@ -146,7 +146,7 @@ function messageMeta:WriteNumber(input, bitsInteger, bitsFloat)
 
 	-- print(input, totalBits, totalBits - #output, #output)
 
-	for i = 2, #output do
+	for i = 2, math.min(#output, totalBits) do
 		self:WriteBitRaw(output[i])
 	end
 
