@@ -76,6 +76,24 @@ function messageMeta:ReadPlayerArray()
 	return table.construct({}, self.ReadPlayer, self:ReadUInt(16), self)
 end
 
+function messageMeta:WriteFloatArray(input)
+	self:WriteTypedArray(input, self.WriteFloat)
+	return self
+end
+
+function messageMeta:ReadFloatArray()
+	return table.construct({}, self.ReadFloat, self:ReadUInt(16), self)
+end
+
+function messageMeta:WriteDoubleArray(input)
+	self:WriteTypedArray(input, self.WriteDouble)
+	return self
+end
+
+function messageMeta:ReadDoubleArray()
+	return table.construct({}, self.ReadDouble, self:ReadUInt(16), self)
+end
+
 function net.GReadUInt(val)
 	return function()
 		return net.ReadUInt(val)
@@ -110,9 +128,46 @@ function net.ChooseOptimalBits(amount)
 	return math.max(bits, 4)
 end
 
+
+function messageMeta:WriteVectorDouble(vecIn)
+	if type(vecIn) ~= 'Vector' then
+		error('WriteVectorDouble - input is not a vector!')
+	end
+
+	self:WriteDouble(vecIn.x)
+	self:WriteDouble(vecIn.y)
+	self:WriteDouble(vecIn.z)
+
+	return self
+end
+
+function messageMeta:WriteAngleDouble(angleIn)
+	if type(angleIn) ~= 'Angle' then
+		error('WriteAngleDouble - input is not an angle!')
+	end
+
+	self:WriteDouble(angleIn.p)
+	self:WriteDouble(angleIn.y)
+	self:WriteDouble(angleIn.r)
+
+	return self
+end
+
+function messageMeta:ReadVectorDouble()
+	return Vector(self:ReadDouble(), self:ReadDouble(), self:ReadDouble())
+end
+
+function messageMeta:ReadAngleDouble()
+	return Angle(self:ReadDouble(), self:ReadDouble(), self:ReadDouble())
+end
+
 net.RegisterWrapper('Player')
 net.RegisterWrapper('TypedArray')
 net.RegisterWrapper('Array')
 net.RegisterWrapper('EntityArray')
 net.RegisterWrapper('StringArray')
 net.RegisterWrapper('PlayerArray')
+net.RegisterWrapper('AngleDouble')
+net.RegisterWrapper('VectorDouble')
+net.RegisterWrapper('FloatArray')
+net.RegisterWrapper('DoubleArray')
