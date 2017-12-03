@@ -67,7 +67,7 @@ function messageMeta:WriteInt(input, bitCount)
 	bitCount = math.floor(bitCount)
 	if bitCount > 127 or bitCount < 2 then error('Bit amount overflow') end
 
-	local output = DLib.bitworker.IntegerToBinary(numberIn)
+	local output = DLib.bitworker.IntegerToBinary(input)
 
 	if #output > bitCount then
 		ErrorNoHalt('WriteInt - input integer is larger than integer that can be represented with ' .. bitCount .. ' bits!')
@@ -103,7 +103,7 @@ function messageMeta:WriteUInt(input, bitCount)
 		input = math.pow(2, bitCount) + input
 	end
 
-	local output = DLib.bitworker.UIntegerToBinary(numberIn)
+	local output = DLib.bitworker.UIntegerToBinary(input)
 
 	if #output > bitCount then
 		ErrorNoHalt('WriteUInt - input integer is larger than integer that can be represented with ' .. bitCount .. ' bits!')
@@ -133,14 +133,14 @@ function messageMeta:WriteFloat(input, bitsInteger, bitsFloat)
 	if type(bitsInteger) ~= 'number' then error('Integer part Bit amount is not a number!') end
 	if type(bitsFloat) ~= 'number' then error('Float part Bit amount is not a number!') end
 
+	bitsInteger = math.floor(bitsInteger)
+	bitsFloat = math.floor(bitsFloat)
+	if bitsInteger > 127 or bitsInteger < 2 then error('Integer part Bit amount overflow') end
+	if bitsFloat > 87 or bitsFloat < 2 then error('Float part Bit amount overflow') end
+
 	local totalBits = bitsInteger + bitsFloat
 
-	input = math.floor(input + 0.5)
-	bitCount = math.floor(bitCount)
-	if bitCount > 127 or bitCount < 2 then error('Integer part Bit amount overflow') end
-	if bitsFloat > 32 or bitsFloat < 2 then error('Float part Bit amount overflow') end
-
-	local output = DLib.bitworker.FloatToBinary(numberIn, bitsFloat)
+	local output = DLib.bitworker.FloatToBinary(input, bitsFloat)
 
 	self:WriteBitRaw(output[1])
 

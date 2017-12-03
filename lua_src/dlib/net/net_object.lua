@@ -39,6 +39,27 @@ end
 
 local messageMeta = {}
 
+function net.CreateMessage(length, read)
+	local obj = setmetatable({}, messageMeta)
+	read = read or false
+	length = length or 0
+
+	obj.pointer = 0
+	obj.bits = {}
+	obj.isIncoming = read
+	obj.isReading = read
+
+	if read then
+		obj:ReadNetwork()
+	else
+		for i = 1, length do
+			table.insert(obj.bits, 0)
+		end
+	end
+
+	return obj
+end
+
 function messageMeta:__index(key)
 	if key == 'length' then
 		return #self.bits
@@ -225,6 +246,7 @@ function messageMeta:Broadcast()
 	end
 
 	nnet.Broadcast()
+	net.CURRENT_OBJECT_TRACE = nil
 end
 
 function messageMeta:BytesWritten()

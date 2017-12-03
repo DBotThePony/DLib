@@ -122,6 +122,7 @@ function net.Incoming2(length, ply)
 	CURRENT_OBJECT = net.CreateMessage((length - 3) * 8 + 7, true)
 	CURRENT_OBJECT:SetMessageName(strName)
 	local status = ProtectedCall(function() triggerNetworkEvent(length, ply, CURRENT_OBJECT) end)
+	CURRENT_OBJECT = nil
 
 	if not status then
 		DLib.Message('Listener on ' .. strName .. ' has failed!')
@@ -130,25 +131,6 @@ end
 
 function net.Incoming(...)
 	return net.Incoming2(...)
-end
-
-function net.CreateMessage(length, read)
-	local obj = setmetatable({}, messageLookup)
-	read = read or false
-	length = length or 0
-
-	obj.pointer = 0
-	obj.bits = {}
-	obj.isIncoming = read
-	obj.isReading = read
-
-	if read then
-		obj:ReadNetwork()
-	else
-		for i = 1, length do
-			table.insert(obj.bits, 0)
-		end
-	end
 end
 
 function net.Start(messageName, unreliable)
@@ -207,7 +189,11 @@ do
 				return
 			end
 
-			return CURRENT_SEND_OBJECT[func](CURRENT_SEND_OBJECT, ...)
+			local obj = CURRENT_SEND_OBJECT
+			CURRENT_SEND_OBJECT = nil
+			net.CURRENT_OBJECT_TRACE = nil
+
+			return obj[func](obj, ...)
 		end
 	end
 end
