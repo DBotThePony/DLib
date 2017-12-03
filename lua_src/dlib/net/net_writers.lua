@@ -287,8 +287,10 @@ function messageMeta:WriteTable(tableIn)
 	end
 
 	for key, value in pairs(tableIn) do
-		self:WriteType(key)
-		self:WriteType(value)
+		if key ~= '__index' and key ~= '__newindex' then
+			self:WriteType(key)
+			self:WriteType(value)
+		end
 	end
 
 	self:WriteType(nil)
