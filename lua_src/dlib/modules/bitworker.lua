@@ -19,6 +19,10 @@ local math = math
 local bitworker = DLib.module('bitworker')
 
 function bitworker.IntegerToBinary(numberIn)
+	if numberIn ~= numberIn or numberIn == math.huge then
+		return {0, 0}
+	end
+
 	local bits = {}
 	local sign = numberIn >= 0 and 0 or 1
 	numberIn = math.abs(numberIn)
@@ -73,6 +77,10 @@ function bitworker.BinaryToInteger(inputTable)
 end
 
 function bitworker.UIntegerToBinary(numberIn)
+	if numberIn ~= numberIn or numberIn == math.huge then
+		return {0}
+	end
+
 	local bits = {}
 	numberIn = math.abs(numberIn)
 
@@ -93,6 +101,16 @@ function bitworker.UIntegerToBinary(numberIn)
 end
 
 function bitworker.FloatToBinary(numberIn, precision)
+	if numberIn ~= numberIn or numberIn == math.huge then
+		local bits = {0, 0}
+
+		for i = 1, precision do
+			table.insert(bits, 0)
+		end
+
+		return
+	end
+
 	precision = precision or 6
 	local float = math.abs(numberIn) % 1
 	local bits
