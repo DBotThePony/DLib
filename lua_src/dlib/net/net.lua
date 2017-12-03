@@ -94,7 +94,7 @@ function net.RegisterWrapper(nameIn)
 
 	net[write] = function(...)
 		if not net.CURRENT_SEND_OBJECT then
-			ErrorNoHalt('net.' .. read .. ' - Not currently writing a message.')
+			ErrorNoHalt('net.' .. write .. ' - Not currently writing a message.')
 			return
 		end
 
