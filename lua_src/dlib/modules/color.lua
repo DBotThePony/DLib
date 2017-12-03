@@ -62,8 +62,14 @@ function _G.Color(r, g, b, a)
 	return setmetatable(newObj, colorMeta)
 end
 
+local Color = Color
+
 function _G.ColorAlpha(target, newAlpha)
-	return target:Copy():SetAlpha(newAlpha)
+	if target.Copy then
+		return target:Copy():SetAlpha(newAlpha)
+	else
+		return Color(target.r, target.g, target.b, newAlpha)
+	end
 end
 
 function _G.IsColor(object)
@@ -71,13 +77,16 @@ function _G.IsColor(object)
 		return false
 	end
 
-	return type(object.r) == 'number' and type(object.g) == 'number' and type(object.b) == 'number' and type(object.a) == 'number'
+	return getmetatable(object) == colorMeta or
+		type(object.r) == 'number' and
+		type(object.g) == 'number' and
+		type(object.b) == 'number' and
+		type(object.a) == 'number'
 end
 
 _G.iscolor = IsColor
 
 local IsColor = IsColor
-local Color = Color
 
 function colorMeta:__tostring()
 	return string.format('Color[%i %i %i %i]', self.r, self.g, self.b, self.a)
