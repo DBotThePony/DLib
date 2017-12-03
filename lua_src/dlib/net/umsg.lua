@@ -72,7 +72,6 @@ end
 do
 	local mappings = {
 		'Angle',
-		'Bool',
 		'Entity',
 		'Float',
 		'Vector',
@@ -85,6 +84,10 @@ end
 
 function umsg.String(stringIn)
 	net.WriteString(tostring(stringIn or ''))
+end
+
+function umsg.Bool(bitIn)
+	net.WriteString(tobool(bitIn))
 end
 
 function umsg.Char(valueIn)
