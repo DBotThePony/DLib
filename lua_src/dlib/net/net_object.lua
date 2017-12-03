@@ -145,12 +145,12 @@ local function CheckSendInput(targets)
 	end
 
 	if inputType == 'table' and #targets == 0 then
-		ErrorNoHalt('Input table is empty!')
+		ErrorNoHalt('net.Send - Possibly a mistake: Input table is empty!')
 		return false
 	end
 
 	if inputType == 'CRecipientFilter' and targets:GetCount() == 0 then
-		ErrorNoHalt('Input CRecipientFilter is empty!')
+		ErrorNoHalt('net.Send - Possibly a mistake: Input CRecipientFilter is empty!')
 		return false
 	end
 
