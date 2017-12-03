@@ -14,7 +14,7 @@
 -- limitations under the License.
 
 DLib.netModule = DLib.netModule or {}
-DLib.nativeNet = DLib.nativeNet or net
+DLib.nativeNet = DLib.nativeNet or table.Copy(net)
 
 local DLib = DLib
 local util = util
@@ -41,6 +41,8 @@ local ReadHeader = nnet.ReadHeader
 local WriteBitNative = nnet.WriteBit
 local ReadBitNative = nnet.ReadBit
 
+local toImport
+
 local function ErrorNoHalt(message)
 	return ErrorNoHalt2(traceback(message) .. '\n')
 end
@@ -48,6 +50,10 @@ end
 net.Hooks = net.Hooks or {}
 net.Receivers = net.Hooks
 local Hooks = net.Hooks
+
+if gnet.Receivers ~= net.Receivers then
+	toImport = gnet.Receivers
+end
 
 function net.GetTable()
 	return net.Hooks
@@ -226,3 +232,25 @@ net.RegisterWrapper('UInt')
 net.RegisterWrapper('Normal')
 net.RegisterWrapper('Type')
 net.RegisterWrapper('Header')
+
+for key, value in pairs(gnet) do
+	rawset(gnet, key, nil)
+end
+
+setmetatable(gnet, {
+	__index = net,
+
+	__newindex = function(self, key, value)
+		if net[key] then
+			DLib.Message(traceback('Probably better not to do that? net.' .. tostring(key) .. ' (' .. tostring(net[key]) .. ') -> ' .. tostring(value)))
+		end
+
+		net[key] = value
+	end
+})
+
+if toImport then
+	for key, value in pairs(toImport) do
+		net.Receive(key, value)
+	end
+end
