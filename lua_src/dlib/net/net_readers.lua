@@ -34,6 +34,10 @@ local traceback = debug.traceback
 local nnet = DLib.nativeNet
 local net = DLib.netModule
 
+local function ErrorNoHalt(message)
+	return ErrorNoHalt2(traceback(message) .. '\n')
+end
+
 function messageMeta:ReadBit()
 	if self.pointer == self.length then
 		ErrorNoHalt('Out of range')
@@ -52,7 +56,7 @@ function messageMeta:ReadInt(bitCount)
 	bitCount = tonumber(bitCount)
 	if type(bitCount) ~= 'number' then error('Bit amount is not a number!') end
 
-	if bitCount > self.length or bitCount < 2 then
+	if self.pointer + bitCount > self.length or bitCount < 2 then
 		ErrorNoHalt('Out of range')
 		return 0
 	end
@@ -66,7 +70,7 @@ function messageMeta:ReadUInt(bitCount)
 	bitCount = tonumber(bitCount)
 	if type(bitCount) ~= 'number' then error('Bit amount is not a number!') end
 
-	if bitCount > self.length or bitCount < 2 then
+	if self.pointer + bitCount > self.length or bitCount < 2 then
 		ErrorNoHalt('Out of range')
 		return 0
 	end
@@ -86,18 +90,23 @@ function messageMeta:ReadFloat(bitsInteger, bitsFloat)
 	if type(bitsInteger) ~= 'number' then error('Integer part Bit amount is not a number!') end
 	if type(bitsFloat) ~= 'number' then error('Float part Bit amount is not a number!') end
 
-	if bitCount > 127 or bitCount < 2 then error('Integer part Bit amount overflow') end
-	if bitsFloat > 32 or bitsFloat < 2 then error('Float part Bit amount overflow') end
+	if bitsInteger > 127 or bitsInteger < 2 then error('Integer part Bit amount overflow') end
+	if bitsFloat > 87 or bitsFloat < 2 then error('Float part Bit amount overflow') end
 
 	local totalBits = bitsInteger + bitsFloat
 
-	if totalBits > self.length then
+	if self.pointer + totalBits > self.length then
 		ErrorNoHalt('Out of range')
 		return 0
 	end
 
 	local buffer = self:ReadBuffer(totalBits)
-	return DLib.bitworker.BinaryToFloat(buffer)
+	local readFloat = DLib.bitworker.BinaryToFloat(buffer, bitsFloat)
+
+	local ceil = math.pow(10, math.max(1, math.floor(bitsFloat / 3)))
+	readFloat = math.floor(readFloat * ceil + 0.5) / ceil
+
+	return readFloat
 end
 
 local Angle, Vector = Angle, Vector
@@ -141,15 +150,27 @@ function messageMeta:ReadString()
 	local readString = {}
 
 	while nextChar ~= 0 do
+		if self.length < self.pointer + 8 then
+			ErrorNoHalt('net.ReadString - string has no NULL terminator!')
+			return ''
+		end
+
 		table.insert(readString, nextChar)
 		nextChar = DLib.bitworker.BinaryToUInteger(self:ReadBuffer(8))
 	end
 
-	return string.char(unpack(readString))
+	--print('-----')
+	--PrintTable(readString)
+
+	if #readString ~= 0 then
+		return string.char(unpack(readString))
+	else
+		return ''
+	end
 end
 
 function messageMeta:ReadEntity()
-	local ent = Entity(self:ReadUint(16))
+	local ent = Entity(self:ReadUInt(16))
 
 	if IsValid(ent) then
 		return ent

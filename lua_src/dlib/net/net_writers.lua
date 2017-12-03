@@ -148,6 +148,8 @@ function messageMeta:WriteFloat(input, bitsInteger, bitsFloat)
 		self:WriteBitRaw(0)
 	end
 
+	-- print(input, totalBits, totalBits - #output, #output)
+
 	for i = 2, #output do
 		self:WriteBitRaw(output[i])
 	end
@@ -191,7 +193,8 @@ function messageMeta:WriteData(binaryData, bytesToSend)
 	bytesToSend = math.floor(bytesToSend)
 
 	if bytesToSend < 1 then
-		error('WriteData - length overflow')
+		-- error('WriteData - length overflow')
+		bytesToSend = #binaryData
 	end
 
 	bytesToSend = math.min(#binaryData, bytesToSend)
@@ -219,9 +222,7 @@ function messageMeta:WriteString(stringIn)
 	end
 
 	for i, char in ipairs({stringIn:byte(1, #stringIn)}) do
-		for i, bit in ipairs(DLib.bitworker.UIntegerToBinary(char)) do
-			self:WriteBitRaw(bit)
-		end
+		self:WriteBitsRaw(DLib.bitworker.UIntegerToBinary(char), 8)
 	end
 
 	self:WriteBitRaw(0)

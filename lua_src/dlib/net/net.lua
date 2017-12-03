@@ -18,7 +18,7 @@ DLib.nativeNet = DLib.nativeNet or table.Copy(net)
 
 local DLib = DLib
 local util = util
-local gnet = net
+local gnet = _G.net
 local type = type
 local debug = debug
 local ErrorNoHalt2 = ErrorNoHalt
@@ -118,8 +118,10 @@ function net.Incoming2(length, ply)
 
 	length = length - 16
 
+	-- print(length, strName)
+
 	-- safety rule, read extra 7 bits to make sure we are received entrie message
-	CURRENT_OBJECT = net.CreateMessage((length - 3) * 8 + 7, true)
+	CURRENT_OBJECT = net.CreateMessage(length + 7, true)
 	CURRENT_OBJECT:SetMessageName(strName)
 	local status = ProtectedCall(function() triggerNetworkEvent(length, ply, CURRENT_OBJECT) end)
 	CURRENT_OBJECT = nil
@@ -182,10 +184,15 @@ do
 		'SendToServer'
 	}
 
+	local sendFuncs2 = {
+		'BitsWritten',
+		'BytesWritten',
+	}
+
 	for i, func in ipairs(sendFuncs) do
 		net[func] = function(...)
 			if not CURRENT_SEND_OBJECT then
-				ErrorNoHalt('net. - Not currently writing a message.')
+				ErrorNoHalt('net.' .. func .. ' - Not currently writing a message.')
 				return
 			end
 
@@ -194,6 +201,17 @@ do
 			net.CURRENT_OBJECT_TRACE = nil
 
 			return obj[func](obj, ...)
+		end
+	end
+
+	for i, func in ipairs(sendFuncs2) do
+		net[func] = function(...)
+			if not CURRENT_SEND_OBJECT then
+				ErrorNoHalt('net.' .. func .. ' - Not currently writing a message.')
+				return
+			end
+
+			return CURRENT_SEND_OBJECT[func](CURRENT_SEND_OBJECT, ...)
 		end
 	end
 end
@@ -219,21 +237,27 @@ net.RegisterWrapper('Normal')
 net.RegisterWrapper('Type')
 net.RegisterWrapper('Header')
 
-for key, value in pairs(gnet) do
-	rawset(gnet, key, nil)
-end
+if DLib.gNet ~= gnet then
+	DLib.gNet = gnet
 
-setmetatable(gnet, {
-	__index = net,
-
-	__newindex = function(self, key, value)
-		if net[key] then
-			DLib.Message(traceback('Probably better not to do that? net.' .. tostring(key) .. ' (' .. tostring(net[key]) .. ') -> ' .. tostring(value)))
-		end
-
-		net[key] = value
+	for key, value in pairs(gnet) do
+		rawset(gnet, key, nil)
 	end
-})
+
+	setmetatable(gnet, {
+		__index = function(self, key)
+			return net[key]
+		end,
+
+		__newindex = function(self, key, value)
+			--if net[key] then
+				--DLib.Message(traceback('Probably better not to do that? net.' .. tostring(key) .. ' (' .. tostring(net[key]) .. ') -> ' .. tostring(value)))
+			--end
+
+			net[key] = value
+		end
+	})
+end
 
 if toImport then
 	for key, value in pairs(toImport) do

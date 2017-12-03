@@ -100,8 +100,14 @@ function messageMeta:ReadBuffer(bits, start, movePointer)
 		movePointer = true
 	end
 
-	start = start or (self.pointer + 1)
+	if not start then
+		start = self.pointer + 1
+		bits = bits - 1
+	end
+
 	local output = {}
+
+	-- print('readbuffer ' .. start .. ' -> ' .. (start + bits))
 
 	for i = start, start + bits do
 		if not self.bits[i] then
@@ -112,7 +118,7 @@ function messageMeta:ReadBuffer(bits, start, movePointer)
 	end
 
 	if movePointer then
-		self.pointer = self.pointer + bits + 1
+		self.pointer = start + bits
 	end
 
 	return output
@@ -293,6 +299,29 @@ function messageMeta:WriteBitRaw(bitIn)
 	self.pointer = self.pointer + 1
 	self.bits[self.pointer] = bitIn
 	return self
+end
+
+function messageMeta:WriteBitsRaw(bitsIn, fixedAmount)
+	if not fixedAmount then
+		for i = 1, #bitsIn do
+			self.pointer = self.pointer + 1
+			self.bits[self.pointer] = bitsIn[i]
+		end
+
+		return self
+	else
+		for i = 1, fixedAmount - #bitsIn do
+			self.pointer = self.pointer + 1
+			self.bits[self.pointer] = 0
+		end
+
+		for i = 1, #bitsIn do
+			self.pointer = self.pointer + 1
+			self.bits[self.pointer] = bitsIn[i]
+		end
+
+		return self
+	end
 end
 
 DLib.simpleInclude('net/net_readers.lua')
