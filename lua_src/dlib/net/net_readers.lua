@@ -230,7 +230,7 @@ function messageMeta:ReadTable()
 		readValue = self:ReadType()
 		if readValue == nil then break end
 		output[readKey] = readValue
-	until readKey == nil or readValue == nil
+	until readKey == nil or readValue == nil or self.pointer >= self.length
 
 	return output
 end
