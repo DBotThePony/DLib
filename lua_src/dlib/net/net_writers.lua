@@ -120,11 +120,8 @@ function messageMeta:WriteUInt(input, bitCount)
 	return self
 end
 
-function messageMeta:WriteFloat(input, bitsInteger, bitsFloat)
+function messageMeta:WriteNumber(input, bitsInteger, bitsFloat)
 	if self.isReading then error('Message is read-only') end
-
-	bitsInteger = bitsInteger or 24
-	bitsFloat = bitsFloat or 8
 
 	input = tonumber(input)
 	bitsFloat = tonumber(bitsFloat)
@@ -156,14 +153,18 @@ function messageMeta:WriteFloat(input, bitsInteger, bitsFloat)
 	return self
 end
 
+function messageMeta:WriteFloat(floatIn)
+	return self:WriteNumber(floatIn, 24, 8)
+end
+
 function messageMeta:WriteVector(vecIn)
 	if type(vecIn) ~= 'Vector' then
 		error('WriteVector - input is not a vector!')
 	end
 
-	self:WriteFloat(vecIn.x, 24, 4)
-	self:WriteFloat(vecIn.y, 24, 4)
-	self:WriteFloat(vecIn.z, 24, 4)
+	self:WriteNumber(vecIn.x, 24, 4)
+	self:WriteNumber(vecIn.y, 24, 4)
+	self:WriteNumber(vecIn.z, 24, 4)
 
 	return self
 end
@@ -173,9 +174,9 @@ function messageMeta:WriteAngle(angleIn)
 		error('WriteAngle - input is not an angle!')
 	end
 
-	self:WriteFloat(angleIn.p, 24, 4)
-	self:WriteFloat(angleIn.y, 24, 4)
-	self:WriteFloat(angleIn.r, 24, 4)
+	self:WriteNumber(angleIn.p, 24, 4)
+	self:WriteNumber(angleIn.y, 24, 4)
+	self:WriteNumber(angleIn.r, 24, 4)
 
 	return self
 end
@@ -191,9 +192,8 @@ function messageMeta:WriteData(binaryData, bytesToSend)
 
 	bytesToSend = math.floor(bytesToSend)
 
-	if bytesToSend < 1 then
-		-- error('WriteData - length overflow')
-		bytesToSend = #binaryData
+	if bytesToSend < 0 then
+		error('WriteData - length overflow')
 	end
 
 	bytesToSend = math.min(#binaryData, bytesToSend)
@@ -207,7 +207,7 @@ function messageMeta:WriteData(binaryData, bytesToSend)
 end
 
 function messageMeta:WriteDouble(value)
-	return self:WriteFloat(value, 32, 32)
+	return self:WriteNumber(value, 32, 32)
 end
 
 function messageMeta:WriteString(stringIn)
@@ -248,9 +248,9 @@ function messageMeta:WriteNormal(vectorIn)
 
 	local vector = vectorIn:GetNormalized()
 
-	self:WriteFloat(vector.x, 3, 8)
-	self:WriteFloat(vector.y, 3, 8)
-	self:WriteFloat(vector.z, 3, 8)
+	self:WriteNumber(vector.x, 3, 8)
+	self:WriteNumber(vector.y, 3, 8)
+	self:WriteNumber(vector.z, 3, 8)
 
 	return self
 end

@@ -98,7 +98,7 @@ function net.RegisterWrapper(nameIn)
 			return
 		end
 
-		return net.CURRENT_SEND_OBJECT[write](net.CURRENT_SEND_OBJECT, ...)
+		net.CURRENT_SEND_OBJECT[write](net.CURRENT_SEND_OBJECT, ...)
 	end
 end
 
@@ -198,7 +198,7 @@ do
 			net.CURRENT_SEND_OBJECT = nil
 			net.CURRENT_OBJECT_TRACE = nil
 
-			return obj[func](obj, ...)
+			obj[func](obj, ...)
 		end
 	end
 

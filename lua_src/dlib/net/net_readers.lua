@@ -80,10 +80,7 @@ function messageMeta:ReadUInt(bitCount)
 	return DLib.bitworker.BinaryToUInteger(buffer)
 end
 
-function messageMeta:ReadFloat(bitsInteger, bitsFloat)
-	bitsInteger = bitsInteger or 24
-	bitsFloat = bitsFloat or 8
-
+function messageMeta:ReadNumber(bitsInteger, bitsFloat)
 	bitsFloat = tonumber(bitsFloat)
 	bitsInteger = tonumber(bitsInteger)
 
@@ -96,7 +93,7 @@ function messageMeta:ReadFloat(bitsInteger, bitsFloat)
 	local totalBits = bitsInteger + bitsFloat
 
 	if self.pointer + totalBits > self.length then
-		self:ReportOutOfRange('ReadFloat', totalBits)
+		self:ReportOutOfRange('ReadNumber', totalBits)
 		return 0
 	end
 
@@ -109,14 +106,18 @@ function messageMeta:ReadFloat(bitsInteger, bitsFloat)
 	return readFloat
 end
 
+function messageMeta:ReadFloat()
+	return self:ReadNumber(24, 8)
+end
+
 local Angle, Vector = Angle, Vector
 
 function messageMeta:ReadVector()
-	return Vector(self:ReadFloat(24, 4), self:ReadFloat(24, 4), self:ReadFloat(24, 4))
+	return Vector(self:ReadNumber(24, 4), self:ReadNumber(24, 4), self:ReadNumber(24, 4))
 end
 
 function messageMeta:ReadAngle()
-	return Angle(self:ReadFloat(24, 4), self:ReadFloat(24, 4), self:ReadFloat(24, 4))
+	return Angle(self:ReadNumber(24, 4), self:ReadNumber(24, 4), self:ReadNumber(24, 4))
 end
 
 function messageMeta:ReadData(bytesRead)
@@ -148,7 +149,7 @@ function messageMeta:ReadData(bytesRead)
 end
 
 function messageMeta:ReadDouble()
-	return self:ReadFloat(32, 32)
+	return self:ReadNumber(32, 32)
 end
 
 function messageMeta:ReadString()
@@ -191,7 +192,7 @@ function messageMeta:ReadEntity()
 end
 
 function messageMeta:ReadNormal()
-	return Vector(self:ReadFloat(3, 8), self:ReadFloat(3, 8), self:ReadFloat(3, 8))
+	return Vector(self:ReadNumber(3, 8), self:ReadNumber(3, 8), self:ReadNumber(3, 8))
 end
 
 messageMeta.ReadFunctions = {

@@ -46,6 +46,7 @@ function net.CreateMessage(length, read)
 	length = length or 0
 
 	obj.pointer = 0
+	obj.outboundsScore = 0
 	obj.bits = {}
 	obj.isIncoming = read
 	obj.isReading = read
@@ -97,7 +98,8 @@ function messageMeta:ResetBuffer()
 end
 
 function messageMeta:ReportOutOfRange(func, bitsToAdd)
-	ErrorNoHalt(string.format('%s - Read buffer overflow. Message length is %i bits (~%i b/%.2f kb); Pointer: %i, reading %i bits -> %i bits outside from message bounds.', func, self.length, self.length / 8, self.length / 8192, self.pointer, bitsToAdd, self.pointer + bitsToAdd - self.length))
+	self.outboundsScore = self.outboundsScore + bitsToAdd
+	ErrorNoHalt(string.format('%s - Read buffer overflow. Message length is %i bits (~%i b/%.2f kb); Pointer: %i, reading %i bits -> %i bits outside from message bounds (%i total).', func, self.length, self.length / 8, self.length / 8192, self.pointer, bitsToAdd, self.pointer + bitsToAdd - self.length, self.outboundsScore))
 end
 
 function messageMeta:ReadBuffer(bits, start, movePointer)
