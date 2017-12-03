@@ -94,8 +94,8 @@ end
 
 function bitworker.FloatToBinary(numberIn, precision)
 	precision = precision or 6
-	local bits = bitworker.IntegerToBinary(numberIn)
 	local float = math.abs(numberIn % 1)
+	local bits = bitworker.IntegerToBinary(numberIn - float)
 	local lastMult = float
 
 	for i = 1, precision do

@@ -48,7 +48,7 @@ function messageMeta:WriteBit(bitIn)
 		error('Must be a number')
 	end
 
-	local input = math.floor(bitIn) ~= 0 and 0 or 1
+	local input = math.floor(bitIn) == 1 and 1 or 0
 	self:WriteBitRaw(input)
 	return self
 end
@@ -139,7 +139,6 @@ function messageMeta:WriteFloat(input, bitsInteger, bitsFloat)
 	if bitsFloat > 87 or bitsFloat < 2 then error('Float part Bit amount overflow') end
 
 	local totalBits = bitsInteger + bitsFloat
-
 	local output = DLib.bitworker.FloatToBinary(input, bitsFloat)
 
 	self:WriteBitRaw(output[1])
@@ -170,13 +169,13 @@ function messageMeta:WriteVector(vecIn)
 end
 
 function messageMeta:WriteAngle(angleIn)
-	if type(vecIn) ~= 'Angle' then
+	if type(angleIn) ~= 'Angle' then
 		error('WriteAngle - input is not an angle!')
 	end
 
-	self:WriteFloat(vecIn.p, 24, 4)
-	self:WriteFloat(vecIn.y, 24, 4)
-	self:WriteFloat(vecIn.r, 24, 4)
+	self:WriteFloat(angleIn.p, 24, 4)
+	self:WriteFloat(angleIn.y, 24, 4)
+	self:WriteFloat(angleIn.r, 24, 4)
 
 	return self
 end
