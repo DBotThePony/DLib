@@ -131,7 +131,7 @@ function messageMeta:ReadVectorNormal()
 end
 
 function messageMeta:Reset()
-	self.nwobject:Reset()
+	self.nwobject:Seek(32)
 end
 
 net.receive('dlib.umsg', function(len, ply, networkObject)
