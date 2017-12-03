@@ -160,7 +160,7 @@ function net.Start(messageName, unreliable)
 	end
 
 	if net.CURRENT_OBJECT_TRACE then
-		ErrorNoHalt2('Starting new net message without finishing old one!\n------------------------\nOLD:\n' .. net.CURRENT_OBJECT_TRACE .. '\n------------------------\nNEW:\n' .. traceback())
+		DLib.Message('Starting new net message without finishing old one!\n------------------------\nOLD:\n' .. net.CURRENT_OBJECT_TRACE .. '\n------------------------\nNEW:\n' .. traceback())
 	end
 
 	net.CURRENT_OBJECT_TRACE = traceback()
