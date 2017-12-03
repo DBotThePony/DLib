@@ -132,12 +132,18 @@ function messageMeta:ReadData(bytesRead)
 
 	local bitsRead = bytesRead * 8
 
-	if self.pointer + bitsRead + 1 > self.length then
+	if self.pointer + bitsRead > self.length then
 		ErrorNoHalt('ReadData - out of bounds, clamping read range...')
 		bitsRead = self.length - self.pointer
+		bytesRead = math.floor(bitsRead / 8)
 	end
 
-	local bits = self:ReadBuffer(bitsRead)
+	local bits = {}
+
+	for byte = 1, bytesRead do
+		table.insert(bits, DLib.bitworker.BinaryToUInteger(self:ReadBuffer(8)))
+	end
+
 	return string.char(unpack(bits))
 end
 
