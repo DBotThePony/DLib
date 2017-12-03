@@ -70,7 +70,7 @@ function messageMeta:ReadUInt(bitCount)
 	bitCount = tonumber(bitCount)
 	if type(bitCount) ~= 'number' then error('Bit amount is not a number!') end
 
-	if self.pointer + bitCount > self.length or bitCount < 2 then
+	if self.pointer + bitCount > self.length or bitCount < 1 then
 		self:ReportOutOfRange('ReadUInt', bitCount)
 		return 0
 	end
