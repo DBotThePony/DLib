@@ -49,7 +49,7 @@ function umsg.Start(strIn, pFilter)
 	cPlayers = pFilter
 
 	net.Start('dlib.umsg')
-	net.WriteUInt(tonumber(util.CRC(strIn)))
+	net.WriteUInt(tonumber(util.CRC(strIn)), 32)
 end
 
 function umsg.End()
@@ -73,13 +73,16 @@ do
 		'Bool',
 		'Entity',
 		'Float',
-		'String',
 		'Vector',
 	}
 
 	for i, map in ipairs(mappings) do
 		umsg[map] = net['Write' .. map]
 	end
+end
+
+function umsg.String(stringIn)
+	net.WriteString(tostring(stringIn or ''))
 end
 
 function umsg.Char(valueIn)
