@@ -234,6 +234,7 @@ net.RegisterWrapper('UInt')
 net.RegisterWrapper('Normal')
 net.RegisterWrapper('Type')
 net.RegisterWrapper('Header')
+net.RegisterWrapper('Number')
 
 if DLib.gNet ~= gnet then
 	DLib.gNet = gnet
