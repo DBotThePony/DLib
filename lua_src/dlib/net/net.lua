@@ -44,7 +44,7 @@ local ReadBitNative = nnet.ReadBit
 local toImport
 
 local function ErrorNoHalt(message)
-	return ErrorNoHalt2(traceback(message) .. '\n')
+	return ErrorNoHalt2(traceback(message, 3) .. '\n')
 end
 
 net.Hooks = net.Hooks or {}
@@ -153,11 +153,11 @@ end
 
 function net.Start(messageName, unreliable)
 	if not messageName then
-		error('net.Start - no message name was specified at all!')
+		error('net.Start - no message name was specified at all!', 2)
 	end
 
-	if type(messageName) ~= 'string' or type(messageName) ~= 'number' then
-		error('net.Start - input name is not a string and not a number!')
+	if type(messageName) ~= 'string' and type(messageName) ~= 'number' then
+		error('net.Start - input name is not a string and is not a number!', 2)
 	end
 
 	if type(messageName) ~= 'number' then
@@ -165,7 +165,7 @@ function net.Start(messageName, unreliable)
 		messageName = NetworkIDToString(messageName)
 
 		if not messageName then
-			error('net.Send - no such a network string with ID ' .. num)
+			error('net.Send - no such a network string with ID ' .. num, 2)
 		end
 	end
 
@@ -174,7 +174,7 @@ function net.Start(messageName, unreliable)
 	unreliable = unreliable or false
 
 	if convert == 0 then
-		error('Starting unpooled message! Messages MUST be pooled first, because of bandwidth reasons. http://wiki.garrysmod.com/page/util/AddNetworkString')
+		error('Starting unpooled message! Messages MUST be pooled first, because of bandwidth reasons. http://wiki.garrysmod.com/page/util/AddNetworkString', 2)
 	end
 
 	if net.CURRENT_OBJECT_TRACE then
