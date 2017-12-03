@@ -45,7 +45,7 @@ function messageMeta:WriteBit(bitIn)
 	end
 
 	if type(bitIn) ~= 'number' then
-		error('Must be a number')
+		error('WriteBit - Must be a number! ' .. type(bitIn))
 	end
 
 	local input = math.floor(bitIn) == 1 and 1 or 0
@@ -60,8 +60,8 @@ function messageMeta:WriteInt(input, bitCount)
 
 	input = tonumber(input)
 	bitCount = tonumber(bitCount)
-	if type(input) ~= 'number' then error('Input is not a number!') end
-	if type(bitCount) ~= 'number' then error('Bit amount is not a number!') end
+	if type(input) ~= 'number' then error('Input is not a number! ' .. type(input)) end
+	if type(bitCount) ~= 'number' then error('Bit amount is not a number! ' .. type(bitCount)) end
 
 	input = math.floor(input + 0.5)
 	bitCount = math.floor(bitCount)
@@ -91,8 +91,8 @@ function messageMeta:WriteUInt(input, bitCount)
 
 	input = tonumber(input)
 	bitCount = tonumber(bitCount)
-	if type(input) ~= 'number' then error('Input is not a number!') end
-	if type(bitCount) ~= 'number' then error('Bit amount is not a number!') end
+	if type(input) ~= 'number' then error('Input is not a number! ' .. type(input)) end
+	if type(bitCount) ~= 'number' then error('Bit amount is not a number! ' .. type(bitCount)) end
 
 	input = math.floor(input + 0.5)
 	bitCount = math.floor(bitCount)
@@ -126,9 +126,9 @@ function messageMeta:WriteNumber(input, bitsInteger, bitsFloat)
 	input = tonumber(input)
 	bitsFloat = tonumber(bitsFloat)
 	bitsInteger = tonumber(bitsInteger)
-	if type(input) ~= 'number' then error('Input is not a number!') end
-	if type(bitsInteger) ~= 'number' then error('Integer part Bit amount is not a number!') end
-	if type(bitsFloat) ~= 'number' then error('Float part Bit amount is not a number!') end
+	if type(input) ~= 'number' then error('Input is not a number! ' .. type(input)) end
+	if type(bitsInteger) ~= 'number' then error('Integer part Bit amount is not a number! ' .. type(bitsInteger)) end
+	if type(bitsFloat) ~= 'number' then error('Float part Bit amount is not a number! ' .. type(bitsFloat)) end
 
 	bitsInteger = math.floor(bitsInteger)
 	bitsFloat = math.floor(bitsFloat)
@@ -159,7 +159,7 @@ end
 
 function messageMeta:WriteVector(vecIn)
 	if type(vecIn) ~= 'Vector' then
-		error('WriteVector - input is not a vector!')
+		error('WriteVector - input is not a vector! ' .. type(vecIn))
 	end
 
 	self:WriteNumber(vecIn.x, 16, 8)
@@ -171,7 +171,7 @@ end
 
 function messageMeta:WriteAngle(angleIn)
 	if type(angleIn) ~= 'Angle' then
-		error('WriteAngle - input is not an angle!')
+		error('WriteAngle - input is not an angle! ' .. type(angleIn))
 	end
 
 	self:WriteNumber(angleIn.p, 16, 8)
@@ -183,11 +183,11 @@ end
 
 function messageMeta:WriteData(binaryData, bytesToSend)
 	if type(binaryData) ~= 'string' then
-		error('WriteData - input is not a string!')
+		error('WriteData - input is not a string! ' .. type(binaryData))
 	end
 
 	if type(bytesToSend) ~= 'number' then
-		error('WriteData - length is not a number!')
+		error('WriteData - length is not a number! ' .. type(bytesToSend))
 	end
 
 	bytesToSend = math.floor(bytesToSend)
@@ -225,7 +225,7 @@ local endString = {
 
 function messageMeta:WriteString(stringIn)
 	if type(stringIn) ~= 'string' then
-		error('WriteString - input is not a string!')
+		error('WriteString - input is not a string! ' .. type(stringIn))
 	end
 
 	if #stringIn == 0 then
@@ -254,7 +254,7 @@ end
 
 function messageMeta:WriteNormal(vectorIn)
 	if type(vecIn) ~= 'Vector' then
-		error('WriteNormal - input is not a vector!')
+		error('WriteNormal - input is not a vector! ' .. type(vecIn))
 	end
 
 	local vector = vectorIn:GetNormalized()
@@ -311,7 +311,7 @@ end
 
 function messageMeta:WriteMatrix(matrixIn)
 	if type(matrixIn) ~= 'VMatrix' then
-		error('WriteMatrix - input is not a VMatrix!')
+		error('WriteMatrix - input is not a VMatrix! ' .. type(matrixIn))
 	end
 
 	local toTable = matrixIn:ToTable()
