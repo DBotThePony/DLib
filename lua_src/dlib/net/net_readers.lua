@@ -148,10 +148,15 @@ function messageMeta:ReadData(bytesRead)
 end
 
 function messageMeta:ReadDouble()
-	return self:ReadFloat(32, 64)
+	return self:ReadFloat(32, 32)
 end
 
 function messageMeta:ReadString()
+	if self.length < self.pointer + 8 then
+		ErrorNoHalt('net.ReadString - unable to read - buffer is exhausted!')
+		return ''
+	end
+
 	local nextChar = DLib.bitworker.BinaryToUInteger(self:ReadBuffer(8))
 	local readString = {}
 
