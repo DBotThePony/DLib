@@ -203,6 +203,52 @@ function tableutil.qcopy(input)
 	return reply
 end
 
+function tableutil.gcopy(input)
+	if #input == 0 then return {} end
+
+	local reply = {}
+
+	local nextValue, i = input[1], 1
+
+	::loop::
+
+	reply[i] = nextValue
+
+	i = i + 1
+	nextValue = input[i]
+
+	if nextValue ~= nil then
+		goto loop
+	end
+
+	return reply
+end
+
+function tableutil.gcopyRange(input, start, endPos)
+	if #input < start then return {} end
+	endPos = endPos or #input
+	local endPos2 = endPos + 1
+
+	local reply = {}
+
+	local nextValue, i = input[start], start
+	local i2 = 0
+
+	::loop::
+	i2 = i2 + 1
+	reply[i2] = nextValue
+
+	i = i + 1
+	if i == endPos2 then return reply end
+	nextValue = input[i]
+
+	if nextValue ~= nil then
+		goto loop
+	end
+
+	return reply
+end
+
 function tableutil.unshift(tableIn, ...)
 	local values = {...}
 	local count = #values
