@@ -80,17 +80,17 @@ function messageMeta:ReadUInt(bitCount)
 	return math.floor(DLib.bitworker.BinaryToUInteger(buffer))
 end
 
-function messageMeta:ReadNumber(bitsInteger, bitsFloat)
-	bitsFloat = tonumber(bitsFloat)
-	bitsInteger = tonumber(bitsInteger)
+function messageMeta:ReadNumber(bitsExponent, bitsMantissa)
+	bitsMantissa = tonumber(bitsMantissa)
+	bitsExponent = tonumber(bitsExponent)
 
-	if type(bitsInteger) ~= 'number' then error('Integer part Bit amount is not a number!') end
-	if type(bitsFloat) ~= 'number' then error('Float part Bit amount is not a number!') end
+	if type(bitsExponent) ~= 'number' then error('Exponent bit amount is not a number!') end
+	if type(bitsMantissa) ~= 'number' then error('Mantissa bit amount is not a number!') end
 
-	if bitsInteger > 127 or bitsInteger < 2 then error('Integer part Bit amount overflow') end
-	if bitsFloat > 87 or bitsFloat < 2 then error('Float part Bit amount overflow') end
+	if bitsExponent > 24 or bitsExponent < 4 then error('Exponent bit amount overflow') end
+	if bitsMantissa > 127 or bitsMantissa < 4 then error('Mantissa bit amount overflow') end
 
-	local totalBits = bitsInteger + bitsFloat
+	local totalBits = bitsExponent + bitsMantissa + 1
 
 	if self.pointer + totalBits > self.length then
 		self:ReportOutOfRange('ReadNumber', totalBits)
@@ -98,26 +98,26 @@ function messageMeta:ReadNumber(bitsInteger, bitsFloat)
 	end
 
 	local buffer = self:ReadBuffer(totalBits)
-	local readFloat = DLib.bitworker.BinaryToFloat(buffer, bitsFloat)
+	local readFloat = DLib.bitworker.BinaryToFloatIEEE(buffer, bitsMantissa)
 
-	local ceil = math.pow(10, math.max(1, math.floor(bitsFloat / 3)))
-	readFloat = math.floor(readFloat * ceil + 0.5) / ceil
+	--local ceil = math.pow(10, math.max(1, math.floor(bitsMantissa / 3)))
+	--readFloat = math.floor(readFloat * ceil + 0.5) / ceil
 
 	return readFloat
 end
 
 function messageMeta:ReadFloat()
-	return self:ReadNumber(8, 24)
+	return self:ReadNumber(8, 23)
 end
 
 local Angle, Vector = Angle, Vector
 
 function messageMeta:ReadVector()
-	return Vector(self:ReadNumber(16, 8), self:ReadNumber(16, 8), self:ReadNumber(16, 8))
+	return Vector(self:ReadNumber(8, 16), self:ReadNumber(8, 16), self:ReadNumber(8, 16))
 end
 
 function messageMeta:ReadAngle()
-	return Angle(self:ReadNumber(16, 8), self:ReadNumber(16, 8), self:ReadNumber(16, 8))
+	return Angle(self:ReadNumber(8, 16), self:ReadNumber(8, 16), self:ReadNumber(8, 16))
 end
 
 function messageMeta:ReadData(bytesRead)
@@ -161,7 +161,7 @@ function messageMeta:ReadData(bytesRead)
 end
 
 function messageMeta:ReadDouble()
-	return self:ReadNumber(24, 52)
+	return self:ReadNumber(11, 52)
 end
 
 function messageMeta:ReadString()
@@ -204,7 +204,7 @@ function messageMeta:ReadEntity()
 end
 
 function messageMeta:ReadNormal()
-	return Vector(self:ReadNumber(3, 8), self:ReadNumber(3, 8), self:ReadNumber(3, 8))
+	return Vector(self:ReadNumber(3, 16), self:ReadNumber(3, 16), self:ReadNumber(3, 16))
 end
 
 messageMeta.ReadFunctions = {

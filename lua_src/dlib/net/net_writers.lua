@@ -120,41 +120,28 @@ function messageMeta:WriteUInt(input, bitCount)
 	return self
 end
 
-function messageMeta:WriteNumber(input, bitsInteger, bitsFloat)
+function messageMeta:WriteNumber(input, bitsExponent, bitsMantissa)
 	if self.isReading then error('Message is read-only') end
 
 	input = tonumber(input)
-	bitsFloat = tonumber(bitsFloat)
-	bitsInteger = tonumber(bitsInteger)
+	bitsMantissa = tonumber(bitsMantissa)
+	bitsExponent = tonumber(bitsExponent)
 	if type(input) ~= 'number' then error('Input is not a number! ' .. type(input)) end
-	if type(bitsInteger) ~= 'number' then error('Integer part Bit amount is not a number! ' .. type(bitsInteger)) end
-	if type(bitsFloat) ~= 'number' then error('Float part Bit amount is not a number! ' .. type(bitsFloat)) end
+	if type(bitsExponent) ~= 'number' then error('Exponent bits amount is not a number! ' .. type(bitsExponent)) end
+	if type(bitsMantissa) ~= 'number' then error('Mantissa bits amount is not a number! ' .. type(bitsMantissa)) end
 
-	bitsInteger = math.floor(bitsInteger)
-	bitsFloat = math.floor(bitsFloat)
-	if bitsInteger > 127 or bitsInteger < 2 then error('Integer part Bit amount overflow') end
-	if bitsFloat > 87 or bitsFloat < 2 then error('Float part Bit amount overflow') end
+	bitsExponent = math.floor(bitsExponent)
+	bitsMantissa = math.floor(bitsMantissa)
+	if bitsExponent > 127 or bitsExponent < 2 then error('Exponent bits amount overflow') end
+	if bitsMantissa > 87 or bitsMantissa < 2 then error('Mantissa bits amount overflow') end
 
-	local totalBits = bitsInteger + bitsFloat
-	local output = DLib.bitworker.FloatToBinary(input, bitsFloat)
-
-	self:WriteBitRaw(output[1])
-
-	for i = 1, totalBits - #output do
-		self:WriteBitRaw(0)
-	end
-
-	-- print(input, totalBits, totalBits - #output, #output)
-
-	for i = 2, math.min(#output, totalBits) do
-		self:WriteBitRaw(output[i])
-	end
+	self:WriteBitsRaw(DLib.bitworker.FloatToBinaryIEEE(input, bitsExponent, bitsMantissa))
 
 	return self
 end
 
 function messageMeta:WriteFloat(floatIn)
-	return self:WriteNumber(floatIn, 8, 24)
+	return self:WriteNumber(floatIn, 8, 23)
 end
 
 function messageMeta:WriteVector(vecIn)
@@ -162,9 +149,9 @@ function messageMeta:WriteVector(vecIn)
 		error('WriteVector - input is not a vector! ' .. type(vecIn))
 	end
 
-	self:WriteNumber(vecIn.x, 16, 8)
-	self:WriteNumber(vecIn.y, 16, 8)
-	self:WriteNumber(vecIn.z, 16, 8)
+	self:WriteNumber(vecIn.x, 8, 16)
+	self:WriteNumber(vecIn.y, 8, 16)
+	self:WriteNumber(vecIn.z, 8, 16)
 
 	return self
 end
@@ -174,9 +161,9 @@ function messageMeta:WriteAngle(angleIn)
 		error('WriteAngle - input is not an angle! ' .. type(angleIn))
 	end
 
-	self:WriteNumber(angleIn.p, 16, 8)
-	self:WriteNumber(angleIn.y, 16, 8)
-	self:WriteNumber(angleIn.r, 16, 8)
+	self:WriteNumber(angleIn.p, 8, 16)
+	self:WriteNumber(angleIn.y, 8, 16)
+	self:WriteNumber(angleIn.r, 8, 16)
 
 	return self
 end
@@ -221,7 +208,7 @@ function messageMeta:WriteData(binaryData, bytesToSend)
 end
 
 function messageMeta:WriteDouble(value)
-	return self:WriteNumber(value, 24, 52)
+	return self:WriteNumber(value, 11, 52)
 end
 
 local endString = {
@@ -264,9 +251,9 @@ function messageMeta:WriteNormal(vectorIn)
 
 	local vector = vectorIn:GetNormalized()
 
-	self:WriteNumber(vector.x, 3, 8)
-	self:WriteNumber(vector.y, 3, 8)
-	self:WriteNumber(vector.z, 3, 8)
+	self:WriteNumber(vector.x, 3, 16)
+	self:WriteNumber(vector.y, 3, 16)
+	self:WriteNumber(vector.z, 3, 16)
 
 	return self
 end
