@@ -230,6 +230,8 @@ function bitworker.BinaryToFloat(inputTable, precision)
 	end
 end
 
+-- final range is bitsExponent + bitsMantissa + 2
+-- where 2 is two bits which one forwards number sign and one forward exponent sign
 function bitworker.FloatToBinaryIEEE(numberIn, bitsExponent, bitsMantissa)
 	if not isValidNumber(numberIn) then
 		local bits = {}

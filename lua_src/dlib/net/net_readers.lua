@@ -87,10 +87,12 @@ function messageMeta:ReadNumber(bitsExponent, bitsMantissa)
 	if type(bitsExponent) ~= 'number' then error('Exponent bit amount is not a number!') end
 	if type(bitsMantissa) ~= 'number' then error('Mantissa bit amount is not a number!') end
 
+	bitsExponent = bitsExponent - 1
+
 	if bitsExponent > 24 or bitsExponent < 4 then error('Exponent bit amount overflow') end
 	if bitsMantissa > 127 or bitsMantissa < 4 then error('Mantissa bit amount overflow') end
 
-	local totalBits = bitsExponent + bitsMantissa + 1
+	local totalBits = bitsExponent + bitsMantissa + 2
 
 	if self.pointer + totalBits > self.length then
 		self:ReportOutOfRange('ReadNumber', totalBits)
@@ -98,7 +100,7 @@ function messageMeta:ReadNumber(bitsExponent, bitsMantissa)
 	end
 
 	local buffer = self:ReadBuffer(totalBits)
-	local readFloat = DLib.bitworker.BinaryToFloatIEEE(buffer, bitsMantissa)
+	local readFloat = DLib.bitworker.BinaryToFloatIEEE(buffer, bitsExponent, bitsMantissa)
 
 	--local ceil = math.pow(10, math.max(1, math.floor(bitsMantissa / 3)))
 	--readFloat = math.floor(readFloat * ceil + 0.5) / ceil

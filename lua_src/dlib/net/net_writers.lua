@@ -126,16 +126,17 @@ function messageMeta:WriteNumber(input, bitsExponent, bitsMantissa)
 	input = tonumber(input)
 	bitsMantissa = tonumber(bitsMantissa)
 	bitsExponent = tonumber(bitsExponent)
+
 	if type(input) ~= 'number' then error('Input is not a number! ' .. type(input)) end
 	if type(bitsExponent) ~= 'number' then error('Exponent bits amount is not a number! ' .. type(bitsExponent)) end
 	if type(bitsMantissa) ~= 'number' then error('Mantissa bits amount is not a number! ' .. type(bitsMantissa)) end
 
 	bitsExponent = math.floor(bitsExponent)
 	bitsMantissa = math.floor(bitsMantissa)
-	if bitsExponent > 127 or bitsExponent < 2 then error('Exponent bits amount overflow') end
-	if bitsMantissa > 87 or bitsMantissa < 2 then error('Mantissa bits amount overflow') end
+	if bitsExponent > 24 or bitsExponent < 4 then error('Exponent bits amount overflow') end
+	if bitsMantissa > 127 or bitsMantissa < 4 then error('Mantissa bits amount overflow') end
 
-	self:WriteBitsRaw(DLib.bitworker.FloatToBinaryIEEE(input, bitsExponent, bitsMantissa))
+	self:WriteBitsRaw(DLib.bitworker.FloatToBinaryIEEE(input, bitsExponent - 1, bitsMantissa))
 
 	return self
 end
