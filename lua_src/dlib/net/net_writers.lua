@@ -73,15 +73,8 @@ function messageMeta:WriteInt(input, bitCount)
 		ErrorNoHalt('WriteInt - input integer is larger than integer that can be represented with ' .. bitCount .. ' bits!')
 	end
 
-	self:WriteBitRaw(output[1])
-
-	for i = 1, bitCount - #output do
-		self:WriteBitRaw(0)
-	end
-
-	for i = 2, math.min(#output, bitCount) do
-		self:WriteBitRaw(output[i])
-	end
+	self:WriteBitRaw(table.remove(output, 1))
+	self:WriteBitsRaw(output, bitCount - 1)
 
 	return self
 end
