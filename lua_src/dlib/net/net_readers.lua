@@ -63,7 +63,7 @@ function messageMeta:ReadInt(bitCount)
 
 	bitCount = math.floor(bitCount)
 	local buffer = self:ReadBuffer(bitCount)
-	return DLib.bitworker.BinaryToInteger(buffer)
+	return math.floor(DLib.bitworker.BinaryToInteger(buffer))
 end
 
 function messageMeta:ReadUInt(bitCount)
@@ -77,7 +77,7 @@ function messageMeta:ReadUInt(bitCount)
 
 	bitCount = math.floor(bitCount)
 	local buffer = self:ReadBuffer(bitCount)
-	return DLib.bitworker.BinaryToUInteger(buffer)
+	return math.floor(DLib.bitworker.BinaryToUInteger(buffer))
 end
 
 function messageMeta:ReadNumber(bitsInteger, bitsFloat)
