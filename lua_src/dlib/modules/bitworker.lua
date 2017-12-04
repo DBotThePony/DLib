@@ -17,9 +17,14 @@ local table = table
 local DLib = DLib
 local math = math
 local bitworker = DLib.module('bitworker')
+local type = type
+
+local function isValidNumber(numIn)
+	return type(numIn) == 'number' and numberIn == numberIn and numberIn ~= math.huge and numberIn ~= -math.huge
+end
 
 function bitworker.IntegerToBinary(numberIn)
-	if numberIn ~= numberIn or numberIn == math.huge then
+	if not isValidNumber(numberIn) then
 		return {0, 0}
 	end
 
@@ -77,7 +82,7 @@ function bitworker.BinaryToInteger(inputTable)
 end
 
 function bitworker.UIntegerToBinary(numberIn)
-	if numberIn ~= numberIn or numberIn == math.huge then
+	if not isValidNumber(numberIn) then
 		return {0}
 	end
 
@@ -101,7 +106,7 @@ function bitworker.UIntegerToBinary(numberIn)
 end
 
 function bitworker.FloatToBinary(numberIn, precision)
-	if numberIn ~= numberIn or numberIn == math.huge then
+	if not isValidNumber(numberIn) then
 		local bits = {0, 0}
 
 		for i = 1, precision do
@@ -138,6 +143,66 @@ function bitworker.FloatToBinary(numberIn, precision)
 	end
 
 	return bits
+end
+
+function bitworker.NumberToMantiss(numberIn, bitsAllowed)
+	if not isValidNumber(numberIn) then
+		local bits = {}
+
+		for i = 1, bitsAllowed do
+			table.insert(bits, 0)
+		end
+
+		return bits
+	end
+
+	local bits = {}
+	local exp = 0
+	numberIn = math.abs(numberIn)
+	local lastMult = numberIn % 1
+	numberIn = numberIn - lastMult
+
+	while numberIn >= 1 and bitsAllowed > #bits do
+		local div = numberIn / 2
+		local num = div % 1
+
+		if num ~= 0 then
+			table.insert(bits, 1)
+		else
+			table.insert(bits, 0)
+		end
+
+		numberIn = numberIn - div - num
+		exp = exp + 1
+	end
+
+	bits = table.flip(bits)
+
+	while bitsAllowed > #bits do
+		lastMult = lastMult * 2
+
+		if lastMult >= 1 then
+			table.insert(bits, 1)
+			lastMult = lastMult - 1
+		else
+			table.insert(bits, 0)
+		end
+	end
+
+	return bits, exp
+end
+
+function bitworker.MantissToNumber(bitsIn, shiftNum)
+	shiftNum = shiftNum or 0
+	local num = 0
+
+	for i = 1, #bitsIn do
+		if bitsIn[i] ~= 0 then
+			num = num + math.pow(2, -i + shiftNum)
+		end
+	end
+
+	return num
 end
 
 function bitworker.BinaryToFloat(inputTable, precision)
