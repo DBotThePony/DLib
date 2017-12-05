@@ -18,6 +18,7 @@ local DLib = DLib
 local math = math
 local bitworker = DLib.module('bitworker')
 local type = type
+local ipairs = ipairs
 
 local function isValidNumber(numIn)
 	return type(numIn) == 'number' and numberIn == numberIn and numberIn ~= math.huge and numberIn ~= -math.huge
@@ -103,6 +104,40 @@ function bitworker.UIntegerToBinary(numberIn)
 	until numberIn < 1
 
 	return table.flip(bits)
+end
+
+function bitworker.IntegerToBinaryFixed(numberIn, bitsOut)
+	local maximal = math.pow(2, bitsOut) - 1
+
+	if numberIn < 0 then
+		numberIn = numberIn + maximal
+	end
+
+	numberIn = math.min(maximal, numberIn)
+	local output = bitworker.UIntegerToBinary(numberIn)
+	local bits = {}
+
+	for i = 1, bitsOut - #output do
+		table.insert(bits, 0)
+	end
+
+	for i = 1, math.min(#output, bitsOut) do
+		table.insert(bits, output[i])
+	end
+
+	return bits
+end
+
+function bitworker.BinaryToIntegerFixed(bitsIn)
+	local bitsOut = #bitsIn
+	local maximalDiv = math.pow(2, bitsOut - 1) - 1
+	local value = bitworker.BinaryToUInteger(bitsIn)
+
+	if value > maximalDiv then
+		value = value - math.pow(2, bitsOut) + 1
+	end
+
+	return value
 end
 
 function bitworker.FloatToBinary(numberIn, precision)
