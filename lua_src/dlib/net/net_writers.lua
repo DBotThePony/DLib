@@ -74,6 +74,33 @@ function messageMeta:WriteIntInternal(input, bitCount, direction)
 	end
 
 	if not direction then
+		self:WriteBitsRawBackward(output)
+	else
+		self:WriteBitsRaw(output)
+	end
+
+	return self
+end
+
+function messageMeta:WriteIntInternalTwos(input, bitCount, direction)
+	if self.isReading then error('Message is read-only') end
+
+	input = tonumber(input)
+	bitCount = tonumber(bitCount)
+	if type(input) ~= 'number' then error('Input is not a number! ' .. type(input)) end
+	if type(bitCount) ~= 'number' then error('Bit amount is not a number! ' .. type(bitCount)) end
+
+	input = math.floor(input + 0.5)
+	bitCount = math.floor(bitCount)
+	if bitCount > 127 or bitCount < 2 then error('Bit amount overflow') end
+
+	local output = DLib.bitworker.IntegerToBinary(input)
+
+	if #output > bitCount then
+		ErrorNoHalt('WriteIntTwos - input integer is larger than integer that can be represented with ' .. bitCount .. ' bits!')
+	end
+
+	if not direction then
 		local sign = table.remove(output, 1)
 		self:WriteBitsRawBackward(output, bitCount - 1)
 		self:WriteBitRaw(sign)
@@ -95,6 +122,26 @@ end
 
 function messageMeta:WriteIntForward(input, bitCount)
 	return self:WriteIntInternal(input, bitCount, true)
+end
+
+function messageMeta:WriteIntTwosBackward(input, bitCount)
+	return self:WriteIntInternalTwos(input, bitCount, false)
+end
+
+function messageMeta:WriteIntTwosForward(input, bitCount)
+	return self:WriteIntInternalTwos(input, bitCount, true)
+end
+
+function messageMeta:WriteIntTwos(input, bitCount)
+	return self:WriteIntInternalTwos(input, bitCount, false)
+end
+
+function messageMeta:WriteIntBackwardTwos(input, bitCount)
+	return self:WriteIntInternalTwos(input, bitCount, false)
+end
+
+function messageMeta:WriteIntForwardTwos(input, bitCount)
+	return self:WriteIntInternalTwos(input, bitCount, true)
 end
 
 function messageMeta:WriteUIntInternal(input, bitCount, direction)

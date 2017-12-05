@@ -67,6 +67,21 @@ function messageMeta:ReadIntInternal(bitCount, direction)
 	return math.floor(DLib.bitworker.BinaryToIntegerFixed(buffer))
 end
 
+function messageMeta:ReadIntInternalTwos(bitCount, direction)
+	bitCount = tonumber(bitCount)
+	if type(bitCount) ~= 'number' then error('Bit amount is not a number!') end
+
+	if self.pointer + bitCount > self.length or bitCount < 2 then
+		self:ReportOutOfRange('ReadIntTwos', bitCount)
+		return 0
+	end
+
+	bitCount = math.floor(bitCount)
+	local buffer = self:ReadBufferDirection(bitCount, direction)
+
+	return math.floor(DLib.bitworker.BinaryToInteger(buffer))
+end
+
 function messageMeta:ReadUIntInternal(bitCount, direction)
 	bitCount = tonumber(bitCount)
 	if type(bitCount) ~= 'number' then error('Bit amount is not a number!') end
@@ -86,6 +101,10 @@ function messageMeta:ReadInt(bitCount)
 	return self:ReadIntInternal(bitCount, false)
 end
 
+function messageMeta:ReadIntTwos(bitCount)
+	return self:ReadIntInternalTwos(bitCount, false)
+end
+
 function messageMeta:ReadUInt(bitCount)
 	return self:ReadUIntInternal(bitCount, false)
 end
@@ -94,12 +113,28 @@ function messageMeta:ReadIntBackward(bitCount)
 	return self:ReadIntInternal(bitCount, false)
 end
 
+function messageMeta:ReadIntBackwardTwos(bitCount)
+	return self:ReadIntInternalTwos(bitCount, false)
+end
+
+function messageMeta:ReadIntTwosBackward(bitCount)
+	return self:ReadIntInternalTwos(bitCount, false)
+end
+
 function messageMeta:ReadUIntBackward(bitCount)
 	return self:ReadUIntInternal(bitCount, false)
 end
 
 function messageMeta:ReadIntForward(bitCount)
 	return self:ReadIntInternal(bitCount, true)
+end
+
+function messageMeta:ReadIntTwosForward(bitCount)
+	return self:ReadIntInternalTwos(bitCount, true)
+end
+
+function messageMeta:ReadIntForwardTwos(bitCount)
+	return self:ReadIntInternalTwos(bitCount, true)
 end
 
 function messageMeta:ReadUIntForward(bitCount)

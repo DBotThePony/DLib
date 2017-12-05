@@ -234,8 +234,13 @@ net.RegisterWrapper('Float')
 net.RegisterWrapper('FloatBackward')
 net.RegisterWrapper('FloatForward')
 net.RegisterWrapper('Int')
+net.RegisterWrapper('IntTwos')
 net.RegisterWrapper('IntForward')
+net.RegisterWrapper('IntTwosForward')
+net.RegisterWrapper('IntForwardTwos')
 net.RegisterWrapper('IntBackward')
+net.RegisterWrapper('IntTwosBackward')
+net.RegisterWrapper('IntBackwardTwos')
 net.RegisterWrapper('UInt')
 net.RegisterWrapper('Normal')
 net.RegisterWrapper('Type')
@@ -270,5 +275,5 @@ if toImport then
 	end
 end
 
---DLib.simpleInclude('net/umsg.lua')
---DLib.simpleInclude('net/usermessage.lua')
+DLib.simpleInclude('net/umsg.lua')
+DLib.simpleInclude('net/usermessage.lua')
