@@ -24,6 +24,24 @@ local function isValidNumber(numIn)
 	return type(numIn) == 'number' and numberIn == numberIn and numberIn ~= math.huge and numberIn ~= -math.huge
 end
 
+local function table_insert(tabIn, val)
+	tabIn[#tabIn + 1] = val
+end
+
+local function fixedBits(tabIn, amount)
+	local bits = {}
+
+	for i = 1, amount - #tabIn do
+		table_insert(bits, 0)
+	end
+
+	for i = 1, math.min(#tabIn, amount) do
+		table_insert(bits, tabIn[i])
+	end
+
+	return bits
+end
+
 function bitworker.IntegerToBinary(numberIn)
 	if not isValidNumber(numberIn) then
 		return {0, 0}
@@ -38,15 +56,15 @@ function bitworker.IntegerToBinary(numberIn)
 		local num = div % 1
 
 		if num ~= 0 then
-			table.insert(bits, 1)
+			table_insert(bits, 1)
 		else
-			table.insert(bits, 0)
+			table_insert(bits, 0)
 		end
 
 		numberIn = numberIn - div - num
 	until numberIn < 1
 
-	table.insert(bits, sign)
+	table_insert(bits, sign)
 
 	return table.flip(bits)
 end
@@ -95,9 +113,9 @@ function bitworker.UIntegerToBinary(numberIn)
 		local num = div % 1
 
 		if num ~= 0 then
-			table.insert(bits, 1)
+			table_insert(bits, 1)
 		else
-			table.insert(bits, 0)
+			table_insert(bits, 0)
 		end
 
 		numberIn = numberIn - div - num
@@ -118,11 +136,11 @@ function bitworker.IntegerToBinaryFixed(numberIn, bitsOut)
 	local bits = {}
 
 	for i = 1, bitsOut - #output do
-		table.insert(bits, 0)
+		table_insert(bits, 0)
 	end
 
 	for i = 1, math.min(#output, bitsOut) do
-		table.insert(bits, output[i])
+		table_insert(bits, output[i])
 	end
 
 	return bits
@@ -145,7 +163,7 @@ function bitworker.FloatToBinary(numberIn, precision)
 		local bits = {0, 0}
 
 		for i = 1, precision do
-			table.insert(bits, 0)
+			table_insert(bits, 0)
 		end
 
 		return bits
@@ -168,10 +186,10 @@ function bitworker.FloatToBinary(numberIn, precision)
 		local mult = lastMult * 2
 
 		if mult >= 1 then
-			table.insert(bits, 1)
+			table_insert(bits, 1)
 			mult = mult - 1
 		else
-			table.insert(bits, 0)
+			table_insert(bits, 0)
 		end
 
 		lastMult = mult
@@ -185,7 +203,7 @@ function bitworker.NumberToMantiss(numberIn, bitsAllowed)
 		local bits = {}
 
 		for i = 1, bitsAllowed do
-			table.insert(bits, 0)
+			table_insert(bits, 0)
 		end
 
 		return bits
@@ -202,9 +220,9 @@ function bitworker.NumberToMantiss(numberIn, bitsAllowed)
 		local num = div % 1
 
 		if num ~= 0 then
-			table.insert(bits, 1)
+			table_insert(bits, 1)
 		else
-			table.insert(bits, 0)
+			table_insert(bits, 0)
 		end
 
 		numberIn = numberIn - div - num
@@ -217,10 +235,10 @@ function bitworker.NumberToMantiss(numberIn, bitsAllowed)
 		lastMult = lastMult * 2
 
 		if lastMult >= 1 then
-			table.insert(bits, 1)
+			table_insert(bits, 1)
 			lastMult = lastMult - 1
 		else
-			table.insert(bits, 0)
+			table_insert(bits, 0)
 		end
 	end
 
@@ -246,7 +264,7 @@ function bitworker.BinaryToFloat(inputTable, precision)
 
 	local integerPart = {}
 	for i = 1, amount - precision do
-		table.insert(integerPart, inputTable[i])
+		table_insert(integerPart, inputTable[i])
 	end
 
 	local integer = bitworker.BinaryToInteger(integerPart)
@@ -272,7 +290,7 @@ function bitworker.FloatToBinaryIEEE(numberIn, bitsExponent, bitsMantissa)
 		local bits = {}
 
 		for i = 0, bitsExponent + bitsMantissa do
-			table.insert(bits, 0)
+			table_insert(bits, 0)
 		end
 
 		return bits
@@ -280,7 +298,7 @@ function bitworker.FloatToBinaryIEEE(numberIn, bitsExponent, bitsMantissa)
 
 	local bits = {numberIn >= 0 and 0 or 1}
 	local mantissa, exp = bitworker.NumberToMantiss(numberIn, bitsMantissa)
-	local expBits = bitworker.IntegerToBinaryFixed(exp + 127, bitsExponent)
+	local expBits = fixedBits(bitworker.UIntegerToBinary(exp + 127), bitsExponent)
 
 	table.append(bits, expBits)
 	table.append(bits, mantissa)
@@ -291,7 +309,7 @@ end
 function bitworker.BinaryToFloatIEEE(bitsIn, bitsExponent, bitsMantissa)
 	local forward = bitsIn[1]
 	local exponent = table.gcopyRange(bitsIn, 2, 2 + bitsExponent - 1)
-	local exp = bitworker.BinaryToIntegerFixed(exponent)
+	local exp = bitworker.BinaryToUInteger(exponent)
 	local mantissa = table.gcopyRange(bitsIn, 2 + bitsExponent)
 
 	local value = bitworker.MantissToNumber(mantissa, exp - 127)
