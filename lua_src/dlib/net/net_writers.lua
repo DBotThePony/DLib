@@ -55,7 +55,7 @@ end
 
 messageMeta.WriteBool = messageMeta.WriteBit
 
-function messageMeta:WriteInt(input, bitCount)
+function messageMeta:WriteIntInternal(input, bitCount, direction)
 	if self.isReading then error('Message is read-only') end
 
 	input = tonumber(input)
@@ -73,13 +73,31 @@ function messageMeta:WriteInt(input, bitCount)
 		ErrorNoHalt('WriteInt - input integer is larger than integer that can be represented with ' .. bitCount .. ' bits!')
 	end
 
-	self:WriteBitRaw(table.remove(output, 1))
-	self:WriteBitsRaw(output, bitCount - 1)
+	if not direction then
+		local sign = table.remove(output, 1)
+		self:WriteBitsRawBackward(output, bitCount - 1)
+		self:WriteBitRaw(sign)
+	else
+		self:WriteBitRaw(table.remove(output, 1))
+		self:WriteBitsRaw(output, bitCount - 1)
+	end
 
 	return self
 end
 
-function messageMeta:WriteUInt(input, bitCount)
+function messageMeta:WriteInt(input, bitCount)
+	return self:WriteIntInternal(input, bitCount, false)
+end
+
+function messageMeta:WriteIntBackward(input, bitCount)
+	return self:WriteIntInternal(input, bitCount, false)
+end
+
+function messageMeta:WriteIntForward(input, bitCount)
+	return self:WriteIntInternal(input, bitCount, true)
+end
+
+function messageMeta:WriteUIntInternal(input, bitCount, direction)
 	if self.isReading then error('Message is read-only') end
 
 	input = tonumber(input)
@@ -102,18 +120,24 @@ function messageMeta:WriteUInt(input, bitCount)
 		ErrorNoHalt('WriteUInt - input integer is larger than integer that can be represented with ' .. bitCount .. ' bits!')
 	end
 
-	for i = 1, bitCount - #output do
-		self:WriteBitRaw(0)
-	end
-
-	for i = 1, math.min(#output, bitCount) do
-		self:WriteBitRaw(output[i])
-	end
+	self:WriteBitsRawBackward(output, bitCount)
 
 	return self
 end
 
-function messageMeta:WriteNumber(input, bitsExponent, bitsMantissa)
+function messageMeta:WriteUInt(input, bitCount)
+	return self:WriteUIntInternal(input, bitCount, false)
+end
+
+function messageMeta:WriteUIntBackward(input, bitCount)
+	return self:WriteUIntInternal(input, bitCount, false)
+end
+
+function messageMeta:WriteUIntForward(input, bitCount)
+	return self:WriteUIntInternal(input, bitCount, true)
+end
+
+function messageMeta:WriteNumber(input, bitsExponent, bitsMantissa, direction)
 	if self.isReading then error('Message is read-only') end
 
 	input = tonumber(input)
@@ -129,13 +153,21 @@ function messageMeta:WriteNumber(input, bitsExponent, bitsMantissa)
 	if bitsExponent > 24 or bitsExponent < 4 then error('Exponent bits amount overflow') end
 	if bitsMantissa > 127 or bitsMantissa < 4 then error('Mantissa bits amount overflow') end
 
-	self:WriteBitsRaw(DLib.bitworker.FloatToBinaryIEEE(input, bitsExponent - 1, bitsMantissa))
+	self:WriteBitsRawDirection(DLib.bitworker.FloatToBinaryIEEE(input, bitsExponent - 1, bitsMantissa), nil, direction)
 
 	return self
 end
 
 function messageMeta:WriteFloat(floatIn)
-	return self:WriteNumber(floatIn, 8, 23)
+	return self:WriteNumber(floatIn, 8, 23, false)
+end
+
+function messageMeta:WriteFloatBackward(floatIn)
+	return self:WriteNumber(floatIn, 8, 23, false)
+end
+
+function messageMeta:WriteFloatForward(floatIn)
+	return self:WriteNumber(floatIn, 8, 23, true)
 end
 
 function messageMeta:WriteVector(vecIn)
@@ -195,7 +227,7 @@ function messageMeta:WriteData(binaryData, bytesToSend)
 	end
 
 	for i, char in ipairs(chars) do
-		self:WriteBitsRaw(DLib.bitworker.UIntegerToBinary(char), 8)
+		self:WriteBitsRawBackward(DLib.bitworker.UIntegerToBinary(char), 8)
 	end
 
 	return self
@@ -209,7 +241,7 @@ local endString = {
 	0, 0, 0, 0, 0, 0, 0, 0
 }
 
-function messageMeta:WriteString(stringIn)
+function messageMeta:WriteStringInternal(stringIn, direction)
 	if type(stringIn) ~= 'string' then
 		error('WriteString - input is not a string! ' .. type(stringIn))
 	end
@@ -220,12 +252,24 @@ function messageMeta:WriteString(stringIn)
 	end
 
 	for i, char in ipairs({stringIn:byte(1, #stringIn)}) do
-		self:WriteBitsRaw(DLib.bitworker.UIntegerToBinary(char), 8)
+		self:WriteBitsRawBackward(DLib.bitworker.UIntegerToBinary(char), 8, direction)
 	end
 
 	self:WriteBitsRaw(endString)
 
 	return self
+end
+
+function messageMeta:WriteString(stringIn)
+	return self:WriteStringInternal(stringIn, false)
+end
+
+function messageMeta:WriteStringBackward(stringIn)
+	return self:WriteStringInternal(stringIn, false)
+end
+
+function messageMeta:WriteStringForward(stringIn)
+	return self:WriteStringInternal(stringIn, true)
 end
 
 function messageMeta:WriteEntity(ent)

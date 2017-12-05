@@ -135,6 +135,43 @@ function messageMeta:ReadBuffer(bits, start, movePointer)
 	return output
 end
 
+function messageMeta:ReadBufferBackward(bits, start, movePointer)
+	if movePointer == nil then
+		movePointer = true
+	end
+
+	if not start then
+		start = self.pointer + 1
+		bits = bits - 1
+	end
+
+	local output = {}
+
+	-- print('readbuffer ' .. start .. ' -> ' .. (start + bits))
+
+	for i = start + bits, start, -1 do
+		if not self.bits[i] then
+			error('ReadBuffer - out of range')
+		end
+
+		table.insert(output, self.bits[i])
+	end
+
+	if movePointer then
+		self.pointer = start + bits
+	end
+
+	return output
+end
+
+function messageMeta:ReadBufferDirection(bits, direction, ...)
+	if direction then
+		return self:ReadBuffer(bits, ...)
+	else
+		return self:ReadBufferBackward(bits, ...)
+	end
+end
+
 DLib.util.AccessorFuncJIT(messageMeta, 'm_MessageName', 'MessageName')
 DLib.util.AccessorFuncJIT(messageMeta, 'm_isUnreliable', 'Unreliable')
 
@@ -332,6 +369,37 @@ function messageMeta:WriteBitsRaw(bitsIn, fixedAmount)
 		end
 
 		return self
+	end
+end
+
+function messageMeta:WriteBitsRawBackward(bitsIn, fixedAmount)
+	if not fixedAmount then
+		for i = #bitsIn, 1, -1 do
+			self.pointer = self.pointer + 1
+			self.bits[self.pointer] = bitsIn[i]
+		end
+
+		return self
+	else
+		for i = #bitsIn, 1, -1 do
+			self.pointer = self.pointer + 1
+			self.bits[self.pointer] = bitsIn[i]
+		end
+
+		for i = 1, fixedAmount - #bitsIn do
+			self.pointer = self.pointer + 1
+			self.bits[self.pointer] = 0
+		end
+
+		return self
+	end
+end
+
+function messageMeta:WriteBitsRawDirection(bitsIn, fixedAmount, direction)
+	if direction then
+		return self:WriteBitsRaw(bitsIn, fixedAmount)
+	else
+		return self:WriteBitsRawBackward(bitsIn, fixedAmount)
 	end
 end
 

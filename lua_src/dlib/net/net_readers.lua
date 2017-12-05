@@ -52,7 +52,7 @@ function messageMeta:ReadBool()
 	return self:ReadBit() == 1
 end
 
-function messageMeta:ReadInt(bitCount)
+function messageMeta:ReadIntInternal(bitCount, direction)
 	bitCount = tonumber(bitCount)
 	if type(bitCount) ~= 'number' then error('Bit amount is not a number!') end
 
@@ -62,11 +62,12 @@ function messageMeta:ReadInt(bitCount)
 	end
 
 	bitCount = math.floor(bitCount)
-	local buffer = self:ReadBuffer(bitCount)
+	local buffer = self:ReadBufferDirection(bitCount, direction)
+
 	return math.floor(DLib.bitworker.BinaryToInteger(buffer))
 end
 
-function messageMeta:ReadUInt(bitCount)
+function messageMeta:ReadUIntInternal(bitCount, direction)
 	bitCount = tonumber(bitCount)
 	if type(bitCount) ~= 'number' then error('Bit amount is not a number!') end
 
@@ -76,11 +77,36 @@ function messageMeta:ReadUInt(bitCount)
 	end
 
 	bitCount = math.floor(bitCount)
-	local buffer = self:ReadBuffer(bitCount)
+	local buffer = self:ReadBufferDirection(bitCount, direction)
+
 	return math.floor(DLib.bitworker.BinaryToUInteger(buffer))
 end
 
-function messageMeta:ReadNumber(bitsExponent, bitsMantissa)
+function messageMeta:ReadInt(bitCount)
+	return self:ReadIntInternal(bitCount, false)
+end
+
+function messageMeta:ReadUInt(bitCount)
+	return self:ReadUIntInternal(bitCount, false)
+end
+
+function messageMeta:ReadIntBackward(bitCount)
+	return self:ReadIntInternal(bitCount, false)
+end
+
+function messageMeta:ReadUIntBackward(bitCount)
+	return self:ReadUIntInternal(bitCount, false)
+end
+
+function messageMeta:ReadIntForward(bitCount)
+	return self:ReadIntInternal(bitCount, true)
+end
+
+function messageMeta:ReadUIntForward(bitCount)
+	return self:ReadUIntInternal(bitCount, true)
+end
+
+function messageMeta:ReadNumber(bitsExponent, bitsMantissa, driection)
 	bitsMantissa = tonumber(bitsMantissa)
 	bitsExponent = tonumber(bitsExponent)
 
@@ -99,7 +125,7 @@ function messageMeta:ReadNumber(bitsExponent, bitsMantissa)
 		return 0
 	end
 
-	local buffer = self:ReadBuffer(totalBits)
+	local buffer = self:ReadBufferDirection(totalBits, direction)
 	local readFloat = DLib.bitworker.BinaryToFloatIEEE(buffer, bitsExponent, bitsMantissa)
 
 	--local ceil = math.pow(10, math.max(1, math.floor(bitsMantissa / 3)))
@@ -122,7 +148,7 @@ function messageMeta:ReadAngle()
 	return Angle(self:ReadNumber(8, 16), self:ReadNumber(8, 16), self:ReadNumber(8, 16))
 end
 
-function messageMeta:ReadData(bytesRead)
+function messageMeta:ReadDataInternal(bytesRead, direction)
 	if type(bytesRead) ~= 'number' then
 		error('ReadData - length is not a number!')
 	end
@@ -145,7 +171,7 @@ function messageMeta:ReadData(bytesRead)
 	local bits = {}
 
 	for byte = 1, bytesRead do
-		table.insert(bits, DLib.bitworker.BinaryToUInteger(self:ReadBuffer(8)))
+		table.insert(bits, DLib.bitworker.BinaryToUInteger(self:ReadBufferDirection(8, direction)))
 	end
 
 	if #bits <= 500 then
@@ -162,17 +188,25 @@ function messageMeta:ReadData(bytesRead)
 	end
 end
 
+function messageMeta:ReadData(bytesRead)
+	return self:ReadDataInternal(bytesRead, false)
+end
+
+function messageMeta:ReadDataForward(bytesRead)
+	return self:ReadDataInternal(bytesRead, true)
+end
+
 function messageMeta:ReadDouble()
 	return self:ReadNumber(11, 52)
 end
 
-function messageMeta:ReadString()
+function messageMeta:ReadStringInternal(direction)
 	if self.length < self.pointer + 8 then
 		ErrorNoHalt('net.ReadString - unable to read - buffer is exhausted!')
 		return ''
 	end
 
-	local nextChar = DLib.bitworker.BinaryToUInteger(self:ReadBuffer(8))
+	local nextChar = DLib.bitworker.BinaryToUInteger(self:ReadBufferBackward(8))
 	local readString = {}
 
 	while nextChar ~= 0 do
@@ -182,7 +216,7 @@ function messageMeta:ReadString()
 		end
 
 		table.insert(readString, nextChar)
-		nextChar = DLib.bitworker.BinaryToUInteger(self:ReadBuffer(8))
+		nextChar = DLib.bitworker.BinaryToUInteger(self:ReadBufferDirection(8, direction))
 	end
 
 	--print('-----')
@@ -193,6 +227,18 @@ function messageMeta:ReadString()
 	else
 		return ''
 	end
+end
+
+function messageMeta:ReadString()
+	return self:ReadStringInternal(false)
+end
+
+function messageMeta:ReadStringBackward()
+	return self:ReadStringInternal(false)
+end
+
+function messageMeta:ReadStringForward()
+	return self:ReadStringInternal(true)
 end
 
 function messageMeta:ReadEntity()
