@@ -67,7 +67,7 @@ function messageMeta:WriteIntInternal(input, bitCount, direction)
 	bitCount = math.floor(bitCount)
 	if bitCount > 127 or bitCount < 2 then error('Bit amount overflow') end
 
-	local output = DLib.bitworker.IntegerToBinary(input)
+	local output = DLib.bitworker.IntegerToBinaryFixed(input, bitCount)
 
 	if #output > bitCount then
 		ErrorNoHalt('WriteInt - input integer is larger than integer that can be represented with ' .. bitCount .. ' bits!')

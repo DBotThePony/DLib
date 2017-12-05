@@ -64,7 +64,7 @@ function messageMeta:ReadIntInternal(bitCount, direction)
 	bitCount = math.floor(bitCount)
 	local buffer = self:ReadBufferDirection(bitCount, direction)
 
-	return math.floor(DLib.bitworker.BinaryToInteger(buffer))
+	return math.floor(DLib.bitworker.BinaryToIntegerFixed(buffer))
 end
 
 function messageMeta:ReadUIntInternal(bitCount, direction)
