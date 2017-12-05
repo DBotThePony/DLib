@@ -153,7 +153,7 @@ function messageMeta:WriteNumber(input, bitsExponent, bitsMantissa, direction)
 	if bitsExponent > 24 or bitsExponent < 4 then error('Exponent bits amount overflow') end
 	if bitsMantissa > 127 or bitsMantissa < 4 then error('Mantissa bits amount overflow') end
 
-	self:WriteBitsRawDirection(DLib.bitworker.FloatToBinaryIEEE(input, bitsExponent - 1, bitsMantissa), nil, direction)
+	self:WriteBitsRawDirection(DLib.bitworker.FloatToBinaryIEEE(input, bitsExponent, bitsMantissa), nil, direction)
 
 	return self
 end

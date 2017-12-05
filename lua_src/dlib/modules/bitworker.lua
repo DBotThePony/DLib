@@ -280,18 +280,9 @@ function bitworker.FloatToBinaryIEEE(numberIn, bitsExponent, bitsMantissa)
 
 	local bits = {numberIn >= 0 and 0 or 1}
 	local mantissa, exp = bitworker.NumberToMantiss(numberIn, bitsMantissa)
-	local expBits = bitworker.IntegerToBinary(exp)
+	local expBits = bitworker.IntegerToBinaryFixed(exp + 127, bitsExponent)
 
-	table.insert(bits, table.remove(expBits, 1))
-
-	for i = 1, bitsExponent - #expBits do
-		table.insert(bits, 0)
-	end
-
-	for i = 1, math.min(bitsExponent, #expBits) do
-		table.insert(bits, expBits[i])
-	end
-
+	table.append(bits, expBits)
 	table.append(bits, mantissa)
 
 	return bits
@@ -299,11 +290,11 @@ end
 
 function bitworker.BinaryToFloatIEEE(bitsIn, bitsExponent, bitsMantissa)
 	local forward = bitsIn[1]
-	local exponent = table.gcopyRange(bitsIn, 2, 2 + bitsExponent)
-	local exp = bitworker.BinaryToInteger(exponent)
-	local mantissa = table.gcopyRange(bitsIn, 2 + bitsExponent + 1)
+	local exponent = table.gcopyRange(bitsIn, 2, 2 + bitsExponent - 1)
+	local exp = bitworker.BinaryToIntegerFixed(exponent)
+	local mantissa = table.gcopyRange(bitsIn, 2 + bitsExponent)
 
-	local value = bitworker.MantissToNumber(mantissa, exp)
+	local value = bitworker.MantissToNumber(mantissa, exp - 127)
 
 	if forward == 0 then
 		return value
