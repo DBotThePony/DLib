@@ -120,7 +120,7 @@ function messageMeta:WriteUIntInternal(input, bitCount, direction)
 		ErrorNoHalt('WriteUInt - input integer is larger than integer that can be represented with ' .. bitCount .. ' bits!')
 	end
 
-	self:WriteBitsRawBackward(output, bitCount)
+	self:WriteBitsRawDirection(output, bitCount, direction)
 
 	return self
 end
@@ -194,7 +194,7 @@ function messageMeta:WriteAngle(angleIn)
 	return self
 end
 
-function messageMeta:WriteData(binaryData, bytesToSend)
+function messageMeta:WriteDataInternal(binaryData, bytesToSend, direction)
 	if type(binaryData) ~= 'string' then
 		error('WriteData - input is not a string! ' .. type(binaryData))
 	end
@@ -227,14 +227,34 @@ function messageMeta:WriteData(binaryData, bytesToSend)
 	end
 
 	for i, char in ipairs(chars) do
-		self:WriteBitsRawBackward(DLib.bitworker.UIntegerToBinary(char), 8)
+		self:WriteBitsRawDirection(DLib.bitworker.UIntegerToBinary(char), 8, direction)
 	end
 
 	return self
 end
 
+function messageMeta:WriteData(binaryData, bytesToSend)
+	return self:WriteDataInternal(binaryData, bytesToSend, false)
+end
+
+function messageMeta:WriteDataBackward(binaryData, bytesToSend)
+	return self:WriteDataInternal(binaryData, bytesToSend, false)
+end
+
+function messageMeta:WriteDataForward(binaryData, bytesToSend)
+	return self:WriteDataInternal(binaryData, bytesToSend, true)
+end
+
 function messageMeta:WriteDouble(value)
-	return self:WriteNumber(value, 11, 52)
+	return self:WriteNumber(value, 11, 52, false)
+end
+
+function messageMeta:WriteDoubleBackward(value)
+	return self:WriteNumber(value, 11, 52, false)
+end
+
+function messageMeta:WriteDoubleForward(value)
+	return self:WriteNumber(value, 11, 52, true)
 end
 
 local endString = {
@@ -252,7 +272,7 @@ function messageMeta:WriteStringInternal(stringIn, direction)
 	end
 
 	for i, char in ipairs({stringIn:byte(1, #stringIn)}) do
-		self:WriteBitsRawBackward(DLib.bitworker.UIntegerToBinary(char), 8, direction)
+		self:WriteBitsRawDirection(DLib.bitworker.UIntegerToBinary(char), 8, direction)
 	end
 
 	self:WriteBitsRaw(endString)

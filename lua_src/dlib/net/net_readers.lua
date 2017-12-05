@@ -192,12 +192,24 @@ function messageMeta:ReadData(bytesRead)
 	return self:ReadDataInternal(bytesRead, false)
 end
 
+function messageMeta:ReadDataBackward(bytesRead)
+	return self:ReadDataInternal(bytesRead, false)
+end
+
 function messageMeta:ReadDataForward(bytesRead)
 	return self:ReadDataInternal(bytesRead, true)
 end
 
+function messageMeta:ReadDoubleBackward()
+	return self:ReadNumber(11, 52, false)
+end
+
 function messageMeta:ReadDouble()
-	return self:ReadNumber(11, 52)
+	return self:ReadNumber(11, 52, false)
+end
+
+function messageMeta:ReadDoubleForward()
+	return self:ReadNumber(11, 52, true)
 end
 
 function messageMeta:ReadStringInternal(direction)
