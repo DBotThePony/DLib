@@ -395,6 +395,37 @@ function messageMeta:WriteBitsRawBackward(bitsIn, fixedAmount)
 	end
 end
 
+function messageMeta:UnshiftWriteBitsRaw(bitsIn, positionAt)
+	local bitsAmount = #self.bits
+	local inputAmount = #bitsIn
+
+	for i = bitsAmount, positionAt, -1 do
+		self.bits[i + inputAmount] = self.bits[i]
+	end
+
+	for i = 1, inputAmount do
+		self.bits[i + positionAt] = bitsIn[i]
+	end
+
+	return self
+end
+
+function messageMeta:MoveBitsBuffer(positionAt, moveUnits, insertBit)
+	insertBit = insertBit or 0
+
+	local bitsAmount = #self.bits
+
+	for i = bitsAmount, positionAt, -1 do
+		self.bits[i + moveUnits] = self.bits[i]
+	end
+
+	for i = 1, moveUnits do
+		self.bits[i + positionAt] = insertBit
+	end
+
+	return self
+end
+
 function messageMeta:WriteBitsRawDirection(bitsIn, fixedAmount, direction)
 	if direction then
 		return self:WriteBitsRaw(bitsIn, fixedAmount)

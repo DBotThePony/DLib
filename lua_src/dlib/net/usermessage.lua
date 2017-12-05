@@ -135,6 +135,10 @@ function messageMeta:Reset()
 	self.nwobject:Seek(32)
 end
 
+function messageMeta:ResetFixed()
+	self.nwobject:Seek(self.seekFixed)
+end
+
 net.receive('dlib.umsg', function(len, ply, networkObject)
 	local msgName = tostring(net.ReadUInt(32))
 	local data = usermessage.hooks_crc[msgName]
@@ -147,8 +151,14 @@ net.receive('dlib.umsg', function(len, ply, networkObject)
 		return
 	end
 
+	networkObject:MoveBitsBuffer(33, (#data.msgName + 1) * 8)
+	networkObject:Seek(32)
+	networkObject:WriteString(data.msgName)
+	local point = networkObject.pointer
+
 	local newObject = {}
 	newObject.nwobject = networkObject
+	newObject.seekFixed = point
 	newObject.player = ply
 	newObject.client = ply
 	newObject.ply = ply
