@@ -107,7 +107,7 @@ function bitworker.UIntegerToBinary(numberIn)
 end
 
 function bitworker.IntegerToBinaryFixed(numberIn, bitsOut)
-	local maximal = math.pow(2, bitsOut) - 1
+	local maximal = math.pow(2, bitsOut)
 
 	if numberIn < 0 then
 		numberIn = numberIn + maximal
@@ -134,7 +134,7 @@ function bitworker.BinaryToIntegerFixed(bitsIn)
 	local value = bitworker.BinaryToUInteger(bitsIn)
 
 	if value > maximalDiv then
-		value = value - math.pow(2, bitsOut) + 1
+		value = value - math.pow(2, bitsOut)
 	end
 
 	return value
