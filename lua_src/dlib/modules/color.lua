@@ -23,27 +23,7 @@ local ColorToHSV = ColorToHSV
 local Lerp = Lerp
 
 local colorMeta = FindMetaTable('Color') or {}
-
-colorMeta.__index = function(self, key)
-	if key == 1 then
-		return self.r
-	elseif key == 2 then
-		return self.g
-	elseif key == 3 then
-		return self.b
-	elseif key == 4 then
-		return self.a
-	else
-		local val = rawget(self, key)
-
-		if val ~= nil then
-			return val
-		end
-
-		return colorMeta[key]
-	end
-end
-
+colorMeta.__index = colorMeta
 debug.getregistry().Color = colorMeta
 
 function _G.Color(r, g, b, a)
