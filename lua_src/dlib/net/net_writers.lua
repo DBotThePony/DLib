@@ -61,8 +61,6 @@ end
 messageMeta.WriteBool = messageMeta.WriteBit
 
 function messageMeta:WriteIntInternal(input, bitCount, direction)
-	if self.isReading then error('Message is read-only') end
-
 	input = tonumber(input)
 	bitCount = tonumber(bitCount)
 	if type(input) ~= 'number' then error('Input is not a number! ' .. type(input)) end
@@ -88,8 +86,6 @@ function messageMeta:WriteIntInternal(input, bitCount, direction)
 end
 
 function messageMeta:WriteIntInternalTwos(input, bitCount, direction)
-	if self.isReading then error('Message is read-only') end
-
 	input = tonumber(input)
 	bitCount = tonumber(bitCount)
 	if type(input) ~= 'number' then error('Input is not a number! ' .. type(input)) end
@@ -150,8 +146,6 @@ function messageMeta:WriteIntForwardTwos(input, bitCount)
 end
 
 function messageMeta:WriteUIntInternal(input, bitCount, direction)
-	if self.isReading then error('Message is read-only') end
-
 	input = tonumber(input)
 	bitCount = tonumber(bitCount)
 	if type(input) ~= 'number' then error('Input is not a number! ' .. type(input)) end
@@ -190,8 +184,6 @@ function messageMeta:WriteUIntForward(input, bitCount)
 end
 
 function messageMeta:WriteNumber(input, bitsExponent, bitsMantissa, direction)
-	if self.isReading then error('Message is read-only') end
-
 	input = tonumber(input)
 	bitsMantissa = tonumber(bitsMantissa)
 	bitsExponent = tonumber(bitsExponent)
