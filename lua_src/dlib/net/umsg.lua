@@ -18,6 +18,7 @@ if SERVER then
 end
 
 DLib.umsg = DLib.umsg or table.Copy(umsg or {})
+DLib.numsg = DLib.numsg or table.Copy(umsg or {})
 local gumsg = umsg
 local umsg = DLib.umsg
 

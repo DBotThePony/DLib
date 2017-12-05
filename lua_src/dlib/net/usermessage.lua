@@ -14,6 +14,7 @@
 -- limitations under the License.
 
 DLib.usermessage = DLib.usermessage or table.Copy(usermessage)
+DLib.nusermessage = DLib.nusermessage or table.Copy(usermessage)
 local gusermessage = usermessage
 local usermessage = DLib.usermessage
 usermessage.hooks = usermessage.hooks or {}
