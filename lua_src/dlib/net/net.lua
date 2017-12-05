@@ -80,6 +80,15 @@ net.CURRENT_OBJECT_TRACE = nil
 net.CURRENT_OBJECT = nil
 net.CURRENT_SEND_OBJECT = nil
 
+function net.Reset()
+	if not net.CURRENT_OBJECT then
+		error('net.Reset - not currently reading net message')
+	end
+
+	net.CURRENT_OBJECT:Reset()
+	return net.CURRENT_OBJECT
+end
+
 function net.RegisterWrapper(nameIn)
 	local read, write = 'Read' .. nameIn, 'Write' .. nameIn
 
