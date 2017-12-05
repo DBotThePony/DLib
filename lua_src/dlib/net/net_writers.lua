@@ -44,6 +44,11 @@ function messageMeta:WriteBit(bitIn)
 		bitIn = bitIn and 1 or 0
 	end
 
+	if bitIn == nil then
+		ErrorNoHalt('WriteBit - got nil as argument!')
+		bitIn = 0
+	end
+
 	if type(bitIn) ~= 'number' then
 		error('WriteBit - Must be a number! ' .. type(bitIn))
 	end
