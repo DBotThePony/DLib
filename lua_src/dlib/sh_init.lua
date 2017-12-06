@@ -108,7 +108,9 @@ end
 
 DLib.Loader.loadPureCS('dlib/vgui')
 
-DLib.Loader.loadPureSHTop('dlib/luabridge')
+DLib.simpleInclude('dlib/luabridge/luabridge.lua')
+DLib.simpleInclude('dlib/luabridge/physgunhandler.lua')
+DLib.simpleInclude('dlib/luabridge/pnlhud.lua')
 DLib.Loader.loadPureSHTop('dlib/modules/workarounds')
 
 DLib.hl2wdata = DLib.simpleInclude('data/hl2sweps.lua')
