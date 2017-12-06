@@ -112,30 +112,63 @@ function net.RegisterWrapper(nameIn)
 	end
 end
 
-function net.Incoming2(length, ply)
-	local indetifier = ReadHeader()
-	local strName = NetworkIDToString(indetifier)
-	if not strName then return end
+do
+	local gotBuffer = {}
 
-	strName = strName:lower()
-	local triggerNetworkEvent = Hooks[strName]
+	function net.Incoming2(length, ply)
+		local indetifier = ReadHeader()
+		local strName = NetworkIDToString(indetifier)
+		if not strName then return end
 
-	if not triggerNetworkEvent then
-		DLib.Message('Unhandled message at net channel: ' .. strName)
-		return
+		strName = strName:lower()
+
+		if CLIENT then
+			local graph = net.GraphChannels[strName] and net.GraphChannels[strName].id or 'other'
+			gotBuffer[graph] = (gotBuffer[graph] or 0) + length / 8
+		end
+
+		local triggerNetworkEvent = Hooks[strName]
+
+		if not triggerNetworkEvent then
+			DLib.Message('Unhandled message at net channel: ' .. strName)
+			return
+		end
+
+		length = length - 16
+
+		net.CURRENT_OBJECT = net.CreateMessage(length, true)
+		net.CURRENT_OBJECT:SetMessageName(strName)
+		local status = ProtectedCall(function() triggerNetworkEvent(length, ply, net.CURRENT_OBJECT) end)
+		net.CURRENT_OBJECT = nil
+
+		if not status then
+			DLib.Message('Listener on ' .. strName .. ' has failed!')
+		end
 	end
 
-	length = length - 16
+	if CLIENT then
+		local function flushGraph()
+			local frame = gotBuffer
+			gotBuffer = {}
 
-	-- print(length, strName)
+			local value = 0
 
-	net.CURRENT_OBJECT = net.CreateMessage(length, true)
-	net.CURRENT_OBJECT:SetMessageName(strName)
-	local status = ProtectedCall(function() triggerNetworkEvent(length, ply, net.CURRENT_OBJECT) end)
-	net.CURRENT_OBJECT = nil
+			for i, value2 in pairs(frame) do
+				value = value + value2
+			end
 
-	if not status then
-		DLib.Message('Listener on ' .. strName .. ' has failed!')
+			frame.__TOTAL = value
+
+			if #net.Graph >= net.GraphNodesMax then
+				table.remove(net.Graph, 1)
+			end
+
+			table.insert(net.Graph, frame)
+
+			net.RecalculateGraphScales()
+		end
+
+		timer.Create('DLib.netGraph', 1, 0, flushGraph)
 	end
 end
 
@@ -289,3 +322,4 @@ end
 
 DLib.simpleInclude('net/umsg.lua')
 DLib.simpleInclude('net/usermessage.lua')
+DLib.simpleInclude('net/net_graph.lua')
