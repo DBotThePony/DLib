@@ -245,7 +245,7 @@ end
 
 function messageMeta:WriteDataInternal(binaryData, bytesToSend, direction)
 	assert(type(binaryData) == 'string', 'WriteData - input is not a string! ' .. type(binaryData))
-	assert(type(bytesToSend) == 'string', 'WriteData - length is not a number! ' .. type(bytesToSend))
+	assert(type(bytesToSend) == 'number', 'WriteData - length is not a number! ' .. type(bytesToSend))
 
 	bytesToSend = math.floor(bytesToSend)
 
