@@ -15,6 +15,15 @@
 -- limitations under the License.
 --
 
+local meta = {}
+local math = math
+
+function meta:__index(key)
+	return math[key] or bit[key]
+end
+
+debug.setmetatable(1, meta)
+
 if CLIENT then
 	local pixelvis_handle_t = FindMetaTable('pixelvis_handle_t')
 

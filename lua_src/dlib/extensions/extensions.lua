@@ -16,6 +16,8 @@
 --
 
 local PhysObj = FindMetaTable('PhysObj')
+local vectorMeta = FindMetaTable('Vector')
+local Color = Color
 
 function PhysObj:SetAngleVelocity(newAngle)
 	return self:AddAngleVelocity(-self:GetAngleVelocity() + newAngle)
@@ -49,38 +51,22 @@ function PhysObj:EnableCollisions(newStatus)
 	return self:DLibEnableCollisions(newStatus)
 end
 
-function PhysObj:EnableDrag(newStatus)
-	worldspawn = worldspawn or Entity(0)
-	worldspawnPhys = worldspawnPhys or worldspawn:GetPhysicsObject()
-
-	if worldspawnPhys == self then
-		print(debug.traceback('Attempt to call :EnableDrag() on World PhysObj!', 2))
-		return
-	end
-
-	return self:DLibEnableDrag(newStatus)
+function vectorMeta:Copy()
+	return Vector(self)
 end
 
-function PhysObj:EnableMotion(newStatus)
-	worldspawn = worldspawn or Entity(0)
-	worldspawnPhys = worldspawnPhys or worldspawn:GetPhysicsObject()
-
-	if worldspawnPhys == self then
-		print(debug.traceback('Attempt to call :EnableMotion() on World PhysObj!', 2))
-		return
-	end
-
-	return self:DLibEnableMotion(newStatus)
+function vectorMeta:Receive(target)
+	local x, y, z = target.x, target.y, target.z
+	self.x, self.y, self.z = x, y, z
+	return self
 end
 
-function PhysObj:EnableGravity(newStatus)
-	worldspawn = worldspawn or Entity(0)
-	worldspawnPhys = worldspawnPhys or worldspawn:GetPhysicsObject()
+function vectorMeta:RotateAroundAxis(axis, rotation)
+	local ang = self:Angle()
+	ang:RotateAroundAxis(axis, rotation)
+	return self:Receive(ang:Forward() * self:Length())
+end
 
-	if worldspawnPhys == self then
-		print(debug.traceback('Attempt to call :EnableGravity() on World PhysObj!', 2))
-		return
-	end
-
-	return self:DLibEnableGravity(newStatus)
+function vectorMeta:ToColor()
+	return Color(self.x * 255, self.y * 255, self.z * 255)
 end
