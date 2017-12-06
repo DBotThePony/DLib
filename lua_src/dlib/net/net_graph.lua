@@ -68,7 +68,7 @@ function net.RegisterGraphGroup(groupName, groupID, colorSeed)
 	return t
 end
 
-net.RegisterGraphGroup('other')
+net.RegisterGraphGroup('other').color = Color(255, 255, 255)
 
 function net.BindMessageGroup(networkID, groupID)
 	groupID = groupID:lower()
@@ -113,6 +113,7 @@ local function HUDPaint()
 	surface.DrawRect(0, abscissa, W, 5)
 
 	local prevNodes = {}
+	local hitGroups = {}
 
 	for i, frame in ipairs(net.Graph) do
 		for group, value in pairs(frame) do
@@ -137,6 +138,10 @@ local function HUDPaint()
 			surface.SetDrawColor(color)
 			surface.DrawLine(lastX, lastY, x, y)
 		end
+	end
+
+	for group, _ in pairs(prevNodes) do
+
 	end
 end
 
