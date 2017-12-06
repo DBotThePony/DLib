@@ -13,7 +13,7 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
-DLib.PRODUCTION_MODE = CreateConVar('dlib_production', '1', {FCVAR_REPLICATED}, 'Enable production mode. Setting this to 0 can help you solve weird bugs.')
+DLib.DEBUG_MODE = CreateConVar('dlib_debug', '0', {FCVAR_REPLICATED}, 'Enable debug mode. Setting this to 1 can help you solve weird bugs.')
 
 function DLib.register(fil)
 	if SERVER then AddCSLuaFile('dlib/' .. fil) end

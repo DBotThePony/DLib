@@ -44,7 +44,7 @@ function umsg.Start(strIn, pFilter)
 	end
 
 	if isWrittingMessage then
-		if not DLib.PRODUCTION_MODE:GetBool() then
+		if DLib.DEBUG_MODE:GetBool() then
 			DLib.Message('umsg.Start - starting new message without finishing old one!\nOLD ->\n' .. oldTrace .. '\nNEW:\n' .. traceback())
 		end
 	end

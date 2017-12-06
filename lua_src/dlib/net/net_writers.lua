@@ -35,7 +35,7 @@ local nnet = DLib.nativeNet
 local net = DLib.netModule
 
 local function ErrorNoHalt(message)
-	if DLib.PRODUCTION_MODE:GetBool() then return end
+	if not DLib.DEBUG_MODE:GetBool() then return end
 	return ErrorNoHalt2(traceback(message) .. '\n')
 end
 
@@ -46,7 +46,7 @@ function messageMeta:WriteBit(bitIn)
 		bitIn = bitIn and 1 or 0
 	end
 
-	if not DLib.PRODUCTION_MODE:GetBool() then
+	if DLib.DEBUG_MODE:GetBool() then
 		if bitIn == nil then
 			ErrorNoHalt('WriteBit - got nil as argument!')
 			bitIn = 0
@@ -80,7 +80,7 @@ function messageMeta:WriteIntInternal(input, bitCount, direction)
 
 	local output = DLib.bitworker.IntegerToBinaryFixed(input, bitCount)
 
-	if #output > bitCount and not DLib.PRODUCTION_MODE:GetBool() then
+	if #output > bitCount and DLib.DEBUG_MODE:GetBool() then
 		ErrorNoHalt('WriteInt - input integer is larger than integer that can be represented with ' .. bitCount .. ' bits!')
 	end
 
@@ -105,7 +105,7 @@ function messageMeta:WriteIntInternalTwos(input, bitCount, direction)
 
 	local output = DLib.bitworker.IntegerToBinary(input)
 
-	if #output > bitCount and not DLib.PRODUCTION_MODE:GetBool() then
+	if #output > bitCount and DLib.DEBUG_MODE:GetBool() then
 		ErrorNoHalt('WriteIntTwos - input integer is larger than integer that can be represented with ' .. bitCount .. ' bits!')
 	end
 
@@ -170,7 +170,7 @@ function messageMeta:WriteUIntInternal(input, bitCount, direction)
 
 	local output = DLib.bitworker.UIntegerToBinary(input)
 
-	if #output > bitCount and not DLib.PRODUCTION_MODE:GetBool() then
+	if #output > bitCount and DLib.DEBUG_MODE:GetBool() then
 		ErrorNoHalt('WriteUInt - input integer is larger than integer that can be represented with ' .. bitCount .. ' bits!')
 	end
 

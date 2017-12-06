@@ -91,7 +91,7 @@ if ghook ~= DLib.ghook then
 
 		function _G.include(fil)
 			if fil:find('ulib') and fil:find('hook') then
-				if not DLib.PRODUCTION_MODE:GetBool() then
+				if DLib.DEBUG_MODE:GetBool() then
 					DLib.Message('--------------------')
 					DLib.Message('ULib hook system is DISABLED')
 					DLib.Message('--------------------')
@@ -131,7 +131,7 @@ local function transformStringID(stringID, transformFuncCall, event)
 
 		if not success then
 			stringID = tostring(stringID)
-			if not DLib.PRODUCTION_MODE:GetBool() then
+			if DLib.DEBUG_MODE:GetBool() then
 				DLib.Message(traceback('hook.Add - hook ID is not a string and not a valid object! Using tostring() instead. ' .. type(funcToCall)))
 			end
 		elseif transformFuncCall and event then
@@ -153,7 +153,7 @@ function hook.Add(event, stringID, funcToCall, priority)
 	__table[event] = __table[event] or {}
 
 	if type(event) ~= 'string' then
-		if not DLib.PRODUCTION_MODE:GetBool() then
+		if DLib.DEBUG_MODE:GetBool() then
 			DLib.Message(traceback('hook.Add - event is not a string! ' .. type(event)))
 		end
 
@@ -161,7 +161,7 @@ function hook.Add(event, stringID, funcToCall, priority)
 	end
 
 	if type(funcToCall) ~= 'function' then
-		if not DLib.PRODUCTION_MODE:GetBool() then
+		if DLib.DEBUG_MODE:GetBool() then
 			DLib.Message(traceback('hook.Add - function is not a function! ' .. type(funcToCall)))
 		end
 
@@ -234,7 +234,7 @@ function hook.AddPostModifier(event, stringID, funcToCall)
 	__tableModifiersPost[event] = __tableModifiersPost[event] or {}
 
 	if type(event) ~= 'string' then
-		if not DLib.PRODUCTION_MODE:GetBool() then
+		if DLib.DEBUG_MODE:GetBool() then
 			DLib.Message(traceback('hook.AddPostModifier - event is not a string! ' .. type(event)))
 		end
 
@@ -242,7 +242,7 @@ function hook.AddPostModifier(event, stringID, funcToCall)
 	end
 
 	if type(funcToCall) ~= 'function' then
-		if not DLib.PRODUCTION_MODE:GetBool() then
+		if DLib.DEBUG_MODE:GetBool() then
 			DLib.Message(traceback('hook.AddPostModifier - function is not a function! ' .. type(funcToCall)))
 		end
 
@@ -577,7 +577,7 @@ if ghook ~= DLib.ghook then
 		__newindex = function(self, key, value)
 			if hook[key] == value then return end
 
-			if not DLib.PRODUCTION_MODE:GetBool() then
+			if DLib.DEBUG_MODE:GetBool() then
 				DLib.Message(traceback('DEPRECATED: Do NOT mess with hook system directly! https://goo.gl/NDAQqY\nReport this message to addon author which is involved in this stack trace:\nhook.' .. tostring(key) .. ' (' .. tostring(hook[key]) .. ') -> ' .. tostring(value), 2))
 			end
 

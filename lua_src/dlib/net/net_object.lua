@@ -34,7 +34,7 @@ local WriteBitNative = nnet.WriteBit
 local ReadBitNative = nnet.ReadBit
 
 local function ErrorNoHalt(message)
-	if DLib.PRODUCTION_MODE:GetBool() then return end
+	if not DLib.DEBUG_MODE:GetBool() then return end
 	return ErrorNoHalt2(traceback(message) .. '\n')
 end
 
@@ -99,7 +99,7 @@ function messageMeta:ResetBuffer()
 end
 
 function messageMeta:ReportOutOfRange(func, bitsToAdd)
-	if DLib.PRODUCTION_MODE:GetBool() then return end
+	if not DLib.DEBUG_MODE:GetBool() then return end
 
 	if bitsToAdd + self.pointer < self.length then
 		ErrorNoHalt(string.format('%s - Read bits amount is smaller than possible! %i bits were provided', func, bitsToAdd))

@@ -40,14 +40,14 @@ end
 function usermessage.IncomingMessage(msgName, msgBuffer)
 	msgName = msgName:lower()
 
-	if not DLib.PRODUCTION_MODE:GetBool() then
+	if DLib.DEBUG_MODE:GetBool() then
 		DLib.Message('WARNING: ' .. msgName .. ' arrived outside of net library!')
 	end
 
 	local data = usermessage.hooks[msgName]
 
 	if not data then
-		if not DLib.PRODUCTION_MODE:GetBool() then
+		if DLib.DEBUG_MODE:GetBool() then
 			DLib.Message('WARNING: Unhandled usermessage - ' .. msgName)
 		end
 
@@ -153,7 +153,7 @@ net.receive('dlib.umsg', function(len, ply, networkObject)
 	local data = usermessage.hooks_crc[msgName]
 
 	if not data then
-		if not IsValid(ply) and not DLib.PRODUCTION_MODE:GetBool() then
+		if not IsValid(ply) and DLib.DEBUG_MODE:GetBool() then
 			DLib.Message('Unhandled network message at usermessage channel, CRC32 Header - ' .. msgName)
 		end
 

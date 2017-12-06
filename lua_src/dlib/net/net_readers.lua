@@ -35,7 +35,7 @@ local nnet = DLib.nativeNet
 local net = DLib.netModule
 
 local function ErrorNoHalt(message)
-	if DLib.PRODUCTION_MODE:GetBool() then return end
+	if not DLib.DEBUG_MODE:GetBool() then return end
 	return ErrorNoHalt2(traceback(message) .. '\n')
 end
 
