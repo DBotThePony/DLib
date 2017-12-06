@@ -17,6 +17,8 @@ local net = DLib.netModule
 local messageMeta = FindMetaTable('LNetworkMessage')
 local table = table
 local Entity = Entity
+local type = type
+local error = error
 
 function messageMeta:WritePlayer(ply)
 	local i = ply:EntIndex()
@@ -127,7 +129,6 @@ function net.ChooseOptimalBits(amount)
 
 	return math.max(bits, 4)
 end
-
 
 function messageMeta:WriteVectorDouble(vecIn)
 	if type(vecIn) ~= 'Vector' then

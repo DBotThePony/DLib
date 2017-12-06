@@ -91,9 +91,14 @@ if ghook ~= DLib.ghook then
 
 		function _G.include(fil)
 			if fil:find('ulib') and fil:find('hook') then
-				DLib.Message('--------------------')
-				DLib.Message('ULib hook system is DISABLED')
-				DLib.Message('--------------------')
+				if not DLib.PRODUCTION_MODE:GetBool() then
+					DLib.Message('--------------------')
+					DLib.Message('ULib hook system is DISABLED')
+					DLib.Message('--------------------')
+				end
+
+				_G.include = linclude
+
 				return
 			end
 
@@ -126,8 +131,9 @@ local function transformStringID(stringID, transformFuncCall, event)
 
 		if not success then
 			stringID = tostring(stringID)
-			DLib.Message(traceback('hook.Add - hook ID is not a string and not a valid object! Using tostring() instead. ' .. type(funcToCall)))
-			--return
+			if not DLib.PRODUCTION_MODE:GetBool() then
+				DLib.Message(traceback('hook.Add - hook ID is not a string and not a valid object! Using tostring() instead. ' .. type(funcToCall)))
+			end
 		elseif transformFuncCall and event then
 			return stringID, function(...)
 				if not stringID.IsValid(stringID) then
@@ -147,14 +153,18 @@ function hook.Add(event, stringID, funcToCall, priority)
 	__table[event] = __table[event] or {}
 
 	if type(event) ~= 'string' then
-		DLib.Message(traceback('hook.Add - event is not a string! ' .. type(event)))
-		-- return false
+		if not DLib.PRODUCTION_MODE:GetBool() then
+			DLib.Message(traceback('hook.Add - event is not a string! ' .. type(event)))
+		end
+
 		return
 	end
 
 	if type(funcToCall) ~= 'function' then
-		DLib.Message(traceback('hook.Add - function is not a function! ' .. type(funcToCall)))
-		-- return false
+		if not DLib.PRODUCTION_MODE:GetBool() then
+			DLib.Message(traceback('hook.Add - function is not a function! ' .. type(funcToCall)))
+		end
+
 		return
 	end
 
@@ -196,12 +206,10 @@ function hook.Add(event, stringID, funcToCall, priority)
 	__tableGmod[event][stringID] = funcToCall
 
 	hook.Reconstruct(event)
-	-- return true, hookData
 	return
 end
 
 function hook.Remove(event, stringID)
-	-- if not __table[event] then return false end
 	if not __table[event] then return end
 	__tableGmod[event] = __tableGmod[event] or {}
 	__tableGmod[event][stringID] = nil
@@ -216,25 +224,28 @@ function hook.Remove(event, stringID)
 			if oldData ~= nil then
 				eventsTable[stringID] = nil
 				hook.Reconstruct(event)
-				-- return true, oldData
 				return
 			end
 		end
 	end
-
-	-- return false
 end
 
 function hook.AddPostModifier(event, stringID, funcToCall)
 	__tableModifiersPost[event] = __tableModifiersPost[event] or {}
 
 	if type(event) ~= 'string' then
-		DLib.Message(traceback('hook.AddPostModifier - event is not a string! ' .. type(event)))
+		if not DLib.PRODUCTION_MODE:GetBool() then
+			DLib.Message(traceback('hook.AddPostModifier - event is not a string! ' .. type(event)))
+		end
+
 		return false
 	end
 
 	if type(funcToCall) ~= 'function' then
-		DLib.Message(traceback('hook.AddPostModifier - function is not a function! ' .. type(funcToCall)))
+		if not DLib.PRODUCTION_MODE:GetBool() then
+			DLib.Message(traceback('hook.AddPostModifier - function is not a function! ' .. type(funcToCall)))
+		end
+
 		return false
 	end
 
@@ -565,7 +576,11 @@ if ghook ~= DLib.ghook then
 
 		__newindex = function(self, key, value)
 			if hook[key] == value then return end
-			DLib.Message(traceback('DEPRECATED: Do NOT mess with hook system directly! https://goo.gl/NDAQqY\nReport this message to addon author which is involved in this stack trace:\nhook.' .. tostring(key) .. ' (' .. tostring(hook[key]) .. ') -> ' .. tostring(value), 2))
+
+			if not DLib.PRODUCTION_MODE:GetBool() then
+				DLib.Message(traceback('DEPRECATED: Do NOT mess with hook system directly! https://goo.gl/NDAQqY\nReport this message to addon author which is involved in this stack trace:\nhook.' .. tostring(key) .. ' (' .. tostring(hook[key]) .. ') -> ' .. tostring(value), 2))
+			end
+
 			local status = hook.Call('DLibHookChange', nil, key, value)
 			if status == false then return end
 			rawset(hook, key, value)

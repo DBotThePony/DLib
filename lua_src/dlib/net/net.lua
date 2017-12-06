@@ -44,6 +44,7 @@ local ReadBitNative = nnet.ReadBit
 local toImport
 
 local function ErrorNoHalt(message)
+	if DLib.PRODUCTION_MODE:GetBool() then return end
 	return ErrorNoHalt2(traceback(message) .. '\n')
 end
 
@@ -271,9 +272,9 @@ if DLib.gNet ~= gnet then
 		end,
 
 		__newindex = function(self, key, value)
-			--if net[key] then
-				--DLib.Message(traceback('Probably better not to do that? net.' .. tostring(key) .. ' (' .. tostring(net[key]) .. ') -> ' .. tostring(value)))
-			--end
+			if not DLib.PRODUCTION_MODE:GetBool() and net[key] then
+				DLib.Message(traceback('Probably better not to do that? net.' .. tostring(key) .. ' (' .. tostring(net[key]) .. ') -> ' .. tostring(value)))
+			end
 
 			net[key] = value
 		end
