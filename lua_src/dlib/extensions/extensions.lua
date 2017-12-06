@@ -20,7 +20,7 @@ local vectorMeta = FindMetaTable('Vector')
 local Color = Color
 
 function PhysObj:SetAngleVelocity(newAngle)
-	return self:AddAngleVelocity(-self:GetAngleVelocity() + newAngle)
+	return self:AddAngleVelocity(newAngle - self:GetAngleVelocity())
 end
 
 PhysObj.DLibSetMass = PhysObj.DLibSetMass or PhysObj.SetMass
@@ -55,6 +55,10 @@ function vectorMeta:Copy()
 	return Vector(self)
 end
 
+function vectorMeta:__call()
+	return Vector(self)
+end
+
 function vectorMeta:Receive(target)
 	local x, y, z = target.x, target.y, target.z
 	self.x, self.y, self.z = x, y, z
@@ -84,3 +88,5 @@ function sql.Query(...)
 
 	return data
 end
+
+sql.register()
