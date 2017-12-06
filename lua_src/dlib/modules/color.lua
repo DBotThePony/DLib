@@ -21,16 +21,18 @@ local tonumber = tonumber
 local Vector = Vector
 local ColorToHSV = ColorToHSV
 local Lerp = Lerp
+local util = util
+local srnd = util.SharedRandom
 
 local colorMeta = FindMetaTable('Color') or {}
 colorMeta.__index = colorMeta
 debug.getregistry().Color = colorMeta
 
 function _G.Color(r, g, b, a)
-	r = math.Clamp(tonumber(r) or 255, 0, 255)
-	g = math.Clamp(tonumber(g) or 255, 0, 255)
-	b = math.Clamp(tonumber(b) or 255, 0, 255)
-	a = math.Clamp(tonumber(a) or 255, 0, 255)
+	r = math.Clamp(math.floor(tonumber(r) or 255), 0, 255)
+	g = math.Clamp(math.floor(tonumber(g) or 255), 0, 255)
+	b = math.Clamp(math.floor(tonumber(b) or 255), 0, 255)
+	a = math.Clamp(math.floor(tonumber(a) or 255), 0, 255)
 
 	local newObj = {
 		r = r,
@@ -40,6 +42,10 @@ function _G.Color(r, g, b, a)
 	}
 
 	return setmetatable(newObj, colorMeta)
+end
+
+function _G.ColorFromSeed(seedIn)
+	return Color(srnd(seedIn, 0, 255, 0), srnd(seedIn, 0, 255, 1), srnd(seedIn, 0, 255, 2))
 end
 
 local Color = Color
