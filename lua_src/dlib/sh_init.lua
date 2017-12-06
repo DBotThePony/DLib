@@ -53,7 +53,6 @@ DLib.Loader.shmodule('bitworker.lua').register()
 DLib.simpleInclude('net/net.lua')
 DLib.Loader.shmodule('color.lua')
 
-DLib.register('extensions/sql.lua')
 DLib.register('extensions/string.lua')
 DLib.register('extensions/ctakedmg.lua')
 DLib.register('extensions/table.lua')

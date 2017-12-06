@@ -70,3 +70,17 @@ end
 function vectorMeta:ToColor()
 	return Color(self.x * 255, self.y * 255, self.z * 255)
 end
+
+local gsql = sql
+local sql = DLib.module('sql', 'sql')
+
+function sql.Query(...)
+	local data = gsql.Query(...)
+
+	if data == false then
+		DLib.Message('SQL: ', ...)
+		DLib.Message(sql.LastError())
+	end
+
+	return data
+end
