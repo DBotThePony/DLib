@@ -28,6 +28,7 @@ local math = math
 local string = string
 local IsValid = IsValid
 local TypeID = TypeID
+local assert = assert
 
 local traceback = debug.traceback
 local nnet = DLib.nativeNet
@@ -63,12 +64,12 @@ messageMeta.WriteBool = messageMeta.WriteBit
 function messageMeta:WriteIntInternal(input, bitCount, direction)
 	input = tonumber(input)
 	bitCount = tonumber(bitCount)
-	if type(input) ~= 'number' then error('Input is not a number! ' .. type(input)) end
-	if type(bitCount) ~= 'number' then error('Bit amount is not a number! ' .. type(bitCount)) end
+	assert(type(input) == 'number', 'Input is not a number! ' .. type(input))
+	assert(type(bitCount) == 'number', 'Bit amount is not a number! ' .. type(bitCount))
 
 	input = math.floor(input + 0.5)
 	bitCount = math.floor(bitCount)
-	if bitCount > 127 or bitCount < 2 then error('Bit amount overflow') end
+	assert(bitCount < 127 and bitCount > 2, 'Bit amount overflow')
 
 	local output = DLib.bitworker.IntegerToBinaryFixed(input, bitCount)
 
@@ -88,12 +89,12 @@ end
 function messageMeta:WriteIntInternalTwos(input, bitCount, direction)
 	input = tonumber(input)
 	bitCount = tonumber(bitCount)
-	if type(input) ~= 'number' then error('Input is not a number! ' .. type(input)) end
-	if type(bitCount) ~= 'number' then error('Bit amount is not a number! ' .. type(bitCount)) end
+	assert(type(input) == 'number', 'Input is not a number! ' .. type(input))
+	assert(type(bitCount) == 'number', 'Bit amount is not a number! ' .. type(bitCount))
 
 	input = math.floor(input + 0.5)
 	bitCount = math.floor(bitCount)
-	if bitCount > 127 or bitCount < 2 then error('Bit amount overflow') end
+	assert(bitCount <= 127 and bitCount >= 2, 'Bit amount overflow')
 
 	local output = DLib.bitworker.IntegerToBinary(input)
 
@@ -148,12 +149,12 @@ end
 function messageMeta:WriteUIntInternal(input, bitCount, direction)
 	input = tonumber(input)
 	bitCount = tonumber(bitCount)
-	if type(input) ~= 'number' then error('Input is not a number! ' .. type(input)) end
-	if type(bitCount) ~= 'number' then error('Bit amount is not a number! ' .. type(bitCount)) end
+	assert(type(input) == 'number', 'Input is not a number! ' .. type(input))
+	assert(type(bitCount) == 'number', 'Bit amount is not a number! ' .. type(bitCount))
 
 	input = math.floor(input + 0.5)
 	bitCount = math.floor(bitCount)
-	if bitCount > 127 or bitCount < 1 then error('Bit amount overflow') end
+	assert(bitCount <= 127 and bitCount >= 2, 'Bit amount overflow')
 
 	if input < 0 then
 		ErrorNoHalt('WriteUInt - input integer is lesser than 0! To keep backward compability, it gets bit shift to flip')
@@ -188,14 +189,15 @@ function messageMeta:WriteNumber(input, bitsExponent, bitsMantissa, direction)
 	bitsMantissa = tonumber(bitsMantissa)
 	bitsExponent = tonumber(bitsExponent)
 
-	if type(input) ~= 'number' then error('Input is not a number! ' .. type(input)) end
-	if type(bitsExponent) ~= 'number' then error('Exponent bits amount is not a number! ' .. type(bitsExponent)) end
-	if type(bitsMantissa) ~= 'number' then error('Mantissa bits amount is not a number! ' .. type(bitsMantissa)) end
+	assert(type(input) == 'number', 'Input is not a number! ' .. type(input))
+	assert(type(bitsExponent) == 'number', 'Exponent bits is not a number! ' .. type(bitsExponent))
+	assert(type(bitsMantissa) == 'number', 'Mantissa bits is not a number! ' .. type(bitsMantissa))
 
 	bitsExponent = math.floor(bitsExponent)
 	bitsMantissa = math.floor(bitsMantissa)
-	if bitsExponent > 24 or bitsExponent < 4 then error('Exponent bits amount overflow') end
-	if bitsMantissa > 127 or bitsMantissa < 4 then error('Mantissa bits amount overflow') end
+
+	assert(bitsExponent <= 24 and bitsExponent >= 4, 'Exponent bits amount overflow')
+	assert(bitsMantissa <= 127 and bitsMantissa >= 4, 'Mantissa bits amount overflow')
 
 	self:WriteBitsRawDirection(DLib.bitworker.FloatToBinaryIEEE(input, bitsExponent, bitsMantissa), nil, direction)
 
@@ -215,9 +217,7 @@ function messageMeta:WriteFloatForward(floatIn)
 end
 
 function messageMeta:WriteVector(vecIn)
-	if type(vecIn) ~= 'Vector' then
-		error('WriteVector - input is not a vector! ' .. type(vecIn))
-	end
+	assert(type(vecIn) == 'Vector', 'WriteVector - input is not a vector! ' .. type(vecIn))
 
 	self:WriteNumber(vecIn.x, 8, 16)
 	self:WriteNumber(vecIn.y, 8, 16)
@@ -227,9 +227,7 @@ function messageMeta:WriteVector(vecIn)
 end
 
 function messageMeta:WriteAngle(angleIn)
-	if type(angleIn) ~= 'Angle' then
-		error('WriteAngle - input is not an angle! ' .. type(angleIn))
-	end
+	assert(type(angleIn) == 'Angle', 'WriteAngle - input is not an angle! ' .. type(angleIn))
 
 	self:WriteNumber(angleIn.p, 8, 16)
 	self:WriteNumber(angleIn.y, 8, 16)
@@ -239,24 +237,16 @@ function messageMeta:WriteAngle(angleIn)
 end
 
 function messageMeta:WriteDataInternal(binaryData, bytesToSend, direction)
-	if type(binaryData) ~= 'string' then
-		error('WriteData - input is not a string! ' .. type(binaryData))
-	end
-
-	if type(bytesToSend) ~= 'number' then
-		error('WriteData - length is not a number! ' .. type(bytesToSend))
-	end
+	assert(type(binaryData) == 'string', 'WriteData - input is not a string! ' .. type(binaryData))
+	assert(type(bytesToSend) == 'string', 'WriteData - length is not a number! ' .. type(bytesToSend))
 
 	bytesToSend = math.floor(bytesToSend)
 
 	if bytesToSend == 0 then
-		-- error('WriteData - length overflow')
-		return
+		return self
 	end
 
-	if bytesToSend < 0 then
-		error('WriteData - length overflow')
-	end
+	assert(bytesToSend >= 0, 'WriteData - length overflow')
 
 	bytesToSend = math.min(#binaryData, bytesToSend)
 
@@ -306,9 +296,7 @@ local endString = {
 }
 
 function messageMeta:WriteStringInternal(stringIn, direction)
-	if type(stringIn) ~= 'string' then
-		error('WriteString - input is not a string! ' .. type(stringIn))
-	end
+	assert(type(stringIn) == 'string', 'WriteString - input is not a string! ' .. type(stringIn))
 
 	if #stringIn == 0 then
 		self:WriteBitsRaw(endString)
@@ -347,9 +335,7 @@ function messageMeta:WriteEntity(ent)
 end
 
 function messageMeta:WriteNormal(vectorIn)
-	if type(vecIn) ~= 'Vector' then
-		error('WriteNormal - input is not a vector! ' .. type(vecIn))
-	end
+	assert(type(vecIn) == 'Vector', 'WriteNormal - input is not a vector! ' .. type(vecIn))
 
 	local vector = vectorIn:GetNormalized()
 
@@ -404,9 +390,7 @@ function messageMeta:WriteTable(tableIn)
 end
 
 function messageMeta:WriteMatrix(matrixIn)
-	if type(matrixIn) ~= 'VMatrix' then
-		error('WriteMatrix - input is not a VMatrix! ' .. type(matrixIn))
-	end
+	assert(type(matrixIn) == 'VMatrix', 'WriteMatrix - input is not a VMatrix! ' .. type(matrixIn))
 
 	local toTable = matrixIn:ToTable()
 

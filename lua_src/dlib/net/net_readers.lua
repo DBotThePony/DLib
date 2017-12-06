@@ -54,7 +54,7 @@ end
 
 function messageMeta:ReadIntInternal(bitCount, direction)
 	bitCount = tonumber(bitCount)
-	if type(bitCount) ~= 'number' then error('Bit amount is not a number!') end
+	assert(type(bitCount) == 'number', 'Bit amount is not a number!')
 
 	if self.pointer + bitCount > self.length or bitCount < 2 then
 		self:ReportOutOfRange('ReadInt', bitCount)
@@ -69,7 +69,7 @@ end
 
 function messageMeta:ReadIntInternalTwos(bitCount, direction)
 	bitCount = tonumber(bitCount)
-	if type(bitCount) ~= 'number' then error('Bit amount is not a number!') end
+	assert(type(bitCount) == 'number', 'Bit amount is not a number!')
 
 	if self.pointer + bitCount > self.length or bitCount < 2 then
 		self:ReportOutOfRange('ReadIntTwos', bitCount)
@@ -84,7 +84,7 @@ end
 
 function messageMeta:ReadUIntInternal(bitCount, direction)
 	bitCount = tonumber(bitCount)
-	if type(bitCount) ~= 'number' then error('Bit amount is not a number!') end
+	assert(type(bitCount) == 'number', 'Bit amount is not a number!')
 
 	if self.pointer + bitCount > self.length or bitCount < 1 then
 		self:ReportOutOfRange('ReadUInt', bitCount)
@@ -145,11 +145,11 @@ function messageMeta:ReadNumber(bitsExponent, bitsMantissa, driection)
 	bitsMantissa = tonumber(bitsMantissa)
 	bitsExponent = tonumber(bitsExponent)
 
-	if type(bitsExponent) ~= 'number' then error('Exponent bit amount is not a number!') end
-	if type(bitsMantissa) ~= 'number' then error('Mantissa bit amount is not a number!') end
+	assert(type(bitsExponent) == 'number', 'Exponent bit amount is not a number!')
+	assert(type(bitsMantissa) == 'number', 'Mantissa bit amount is not a number!')
 
-	if bitsExponent > 24 or bitsExponent < 4 then error('Exponent bit amount overflow') end
-	if bitsMantissa > 127 or bitsMantissa < 4 then error('Mantissa bit amount overflow') end
+	assert(bitsExponent <= 24 and bitsExponent >= 4, 'Exponent bit amount overflow')
+	assert(bitsMantissa <= 127 and bitsMantissa >= 4, 'Mantissa bit amount overflow')
 
 	local totalBits = bitsExponent + bitsMantissa + 1
 
@@ -182,15 +182,16 @@ function messageMeta:ReadAngle()
 end
 
 function messageMeta:ReadDataInternal(bytesRead, direction)
-	if type(bytesRead) ~= 'number' then
-		error('ReadData - length is not a number!')
-	end
+	assert(type(bytesRead) == 'number', 'ReadData - length is not a number!')
 
 	bytesRead = math.floor(bytesRead)
 
 	if bytesRead < 0 then
-		-- error('ReadData - length overflow')
 		return ''
+	end
+
+	if bytesRead == 0 then
+		return '\x00'
 	end
 
 	local bitsRead = bytesRead * 8
