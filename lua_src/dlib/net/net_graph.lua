@@ -138,21 +138,21 @@ local function HUDPaint()
 
 		surface.SetDrawColor(color)
 		surface.DrawLine(lastX, lastY, x, y)
+		return group
 	end
 
 	for i, frame in ipairs(net.Graph) do
 		hitGroups = {}
 
 		for group, value in pairs(frame) do
-			doDrawGraph(i, group, value)
-			hitGroups[group] = true
+			hitGroups[doDrawGraph(i, group, value)] = true
 		end
 
 		for group, data in pairs(prevNodes) do
 			if not hitGroups[group] then
+				doDrawGraph(i, group, 0)
 				data[1] = (i - 1) * nodeStep
 				data[2] = S
-				doDrawGraph(i, group, 0)
 			end
 		end
 	end
