@@ -61,8 +61,9 @@ DLib.register('extensions/cvar.lua')
 DLib.register('extensions/entity.lua')
 DLib.register('extensions/player.lua').export(_G.player)
 
-DLib.simpleInclude('net/net.lua')
 DLib.Loader.shmodule('color.lua')
+
+DLib.simpleInclude('net/net.lua')
 DLib.Loader.shmodule('hook.lua')
 DLib.Loader.shmodule('sh_cami.lua')
 DLib.Loader.shmodule('getinfo.lua').register()

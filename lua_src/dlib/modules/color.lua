@@ -313,25 +313,3 @@ end
 _G.color_black = Color() - 255
 _G.color_white = Color()
 _G.color_transparent = Color():SetAlpha(0)
-
-local net = DLib.netModule
-local messageMeta = FindMetaTable('LNetworkMessage')
-
-function messageMeta:WriteColor(colIn)
-	if not IsColor(colIn) then
-		error('Attempt to write a color which is not a color! ' .. type(colIn))
-	end
-
-	self:WriteUInt(colIn.r, 8)
-	self:WriteUInt(colIn.g, 8)
-	self:WriteUInt(colIn.b, 8)
-	self:WriteUInt(colIn.a, 8)
-
-	return self
-end
-
-function messageMeta:ReadColor()
-	return Color(self:ReadUInt(8), self:ReadUInt(8), self:ReadUInt(8), self:ReadUInt(8))
-end
-
-net.RegisterWrapper('Color')
