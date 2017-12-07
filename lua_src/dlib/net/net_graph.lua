@@ -35,6 +35,7 @@ local math = math
 local ScrW, ScrH = ScrW, ScrH
 local surface = surface
 local string = string
+local DLib = DLib
 
 net.GraphNodesMax = 100
 net.Graph = net.Graph or {}
@@ -87,8 +88,11 @@ function net.BindMessageGroup(networkID, groupID)
 end
 
 local abscissaColor = Color(200, 200, 200, 150)
+local abscissaColorTop = Color(100, 200, 100, 150)
 local textColorLevel = Color(200, 200, 200)
-local totalColor = Color(0, 0, 0, 100)
+local toptext = Color(255, 255, 255, 100)
+local toptextbg = Color(0, 0, 0, 100)
+local totalColor = Color(150, 150, 150, 100)
 
 surface.CreateFont('DLib.NetGraphLevel', {
 	font = 'Roboto',
@@ -102,6 +106,12 @@ surface.CreateFont('DLib.NetGraphTypes', {
 	weight = 500
 })
 
+surface.CreateFont('DLib.NetGraphLogo', {
+	font = 'Roboto',
+	size = 32,
+	weight = 600
+})
+
 local function HUDPaint()
 	if net_graph:GetInt() < 5 then return end
 	local W, H = ScrW(), ScrH()
@@ -112,6 +122,11 @@ local function HUDPaint()
 
 	local S, E = abscissa, graphTop
 	local diff = S - E
+
+	DLib.HUDCommons.WordBox('DLib net.* library network usage report (all addons)', 'DLib.NetGraphLogo', 20, E - 40, toptext, toptextbg)
+
+	surface.SetDrawColor(abscissaColorTop)
+	surface.DrawRect(0, graphTop, W, 5)
 
 	surface.SetDrawColor(abscissaColor)
 	surface.SetTextColor(textColorLevel)
@@ -171,10 +186,8 @@ local function HUDPaint()
 	surface.SetFont('DLib.NetGraphTypes')
 
 	for group, _ in pairs(prevNodes) do
-		surface.SetTextColor(net.GraphGroups[group].color)
-		surface.SetTextPos(tx, ty)
 		local t = net.GraphGroups[group].name
-		surface.DrawText(t)
+		DLib.HUDCommons.WordBox(t, nil, tx, ty, net.GraphGroups[group].color, toptextbg)
 		local w, h = surface.GetTextSize(t)
 		tx = tx + 20 + w
 
