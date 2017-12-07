@@ -109,7 +109,7 @@ surface.CreateFont('DLib.NetGraphTypes', {
 
 surface.CreateFont('DLib.NetGraphLogo', {
 	font = 'Roboto',
-	size = 32,
+	size = 24,
 	weight = 600
 })
 
@@ -184,7 +184,7 @@ local function HUDPaint()
 		end
 	end
 
-	local tx, ty = 10, graphTop - 80
+	local tx, ty = 10, graphTop - 70
 	surface.SetFont('DLib.NetGraphTypes')
 
 	for group, _ in pairs(prevNodes) do
