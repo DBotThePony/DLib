@@ -91,6 +91,7 @@ local abscissaColor = Color(200, 200, 200, 150)
 local abscissaColorTop = Color(100, 200, 100, 150)
 local textColorLevel = Color(200, 200, 200)
 local toptext = Color(255, 255, 255, 100)
+local toptext2 = Color(255, 255, 255, 150)
 local toptextbg = Color(0, 0, 0, 100)
 local totalColor = Color(150, 150, 150, 100)
 
@@ -124,6 +125,7 @@ local function HUDPaint()
 	local diff = S - E
 
 	DLib.HUDCommons.WordBox('DLib net.* library network usage report (all addons)', 'DLib.NetGraphLogo', 20, E - 40, toptext, toptextbg)
+	DLib.HUDCommons.WordBox(string.format('graph scale: %.1f; current DL: %.1f kb / UL: %.f1 kb', scale, frameDownload / 1024, frameUpload / 1024), 'DLib.NetGraphLevel', W - 400, E - 25, toptext2, toptextbg)
 
 	surface.SetDrawColor(abscissaColorTop)
 	surface.DrawRect(0, graphTop, W, 5)
@@ -182,7 +184,7 @@ local function HUDPaint()
 		end
 	end
 
-	local tx, ty = 10, abscissa + 20
+	local tx, ty = 10, graphTop - 80
 	surface.SetFont('DLib.NetGraphTypes')
 
 	for group, _ in pairs(prevNodes) do
@@ -193,7 +195,7 @@ local function HUDPaint()
 
 		if tx >= W - 60 then
 			tx = 10
-			ty = ty + 20
+			ty = ty - 20
 		end
 	end
 end
