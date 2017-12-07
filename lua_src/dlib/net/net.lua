@@ -142,7 +142,7 @@ do
 
 		length = length - 16
 
-		net.CURRENT_OBJECT = net.CreateMessage(length, true)
+		net.CURRENT_OBJECT = net.CreateMessage(length, true, strName)
 		net.CURRENT_OBJECT:SetMessageName(strName)
 		local status = ProtectedCall(function() triggerNetworkEvent(length, ply, net.CURRENT_OBJECT) end)
 		net.CURRENT_OBJECT = nil

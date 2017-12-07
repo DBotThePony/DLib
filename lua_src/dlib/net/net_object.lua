@@ -24,6 +24,8 @@ local ipairs = ipairs
 local pairs = pairs
 local math = math
 local ProtectedCall = ProtectedCall
+local SysTime = SysTime
+local string = string
 
 local traceback = debug.traceback
 local nnet = DLib.nativeNet
@@ -52,7 +54,7 @@ end
 local messageMeta = DLib.netMessageMeta or {}
 DLib.netMessageMeta = messageMeta
 
-function net.CreateMessage(length, read)
+function net.CreateMessage(length, read, msg)
 	local obj = setmetatable({}, messageMeta)
 	read = read or false
 	length = length or 0
@@ -64,7 +66,7 @@ function net.CreateMessage(length, read)
 	obj.isReading = read
 
 	if read then
-		obj:ReadNetwork(length)
+		obj:ReadNetwork(length, msg)
 	else
 		for i = 1, length do
 			table.insert(obj.bits, 0)
@@ -123,7 +125,8 @@ if net.NetworkTransferMethod then
 		return self
 	end
 else
-	function messageMeta:ReadNetwork(length)
+	function messageMeta:ReadNetwork(length, msg)
+		local time = SysTime()
 		local bits = length % 32
 		local bytes = (length - bits) / 32
 		local bitsBuffer = self.bits
@@ -143,6 +146,12 @@ else
 
 		for i = 1, bits do
 			bitsBuffer[#bitsBuffer + 1] = ReadBitNative()
+		end
+
+		local ntime = (SysTime() - time) * 1000
+
+		if ntime > 20 and DLib.DEBUG_MODE:GetBool() then
+			DLib.Message('LNetworkMessage:ReadNetwork() - took ' .. string.format('%.2f ms', ntime) .. ' to read ' .. msg .. ' from network!')
 		end
 
 		return self
