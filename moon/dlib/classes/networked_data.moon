@@ -90,12 +90,19 @@ class DLib.NetworkedData extends DLib.ModifierBase
 		@NW_NextObjectID_CL = 2 ^ 28
 
 		if SERVER
-			util.AddNetworkString(@NW_Create)
-			util.AddNetworkString(@NW_Modify)
-			util.AddNetworkString(@NW_Remove)
-			util.AddNetworkString(@NW_ReceiveID)
-			util.AddNetworkString(@NW_Rejected)
-			util.AddNetworkString(@NW_Broadcast)
+			net.pool(@NW_Create)
+			net.pool(@NW_Modify)
+			net.pool(@NW_Remove)
+			net.pool(@NW_ReceiveID)
+			net.pool(@NW_Rejected)
+			net.pool(@NW_Broadcast)
+
+		net.BindMessageGroup(@NW_Create, 'dlibnwobject')
+		net.BindMessageGroup(@NW_Modify, 'dlibnwobject')
+		net.BindMessageGroup(@NW_Remove, 'dlibnwobject')
+		net.BindMessageGroup(@NW_ReceiveID, 'dlibnwobject')
+		net.BindMessageGroup(@NW_Rejected, 'dlibnwobject')
+		net.BindMessageGroup(@NW_Broadcast, 'dlibnwobject')
 
 		net.Receive @NW_Create, (len = 0, ply = NULL, obj) -> @OnNetworkedCreated(ply, len, obj)
 		net.Receive @NW_Modify, (len = 0, ply = NULL, obj) -> @OnNetworkedModify(ply, len, obj)

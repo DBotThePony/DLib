@@ -13,7 +13,17 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
-if SERVER then return end
+if SERVER then
+	function net.RegisterGraphGroup()
+
+	end
+
+	function net.BindMessageGroup()
+
+	end
+
+	return
+end
 
 local net = DLib.netModule
 local net_graph = GetConVar('net_graph')
@@ -183,6 +193,10 @@ net.RegisterGraphGroup('Total', '__TOTAL').color = totalColor
 net.RegisterGraphGroup('Usermessages')
 
 net.RegisterGraphGroup('ULX/ULib', 'ulib')
+net.RegisterGraphGroup('DLib generic', 'dlib')
+net.RegisterGraphGroup('DLib messages', 'dlibmessages')
+net.RegisterGraphGroup('DLib nwvars', 'dlibvars')
+net.RegisterGraphGroup('DLib Networked Object', 'dlibnwobject')
 
 -- some known messages
 net.BindMessageGroup('dlib.umsg', 'Usermessages')
@@ -193,3 +207,16 @@ net.BindMessageGroup('XGUI.PreviewBanMessage', 'ulib')
 net.BindMessageGroup('XGUI.SaveBanMessage', 'ulib')
 net.BindMessageGroup('XGUI.UpdateMotdData', 'ulib')
 net.BindMessageGroup('XGUI.SetMotdData', 'ulib')
+
+net.BindMessageGroup('dlib.physgun.player', 'dlib')
+net.BindMessageGroup('dlib.physgun.playerangles', 'dlib')
+net.BindMessageGroup('dlib.friendsystem', 'dlib')
+net.BindMessageGroup('dlib.getinfo.replicate', 'dlib')
+net.BindMessageGroup('dlib.updatelang', 'dlib')
+net.BindMessageGroup('dlib.friendstatus', 'dlib')
+net.BindMessageGroup('dlib.addchattext', 'dlibmessages')
+
+net.BindMessageGroup('dlib.NetworkedVar', 'dlibvars')
+net.BindMessageGroup('dlib.NetworkedEntityVars', 'dlibvars')
+net.BindMessageGroup('dlib.NetworkedVarFull', 'dlibvars')
+net.BindMessageGroup('dlib.NetworkedRemove', 'dlibvars')

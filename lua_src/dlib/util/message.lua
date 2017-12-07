@@ -106,6 +106,7 @@ return function(tableTarget, moduleName, moduleColor)
 	local nwname = 'DLib.Message.' .. util.CRC(moduleName)
 
 	if SERVER then net.pool(nwname) end
+	if net.BindMessageGroup then net.BindMessageGroup(nwname, 'dlibmessages') end
 	local PREFIX = '[' .. moduleName .. '] '
 	local PREFIX_COLOR = moduleColor or Color(0, 200, 0)
 

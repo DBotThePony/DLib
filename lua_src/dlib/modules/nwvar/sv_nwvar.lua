@@ -13,10 +13,10 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
-util.AddNetworkString('DLib.NetworkedVar')
-util.AddNetworkString('DLib.NetworkedEntityVars')
-util.AddNetworkString('DLib.NetworkedVarFull')
-util.AddNetworkString('DLib.NetworkedRemove')
+net.pool('DLib.NetworkedVar')
+net.pool('DLib.NetworkedEntityVars')
+net.pool('DLib.NetworkedVarFull')
+net.pool('DLib.NetworkedRemove')
 
 local entMeta = FindMetaTable('Entity')
 

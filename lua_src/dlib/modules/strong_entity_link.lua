@@ -271,7 +271,7 @@ if CLIENT then
 		STRONG_ENTITIES_REGISTRY[ent] = nil
 	end)
 else
-    util.AddNetworkString('StrongEntity.Removed')
+    net.pool('StrongEntity.Removed')
     local avaliableEntities = {}
 
     local function checkEntities()
