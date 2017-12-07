@@ -90,16 +90,21 @@ function messageMeta:ReadNetwork(length)
 	local bitsBuffer = self.bits
 
 	if bytes ~= 0 then
-		-- readData = ReadDataNative(bytes)
+		local readData = ReadDataNative(bytes)
 
-		for i = 1, bytes do
-			local readByte = ReadUIntNative(8)
-			local point = #bitsBuffer
+		for byte = 1, bytes, 100 do
+			local max = math.min(byte + 99, bytes)
+			local readBytes = {readData:byte(byte, max)}
 
-			for iteration = 1, 8 do
-				local div = readByte % 2
-				readByte = (readByte - div) / 2
-				bitsBuffer[point + iteration] = div
+			for i = 1, #readBytes do
+				local readByte = readBytes[i]
+				local point = #bitsBuffer
+
+				for iteration = 1, 8 do
+					local div = readByte % 2
+					readByte = (readByte - div) / 2
+					bitsBuffer[point + iteration] = div
+				end
 			end
 		end
 	end
@@ -116,21 +121,26 @@ function messageMeta:WriteNetwork()
 	local bitsArray = self.bits
 	local bitsLast = bits % 8
 	local bytes = (bits - bitsLast) / 8
-	local numbers = {}
 
-	for byte = 1, bytes do
-		local mark = (byte - 1) * 8
+	for byte = 1, bytes, 100 do
+		local numbers = {}
+		local slice = math.min(byte + 99, bytes)
 
-		WriteUIntNative(
-			bitsArray[mark + 1] +
-			bitsArray[mark + 2] * 2 +
-			bitsArray[mark + 3] * 4 +
-			bitsArray[mark + 4] * 8 +
-			bitsArray[mark + 5] * 16 +
-			bitsArray[mark + 6] * 32 +
-			bitsArray[mark + 7] * 64 +
-			bitsArray[mark + 8] * 128
-		, 8)
+		for num = byte, slice do
+			local mark = (num - 1) * 8
+
+			numbers[#numbers + 1] =
+				bitsArray[mark + 1] +
+				bitsArray[mark + 2] * 2 +
+				bitsArray[mark + 3] * 4 +
+				bitsArray[mark + 4] * 8 +
+				bitsArray[mark + 5] * 16 +
+				bitsArray[mark + 6] * 32 +
+				bitsArray[mark + 7] * 64 +
+				bitsArray[mark + 8] * 128
+		end
+
+		WriteDataNative(string.char(unpack(numbers)), slice)
 	end
 
 	for i = bytes * 8 + 1, bits do
