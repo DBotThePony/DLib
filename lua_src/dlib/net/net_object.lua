@@ -33,6 +33,11 @@ local ReadHeader = nnet.ReadHeader
 local WriteBitNative = nnet.WriteBit
 local ReadBitNative = nnet.ReadBit
 
+local WriteDataNative = nnet.WriteData
+local WriteUIntNative = nnet.WriteUInt
+local ReadDataNative = nnet.ReadData
+local ReadUIntNative = nnet.ReadUInt
+
 local function ErrorNoHalt(message)
 	if not DLib.DEBUG_MODE:GetBool() then return end
 	return ErrorNoHalt2(traceback(message) .. '\n')
@@ -80,8 +85,56 @@ end
 debug.getregistry().LNetworkMessage = messageMeta
 
 function messageMeta:ReadNetwork(length)
-	for i = 1, length do
-		table.insert(self.bits, ReadBitNative())
+	local bits = length % 8
+	local bytes = (length - bits) / 8
+	local bitsBuffer = self.bits
+
+	if bytes ~= 0 then
+		-- readData = ReadDataNative(bytes)
+
+		for i = 1, bytes do
+			local readByte = ReadUIntNative(8)
+			local point = #bitsBuffer
+
+			for iteration = 1, 8 do
+				local div = readByte % 2
+				readByte = (readByte - div) / 2
+				bitsBuffer[point + iteration] = div
+			end
+		end
+	end
+
+	for i = 1, bits do
+		bitsBuffer[#bitsBuffer + 1] = ReadBitNative()
+	end
+
+	return self
+end
+
+function messageMeta:WriteNetwork()
+	local bits = #self.bits
+	local bitsArray = self.bits
+	local bitsLast = bits % 8
+	local bytes = (bits - bitsLast) / 8
+	local numbers = {}
+
+	for byte = 1, bytes do
+		local mark = (byte - 1) * 8
+
+		WriteUIntNative(
+			bitsArray[mark + 1] +
+			bitsArray[mark + 2] * 2 +
+			bitsArray[mark + 3] * 4 +
+			bitsArray[mark + 4] * 8 +
+			bitsArray[mark + 5] * 16 +
+			bitsArray[mark + 6] * 32 +
+			bitsArray[mark + 7] * 64 +
+			bitsArray[mark + 8] * 128
+		, 8)
+	end
+
+	for i = bytes * 8 + 1, bits do
+		WriteBitNative(bitsArray[i])
 	end
 
 	return self
@@ -185,12 +238,9 @@ function messageMeta:SendToServer()
 	if not msg then error('Starting a net message without name!') end
 
 	nnet.Start(msg, self:GetUnreliable())
-
-	for i, bit in ipairs(self.bits) do
-		WriteBitNative(bit)
-	end
-
+	self:WriteNetwork()
 	nnet.SendToServer()
+	net.CURRENT_OBJECT_TRACE = nil
 end
 
 local function CheckSendInput(targets)
@@ -223,11 +273,7 @@ function messageMeta:Send(targets)
 	if not msg then error('Starting a net message without name!') end
 
 	nnet.Start(msg, self:GetUnreliable())
-
-	for i, bit in ipairs(self.bits) do
-		WriteBitNative(bit)
-	end
-
+	self:WriteNetwork()
 	nnet.Send(targets)
 	net.CURRENT_OBJECT_TRACE = nil
 end
@@ -241,11 +287,7 @@ function messageMeta:SendOmit(targets)
 	if not msg then error('Starting a net message without name!') end
 
 	nnet.Start(msg, self:GetUnreliable())
-
-	for i, bit in ipairs(self.bits) do
-		WriteBitNative(bit)
-	end
-
+	self:WriteNetwork()
 	nnet.SendOmit(targets)
 	net.CURRENT_OBJECT_TRACE = nil
 end
@@ -261,11 +303,7 @@ function messageMeta:SendPAS(targetPos)
 	if not msg then error('Starting a net message without name!') end
 
 	nnet.Start(msg, self:GetUnreliable())
-
-	for i, bit in ipairs(self.bits) do
-		WriteBitNative(bit)
-	end
-
+	self:WriteNetwork()
 	nnet.SendPAS(targetPos)
 	net.CURRENT_OBJECT_TRACE = nil
 end
@@ -281,11 +319,7 @@ function messageMeta:SendPVS(targetPos)
 	if not msg then error('Starting a net message without name!') end
 
 	nnet.Start(msg, self:GetUnreliable())
-
-	for i, bit in ipairs(self.bits) do
-		WriteBitNative(bit)
-	end
-
+	self:WriteNetwork()
 	nnet.SendPVS(targetPos)
 	net.CURRENT_OBJECT_TRACE = nil
 end
@@ -297,11 +331,7 @@ function messageMeta:Broadcast()
 	if not msg then error('Starting a net message without name!') end
 
 	nnet.Start(msg, self:GetUnreliable())
-
-	for i, bit in ipairs(self.bits) do
-		WriteBitNative(bit)
-	end
-
+	self:WriteNetwork()
 	nnet.Broadcast()
 	net.CURRENT_OBJECT_TRACE = nil
 end
