@@ -27,7 +27,7 @@ local surface = surface
 local string = string
 
 net.GraphNodesMax = 100
-net.Graph = {}
+net.Graph = net.Graph or {}
 net.GraphChannels = net.GraphChannels or {}
 net.GraphGroups = net.GraphGroups or {}
 
