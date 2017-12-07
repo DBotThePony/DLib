@@ -38,6 +38,12 @@ local WriteUIntNative = nnet.WriteUInt
 local ReadDataNative = nnet.ReadData
 local ReadUIntNative = nnet.ReadUInt
 
+net.NetworkSliceBuffer = 500
+
+-- true - readwrite data
+-- false - 32 uints
+net.NetworkTransferMethod = false
+
 local function ErrorNoHalt(message)
 	if not DLib.DEBUG_MODE:GetBool() then return end
 	return ErrorNoHalt2(traceback(message) .. '\n')
@@ -84,70 +90,152 @@ end
 
 debug.getregistry().LNetworkMessage = messageMeta
 
-function messageMeta:ReadNetwork(length)
-	local bits = length % 8
-	local bytes = (length - bits) / 8
-	local bitsBuffer = self.bits
+if net.NetworkTransferMethod then
+	function messageMeta:ReadNetwork(length)
+		local bits = length % 8
+		local bytes = (length - bits) / 8
+		local bitsBuffer = self.bits
 
-	if bytes ~= 0 then
-		local readData = ReadDataNative(bytes)
+		if bytes ~= 0 then
+			local readData = ReadDataNative(bytes)
 
-		for byte = 1, bytes, 100 do
-			local max = math.min(byte + 99, bytes)
-			local readBytes = {readData:byte(byte, max)}
+			for byte = 1, bytes, net.NetworkSliceBuffer do
+				local max = math.min(byte + net.NetworkSliceBuffer - 1, bytes)
+				local readBytes = {readData:byte(byte, max)}
 
-			for i = 1, #readBytes do
-				local readByte = readBytes[i]
+				for i = 1, #readBytes do
+					local readByte = readBytes[i]
+					local point = #bitsBuffer
+
+					for iteration = 1, 8 do
+						local div = readByte % 2
+						readByte = (readByte - div) / 2
+						bitsBuffer[point + iteration] = div
+					end
+				end
+			end
+		end
+
+		for i = 1, bits do
+			bitsBuffer[#bitsBuffer + 1] = ReadBitNative()
+		end
+
+		return self
+	end
+else
+	function messageMeta:ReadNetwork(length)
+		local bits = length % 32
+		local bytes = (length - bits) / 32
+		local bitsBuffer = self.bits
+
+		if bytes ~= 0 then
+			for byte = 1, bytes do
+				local readByte = ReadUIntNative(32)
 				local point = #bitsBuffer
 
-				for iteration = 1, 8 do
+				for iteration = 1, 32 do
 					local div = readByte % 2
 					readByte = (readByte - div) / 2
 					bitsBuffer[point + iteration] = div
 				end
 			end
 		end
-	end
 
-	for i = 1, bits do
-		bitsBuffer[#bitsBuffer + 1] = ReadBitNative()
-	end
-
-	return self
-end
-
-function messageMeta:WriteNetwork()
-	local bits = #self.bits
-	local bitsArray = self.bits
-	local bitsLast = bits % 8
-	local bytes = (bits - bitsLast) / 8
-
-	for byte = 1, bytes, 100 do
-		local numbers = {}
-		local slice = math.min(byte + 99, bytes)
-
-		for num = byte, slice do
-			local mark = (num - 1) * 8
-
-			numbers[#numbers + 1] =
-				bitsArray[mark + 1] +
-				bitsArray[mark + 2] * 2 +
-				bitsArray[mark + 3] * 4 +
-				bitsArray[mark + 4] * 8 +
-				bitsArray[mark + 5] * 16 +
-				bitsArray[mark + 6] * 32 +
-				bitsArray[mark + 7] * 64 +
-				bitsArray[mark + 8] * 128
+		for i = 1, bits do
+			bitsBuffer[#bitsBuffer + 1] = ReadBitNative()
 		end
 
-		WriteDataNative(string.char(unpack(numbers)), slice)
+		return self
 	end
+end
 
-	for i = bytes * 8 + 1, bits do
-		WriteBitNative(bitsArray[i])
+if net.NetworkTransferMethod then
+	function messageMeta:WriteNetwork()
+		local bits = #self.bits
+		local bitsArray = self.bits
+		local bitsLast = bits % 8
+		local bytes = (bits - bitsLast) / 8
+
+		for byte = 1, bytes, net.NetworkSliceBuffer do
+			local numbers = {}
+			local slice = math.min(byte + net.NetworkSliceBuffer - 1, bytes)
+
+			for num = byte, slice do
+				local mark = (num - 1) * 8
+
+				numbers[#numbers + 1] =
+				bitsArray[mark + 1] +
+				bitsArray[mark + 2] * 0x2 +
+				bitsArray[mark + 3] * 0x4 +
+				bitsArray[mark + 4] * 0x8 +
+				bitsArray[mark + 5] * 0x10 +
+				bitsArray[mark + 6] * 0x20 +
+				bitsArray[mark + 7] * 0x40 +
+				bitsArray[mark + 8] * 0x80
+			end
+
+			WriteDataNative(string.char(unpack(numbers)), slice)
+		end
+
+		for i = bytes * 8 + 1, bits do
+			WriteBitNative(bitsArray[i])
+		end
+
+		return self
 	end
+else
+	function messageMeta:WriteNetwork()
+		local bits = #self.bits
+		local bitsArray = self.bits
+		local bitsLast = bits % 32
+		local bytes = (bits - bitsLast) / 32
 
-	return self
+		for byte = 1, bytes do
+			local mark = (byte - 1) * 32
+
+			local num =
+				bitsArray[mark + 1] +
+				bitsArray[mark + 2] * 0x2 +
+				bitsArray[mark + 3] * 0x4 +
+				bitsArray[mark + 4] * 0x8 +
+				bitsArray[mark + 5] * 0x10 +
+				bitsArray[mark + 6] * 0x20 +
+				bitsArray[mark + 7] * 0x40 +
+				bitsArray[mark + 8] * 0x80 +
+				bitsArray[mark + 9] * 0x100 +
+				bitsArray[mark + 10] * 0x200 +
+				bitsArray[mark + 11] * 0x400 +
+				bitsArray[mark + 12] * 0x800 +
+				bitsArray[mark + 13] * 0x1000 +
+				bitsArray[mark + 14] * 0x2000 +
+				bitsArray[mark + 15] * 0x4000 +
+				bitsArray[mark + 16] * 0x8000 +
+				bitsArray[mark + 17] * 0x10000 +
+				bitsArray[mark + 18] * 0x20000 +
+				bitsArray[mark + 19] * 0x40000 +
+				bitsArray[mark + 20] * 0x80000 +
+				bitsArray[mark + 21] * 0x100000 +
+				bitsArray[mark + 22] * 0x200000 +
+				bitsArray[mark + 23] * 0x400000 +
+				bitsArray[mark + 24] * 0x800000 +
+				bitsArray[mark + 25] * 0x1000000 +
+				bitsArray[mark + 26] * 0x2000000 +
+				bitsArray[mark + 27] * 0x4000000 +
+				bitsArray[mark + 28] * 0x8000000 +
+				bitsArray[mark + 29] * 0x10000000 +
+				bitsArray[mark + 30] * 0x20000000 +
+				bitsArray[mark + 31] * 0x40000000 +
+				bitsArray[mark + 32] * 0x80000000
+
+			WriteUIntNative(num, 32)
+		end
+
+		for i = bytes * 32 + 1, bits do
+			WriteBitNative(bitsArray[i])
+		end
+
+		return self
+	end
 end
 
 function messageMeta:Reset()
