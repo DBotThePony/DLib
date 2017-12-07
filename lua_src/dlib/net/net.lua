@@ -114,6 +114,7 @@ end
 
 do
 	local gotBuffer = {}
+	local heavyBuffer = {}
 
 	function net.Incoming2(length, ply)
 		local indetifier = ReadHeader()
@@ -124,6 +125,11 @@ do
 
 		if CLIENT then
 			local graph = net.GraphChannels[strName] and net.GraphChannels[strName].id or 'other'
+
+			if graph == 'other' then
+				heavyBuffer[strName] = (heavyBuffer[strName] or 0) + length / 8
+			end
+
 			gotBuffer[graph] = (gotBuffer[graph] or 0) + length / 8
 		end
 
@@ -147,6 +153,9 @@ do
 	end
 
 	if CLIENT then
+		local AUTO_REGISTER = CreateConVar('net_graph_dlib_auto', '1', {FCVAR_ARCHIVE}, 'Auto register netmessages which produce heavy traffic as separated group')
+		local AUTO_REGISTER_KBYTES = CreateConVar('net_graph_dlib_kbytes', '16', {FCVAR_ARCHIVE}, 'Auto register kilobytes limit per 5 seconds')
+
 		local function flushGraph()
 			local frame = gotBuffer
 			gotBuffer = {}
@@ -168,7 +177,23 @@ do
 			net.RecalculateGraphScales()
 		end
 
+		local function flushHeavy()
+			local frame = heavyBuffer
+			heavyBuffer = {}
+
+			if not AUTO_REGISTER:GetBool() then return end
+			local value = AUTO_REGISTER_KBYTES:GetFloat() * 1024
+
+			for msgName, bytes in pairs(frame) do
+				if bytes >= value then
+					net.RegisterGraphGroup('A: ' .. msgName:sub(1, 1):upper() .. msgName:sub(2), msgName)
+					net.BindMessageGroup(msgName, msgName)
+				end
+			end
+		end
+
 		timer.Create('DLib.netGraph', 1, 0, flushGraph)
+		timer.Create('DLib.netGraph.heavy', 10, 0, flushHeavy)
 	end
 end
 
