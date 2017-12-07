@@ -160,7 +160,7 @@ net.receive('dlib.umsg', function(len, ply, networkObject)
 		return
 	end
 
-	networkObject:MoveBitsBuffer(33, (#data.msgName + 1) * 8)
+	networkObject:MoveBitsBuffer(32, (#data.msgName + 1) * 8)
 	networkObject:Seek(32)
 	networkObject:WriteString(data.msgName)
 	local point = networkObject.pointer
@@ -172,6 +172,7 @@ net.receive('dlib.umsg', function(len, ply, networkObject)
 	newObject.client = ply
 	newObject.ply = ply
 	setmetatable(newObject, messageMeta)
+
 	local triggerNetworkMessage = data.Function
 	local status = ProtectedCall(function() triggerNetworkMessage(newObject, unpack(data.PreArgs, 1, #data.PreArgs)) end)
 

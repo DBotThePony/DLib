@@ -40,13 +40,11 @@ local function ErrorNoHalt(message)
 end
 
 function messageMeta:WriteBit(bitIn)
-	if self.isReading then error('Message is read-only') end
-
 	if type(bitIn) == 'boolean' then
 		bitIn = bitIn and 1 or 0
 	end
 
-	if DLib.DEBUG_MODE:GetBool() then
+	if not DLib.DEBUG_MODE:GetBool() then
 		if bitIn == nil then
 			ErrorNoHalt('WriteBit - got nil as argument!')
 			bitIn = 0

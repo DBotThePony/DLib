@@ -92,7 +92,7 @@ function umsg.String(stringIn)
 end
 
 function umsg.Bool(bitIn)
-	net.WriteBit(tobool(bitIn))
+	net.WriteBool(tobool(bitIn))
 end
 
 function umsg.Char(valueIn)
