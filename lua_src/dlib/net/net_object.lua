@@ -338,16 +338,67 @@ end
 DLib.util.AccessorFuncJIT(messageMeta, 'm_MessageName', 'MessageName')
 DLib.util.AccessorFuncJIT(messageMeta, 'm_isUnreliable', 'Unreliable')
 
-function messageMeta:SendToServer()
-	if SERVER then error('Not a client!') end
+if CLIENT then
+	local gotBuffer = {}
+	local heavyBuffer = {}
 
-	local msg = self:GetMessageName()
-	if not msg then error('Starting a net message without name!') end
+	function messageMeta:SendToServer()
+		local strName = self:GetMessageName()
+		if not strName then error('Starting a net message without name!') end
 
-	nnet.Start(msg, self:GetUnreliable())
-	self:WriteNetwork()
-	nnet.SendToServer()
-	net.CURRENT_OBJECT_TRACE = nil
+		local graph = net.GraphChannels[strName] and net.GraphChannels[strName].id or 'other'
+
+		if graph == 'other' then
+			heavyBuffer[strName] = (heavyBuffer[strName] or 0) + (#self.bits + 16) / 8
+		end
+
+		gotBuffer[graph] = (gotBuffer[graph] or 0) + (#self.bits + 16) / 8
+
+		nnet.Start(strName, self:GetUnreliable())
+		self:WriteNetwork()
+		nnet.SendToServer()
+		net.CURRENT_OBJECT_TRACE = nil
+	end
+
+	local AUTO_REGISTER = CreateConVar('net_graph_dlib_auto', '1', {FCVAR_ARCHIVE}, 'Auto register netmessages which produce heavy traffic as separated group')
+	local AUTO_REGISTER_KBYTES = CreateConVar('net_graph_dlib_kbytes', '16', {FCVAR_ARCHIVE}, 'Auto register kilobytes limit per 5 seconds')
+
+	local function flushGraph()
+		local frame = gotBuffer
+		gotBuffer = {}
+
+		local value = 0
+
+		for i, value2 in pairs(frame) do
+			value = value + value2
+		end
+
+		frame.__TOTAL = value
+
+		if #net.GraphUL >= net.GraphNodesMax then
+			table.remove(net.GraphUL, 1)
+		end
+
+		table.insert(net.GraphUL, frame)
+	end
+
+	local function flushHeavy()
+		local frame = heavyBuffer
+		heavyBuffer = {}
+
+		if not AUTO_REGISTER:GetBool() then return end
+		local value = AUTO_REGISTER_KBYTES:GetFloat() * 1024
+
+		for msgName, bytes in pairs(frame) do
+			if bytes >= value then
+				net.RegisterGraphGroup('A: ' .. msgName:sub(1, 1):upper() .. msgName:sub(2), msgName)
+				net.BindMessageGroup(msgName, msgName)
+			end
+		end
+	end
+
+	timer.Create('DLib.netGraph.UL', 1, 0, flushGraph)
+	timer.Create('DLib.netGraph.heavy.UL', 10, 0, flushHeavy)
 end
 
 local function CheckSendInput(targets)

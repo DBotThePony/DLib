@@ -39,6 +39,7 @@ local DLib = DLib
 
 net.GraphNodesMax = 100
 net.Graph = net.Graph or {}
+net.GraphUL = net.GraphUL or {}
 net.GraphChannels = net.GraphChannels or {}
 net.GraphGroups = net.GraphGroups or {}
 
@@ -52,6 +53,7 @@ local frameDownload = 0
 
 function net.RecalculateGraphScales()
 	local total = 0
+	local totalUL = 0
 	local max = 0
 	local num = math.max(#net.Graph, 1)
 
@@ -63,9 +65,25 @@ function net.RecalculateGraphScales()
 		end
 	end
 
+	for i, frame in ipairs(net.GraphUL) do
+		totalUL = totalUL + frame.__TOTAL
+
+		if max < frame.__TOTAL then
+			max = frame.__TOTAL
+		end
+	end
+
 	averageDownload = total / num
+	averageUpload = totalUL / num
 	scale = math.max(max * 1.25, minimalScale)
-	frameDownload = net.Graph[#net.Graph].__TOTAL
+
+	if #net.Graph ~= 0 then
+		frameDownload = net.Graph[#net.Graph].__TOTAL
+	end
+
+	if #net.GraphUL ~= 0 then
+		frameUpload = net.GraphUL[#net.GraphUL].__TOTAL
+	end
 end
 
 function net.RegisterGraphGroup(groupName, groupID, colorSeed)
@@ -125,7 +143,8 @@ local function HUDPaint()
 	local diff = S - E
 
 	DLib.HUDCommons.WordBox('DLib net.* library network usage report (all addons)', 'DLib.NetGraphLogo', 20, E - 40, toptext, toptextbg)
-	DLib.HUDCommons.WordBox(string.format('graph scale: %.1f; current DL: %.1f kb / UL: %.f1 kb', scale, frameDownload / 1024, frameUpload / 1024), 'DLib.NetGraphLevel', W - 400, E - 25, toptext2, toptextbg)
+	DLib.HUDCommons.WordBox(string.format('graph scale: %.1f kb/s; current DL: %.1f kb / UL: %.1f kb | DL: %.1f kb / UL: %.1f kb',
+		scale / 1024, frameDownload / 1024, frameUpload / 1024, averageDownload / 1024, averageUpload / 1024), 'DLib.NetGraphLevel', W - 500, E - 25, toptext2, toptextbg)
 
 	surface.SetDrawColor(abscissaColorTop)
 	surface.DrawRect(0, graphTop, W, 5)
@@ -145,22 +164,36 @@ local function HUDPaint()
 	surface.DrawRect(0, abscissa, W, 5)
 
 	local prevNodes = {}
+	local prevNodesUL = {}
 	local hitGroups
-	local allGroups = {}
 
-	local function doDrawGraph(i, group, value)
+	local function doDrawGraph(i, group, value, dir)
 		if group == '__TOTAL' then group = '__total' end
 		local color, lastX, lastY
-		local prev = prevNodes[group]
-		local x, y = i * nodeStep, S - value / scale * diff
+		local prev = dir and prevNodes[group] or not dir and prevNodesUL[group] or nil
+		local x, y
+
+		if dir then
+			x, y = i * nodeStep, S - value / scale * diff
+		else
+			x, y = i * nodeStep, S + 7 + value / scale * diff
+		end
 
 		if prev then
 			lastX, lastY = prev[1], prev[2]
 		else
-			lastX, lastY = (i - 1) * nodeStep, S
+			if dir then
+				lastX, lastY = (i - 1) * nodeStep, S
+			else
+				lastX, lastY = (i - 1) * nodeStep, S + 7
+			end
 		end
 
-		prevNodes[group] = {x, y}
+		if dir then
+			prevNodes[group] = {x, y}
+		else
+			prevNodesUL[group] = {x, y}
+		end
 		color = net.GraphGroups[group].color
 
 		surface.SetDrawColor(color)
@@ -172,14 +205,30 @@ local function HUDPaint()
 		hitGroups = {}
 
 		for group, value in pairs(frame) do
-			hitGroups[doDrawGraph(i, group, value)] = true
+			hitGroups[doDrawGraph(i, group, value, true)] = true
 		end
 
 		for group, data in pairs(prevNodes) do
 			if not hitGroups[group] then
-				doDrawGraph(i, group, 0)
+				doDrawGraph(i, group, 0, true)
 				data[1] = (i - 1) * nodeStep
-				data[2] = S
+				data[2] = S - 5
+			end
+		end
+	end
+
+	for i, frame in ipairs(net.GraphUL) do
+		hitGroups = {}
+
+		for group, value in pairs(frame) do
+			hitGroups[doDrawGraph(i, group, value, false)] = true
+		end
+
+		for group, data in pairs(prevNodesUL) do
+			if not hitGroups[group] then
+				doDrawGraph(i, group, 0, false)
+				data[1] = (i - 1) * nodeStep
+				data[2] = S + 7
 			end
 		end
 	end
