@@ -78,7 +78,7 @@ end
 
 local abscissaColor = Color(200, 200, 200, 150)
 local textColorLevel = Color(200, 200, 200)
-local totalColor = Color(0, 0, 0)
+local totalColor = Color(0, 0, 0, 100)
 
 surface.CreateFont('DLib.NetGraphLevel', {
 	font = 'Roboto',
@@ -182,5 +182,14 @@ net.RegisterGraphGroup('Other').color = Color(255, 255, 255)
 net.RegisterGraphGroup('Total', '__TOTAL').color = totalColor
 net.RegisterGraphGroup('Usermessages')
 
+net.RegisterGraphGroup('ULX/ULib', 'ulib')
+
 -- some known messages
 net.BindMessageGroup('dlib.umsg', 'Usermessages')
+net.BindMessageGroup('URPC', 'ulib')
+net.BindMessageGroup('XGUI.AddVotemaps', 'ulib')
+net.BindMessageGroup('XGUI.RemoveVotemaps', 'ulib')
+net.BindMessageGroup('XGUI.PreviewBanMessage', 'ulib')
+net.BindMessageGroup('XGUI.SaveBanMessage', 'ulib')
+net.BindMessageGroup('XGUI.UpdateMotdData', 'ulib')
+net.BindMessageGroup('XGUI.SetMotdData', 'ulib')
