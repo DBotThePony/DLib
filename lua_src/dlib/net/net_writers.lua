@@ -308,8 +308,18 @@ function messageMeta:WriteStringInternal(stringIn, direction)
 		return self
 	end
 
-	for i, char in ipairs({stringIn:byte(1, #stringIn)}) do
-		self:WriteBitsRawDirection(DLib.bitworker.UIntegerToBinary(char), 8, direction)
+	local writtenZero = false
+	local len = #stringIn
+
+	for byte = 1, len, 500 do
+		for i, char in ipairs({stringIn:byte(byte, math.min(byte + 499, len))}) do
+			if char == 0 and not writtenZero then
+				writtenZero = true
+				ErrorNoHalt('Writting binary data using net.WriteString?!')
+			end
+
+			self:WriteBitsRawDirection(DLib.bitworker.UIntegerToBinary(char), 8, direction)
+		end
 	end
 
 	self:WriteBitsRaw(endString)
