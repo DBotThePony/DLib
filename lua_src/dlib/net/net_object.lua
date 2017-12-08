@@ -111,7 +111,7 @@ function messageMeta:ReadNetwork(length, msg)
 
 	local ntime = (SysTime() - time) * 1000
 
-	if ntime > 20 and DLib.DEBUG_MODE:GetBool() then
+	if ntime > 1 and DLib.DEBUG_MODE:GetBool() then
 		DLib.Message('LNetworkMessage:ReadNetwork() - took ' .. string.format('%.2f ms', ntime) .. ' to read ' .. msg .. ' from network!')
 	end
 
