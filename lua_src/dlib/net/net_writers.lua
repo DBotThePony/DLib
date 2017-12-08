@@ -44,14 +44,9 @@ function messageMeta:WriteBit(bitIn)
 		bitIn = bitIn and 1 or 0
 	end
 
-	if not DLib.DEBUG_MODE:GetBool() then
-		if bitIn == nil then
-			bitIn = 0
-		end
-	else
-		if bitIn == nil then
-			error('WriteBit - got nil as argument! (dlib_production 0)')
-		end
+	if bitIn == nil then
+		ErrorNoHalt('WriteBit - got nil as argument!')
+		bitIn = 0
 	end
 
 	if type(bitIn) ~= 'number' then
