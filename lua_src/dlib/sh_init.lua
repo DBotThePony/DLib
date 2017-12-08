@@ -14,6 +14,7 @@
 -- limitations under the License.
 
 DLib.DEBUG_MODE = CreateConVar('dlib_debug', '0', {FCVAR_REPLICATED}, 'Enable debug mode. Setting this to 1 can help you solve weird bugs.')
+DLib.STRICT_MODE = CreateConVar('dlib_strict', '0', {FCVAR_REPLICATED}, 'Enable strict mode. Enabling this turns all ErrorNoHalts into exectuin halting errors. The best way to fix bad code.')
 
 function DLib.register(fil)
 	if SERVER then AddCSLuaFile('dlib/' .. fil) end

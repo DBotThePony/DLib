@@ -42,7 +42,12 @@ local ReadUIntNative = nnet.ReadUInt
 
 local function ErrorNoHalt(message)
 	if not DLib.DEBUG_MODE:GetBool() then return end
-	return ErrorNoHalt2(traceback(message) .. '\n')
+
+	if not DLib.STRICT_MODE:GetBool() then
+		return ErrorNoHalt2(traceback(message) .. '\n')
+	else
+		return error(message)
+	end
 end
 
 local messageMeta = DLib.netMessageMeta or {}
