@@ -423,6 +423,7 @@ function messageMeta:Broadcast()
 	net.CURRENT_OBJECT_TRACE = nil
 end
 
+-- Header 2 bytes + end of message one byte
 function messageMeta:BytesWritten()
 	return math.floor(self.length / 8) + 3
 end
