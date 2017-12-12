@@ -424,7 +424,7 @@ function messageMeta:Broadcast()
 end
 
 function messageMeta:BytesWritten()
-	return math.floor(self.length / 4) + 3
+	return math.floor(self.length / 8) + 3
 end
 
 function messageMeta:BitsWritten()
