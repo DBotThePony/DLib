@@ -29,6 +29,7 @@ local string = string
 local IsValid = IsValid
 local TypeID = TypeID
 local assert = assert
+local tostring = tostring
 
 local traceback = debug.traceback
 local nnet = DLib.nativeNet
@@ -300,6 +301,11 @@ local endString = {
 }
 
 function messageMeta:WriteStringInternal(stringIn, direction)
+	if type(stringIn) == 'number' then
+		ErrorNoHalt('WriteString - input is not a string! casting number into string')
+		stringIn = tostring(stringIn)
+	end
+
 	assert(type(stringIn) == 'string', 'WriteString - input is not a string! ' .. type(stringIn))
 
 	if #stringIn == 0 then
