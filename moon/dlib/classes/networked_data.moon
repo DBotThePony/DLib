@@ -345,6 +345,7 @@ class DLib.NetworkedData extends DLib.ModifierBase
 			net.WriteBool(IsValid(@NW_Player))
 			net.WriteStrongEntity(@NW_Player) if IsValid(@NW_Player)
 			@WriteNetworkData()
+			net.CompressOngoing()
 			filter = RecipientFilter()
 			filter\AddAllPlayers()
 			filter\RemovePlayer(@NW_Player) if IsValid(@NW_Player)
@@ -356,6 +357,7 @@ class DLib.NetworkedData extends DLib.ModifierBase
 			before = net.BytesWritten()
 			net.WriteUInt(@waitID, 16)
 			@WriteNetworkData()
+			net.CompressOngoing()
 			after = net.BytesWritten()
 			net.SendToServer()
 			@@NW_Waiting[@waitID] = @
@@ -366,4 +368,5 @@ class DLib.NetworkedData extends DLib.ModifierBase
 		net.WriteBool(IsValid(@NW_Player))
 		net.WriteStrongEntity(@NW_Player) if IsValid(@NW_Player)
 		@WriteNetworkData()
+		net.CompressOngoing()
 		net.Send(targets)
