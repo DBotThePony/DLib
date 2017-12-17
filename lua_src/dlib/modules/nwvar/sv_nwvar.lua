@@ -14,7 +14,6 @@
 -- limitations under the License.
 
 net.pool('DLib.NetworkedVar')
-net.pool('DLib.NetworkedEntityVars')
 net.pool('DLib.NetworkedVarFull')
 net.pool('DLib.NetworkedRemove')
 
@@ -38,53 +37,6 @@ function entMeta:SetDLibVar(var, val)
 	hook.Run('DLib.EntityVarsChanges', self, var, val)
 end
 
-local Clients = {}
-
-local function SendTo(ply, tosend)
-	if not IsValid(ply) then
-		Clients[ply] = nil
-		return
-	end
-
-	local uid = table.remove(tosend)
-
-	if not uid then
-		Clients[ply] = nil
-		return
-	end
-
-	local data = nw.NETWORK_DB[uid]
-	if not data then return end
-
-	net.Start('DLib.NetworkedEntityVars')
-	net.WriteUInt(uid, 12)
-	net.WriteUInt(table.Count(data), 16)
-	hook.Run('DLib.PreNWSendVars', ply, data)
-
-	for var, val in pairs(data) do
-		if type(var) == 'string' and type(val) ~= 'table' and nw.NetworkVars[var] then
-			net.WriteUInt(nw.NetworkVars[var].crcnw, 32)
-			nw.NetworkVars[var].send(val)
-		end
-	end
-
-	net.Send(ply)
-end
-
-local RED = Color(200, 100, 100)
-
-local function NetworkError(Message)
-	DLib.Message(RED, debug.traceback(Message, 2))
-end
-
-local function SendTimer()
-	for i = 1, 5 do
-		for ply, tosend in pairs(Clients) do
-			xpcall(SendTo, NetworkError, ply, tosend)
-		end
-	end
-end
-
 local function NetworkedVarFull(len, ply, auto)
 	ply.DLib_NetowrkingFullLast = ply.DLib_NetowrkingFullLast or 0
 	if ply.DLib_NetowrkingFullLast > CurTime() then return false end
@@ -96,23 +48,35 @@ local function NetworkedVarFull(len, ply, auto)
 		table.insert(reply, uid)
 	end
 
-	Clients[ply] = reply
 	hook.Run('DLib.NetworkedVarFull', ply, auto)
+
+	net.Start('DLib.NetworkedVarFull')
+	net.WriteUInt(#reply, 16)
+
+	for i, value in ipairs(reply) do
+		local data = nw.NETWORK_DB[value]
+
+		net.WriteUInt(value, 12)
+		hook.Run('DLib.PreNWSendVars', ply, data)
+
+		for var, val in pairs(data) do
+			if nw.NetworkVars[var] then
+				net.WriteUInt(nw.NetworkVars[var].crcnw, 32)
+				nw.NetworkVars[var].send(val)
+			end
+		end
+
+		net.WriteUInt(0, 32)
+	end
+
+	net.CompressOngoing()
+	net.Send(ply)
 
 	return true
 end
 
 local function EntityRemoved(ent)
 	local euid = ent:EntIndex()
-
-	for ply, tosend in pairs(Clients) do
-		for i, uid in pairs(tosend) do
-			if uid == euid then
-				tosend[i] = nil
-				break
-			end
-		end
-	end
 
 	nw.NETWORK_DB[euid] = nil
 	net.Start('DLib.NetworkedRemove')
@@ -128,4 +92,3 @@ end
 concommand.Add('dlib_nw', command)
 hook.Add('EntityRemoved', 'DLib.Networking', EntityRemoved)
 net.Receive('DLib.NetworkedVarFull', NetworkedVarFull)
-timer.Create('DLib.NetworkedVarFull', 0.1, 0, SendTimer)

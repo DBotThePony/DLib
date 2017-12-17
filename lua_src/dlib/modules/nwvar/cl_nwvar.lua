@@ -55,29 +55,29 @@ local function NetworkedVar()
 	end
 end
 
-local function NetworkedEntityVars(len)
-	--print(len)
-	if true then return end
-	local uid = net.ReadUInt(12)
-	local count = net.ReadUInt(16)
+local function NetworkedVarFull(len)
+	for i = 1, net.ReadUInt(16) do
+		local uid = net.ReadUInt(12)
 
-	nw.NETWORK_DB[uid] = nw.NETWORK_DB[uid] or {}
-	hook.Run('DLib.PreNWReceiveVars', uid, nw.NETWORK_DB[uid])
+		nw.NETWORK_DB[uid] = nw.NETWORK_DB[uid] or {}
+		hook.Run('DLib.PreNWReceiveVars', uid, nw.NETWORK_DB[uid])
 
-	for i = 1, count do
-		local id = net.ReadUInt(32)
-		local data, var
+		for i = 1, 1000 do
+			local id = net.ReadUInt(32)
+			if id == 0 then break end
+			local data, var
 
-		for k, v in pairs(nw.NetworkVars) do
-			if v.crcnw == id then
-				data = v
-				var = k
-				break
+			for k, v in pairs(nw.NetworkVars) do
+				if v.crcnw == id then
+					data = v
+					var = k
+					break
+				end
 			end
-		end
 
-		if data then
-			nw.NETWORK_DB[uid][var] = data.receive()
+			if data then
+				nw.NETWORK_DB[uid][var] = data.receive()
+			end
 		end
 	end
 end
@@ -92,6 +92,6 @@ local function KeyPress()
 end
 
 net.Receive('DLib.NetworkedRemove', NetworkedRemove)
-net.Receive('DLib.NetworkedEntityVars', NetworkedEntityVars)
+net.Receive('DLib.NetworkedVarFull', NetworkedVarFull)
 net.Receive('DLib.NetworkedVar', NetworkedVar)
 hook.Add('KeyPress', 'DLib.NWRequire', KeyPress)
