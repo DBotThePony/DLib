@@ -157,6 +157,12 @@ function messageMeta:WriteUIntInternal(input, bitCount, direction)
 	assert(type(input) == 'number', 'Input is not a number! ' .. type(input))
 	assert(type(bitCount) == 'number', 'Bit amount is not a number! ' .. type(bitCount))
 
+	if bitCount == 1 then
+		ErrorNoHalt('WriteUInt(bit, 1)?!?! - Use WriteBit instead!')
+		self:WriteBit(input)
+		return self
+	end
+
 	input = math.floor(input + 0.5)
 	bitCount = math.floor(bitCount)
 	assert(bitCount <= 127 and bitCount >= 2, 'Bit amount overflow')

@@ -92,6 +92,11 @@ function messageMeta:ReadUIntInternal(bitCount, direction)
 	bitCount = tonumber(bitCount)
 	assert(type(bitCount) == 'number', 'Bit amount is not a number!')
 
+	if bitCount == 1 then
+		ErrorNoHalt('ReadUInt(1)?!?! - Use ReadBit instead!')
+		return self:ReadBit()
+	end
+
 	if self.pointer + bitCount > self.length or bitCount < 1 then
 		self:ReportOutOfRange('ReadUInt', bitCount)
 		return 0
