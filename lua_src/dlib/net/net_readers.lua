@@ -304,7 +304,7 @@ function messageMeta:ReadEntity()
 end
 
 function messageMeta:ReadNormal()
-	return Vector(self:ReadNumber(3, 16), self:ReadNumber(3, 16), self:ReadNumber(3, 16))
+	return Vector(self:ReadNumber(4, 16), self:ReadNumber(4, 16), self:ReadNumber(4, 16))
 end
 
 messageMeta.ReadFunctions = {

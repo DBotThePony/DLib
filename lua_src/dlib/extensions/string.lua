@@ -14,6 +14,11 @@
 -- limitations under the License.
 
 local string = DLib.module('string', 'string')
+local unpack = unpack
+local os = os
+local select = select
+local math = math
+local table = table
 
 function string.tformat(time)
 	local str = ''
@@ -112,5 +117,55 @@ end
 
 -- fuck https://github.com/Facepunch/garrysmod/pull/1176
 string.StartsWith = string.StartWith
+
+function string.bchar(...)
+	local bytes = select('#', ...)
+
+	if bytes < 800 then
+		return string.char(...)
+	end
+
+	local input = {...}
+	local output = ''
+
+	for i = 1, bytes, 800 do
+		output = output .. string.char(unpack(input, i, math.min(i + 799, bytes)))
+	end
+
+	return output
+end
+
+function string.bcharTable(input)
+	local bytes = #input
+
+	if bytes < 800 then
+		return string.char(unpack(input))
+	end
+
+	local output = ''
+
+	for i = 1, bytes, 800 do
+		output = output .. string.char(unpack(input, i, math.min(i + 799, bytes)))
+	end
+
+	return output
+end
+
+function string.bbyte(strIn, sliceStart, sliceEnd)
+	local strLen = #strIn
+	local delta = sliceEnd - sliceStart
+
+	if delta < 800 then
+		return {strIn:byte(sliceStart, sliceEnd)}
+	end
+
+	local output = table()
+
+	for i = sliceStart, sliceEnd, 800 do
+		output:append(string.byte(strIn, i, math.min(i + 799, sliceEnd)))
+	end
+
+	return output
+end
 
 return string

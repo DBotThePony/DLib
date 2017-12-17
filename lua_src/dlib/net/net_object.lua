@@ -53,26 +53,27 @@ end
 local messageMeta = DLib.netMessageMeta or {}
 DLib.netMessageMeta = messageMeta
 
-function net.CreateMessage(length, read, msg)
-	local obj = setmetatable({}, messageMeta)
+function net.CreateMessage(length, read, msg, flags)
+	local self = setmetatable({}, messageMeta)
 	read = read or false
 	length = length or 0
 
-	obj.pointer = 0
-	obj.outboundsScore = 0
-	obj.bits = {}
-	obj.isIncoming = read
-	obj.isReading = read
+	self.pointer = 0
+	self.outboundsScore = 0
+	self.bits = {}
+	self.isIncoming = read
+	self.isReading = read
+	self.flags = flags or 0
 
 	if read then
-		obj:ReadNetwork(length, msg)
+		self:ReadNetwork(length, msg)
 	else
 		for i = 1, length do
-			table.insert(obj.bits, 0)
+			table.insert(self.bits, 0)
 		end
 	end
 
-	return obj
+	return self
 end
 
 function messageMeta:__index(key)
@@ -90,6 +91,61 @@ function messageMeta:__index(key)
 end
 
 debug.getregistry().LNetworkMessage = messageMeta
+
+function messageMeta:IsCompressionEffective()
+	return self.length >= 600
+end
+
+function messageMeta:Compress()
+	if self.isReading then error('Compressing incoming message!') end
+	return self:AddFlag(net.MESSAGE_COMPRESSED)
+end
+
+function messageMeta:CompressNow()
+	if not self:IsCompressionEffective() then
+		return self
+	end
+
+	local compressed = self:CompressBitsBuffer()
+	local untouchedBits = self.length % 8
+	local bits = table.gcopyRange(self.bits, self.length - untouchedBits, self.length)
+
+	self:ResetBuffer()
+	self:WriteData(compressed, #compressed)
+	self:WriteBitsRaw(bits)
+	self:Seek(0)
+
+	return self
+end
+
+function messageMeta:Decompress()
+	if self.isReading then error('Compressing incoming message!') end
+	return self:RemoveFlag(net.MESSAGE_COMPRESSED)
+end
+
+function messageMeta:DecompressNow(length)
+	if not self:IsCompressionEffective() then
+		return self
+	end
+
+	length = length or (self.length - self.length % 8) / 8
+
+	local untouchedBits = self.length % 8
+	local bits = table.gcopyRange(self.bits, self.length - untouchedBits, self.length)
+	local readBuff = self:ReadData(length)
+	local decompressed = util.Decompress(readBuff)
+
+	if not decompressed then
+		error('Unable to decompress message! length to decompress - ' .. length .. ' bytes; message length - ' .. self.length .. ' bits (' .. ((self.length - self.length % 8) / 8) .. ' bytes)')
+	end
+
+	self:ResetBuffer()
+	self:WriteData(decompressed, #decompressed)
+	self:WriteBitsRaw(bits)
+	self:Seek(0)
+
+	return self
+end
 
 function messageMeta:ReadNetwork(length, msg)
 	local time = SysTime()
@@ -123,7 +179,95 @@ function messageMeta:ReadNetwork(length, msg)
 	return self
 end
 
+function messageMeta:HasFlag(flag)
+	return self.flags:band(flag) == flag
+end
+
+function messageMeta:AddFlag(flag)
+	self.flags = self.flags:bor(flag)
+	return self
+end
+
+function messageMeta:RemoveFlag(flag)
+	if self:HasFlag(flag) then
+		self.flags = self.flags:bxor(flag)
+	end
+
+	return self
+end
+
+function messageMeta:ClearFlags()
+	self.flags = 0
+	return self
+end
+
+function messageMeta:IsCompressed()
+	return self:HasFlag(net.MESSAGE_COMPRESSED)
+end
+
 function messageMeta:WriteNetwork()
+	-- compression is bad with very small messages
+	if not self:IsCompressionEffective() then
+		self:RemoveFlag(net.MESSAGE_COMPRESSED)
+	end
+
+	if net.AllowMessageFlags then
+		WriteUIntNative(self.flags, 32)
+	else
+		return self:WriteNetworkRaw()
+	end
+
+	if not self:IsCompressed() then
+		return self:WriteNetworkRaw()
+	else
+		return self:WriteNetworkCompressed()
+	end
+end
+
+function messageMeta:CompressBitsBuffer()
+	local bits = #self.bits
+	local bitsArray = self.bits
+	local bitsLast = bits % 8
+	local bytes = (bits - bitsLast) / 8
+	local numbers = {}
+
+	for byte = 1, bytes do
+		local mark = (byte - 1) * 8
+
+		numbers[#numbers + 1] =
+			bitsArray[mark + 1] +
+			bitsArray[mark + 2] * 0x2 +
+			bitsArray[mark + 3] * 0x4 +
+			bitsArray[mark + 4] * 0x8 +
+			bitsArray[mark + 5] * 0x10 +
+			bitsArray[mark + 6] * 0x20 +
+			bitsArray[mark + 7] * 0x40 +
+			bitsArray[mark + 8] * 0x80
+	end
+
+	return util.Compress(DLib.string.bcharTable(numbers))
+end
+
+function messageMeta:WriteNetworkCompressed()
+	local compressed = self:CompressBitsBuffer()
+
+	for i, char in DLib.string.bbyte(compressed, 1, #compressed):ipairs() do
+		WriteUIntNative(char, 8)
+	end
+
+	local bits = #self.bits
+	local bitsArray = self.bits
+	local bitsLast = bits % 8
+	local bytes = (bits - bitsLast) / 8
+
+	for i = bytes * 8 + 1, bits do
+		WriteBitNative(bitsArray[i])
+	end
+
+	return self
+end
+
+function messageMeta:WriteNetworkRaw()
 	local bits = #self.bits
 	local bitsArray = self.bits
 	local bitsLast = bits % 32

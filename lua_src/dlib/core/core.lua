@@ -15,28 +15,11 @@
 -- limitations under the License.
 --
 
-if CLIENT then
-	local pixelvis_handle_t = FindMetaTable('pixelvis_handle_t')
+local meta = {}
+local math = math
 
-	function pixelvis_handle_t:Visible(self, pos, rad)
-		return util.PixelVisible(pos, rad, self)
-	end
-
-	function pixelvis_handle_t:IsVisible(self, pos, rad)
-		return util.PixelVisible(pos, rad, self)
-	end
-
-	function pixelvis_handle_t:PixelVisible(self, pos, rad)
-		return util.PixelVisible(pos, rad, self)
-	end
+function meta:__index(key)
+	return math[key] or bit[key]
 end
 
-local CSoundPatch = FindMetaTable('CSoundPatch')
-
-function CSoundPatch:IsValid()
-	return self:IsPlaying()
-end
-
-function CSoundPatch:Remove()
-	return self:Stop()
-end
+debug.setmetatable(1, meta)

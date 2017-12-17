@@ -40,6 +40,7 @@ net.NetworkStringToID = NetworkStringToID
 local ReadHeader = nnet.ReadHeader
 local WriteBitNative = nnet.WriteBit
 local ReadBitNative = nnet.ReadBit
+local ReadUIntNative = nnet.ReadUInt
 
 local toImport
 
@@ -51,6 +52,18 @@ end
 net.Hooks = net.Hooks or {}
 net.Receivers = net.Hooks
 local Hooks = net.Hooks
+
+-- set this to false if you want to debug
+-- dlib network library with native net library
+-- (DLib.nativeNet)
+net.AllowMessageFlags = true
+
+net.NO_FLAGS = 0x0
+net.MESSAGE_COMPRESSED = 0x2
+net.MESSAGE_FRAGMENTED = 0x4
+net.MESSAGE_BUFFERED = 0x8
+net.MESSAGE_CONTAINS_MULTIPLE = 0x10
+net.MESSAGE_ORDERED = 0x20
 
 if gnet.Receivers ~= net.Receivers then
 	toImport = gnet.Receivers
@@ -140,9 +153,16 @@ do
 			return
 		end
 
+		local flags = 0
+
+		if net.AllowMessageFlags then
+			flags = ReadUIntNative(32)
+			length = length - 32
+		end
+
 		length = length - 16
 
-		net.CURRENT_OBJECT = net.CreateMessage(length, true, strName)
+		net.CURRENT_OBJECT = net.CreateMessage(length, true, strName, flags)
 		net.CURRENT_OBJECT:SetMessageName(strName)
 		local status = ProtectedCall(function() triggerNetworkEvent(length, ply, net.CURRENT_OBJECT) end)
 		net.CURRENT_OBJECT = nil
@@ -255,6 +275,18 @@ do
 		'BytesWritten',
 	}
 
+	local sendFuncs3 = {
+		CompressOngoing = 'Compress',
+		CompressOngoingNow = 'CompressNow',
+		DecompressOngoing = 'Decompress',
+		DecompressOngoingNow = 'DecompressNow',
+	}
+
+	local sendFuncs4 = {
+		CompressReceivedNow = 'CompressNow',
+		DecompressReceivedNow = 'DecompressNow',
+	}
+
 	for i, func in ipairs(sendFuncs) do
 		net[func] = function(...)
 			if not net.CURRENT_SEND_OBJECT then
@@ -278,6 +310,28 @@ do
 			end
 
 			return net.CURRENT_SEND_OBJECT[func](net.CURRENT_SEND_OBJECT, ...)
+		end
+	end
+
+	for func1, func2 in pairs(sendFuncs3) do
+		net[func1] = function(...)
+			if not net.CURRENT_SEND_OBJECT then
+				ErrorNoHalt('net.' .. func1 .. ' - Not currently writing a message.')
+				return
+			end
+
+			return net.CURRENT_SEND_OBJECT[func2](net.CURRENT_SEND_OBJECT, ...)
+		end
+	end
+
+	for func1, func2 in pairs(sendFuncs4) do
+		net[func1] = function(...)
+			if not net.CURRENT_OBJECT then
+				ErrorNoHalt('net.' .. func1 .. ' - Not currently reading a message.')
+				return
+			end
+
+			return net.CURRENT_OBJECT[func2](net.CURRENT_OBJECT, ...)
 		end
 	end
 end

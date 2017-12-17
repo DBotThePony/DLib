@@ -355,13 +355,13 @@ function messageMeta:WriteEntity(ent)
 end
 
 function messageMeta:WriteNormal(vectorIn)
-	assert(type(vecIn) == 'Vector', 'WriteNormal - input is not a vector! ' .. type(vecIn))
+	assert(type(vectorIn) == 'Vector', 'WriteNormal - input is not a vector! ' .. type(vectorIn))
 
 	local vector = vectorIn:GetNormalized()
 
-	self:WriteNumber(vector.x, 3, 16)
-	self:WriteNumber(vector.y, 3, 16)
-	self:WriteNumber(vector.z, 3, 16)
+	self:WriteNumber(vector.x, 4, 16)
+	self:WriteNumber(vector.y, 4, 16)
+	self:WriteNumber(vector.z, 4, 16)
 
 	return self
 end
