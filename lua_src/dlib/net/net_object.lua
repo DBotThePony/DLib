@@ -106,9 +106,11 @@ function messageMeta:CompressNow()
 		return self
 	end
 
+	self.knownForCompression = true
+
 	local compressed = self:CompressBitsBuffer()
 	local untouchedBits = self.length % 8
-	local bits = table.gcopyRange(self.bits, self.length - untouchedBits, self.length)
+	local bits = table.gcopyRange(self.bits, self.length - untouchedBits + 1, self.length)
 
 	self:ResetBuffer()
 	self:WriteData(compressed, #compressed)
@@ -131,7 +133,7 @@ function messageMeta:DecompressNow(length)
 	length = length or (self.length - self.length % 8) / 8
 
 	local untouchedBits = self.length % 8
-	local bits = table.gcopyRange(self.bits, self.length - untouchedBits, self.length)
+	local bits = table.gcopyRange(self.bits, self.length - untouchedBits + 1, self.length)
 	local readBuff = self:ReadData(length)
 	local decompressed = util.Decompress(readBuff)
 
@@ -172,6 +174,10 @@ function messageMeta:ReadNetwork(length, msg)
 
 	local ntime = (SysTime() - time) * 1000
 
+	if self:IsCompressed() then
+		self:DecompressNow()
+	end
+
 	if ntime > 1 and DLib.DEBUG_MODE:GetBool() then
 		DLib.Message('LNetworkMessage:ReadNetwork() - took ' .. string.format('%.2f ms', ntime) .. ' to read ' .. msg .. ' from network!')
 	end
@@ -206,6 +212,10 @@ function messageMeta:IsCompressed()
 end
 
 function messageMeta:WriteNetwork()
+	if net.SMART_COMPRESSION:GetBool() and not self.knownForCompression and not self:IsCompressed() and self:BytesWritten() >= net.SMART_COMPRESSION_SIZE:GetInt() then
+		self:Compress()
+	end
+
 	-- compression is bad with very small messages
 	if not self:IsCompressionEffective() then
 		self:RemoveFlag(net.MESSAGE_COMPRESSED)

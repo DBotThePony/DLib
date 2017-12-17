@@ -162,7 +162,7 @@ function string.bbyte(strIn, sliceStart, sliceEnd)
 	local output = table()
 
 	for i = sliceStart, sliceEnd, 800 do
-		output:append(string.byte(strIn, i, math.min(i + 799, sliceEnd)))
+		output:append({string.byte(strIn, i, math.min(i + 799, sliceEnd))})
 	end
 
 	return output
