@@ -16,9 +16,6 @@
 DLib.netModule = DLib.netModule or {}
 DLib.nativeNet = DLib.nativeNet or table.Copy(_G.net)
 
-net.SMART_COMPRESSION = CreateConVar('dlib_net_compress', '0', {FCVAR_REPLICATED}, 'Enable smart network compression')
-net.SMART_COMPRESSION_SIZE = CreateConVar('dlib_net_compress_s', '2000', {FCVAR_REPLICATED}, 'Message size (in bytes) before set Compression flag')
-
 local DLib = DLib
 local util = util
 local gnet = _G.net
@@ -51,6 +48,9 @@ local function ErrorNoHalt(message)
 	if not DLib.DEBUG_MODE:GetBool() then return end
 	return ErrorNoHalt2(traceback(message) .. '\n')
 end
+
+net.SMART_COMPRESSION = CreateConVar('dlib_net_compress', '0', {FCVAR_REPLICATED}, 'Enable smart network compression')
+net.SMART_COMPRESSION_SIZE = CreateConVar('dlib_net_compress_s', '2000', {FCVAR_REPLICATED}, 'Message size (in bytes) before set Compression flag')
 
 net.Hooks = net.Hooks or {}
 net.Receivers = net.Hooks
