@@ -22,14 +22,6 @@ local insert = table.insert
 
 -- Appends numeric indexed tables
 function tableutil.append(destination, source)
-	for i, value in ipairs(source) do
-		insert(destination, value)
-	end
-
-	return destination
-end
-
-function tableutil.gappend(destination, source)
 	if #source == 0 then return destination end
 
 	local i, nextelement = 1, source[1]
@@ -90,27 +82,6 @@ end
 
 function tableutil.qfilter(target, filterFunc)
 	if not filterFunc then error('table.qfilter - missing filter function') end
-
-	local filtered = {}
-	local toRemove = {}
-
-	for key, value in ipairs(target) do
-		local status = filterFunc(key, value, target)
-		if not status then
-			insert(filtered, value)
-			insert(toRemove, key)
-		end
-	end
-
-	for v, i in ipairs(toRemove) do
-		remove(target, i - v + 1)
-	end
-
-	return filtered
-end
-
-function tableutil.gfilter(target, filterFunc)
-	if not filterFunc then error('table.gfilter - missing filter function') end
 	if #target == 0 then return {} end
 
 	local filtered = {}
@@ -169,7 +140,7 @@ function tableutil.filterNew(target, filterFunc)
 end
 
 function tableutil.qfilterNew(target, filterFunc)
-	if not filterFunc then error('table.filterNew - missing filter function') end
+	if not filterFunc then error('table.qfilterNew - missing filter function') end
 
 	local filtered = {}
 
@@ -189,18 +160,6 @@ function tableutil.qmerge(into, inv)
 	end
 
 	return into
-end
-
-function tableutil.qcopy(input)
-	local reply = {}
-
-	reply[#input] = input[#input]
-
-	for i, val in ipairs(input) do
-		reply[i] = val
-	end
-
-	return reply
 end
 
 function tableutil.gcopy(input)
@@ -250,23 +209,6 @@ function tableutil.gcopyRange(input, start, endPos)
 end
 
 function tableutil.unshift(tableIn, ...)
-	local values = {...}
-	local count = #values
-
-	if count == 0 then return tableIn end
-
-	for i = #tableIn + count, count, -1 do
-		tableIn[i] = tableIn[i - count]
-	end
-
-	for i, value in ipairs(values) do
-		tableIn[i] = value
-	end
-
-	return tableIn
-end
-
-function tableutil.gunshift(tableIn, ...)
 	local values = {...}
 	local count = #values
 
