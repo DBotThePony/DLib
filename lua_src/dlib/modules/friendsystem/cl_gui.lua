@@ -121,6 +121,12 @@ function friends.OpenGUI()
 		end
 	end
 
+	local treat = DLib.VCreate('DCheckBoxLabel', frame)
+	treat:SetText('Treat steam friends as dlib friends')
+	treat:SetConVar('cl_dlib_steamfriends')
+	treat:SetPos(510, 3)
+	treat:SizeToContents()
+
 	local topwrapper = DLib.VCreate('EditablePanel', frame)
 	local bottomwrapper = DLib.VCreate('EditablePanel', frame)
 
