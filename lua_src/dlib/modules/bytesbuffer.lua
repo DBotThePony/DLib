@@ -38,10 +38,15 @@ function meta:__index(key)
 	return rawget(self, key)
 end
 
-function DLib.BytesBuffer()
+function DLib.BytesBuffer(stringIn)
 	local obj = setmetatable({}, meta)
 	obj.bytes = {}
 	obj.pointer = 0
+
+	if type(stringIn) == 'string' then
+		obj:WriteBinary(stringIn)
+	end
+
 	return obj
 end
 
