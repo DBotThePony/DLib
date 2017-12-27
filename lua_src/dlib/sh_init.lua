@@ -66,6 +66,7 @@ DLib.register('extensions/player.lua').export(_G.player)
 DLib.Loader.shmodule('color.lua')
 
 DLib.simpleInclude('net/net.lua')
+DLib.Loader.shmodule('bytesbuffer.lua')
 DLib.Loader.shmodule('hook.lua')
 DLib.Loader.shmodule('sh_cami.lua')
 DLib.Loader.shmodule('getinfo.lua').register()
