@@ -47,6 +47,8 @@ function DLib.BytesBuffer(stringIn)
 		obj:WriteBinary(stringIn)
 	end
 
+	obj:Seek(0)
+
 	return obj
 end
 
@@ -56,6 +58,12 @@ function meta:Seek(moveTo)
 	self.pointer = moveTo
 	return self
 end
+
+function meta:Move(moveBy)
+	return self:Seek(self.pointer + moveBy)
+end
+
+meta.Walk = meta.Move
 
 function meta:Reset()
 	return self:Seek(0)

@@ -46,9 +46,6 @@ function DLib.CreateImage(width, height, colorToUse)
 		buffer:WriteUByte(byte)
 	end
 
-	-- header of metadata
-	buffer:WriteData('META')
-
 	-- width
 	buffer:WriteUInt32(width)
 
@@ -58,29 +55,40 @@ function DLib.CreateImage(width, height, colorToUse)
 	-- Image has translucency
 	buffer:WriteUByte(1)
 
+	-- Image is using LZMA compression
+	buffer:WriteUByte(0)
+
+	-- reserved
+	for i = 1, 16 do
+		buffer:WriteUByte(0)
+	end
+
 	-- creation stamp
 	buffer:WriteUInt64(os.time())
+
+	local modifPointer = buffer.pointer
 
 	-- modification stamp
 	buffer:WriteUInt64(os.time())
 
-	-- tell we are going to write blocks
-	-- there is no ending token
+	-- there is no start token, nor ending token
 	-- guess length is width * height * 4 bytes
 
 	-- each 4 byte of data is a color of next pixel
 	-- example - pixel at position of 2x0 will have 2 position in bytebuffer (4 - 8 bytes)
 	-- pixel at position of 2x1 will have width * y * 4 + 2 position in bytebuffer (if width is 4, guess position is 20 - 24 bytes)
-	buffer:WriteData('BLKS')
 	local pointer = buffer.pointer
 
 	local obj = setmetatable({}, meta)
 	obj.buffer = buffer
 	obj.point = pointer
+	obj.translucent = true
+	obj.modifPointer = modifPointer
 	obj.width = width
 	obj.height = height
 	obj.creationStamp = os.time()
 	obj.modificationStamp = os.time()
+	obj.modified = false
 
 	obj.posX = -1
 	obj.posY = 0
@@ -92,6 +100,47 @@ function DLib.CreateImage(width, height, colorToUse)
 		end
 	end
 
+	obj.created = true
+
+	return obj
+end
+
+function DLib.ReadImage(buffer)
+	assert(type(buffer) == 'string' or type(buffer) == 'table', 'ReadImage must receive either binary string or DLib.BytesBuffer')
+
+	if type(buffer) == 'string' then
+		buffer = DLib.BytesBuffer(buffer)
+	end
+
+	for i, byte in ipairs(header) do
+		assert(buffer:ReadUByte() == byte, 'bad DLib image file header')
+	end
+
+	local width = buffer:ReadUInt32()
+	local height = buffer:ReadUInt32()
+	local translucent = buffer:ReadUByte()
+	local compression = buffer:ReadUByte()
+
+	buffer:Move(16)
+
+	local creationStamp = buffer:ReadUInt64()
+	local modifPointer = buffer.pointer
+	local modificationStamp = buffer:ReadUInt64()
+	local pointer = buffer.pointer
+
+	local obj = setmetatable({}, meta)
+	obj.buffer = buffer
+	obj.point = pointer
+	obj.modifPointer = modifPointer
+	obj.width = width
+	obj.height = height
+	obj.translucent = translucent == 1
+	obj.creationStamp = creationStamp
+	obj.modificationStamp = modificationStamp
+	obj.modified = false
+
+	obj.posX = -1
+	obj.posY = 0
 	obj.created = true
 
 	return obj
@@ -119,6 +168,8 @@ function meta:WritePixel(x, y, color)
 	self.buffer:WriteUByte(color.g)
 	self.buffer:WriteUByte(color.b)
 	self.buffer:WriteUByte(color.a)
+
+	self.modified = true
 	return self
 end
 
@@ -165,10 +216,24 @@ function meta:ReadNextPixel()
 	return self:ReadPixel(x, y)
 end
 
+function meta:UpdateStamps()
+	self.modified = false
+	self.buffer:Seek(self.modifPointer)
+	self.buffer:WriteUInt64(os.time())
+end
+
 function meta:GetBuffer()
+	if self.modified then
+		self:UpdateStamps()
+	end
+
 	return self.buffer
 end
 
 function meta:DumpBinary()
+	if self.modified then
+		self:UpdateStamps()
+	end
+
 	return self.buffer:ToString()
 end
