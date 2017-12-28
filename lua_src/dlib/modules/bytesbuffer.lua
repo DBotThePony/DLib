@@ -91,6 +91,12 @@ end
 meta.WriteInt8 = meta.WriteByte
 meta.WriteUInt8 = meta.WriteUByte
 
+function meta:WriteChar(char)
+	assert(type(char) == 'string' and #char == 1, 'Input is not a char!')
+	self:WriteUByte(string.byte(char))
+	return self
+end
+
 function meta:WriteInt16(valueIn)
 	assert(type(valueIn) == 'number', 'WriteByte - argument type is ' .. type(valueIn))
 	assert(valueIn >= -0x8000 and valueIn <= 0x7FFF, 'WriteByte - size overflow')
@@ -278,4 +284,8 @@ function meta:ReadBinary(readAmount)
 	end
 
 	return DLib.string.bcharTable(output)
+end
+
+function meta:ReadChar()
+	return string.char(self:ReadUByte())
 end
