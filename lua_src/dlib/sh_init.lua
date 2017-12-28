@@ -108,6 +108,8 @@ DLib.Loader.start('friends', true)
 DLib.Loader.load('dlib/modules/friendsystem')
 DLib.Loader.finish()
 
+DLib.Loader.shmodule('image.lua')
+
 if CLIENT then
 	DLib.VGUI = DLib.VGUI or {}
 end

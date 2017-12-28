@@ -286,6 +286,13 @@ function meta:ReadBinary(readAmount)
 	return DLib.string.bcharTable(output)
 end
 
+meta.WriteData = meta.WriteBinary
+meta.ReadData = meta.ReadBinary
+
 function meta:ReadChar()
 	return string.char(self:ReadUByte())
+end
+
+function meta:ToString()
+	return DLib.string.bcharTable(self.bytes)
 end
