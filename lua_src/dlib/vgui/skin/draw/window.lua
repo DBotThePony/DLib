@@ -40,42 +40,44 @@ function DLib.skin.tex.Window.Inactive(x, y, w, h)
 	Simple_DrawBox(x, y, w, h, DLib.skin.background_inactive)
 end
 
+local buttonOffset = 6
+
 function DLib.skin.tex.Window.Close(x, y, w, h, self)
 	if not self then return end
 
 	self.Neon = self.Neon or 0
-	Simple_DrawBox(x, y, w, h - 11, Color(200, 50 + self.Neon, 50 + self.Neon, DLib.skin.CloseAlpha))
+	Simple_DrawBox(x, y, w, h - buttonOffset, Color(200, 50 + self.Neon, 50 + self.Neon, DLib.skin.CloseAlpha))
 
 	self.Neon = math.max(self.Neon - 5 * (FrameTime() * 66), 0)
 
 	surface_SetDrawColor(255, self.Neon * 3, self.Neon * 3, self.Neon * 3)
-	surface_DrawLine(x + 2, y + 5, w - 4, h - 16)
-	surface_DrawLine(x + 2, h - 16, w - 4, y + 5)
+	surface_DrawLine(x + 2, y + 5, w - 4, h - buttonOffset - 5)
+	surface_DrawLine(x + 2, h - buttonOffset - 5, w - 4, y + 5)
 end
 
 function DLib.skin.tex.Window.Close_Hover(x, y, w, h, self)
 	if not self then return end
 
 	self.Neon = self.Neon or 0
-	Simple_DrawBox(x, y, w, h - 11, Color(200, 50 + self.Neon, 50 + self.Neon, DLib.skin.CloseAlpha))
+	Simple_DrawBox(x, y, w, h - buttonOffset, Color(200, 50 + self.Neon, 50 + self.Neon, DLib.skin.CloseAlpha))
 
 	self.Neon = math.min(self.Neon + 5 * (FrameTime() * 66), 50)
 	surface_SetDrawColor(255, self.Neon * 3, self.Neon * 3, self.Neon * 3)
-	surface_DrawLine(x + 2, y + 5, w - 4, h - 16)
-	surface_DrawLine(x + 2, h - 16, w - 4, y + 5)
+	surface_DrawLine(x + 2, y + 5, w - 4, h - buttonOffset - 5)
+	surface_DrawLine(x + 2, h - buttonOffset - 5, w - 4, y + 5)
 end
 
 function DLib.skin.tex.Window.Close_Down(x, y, w, h, self)
 	if not self then return end
 
 	self.Neon = self.Neon or 0
-	Simple_DrawBox(x, y, w, h - 11, DLib.skin.CloseHoverCol)
+	Simple_DrawBox(x, y, w, h - buttonOffset, DLib.skin.CloseHoverCol)
 
 	self.Neon = math.min(self.Neon + 5 * (FrameTime() * 66), 50)
 
 	surface_SetDrawColor(255, 200, 200)
-	surface_DrawLine(x + 2, y + 5, w - 4, h - 16)
-	surface_DrawLine(x + 2, h - 16, w - 4, y + 5)
+	surface_DrawLine(x + 2, y + 5, w - 4, h - buttonOffset - 5)
+	surface_DrawLine(x + 2, h - buttonOffset - 5, w - 4, y + 5)
 end
 
 --Maximize
@@ -83,124 +85,124 @@ function DLib.skin.tex.Window.Maxi(x, y, w, h, self)
 	if not self then return end
 
 	self.Neon = self.Neon or 0
-	Simple_DrawBox(x, y, w, h - 11, Color(50 + self.Neon, 50 + self.Neon, 50 + self.Neon, DLib.skin.CloseAlpha))
+	Simple_DrawBox(x, y, w, h - buttonOffset, Color(50 + self.Neon, 50 + self.Neon, 50 + self.Neon, DLib.skin.CloseAlpha))
 
 	self.Neon = math.max(self.Neon - 5 * (FrameTime() * 66), 0)
 
 	surface_SetDrawColor(125 + self.Neon * 2, 125 + self.Neon * 2, 125 + self.Neon * 2)
-	surface_DrawLine(x + 2, h - 16, w - 4, h - 16)
+	surface_DrawLine(x + 2, h - buttonOffset - 5, w - 4, h - buttonOffset - 5)
 	surface_DrawLine(x + 2, h - 24, w - 4, h - 24)
-	surface_DrawLine(x + 2, h - 16, x + 2, h - 24)
-	surface_DrawLine(w - 4, h - 16, w - 4, h - 24)
+	surface_DrawLine(x + 2, h - buttonOffset - 5, x + 2, h - 24)
+	surface_DrawLine(w - 4, h - buttonOffset - 5, w - 4, h - 24)
 end
 
 function DLib.skin.tex.Window.Maxi_Hover(x, y, w, h, self)
 	if not self then return end
 
 	self.Neon = self.Neon or 0
-	Simple_DrawBox(x, y, w, h - 11, Color(50 + self.Neon, 50 + self.Neon, 50 + self.Neon, DLib.skin.CloseAlpha))
+	Simple_DrawBox(x, y, w, h - buttonOffset, Color(50 + self.Neon, 50 + self.Neon, 50 + self.Neon, DLib.skin.CloseAlpha))
 
 	self.Neon = math.min(self.Neon + 5 * (FrameTime() * 66), 50)
 
 	surface_SetDrawColor(150 + self.Neon * 2, 150 + self.Neon * 2, 150 + self.Neon * 2)
-	surface_DrawLine(x + 2, h - 16, w - 4, h - 16)
+	surface_DrawLine(x + 2, h - buttonOffset - 5, w - 4, h - buttonOffset - 5)
 	surface_DrawLine(x + 2, h - 24, w - 4, h - 24)
-	surface_DrawLine(x + 2, h - 16, x + 2, h - 24)
-	surface_DrawLine(w - 4, h - 16, w - 4, h - 24)
+	surface_DrawLine(x + 2, h - buttonOffset - 5, x + 2, h - 24)
+	surface_DrawLine(w - 4, h - buttonOffset - 5, w - 4, h - 24)
 end
 
 function DLib.skin.tex.Window.Maxi_Down(x, y, w, h, self)
 	if not self then return end
 
 	self.Neon = self.Neon or 0
-	Simple_DrawBox(x, y, w, h - 11, DLib.skin.colours.windowCol)
+	Simple_DrawBox(x, y, w, h - buttonOffset, DLib.skin.colours.windowCol)
 
 	self.Neon = math.min(self.Neon + 5 * (FrameTime() * 66), 50)
 
 	surface_SetDrawColor(150 + self.Neon * 2, 150 + self.Neon * 2, 150 + self.Neon * 2)
-	surface_DrawLine(x + 2, h - 16, w - 4, h - 16)
+	surface_DrawLine(x + 2, h - buttonOffset - 5, w - 4, h - buttonOffset - 5)
 	surface_DrawLine(x + 2, h - 24, w - 4, h - 24)
-	surface_DrawLine(x + 2, h - 16, x + 2, h - 24)
-	surface_DrawLine(w - 4, h - 16, w - 4, h - 24)
+	surface_DrawLine(x + 2, h - buttonOffset - 5, x + 2, h - 24)
+	surface_DrawLine(w - 4, h - buttonOffset - 5, w - 4, h - 24)
 end
 
 function DLib.skin.tex.Window.Restore(x, y, w, h, self)
 	if not self then return end
 
 	self.Neon = self.Neon or 0
-	Simple_DrawBox(x, y, w, h - 11, Color(50 + self.Neon, 50 + self.Neon, 50 + self.Neon, DLib.skin.CloseAlpha))
+	Simple_DrawBox(x, y, w, h - buttonOffset, Color(50 + self.Neon, 50 + self.Neon, 50 + self.Neon, DLib.skin.CloseAlpha))
 
 	self.Neon = math.max(self.Neon - 5 * (FrameTime() * 66), 0)
 
 	surface_SetDrawColor(125 + self.Neon * 2, 125 + self.Neon * 2, 125 + self.Neon * 2)
-	surface_DrawLine(x + 2, h - 16, w - 4, h - 16)
-	surface_DrawLine(x + 2, h - 28, w - 4, h - 28)
-	surface_DrawLine(x + 2, h - 16, x + 2, h - 28)
-	surface_DrawLine(w - 4, h - 16, w - 4, h - 28)
+	surface_DrawLine(x + 2, h - buttonOffset - 5, w - 4, h - buttonOffset - 5)
+	surface_DrawLine(x + 2, h - buttonOffset - 17, w - 4, h - buttonOffset - 17)
+	surface_DrawLine(x + 2, h - buttonOffset - 5, x + 2, h - buttonOffset - 17)
+	surface_DrawLine(w - 4, h - buttonOffset - 5, w - 4, h - buttonOffset - 17)
 end
 
 function DLib.skin.tex.Window.Restore_Hover(x, y, w, h, self)
 	if not self then return end
 
 	self.Neon = self.Neon or 0
-	Simple_DrawBox(x, y, w, h - 11, Color(50 + self.Neon, 50 + self.Neon, 50 + self.Neon, DLib.skin.CloseAlpha))
+	Simple_DrawBox(x, y, w, h - buttonOffset, Color(50 + self.Neon, 50 + self.Neon, 50 + self.Neon, DLib.skin.CloseAlpha))
 
 	self.Neon = math.min(self.Neon + 5 * (FrameTime() * 66), 50)
 
 	surface_SetDrawColor(150 + self.Neon * 2, 150 + self.Neon * 2, 150 + self.Neon * 2)
-	surface_DrawLine(x + 2, h - 16, w - 4, h - 16)
-	surface_DrawLine(x + 2, h - 28, w - 4, h - 28)
-	surface_DrawLine(x + 2, h - 16, x + 2, h - 28)
-	surface_DrawLine(w - 4, h - 16, w - 4, h - 28)
+	surface_DrawLine(x + 2, h - buttonOffset - 5, w - 4, h - buttonOffset - 5)
+	surface_DrawLine(x + 2, h - buttonOffset - 17, w - 4, h - buttonOffset - 17)
+	surface_DrawLine(x + 2, h - buttonOffset - 5, x + 2, h - buttonOffset - 17)
+	surface_DrawLine(w - 4, h - buttonOffset - 5, w - 4, h - buttonOffset - 17)
 end
 
 function DLib.skin.tex.Window.Restore_Down(x, y, w, h, self)
 	if not self then return end
 
 	self.Neon = self.Neon or 0
-	Simple_DrawBox(x, y, w, h - 11, DLib.skin.colours.windowCol)
+	Simple_DrawBox(x, y, w, h - buttonOffset, DLib.skin.colours.windowCol)
 
 	self.Neon = math.min(self.Neon + 5 * (FrameTime() * 66), 50)
 
 	surface_SetDrawColor(150 + self.Neon * 2, 150 + self.Neon * 2, 150 + self.Neon * 2)
-	surface_DrawLine(x + 2, h - 16, w - 4, h - 16)
-	surface_DrawLine(x + 2, h - 28, w - 4, h - 28)
-	surface_DrawLine(x + 2, h - 16, x + 2, h - 28)
-	surface_DrawLine(w - 4, h - 16, w - 4, h - 28)
+	surface_DrawLine(x + 2, h - buttonOffset - 5, w - 4, h - buttonOffset - 5)
+	surface_DrawLine(x + 2, h - buttonOffset - 17, w - 4, h - buttonOffset - 17)
+	surface_DrawLine(x + 2, h - buttonOffset - 5, x + 2, h - buttonOffset - 17)
+	surface_DrawLine(w - 4, h - buttonOffset - 5, w - 4, h - buttonOffset - 17)
 end
 
 function DLib.skin.tex.Window.Mini(x, y, w, h, self)
 	if not self then return end
 
 	self.Neon = self.Neon or 0
-	Simple_DrawBox(x, y, w, h - 11, Color(50 + self.Neon, 50 + self.Neon, 50 + self.Neon, DLib.skin.CloseAlpha))
+	Simple_DrawBox(x, y, w, h - buttonOffset, Color(50 + self.Neon, 50 + self.Neon, 50 + self.Neon, DLib.skin.CloseAlpha))
 
 	self.Neon = math.max(self.Neon - 5 * (FrameTime() * 66), 0)
 
 	surface_SetDrawColor(125 + self.Neon * 2, 125 + self.Neon * 2, 125 + self.Neon * 2)
-	surface_DrawLine(x + 2, h - 16, w - 4, h - 16)
+	surface_DrawLine(x + 2, h - buttonOffset - 5, w - 4, h - buttonOffset - 5)
 end
 
 function DLib.skin.tex.Window.Mini_Hover(x, y, w, h, self)
 	if not self then return end
 
 	self.Neon = self.Neon or 0
-	Simple_DrawBox(x, y, w, h - 11, Color(50 + self.Neon, 50 + self.Neon, 50 + self.Neon, DLib.skin.CloseAlpha))
+	Simple_DrawBox(x, y, w, h - buttonOffset, Color(50 + self.Neon, 50 + self.Neon, 50 + self.Neon, DLib.skin.CloseAlpha))
 
 	self.Neon = math.min(self.Neon + 5 * (FrameTime() * 66), 50)
 
 	surface_SetDrawColor(125 + self.Neon * 2, 125 + self.Neon * 2, 125 + self.Neon * 2)
-	surface_DrawLine(x + 2, h - 16, w - 4, h - 16)
+	surface_DrawLine(x + 2, h - buttonOffset - 5, w - 4, h - buttonOffset - 5)
 end
 
 function DLib.skin.tex.Window.Mini_Down(x, y, w, h, self)
 	if not self then return end
 
 	self.Neon = self.Neon or 0
-	Simple_DrawBox(x, y, w, h - 11, DLib.skin.colours.windowCol)
+	Simple_DrawBox(x, y, w, h - buttonOffset, DLib.skin.colours.windowCol)
 
 	self.Neon = math.min(self.Neon + 5 * (FrameTime() * 66), 50)
 
 	surface_SetDrawColor(125 + self.Neon * 2, 125 + self.Neon * 2, 125 + self.Neon * 2)
-	surface_DrawLine(x + 2, h - 16, w - 4, h - 16)
+	surface_DrawLine(x + 2, h - buttonOffset - 5, w - 4, h - buttonOffset - 5)
 end
