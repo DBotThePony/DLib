@@ -66,7 +66,7 @@ DLib.register('extensions/player.lua').export(_G.player)
 DLib.Loader.shmodule('color.lua')
 
 DLib.simpleInclude('net/net.lua')
--- DLib.Loader.shmodule('bytesbuffer.lua')
+DLib.Loader.shmodule('bytesbuffer.lua')
 DLib.Loader.shmodule('hook.lua')
 DLib.Loader.shmodule('sh_cami.lua')
 DLib.Loader.shmodule('getinfo.lua').register()
@@ -108,7 +108,7 @@ DLib.Loader.start('friends', true)
 DLib.Loader.load('dlib/modules/friendsystem')
 DLib.Loader.finish()
 
--- DLib.Loader.shmodule('image.lua')
+DLib.Loader.shmodule('image.lua')
 
 if CLIENT then
 	DLib.VGUI = DLib.VGUI or {}
