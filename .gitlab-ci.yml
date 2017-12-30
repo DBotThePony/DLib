@@ -9,10 +9,10 @@ dlib:
     paths:
       - lua/*
 
-luacheck:
-  allow_failure: yes
-  script: sh luacheck.sh
+# luacheck:
+#   allow_failure: yes
+#   script: sh luacheck.sh
 
-moonlint:
-  allow_failure: yes
-  script: moonc -l moon/*
+# moonlint:
+#   allow_failure: yes
+#   script: moonc -l moon/*
