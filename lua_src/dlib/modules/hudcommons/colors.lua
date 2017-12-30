@@ -1,6 +1,6 @@
 
 --
--- Copyright (C) 2017 DBot
+-- Copyright (C) 2017-2018 DBot
 --
 -- Licensed under the Apache License, Version 2.0 (the "License");
 -- you may not use this file except in compliance with the License.
@@ -27,12 +27,12 @@ function HUDCommons.CreateColor(class, name, r, g, b, a)
     g = g or 255
     b = b or 255
     a = a or 255
-	
+
 	local rn = 'h_color_' .. class .. '_r'
 	local gn = 'h_color_' .. class .. '_g'
 	local bn = 'h_color_' .. class .. '_b'
 	local an = 'h_color_' .. class .. '_a'
-	
+
 	HUDCommons.ColorsVars[class] = {
 		name = name,
 		rdef = r,
@@ -44,17 +44,17 @@ function HUDCommons.CreateColor(class, name, r, g, b, a)
 		b = CreateConVar(bn, tostring(b), {FCVAR_ARCHIVE}, help_b),
 		a = CreateConVar(an, tostring(a), {FCVAR_ARCHIVE}, help_a),
 	}
-	
+
 	local t = HUDCommons.ColorsVars[class]
     local currentColor
-	
+
 	local function colorUpdated()
 		HUDCommons.Colors[class] = Color(t.r:GetInt() or r, t.g:GetInt() or g, t.b:GetInt() or b, t.a:GetInt() or a)
         currentColor = HUDCommons.Colors[class]
 	end
-	
+
 	colorUpdated()
-	
+
 	cvars.AddChangeCallback(rn, colorUpdated, 'HUDCommons.Colors')
 	cvars.AddChangeCallback(gn, colorUpdated, 'HUDCommons.Colors')
 	cvars.AddChangeCallback(bn, colorUpdated, 'HUDCommons.Colors')

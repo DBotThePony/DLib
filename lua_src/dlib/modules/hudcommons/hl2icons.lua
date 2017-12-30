@@ -1,5 +1,5 @@
 
--- Copyright (C) 2017 DBot
+-- Copyright (C) 2017-2018 DBot
 
 -- Licensed under the Apache License, Version 2.0 (the "License");
 -- you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
--- https://i.dbot.serealia.ca/2017/11/f9aa5d67b6_hl2_2017-11-15_16-55-37.png
+-- https://i.dbot.serealia.ca/2017-2018/11/f9aa5d67b6_hl2_2017-2018-11-15_16-55-37.png
 
 --[[
 local chars = 'qwertyuiopasdfghjklzxcvbnm1234567890[]{}'
