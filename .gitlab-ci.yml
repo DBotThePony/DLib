@@ -1,8 +1,18 @@
-buildlib:
-   script:
-     - rm lua/ -fR
-     - mkdir lua
-     - sh build.sh
-   artifacts:
-      paths:
-        - lua/*
+
+dlib:
+  stage: build
+  script:
+    - rm lua/ -fR
+    - mkdir lua
+    - sh build.sh
+  artifacts:
+    paths:
+      - lua/*
+
+luacheck:
+  allow_failure: yes
+  script: sh luacheck.sh
+
+moonlint:
+  allow_failure: yes
+  script: moonc -l moon/*
