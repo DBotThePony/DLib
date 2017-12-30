@@ -91,9 +91,9 @@ function DLib.skin.tex.Window.Maxi(x, y, w, h, self)
 
 	surface_SetDrawColor(125 + self.Neon * 2, 125 + self.Neon * 2, 125 + self.Neon * 2)
 	surface_DrawLine(x + 2, h - buttonOffset - 5, w - 4, h - buttonOffset - 5)
-	surface_DrawLine(x + 2, h - 24, w - 4, h - 24)
-	surface_DrawLine(x + 2, h - buttonOffset - 5, x + 2, h - 24)
-	surface_DrawLine(w - 4, h - buttonOffset - 5, w - 4, h - 24)
+	surface_DrawLine(x + 2, h - buttonOffset - 13, w - 4, h - buttonOffset - 13)
+	surface_DrawLine(x + 2, h - buttonOffset - 5, x + 2, h - buttonOffset - 13)
+	surface_DrawLine(w - 4, h - buttonOffset - 5, w - 4, h - buttonOffset - 13)
 end
 
 function DLib.skin.tex.Window.Maxi_Hover(x, y, w, h, self)
@@ -106,9 +106,9 @@ function DLib.skin.tex.Window.Maxi_Hover(x, y, w, h, self)
 
 	surface_SetDrawColor(150 + self.Neon * 2, 150 + self.Neon * 2, 150 + self.Neon * 2)
 	surface_DrawLine(x + 2, h - buttonOffset - 5, w - 4, h - buttonOffset - 5)
-	surface_DrawLine(x + 2, h - 24, w - 4, h - 24)
-	surface_DrawLine(x + 2, h - buttonOffset - 5, x + 2, h - 24)
-	surface_DrawLine(w - 4, h - buttonOffset - 5, w - 4, h - 24)
+	surface_DrawLine(x + 2, h - buttonOffset - 13, w - 4, h - buttonOffset - 13)
+	surface_DrawLine(x + 2, h - buttonOffset - 5, x + 2, h - buttonOffset - 13)
+	surface_DrawLine(w - 4, h - buttonOffset - 5, w - 4, h - buttonOffset - 13)
 end
 
 function DLib.skin.tex.Window.Maxi_Down(x, y, w, h, self)
@@ -121,9 +121,9 @@ function DLib.skin.tex.Window.Maxi_Down(x, y, w, h, self)
 
 	surface_SetDrawColor(150 + self.Neon * 2, 150 + self.Neon * 2, 150 + self.Neon * 2)
 	surface_DrawLine(x + 2, h - buttonOffset - 5, w - 4, h - buttonOffset - 5)
-	surface_DrawLine(x + 2, h - 24, w - 4, h - 24)
-	surface_DrawLine(x + 2, h - buttonOffset - 5, x + 2, h - 24)
-	surface_DrawLine(w - 4, h - buttonOffset - 5, w - 4, h - 24)
+	surface_DrawLine(x + 2, h - buttonOffset - 13, w - 4, h - buttonOffset - 13)
+	surface_DrawLine(x + 2, h - buttonOffset - 5, x + 2, h - buttonOffset - 13)
+	surface_DrawLine(w - 4, h - buttonOffset - 5, w - 4, h - buttonOffset - 13)
 end
 
 function DLib.skin.tex.Window.Restore(x, y, w, h, self)
@@ -136,9 +136,9 @@ function DLib.skin.tex.Window.Restore(x, y, w, h, self)
 
 	surface_SetDrawColor(125 + self.Neon * 2, 125 + self.Neon * 2, 125 + self.Neon * 2)
 	surface_DrawLine(x + 2, h - buttonOffset - 5, w - 4, h - buttonOffset - 5)
-	surface_DrawLine(x + 2, h - buttonOffset - 17, w - 4, h - buttonOffset - 17)
-	surface_DrawLine(x + 2, h - buttonOffset - 5, x + 2, h - buttonOffset - 17)
-	surface_DrawLine(w - 4, h - buttonOffset - 5, w - 4, h - buttonOffset - 17)
+	surface_DrawLine(x + 2, h - buttonOffset - 13, w - 4, h - buttonOffset - 13)
+	surface_DrawLine(x + 2, h - buttonOffset - 5, x + 2, h - buttonOffset - 13)
+	surface_DrawLine(w - 4, h - buttonOffset - 5, w - 4, h - buttonOffset - 13)
 end
 
 function DLib.skin.tex.Window.Restore_Hover(x, y, w, h, self)
@@ -151,9 +151,9 @@ function DLib.skin.tex.Window.Restore_Hover(x, y, w, h, self)
 
 	surface_SetDrawColor(150 + self.Neon * 2, 150 + self.Neon * 2, 150 + self.Neon * 2)
 	surface_DrawLine(x + 2, h - buttonOffset - 5, w - 4, h - buttonOffset - 5)
-	surface_DrawLine(x + 2, h - buttonOffset - 17, w - 4, h - buttonOffset - 17)
-	surface_DrawLine(x + 2, h - buttonOffset - 5, x + 2, h - buttonOffset - 17)
-	surface_DrawLine(w - 4, h - buttonOffset - 5, w - 4, h - buttonOffset - 17)
+	surface_DrawLine(x + 2, h - buttonOffset - 13, w - 4, h - buttonOffset - 13)
+	surface_DrawLine(x + 2, h - buttonOffset - 5, x + 2, h - buttonOffset - 13)
+	surface_DrawLine(w - 4, h - buttonOffset - 5, w - 4, h - buttonOffset - 13)
 end
 
 function DLib.skin.tex.Window.Restore_Down(x, y, w, h, self)
@@ -166,9 +166,9 @@ function DLib.skin.tex.Window.Restore_Down(x, y, w, h, self)
 
 	surface_SetDrawColor(150 + self.Neon * 2, 150 + self.Neon * 2, 150 + self.Neon * 2)
 	surface_DrawLine(x + 2, h - buttonOffset - 5, w - 4, h - buttonOffset - 5)
-	surface_DrawLine(x + 2, h - buttonOffset - 17, w - 4, h - buttonOffset - 17)
-	surface_DrawLine(x + 2, h - buttonOffset - 5, x + 2, h - buttonOffset - 17)
-	surface_DrawLine(w - 4, h - buttonOffset - 5, w - 4, h - buttonOffset - 17)
+	surface_DrawLine(x + 2, h - buttonOffset - 13, w - 4, h - buttonOffset - 13)
+	surface_DrawLine(x + 2, h - buttonOffset - 5, x + 2, h - buttonOffset - 13)
+	surface_DrawLine(w - 4, h - buttonOffset - 5, w - 4, h - buttonOffset - 13)
 end
 
 function DLib.skin.tex.Window.Mini(x, y, w, h, self)
