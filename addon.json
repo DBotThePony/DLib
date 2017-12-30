@@ -5,6 +5,8 @@
     "tags": [],
     "ignore": [
         "*.psd",
+        "grablint.lua",
+        ".luacheckrc",
         "*.vcproj",
         "*.svn*",
         "*.git*",
