@@ -1,9 +1,9 @@
 
 {
-    "title"     :   "</DLib>",
-    "type"      :   "tool",
-    "tags"      :   [],
-    "ignore"    :   [
+    "title": "</DLib>",
+    "type": "tool",
+    "tags": [],
+    "ignore": [
         "*.psd",
         "*.vcproj",
         "*.svn*",
@@ -11,9 +11,8 @@
         ".gitlab-ci.yml",
         "moon*",
         "lua_src*",
-        "build.sh",
+        "*.sh",
         "README.md",
-        "lint.sh",
         ".vscode*",
         "LICENSE",
         "*.md",
