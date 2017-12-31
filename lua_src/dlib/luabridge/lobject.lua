@@ -54,6 +54,14 @@ function DLib.CreateLuaObject(objectName, registerMetadata)
 		end
 	end
 
+	if not meta.GetClass then
+		local lower = objectName:lower()
+
+		function meta:GetClass()
+			return lower
+		end
+	end
+
 	if not meta.Create then
 		function meta.Create(self, ...)
 			if type(self) == 'table' then
