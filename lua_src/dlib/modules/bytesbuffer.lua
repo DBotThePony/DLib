@@ -127,8 +127,8 @@ function meta:WriteUInt16(valueIn)
 	assert(type(valueIn) == 'number', 'WriteUInt16 - argument type is ' .. type(valueIn))
 	assert(valueIn >= 0 and valueIn <= 0xFFFF, 'WriteUInt16 - size overflow')
 	valueIn = math.floor(valueIn)
-	self.bytes[self.pointer + 2] = valueIn % 0xFF
-	self.bytes[self.pointer + 1] = (valueIn - valueIn % 0xFF) / 0xFF
+	self.bytes[self.pointer + 2] = valueIn % 0x100
+	self.bytes[self.pointer + 1] = (valueIn - valueIn % 0x100) / 0x100
 	self.pointer = self.pointer + 2
 	return self
 end
@@ -143,14 +143,14 @@ function meta:WriteUInt32(valueIn)
 	assert(type(valueIn) == 'number', 'WriteUInt32 - argument type is ' .. type(valueIn))
 	assert(valueIn >= -0 and valueIn <= 0xFFFFFFFF, 'WriteUInt32 - size overflow')
 	valueIn = math.floor(valueIn)
-	self.bytes[self.pointer + 4] = valueIn % 0xFF
-	valueIn = (valueIn - valueIn % 0xFF) / 0xFF
-	self.bytes[self.pointer + 3] = valueIn % 0xFF
-	valueIn = (valueIn - valueIn % 0xFF) / 0xFF
-	self.bytes[self.pointer + 2] = valueIn % 0xFF
-	valueIn = (valueIn - valueIn % 0xFF) / 0xFF
-	self.bytes[self.pointer + 1] = valueIn % 0xFF
-	valueIn = (valueIn - valueIn % 0xFF) / 0xFF
+	self.bytes[self.pointer + 4] = valueIn % 0x100
+	valueIn = (valueIn - valueIn % 0x100) / 0x100
+	self.bytes[self.pointer + 3] = valueIn % 0x100
+	valueIn = (valueIn - valueIn % 0x100) / 0x100
+	self.bytes[self.pointer + 2] = valueIn % 0x100
+	valueIn = (valueIn - valueIn % 0x100) / 0x100
+	self.bytes[self.pointer + 1] = valueIn % 0x100
+	valueIn = (valueIn - valueIn % 0x100) / 0x100
 	self.pointer = self.pointer + 4
 	return self
 end
@@ -191,7 +191,7 @@ end
 function meta:ReadUInt16()
 	self:CheckOverflow('UInt16', 2)
 	self.pointer = self.pointer + 2
-	return self.bytes[self.pointer] + self.bytes[self.pointer - 1] * 255
+	return self.bytes[self.pointer] + self.bytes[self.pointer - 1] * 256
 end
 
 function meta:ReadInt32()
@@ -202,9 +202,9 @@ function meta:ReadUInt32()
 	self:CheckOverflow('UInt32', 4)
 	self.pointer = self.pointer + 4
 	return self.bytes[self.pointer] +
-		self.bytes[self.pointer - 1] * 255 +
-		self.bytes[self.pointer - 2] * 255 * 255 +
-		self.bytes[self.pointer - 3] * 255 * 255 * 255
+		self.bytes[self.pointer - 1] * 256 +
+		self.bytes[self.pointer - 2] * 256 * 256 +
+		self.bytes[self.pointer - 3] * 256 * 256 * 256
 end
 
 function meta:ReadInt64()
@@ -215,13 +215,13 @@ function meta:ReadUInt64()
 	self:CheckOverflow('UInt64', 8)
 	self.pointer = self.pointer + 8
 	return self.bytes[self.pointer] +
-		self.bytes[self.pointer - 1] * 255 +
-		self.bytes[self.pointer - 2] * 255 * 255 +
-		self.bytes[self.pointer - 3] * 255 * 255 * 255 +
-		self.bytes[self.pointer - 4] * 255 * 255 * 255 * 255 +
-		self.bytes[self.pointer - 5] * 255 * 255 * 255 * 255 * 255 +
-		self.bytes[self.pointer - 6] * 255 * 255 * 255 * 255 * 255 * 255 +
-		self.bytes[self.pointer - 7] * 255 * 255 * 255 * 255 * 255 * 255 * 255
+		self.bytes[self.pointer - 1] * 256 +
+		self.bytes[self.pointer - 2] * 256 * 256 +
+		self.bytes[self.pointer - 3] * 256 * 256 * 256 +
+		self.bytes[self.pointer - 4] * 256 * 256 * 256 * 256 +
+		self.bytes[self.pointer - 5] * 256 * 256 * 256 * 256 * 256 +
+		self.bytes[self.pointer - 6] * 256 * 256 * 256 * 256 * 256 * 256 +
+		self.bytes[self.pointer - 7] * 256 * 256 * 256 * 256 * 256 * 256 * 256
 end
 
 -- Float
