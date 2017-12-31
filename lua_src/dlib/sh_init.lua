@@ -65,6 +65,7 @@ DLib.register('extensions/cvar.lua')
 DLib.register('extensions/entity.lua')
 DLib.register('extensions/player.lua').export(_G.player)
 
+DLib.simpleInclude('luabridge/lobject.lua')
 DLib.Loader.shmodule('color.lua')
 
 DLib.simpleInclude('net/net.lua')
@@ -121,6 +122,7 @@ DLib.Loader.loadPureCS('dlib/vgui')
 DLib.simpleInclude('luabridge/luabridge.lua')
 DLib.simpleInclude('luabridge/physgunhandler.lua')
 DLib.simpleInclude('luabridge/pnlhud.lua')
+DLib.simpleInclude('luabridge/loading_stages.lua')
 DLib.Loader.loadPureSHTop('dlib/modules/workarounds')
 
 DLib.hl2wdata = DLib.simpleInclude('data/hl2sweps.lua')
