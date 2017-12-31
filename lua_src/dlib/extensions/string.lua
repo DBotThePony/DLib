@@ -145,7 +145,17 @@ function string.bcharTable(input)
 	local output = ''
 
 	for i = 1, bytes, 800 do
-		output = output .. string.char(unpack(input, i, math.min(i + 799, bytes)))
+		local status, output2 = pcall(string.char, unpack(input, i, math.min(i + 799, bytes)))
+
+		if not status then
+			for i2 = i, math.min(i + 799, bytes) do
+				if input[i2] < 0 or input[i2] > 255 then
+					error(output2 .. ' (' .. input[i2] .. ')')
+				end
+			end
+		end
+
+		output = output .. output2
 	end
 
 	return output

@@ -23,6 +23,7 @@ local math = math
 local assert = assert
 local table = table
 local rawget = rawget
+local rawset = rawset
 local setmetatable = setmetatable
 local string = string
 
@@ -38,9 +39,20 @@ function meta:__index(key)
 	return rawget(self, key)
 end
 
+local byteschecker = {}
+
+byteschecker.__index = byteschecker
+byteschecker.__newindex = function(self, key, value)
+	if value < 0 or value > 255 then
+		error('wtf? new byte is ' .. value)
+	end
+
+	rawset(self, key, value)
+end
+
 function DLib.BytesBuffer(stringIn)
 	local obj = setmetatable({}, meta)
-	obj.bytes = {}
+	obj.bytes = setmetatable({}, byteschecker)
 	obj.pointer = 0
 
 	if type(stringIn) == 'string' then
@@ -71,7 +83,7 @@ end
 
 function meta:Release()
 	self.pointer = 0
-	self.bytes = {}
+	self.bytes = setmetatable({}, byteschecker)
 	return self
 end
 
@@ -106,14 +118,14 @@ function meta:WriteChar(char)
 end
 
 function meta:WriteInt16(valueIn)
-	assert(type(valueIn) == 'number', 'WriteByte - argument type is ' .. type(valueIn))
-	assert(valueIn >= -0x8000 and valueIn <= 0x7FFF, 'WriteByte - size overflow')
+	assert(type(valueIn) == 'number', 'WriteInt16 - argument type is ' .. type(valueIn))
+	assert(valueIn >= -0x8000 and valueIn <= 0x7FFF, 'WriteInt16 - size overflow')
 	return self:WriteUInt16(math.floor(valueIn) + 0x8000)
 end
 
 function meta:WriteUInt16(valueIn)
-	assert(type(valueIn) == 'number', 'WriteByte - argument type is ' .. type(valueIn))
-	assert(valueIn >= 0 and valueIn <= 0xFFFF, 'WriteByte - size overflow')
+	assert(type(valueIn) == 'number', 'WriteUInt16 - argument type is ' .. type(valueIn))
+	assert(valueIn >= 0 and valueIn <= 0xFFFF, 'WriteUInt16 - size overflow')
 	valueIn = math.floor(valueIn)
 	self.bytes[self.pointer + 2] = valueIn % 0xFF
 	self.bytes[self.pointer + 1] = (valueIn - valueIn % 0xFF) / 0xFF
@@ -122,21 +134,23 @@ function meta:WriteUInt16(valueIn)
 end
 
 function meta:WriteInt32(valueIn)
-	assert(type(valueIn) == 'number', 'WriteByte - argument type is ' .. type(valueIn))
+	assert(type(valueIn) == 'number', 'WriteInt32 - argument type is ' .. type(valueIn))
 	assert(valueIn >= -0x80000000 and valueIn <= 0x7FFFFFFF, 'WriteByte - size overflow')
 	return self:WriteUInt32(math.floor(valueIn) + 0x80000000)
 end
 
 function meta:WriteUInt32(valueIn)
-	assert(type(valueIn) == 'number', 'WriteByte - argument type is ' .. type(valueIn))
-	assert(valueIn >= -0 and valueIn <= 0xFFFFFFFF, 'WriteByte - size overflow')
+	assert(type(valueIn) == 'number', 'WriteUInt32 - argument type is ' .. type(valueIn))
+	assert(valueIn >= -0 and valueIn <= 0xFFFFFFFF, 'WriteUInt32 - size overflow')
 	valueIn = math.floor(valueIn)
-	self.bytes[self.pointer + 1] = (valueIn - valueIn % 0xFFFFFF) / 0xFFFFFF
-	valueIn = valueIn % 0xFFFFFF
-	self.bytes[self.pointer + 2] = (valueIn - valueIn % 0xFFFF) / 0xFFFF
-	valueIn = valueIn % 0xFFFF
-	self.bytes[self.pointer + 3] = (valueIn - valueIn % 0xFF) / 0xFF
 	self.bytes[self.pointer + 4] = valueIn % 0xFF
+	valueIn = (valueIn - valueIn % 0xFF) / 0xFF
+	self.bytes[self.pointer + 3] = valueIn % 0xFF
+	valueIn = (valueIn - valueIn % 0xFF) / 0xFF
+	self.bytes[self.pointer + 2] = valueIn % 0xFF
+	valueIn = (valueIn - valueIn % 0xFF) / 0xFF
+	self.bytes[self.pointer + 1] = valueIn % 0xFF
+	valueIn = (valueIn - valueIn % 0xFF) / 0xFF
 	self.pointer = self.pointer + 4
 	return self
 end
@@ -154,7 +168,7 @@ function meta:WriteUInt64(valueIn)
 end
 
 function meta:CheckOverflow(name, moveBy)
-	assert(self.pointer + moveBy <= self.length, 'Read' .. name .. ' - bytes amount overflow')
+	assert(self.pointer + moveBy <= self.length, 'Read' .. name .. ' - bytes amount overflow (' .. self.pointer .. ' + ' .. moveBy .. ' vs ' .. self.length .. ')')
 end
 
 function meta:ReadByte()
@@ -177,7 +191,7 @@ end
 function meta:ReadUInt16()
 	self:CheckOverflow('UInt16', 2)
 	self.pointer = self.pointer + 2
-	return self.bytes[self.pointer] + self.bytes[self.pointer - 1] * 0xFF
+	return self.bytes[self.pointer] + self.bytes[self.pointer - 1] * 255
 end
 
 function meta:ReadInt32()
@@ -187,7 +201,10 @@ end
 function meta:ReadUInt32()
 	self:CheckOverflow('UInt32', 4)
 	self.pointer = self.pointer + 4
-	return self.bytes[self.pointer] + self.bytes[self.pointer - 1] * 0xFF + self.bytes[self.pointer - 2] * 0xFFFF + self.bytes[self.pointer - 3] * 0xFFFFFF
+	return self.bytes[self.pointer] +
+		self.bytes[self.pointer - 1] * 255 +
+		self.bytes[self.pointer - 2] * 255 * 255 +
+		self.bytes[self.pointer - 3] * 255 * 255 * 255
 end
 
 function meta:ReadInt64()
@@ -198,19 +215,19 @@ function meta:ReadUInt64()
 	self:CheckOverflow('UInt64', 8)
 	self.pointer = self.pointer + 8
 	return self.bytes[self.pointer] +
-		self.bytes[self.pointer - 1] * 0xFF +
-		self.bytes[self.pointer - 2] * 0xFFFF +
-		self.bytes[self.pointer - 3] * 0xFFFFFF +
-		self.bytes[self.pointer - 4] * 0xFFFFFFFF +
-		self.bytes[self.pointer - 5] * 0xFFFFFFFFFF +
-		self.bytes[self.pointer - 6] * 0xFFFFFFFFFFFF +
-		self.bytes[self.pointer - 7] * 0xFFFFFFFFFFFFFF
+		self.bytes[self.pointer - 1] * 255 +
+		self.bytes[self.pointer - 2] * 255 * 255 +
+		self.bytes[self.pointer - 3] * 255 * 255 * 255 +
+		self.bytes[self.pointer - 4] * 255 * 255 * 255 * 255 +
+		self.bytes[self.pointer - 5] * 255 * 255 * 255 * 255 * 255 +
+		self.bytes[self.pointer - 6] * 255 * 255 * 255 * 255 * 255 * 255 +
+		self.bytes[self.pointer - 7] * 255 * 255 * 255 * 255 * 255 * 255 * 255
 end
 
 -- Float
 function meta:WriteFloat(valueIn)
 	local bits = DLib.bitworker.FloatToBinaryIEEE(valueIn, 8, 23)
-	local bitsInNumber = DLib.bitworker.BinaryToIntegerFixed(bits)
+	local bitsInNumber = DLib.bitworker.BinaryToUInteger(bits)
 	return self:WriteUInt32(bitsInNumber)
 end
 
@@ -222,7 +239,7 @@ end
 
 function meta:WriteDouble(valueIn)
 	local bits = DLib.bitworker.FloatToBinaryIEEE(valueIn, 11, 52)
-	local bitsInNumber = DLib.bitworker.BinaryToIntegerFixed(bits)
+	local bitsInNumber = DLib.bitworker.BinaryToUInteger(bits)
 	self:WriteUInt64(bitsInNumber)
 	return self
 end
