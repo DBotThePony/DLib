@@ -261,7 +261,7 @@ end
 function messageMeta:WriteNetworkCompressed()
 	local compressed = self:CompressBitsBuffer()
 
-	for i, char in DLib.string.bbyte(compressed, 1, #compressed):ipairs() do
+	for i, char in ipairs(DLib.string.bbyte(compressed, 1, #compressed)) do
 		WriteUIntNative(char, 8)
 	end
 
