@@ -84,3 +84,7 @@ function DLib.CreateLuaObject(objectName, registerMetadata)
 
 	return meta
 end
+
+function DLib.FindMetaTable(classIn)
+	return DLib.METADATA[classIn] or FindMetaTable(classIn) or nil
+end
