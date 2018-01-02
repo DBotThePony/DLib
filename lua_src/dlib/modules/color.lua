@@ -275,7 +275,7 @@ function colorMeta:ToHSV()
 end
 
 function colorMeta:ToVector()
-	return Vector(self.r / 255, self.g / 255, self.a / 255)
+	return Vector(self.r / 255, self.g / 255, self.b / 255)
 end
 
 function colorMeta:Lerp(lerpValue, lerpTo)
