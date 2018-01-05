@@ -97,6 +97,7 @@ DLib.Loader.shclass('freespace.lua')
 DLib.Loader.shclass('cvars.lua')
 DLib.Loader.shclass('rainbow.lua')
 DLib.Loader.shclass('camiwatchdog.lua')
+DLib.Loader.shclass('measure.lua')
 DLib.Loader.clclass('keybinds.lua').register()
 
 DLib.Loader.start('HUDCommons')
