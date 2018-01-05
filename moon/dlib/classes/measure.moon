@@ -43,6 +43,8 @@ class DLib.Measurment
 		for {prefix, size} in *prefixes
 			@[prefix .. 'metres'] = @metres / size
 
+	GetMetres: => @metres
+
 	for {prefix, size} in *prefixes
 		valueOut = prefix .. 'metres'
 		@__base['Get' .. prefix\sub(1, 1)\upper() .. prefix\sub(2) .. 'metres'] = => @[valueOut]
@@ -56,6 +58,8 @@ class DLib.MeasurmentNoCache
 	set: (hammerUnits) =>
 		@hammer = hammerUnits
 		@metres = (hammerUnits * 19.05) / 1000
+
+	GetMetres: => @metres
 
 	for {prefix, size} in *prefixes
 		valueOut = prefix .. 'metres'
