@@ -13,12 +13,17 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
+local gstring = _G.string
 local string = DLib.module('string', 'string')
 local unpack = unpack
 local os = os
 local select = select
 local math = math
 local table = table
+
+function gstring.formatname(self)
+	return self:sub(1, 1):upper() .. self:sub(2)
+end
 
 function string.tformat(time)
 	local str = ''
