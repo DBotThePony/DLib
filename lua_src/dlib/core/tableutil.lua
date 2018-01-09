@@ -17,8 +17,13 @@ local tableutil = DLib.module('table')
 local ipairs = ipairs
 local pairs = pairs
 local table = table
+local select = select
 local remove = table.remove
-local insert = table.insert
+local insert = function(self, val)
+	local newIndex = #self + 1
+	self[newIndex] = val
+	return newIndex
+end
 
 -- Appends numeric indexed tables
 function tableutil.append(destination, source)
@@ -285,6 +290,26 @@ function tableutil.sortedFind(findIn, findWhat, ifNone)
 	end
 
 	return ifNone
+end
+
+function tableutil.removeValues(tableIn, ...)
+	local first = select(1, ...)
+	local args
+
+	if type(first) == 'table' then
+		args = first
+	else
+		args = {...}
+	end
+
+	local removed = {}
+
+	for i, v in ipairs(args) do
+		insert(removed, tableIn[v - i + 1])
+		remove(tableIn, v - i + 1)
+	end
+
+	return removed
 end
 
 return tableutil
