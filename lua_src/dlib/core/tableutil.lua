@@ -304,9 +304,9 @@ function tableutil.removeValues(tableIn, ...)
 
 	local removed = {}
 
-	for i, v in ipairs(args) do
-		insert(removed, tableIn[v - i + 1])
-		remove(tableIn, v - i + 1)
+	for i = #args, 1, -1 do
+		insert(removed, tableIn[args[i]])
+		remove(tableIn, args[i])
 	end
 
 	return removed
