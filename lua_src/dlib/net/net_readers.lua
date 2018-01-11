@@ -213,20 +213,20 @@ function messageMeta:ReadDataInternal(bytesRead, direction)
 		bytesRead = math.floor(bitsRead / 8)
 	end
 
-	local bits = {}
+	local bytes = {}
 
 	for byte = 1, bytesRead do
-		table.insert(bits, DLib.bitworker.BinaryToUInteger(self:ReadBufferDirection(8, direction)))
+		table.insert(bytes, DLib.bitworker.BinaryToUInteger(self:ReadBufferDirection(8, direction)))
 	end
 
-	if #bits <= 500 then
-		return string.char(unpack(bits))
+	if #bytes <= 500 then
+		return string.char(unpack(bytes))
 	else
 		local output = ''
-		local amount = #bits
+		local amount = #bytes
 
 		for i = 1, amount, 500 do
-			output = output .. string.char(unpack(bits, i, math.min(i + 499, amount)))
+			output = output .. string.char(unpack(bytes, i, math.min(i + 499, amount)))
 		end
 
 		return output
@@ -264,7 +264,7 @@ function messageMeta:ReadStringInternal(direction)
 	end
 
 	local nextChar = DLib.bitworker.BinaryToUInteger(self:ReadBufferBackward(8))
-	local readString = {}
+	local bytes = {}
 
 	while nextChar ~= 0 do
 		if self.length < self.pointer + 8 then
@@ -272,17 +272,21 @@ function messageMeta:ReadStringInternal(direction)
 			return ''
 		end
 
-		table.insert(readString, nextChar)
+		table.insert(bytes, nextChar)
 		nextChar = DLib.bitworker.BinaryToUInteger(self:ReadBufferDirection(8, direction))
 	end
 
-	--print('-----')
-	--PrintTable(readString)
-
-	if #readString ~= 0 then
-		return string.char(unpack(readString))
+	if #bytes <= 500 then
+		return string.char(unpack(bytes))
 	else
-		return ''
+		local output = ''
+		local amount = #bytes
+
+		for i = 1, amount, 500 do
+			output = output .. string.char(unpack(bytes, i, math.min(i + 499, amount)))
+		end
+
+		return output
 	end
 end
 
