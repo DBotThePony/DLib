@@ -50,14 +50,6 @@ local function ErrorNoHalt(message)
 	end
 end
 
-local function ErrorNoHalt3(message)
-	if not DLib.STRICT_MODE:GetBool() then
-		return ErrorNoHalt2(traceback(message) .. '\n')
-	else
-		return error(message)
-	end
-end
-
 local messageMeta = DLib.netMessageMeta or {}
 DLib.netMessageMeta = messageMeta
 
@@ -496,11 +488,6 @@ local function CheckSendInput(targets)
 	local inputType = type(targets)
 
 	if inputType ~= 'CRecipientFilter' and inputType ~= 'Player' and inputType ~= 'table' then
-		if inputType == 'Entity' and not targets:IsValid() then
-			ErrorNoHalt3('net.Send - Tried to use a NULL Entity!')
-			return false
-		end
-
 		error('net.Send - unacceptable input! typeof ' .. inputType .. ' (' .. tostring(targets) .. ')')
 		return false
 	end
