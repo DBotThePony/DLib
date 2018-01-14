@@ -18,6 +18,7 @@
 local PhysObj = FindMetaTable('PhysObj')
 local vectorMeta = FindMetaTable('Vector')
 local Color = Color
+local math = math
 
 function PhysObj:SetAngleVelocity(newAngle)
 	return self:AddAngleVelocity(newAngle - self:GetAngleVelocity())
@@ -90,3 +91,20 @@ function sql.Query(...)
 end
 
 sql.register()
+
+function math.progression(self, min, max, middle)
+	if middle then
+		if self < min then return 0 end
+		if self >= max then return 1 end
+
+		if self < middle then
+			return math.min((self - min) / (middle - min), 1)
+		elseif self > middle then
+			return 1 - math.min((self - middle) / (max - middle), 1)
+		elseif self == middle then
+			return 1
+		end
+	end
+
+	return math.min((self - min) / (max - min), 1)
+end
