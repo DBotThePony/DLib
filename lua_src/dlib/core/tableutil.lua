@@ -188,6 +188,8 @@ function tableutil.gcopy(input)
 	return reply
 end
 
+tableutil.qcopy = tableutil.gcopy
+
 function tableutil.gcopyRange(input, start, endPos)
 	if #input < start then return {} end
 	endPos = endPos or #input
