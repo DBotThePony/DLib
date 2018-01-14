@@ -185,6 +185,35 @@ function messageMeta:ReadNetwork(length, msg)
 	return self
 end
 
+function messageMeta:ReadBytesBuffer(buffer, msg)
+	local time = SysTime()
+	local bytes = buffer.length
+	local bitsBuffer = self.bits
+
+	for byte = 1, bytes do
+		local readByte = buffer:ReadUByte()
+		local point = #bitsBuffer
+
+		for iteration = 1, 8 do
+			local div = readByte % 2
+			readByte = (readByte - div) / 2
+			bitsBuffer[point + iteration] = div
+		end
+	end
+
+	local ntime = (SysTime() - time) * 1000
+
+	if self:IsCompressed() then
+		self:DecompressNow()
+	end
+
+	if ntime > 1 and DLib.DEBUG_MODE:GetBool() then
+		DLib.Message('LNetworkMessage:ReadBytesBuffer() - took ' .. string.format('%.2f ms', ntime) .. ' to read ' .. msg .. ' from DLib.BytesBuffer!')
+	end
+
+	return self
+end
+
 function messageMeta:HasFlag(flag)
 	return self.flags:band(flag) == flag
 end

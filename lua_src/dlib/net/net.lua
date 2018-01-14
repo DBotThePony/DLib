@@ -27,6 +27,8 @@ local ipairs = ipairs
 local pairs = pairs
 local math = math
 local ProtectedCall = ProtectedCall
+local error = error
+local assert = assert
 
 local NetworkIDToString = util.NetworkIDToString
 local NetworkStringToID = util.NetworkStringToID
@@ -125,6 +127,103 @@ function net.RegisterWrapper(nameIn)
 		end
 
 		net.CURRENT_SEND_OBJECT[write](net.CURRENT_SEND_OBJECT, ...)
+	end
+end
+
+do
+	local function proceed(object)
+		local buffer = DLib.BytesBuffer()
+		local bits = object.bits
+		local bytes = math.ceil(#bits / 8)
+
+		for byte = 1, bytes do
+			local mark = (byte - 1) * 8
+
+			if byte == bytes then
+				buffer:WriteUByte(
+					(bits[mark + 1] or 0) +
+					(bits[mark + 2] or 0) * 0x2 +
+					(bits[mark + 3] or 0) * 0x4 +
+					(bits[mark + 4] or 0) * 0x8 +
+					(bits[mark + 5] or 0) * 0x10 +
+					(bits[mark + 6] or 0) * 0x20 +
+					(bits[mark + 7] or 0) * 0x40 +
+					(bits[mark + 8] or 0) * 0x80
+				)
+			else
+				buffer:WriteUByte(
+					bits[mark + 1] +
+					bits[mark + 2] * 0x2 +
+					bits[mark + 3] * 0x4 +
+					bits[mark + 4] * 0x8 +
+					bits[mark + 5] * 0x10 +
+					bits[mark + 6] * 0x20 +
+					bits[mark + 7] * 0x40 +
+					bits[mark + 8] * 0x80
+				)
+			end
+		end
+
+		return buffer
+	end
+
+	function net.DumpOutgoingBuffer()
+		if not net.CURRENT_SEND_OBJECT then
+			error('net.DumpOutgoingBuffer - Not currently writing a message.')
+		end
+
+		return proceed(net.CURRENT_SEND_OBJECT)
+	end
+
+	function net.DumpIngoingBuffer()
+		if not net.CURRENT_OBJECT then
+			error('net.DumpIngoingBuffer - Not currently writing a message.')
+		end
+
+		return proceed(net.CURRENT_OBJECT)
+	end
+
+	function net.DumpOutBuffer()
+		if not net.CURRENT_SEND_OBJECT then
+			error('net.DumpOutBuffer - Not currently writing a message.')
+		end
+
+		return proceed(net.CURRENT_SEND_OBJECT)
+	end
+
+	function net.DumpInBuffer()
+		if not net.CURRENT_OBJECT then
+			error('net.DumpInBuffer - Not currently writing a message.')
+		end
+
+		return proceed(net.CURRENT_OBJECT)
+	end
+end
+
+function net.SimulateNetworkReceive(bufferIn, messageIn, ply)
+	assert(type(bufferIn) == 'table', 'Input should be DLib.BytesBuffer, NetworkMessageName, Player!')
+
+	if type(messageIn) == 'number' then
+		messageIn = NetworkIDToString(messageIn)
+	end
+
+	assert(type(messageIn) == 'string', 'Invalid network id')
+	messageIn = messageIn:lower()
+	local triggerNetworkEvent = Hooks[messageIn]
+
+	if not triggerNetworkEvent then
+		DLib.Message('Unhandled message at net channel: ' .. messageIn)
+		return
+	end
+
+	net.CURRENT_OBJECT = net.CreateMessage(nil, false, messageIn)
+	net.CURRENT_OBJECT:SetMessageName(messageIn)
+	net.CURRENT_OBJECT:ReadBytesBuffer(bufferIn)
+	local status = ProtectedCall(function() triggerNetworkEvent(length, ply, net.CURRENT_OBJECT) end)
+	net.CURRENT_OBJECT = nil
+
+	if not status then
+		DLib.Message('Listener on ' .. messageIn .. ' has failed!')
 	end
 end
 
