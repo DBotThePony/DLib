@@ -131,48 +131,12 @@ function net.RegisterWrapper(nameIn)
 end
 
 do
-	local function proceed(object)
-		local buffer = DLib.BytesBuffer()
-		local bits = object.bits
-		local bytes = math.ceil(#bits / 8)
-
-		for byte = 1, bytes do
-			local mark = (byte - 1) * 8
-
-			if byte == bytes then
-				buffer:WriteUByte(
-					(bits[mark + 1] or 0) +
-					(bits[mark + 2] or 0) * 0x2 +
-					(bits[mark + 3] or 0) * 0x4 +
-					(bits[mark + 4] or 0) * 0x8 +
-					(bits[mark + 5] or 0) * 0x10 +
-					(bits[mark + 6] or 0) * 0x20 +
-					(bits[mark + 7] or 0) * 0x40 +
-					(bits[mark + 8] or 0) * 0x80
-				)
-			else
-				buffer:WriteUByte(
-					bits[mark + 1] +
-					bits[mark + 2] * 0x2 +
-					bits[mark + 3] * 0x4 +
-					bits[mark + 4] * 0x8 +
-					bits[mark + 5] * 0x10 +
-					bits[mark + 6] * 0x20 +
-					bits[mark + 7] * 0x40 +
-					bits[mark + 8] * 0x80
-				)
-			end
-		end
-
-		return buffer
-	end
-
 	function net.DumpOutgoingBuffer()
 		if not net.CURRENT_SEND_OBJECT then
 			error('net.DumpOutgoingBuffer - Not currently writing a message.')
 		end
 
-		return proceed(net.CURRENT_SEND_OBJECT)
+		return net.CURRENT_SEND_OBJECT:ToBytesBuffer()
 	end
 
 	function net.DumpIngoingBuffer()
@@ -180,7 +144,7 @@ do
 			error('net.DumpIngoingBuffer - Not currently writing a message.')
 		end
 
-		return proceed(net.CURRENT_OBJECT)
+		return net.CURRENT_OBJECT:ToBytesBuffer()
 	end
 
 	function net.DumpOutBuffer()
@@ -188,7 +152,7 @@ do
 			error('net.DumpOutBuffer - Not currently writing a message.')
 		end
 
-		return proceed(net.CURRENT_SEND_OBJECT)
+		return net.CURRENT_SEND_OBJECT:ToBytesBuffer()
 	end
 
 	function net.DumpInBuffer()
@@ -196,7 +160,7 @@ do
 			error('net.DumpInBuffer - Not currently writing a message.')
 		end
 
-		return proceed(net.CURRENT_OBJECT)
+		return net.CURRENT_OBJECT:ToBytesBuffer()
 	end
 end
 

@@ -214,6 +214,42 @@ function messageMeta:ReadBytesBuffer(buffer, msg)
 	return self
 end
 
+function messageMeta:ToBytesBuffer()
+	local buffer = DLib.BytesBuffer()
+	local bits = self.bits
+	local bytes = math.ceil(#bits / 8)
+
+	for byte = 1, bytes do
+		local mark = (byte - 1) * 8
+
+		if byte == bytes then
+			buffer:WriteUByte(
+				(bits[mark + 1] or 0) +
+				(bits[mark + 2] or 0) * 0x2 +
+				(bits[mark + 3] or 0) * 0x4 +
+				(bits[mark + 4] or 0) * 0x8 +
+				(bits[mark + 5] or 0) * 0x10 +
+				(bits[mark + 6] or 0) * 0x20 +
+				(bits[mark + 7] or 0) * 0x40 +
+				(bits[mark + 8] or 0) * 0x80
+			)
+		else
+			buffer:WriteUByte(
+				bits[mark + 1] +
+				bits[mark + 2] * 0x2 +
+				bits[mark + 3] * 0x4 +
+				bits[mark + 4] * 0x8 +
+				bits[mark + 5] * 0x10 +
+				bits[mark + 6] * 0x20 +
+				bits[mark + 7] * 0x40 +
+				bits[mark + 8] * 0x80
+			)
+		end
+	end
+
+	return buffer
+end
+
 function messageMeta:HasFlag(flag)
 	return self.flags:band(flag) == flag
 end
