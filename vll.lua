@@ -314,6 +314,10 @@ function VLL.LoadWorkshopSV(id, noreplicate)
 
 	if not noreplicate then
 		VLL.REPLICATED_WORK[tostring(id)] = id
+
+		net.Start('VLL.LoadWorkshop')
+		net.WriteString(tostring(id))
+		net.Broadcast()
 	end
 
 	local function success(responseText, contentLength, responseHeaders, statusCode)
@@ -2013,6 +2017,12 @@ if CLIENT then
 		local bundle = net.ReadString()
 		VLL.Message('Server required load bundle: ' .. bundle)
 		VLL.Load(bundle)
+	end)
+
+	net.Receive('VLL.LoadWorkshop', function()
+		local wsid = net.ReadString()
+		VLL.Message('Server required load workshop addon: ' .. wsid)
+		VLL.LoadWorkshopSV(wsid)
 	end)
 
 	net.Receive('VLL.LoadGMA', function()
