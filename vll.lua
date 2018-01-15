@@ -1338,6 +1338,39 @@ function VLL.BundleFiles(bundle)
 	return reply
 end
 
+local function RecursiveRegisterMetadata(classname, tableIn, metaRegistry)
+	local base = tableIn.Base
+	local findBase = base and metaRegistry[base]
+
+	if not findBase and base then
+		local getOld = baseclass.Get(base)
+
+		if getOld then
+			--print(classname .. ' <- ' .. base .. ' FOREIGN')
+			for key, value in pairs(getOld) do
+				if tableIn[key] == nil then
+					tableIn[key] = value
+				end
+			end
+		end
+	end
+
+	if findBase then
+		RecursiveRegisterMetadata(base, findBase, metaRegistry)
+		--print(classname .. ' <- ' .. base)
+
+		for key, value in pairs(findBase) do
+			if tableIn[key] == nil then
+				tableIn[key] = value
+			end
+		end
+	end
+
+	--print(classname .. ' !')
+
+	baseclass.Set(classname, tableIn)
+end
+
 function VLL.RunBundle(bundle)
 	VLL.Message('Running bundle: ' .. bundle)
 
@@ -1378,7 +1411,6 @@ function VLL.RunBundle(bundle)
 
 		for k, v in pairs(contents) do
 			if VLL.FileBundle('autorun/server/' .. v) == bundle then VLL.Include('autorun/server/' .. v) end
-
 		end
 
 		if DLib then
@@ -1387,7 +1419,6 @@ function VLL.RunBundle(bundle)
 
 			for k, v in pairs(contents) do
 				if VLL.FileBundle('dlib/autorun/server/' .. v) == bundle then VLL.Include('dlib/autorun/server/' .. v) end
-
 			end
 		end
 	else
@@ -1408,6 +1439,8 @@ function VLL.RunBundle(bundle)
 			end
 		end
 	end
+
+	local METATABLES = {}
 
 	local folders = VLL.DirectoryFolders('weapons')
 	table.sort(folders)
@@ -1438,6 +1471,7 @@ function VLL.RunBundle(bundle)
 		if hit then
 			weapons.Register(SWEP, f)
 			baseclass.Set(f, SWEP)
+			METATABLES[f] = SWEP
 		end
 
 		SWEP = nil
@@ -1457,6 +1491,7 @@ function VLL.RunBundle(bundle)
 
 			weapons.Register(SWEP, string.sub(v, 1, -5))
 			baseclass.Set(string.sub(v, 1, -5), SWEP)
+			METATABLES[string.sub(v, 1, -5)] = SWEP
 			SWEP = nil
 		end
 	end
@@ -1488,6 +1523,7 @@ function VLL.RunBundle(bundle)
 		if hit then
 			scripted_ents.Register(ENT, f)
 			baseclass.Set(f, ENT)
+			METATABLES[f] = ENT
 		end
 
 		ENT = nil
@@ -1505,6 +1541,7 @@ function VLL.RunBundle(bundle)
 
 			scripted_ents.Register(ENT, string.sub(v, 1, -5))
 			baseclass.Set(string.sub(v, 1, -5), ENT)
+			METATABLES[string.sub(v, 1, -5)] = ENT
 		end
 	end
 
@@ -1515,12 +1552,25 @@ function VLL.RunBundle(bundle)
 		for k, v in pairs(contents) do
 			if VLL.FileBundle('effects/' .. v) == bundle then
 				EFFECT = {}
-
 				VLL.Include('effects/' .. v)
-
 				effects.Register(EFFECT, string.sub(v, 1, -5))
 			end
 		end
+
+		contents = VLL.DirectoryFolders('effects')
+		table.sort(contents)
+
+		for k, v in pairs(contents) do
+			if VLL.FileBundle('effects/' .. v .. 'init.lua') == bundle then
+				EFFECT = {}
+				VLL.Include('effects/' .. v .. 'init.lua')
+				effects.Register(EFFECT, string.sub(v, 1, -5))
+			end
+		end
+	end
+
+	for classname, metadata in pairs(METATABLES) do
+		RecursiveRegisterMetadata(classname, metadata, METATABLES)
 	end
 
 	--[[
