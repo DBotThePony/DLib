@@ -53,6 +53,7 @@ VLL.HOOKS = VLL.HOOKS or {}
 VLL.SPAWNLISTS = VLL.SPAWNLISTS or {}
 VLL.PROVIDED_SPAWNLISTS = VLL.PROVIDED_SPAWNLISTS or {}
 VLL.PSPAWNLISTS = VLL.PSPAWNLISTS or {}
+VLL.WSADDONS = VLL.WSADDONS or {}
 
 VLL.CMOUNTING = VLL.CMOUNTING or 0
 VLL.WDOWNLOADING = VLL.WDOWNLOADING or 0
@@ -259,6 +260,91 @@ function VLL.LoadGMAAs(URL, path, noreplicate)
 	end
 end
 
+function VLL.LoadGMAWS(URL, path)
+	VLL.WSADDONS[path] = URL
+
+	local targetfolder = string.GetPathFromFilename('vll/' .. path)
+
+	if not file.Exists(targetfolder, 'DATA') then
+		file.CreateDir(targetfolder)
+	end
+
+	if table.HasValue(VLL.DOWNLOADING, path) then return end
+	VLL.Message('[WS] GMA file ' .. path .. ' was requested.')
+
+	local INDEX = table.insert(VLL.DOWNLOADING, path)
+
+	if file.Exists('vll/' .. path .. '.dat', 'DATA') then
+		MountGMA('data/vll/' .. path .. '.dat', path)
+		Remove(path)
+		return
+	end
+
+	VLL.Message('[WS] Downloading ' .. path)
+
+	local req = {}
+	local oreq = req
+	req.method = 'get'
+	req.url = URL
+
+	req.success = function(code, body, headers)
+		local uncompress = util.Decompress(body)
+		VLL.Message('[WS] Unpacking ' .. path)
+		file.Write('vll/' .. path .. '.dat', uncompress)
+		MountGMA('data/vll/' .. path .. '.dat', path)
+
+		Remove(path)
+	end
+
+	req.failed = function(reason)
+		VLL.Message('[WS] ATTENTION! Failed to download ' .. path .. ': ', reason)
+		Remove(path)
+	end
+
+	HTTP(req)
+end
+
+function VLL.LoadWorkshopSV(id, noreplicate)
+	if not id then return false end
+
+	if CLIENT then
+		VLL.LoadWorkshop(id)
+		return
+	end
+
+	if not noreplicate then
+		VLL.REPLICATED_WORK[tostring(id)] = id
+	end
+
+	local function success(responseText, contentLength, responseHeaders, statusCode)
+		if statusCode ~= 200 then VLL.Message("Unknown error occured (status code " .. statusCode .. ")") return end
+
+		local tbl = util.JSONToTable(responseText)
+
+		if tbl.response and tbl.response.publishedfiledetails then
+			for _,item in ipairs(tbl.response.publishedfiledetails) do
+				if VLL.IsWSAddonMounted(item.publishedfileid) then
+					VLL.Message("[WS] Addon " .. item.title .. " is mounted already.")
+					goto CONTINUE
+				end
+
+				VLL.LoadGMAWS(item.file_url, item.filename)
+				VLL.Message("[WS] Added " .. item.title .. " to the workshop download queue.")
+
+				::CONTINUE::
+			end
+		end
+	end
+
+	local function failure(errorMessage)
+		VLL.Message("[WS] Unknown error occured: " .. errorMessage)
+	end
+
+	local postFields = {itemcount = "1", ["publishedfileids[0]"] = tostring(id)}
+
+	http.Post("https://api.steampowered.com/ISteamRemoteStorage/GetPublishedFileDetails/v1/", postFields, success, failure)
+end
+
 function VLL.Unreplicate(bundle)
 	VLL.REPLICATED[bundle] = nil
 end
@@ -341,8 +427,9 @@ function VLL.SetupFiles(contents, bundle)
 		local FILE = parsed[i]
 		local body = parsed[i + 1]
 		local code = 200
-		if not body then continue end
-		VLL.SaveFile(FILE, body, bundle)
+		if body then
+			VLL.SaveFile(FILE, body, bundle)
+		end
 	end
 end
 
@@ -404,6 +491,7 @@ function VLL.Load(bundle, silent, noreplicate)
 		net.Broadcast()
 	end
 end
+
 VLL.LoadPack = VLL.Load
 
 function VLL.ReadFile(path)
@@ -416,6 +504,18 @@ function VLL.FileBundle(path)
 	path = string.lower(path)
 	if not VLL.FILE_MEMORY[path] then return '' end
 	return VLL.FILE_MEMORY[path].bundle
+end
+
+function VLL.IsWSAddonMounted(wsid)
+	if not wsid then return false end
+
+	for i, addon in ipairs(engine.GetAddons()) do
+		if addon.mounted and addon.wsid == wsid then
+			return true
+		end
+	end
+
+	return false
 end
 
 function VLL.FixFilePath(path)
@@ -503,16 +603,17 @@ function VLL.DirectoryContent(path)
 
 	for k, v in pairs(VLL.FILE_MEMORY) do
 		local sub = string.sub(k, 1, len)
-		if sub ~= path then continue end
+		if sub == path then
+			if string.sub(k, len + 1, len + 1) ~= '.' then
+				local subnext = string.sub(k, len + 2)
 
-		if string.sub(k, len + 1, len + 1) == '.' then continue end
-
-		local subnext = string.sub(k, len + 2)
-		if not string.find(subnext, '/') then
-			table.insert(reply, subnext)
-		else
-			local dir = string.Explode('/', subnext)[1]
-			reply2[dir] = dir
+				if not string.find(subnext, '/') then
+					table.insert(reply, subnext)
+				else
+					local dir = string.Explode('/', subnext)[1]
+					reply2[dir] = dir
+				end
+			end
 		end
 	end
 
@@ -530,11 +631,13 @@ function VLL.DirectoryFolders(path)
 
 	for k, v in pairs(VLL.FILE_MEMORY) do
 		local sub = string.sub(k, 1, len)
-		if sub ~= path then continue end
+		if sub ~= path then goto CONTINUE end
 		local subnext = string.sub(k, len + 2)
-		if not string.find(subnext, '/') then continue end
+		if not string.find(subnext, '/') then goto CONTINUE end
 		local dir = string.Explode('/', subnext)[1]
 		reply2[dir] = dir
+
+		::CONTINUE::
 	end
 
 	for k, v in pairs(reply2) do
@@ -867,12 +970,15 @@ function VLL.CopyTable(tab)
 	local reply = {}
 
 	for k, v in pairs(tab) do
-		if k == '__index' or k == '__newindex' then continue end
+		if k == '__index' or k == '__newindex' then goto CONTINUE end
+
 		if type(v) ~= 'table' then
 			reply[k] = v
 		else
 			reply[k] = VLL.CopyTable(tab)
 		end
+
+		::CONTINUE::
 	end
 
 	if tab.__index == tab then
@@ -1190,8 +1296,9 @@ function VLL.BundleFiles(bundle)
 	local reply = {}
 
 	for k, v in pairs(VLL.FILE_MEMORY) do
-		if v.bundle ~= bundle then continue end
-		table.insert(reply, k)
+		if v.bundle == bundle then
+			table.insert(reply, k)
+		end
 	end
 
 	return reply
@@ -1219,8 +1326,7 @@ function VLL.RunBundle(bundle)
 	table.sort(contents)
 
 	for k, v in pairs(contents) do
-		if VLL.FileBundle('autorun/' .. v) ~= bundle then continue end
-		VLL.Include('autorun/' .. v)
+		if VLL.FileBundle('autorun/' .. v) == bundle then VLL.Include('autorun/' .. v) end
 	end
 
 	if DLib then
@@ -1228,8 +1334,7 @@ function VLL.RunBundle(bundle)
 		table.sort(contents)
 
 		for k, v in pairs(contents) do
-			if VLL.FileBundle('dlib/autorun/' .. v) ~= bundle then continue end
-			VLL.Include('dlib/autorun/' .. v)
+			if VLL.FileBundle('dlib/autorun/' .. v) == bundle then VLL.Include('dlib/autorun/' .. v) end
 		end
 	end
 
@@ -1238,8 +1343,8 @@ function VLL.RunBundle(bundle)
 		table.sort(contents)
 
 		for k, v in pairs(contents) do
-			if VLL.FileBundle('autorun/server/' .. v) ~= bundle then continue end
-			VLL.Include('autorun/server/' .. v)
+			if VLL.FileBundle('autorun/server/' .. v) == bundle then VLL.Include('autorun/server/' .. v) end
+
 		end
 
 		if DLib then
@@ -1247,8 +1352,8 @@ function VLL.RunBundle(bundle)
 			table.sort(contents)
 
 			for k, v in pairs(contents) do
-				if VLL.FileBundle('dlib/autorun/server/' .. v) ~= bundle then continue end
-				VLL.Include('dlib/autorun/server/' .. v)
+				if VLL.FileBundle('dlib/autorun/server/' .. v) == bundle then VLL.Include('dlib/autorun/server/' .. v) end
+
 			end
 		end
 	else
@@ -1256,8 +1361,8 @@ function VLL.RunBundle(bundle)
 		table.sort(contents)
 
 		for k, v in pairs(contents) do
-			if VLL.FileBundle('autorun/client/' .. v) ~= bundle then continue end
-			VLL.Include('autorun/client/' .. v)
+			if VLL.FileBundle('autorun/client/' .. v) == bundle then VLL.Include('autorun/client/' .. v) end
+
 		end
 
 		if DLib then
@@ -1265,8 +1370,7 @@ function VLL.RunBundle(bundle)
 			table.sort(contents)
 
 			for k, v in pairs(contents) do
-				if VLL.FileBundle('dlib/autorun/client/' .. v) ~= bundle then continue end
-				VLL.Include('dlib/autorun/client/' .. v)
+				if VLL.FileBundle('dlib/autorun/client/' .. v) == bundle then VLL.Include('dlib/autorun/client/' .. v) end
 			end
 		end
 	end
@@ -1309,18 +1413,18 @@ function VLL.RunBundle(bundle)
 	table.sort(contents)
 
 	for k, v in pairs(contents) do
-		if VLL.FileBundle('weapons/' .. v) ~= bundle then continue end
+		if VLL.FileBundle('weapons/' .. v) == bundle then
+			SWEP = {}
+			SWEP.Folder = 'weapons'
+			SWEP.Primary = {}
+			SWEP.Secondary = {}
 
-		SWEP = {}
-		SWEP.Folder = 'weapons'
-		SWEP.Primary = {}
-		SWEP.Secondary = {}
+			VLL.Include('weapons/' .. v)
 
-		VLL.Include('weapons/' .. v)
-
-		weapons.Register(SWEP, string.sub(v, 1, -5))
-		baseclass.Set(string.sub(v, 1, -5), SWEP)
-		SWEP = nil
+			weapons.Register(SWEP, string.sub(v, 1, -5))
+			baseclass.Set(string.sub(v, 1, -5), SWEP)
+			SWEP = nil
+		end
 	end
 
 	local folders = VLL.DirectoryFolders('entities')
@@ -1359,15 +1463,15 @@ function VLL.RunBundle(bundle)
 	table.sort(contents)
 
 	for k, v in pairs(contents) do
-		if VLL.FileBundle('entities/' .. v) ~= bundle then continue end
+		if VLL.FileBundle('entities/' .. v) == bundle then
+			ENT = {}
+			ENT.Folder = 'entities'
 
-		ENT = {}
-		ENT.Folder = 'entities'
+			VLL.Include('entities/' .. v)
 
-		VLL.Include('entities/' .. v)
-
-		scripted_ents.Register(ENT, string.sub(v, 1, -5))
-		baseclass.Set(string.sub(v, 1, -5), ENT)
+			scripted_ents.Register(ENT, string.sub(v, 1, -5))
+			baseclass.Set(string.sub(v, 1, -5), ENT)
+		end
 	end
 
 	if CLIENT then
@@ -1375,13 +1479,13 @@ function VLL.RunBundle(bundle)
 		table.sort(contents)
 
 		for k, v in pairs(contents) do
-			if VLL.FileBundle('effects/' .. v) ~= bundle then continue end
+			if VLL.FileBundle('effects/' .. v) == bundle then
+				EFFECT = {}
 
-			EFFECT = {}
+				VLL.Include('effects/' .. v)
 
-			VLL.Include('effects/' .. v)
-
-			effects.Register(EFFECT, string.sub(v, 1, -5))
+				effects.Register(EFFECT, string.sub(v, 1, -5))
+			end
 		end
 	end
 
@@ -1440,8 +1544,9 @@ function VLL.TestBundle(contents, bundle, output)
 		local FILE = parsed[i]
 		local body = parsed[i + 1]
 		local code = 200
-		if not body then continue end
-		VLL.SaveFile(FILE, body, bundle)
+		if body then
+			VLL.SaveFile(FILE, body, bundle)
+		end
 	end
 
 	VLL.IS_TESTING = true
@@ -1682,6 +1787,19 @@ concommand.Add('vll_mountall', function(ply, cmd, args)
 	VLL.CMOUNTING_GMA = {}
 end)
 
+concommand.Add('vll_workshop', function(ply, cmd, args)
+	if IsValid(ply) and not ply:IsSuperAdmin() then VLL.MessagePlayer(ply, 'Not a Super Admin!') return end
+
+	local id = tonumber(args[1])
+
+	if not id then
+		VLL.Message('Not a valid workshop ID')
+		return
+	end
+
+	VLL.LoadWorkshopSV(id)
+end)
+
 concommand.Add('vll', function(ply, cmd, args)
 	if IsValid(ply) and SERVER then return end
 	MsgC([[
@@ -1694,7 +1812,8 @@ vll_load_silent bundle - loads bundle silently from clients on serverside, same 
 vll_load_server bundle - loads bundle serverside from client if superadmin
 vll_load_server_silent bundle - loads bundle silently on serverside from client if superadmin
 vll_unreplicate bundle - makes bundle not sended to client when they join
-vll_unload_hooks bundle - unloads hooks created by bundle]])
+vll_unload_hooks bundle - unloads hooks created by bundle
+]])
 end)
 
 local dots = '.  '
@@ -1888,6 +2007,7 @@ local function PopulateContent(pnl, treeNode, node)
 	end
 end
 
+
 if CLIENT then
 	net.Receive('VLL.Load', function()
 		local bundle = net.ReadString()
@@ -1975,6 +2095,19 @@ if CLIENT then
 else
 	HUDPaint = nil
 	PopulatePropMenu = nil
+
+	concommand.Add('vll_workshop_server', function(ply, cmd, args)
+		if IsValid(ply) and not ply:IsSuperAdmin() then VLL.MessagePlayer(ply, 'Not a Super Admin!') return end
+
+		local id = tonumber(args[1])
+
+		if not id then
+			VLL.Message('Not a valid workshop ID')
+			return
+		end
+
+		VLL.LoadWorkshopSV(id)
+	end)
 
 	function VLL.MessagePlayer(ply, ...)
 		if IsValid(ply) then
