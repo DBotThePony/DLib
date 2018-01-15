@@ -112,11 +112,37 @@ end
 
 local GMAWait = 0
 
-local function ContinueMountGMA(path, listname, nolist)
+local function ContinueMountGMA(path, listname, nolist, loadLua, bundle)
 	VLL.Message('Mounting ' .. path)
 	local status, models = game.MountGMA(path)
+	bundle = bundle or path
 
 	GMAWait = CurTime() + 3
+
+	if loadLua then
+		local targets = {}
+
+		for i, fileString in ipairs(models) do
+			if fileString:sub(1, 3) == 'lua' then
+				local filenameTrim = fileString:sub(5)
+				table.insert(targets, filenameTrim)
+			end
+		end
+
+		VLL.BUNDLE_STATUS[bundle] = VLL.RUNNING
+		VLL.BUNDLE_DATA[bundle] = {
+			total = #targets,
+			done = 0,
+			started = CurTime(),
+			status = '0',
+		}
+
+		for i, fileString in ipairs(targets) do
+			VLL.SaveFile(fileString, file.Read(fileString, 'LUA'), bundle)
+		end
+
+		VLL.RunBundle(bundle)
+	end
 
 	if not CLIENT then return end
 
@@ -172,14 +198,14 @@ timer.Create('VLL.MountQueue', 1, 0, function()
 	ContinueMountGMA(unpack(val))
 end)
 
-local function MountGMA(path, listname, nolist)
+local function MountGMA(path, listname, nolist, loadLua, bundle)
 	for k, v in ipairs(VLL.CMOUNTING_GMA) do
 		if v[1] == path then return end
 	end
 
 	VLL.Message('Adding GMA ' .. path .. ' to mount queue')
 
-	table.insert(VLL.CMOUNTING_GMA, {path, listname, nolist})
+	table.insert(VLL.CMOUNTING_GMA, {path, listname, nolist, loadLua, bundle})
 end
 
 function VLL.LoadGMA(path, noreplicate)
@@ -260,7 +286,7 @@ function VLL.LoadGMAAs(URL, path, noreplicate)
 	end
 end
 
-function VLL.LoadGMAWS(URL, path)
+function VLL.LoadGMAWS(URL, path, loadLua, bundle)
 	VLL.WSADDONS[path] = URL
 
 	local targetfolder = string.GetPathFromFilename('vll/' .. path)
@@ -270,17 +296,17 @@ function VLL.LoadGMAWS(URL, path)
 	end
 
 	if table.HasValue(VLL.DOWNLOADING, path) then return end
-	VLL.Message('[WS] GMA file ' .. path .. ' was requested.')
+	VLL.Message('[WS] GMA file ' .. path .. ' (' .. bundle .. ') was requested.')
 
 	local INDEX = table.insert(VLL.DOWNLOADING, path)
 
 	if file.Exists('vll/' .. path .. '.dat', 'DATA') then
-		MountGMA('data/vll/' .. path .. '.dat', path)
+		MountGMA('data/vll/' .. path .. '.dat', path, loadLua, bundle)
 		Remove(path)
 		return
 	end
 
-	VLL.Message('[WS] Downloading ' .. path)
+	VLL.Message('[WS] Downloading ' .. path .. ' (' .. bundle .. ')')
 
 	local req = {}
 	local oreq = req
@@ -291,24 +317,28 @@ function VLL.LoadGMAWS(URL, path)
 		local uncompress = util.Decompress(body)
 		VLL.Message('[WS] Unpacking ' .. path)
 		file.Write('vll/' .. path .. '.dat', uncompress)
-		MountGMA('data/vll/' .. path .. '.dat', path)
+		MountGMA('data/vll/' .. path .. '.dat', path, loadLua, bundle)
 
 		Remove(path)
 	end
 
 	req.failed = function(reason)
-		VLL.Message('[WS] ATTENTION! Failed to download ' .. path .. ': ', reason)
+		VLL.Message('[WS] ATTENTION! Failed to download ' .. path .. ' (' .. bundle .. '): ', reason)
 		Remove(path)
 	end
 
 	HTTP(req)
 end
 
-function VLL.LoadWorkshopSV(id, noreplicate)
+function VLL.LoadWorkshopSV(id, noreplicate, loadLua)
 	if not id then return false end
 
+	if loadLua == nil then
+		loadLua = false
+	end
+
 	if CLIENT then
-		VLL.LoadWorkshop(id)
+		VLL.LoadWorkshop(id, false, loadLua)
 		return
 	end
 
@@ -317,6 +347,7 @@ function VLL.LoadWorkshopSV(id, noreplicate)
 
 		net.Start('VLL.LoadWorkshop')
 		net.WriteString(tostring(id))
+		net.WriteBool(loadLua)
 		net.Broadcast()
 	end
 
@@ -332,7 +363,7 @@ function VLL.LoadWorkshopSV(id, noreplicate)
 					goto CONTINUE
 				end
 
-				VLL.LoadGMAWS(item.file_url, item.filename)
+				VLL.LoadGMAWS(item.file_url, item.filename, loadLua, id)
 				VLL.Message("[WS] Added " .. item.title .. " to the workshop download queue.")
 
 				::CONTINUE::
@@ -355,15 +386,14 @@ end
 
 file.CreateDir('vll/wcache')
 
-function VLL.LoadWorkshop(id, nolist)
+function VLL.LoadWorkshop(id, nolist, loadLua)
 	VLL.Message('Trying to download workshop addon ' .. id .. '.')
 
 	VLL.REPLICATED_WORK[tostring(id)] = id
 
 	--nuh
 	if SERVER then
-		VLL.Message('Serverside have no SteamWorks! Trying to lookup file on VLL server')
-		VLL.LoadGMAAs(VLL.URL .. 'wcache/' .. id .. '.gma', 'wcache/' .. id, false)
+		VLL.LoadWorkshopSV(id, false, loadLua)
 		return
 	end
 
@@ -386,14 +416,14 @@ function VLL.LoadWorkshop(id, nolist)
 
 		if file.Exists(path, 'GAME') then
 			VLL.Message('Mounting ' .. id .. ' (' .. data.title .. ') as ' .. path)
-			MountGMA(path, data.title, nolist)
+			MountGMA(path, data.title, nolist, loadLua, id)
 			VLL.WDOWNLOADING = VLL.WDOWNLOADING - 1
 		else
 			VLL.Message('Downloading ' .. id .. ' (' .. data.title .. ')')
 			steamworks.Download(data.fileid, true, function(path2)
 				VLL.WDOWNLOADING = VLL.WDOWNLOADING - 1
 				VLL.Message('Mounting ' .. id .. ' (' .. data.title .. ') as ' .. (path2 or path))
-				MountGMA(path2 or path, data.title, nolist)
+				MountGMA(path2 or path, data.title, nolist, loadLua, id)
 			end)
 		end
 	end)
@@ -1801,7 +1831,7 @@ concommand.Add('vll_workshop', function(ply, cmd, args)
 		return
 	end
 
-	VLL.LoadWorkshopSV(id)
+	VLL.LoadWorkshopSV(id, false, true)
 end)
 
 concommand.Add('vll', function(ply, cmd, args)
@@ -2021,20 +2051,15 @@ if CLIENT then
 
 	net.Receive('VLL.LoadWorkshop', function()
 		local wsid = net.ReadString()
+		local loadlua = net.ReadBool()
 		VLL.Message('Server required load workshop addon: ' .. wsid)
-		VLL.LoadWorkshopSV(wsid)
+		VLL.LoadWorkshopSV(wsid, false, loadlua)
 	end)
 
 	net.Receive('VLL.LoadGMA', function()
 		local gma = net.ReadString()
 		VLL.Message('Server required load GMA: ' .. gma)
 		VLL.LoadGMA(gma)
-	end)
-
-	net.Receive('VLL.LoadWorkshop', function()
-		local gma = net.ReadString()
-		VLL.Message('Server required load workshop addon: ' .. gma)
-		VLL.LoadWorkshop(gma)
 	end)
 
 	net.Receive('VLL.LoadGMAAs', function()
@@ -2116,7 +2141,7 @@ else
 			return
 		end
 
-		VLL.LoadWorkshopSV(id)
+		VLL.LoadWorkshopSV(id, false, true)
 	end)
 
 	function VLL.MessagePlayer(ply, ...)
@@ -2202,6 +2227,7 @@ else
 		for k, v in pairs(VLL.REPLICATED_WORK) do
 			net.Start('VLL.LoadWorkshop')
 			net.WriteString(k)
+			net.WriteBool(true)
 			net.Send(ply)
 		end
 	end
