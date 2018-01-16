@@ -1561,13 +1561,33 @@ function VLL.RunBundle(bundle)
 		table.sort(contents)
 
 		for k, v in pairs(contents) do
-			if VLL.FileBundle('effects/' .. v .. 'init.lua') == bundle then
+			if VLL.FileBundle('effects/' .. v .. '/init.lua') == bundle then
 				EFFECT = {}
-				VLL.Include('effects/' .. v .. 'init.lua')
+				VLL.Include('effects/' .. v .. '/init.lua')
 				effects.Register(EFFECT, string.sub(v, 1, -5))
 			end
 		end
 	end
+
+	if TFA then
+        local contents = VLL.DirectoryContent('tfa/modules')
+        table.sort(contents)
+
+        for k, v in pairs(contents) do
+            if ((v:StartWith('cl_') and CLIENT) or (v:StartWith('sv_') and SERVER)) and VLL.FileBundle('tfa/modules/' .. v) == bundle then
+				VLL.Include('tfa/modules/' .. v)
+			end
+        end
+
+        contents = VLL.DirectoryContent('tfa/external')
+        table.sort(contents)
+
+        for k, v in pairs(contents) do
+            if (v:StartWith('cl_') and CLIENT) or (v:StartWith('sv_') and SERVER) and VLL.FileBundle('tfa/external/' .. v) == bundle then
+				VLL.Include('tfa/external/' .. v)
+			end
+        end
+    end
 
 	for classname, metadata in pairs(METATABLES) do
 		RecursiveRegisterMetadata(classname, metadata, METATABLES)
