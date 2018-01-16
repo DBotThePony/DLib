@@ -1564,7 +1564,7 @@ function VLL.RunBundle(bundle)
 			if VLL.FileBundle('effects/' .. v .. '/init.lua') == bundle then
 				EFFECT = {}
 				VLL.Include('effects/' .. v .. '/init.lua')
-				effects.Register(EFFECT, string.sub(v, 1, -5))
+				effects.Register(EFFECT, v)
 			end
 		end
 	end
