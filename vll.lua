@@ -1574,7 +1574,7 @@ function VLL.RunBundle(bundle)
 		table.sort(contents)
 
 		for k, v in pairs(contents) do
-			if v:StartWith('sh_') and VLL.FileBundle('tfa/modules/' .. v) == bundle then
+			if not v:StartWith('cl_') and not v:StartWith('sv_') and VLL.FileBundle('tfa/modules/' .. v) == bundle then
 				VLL.Include('tfa/modules/' .. v)
 			end
 		end
@@ -1589,7 +1589,7 @@ function VLL.RunBundle(bundle)
 		table.sort(contents)
 
 		for k, v in pairs(contents) do
-			if v:StartWith('sh_') and VLL.FileBundle('tfa/external/' .. v) == bundle then
+			if not v:StartWith('cl_') and not v:StartWith('sv_') and VLL.FileBundle('tfa/external/' .. v) == bundle then
 				VLL.Include('tfa/external/' .. v)
 			end
 		end
