@@ -6,7 +6,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+	http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -1570,24 +1570,36 @@ function VLL.RunBundle(bundle)
 	end
 
 	if TFA then
-        local contents = VLL.DirectoryContent('tfa/modules')
-        table.sort(contents)
+		local contents = VLL.DirectoryContent('tfa/modules')
+		table.sort(contents)
 
-        for k, v in pairs(contents) do
-            if ((v:StartWith('cl_') and CLIENT) or (v:StartWith('sv_') and SERVER)) and VLL.FileBundle('tfa/modules/' .. v) == bundle then
+		for k, v in pairs(contents) do
+			if v:StartWith('sh_') and VLL.FileBundle('tfa/modules/' .. v) == bundle then
 				VLL.Include('tfa/modules/' .. v)
 			end
-        end
+		end
 
-        contents = VLL.DirectoryContent('tfa/external')
-        table.sort(contents)
+		for k, v in pairs(contents) do
+			if ((v:StartWith('cl_') and CLIENT) or (v:StartWith('sv_') and SERVER)) and VLL.FileBundle('tfa/modules/' .. v) == bundle then
+				VLL.Include('tfa/modules/' .. v)
+			end
+		end
 
-        for k, v in pairs(contents) do
-            if (v:StartWith('cl_') and CLIENT) or (v:StartWith('sv_') and SERVER) and VLL.FileBundle('tfa/external/' .. v) == bundle then
+		contents = VLL.DirectoryContent('tfa/external')
+		table.sort(contents)
+
+		for k, v in pairs(contents) do
+			if v:StartWith('sh_') and VLL.FileBundle('tfa/external/' .. v) == bundle then
 				VLL.Include('tfa/external/' .. v)
 			end
-        end
-    end
+		end
+
+		for k, v in pairs(contents) do
+			if ((v:StartWith('cl_') and CLIENT) or (v:StartWith('sv_') and SERVER)) and VLL.FileBundle('tfa/external/' .. v) == bundle then
+				VLL.Include('tfa/external/' .. v)
+			end
+		end
+	end
 
 	for classname, metadata in pairs(METATABLES) do
 		RecursiveRegisterMetadata(classname, metadata, METATABLES)
