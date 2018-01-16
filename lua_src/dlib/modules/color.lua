@@ -22,6 +22,7 @@ local Vector = Vector
 local ColorToHSV = ColorToHSV
 local Lerp = Lerp
 local util = util
+local assert = assert
 local srnd = util.SharedRandom
 
 local colorMeta = FindMetaTable('Color') or {}
@@ -77,6 +78,56 @@ local IsColor = IsColor
 function colorMeta:__tostring()
 	return string.format('Color[%i %i %i %i]', self.r, self.g, self.b, self.a)
 end
+
+function colorMeta:ToHex()
+	return string.format('0x%02x%02x%02x', self.r, self.g, self.b)
+end
+
+function colorMeta:ToNumberLittle()
+	return self.r + self.g * 256 + self.b * 256 * 256
+end
+
+function colorMeta:ToNumber()
+	return self.b + self.g * 256 + self.r * 256 * 256
+end
+
+colorMeta.ToNumberBig = colorMeta.ToNumber
+colorMeta.ToNumberBigEndian = colorMeta.ToNumber
+colorMeta.ToNumberLittlEndian = colorMeta.ToNumberLittle
+
+function _G.ColorFromNumberLittle(numIn)
+	assert(type(numIn) == 'number', 'Must be a number!')
+	local red = numIn % 256
+	numIn = (numIn - numIn % 256) / 256
+	local green = numIn % 256
+	numIn = (numIn - numIn % 256) / 256
+	local blue = numIn % 256
+	numIn = (numIn - numIn % 256) / 256
+
+	return Color(red, green, blue)
+end
+
+function _G.ColorFromNumber(numIn)
+	assert(type(numIn) == 'number', 'Must be a number!')
+	local red = numIn % 256
+	numIn = (numIn - numIn % 256) / 256
+	local green = numIn % 256
+	numIn = (numIn - numIn % 256) / 256
+	local blue = numIn % 256
+	numIn = (numIn - numIn % 256) / 256
+
+	return Color(blue, green, red)
+end
+
+local ColorFromNumber = ColorFromNumber
+
+function _G.ColorFromHex(hex)
+	return ColorFromNumber(tonumber(hex, 16))
+end
+
+_G.ColorFromNumberLittleEndian = _G.ColorFromNumberLittle
+_G.ColorFromNumberBig = _G.ColorFromNumber
+_G.ColorFromNumberBigEndian = _G.ColorFromNumber
 
 function colorMeta:__eq(target)
 	if not IsColor(target) then
