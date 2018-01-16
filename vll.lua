@@ -1371,6 +1371,23 @@ local function RecursiveRegisterMetadata(classname, tableIn, metaRegistry)
 	baseclass.Set(classname, tableIn)
 end
 
+local function loadFuckingTFA(path, bundle)
+	local contents = VLL.DirectoryContent(path)
+	table.sort(contents)
+
+	for k, v in pairs(contents) do
+		if not v:StartWith('cl_') and not v:StartWith('sv_') and VLL.FileBundle(path .. '/' .. v) == bundle then
+			VLL.Include(path .. '/' .. v)
+		end
+	end
+
+	for k, v in pairs(contents) do
+		if ((v:StartWith('cl_') and CLIENT) or (v:StartWith('sv_') and SERVER)) and VLL.FileBundle(path .. '/' .. v) == bundle then
+			VLL.Include(path .. '/' .. v)
+		end
+	end
+end
+
 function VLL.RunBundle(bundle)
 	VLL.Message('Running bundle: ' .. bundle)
 
@@ -1570,33 +1587,14 @@ function VLL.RunBundle(bundle)
 	end
 
 	if TFA then
-		local contents = VLL.DirectoryContent('tfa/modules')
-		table.sort(contents)
+		loadFuckingTFA('tfa/modules', bundle)
+		loadFuckingTFA('tfa/external', bundle)
+		local contents = VLL.DirectoryContent('tfa/att')
 
 		for k, v in pairs(contents) do
-			if not v:StartWith('cl_') and not v:StartWith('sv_') and VLL.FileBundle('tfa/modules/' .. v) == bundle then
-				VLL.Include('tfa/modules/' .. v)
-			end
-		end
-
-		for k, v in pairs(contents) do
-			if ((v:StartWith('cl_') and CLIENT) or (v:StartWith('sv_') and SERVER)) and VLL.FileBundle('tfa/modules/' .. v) == bundle then
-				VLL.Include('tfa/modules/' .. v)
-			end
-		end
-
-		contents = VLL.DirectoryContent('tfa/external')
-		table.sort(contents)
-
-		for k, v in pairs(contents) do
-			if not v:StartWith('cl_') and not v:StartWith('sv_') and VLL.FileBundle('tfa/external/' .. v) == bundle then
-				VLL.Include('tfa/external/' .. v)
-			end
-		end
-
-		for k, v in pairs(contents) do
-			if ((v:StartWith('cl_') and CLIENT) or (v:StartWith('sv_') and SERVER)) and VLL.FileBundle('tfa/external/' .. v) == bundle then
-				VLL.Include('tfa/external/' .. v)
+			if VLL.FileBundle('tfa/att/' .. v) == bundle then
+				TFAUpdateAttachments()
+				break
 			end
 		end
 	end
