@@ -21,9 +21,17 @@ function _G.LerpQuintic(t, a, b)
 	return Lerp(math.min(1, value), a, b)
 end
 
+function _G.Quintic(t)
+	return t * t * t * (t * (t * 6 - 15) + 10)
+end
+
 function _G.LerpCosine(t, a, b)
 	local value = (1 - math.cos(t * math.pi)) / 2
 	return Lerp(math.min(1, value), a, b)
+end
+
+function _G.Cosine(t)
+	return (1 - math.cos(t * math.pi)) / 2
 end
 
 function _G.LerpSinusine(t, a, b)
@@ -31,7 +39,15 @@ function _G.LerpSinusine(t, a, b)
 	return Lerp(math.min(1, value), a, b)
 end
 
+function _G.Sinusine(t)
+	return (1 - math.sin(t * math.pi)) / 2
+end
+
 function _G.LerpCubic(t, a, b)
 	local value = -2 * t * t * t + 3 * t * t
 	return Lerp(math.min(1, value), a, b)
+end
+
+function _G.Cubic(t)
+	return -2 * t * t * t + 3 * t * t
 end
