@@ -76,6 +76,8 @@ function DLib.CreateLuaObject(objectName, registerMetadata)
 
 			if meta.Initialize then
 				meta.Initialize(newObject, self, ...)
+			elseif meta.__construct then
+				meta.__construct(newObject, self, ...)
 			end
 
 			return newObject
