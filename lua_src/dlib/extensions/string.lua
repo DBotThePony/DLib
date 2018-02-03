@@ -122,6 +122,11 @@ end
 
 -- fuck https://github.com/Facepunch/garrysmod/pull/1176
 string.StartsWith = string.StartWith
+gstring.StartsWith = gstring.StartWith
+
+for k, v in pairs(gstring) do
+	gstring[k:sub(1, 1):lower() .. k:sub(2)] = v
+end
 
 function string.bchar(...)
 	local bytes = select('#', ...)
