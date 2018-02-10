@@ -29,6 +29,37 @@ if CLIENT then
 	function pixelvis_handle_t:PixelVisible(self, pos, rad)
 		return util.PixelVisible(pos, rad, self)
 	end
+
+	local player = player
+	local IsValid = FindMetaTable('Entity').IsValid
+	local GetTable = FindMetaTable('Entity').GetTable
+	local GetVehicle = FindMetaTable('Player').GetVehicle
+	local vehMeta = FindMetaTable('Vehicle')
+
+	function vehMeta:GetDriver()
+		return self._dlib_vehfix
+	end
+
+	local function Think()
+		for i, ply in ipairs(player.GetAll()) do
+			local ply2 = GetTable(ply)
+			local veh = GetVehicle(ply)
+
+			if veh ~= ply2._dlib_vehfix then
+				if IsValid(ply2._dlib_vehfix) then
+					veh._dlib_vehfix = NULL
+				end
+
+				ply2._dlib_vehfix = veh
+
+				if IsValid(veh) then
+					veh._dlib_vehfix = ply
+				end
+			end
+		end
+	end
+
+	hook.Add('Think', 'DLib.GetDriverFix', Think)
 end
 
 local CSoundPatch = FindMetaTable('CSoundPatch')
