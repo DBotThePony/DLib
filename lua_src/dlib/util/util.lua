@@ -22,6 +22,24 @@ local type = type
 local ipairs = ipairs
 local IsValid = IsValid
 
+if CLIENT then
+	local LocalPlayer = LocalPlayer
+	local IsValid = FindMetaTable('Entity').IsValid
+	local NULL = NULL
+
+	function _G.GetLocalWeapon()
+		local ply = LocalPlayer()
+		if not IsValid(ply) then return NULL end
+		local weapon = ply:GetActiveWeapon()
+		if not IsValid(weapon) then return NULL end
+		return weapon
+	end
+
+	_G.ActiveWeapon = _G.GetLocalWeapon
+	_G.GetActiveWeapon = _G.GetLocalWeapon
+	_G.LocalWeapon = _G.GetLocalWeapon
+end
+
 function DLib.VCreate(pnlName, pnlParent)
 	if not IsValid(pnlParent) then
 		DLib.Message(debug.traceback('Attempt to create ' .. pnlName .. ' without valid parent!', 2))
