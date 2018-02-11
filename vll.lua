@@ -54,6 +54,7 @@ VLL.SPAWNLISTS = VLL.SPAWNLISTS or {}
 VLL.PROVIDED_SPAWNLISTS = VLL.PROVIDED_SPAWNLISTS or {}
 VLL.PSPAWNLISTS = VLL.PSPAWNLISTS or {}
 VLL.WSADDONS = VLL.WSADDONS or {}
+VLL.HOOKS_POST = {}
 
 VLL.CMOUNTING = VLL.CMOUNTING or 0
 VLL.WDOWNLOADING = VLL.WDOWNLOADING or 0
@@ -617,12 +618,45 @@ function VLL.__realRequire(str)
 	end
 end
 
+local eventsToRun = {
+	'PostGamemodeLoaded',
+	'OnGamemodeLoaded',
+	'Initialize',
+	'InitPostEntity'
+}
+
 function VLL.__addHook(event, id, func, priority)
 	local bundle = getfenv(2).VLL_BUNDLE
 
 	hook.Add(event, id, func, priority)
 
 	if not bundle then return end
+
+	VLL.HOOKS_POST[bundle] = VLL.HOOKS_POST[bundle] or {}
+	local hooks = VLL.HOOKS_POST[bundle]
+
+	for i, toCall in ipairs(eventsToRun) do
+		if toCall == event then
+			hooks[id] = func
+			break
+		end
+	end
+
+	if event == 'PlayerInitialSpawn' then
+		hooks['__vll_fixplayers_' .. tostring(id)] = function()
+			for i, ply in ipairs(player.GetAll()) do
+				func(ply)
+			end
+		end
+	end
+
+	if event == 'PlayerSpawn' then
+		hooks['__vll_fixplayers2_' .. tostring(id)] = function()
+			for i, ply in ipairs(player.GetAll()) do
+				func(ply)
+			end
+		end
+	end
 
 	VLL.HOOKS[bundle] = VLL.HOOKS[bundle] or {}
 	VLL.HOOKS[bundle][event] = VLL.HOOKS[bundle][event] or {}
@@ -1642,6 +1676,12 @@ function VLL.RunBundle(bundle)
 		scripted_ents.Register(SWEP, 'gmod_tool')
 	end
 	]]
+
+	if VLL.HOOKS_POST[bundle] then
+		for k, v in pairs(VLL.HOOKS_POST[bundle]) do
+			v()
+		end
+	end
 
 	VLL.Message('Initialized bundle ' .. bundle .. ' in ' .. math.floor((SysTime() - t) * 100000) / 100 .. ' ms')
 end
