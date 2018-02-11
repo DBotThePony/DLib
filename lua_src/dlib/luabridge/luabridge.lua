@@ -47,7 +47,7 @@ if CLIENT then
 
 			if veh ~= ply2._dlib_vehfix then
 				if IsValid(ply2._dlib_vehfix) then
-					veh._dlib_vehfix = NULL
+					ply2._dlib_vehfix._dlib_vehfix = NULL
 				end
 
 				ply2._dlib_vehfix = veh
