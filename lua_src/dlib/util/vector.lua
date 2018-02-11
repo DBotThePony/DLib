@@ -19,6 +19,8 @@ local error = error
 local math = math
 local ipairs = ipairs
 local Vector = Vector
+local type = type
+local setmetatable = setmetatable
 
 function vector.FindCenter2D(min, max)
 	return max - (max - min) * 0.5
@@ -167,6 +169,89 @@ function vector.Centre(mins, maxs)
 	local deltay = maxs.y - mins.y
 	local deltaz = maxs.z - mins.z
 	return Vector(mins.x + deltax * 0.5, mins.y + deltay * 0.5, mins.z + deltaz * 0.5)
+end
+
+--[[
+	Give two vectors (e.g. mins and maxs) and origin position
+	origin position is Vector(0, 0, 0) if mins and maxs are WORLDSPACE vectors
+	if mins and maxs are local vectors, origin is probably position of entity
+	which these vectors are belong to
+	This function will return a table with
+		{A, B, C, D} values that represent
+		Ax + By + Cz + D = 0
+]]
+
+function vector.CalculateSurfaceFromTwoPoints(mins, maxs, zero)
+	zero = zero or Vector(0, 0, 0)
+
+	local x0, y0, z0 = zero.x, zero.y, zero.z
+	local x1, y1, z1 = mins.x, mins.y, mins.z
+	local x2, y2, z2 = maxs.x, maxs.y, maxs.z
+
+	local a1 = -x0
+	local a2 = -y0
+	local a3 = -z0
+
+	local b1 = x1
+	local b2 = y1
+	local b3 = z1
+
+	local c1 = x2
+	local c2 = y2
+	local c3 = z2
+
+	local m1 = b2 * c3
+	local m2 = b1 * c2
+	local m3 = b3 * c1
+	local m4 = b2 * c1
+	local m5 = b3 * c2
+	local m6 = b1 * c3
+
+	local X, Y, Z, D = 0, 0, 0, 0
+
+	-- m1
+	X = X + m1
+	D = D + a1 * m1
+
+	-- m2
+	Z = Z + m2
+	D = D + a3 * m2
+
+	-- m3
+	Y = Y + m3
+	D = D + a2 * m3
+
+	-- m4
+	Z = Z - m4
+	D = D - a3 * m4
+
+	-- m5
+	X = X - m5
+	D = D - a1 * m5
+
+	-- m6
+	Y = Y - m6
+	D = D - a2 * m6
+
+	return {X, Y, Z, D}
+end
+
+function vector.DistanceFromPointToSurface(point, surfaceTable)
+	local A, B, C, D = surfaceTable[1], surfaceTable[2], surfaceTable[3], surfaceTable[4]
+	local Mx, My, Mz = point.x, point.y, point.z
+	local toDivide = math.abs(A * Mx + B * My + C * Mz + D)
+	local square = math.sqrt(math.pow(A, 2) + math.pow(B, 2) + math.pow(C, 2))
+	return toDivide / square
+end
+
+function vector.DistanceFromPointToPlane(point, mins, maxs)
+	return vector.DistanceFromPointToSurface(point, vector.CalculateSurfaceFromTwoPoints(mins, maxs))
+end
+
+function vector.IsPositionInsideBox(pos, mins, maxs)
+	return pos.x >= mins.x and pos.x <= maxs.x and
+		pos.y >= mins.y and pos.y <= maxs.y and
+		pos.z >= mins.z and pos.z <= maxs.z
 end
 
 return vector
