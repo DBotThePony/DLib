@@ -111,10 +111,20 @@ local function Remove(name)
 end
 
 local GMAWait = 0
+local mountingAll = false
 
 local function ContinueMountGMA(path, listname, nolist, loadLua, bundle)
 	VLL.Message('Mounting ' .. path)
+	local time = SysTime()
 	local status, models = game.MountGMA(path)
+	local newTime = (SysTime() - time) * 1000
+
+	if newTime < 500 and not mountingAll then
+		mountingAll = true
+		RunConsoleCommand('vll_mountall')
+		mountingAll = false
+	end
+
 	bundle = bundle or path
 
 	GMAWait = CurTime() + 3
