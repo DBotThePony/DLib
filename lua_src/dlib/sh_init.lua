@@ -45,6 +45,7 @@ DLib.simpleInclude('util/color.lua')
 DLib.register('util/combathelper.lua')
 DLib.register('util/util.lua')
 DLib.register('util/constraint.lua')
+DLib.register('util/vector.lua')
 
 DLib.node = DLib.simpleInclude('util/node.lua')
 

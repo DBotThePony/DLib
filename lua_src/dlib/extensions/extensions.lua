@@ -19,6 +19,9 @@ local PhysObj = FindMetaTable('PhysObj')
 local vectorMeta = FindMetaTable('Vector')
 local Color = Color
 local math = math
+local ipairs = ipairs
+local assert = assert
+local select = select
 
 function PhysObj:SetAngleVelocity(newAngle)
 	return self:AddAngleVelocity(newAngle - self:GetAngleVelocity())
@@ -106,4 +109,17 @@ function math.progression(self, min, max, middle)
 	end
 
 	return math.min((self - min) / (max - min), 1)
+end
+
+function math.equal(...)
+	assert(select('#', ...) > 1, 'At least two numbers are required!')
+	local lastValue
+
+	for i, value in ipairs({...}) do
+		lastValue = lastValue or value
+
+		if value ~= lastValue then return false end
+	end
+
+	return true
 end
