@@ -352,19 +352,19 @@ function VLL.LoadWorkshopSV(id, noreplicate, loadLua)
 	end
 
 	local function success(responseText, contentLength, responseHeaders, statusCode)
-		if statusCode ~= 200 then VLL.Message("Unknown error occured (status code " .. statusCode .. ")") return end
+		if statusCode ~= 200 then VLL.AdminMessage("Unknown error occured (status code " .. statusCode .. ")") return end
 
 		local tbl = util.JSONToTable(responseText)
 
 		if tbl.response and tbl.response.publishedfiledetails then
 			for _,item in ipairs(tbl.response.publishedfiledetails) do
 				if VLL.IsWSAddonMounted(item.publishedfileid) then
-					VLL.Message("[WS] Addon " .. item.title .. " is mounted already.")
+					VLL.AdminMessage("[WS] Addon " .. item.title .. " is mounted already.")
 					goto CONTINUE
 				end
 
 				VLL.LoadGMAWS(item.file_url, item.filename, loadLua, id)
-				VLL.Message("[WS] Added " .. item.title .. " to the workshop download queue.")
+				VLL.AdminMessage("[WS] Added " .. item.title .. " to the workshop download queue.")
 
 				::CONTINUE::
 			end
@@ -372,7 +372,7 @@ function VLL.LoadWorkshopSV(id, noreplicate, loadLua)
 	end
 
 	local function failure(errorMessage)
-		VLL.Message("[WS] Unknown error occured: " .. errorMessage)
+		VLL.AdminMessage("[WS] Unknown error occured: " .. errorMessage)
 	end
 
 	local postFields = {itemcount = "1", ["publishedfileids[0]"] = tostring(id)}
