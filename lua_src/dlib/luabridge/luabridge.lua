@@ -35,9 +35,10 @@ if CLIENT then
 	local GetTable = FindMetaTable('Entity').GetTable
 	local GetVehicle = FindMetaTable('Player').GetVehicle
 	local vehMeta = FindMetaTable('Vehicle')
+	local NULL = NULL
 
 	function vehMeta:GetDriver()
-		return self._dlib_vehfix
+		return self._dlib_vehfix or NULL
 	end
 
 	local function Think()
