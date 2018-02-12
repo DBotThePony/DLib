@@ -448,4 +448,71 @@ function obj:Commit(finish)
 	self:Query(TRX[current][1], success, err)
 end
 
+function obj:GatherTableColumns(tableIn, callback, error)
+	assert(type(tableIn) == 'string', 'Input is not a string! typeof ' .. type(tableIn))
+
+	if self.IsMySQL then
+		self:Query('DESCRIBE `' .. tableIn .. '`;', function(data)
+			local output = {}
+
+			for i, row in ipairs(data) do
+				local cName = row.Type:lower()
+				local valueType = cName:match('^([^\\(]+)'):lower()
+				local valueLength = tonumber(cName:match('([0-9]+)'))
+				local unsigned = cName:match('unsigned') ~= nil
+
+				if valueType == 'int' then
+					valueType = 'integer'
+				end
+
+				table.insert(output, {
+					field = row.Field,
+					type = {
+						type = valueType,
+						length = valueLength,
+						isUnsigned = unsigned,
+					},
+					isNull = row.Null == 'YES',
+					default = row.Default,
+					unrecognized = row.Extra
+				})
+			end
+
+			callback(output)
+		end, error)
+	else
+		self:Query('pragma table_info("' .. tableIn .. '")', function(data)
+			local output = {}
+
+			for i, row in ipairs(data) do
+				local cName = row.type:lower()
+				local valueType = cName:match('^([^\\(]+)'):lower()
+				local valueLength = tonumber(cName:match('([0-9]+)'))
+				local unsigned = cName:match('unsigned') ~= nil
+				local default = row.dflt_value
+
+				if default == 'NULL' then
+					default = nil
+				else
+					default = default:match("^'?([^']*)'?$")
+				end
+
+				table.insert(output, {
+					field = row.name,
+					type = {
+						type = valueType,
+						length = valueLength,
+						isUnsigned = unsigned
+					},
+					isNull = row.notnull == '0',
+					default = default,
+					unrecognized = row.extra
+				})
+			end
+
+			callback(output)
+		end, error)
+	end
+end
+
 DMySQL3.Connect('default')
