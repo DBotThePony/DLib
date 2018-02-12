@@ -69,14 +69,21 @@ surface.CreateFont('DLib.SkinRoboto', {
 	extended = true,
 })
 
+surface.CreateFont('DLib.SkinPT', {
+	font = 'PT Sans',
+	size = 20,
+	weight = 500,
+	extended = true,
+})
+
 DLib.skin.PrintName  = 'DLib FlatBlack skin utilizing Lua draw functions'
 DLib.skin.Author  = 'DBot'
 DLib.skin.DermaVersion = 1
 DLib.skin.GwenTexture = Material('gwenskin/GModDefault.png')
-DLib.skin.fontFrame = 'DLib.SkinRoboto'
+DLib.skin.fontFrame = 'DLib.SkinPT'
 DLib.skin.texGradientUp = Material('gui/gradient_up')
 DLib.skin.texGradientDown = Material('gui/gradient_down')
-DLib.skin.fontTab = 'DLib.SkinRoboto'
+DLib.skin.fontTab = 'DLib.SkinPT'
 DLib.skin.fontCategoryHeader = 'TabLarge'
 
 DLib.skin.tex = {}
