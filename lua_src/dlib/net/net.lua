@@ -438,33 +438,25 @@ net.RegisterWrapper('Header')
 net.RegisterWrapper('Number')
 
 if DLib.gNet ~= gnet then
-	hook.Add('InitPostEntity', 'DLib_ReplaceNet', function()
-		DLib.gNet = gnet
+	DLib.gNet = gnet
 
-		for key, value in pairs(gnet) do
-			rawset(gnet, key, nil)
-		end
+	for key, value in pairs(gnet) do
+		rawset(gnet, key, nil)
+	end
 
-		setmetatable(gnet, {
-			__index = function(self, key)
-				return net[key]
-			end,
+	setmetatable(gnet, {
+		__index = function(self, key)
+			return net[key]
+		end,
 
-			__newindex = function(self, key, value)
-				if DLib.DEBUG_MODE:GetBool() and net[key] then
-					DLib.Message(traceback('Probably better not to do that? net.' .. tostring(key) .. ' (' .. tostring(net[key]) .. ') -> ' .. tostring(value)))
-				end
-
-				net[key] = value
+		__newindex = function(self, key, value)
+			if DLib.DEBUG_MODE:GetBool() and net[key] then
+				DLib.Message(traceback('Probably better not to do that? net.' .. tostring(key) .. ' (' .. tostring(net[key]) .. ') -> ' .. tostring(value)))
 			end
-		})
 
-		if toImport then
-			for key, value in pairs(toImport) do
-				net.Receive(key, value)
-			end
+			net[key] = value
 		end
-	end)
+	})
 end
 
 local messageMeta = FindMetaTable('LNetworkMessage')
@@ -487,6 +479,12 @@ function messageMeta:ReadColor()
 end
 
 net.RegisterWrapper('Color')
+
+if toImport then
+	for key, value in pairs(toImport) do
+		net.Receive(key, value)
+	end
+end
 
 DLib.simpleInclude('net/umsg.lua')
 DLib.simpleInclude('net/usermessage.lua')
