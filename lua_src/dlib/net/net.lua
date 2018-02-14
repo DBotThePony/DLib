@@ -488,6 +488,9 @@ end
 
 net.RegisterWrapper('Color')
 
-DLib.simpleInclude('net/umsg.lua')
-DLib.simpleInclude('net/usermessage.lua')
+hook.Add('InitPostEntity', 'DLib_ReplaceUmsg', function()
+	DLib.simpleInclude('net/umsg.lua')
+	DLib.simpleInclude('net/usermessage.lua')
+end)
+
 DLib.simpleInclude('net/net_graph.lua')
