@@ -150,8 +150,6 @@ local function transformStringID(stringID, transformFuncCall, event)
 end
 
 function hook.Add(event, stringID, funcToCall, priority)
-	__table[event] = __table[event] or {}
-
 	if type(event) ~= 'string' then
 		if DLib.DEBUG_MODE:GetBool() then
 			DLib.Message(traceback('hook.Add - event is not a string! ' .. type(event)))
@@ -159,6 +157,8 @@ function hook.Add(event, stringID, funcToCall, priority)
 
 		return
 	end
+
+	__table[event] = __table[event] or {}
 
 	if type(funcToCall) ~= 'function' then
 		if DLib.DEBUG_MODE:GetBool() then
@@ -210,6 +210,14 @@ function hook.Add(event, stringID, funcToCall, priority)
 end
 
 function hook.Remove(event, stringID)
+	if type(event) ~= 'string' then
+		if DLib.DEBUG_MODE:GetBool() then
+			DLib.Message(traceback('hook.Remove - event is not a string! ' .. type(event)))
+		end
+
+		return
+	end
+
 	if not __table[event] then return end
 	__tableGmod[event] = __tableGmod[event] or {}
 	__tableGmod[event][stringID] = nil
