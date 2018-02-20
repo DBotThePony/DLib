@@ -113,7 +113,7 @@ function ENT:Initialize()
 
 	if CLIENT then
 		self:ClientsideEntity()
-		self.CurrAngle = Angle()
+		self.CurrAngle = Angle(0, 0, 0)
 	end
 end
 
@@ -253,7 +253,7 @@ function ENT:Draw()
 	self.CModel:SetModel(mdl)
 	self.CModel2:SetModel(mdl)
 
-	local ang = self.CurrAngle
+	local ang = self.CurrAngle or Angle(0, 0, 0)
 	local pos = self:GetPos()
 
 	ang.y = ang.y + FrameTime() * 33
