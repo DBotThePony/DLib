@@ -15,8 +15,32 @@
 
 local vgui = vgui
 
+local numberEntry = {
+	'GetNumber'
+}
+
+do
+	local getset = {
+		'DefaultNumber',
+		'IsFloatAllowed',
+		'IsNegativeValueAllowed',
+		'LengthLimit',
+		'TooltipTime',
+		'TooltipShown',
+		'IsWhitelistMode',
+		'DisallowedHashSet',
+		'AllowedHashSet',
+		'DefaultReason',
+	}
+
+	for i, get in ipairs(getset) do
+		table.insert(numberEntry, 'Get' .. get)
+		table.insert(numberEntry, 'Set' .. get)
+	end
+end
+
 local panels = {
-	{'DLib_TextEntry_Number', 'Number', {'GetNumber'}},
+	{'DLib_TextEntry_Number', 'Number', numberEntry},
 	{'DLib_TextEntry', 'Text'},
 }
 
