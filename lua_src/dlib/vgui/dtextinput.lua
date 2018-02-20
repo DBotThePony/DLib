@@ -84,9 +84,11 @@ for i, pnlData in ipairs(panels) do
 
 	end
 
-	for i2, func in ipairs(pnlData[3]) do
-		PANEL[func] = function(self, ...)
-			return self.textInput[func](self.textInput, ...)
+	if pnlData[3] then
+		for i2, func in ipairs(pnlData[3]) do
+			PANEL[func] = function(self, ...)
+				return self.textInput[func](self.textInput, ...)
+			end
 		end
 	end
 
