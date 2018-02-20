@@ -16,7 +16,7 @@
 local vgui = vgui
 
 local panels = {
-	{'DLib_TextEntry_Number', 'Number'},
+	{'DLib_TextEntry_Number', 'Number', {'GetNumber'}},
 	{'DLib_TextEntry', 'Text'},
 }
 
@@ -72,8 +72,22 @@ for i, pnlData in ipairs(panels) do
 		return self.apply:GetText(...)
 	end
 
+	function PANEL:GetInput()
+		return self.textInput
+	end
+
+	function PANEL:GetButton()
+		return self.apply
+	end
+
 	function PANEL:OnEnter(value)
 
+	end
+
+	for i2, func in ipairs(pnlData[3]) do
+		PANEL[func] = function(self, ...)
+			return self.textInput[func](self.textInput, ...)
+		end
 	end
 
 	vgui.Register('DLib_' .. NAME, PANEL, 'EditablePanel')
