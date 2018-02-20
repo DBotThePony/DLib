@@ -134,6 +134,7 @@ end
 
 function PANEL:Label(text)
 	local panel = vgui.Create('DLabel', self)
+	self:AddPanel(panel)
 
 	if text then
 		panel:SetText(text)
