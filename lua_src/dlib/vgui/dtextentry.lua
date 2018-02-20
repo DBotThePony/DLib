@@ -13,6 +13,15 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
+local vgui = vgui
+local hook = hook
+local IsValid = IsValid
+local DLib = DLib
+local RealTime = RealTime
+local color_white = color_white
+local Color = Color
+local color_dlib = color_dlib
+
 local PANEL = {}
 DLib.VGUI.TextEntry = PANEL
 
@@ -43,4 +52,109 @@ function PANEL:OnKeyCodeTyped(key)
 end
 
 vgui.Register('DLib_TextEntry', PANEL, 'DTextEntry')
-return PANEL
+local TEXTENTRY = PANEL
+
+PANEL = {}
+DLib.VGUI.TextEntry_Configurable = PANEL
+
+DLib.util.AccessorFuncJIT(PANEL, 'lengthLimit', 'LengthLimit')
+DLib.util.AccessorFuncJIT(PANEL, 'tooltipTime', 'TooltipTime')
+DLib.util.AccessorFuncJIT(PANEL, 'tooltip', 'TooltipShown')
+DLib.util.AccessorFuncJIT(PANEL, 'whitelistMode', 'IsWhitelistMode')
+DLib.util.AccessorFuncJIT(PANEL, 'disallowed', 'DisallowedHashSet')
+DLib.util.AccessorFuncJIT(PANEL, 'allowed', 'AllowedHashSet')
+
+function PANEL:Init()
+	self.allowed = DLib.HashSet()
+	self.disallowedMap = DLib.HashSet()
+	self.whitelistMode = false
+	self.tooltipTime = 0
+	self.tooltip = false
+	self.lengthLimit = 0
+
+	hook.Add('PostRenderVGUI', self, self.PostRenderVGUI)
+end
+
+function PANEL:OnKeyCodeTyped(key)
+	local reply = TEXTENTRY.OnKeyCodeTyped(self, key)
+	if reply == false then return reply end
+
+	if self.whitelistMode then
+		if not self.allowed:has(key) then
+			self:Ding()
+			return false
+		end
+	else
+		if self.disallowed:has(key) then
+			self:Ding()
+			return false
+		end
+	end
+
+	return true
+end
+
+function PANEL:AddToBlacklist(value)
+	return self.disallowed:add(value)
+end
+
+function PANEL:AddToWhitelist(value)
+	return self.allowed:add(value)
+end
+
+function PANEL:RemoveFromBlacklist(value)
+	return self.disallowed:remove(value)
+end
+
+function PANEL:RemoveFromWhitelist(value)
+	return self.allowed:remove(value)
+end
+
+function PANEL:InBlacklist(value)
+	return self.disallowed:has(value)
+end
+
+function PANEL:InWhitelist(value)
+	return self.allowed:add(value)
+end
+
+function PANEL:Ding()
+	if self.tooltipTime - 0.95 > RealTime() then
+		self.tooltipTime = RealTime() + 1
+		self.tooltip = true
+		return
+	end
+
+	self.tooltipTime = RealTime() + 1
+	surface.PlaySound('resource/warning.wav')
+	self.tooltip = true
+end
+
+surface.CreateFont('DLib_TextEntry_Warning', {
+	font = 'Open Sans',
+	size = 20,
+	weight = 500
+})
+
+function PANEL:PostRenderVGUI()
+	if not IsValid(self) then return end
+	if not self.tooltip then return end
+	local time = RealTime()
+
+	if self.tooltipTime < time then
+		self.tooltip = false
+		return
+	end
+
+	local x, y = self:LocalToScreen(0, 0)
+	local w, h = self:GetSize()
+
+	y = y + h + 2
+	local fade = math.min(1, (self.tooltipTime - time) * 1.25 + 0.3)
+
+	surface.SetDrawColor(color_dlib)
+	DLib.HUDCommons.DrawTriangle(x + 3, y, 15, 20)
+	DLib.HUDCommons.WordBox('Not allowed symbol.', 'DLib_TextEntry_Warning', x, y + 20, color_white)
+end
+
+vgui.Register('DLib_TextEntry_Configurable', PANEL, 'DLib_TextEntry')
