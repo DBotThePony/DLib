@@ -115,3 +115,18 @@ function HUDCommons.DrawCheckboxUnchecked(x, y, w, h, color, g, b, a)
 	HUDCommons.DrawRotatedRect(x + size * 0.25, y + size * 0.15, size * 1.2, size * 0.15, 45)
 	HUDCommons.DrawRotatedRect(x + size * 0.15, y + size, size * 1.2, size * 0.15, -45)
 end
+
+function HUDCommons.DrawTriangle(x, y, w, h, rotate)
+	local poly = {
+		{x = x + w / 2, y = y},
+		{x = x + w, y = y + h},
+		{x = x, y = y + h},
+	}
+
+	if rotate then
+		HUDCommons.RotatePolyMatrix(poly, rotate)
+	end
+
+	surface.DrawPoly(poly)
+	return poly
+end
