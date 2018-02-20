@@ -274,7 +274,7 @@ function ENT:Draw()
 		self.CModel:DrawModel()
 		-- God how i hate this part
 		-- GMod functions have documented the best
-		self.CurrentClip = self.CurrentClip + FrameTime() * 22
+		self.CurrentClip = (self.CurrentClip or 0) + FrameTime() * 22
 
 		if self.CurrentClip > 150 then
 			self.CurrentClip = -150
