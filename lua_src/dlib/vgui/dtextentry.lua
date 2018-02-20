@@ -21,14 +21,23 @@ local RealTime = RealTime
 local color_white = color_white
 local Color = Color
 local color_dlib = color_dlib
+local tonumber = tonumber
 
 local PANEL = {}
 DLib.VGUI.TextEntry = PANEL
+
+surface.CreateFont('DLib_TextEntry', {
+	font = 'PT Serif',
+	size = 16,
+	weight = 500,
+	extended = true
+})
 
 function PANEL:Init()
 	self:SetText('')
 	self:SetKeyboardInputEnabled(true)
 	self:SetMouseInputEnabled(true)
+	self:SetFont('DLib_TextEntry')
 end
 
 function PANEL:OnEnter(value)
@@ -51,6 +60,16 @@ function PANEL:OnKeyCodeTyped(key)
 	return false
 end
 
+function PANEL:GetValueBeforeCaret()
+	local value = self:GetValue() or ''
+	return value:sub(1, self:GetCaretPos())
+end
+
+function PANEL:GetValueAfterCaret()
+	local value = self:GetValue() or ''
+	return value:sub(self:GetCaretPos() + 1)
+end
+
 vgui.Register('DLib_TextEntry', PANEL, 'DTextEntry')
 local TEXTENTRY = PANEL
 
@@ -63,6 +82,7 @@ DLib.util.AccessorFuncJIT(PANEL, 'tooltip', 'TooltipShown')
 DLib.util.AccessorFuncJIT(PANEL, 'whitelistMode', 'IsWhitelistMode')
 DLib.util.AccessorFuncJIT(PANEL, 'disallowed', 'DisallowedHashSet')
 DLib.util.AccessorFuncJIT(PANEL, 'allowed', 'AllowedHashSet')
+DLib.util.AccessorFuncJIT(PANEL, 'defaultReason', 'DefaultReason')
 
 function PANEL:Init()
 	self.allowed = DLib.HashSet()
@@ -71,6 +91,8 @@ function PANEL:Init()
 	self.tooltipTime = 0
 	self.tooltip = false
 	self.lengthLimit = 0
+	self.tooltipReason = 'Not allowed symbol.'
+	self.defaultReason = 'Not allowed symbol.'
 
 	hook.Add('PostRenderVGUI', self, self.PostRenderVGUI)
 end
@@ -118,7 +140,10 @@ function PANEL:InWhitelist(value)
 	return self.allowed:add(value)
 end
 
-function PANEL:Ding()
+function PANEL:Ding(reason)
+	reason = reason or self.defaultReason
+	self.tooltipReason = reason
+
 	if self.tooltipTime - 0.95 > RealTime() then
 		self.tooltipTime = RealTime() + 1
 		self.tooltip = true
@@ -154,7 +179,58 @@ function PANEL:PostRenderVGUI()
 
 	surface.SetDrawColor(color_dlib)
 	DLib.HUDCommons.DrawTriangle(x + 3, y, 15, 20)
-	DLib.HUDCommons.WordBox('Not allowed symbol.', 'DLib_TextEntry_Warning', x, y + 20, color_white)
+	DLib.HUDCommons.WordBox(self.tooltipReason, 'DLib_TextEntry_Warning', x, y + 20, color_white)
 end
 
 vgui.Register('DLib_TextEntry_Configurable', PANEL, 'DLib_TextEntry')
+
+local TEXTENTRY_CUSTOM = PANEL
+PANEL = {}
+DLib.VGUI.TextEntry_Number = PANEL
+DLib.util.AccessorFuncJIT(PANEL, 'defaultNumber', 'DefaultNumber')
+DLib.util.AccessorFuncJIT(PANEL, 'allowFloats', 'IsFloatAllowed')
+DLib.util.AccessorFuncJIT(PANEL, 'allowNegative', 'IsNegativeValueAllowed')
+
+function PANEL:Init()
+	self:SetIsWhitelistMode(true)
+	self:SetDefaultReason('Only numbers are allowed.')
+	self.defaultNumber = 0
+	self.allowFloats = true
+	self.allowNegative = true
+
+	for i, number in ipairs(DLib.KeyMap.NUMBERS_LIST) do
+		self:AddToWhitelist(number)
+	end
+end
+
+function PANEL:GetNumber()
+	return tonumber(self:GetValue() or '') or self.self.defaultNumber
+end
+
+function PANEL:OnKeyCodeTyped(key)
+	local reply = TEXTENTRY_CUSTOM.OnKeyCodeTyped(self, key)
+	if reply == false then return reply end
+
+	if not self.allowNegative and (key == KEY_MINUS or key == KEY_PAD_MINUS) then
+		self:Ding('Negative values are not allowed here')
+		return
+	end
+
+	if not self.allowFloats and (key == KEY_PAD_DECIMAL) then
+		self:Ding('Floating point values are not allowed here')
+		return
+	end
+
+	local value1 = self:GetValueBeforeCaret()
+	local value2 = self:GetValueAfterCaret()
+	local char = DLib.KeyMap.KEY[value]
+
+	if not tonumber(value1 .. char .. value2) then
+		self:Ding('Inputting ' .. char .. ' here will mangle the current value')
+		return
+	end
+
+	return true
+end
+
+vgui.Register('DLib_TextEntry_Number', PANEL, 'DLib_TextEntry_Configurable')
