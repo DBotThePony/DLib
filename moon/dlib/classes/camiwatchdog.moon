@@ -19,9 +19,11 @@ CLIENT = CLIENT
 SERVER = SERVER
 LocalPlayer = LocalPlayer
 pairs = pairs
+ipairs = ipairs
 IsValid = IsValid
 player = player
 timer = timer
+table = table
 
 class DLib.CAMIWatchdog
 	new: (idetifier, repeatSpeed = 10, ...) =>
@@ -30,6 +32,7 @@ class DLib.CAMIWatchdog
 		@idetifier = idetifier
 		@tracked = DLib.Set()
 		@trackedReplies = {} if CLIENT
+		@trackedPanels = {} if CLIENT
 		@trackedRepliesPly = {} if SERVER
 		@Track(...)
 		timer.Create 'DLib.CAMIWatchdog.' .. @idetifier, repeatSpeed, 0, -> @TriggerUpdate()
@@ -46,6 +49,12 @@ class DLib.CAMIWatchdog
 		else
 			return @trackedRepliesPly[ply] and @trackedRepliesPly[ply][perm]
 
+	HandlePanel: (perm, pnl) =>
+		return if SERVER
+		@trackedPanels[perm] = @trackedPanels[perm] or {}
+		table.insert(@trackedPanels[perm], pnl)
+		return @
+
 	TriggerUpdate: =>
 		@TriggerUpdateClient() if CLIENT
 		@TriggerUpdateServer() if SERVER
@@ -55,7 +64,17 @@ class DLib.CAMIWatchdog
 		return if not ply\IsValid() or not ply.UniqueID
 
 		for perm in *@tracked.values
-			CAMI.PlayerHasAccess ply, perm, (has = false, reason = '') -> @trackedReplies[perm] = has
+			CAMI.PlayerHasAccess ply, perm, (has = false, reason = '') ->
+				old = @trackedReplies[perm]
+				@trackedReplies[perm] = has
+				if old ~= has and @trackedPanels[perm]
+					cleanup = {}
+					for k, v in ipairs @trackedPanels[perm]
+						if IsValid(v)
+							v\SetEnabled(has)
+						else
+							table.insert(cleanup, k)
+					table.removeValues(@trackedPanels[perm], cleanup)
 
 	TriggerUpdateServer: =>
 		@trackedRepliesPly = {ply, data for ply, data in pairs @trackedRepliesPly when ply\IsValid()}
