@@ -104,7 +104,7 @@ function ENT:GetIsSpawned()
 end
 
 function ENT:Initialize()
-	timer.Simple(0, function()
+	timer.Simple(0.3, function()
 		if not self:IsValid() then return end
 		self:PhysicsInit(SOLID_NONE)
 		self:SetSolid(SOLID_NONE)
