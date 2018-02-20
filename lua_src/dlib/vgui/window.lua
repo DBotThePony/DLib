@@ -123,6 +123,70 @@ function PANEL:SetLabel(str)
 	return self:SetTitle(str)
 end
 
+function PANEL:AddPanel(panel, dock)
+	if type(panel) == 'string' then
+		panel = vgui.Create(panel, self)
+	end
+
+	panel:Dock(dock or TOP)
+	return panel
+end
+
+function PANEL:Label(text)
+	local panel = vgui.Create('DLabel', self)
+
+	if text then
+		panel:SetText(text)
+	end
+
+	panel:SizeToContents()
+
+	return panel
+end
+
 vgui.Register('DLib_Window', PANEL, 'DFrame')
 
-return PANEL
+PANEL = {}
+DLib.VGUI.WindowScroll = PANEL
+
+function PANEL:Init()
+	local scroll = vgui.Create('DScrollPanel', self)
+	self.scroll = scroll
+	scroll:Dock(FILL)
+end
+
+function PANEL:GetCanvas()
+	return self.scroll:GetCanvas()
+end
+
+function PANEL:ParentToCanvas(child)
+	return child:SetParent(self:GetCanvas())
+end
+
+function PANEL:GetPadding()
+	return self.scroll:GetPadding()
+end
+
+function PANEL:GetVBar()
+	return self.scroll:GetVBar()
+end
+
+function PANEL:GetScrollPanel()
+	return self.scroll
+end
+
+function PANEL:ScrollToChild(child)
+	return self.scroll:ScrollToChild(child)
+end
+
+function PANEL:AddPanel(panel, dock)
+	if type(panel) == 'string' then
+		panel = vgui.Create(panel, self)
+	end
+
+	self.scroll:AddItem(panel)
+	panel:Dock(dock or TOP)
+	return panel
+end
+
+vgui.Register('DLib_WindowScroll', PANEL, 'DFrame')
