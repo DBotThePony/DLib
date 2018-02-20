@@ -40,5 +40,15 @@ function PANEL:AddURLOption(name, value)
 	return new
 end
 
+function PANEL:AddSteamID(name, value)
+	return self:AddSteamID64(name, util.SteamIDTo64(value))
+end
+
+function PANEL:AddSteamID64(name, value)
+	local new = self:AddURLOption(name, 'https://steamcommunity.com/profiles/' .. value)
+	new:SetIcon(DLib.skin.icon.user())
+	return new
+end
+
 vgui.Register('DLib_Menu', PANEL, 'DMenu')
 return PANEL
