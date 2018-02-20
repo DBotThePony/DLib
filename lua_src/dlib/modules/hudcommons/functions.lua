@@ -41,6 +41,8 @@ function HUDCommons.TranslatePolyMatrix(data, x, y)
 end
 
 function HUDCommons.RotatePolyMatrix(data, rotateBy)
+	if rotateBy == 0 then return data end
+
 	local deg = math.rad(rotateBy)
 	local sin, cos = math.sin(deg), math.cos(deg)
 
