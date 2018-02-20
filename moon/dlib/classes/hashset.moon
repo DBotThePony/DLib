@@ -16,23 +16,31 @@
 --
 
 string_format = string.format
+import type, pairs from _G
 
 class DLib.HashSet extends DLib.Set
+	_hash: (object) =>
+		tp = type(object)
+		if tp == 'string' or tp == 'number'
+			return object
+		else
+			return string_format('%p', object)
+
 	add: (object) =>
 		return false if object == nil
-		p = string_format('%p', object)
+		p = @_hash(object)
 		return false if @values[p] ~= nil
 		@values[p] = object
 		return true, p
 
 	has: (object) =>
 		return false if object == nil
-		p = string_format('%p', object)
+		p = @_hash(object)
 		return @values[p] ~= nil
 
 	remove: (object) =>
 		return false if object == nil
-		p = string_format('%p', object)
+		p = @_hash(object)
 		return false if @values[p] == nil
 		@values[p] = nil
 		return true, p
