@@ -104,9 +104,13 @@ function ENT:GetIsSpawned()
 end
 
 function ENT:Initialize()
-	self:PhysicsInit(SOLID_NONE)
-	self:SetSolid(SOLID_NONE)
-	self:SetMoveType(MOVETYPE_NONE)
+	timer.Simple(0, function()
+		if not self:IsValid() then return end
+		self:PhysicsInit(SOLID_NONE)
+		self:SetSolid(SOLID_NONE)
+		self:SetMoveType(MOVETYPE_NONE)
+	end)
+
 	self:DrawShadow(false)
 
 	self.CurrentClip = 0
