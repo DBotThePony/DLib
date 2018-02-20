@@ -225,7 +225,7 @@ function PANEL:OnKeyCodeTyped(key)
 	local value2 = self:GetValueAfterCaret()
 	local char = DLib.KeyMap.KEY[value]
 
-	if not tonumber(value1 .. char .. value2) then
+	if char and not tonumber(value1 .. char .. value2) then
 		self:Ding('Inputting ' .. char .. ' here will mangle the current value')
 		return
 	end
