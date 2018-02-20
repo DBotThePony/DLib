@@ -361,6 +361,19 @@ do
 	end
 end
 
-_G.color_black = Color() - 255
-_G.color_white = Color()
-_G.color_transparent = Color():SetAlpha(0)
+local colorBundle = {
+	color_black = Color() - 255,
+	color_white = Color(),
+	color_red = Color(255, 0, 0),
+	color_green = Color(0, 255, 0),
+	color_blue = Color(0, 0, 255),
+	color_cyan = Color(0, 255, 255),
+	color_magenta = Color(255, 0, 255),
+	color_yellow = Color(255, 255, 0),
+	color_dlib = Color(0, 0, 0, 255),
+	color_transparent = Color():SetAlpha(0),
+}
+
+for k, v in pairs(colorBundle) do
+	_G[k] = v
+end
