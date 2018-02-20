@@ -113,6 +113,11 @@ function PANEL:OnKeyCodeTyped(key)
 		end
 	end
 
+	if self.lengthLimit > 0 and #(self:GetValue() or '') + 1 > self.lengthLimit then
+		self:Ding('Field limit exceeded')
+		return
+	end
+
 	return true
 end
 
@@ -227,7 +232,7 @@ function PANEL:OnKeyCodeTyped(key)
 
 	if char and not tonumber(value1 .. char .. value2) then
 		self:Ding('Inputting ' .. char .. ' here will mangle the current value')
-		return
+		return false
 	end
 
 	return true
