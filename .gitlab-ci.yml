@@ -3,11 +3,18 @@ dlib:
   stage: build
   script:
     - rm -rf moonscript
+    - rm -rf luajit
     - git clone https://github.com/leafo/moonscript.git ./moonscript --depth 1
+    - git clone http://luajit.org/git/luajit-2.0.git ./luajit --depth 1
+    - cd luajit
+    - git checkout v2.1
+    - make
+    - cd ../
     - mkdir lua
-    - ./moonscript/bin/moonc -t lua moon/*
+    - ./luajit/src/luajit moonscript/bin/moonc -t lua moon/*
     - cp lua_src/* lua/ -Rv
     - rm -rf moonscript
+    - rm -rf luajit
   artifacts:
     paths:
       - lua/*
