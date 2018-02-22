@@ -405,6 +405,12 @@ end
 DLib.simpleInclude('net/net_object.lua')
 DLib.simpleInclude('net/net_ext.lua')
 
+for i, n in ipairs({8, 16, 32, 64, 96}) do
+	net.RegisterWrapper('UInt' .. n)
+	net.RegisterWrapper('Int' .. n)
+	net.RegisterWrapper('IntTwos' .. n)
+end
+
 net.RegisterWrapper('Bit')
 net.RegisterWrapper('Data')
 net.RegisterWrapper('String')

@@ -112,6 +112,20 @@ function messageMeta:ReadInt(bitCount)
 	return self:ReadIntInternal(bitCount, false)
 end
 
+for i, n in ipairs({8, 16, 32, 64, 96}) do
+	messageMeta['ReadInt' .. n] = function(self)
+		return self:ReadInt(n)
+	end
+
+	messageMeta['ReadIntTwos' .. n] = function(self)
+		return self:ReadInt(n)
+	end
+
+	messageMeta['ReadUInt' .. n] = function(self)
+		return self:ReadUInt(n)
+	end
+end
+
 function messageMeta:ReadIntTwos(bitCount)
 	return self:ReadIntInternalTwos(bitCount, false)
 end

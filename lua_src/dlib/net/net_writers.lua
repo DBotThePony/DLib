@@ -183,6 +183,20 @@ function messageMeta:WriteUIntInternal(input, bitCount, direction)
 	return self
 end
 
+for i, n in ipairs({8, 16, 32, 64, 96}) do
+	messageMeta['WriteInt' .. n] = function(self, value)
+		return self:WriteInt(value, n)
+	end
+
+	messageMeta['WriteIntTwos' .. n] = function(self, value)
+		return self:WriteIntTwos(value, n)
+	end
+
+	messageMeta['WriteUInt' .. n] = function(self, value)
+		return self:WriteUInt(value, n)
+	end
+end
+
 function messageMeta:WriteUInt(input, bitCount)
 	return self:WriteUIntInternal(input, bitCount, false)
 end
