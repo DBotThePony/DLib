@@ -2,9 +2,12 @@
 dlib:
   stage: build
   script:
-    - rm lua/ -fR
+    - rm -rf moonscript
+    - git clone https://github.com/leafo/moonscript.git ./moonscript --depth 1
     - mkdir lua
-    - sh build.sh
+    - ./moonscript/bin/moonc -t lua moon/*
+    - cp lua_src/* lua/ -Rv
+    - rm -rf moonscript
   artifacts:
     paths:
       - lua/*
