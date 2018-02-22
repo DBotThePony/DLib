@@ -1,8 +1,10 @@
 
 before_script:
-  - wget http://ru.archive.ubuntu.com/ubuntu/pool/universe/l/luajit/luajit_2.0.4+dfsg-1_amd64.deb
-  - wget http://ru.archive.ubuntu.com/ubuntu/pool/universe/l/luarocks/luarocks_2.2.0+dfsg-2_all.deb
-  - apt install ./luajit_2.0.4+dfsg-1_amd64.deb ./luarocks_2.2.0+dfsg-2_all.deb -y
+  - add-apt-repository deb http://ru.archive.ubuntu.com/ubuntu/ xenial xenial-backports main restricted universe multiverse
+  - add-apt-repository deb-src http://ru.archive.ubuntu.com/ubuntu/ xenial xenial-backports main restricted universe multiverse
+  - add-apt-repository deb http://ru.archive.ubuntu.com/ubuntu/ xenial-backports main restricted universe multiverse
+  - add-apt-repository deb-src http://ru.archive.ubuntu.com/ubuntu/ xenial-backports main restricted universe multiverse
+  - apt install luarocks -y
   - luarocks install moonscript
 
 dlib:
