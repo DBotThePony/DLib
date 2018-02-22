@@ -1,9 +1,9 @@
 
 before_script:
-  - echo deb http://ru.archive.ubuntu.com/ubuntu/ xenial xenial-backports main restricted universe multiverse >>sources.list
-  - echo deb-src http://ru.archive.ubuntu.com/ubuntu/ xenial xenial-backports main restricted universe multiverse >>sources.list
-  - echo deb http://ru.archive.ubuntu.com/ubuntu/ xenial-backports main restricted universe multiverse >>sources.list
-  - echo deb-src http://ru.archive.ubuntu.com/ubuntu/ xenial-backports main restricted universe multiverse >>sources.list
+  - echo deb http://ru.archive.ubuntu.com/ubuntu/ xenial xenial-backports main restricted universe multiverse >>/etc/apt/sources.list
+  - echo deb-src http://ru.archive.ubuntu.com/ubuntu/ xenial xenial-backports main restricted universe multiverse >>/etc/apt/sources.list
+  - echo deb http://ru.archive.ubuntu.com/ubuntu/ xenial-backports main restricted universe multiverse >>/etc/apt/sources.list
+  - echo deb-src http://ru.archive.ubuntu.com/ubuntu/ xenial-backports main restricted universe multiverse >>/etc/apt/sources.list
   - apt install luarocks -y
   - luarocks install moonscript
 
