@@ -5,7 +5,7 @@ dlib:
     - rm -rf moonscript
     - rm -rf luajit
     - git clone https://github.com/leafo/moonscript.git ./moonscript --depth 1
-    - git clone http://luajit.org/git/luajit-2.0.git ./luajit --depth 1
+    - git clone http://luajit.org/git/luajit-2.0.git ./luajit
     - cd luajit
     - git checkout v2.1
     - make
