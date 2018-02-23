@@ -190,4 +190,4 @@ function PANEL:AddPanel(panel, dock)
 	return panel
 end
 
-vgui.Register('DLib_WindowScroll', PANEL, 'DFrame')
+vgui.Register('DLib_WindowScroll', PANEL, 'DLib_Window')
