@@ -99,26 +99,26 @@ end
 
 function PANEL:OnKeyCodeTyped(key)
 	local reply = TEXTENTRY.OnKeyCodeTyped(self, key)
-	if reply == false then return reply end
+	if reply == true then return reply end
 
 	if self.whitelistMode then
 		if not self.allowed:has(key) then
 			self:Ding()
-			return false
+			return true
 		end
 	else
 		if self.disallowed:has(key) then
 			self:Ding()
-			return false
+			return true
 		end
 	end
 
 	if self.lengthLimit > 0 and #(self:GetValue() or '') + 1 > self.lengthLimit then
 		self:Ding('Field limit exceeded')
-		return
+		return true
 	end
 
-	return true
+	return false
 end
 
 function PANEL:AddToBlacklist(value)
@@ -214,16 +214,16 @@ end
 
 function PANEL:OnKeyCodeTyped(key)
 	local reply = TEXTENTRY_CUSTOM.OnKeyCodeTyped(self, key)
-	if reply == false then return reply end
+	if reply == true then return reply end
 
 	if not self.allowNegative and (key == KEY_MINUS or key == KEY_PAD_MINUS) then
 		self:Ding('Negative values are not allowed here')
-		return
+		return true
 	end
 
 	if not self.allowFloats and (key == KEY_PAD_DECIMAL) then
 		self:Ding('Floating point values are not allowed here')
-		return
+		return true
 	end
 
 	local value1 = self:GetValueBeforeCaret()
@@ -232,10 +232,10 @@ function PANEL:OnKeyCodeTyped(key)
 
 	if char and not tonumber(value1 .. char .. value2) then
 		self:Ding('Inputting ' .. char .. ' here will mangle the current value')
-		return false
+		return true
 	end
 
-	return true
+	return false
 end
 
 vgui.Register('DLib_TextEntry_Number', PANEL, 'DLib_TextEntry_Configurable')
