@@ -250,7 +250,7 @@ function PANEL:Init()
 end
 
 function PANEL:GetNumber()
-	return tonumber(self:GetValue() or '') or self.self.defaultNumber
+	return tonumber(self:GetValue() or '') or self.defaultNumber
 end
 
 function PANEL:OnKeyCodeTyped(key)
