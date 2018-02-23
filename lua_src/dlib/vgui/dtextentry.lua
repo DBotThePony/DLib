@@ -31,7 +31,7 @@ DLib.VGUI.TextEntry = PANEL
 surface.CreateFont('DLib_TextEntry', {
 	font = 'PT Serif',
 	size = 16,
-	weight = 500,
+	weight = 600,
 	extended = true
 })
 
