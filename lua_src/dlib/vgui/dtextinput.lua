@@ -14,6 +14,7 @@
 -- limitations under the License.
 
 local vgui = vgui
+local IsValid = IsValid
 
 local numberEntry = {
 	'GetNumber'
@@ -51,7 +52,7 @@ for i, pnlData in ipairs(panels) do
 	local PANEL = {}
 	DLib.VGUI[NAME] = PANEL
 
-	function PANEL:Init()
+	local function Init(self)
 		self:SetSize(140, 20)
 
 		self.textInput = vgui.Create(PANEL_ID, self)
@@ -69,6 +70,14 @@ for i, pnlData in ipairs(panels) do
 
 		function self.textInput.OnEnter(_, ...)
 			return self:OnEnter(...)
+		end
+	end
+
+	PANEL.Init = Init
+
+	function PANEL:RemoveApply()
+		if IsValid(self.apply) then
+			self.apply:Remove()
 		end
 	end
 
@@ -117,4 +126,41 @@ for i, pnlData in ipairs(panels) do
 	end
 
 	vgui.Register('DLib_' .. NAME, PANEL, 'EditablePanel')
+
+	PANEL = table.Copy(PANEL)
+
+	function PANEL:Init()
+		self.label = vgui.Create('DLabel', self)
+		self.label:Dock(TOP)
+		self.label:SetText('Field Input')
+
+		Init(self)
+
+		self:SetSize(140, 40)
+	end
+
+	function PANEL:SetTitle(...)
+		return self.label:SetText(...)
+	end
+
+	function PANEL:SetLabel(...)
+		return self.label:SetText(...)
+	end
+
+	vgui.Register('DLib_' .. NAME .. 'Labeled', PANEL, 'EditablePanel')
+
+	PANEL = table.Copy(PANEL)
+
+	function PANEL:Init()
+		self.label = vgui.Create('DLabel', self)
+		self.label:Dock(TOP)
+		self.label:SetText('Field Input')
+
+		Init(self)
+
+		self:SetSize(140, 40)
+		self.apply:Remove()
+	end
+
+	vgui.Register('DLib_' .. NAME .. 'LabeledBare', PANEL, 'EditablePanel')
 end
