@@ -22,6 +22,8 @@ local color_white = color_white
 local Color = Color
 local color_dlib = color_dlib
 local tonumber = tonumber
+local surface = surface
+local draw = draw
 
 local PANEL = {}
 DLib.VGUI.TextEntry = PANEL
@@ -97,25 +99,59 @@ function PANEL:Init()
 	hook.Add('PostRenderVGUI', self, self.PostRenderVGUI)
 end
 
+function PANEL:PredictValueChange(key)
+	local value1 = self:GetValueBeforeCaret()
+	local value2 = self:GetValueAfterCaret()
+	local char = DLib.KeyMap.KEY[value]
+
+	if char then
+		return value1 .. char .. value2
+	elseif key == KEY_BACKSPACE then
+		return value1:sub(1, #value1 - 1) .. value2
+	elseif key == KEY_DELETE then
+		return value1 .. value2:sub(1, #value2 - 1)
+	end
+
+	return self:GetValue()
+end
+
+local function isTechincal(key)
+	return key == KEY_BACKSPACE or
+		key == KEY_DELETE or
+		key == KEY_UP or
+		key == KEY_DOWN or
+		key == KEY_LEFT or
+		key == KEY_RIGHT
+end
+
+local function isControl(key)
+	return key == KEY_UP or
+		key == KEY_DOWN or
+		key == KEY_LEFT or
+		key == KEY_RIGHT
+end
+
 function PANEL:OnKeyCodeTyped(key)
 	local reply = TEXTENTRY.OnKeyCodeTyped(self, key)
 	if reply == true then return reply end
 
-	if self.whitelistMode then
-		if not self.allowed:has(key) then
-			self:Ding()
-			return true
-		end
-	else
-		if self.disallowed:has(key) then
-			self:Ding()
-			return true
+	if not isTechincal then
+		if self.whitelistMode then
+			if not self.allowed:has(key) then
+				self:Ding()
+				--return true
+			end
+		else
+			if self.disallowed:has(key) then
+				self:Ding()
+				--return true
+			end
 		end
 	end
 
 	if self.lengthLimit > 0 and #(self:GetValue() or '') + 1 > self.lengthLimit then
 		self:Ding('Field limit exceeded')
-		return true
+		--return true
 	end
 
 	return false
@@ -149,13 +185,13 @@ function PANEL:Ding(reason)
 	reason = reason or self.defaultReason
 	self.tooltipReason = reason
 
-	if self.tooltipTime - 0.95 > RealTime() then
+	if self.tooltipTime - 1.95 > RealTime() then
 		self.tooltipTime = RealTime() + 1
 		self.tooltip = true
 		return
 	end
 
-	self.tooltipTime = RealTime() + 1
+	self.tooltipTime = RealTime() + 2
 	surface.PlaySound('resource/warning.wav')
 	self.tooltip = true
 end
@@ -180,11 +216,16 @@ function PANEL:PostRenderVGUI()
 	local w, h = self:GetSize()
 
 	y = y + h + 2
-	local fade = math.min(1, (self.tooltipTime - time) * 1.25 + 0.3)
+	local fade = math.min(1, (self.tooltipTime - time) * 1.25 + 0.4)
 
-	surface.SetDrawColor(color_dlib)
-	DLib.HUDCommons.DrawTriangle(x + 3, y, 15, 20)
-	DLib.HUDCommons.WordBox(self.tooltipReason, 'DLib_TextEntry_Warning', x, y + 20, color_white)
+	local value = self:GetValueBeforeCaret()
+	surface.SetFont(self:GetFont())
+	local w = surface.GetTextSize(value)
+
+	surface.SetDrawColor(0, 0, 0, fade * 255)
+	draw.NoTexture()
+	DLib.HUDCommons.DrawTriangle(x + 3 + w, y, 15, 20)
+	DLib.HUDCommons.WordBox(self.tooltipReason, 'DLib_TextEntry_Warning', x + w, y + 20, Color(255, 255, 255, fade * 255))
 end
 
 vgui.Register('DLib_TextEntry_Configurable', PANEL, 'DLib_TextEntry')
@@ -214,25 +255,25 @@ end
 
 function PANEL:OnKeyCodeTyped(key)
 	local reply = TEXTENTRY_CUSTOM.OnKeyCodeTyped(self, key)
-	if reply == true then return reply end
+	if reply then return true end
 
 	if not self.allowNegative and (key == KEY_MINUS or key == KEY_PAD_MINUS) then
 		self:Ding('Negative values are not allowed here')
-		return true
+		--return true
 	end
 
 	if not self.allowFloats and (key == KEY_PAD_DECIMAL) then
 		self:Ding('Floating point values are not allowed here')
-		return true
+		--return true
 	end
 
-	local value1 = self:GetValueBeforeCaret()
-	local value2 = self:GetValueAfterCaret()
-	local char = DLib.KeyMap.KEY[value]
+	if not isControl(key) then
+		local newValue = self:PredictValueChange(key)
 
-	if char and not tonumber(value1 .. char .. value2) then
-		self:Ding('Inputting ' .. char .. ' here will mangle the current value')
-		return true
+		if not tonumber(newValue) then
+			self:Ding('Doing this here will mangle the current value')
+			--return true
+		end
 	end
 
 	return false

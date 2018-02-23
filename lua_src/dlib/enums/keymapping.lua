@@ -73,7 +73,7 @@ DLib.KeyMap.KEY = {
 	[KEY_APOSTROPHE] = "'",
 	[KEY_BACKQUOTE] = '`',
 	[KEY_COMMA] = ',',
-	[KEY_PERIOD] = '>',
+	[KEY_PERIOD] = '.',
 	[KEY_SLASH] = '/',
 	[KEY_BACKSLASH] = '\\',
 	[KEY_MINUS] = '-',
@@ -131,6 +131,7 @@ DLib.KeyMap.NUMBERS_LIST = {
 	KEY_MINUS,
 	KEY_PAD_MINUS,
 	KEY_PAD_DECIMAL,
+	KEY_PERIOD,
 }
 
 DLib.KeyMap.NUMBERS_HASH = {}
