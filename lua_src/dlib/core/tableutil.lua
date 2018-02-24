@@ -314,4 +314,18 @@ function tableutil.removeValues(tableIn, ...)
 	return removed
 end
 
+function tableutil.removeByMember(tableIn, memberID, memberValue)
+	local removed = {}
+
+	for i = 1, #tableIn do
+		local v = tableIn[i]
+		if type(v) == 'table' and v[memberID] == memberValue then
+			table.remove(tableIn, i)
+			break
+		end
+	end
+
+	return removed
+end
+
 return tableutil
