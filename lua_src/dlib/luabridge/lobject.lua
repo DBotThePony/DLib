@@ -44,13 +44,13 @@ function DLib.CreateLuaObject(objectName, registerMetadata)
 				return getter(self, key)
 			end
 
-			local value = meta[key]
+			local value = rawget(self, key)
 
 			if value ~= nil then
 				return value
 			end
 
-			return rawget(self, key)
+			return meta[keu]
 		end
 	end
 
