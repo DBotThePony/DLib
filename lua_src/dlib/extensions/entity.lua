@@ -57,6 +57,14 @@ function plyMeta:GetArmor()
 	return self:Armor()
 end
 
+function plyMeta:IsAlive()
+	return self:Alive()
+end
+
+function plyMeta:GetIsAlive()
+	return self:Alive()
+end
+
 -- placeholder for now
 function plyMeta:GetMaxArmor()
 	return 100
