@@ -192,7 +192,7 @@ function PANEL:Ding(reason)
 	end
 
 	self.tooltipTime = RealTime() + 2
-	surface.PlaySound('resource/warning.wav')
+	--surface.PlaySound('resource/warning.wav')
 	self.tooltip = true
 end
 
