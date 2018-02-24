@@ -102,7 +102,7 @@ end
 function PANEL:PredictValueChange(key)
 	local value1 = self:GetValueBeforeCaret()
 	local value2 = self:GetValueAfterCaret()
-	local char = DLib.KeyMap.KEY[value]
+	local char = DLib.KeyMap.KEY[key]
 
 	if char then
 		return value1 .. char .. value2
