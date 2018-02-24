@@ -48,3 +48,16 @@ else
 		return self:GetSaveTable().m_takedamage == DAMAGE_MODE_BUDDHA
 	end
 end
+
+function plyMeta:GetHealth()
+	return self:Health()
+end
+
+function plyMeta:GetArmor()
+	return self:Armor()
+end
+
+-- placeholder for now
+function plyMeta:GetMaxArmor()
+	return 100
+end
