@@ -219,5 +219,12 @@ function meta:CreateFont(fontBase, fontData)
 		surface.CreateFont(fontNames.STRIKE_SHARP_ITALIC, newData)
 	end
 
+	for name, mapped in pairs(fontNames) do
+		if type(mapped) == 'string' then
+			surface.SetFont(mapped)
+			fontNames[name .. '_SIZE_W'], fontNames[name .. '_SIZE_H'] = surface.GetTextSize('W')
+		end
+	end
+
 	return fontNames
 end
