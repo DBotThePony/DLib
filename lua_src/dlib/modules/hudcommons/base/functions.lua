@@ -104,6 +104,7 @@ function meta:CreateFont(fontBase, fontData)
 	fontNames.STRIKE = font .. '_STRIKE'
 	fontNames.STRIKE_SHARP = font .. '_STRIKE'
 	fontNames.BLURRY = font .. '_BLURRY'
+	fontNames.BLURRY_ROUGH = font .. '_BLURRY_ROUGH'
 	fontNames.BLURRY_STRIKE = font .. '_BLURRY_STRIKE'
 	fontNames.STRIKE_BLURRY = font .. '_BLURRY_STRIKE'
 
@@ -150,6 +151,12 @@ function meta:CreateFont(fontBase, fontData)
 		local newData = table.Copy(fontData)
 		newData.blursize = 8
 		surface.CreateFont(fontNames.BLURRY, newData)
+	end
+
+	do
+		local newData = table.Copy(fontData)
+		newData.blursize = 4
+		surface.CreateFont(fontNames.BLURRY_ROUGH, newData)
 	end
 
 	do
