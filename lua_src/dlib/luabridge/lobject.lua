@@ -90,3 +90,11 @@ end
 function DLib.FindMetaTable(classIn)
 	return DLib.METADATA[classIn] or FindMetaTable(classIn) or nil
 end
+
+function DLib.ConsturctClass(classIn, ...)
+	local classGet = DLib.METADATA[classIn]
+
+	if not classGet then return false end
+
+	return classGet.Create(...)
+end
