@@ -49,11 +49,11 @@ function meta:__construct(hudID, hudName)
 	self:InitHUD()
 end
 
-function self:InitHUD()
+function meta:InitHUD()
 
 end
 
-function self:InitHooks()
+function meta:InitHooks()
 
 end
 

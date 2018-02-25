@@ -59,6 +59,10 @@ function meta:ShouldDisplayAmmoStored()
 	return self:HasWeapon() and (self:GetVarMaxClip1() > 0 or self:GetVarMaxClip2() > 0)
 end
 
+function meta:DefinePosition(name, ...)
+	return DLib.HUDCommons.Position2.DefinePosition(self:GetID() .. '_' .. name, ...)
+end
+
 function meta:RegisterRegularVariable(var, funcName, default)
 	local newSelf = self:RegisterVariable(var, default)
 

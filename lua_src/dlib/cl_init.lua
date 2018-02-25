@@ -23,7 +23,7 @@ end
 
 DLib.Loader.start('HUDCommons')
 DLib.Loader.loadPureCSTop('dlib/modules/hudcommons')
-DLib.Loader.register('dlib/modules/hudcommons/base/init.lua')
+DLib.simpleInclude('modules/hudcommons/base/init.lua')
 DLib.Loader.finish()
 
 DLib.register('util/client/chat.lua')
