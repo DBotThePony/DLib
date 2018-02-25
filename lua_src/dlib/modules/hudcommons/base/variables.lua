@@ -80,6 +80,7 @@ local hooks = {
 	'onChange',
 	'onGlitch',
 	'onDeath',
+	'onRespawn',
 	'onWeaponChanged',
 	'onDisabled',
 	'onEnabled',
