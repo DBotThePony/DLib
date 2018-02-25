@@ -56,11 +56,11 @@ function meta:ShouldDisplayWeaponStats()
 end
 
 function meta:ShouldDisplayAmmo()
-	return self:HasWeapon() and (self:GetVarClipMax1() > 0 or self:GetVarClipMax2() > 0 or self:GetVarAmmoType1() ~= -1 or self:GetVarAmmoType2() ~= -1)
+	return self:HasWeapon() and self:GetWeapon().DrawAmmo ~= false and (self:GetVarClipMax1() > 0 or self:GetVarClipMax2() > 0 or self:GetVarAmmoType1() ~= -1 or self:GetVarAmmoType2() ~= -1)
 end
 
 function meta:ShouldDisplaySecondaryAmmo()
-	return self:HasWeapon() and (self:GetVarClipMax2() > 0 or self:GetVarAmmoType2() ~= -1)
+	return self:HasWeapon() and self:GetWeapon().DrawAmmo ~= false and (self:GetVarClipMax2() > 0 or self:GetVarAmmoType2() ~= -1)
 end
 
 function meta:SelectSecondaryAmmoReady()
