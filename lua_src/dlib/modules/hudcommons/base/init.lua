@@ -17,6 +17,7 @@ local meta = DLib.CreateLuaObject('HUDCommonsBase', true)
 local pairs = pairs
 local hook = hook
 local table = table
+local IsValid = FindMetaTable('Entity').IsValid
 
 function meta:__construct(hudID, hudName)
 	self.id = hudID
@@ -167,8 +168,10 @@ function meta:AddPaintHook(id, funcToCall)
 end
 
 function meta:Tick()
-	self:TickVariables()
-	self:TickLogic()
+	local lPly = self:SelectPlayer()
+	if not IsValid(lPly) then return end
+	self:TickVariables(lPly)
+	self:TickLogic(lPly)
 end
 
 function meta:HUDPaint()
@@ -188,7 +191,9 @@ function meta:HUDPaint()
 end
 
 function meta:Think()
-	self:ThinkLogic()
+	local lPly = self:SelectPlayer()
+	if not IsValid(lPly) then return end
+	self:ThinkLogic(lPly)
 end
 
 include('functions.lua')

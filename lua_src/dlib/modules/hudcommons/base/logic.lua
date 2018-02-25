@@ -61,7 +61,7 @@ end
 meta.LocalPlayer = meta.SelectPlayer
 meta.GetPlayer = meta.SelectPlayer
 
-function meta:TickLogic()
+function meta:TickLogic(lPly)
 	local wep = self:GetWeapon()
 
 	if self.currWeaponTrack ~= wep then
@@ -71,7 +71,7 @@ function meta:TickLogic()
 	end
 end
 
-function meta:ThinkLogic()
+function meta:ThinkLogic(lPly)
 	if self.glitching then
 		local timeLeft = self:GlitchTimeRemaining()
 		self.glitching = timeLeft ~= 0
@@ -79,7 +79,6 @@ function meta:ThinkLogic()
 		if self.glitching then
 			-- lets make it a big faster
 			local vars = self.variables
-			local lPly = self:SelectPlayer()
 
 			for i = 1, #vars do
 				local entry = vars[i]

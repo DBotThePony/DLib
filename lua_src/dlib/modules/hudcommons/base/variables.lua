@@ -140,9 +140,8 @@ function meta:InitVaribles()
 
 end
 
-function meta:TickVariables()
+function meta:TickVariables(lPly)
 	local vars = self.variables
-	local lPly = self:SelectPlayer()
 
 	for i = 1, #vars do
 		local entry = vars[i]
