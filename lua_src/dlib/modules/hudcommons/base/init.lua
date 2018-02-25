@@ -31,6 +31,10 @@ function meta:__construct(hudID, hudName)
 	self.variablesHash = {}
 	self.paintHash = {}
 	self.paint = {}
+	self.tickHash = {}
+	self.tick = {}
+	self.thinkHash = {}
+	self.think = {}
 
 	self.glitching = false
 	self.glitchEnd = 0
@@ -171,11 +175,47 @@ function meta:AddPaintHook(id, funcToCall)
 	end
 end
 
+function meta:AddThinkHook(id, funcToCall)
+	funcToCall = funcToCall or self[id]
+	assert(type(funcToCall) == 'function', 'Input is not a function!')
+	self.thinkHash[id] = funcToCall
+	self.think = {}
+
+	for id, func in pairs(self.thinkHash) do
+		table.insert(self.think, func)
+	end
+end
+
+function meta:AddTickHook(id, funcToCall)
+	funcToCall = funcToCall or self[id]
+	assert(type(funcToCall) == 'function', 'Input is not a function!')
+	self.tickHash[id] = funcToCall
+	self.tick = {}
+
+	for id, func in pairs(self.tickHash) do
+		table.insert(self.tick, func)
+	end
+end
+
 function meta:Tick()
 	local lPly = self:SelectPlayer()
 	if not IsValid(lPly) then return end
 	self:TickVariables(lPly)
 	self:TickLogic(lPly)
+
+	local tick = self.tick
+	if #tick ~= 0 then
+		local i, nextevent = 1, tick[1]
+		::loop::
+
+		nextevent(self, lPly)
+		i = i + 1
+		nextevent = tick[i]
+
+		if nextevent ~= nil then
+			goto loop
+		end
+	end
 end
 
 function meta:HUDPaint()
@@ -200,6 +240,20 @@ function meta:Think()
 	local lPly = self:SelectPlayer()
 	if not IsValid(lPly) then return end
 	self:ThinkLogic(lPly)
+
+	local think = self.think
+	if #think ~= 0 then
+		local i, nextevent = 1, think[1]
+		::loop::
+
+		nextevent(self, lPly)
+		i = i + 1
+		nextevent = think[i]
+
+		if nextevent ~= nil then
+			goto loop
+		end
+	end
 end
 
 include('functions.lua')
