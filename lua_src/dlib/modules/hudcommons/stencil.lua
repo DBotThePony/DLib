@@ -186,11 +186,7 @@ function stencil.Start(referneceValue, testMask, writeMask)
 	SetStencilTestMask(testMask)
 	SetStencilWriteMask(writeMask)
 
-	SetStencilCompareFunction(STENCIL_ALWAYS)
-	SetStencilPassOperation(STENCIL_REPLACE)
-	SetStencilFailOperation(STENCIL_KEEP)
-
-	stencil.SetupSurface()
+	stencil.StartDrawMask()
 end
 
 local fullyTransparent = CreateMaterial('dlib_stencil_mat', 'UnlitGeneric', {
