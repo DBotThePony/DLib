@@ -18,6 +18,8 @@ local pairs = pairs
 local hook = hook
 local table = table
 local IsValid = FindMetaTable('Entity').IsValid
+local assert = assert
+local type = type
 
 function meta:__construct(hudID, hudName)
 	self.id = hudID
@@ -159,6 +161,8 @@ function meta:EnableSwitch(old, new)
 end
 
 function meta:AddPaintHook(id, funcToCall)
+	funcToCall = funcToCall or self[id]
+	assert(type(funcToCall) == 'function', 'Input is not a function!')
 	self.paintHash[id] = funcToCall
 	self.paint = {}
 
