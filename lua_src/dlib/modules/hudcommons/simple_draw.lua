@@ -55,6 +55,21 @@ function HUDCommons.SimpleTextRight(text, font, x, y, col)
 	return w, h
 end
 
+function HUDCommons.SimpleTextCentered(text, font, x, y, col)
+	if col then
+		surface.SetTextColor(col)
+	end
+
+	if font then
+		surface.SetFont(font)
+	end
+
+	local w, h = surface.GetTextSize(text)
+	surface.SetTextPos(x - w / 2, y)
+	surface.DrawText(text)
+	return w, h
+end
+
 function HUDCommons.SkyrimBar(x, y, w, h, color)
 	HUDCommons.DrawBox(x - w / 2, y, w, h, color)
 end
