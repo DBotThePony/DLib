@@ -118,6 +118,7 @@ for i, hookType in ipairs(hooks) do
 	end
 
 	meta['Call' .. hName] = function(self, ...)
+		if #self.variables == 0 then return end
 		local vars = self.variables
 		local lPly = self:SelectPlayer()
 

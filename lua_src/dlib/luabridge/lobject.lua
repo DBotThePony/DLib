@@ -50,7 +50,7 @@ function DLib.CreateLuaObject(objectName, registerMetadata)
 				return value
 			end
 
-			return meta[keu]
+			return meta[key]
 		end
 	end
 
@@ -92,9 +92,7 @@ function DLib.FindMetaTable(classIn)
 end
 
 function DLib.ConsturctClass(classIn, ...)
-	local classGet = DLib.METADATA[classIn]
-
+	local classGet = DLib.FindMetaTable(classIn)
 	if not classGet then return false end
-
 	return classGet.Create(...)
 end

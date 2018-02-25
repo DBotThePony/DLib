@@ -13,6 +13,8 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
+local meta = DLib.FindMetaTable('HUDCommonsBase')
+
 -- do not override
 function meta:__InitVaribles()
 	self:RegisterRegularVariable('alive', 'IsAlive', true)

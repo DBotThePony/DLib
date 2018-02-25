@@ -185,7 +185,7 @@ function meta:HUDPaint()
 	local i, nextevent = 1, paint[1]
 	::loop::
 
-	nextevent()
+	nextevent(self)
 	i = i + 1
 	nextevent = paint[i]
 
