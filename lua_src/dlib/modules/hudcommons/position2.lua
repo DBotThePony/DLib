@@ -220,8 +220,8 @@ local function UpdateWeaponShift(delta)
 	lastWeaponPosY = ys
 	lastWeaponPosZ = zs
 
-	Pos2.ShiftX_Weapon = math.Clamp(Pos2.ShiftX_Weapon + (changeX / delta) - (changeY / delta), -7, 7)
-	Pos2.ShiftY_Weapon = math.Clamp(Pos2.ShiftY_Weapon + (changeZ / delta), -7, 7)
+	Pos2.ShiftX_Weapon = math.Clamp(Pos2.ShiftX_Weapon + (changeX / delta) - (changeY / delta), -14, 14)
+	Pos2.ShiftY_Weapon = math.Clamp(Pos2.ShiftY_Weapon + (changeZ / delta), -14, 14)
 end
 
 local lastThink = RealTime()

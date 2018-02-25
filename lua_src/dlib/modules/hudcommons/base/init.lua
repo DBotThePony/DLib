@@ -20,6 +20,7 @@ local table = table
 local IsValid = FindMetaTable('Entity').IsValid
 local assert = assert
 local type = type
+local RealTime = RealTime
 
 function meta:__construct(hudID, hudName)
 	self.id = hudID
@@ -200,8 +201,14 @@ end
 function meta:Tick()
 	local lPly = self:SelectPlayer()
 	if not IsValid(lPly) then return end
-	self:TickVariables(lPly)
+
+	if self.LastThink ~= RealTime() then
+		self:Think()
+		self.LastThink = RealTime()
+	end
+
 	self:TickLogic(lPly)
+	self:TickVariables(lPly)
 
 	local tick = self.tick
 	if #tick ~= 0 then
@@ -239,6 +246,7 @@ end
 function meta:Think()
 	local lPly = self:SelectPlayer()
 	if not IsValid(lPly) then return end
+	if self.LastThink == RealTime() then return end
 	self:ThinkLogic(lPly)
 
 	local think = self.think
