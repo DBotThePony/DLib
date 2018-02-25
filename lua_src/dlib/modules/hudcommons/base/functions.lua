@@ -18,6 +18,8 @@ local DLib = DLib
 local LocalPlayer = LocalPlayer
 local LocalWeapon = LocalWeapon
 local IsValid = FindMetaTable('Entity').IsValid
+local table = table
+local surface = surface
 
 function meta:GetWeapon()
 	local ply = self:SelectPlayer()
@@ -69,4 +71,93 @@ function meta:RegisterRegularWeaponVariable(var, funcName, default)
 	end)
 
 	return newSelf
+end
+
+function meta:CreateFont(fontBase, fontData)
+	local font = self:GetID() .. fontBase
+	local fontNames = {}
+
+	fontNames.REGULAR = font .. '_REGULAR'
+	fontNames.ITALIC = font .. '_ITALIC'
+
+	fontNames.STRIKE = font .. '_STRIKE'
+	fontNames.STRIKE_SHARP = font .. '_STRIKE'
+	fontNames.BLURRY = font .. '_BLURRY'
+	fontNames.BLURRY_STRIKE = font .. '_BLURRY_STRIKE'
+	fontNames.STRIKE_BLURRY = font .. '_BLURRY_STRIKE'
+
+	fontNames.STRIKE_ITALIC = font .. '_STRIKE_ITALIC'
+	fontNames.STRIKE_SHARP_ITALIC = font .. '_STRIKE_SHARP_ITALIC'
+	fontNames.BLURRY_ITALIC = font .. '_BLURRY_ITALIC'
+
+	fontNames.BLURRY_STRIKE_ITALIC = font .. '_BLURRY_STRIKE_ITALIC'
+	fontNames.STRIKE_BLURRY_ITALIC = font .. '_BLURRY_STRIKE_ITALIC'
+
+	fontData.extended = true
+
+	surface.CreateFont(fontNames.REGULAR, fontData)
+
+	do
+		local newData = table.Copy(fontData)
+		newData.italic = true
+		surface.CreateFont(fontNames.ITALIC, newData)
+	end
+
+	do
+		local newData = table.Copy(fontData)
+		newData.scanlines = 4
+		newData.blursize = 8
+		surface.CreateFont(fontNames.STRIKE, newData)
+	end
+
+	do
+		local newData = table.Copy(fontData)
+		newData.scanlines = 4
+		newData.blursize = 16
+		surface.CreateFont(fontNames.BLURRY_STRIKE, newData)
+	end
+
+	do
+		local newData = table.Copy(fontData)
+		newData.italic = true
+		newData.scanlines = 4
+		newData.blursize = 16
+		surface.CreateFont(fontNames.BLURRY_STRIKE_ITALIC, newData)
+	end
+
+	do
+		local newData = table.Copy(fontData)
+		newData.blursize = 8
+		surface.CreateFont(fontNames.BLURRY, newData)
+	end
+
+	do
+		local newData = table.Copy(fontData)
+		newData.scanlines = 4
+		surface.CreateFont(fontNames.STRIKE_SHARP, newData)
+	end
+
+	do
+		local newData = table.Copy(fontData)
+		newData.italic = true
+		newData.scanlines = 4
+		newData.blursize = 8
+		surface.CreateFont(fontNames.STRIKE_ITALIC, newData)
+	end
+
+	do
+		local newData = table.Copy(fontData)
+		newData.italic = true
+		newData.blursize = 8
+		surface.CreateFont(fontNames.BLURRY_ITALIC, newData)
+	end
+
+	do
+		local newData = table.Copy(fontData)
+		newData.italic = true
+		newData.scanlines = 4
+		surface.CreateFont(fontNames.STRIKE_SHARP_ITALIC, newData)
+	end
+
+	return fontNames
 end
