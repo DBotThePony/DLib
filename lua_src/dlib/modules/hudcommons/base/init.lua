@@ -182,10 +182,12 @@ function meta:HUDPaint()
 	local paint = self.paint
 	if #paint == 0 then return end
 
+	local ply = self:SelectPlayer()
+
 	local i, nextevent = 1, paint[1]
 	::loop::
 
-	nextevent(self)
+	nextevent(self, ply)
 	i = i + 1
 	nextevent = paint[i]
 
