@@ -112,14 +112,27 @@ function math.progression(self, min, max, middle)
 end
 
 function math.equal(...)
-	assert(select('#', ...) > 1, 'At least two numbers are required!')
+	local amount = select('#', ...)
+	assert(amount > 1, 'At least two numbers are required!')
 	local lastValue
 
-	for i, value in ipairs({...}) do
+	for i = 1, amount do
+		local value = select(i, ...)
 		lastValue = lastValue or value
-
 		if value ~= lastValue then return false end
 	end
 
 	return true
+end
+
+function math.average(...)
+	local amount = select('#', ...)
+	assert(amount > 1, 'At least two numbers are required!')
+	local total = 0
+
+	for i = 1, amount do
+		total = total + select(i, ...)
+	end
+
+	return total / amount
 end
