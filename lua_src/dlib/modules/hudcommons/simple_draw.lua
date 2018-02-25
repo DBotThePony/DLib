@@ -40,6 +40,21 @@ function HUDCommons.SimpleText(text, font, x, y, col)
 	surface.DrawText(text)
 end
 
+function HUDCommons.SimpleTextRight(text, font, x, y, col)
+	if col then
+		surface.SetTextColor(col)
+	end
+
+	if font then
+		surface.SetFont(font)
+	end
+
+	local w, h = surface.GetTextSize(text)
+	surface.SetTextPos(x - w, y)
+	surface.DrawText(text)
+	return w, h
+end
+
 function HUDCommons.SkyrimBar(x, y, w, h, color)
 	HUDCommons.DrawBox(x - w / 2, y, w, h, color)
 end

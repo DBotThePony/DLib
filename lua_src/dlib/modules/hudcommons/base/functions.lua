@@ -55,8 +55,40 @@ function meta:ShouldDisplayWeaponStats()
 	return self:HasWeapon()
 end
 
+function meta:ShouldDisplayAmmo()
+	return self:HasWeapon() and (self:GetVarClipMax1() > 0 or self:GetVarClipMax2() > 0 or self:GetVarAmmoType1() ~= -1 or self:GetVarAmmoType2() ~= -1)
+end
+
+function meta:ShouldDisplaySecondaryAmmo()
+	return self:HasWeapon() and (self:GetVarClipMax2() > 0 or self:GetVarAmmoType2() ~= -1)
+end
+
+function meta:SelectSecondaryAmmoReady()
+	if not self:HasWeapon() then
+		return -1
+	end
+
+	if self:GetVarClipMax2() == 0 then
+		return 0
+	end
+
+	return self:GetVarClip2()
+end
+
+function meta:SelectSecondaryAmmoStored()
+	if not self:HasWeapon() then
+		return -1
+	end
+
+	if self:GetVarAmmoType2() == -1 then
+		return -1
+	end
+
+	return self:GetVarAmmo2()
+end
+
 function meta:ShouldDisplayAmmoStored()
-	return self:HasWeapon() and (self:GetVarMaxClip1() > 0 or self:GetVarMaxClip2() > 0)
+	return self:HasWeapon() and (self:GetVarClipMax1() > 0 or self:GetVarClipMax2() > 0)
 end
 
 function meta:DefinePosition(name, ...)
