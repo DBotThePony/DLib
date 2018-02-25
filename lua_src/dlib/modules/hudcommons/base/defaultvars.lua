@@ -28,6 +28,7 @@ function meta:__InitVaribles()
 	self:RegisterRegularVariable('health', 'GetHealth', 0)
 	self:RegisterRegularVariable('maxHealth', 'GetMaxHealth', 100)
 	self:RegisterRegularVariable('armor', 'GetArmor', 0)
+	self:RegisterRegularVariable('nick', 'Nick', 'put playername here')
 	self:RegisterRegularVariable('maxArmor', 'GetMaxArmor', 100)
 
 	self:RegisterRegularWeaponVariable('clip1', 'Clip1', 0)
@@ -37,6 +38,7 @@ function meta:__InitVaribles()
 
 	self:RegisterRegularWeaponVariable('ammoType1', 'GetPrimaryAmmoType', -1)
 	self:RegisterRegularWeaponVariable('ammoType2', 'GetSecondaryAmmoType', -1)
+	self:RegisterRegularWeaponVariable('weaponName', 'GetPrintName', '')
 
 	self:RegisterVariable('ammo1', 0)
 	self:RegisterVariable('ammo2', 0)
