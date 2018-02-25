@@ -96,6 +96,8 @@ end
 sql.register()
 
 function math.progression(self, min, max, middle)
+	if self < min then return min end
+
 	if middle then
 		if self < min or self >= max then return 0 end
 
