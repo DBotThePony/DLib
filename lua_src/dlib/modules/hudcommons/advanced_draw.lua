@@ -17,6 +17,8 @@
 
 local HUDCommons = HUDCommons
 local surface = surface
+local render = render
+local cam = cam
 
 HUDCommons.BarData = HUDCommons.BarData or {}
 HUDCommons.BarData2 = HUDCommons.BarData2 or {}
@@ -26,6 +28,32 @@ HUDCommons.WordBarData = HUDCommons.WordBarData or {}
 
 local function InInterval(val, min, max)
 	return val > min and val < max
+end
+
+local blurrt, blurMat
+
+timer.Simple(0, function()
+	blurrt = GetRenderTarget('dlib_hudcommons_blur', ScrW(), ScrH(), false)
+	blurMat = CreateMaterial('dlib_hudcommons_blurmat2', 'UnlitGeneric', {
+		['$basetexture'] = 'models/debug/debugwhite',
+		['$halflambert'] = '1',
+		['$translucent'] = '1',
+	})
+
+	blurMat:SetTexture('$basetexture', blurrt)
+end)
+
+function HUDCommons.DrawBlurredRect(x, y, w, h, blurx, blury, passes)
+	render.PushRenderTarget(blurrt)
+	render.Clear(0, 0, 0, 0)
+	cam.Start2D()
+	surface.DrawRect(x, y, w, h)
+	cam.End2D()
+	render.PopRenderTarget()
+
+	render.BlurRenderTarget(blurrt, blurx, blury, passes)
+	render.SetMaterial(blurMat)
+	render.DrawScreenQuad()
 end
 
 function HUDCommons.SoftBar(x, y, w, h, color, name)
