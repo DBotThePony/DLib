@@ -157,7 +157,7 @@ function meta:EnableSwitch(old, new)
 	end
 end
 
-function meta:AddMSPaintHook(id, funcToCall)
+function meta:AddPaintHook(id, funcToCall)
 	self.paintHash[id] = funcToCall
 	self.paint = {}
 
