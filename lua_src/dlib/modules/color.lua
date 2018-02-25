@@ -30,6 +30,13 @@ colorMeta.__index = colorMeta
 debug.getregistry().Color = colorMeta
 
 function _G.Color(r, g, b, a)
+	if type(r) == 'table' then
+		g = r.g
+		b = r.b
+		a = r.a
+		r = r.r
+	end
+
 	r = math.Clamp(math.floor(tonumber(r) or 255), 0, 255)
 	g = math.Clamp(math.floor(tonumber(g) or 255), 0, 255)
 	b = math.Clamp(math.floor(tonumber(b) or 255), 0, 255)
