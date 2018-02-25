@@ -126,15 +126,15 @@ local function UpdateShift(delta)
 	local changePitch = math.AngleDifference(ang.p, Pos2.LastAngle.p)
 	local changeYaw = math.AngleDifference(ang.y, Pos2.LastAngle.y)
 
-	Pos2.LastAngle = LerpAngle(delta * 33, Pos2.LastAngle, ang)
+	Pos2.LastAngle = LerpAngle(delta * 22, Pos2.LastAngle, ang)
 
 	Pos2.ShiftX = math.Clamp(Pos2.ShiftX + changeYaw * 1.8, -30, 30)
 	Pos2.ShiftY = math.Clamp(Pos2.ShiftY - changePitch * 1.8, -20, 20)
 
 	local oldX, oldY = Pos2.ShiftX, Pos2.ShiftY
 
-	Pos2.ShiftX = Pos2.ShiftX - Pos2.ShiftX * delta * 22
-	Pos2.ShiftY = Pos2.ShiftY - Pos2.ShiftY * delta * 22
+	Pos2.ShiftX = Pos2.ShiftX - Pos2.ShiftX * delta * 11
+	Pos2.ShiftY = Pos2.ShiftY - Pos2.ShiftY * delta * 11
 
 	if oldX > 0 and Pos2.ShiftX < 0 or oldX < 0 and Pos2.ShiftX > 0 then
 		Pos2.ShiftX = 0
@@ -158,8 +158,8 @@ local function UpdateWeaponShift(delta)
 	if not ENABLE_SHIFTING_SV:GetBool() then return end
 	if not ENABLE_SHIFTING_SV_WEAPON:GetBool() then return end
 
-	Pos2.ShiftX_Weapon = Pos2.ShiftX_Weapon - Pos2.ShiftX_Weapon * delta * 22
-	Pos2.ShiftY_Weapon = Pos2.ShiftY_Weapon - Pos2.ShiftY_Weapon * delta * 22
+	Pos2.ShiftX_Weapon = LerpCosine(delta * 7, Pos2.ShiftX_Weapon, 0)
+	Pos2.ShiftY_Weapon = LerpSinusine(delta * 7, Pos2.ShiftY_Weapon, 0)
 
 	local ply = HUDCommons.SelectPlayer()
 	local wep = ply:GetActiveWeapon()
@@ -214,14 +214,16 @@ local function UpdateWeaponShift(delta)
 	local changeY = ys - lastWeaponPosY
 	local changeZ = zs - lastWeaponPosZ
 
-	--print(changeX, changeY, changeZ)
+	lastWeaponPosX = LerpCubic(delta * 44, lastWeaponPosX, xs)
+	lastWeaponPosY = LerpCubic(delta * 44, lastWeaponPosY, ys)
+	lastWeaponPosZ = LerpCubic(delta * 44, lastWeaponPosZ, zs)
 
-	lastWeaponPosX = xs
-	lastWeaponPosY = ys
-	lastWeaponPosZ = zs
+	--lastWeaponPosX = xs
+	--lastWeaponPosY = ys
+	--lastWeaponPosZ = zs
 
-	Pos2.ShiftX_Weapon = math.Clamp(Pos2.ShiftX_Weapon + (changeX / delta) - (changeY / delta), -14, 14)
-	Pos2.ShiftY_Weapon = math.Clamp(Pos2.ShiftY_Weapon + (changeZ / delta), -14, 14)
+	Pos2.ShiftX_Weapon = math.Clamp(Pos2.ShiftX_Weapon + ((changeX / delta) - (changeY / delta)) * 0.3, -40, 40)
+	Pos2.ShiftY_Weapon = math.Clamp(Pos2.ShiftY_Weapon + ((changeZ / delta)) * 0.3, -40, 40)
 end
 
 local lastThink = RealTime()
