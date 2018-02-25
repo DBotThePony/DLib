@@ -84,7 +84,7 @@ function meta:AddHook(event, funcIfAny, priority)
 
 	if self:IsEnabled() then
 		hook.Add(event, self.id .. '_' .. event, function(...)
-			funcIfAny(self, ...)
+			return funcIfAny(self, ...)
 		end, priority)
 	end
 
@@ -99,7 +99,7 @@ function meta:AddHookCustom(event, id, funcIfAny, priority)
 
 	if self:IsEnabled() then
 		hook.Add(event, id, function(...)
-			funcIfAny(self, ...)
+			return funcIfAny(self, ...)
 		end, priority)
 	end
 
