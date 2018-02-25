@@ -66,6 +66,7 @@ function meta:TickLogic(lPly)
 
 	if self.currWeaponTrack ~= wep then
 		self:CallOnWeaponChanged(self.currWeaponTrack, wep)
+		self:OnWeaponChanged(self.currWeaponTrack, wep)
 		self.prevWeapon = self.currWeaponTrack
 		self.currWeaponTrack = wep
 	end
@@ -108,4 +109,9 @@ end
 
 function meta:IsGlitching()
 	return self.glitching
+end
+
+-- override
+function meta:OnWeaponChanged(old, new)
+
 end
