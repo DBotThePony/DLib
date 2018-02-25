@@ -178,6 +178,8 @@ local function UpdateWeaponShift(delta)
 
 			for bone = 0, bones - 1 do
 				local bpos, bang = view:GetBonePosition(bone)
+				bang = bang + view:GetManipulateBoneAngles(bone)
+				bpos = bpos + view:GetManipulateBonePosition(bone)
 				local npos, nang = WorldToLocal(bpos, bang, plyPos, plyAng)
 				xs = xs + npos.x
 				ys = ys + npos.y
@@ -195,6 +197,8 @@ local function UpdateWeaponShift(delta)
 
 			for bone = 0, bones - 1 do
 				local bpos, bang = hands:GetBonePosition(bone)
+				bang = bang + hands:GetManipulateBoneAngles(bone)
+				bpos = bpos + hands:GetManipulateBonePosition(bone)
 				local npos, nang = WorldToLocal(bpos, bang, plyPos, plyAng)
 				xs = xs + npos.x
 				ys = ys + npos.y
@@ -216,8 +220,8 @@ local function UpdateWeaponShift(delta)
 	lastWeaponPosY = ys
 	lastWeaponPosZ = zs
 
-	Pos2.ShiftX_Weapon = math.Clamp(Pos2.ShiftX_Weapon + (changeX / delta) - (changeY / delta), -10, 10) * 0.7
-	Pos2.ShiftY_Weapon = math.Clamp(Pos2.ShiftY_Weapon + (changeZ / delta), -10, 10) * 0.7
+	Pos2.ShiftX_Weapon = math.Clamp(Pos2.ShiftX_Weapon + (changeX / delta) - (changeY / delta), -7, 7)
+	Pos2.ShiftY_Weapon = math.Clamp(Pos2.ShiftY_Weapon + (changeZ / delta), -7, 7)
 end
 
 local lastThink = RealTime()
