@@ -125,7 +125,7 @@ function meta:Enable()
 		local funcIfAny = data[1]
 
 		hook.Add(event, self.id .. '_' .. event, function(...)
-			funcIfAny(self, ...)
+			return funcIfAny(self, ...)
 		end, data[2])
 	end
 
@@ -133,7 +133,7 @@ function meta:Enable()
 		local funcIfAny = data[3]
 
 		hook.Add(data[1], id, function(...)
-			funcIfAny(self, ...)
+			return funcIfAny(self, ...)
 		end, data[4])
 	end
 
