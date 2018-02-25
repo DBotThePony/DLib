@@ -34,7 +34,7 @@ local PrevStencilCompareFunction
 local function SetStencilCompareFunction(arg)
 	PrevStencilCompareFunction = LastStencilCompareFunction or arg
 	LastStencilCompareFunction = arg
-	return render.StencilCompareFunction(arg)
+	return render.SetStencilCompareFunction(arg)
 end
 
 local function GetStencilCompareFunction()
@@ -49,7 +49,7 @@ local function ReturnStencilCompareFunction()
 	local b1, b2 = LastStencilCompareFunction, PrevStencilCompareFunction
 	LastStencilCompareFunction = b2
 	PrevStencilCompareFunction = b1
-	return render.StencilCompareFunction(b2)
+	return render.SetStencilCompareFunction(b2)
 end
 
 local LastStencilPassOperation
@@ -58,7 +58,7 @@ local PrevStencilPassOperation
 local function SetStencilPassOperation(arg)
 	PrevStencilPassOperation = LastStencilPassOperation or arg
 	LastStencilPassOperation = arg
-	return render.StencilPassOperation(arg)
+	return render.SetStencilPassOperation(arg)
 end
 
 local function GetStencilPassOperation()
@@ -73,7 +73,7 @@ local function ReturnStencilPassOperation()
 	local b1, b2 = LastStencilPassOperation, PrevStencilPassOperation
 	LastStencilPassOperation = b2
 	PrevStencilPassOperation = b1
-	return render.StencilPassOperation(b2)
+	return render.SetStencilPassOperation(b2)
 end
 
 local LastStencilFailOperation
@@ -82,7 +82,7 @@ local PrevStencilFailOperation
 local function SetStencilFailOperation(arg)
 	PrevStencilFailOperation = LastStencilFailOperation or arg
 	LastStencilFailOperation = arg
-	return render.StencilFailOperation(arg)
+	return render.SetStencilFailOperation(arg)
 end
 
 local function GetStencilFailOperation()
@@ -97,7 +97,7 @@ local function ReturnStencilFailOperation()
 	local b1, b2 = LastStencilFailOperation, PrevStencilFailOperation
 	LastStencilFailOperation = b2
 	PrevStencilFailOperation = b1
-	return render.StencilFailOperation(b2)
+	return render.SetStencilFailOperation(b2)
 end
 
 local LastStencilReferenceValue
@@ -106,7 +106,7 @@ local PrevStencilReferenceValue
 local function SetStencilReferenceValue(arg)
 	PrevStencilReferenceValue = LastStencilReferenceValue or arg
 	LastStencilReferenceValue = arg
-	return render.StencilReferenceValue(arg)
+	return render.SetStencilReferenceValue(arg)
 end
 
 local function GetStencilReferenceValue()
@@ -121,7 +121,7 @@ local function ReturnStencilReferenceValue()
 	local b1, b2 = LastStencilReferenceValue, PrevStencilReferenceValue
 	LastStencilReferenceValue = b2
 	PrevStencilReferenceValue = b1
-	return render.StencilReferenceValue(b2)
+	return render.SetStencilReferenceValue(b2)
 end
 
 local LastStencilTestMask
@@ -130,7 +130,7 @@ local PrevStencilTestMask
 local function SetStencilTestMask(arg)
 	PrevStencilTestMask = LastStencilTestMask or arg
 	LastStencilTestMask = arg
-	return render.StencilTestMask(arg)
+	return render.SetStencilTestMask(arg)
 end
 
 local function GetStencilTestMask()
@@ -145,7 +145,7 @@ local function ReturnStencilTestMask()
 	local b1, b2 = LastStencilTestMask, PrevStencilTestMask
 	LastStencilTestMask = b2
 	PrevStencilTestMask = b1
-	return render.StencilTestMask(b2)
+	return render.SetStencilTestMask(b2)
 end
 
 local LastStencilWriteMask
@@ -154,7 +154,7 @@ local PrevStencilWriteMask
 local function SetStencilWriteMask(arg)
 	PrevStencilWriteMask = LastStencilWriteMask or arg
 	LastStencilWriteMask = arg
-	return render.StencilWriteMask(arg)
+	return render.SetStencilWriteMask(arg)
 end
 
 local function GetStencilWriteMask()
@@ -169,7 +169,7 @@ local function ReturnStencilWriteMask()
 	local b1, b2 = LastStencilWriteMask, PrevStencilWriteMask
 	LastStencilWriteMask = b2
 	PrevStencilWriteMask = b1
-	return render.StencilWriteMask(b2)
+	return render.SetStencilWriteMask(b2)
 end
 
 function stencil.Start(referneceValue, testMask, writeMask)
@@ -213,6 +213,7 @@ function stencil.PartialStop()
 	SetStencilPassOperation(STENCIL_REPLACE)
 	SetStencilFailOperation(STENCIL_KEEP)
 	draw.NoTexture()
+	working = false
 end
 
 function stencil.Stop()
