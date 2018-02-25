@@ -102,10 +102,6 @@ DLib.Loader.shclass('camiwatchdog.lua')
 DLib.Loader.shclass('measure.lua')
 DLib.Loader.clclass('keybinds.lua').register()
 
-DLib.Loader.start('HUDCommons')
-DLib.Loader.loadPureCS('dlib/modules/hudcommons')
-DLib.Loader.finish()
-
 DLib.Loader.start('lang')
 DLib.Loader.load('dlib/modules/lang')
 DLib.Loader.finish()

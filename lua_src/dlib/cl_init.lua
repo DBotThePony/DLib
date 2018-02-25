@@ -21,6 +21,11 @@ function DLib.GetSkin()
 	return 'DLib_Black'
 end
 
+DLib.Loader.start('HUDCommons')
+DLib.Loader.loadPureCSTop('dlib/modules/hudcommons')
+DLib.Loader.register('dlib/modules/hudcommons/base/init.lua')
+DLib.Loader.finish()
+
 DLib.register('util/client/chat.lua')
 
 DLib.Loader.loadPureCSTop('dlib/modules/client')

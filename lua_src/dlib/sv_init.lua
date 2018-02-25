@@ -22,6 +22,8 @@ end
 CreateConVar('sv_dlib_hud_shift', '1', {FCVAR_REPLICATED, FCVAR_NOTIFY}, 'SV Override: Enable HUD shifting')
 
 AddCSLuaFile('dlib/modules/notify/client/cl_init.lua')
+DLib.Loader.loadPureCSTop('dlib/modules/hudcommons')
+DLib.Loader.loadPureCSTop('dlib/modules/hudcommons/base')
 
 DLib.Loader.csModule('dlib/modules/notify/client')
 DLib.Loader.svmodule('notify/sv_dnotify.lua')
