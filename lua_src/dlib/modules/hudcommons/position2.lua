@@ -23,6 +23,11 @@ local HUDCommons = HUDCommons
 local table = table
 local RealTime = RealTime
 local math = math
+local LerpCubic = LerpCubic
+local LerpCosine = LerpCosine
+local LerpAngle = LerpAngle
+local LerpSinusine = LerpSinusine
+local WorldToLocal = WorldToLocal
 
 HUDCommons.Position2 = HUDCommons.Position2 or {}
 local Pos2 = HUDCommons.Position2
