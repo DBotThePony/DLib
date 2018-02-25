@@ -47,6 +47,16 @@ function meta:SafeWeaponCall(func, ifNone, ...)
 	if not IsValid(wep) then
 		return ifNone
 	end
+
+	return wep[func](wep, ...)
+end
+
+function meta:ShouldDisplayWeaponStats()
+	return self:HasWeapon()
+end
+
+function meta:ShouldDisplayAmmoStored()
+	return self:HasWeapon() and (self:GetVarMaxClip1() > 0 or self:GetVarMaxClip2() > 0)
 end
 
 function meta:RegisterRegularVariable(var, funcName, default)
