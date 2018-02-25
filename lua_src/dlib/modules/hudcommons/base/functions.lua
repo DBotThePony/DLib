@@ -20,6 +20,8 @@ local LocalWeapon = LocalWeapon
 local IsValid = FindMetaTable('Entity').IsValid
 local table = table
 local surface = surface
+local math = math
+local ScreenScale = ScreenScale
 
 function meta:GetWeapon()
 	local ply = self:SelectPlayer()
@@ -71,6 +73,11 @@ function meta:RegisterRegularWeaponVariable(var, funcName, default)
 	end)
 
 	return newSelf
+end
+
+function meta:CreateScalableFont(fontBase, fontData)
+	fontData.size = math.floor(ScreenScale(fontData.size * 0.6) + 0.5)
+	return self:CreateFont(fontBase, fontData)
 end
 
 function meta:CreateFont(fontBase, fontData)
