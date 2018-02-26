@@ -64,10 +64,6 @@ function meta:ShouldDisplaySecondaryAmmo()
 end
 
 function meta:SelectSecondaryAmmoReady()
-	if not self:HasWeapon() then
-		return -1
-	end
-
 	if self:GetVarClipMax2() == 0 then
 		return 0
 	end
@@ -76,10 +72,6 @@ function meta:SelectSecondaryAmmoReady()
 end
 
 function meta:SelectSecondaryAmmoStored()
-	if not self:HasWeapon() then
-		return -1
-	end
-
 	if self:GetVarAmmoType2() == -1 then
 		return -1
 	end
@@ -87,7 +79,22 @@ function meta:SelectSecondaryAmmoStored()
 	return self:GetVarAmmo2()
 end
 
+function meta:IsValidAmmoType1()
+	return self:GetVarAmmoType1() ~= -1
+end
+
+function meta:IsValidAmmoType2()
+	return self:GetVarAmmoType2() ~= -1
+end
+
 function meta:ShouldDisplayAmmoStored()
+	return self:HasWeapon() and
+		(self:GetVarClipMax1() > 0 or self:GetVarClipMax2() > 0) and
+		(self:GetVarAmmo1() >= 0 or self:GetVarAmmo2() >= 0) and
+		(self:IsValidAmmoType1() or self:IsValidAmmoType2())
+end
+
+function meta:ShouldDisplayAmmoReady()
 	return self:HasWeapon() and (self:GetVarClipMax1() > 0 or self:GetVarClipMax2() > 0)
 end
 
