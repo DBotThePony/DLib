@@ -212,12 +212,14 @@ local function UpdateWeaponShift(delta)
 		end
 	end
 
-	if amount == 0 then return end
+	if amount <= 2 then return end
 
 	xs, ys, zs = xs / amount, ys / amount, zs / amount
 	local changeX = xs - lastWeaponPosX
 	local changeY = ys - lastWeaponPosY
 	local changeZ = zs - lastWeaponPosZ
+
+	if math.abs(changeX) > 100 or math.abs(changeY) > 100 or math.abs(changeY) > 100 then return end
 
 	lastWeaponPosX = LerpCubic(delta * 44, lastWeaponPosX, xs)
 	lastWeaponPosY = LerpCubic(delta * 44, lastWeaponPosY, ys)
