@@ -105,6 +105,20 @@ function meta:RegisterRegularVariable(var, funcName, default)
 	return newSelf
 end
 
+function meta:GetAmmoFillage1()
+	if self:GetVarClipMax1() <= 0 then return 1 end
+	if self:GetVarClip1() <= 0 then return 0 end
+	if self:GetVarClipMax1() <= self:GetVarClip1() then return 1 end
+	return self:GetVarClip1() / self:GetVarClipMax1()
+end
+
+function meta:GetAmmoFillage2()
+	if self:GetVarClipMax2() <= 0 then return 1 end
+	if self:GetVarClip2() <= 0 then return 0 end
+	if self:GetVarClipMax2() <= self:GetVarClip2() then return 1 end
+	return self:GetVarClip2() / self:GetVarClipMax2()
+end
+
 function meta:RegisterRegularWeaponVariable(var, funcName, default)
 	local newSelf = self:RegisterVariable(var, default)
 
