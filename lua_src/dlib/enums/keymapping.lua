@@ -13,6 +13,8 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
+local DLib = DLib
+local KEY_NONE = KEY_NONE
 DLib.KeyMap = {}
 
 DLib.KeyMap.KEY = {
@@ -105,6 +107,10 @@ for k, v in pairs(DLib.KeyMap.KEY) do
 	DLib.KeyMap.KEY_LOWER[k] = v:lower()
 	DLib.KeyMap.KEY_REVERSE[v] = k
 	DLib.KeyMap.KEY_REVERSE[v:lower()] = k
+end
+
+function DLib.KeyMap.GetKeyFromString(strIn)
+	return DLib.KeyMap.KEY_REVERSE[strIn:lower()] or KEY_NONE
 end
 
 DLib.KeyMap.NUMBERS_LIST = {
