@@ -60,7 +60,7 @@ function meta:ShouldDisplayAmmo()
 end
 
 function meta:ShouldDisplaySecondaryAmmo()
-	return self:HasWeapon() and self:GetWeapon().DrawAmmo ~= false and (self:GetVarClipMax2() > 0 or self:GetVarAmmoType2() ~= -1)
+	return self:HasWeapon() and self:GetWeapon().DrawAmmo ~= false and (self:GetVarClipMax2() > 0 or self:GetVarClip2() > 0 or self:GetVarAmmoType2() ~= -1)
 end
 
 function meta:SelectSecondaryAmmoReady()
