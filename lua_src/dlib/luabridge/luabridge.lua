@@ -36,6 +36,7 @@ if CLIENT then
 	local GetVehicle = FindMetaTable('Player').GetVehicle
 	local vehMeta = FindMetaTable('Vehicle')
 	local NULL = NULL
+	local ipairs = ipairs
 
 	function vehMeta:GetDriver()
 		return self._dlib_vehfix or NULL
@@ -61,6 +62,33 @@ if CLIENT then
 	end
 
 	hook.Add('Think', 'DLib.GetDriverFix', Think)
+
+	local LocalPlayer = LocalPlayer
+	local GetWeapons = FindMetaTable('Player').GetWeapons
+
+	local function updateWeaponFix()
+		local ply = LocalPlayer()
+		if not IsValid(ply) then return end
+		local weapons = GetWeapons(ply)
+		if not weapons then return end
+
+		for k, wep in ipairs(weapons) do
+			local tab = GetTable(wep)
+
+			if not tab.DrawWeaponSelection_DLib then
+				tab.DrawWeaponSelection_DLib = tab.DrawWeaponSelection
+
+				tab.DrawWeaponSelection = function(self, x, y, w, h, a)
+					local can = hook.Run('DrawWeaponSelection', self, x, y, w, h, a)
+					if can == false then return end
+					return tab.DrawWeaponSelection_DLib(self, x, y, w, h, a)
+				end
+			end
+		end
+	end
+
+	timer.Create('DLib.DrawWeaponSelection', 10, 0, updateWeaponFix)
+	updateWeaponFix()
 end
 
 local CSoundPatch = FindMetaTable('CSoundPatch')
