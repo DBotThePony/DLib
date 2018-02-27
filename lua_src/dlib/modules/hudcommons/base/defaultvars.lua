@@ -43,7 +43,9 @@ function meta:__InitVaribles()
 	self:RegisterRegularWeaponVariable('weaponName', 'GetPrintName', '')
 
 	self:RegisterVariable('ammo1', 0)
+	self:RegisterVariable('ammo1_Select', 0)
 	self:RegisterVariable('ammo2', 0)
+	self:RegisterVariable('ammo2_Select', 0)
 
 	self:SetTickHook('ammo1', function(self, hudSelf, localPlayer, current)
 		local atype = hudSelf:GetVarAmmoType1()
@@ -57,6 +59,26 @@ function meta:__InitVaribles()
 
 	self:SetTickHook('ammo2', function(self, hudSelf, localPlayer, current)
 		local atype = hudSelf:GetVarAmmoType2()
+
+		if atype == -1 then
+			return -1
+		else
+			return localPlayer:GetAmmoCount(atype)
+		end
+	end)
+
+	self:SetTickHook('ammo1_Select', function(self, hudSelf, localPlayer, current)
+		local atype = hudSelf:GetVarAmmoType1_Select()
+
+		if atype == -1 then
+			return -1
+		else
+			return localPlayer:GetAmmoCount(atype)
+		end
+	end)
+
+	self:SetTickHook('ammo2_Select', function(self, hudSelf, localPlayer, current)
+		local atype = hudSelf:GetVarAmmoType2_Select()
 
 		if atype == -1 then
 			return -1

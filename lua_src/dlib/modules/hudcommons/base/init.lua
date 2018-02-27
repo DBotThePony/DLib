@@ -46,6 +46,7 @@ function meta:__construct(hudID, hudName)
 	self:AddHook('Tick')
 	self:AddHook('Think')
 	self:AddHook('HUDPaint')
+	self:AddHook('DrawWeaponSelection')
 
 	self:__InitVaribles()
 	self:InitVaribles()
