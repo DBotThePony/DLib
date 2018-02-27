@@ -46,6 +46,10 @@ function meta:PredictSelectWeapon()
 	return self.tryToSelectWeapon
 end
 
+function meta:HasPredictedWeapon()
+	return IsValid(self:PredictSelectWeapon()) and self:PredictSelectWeapon() ~= self:GetWeapon()
+end
+
 function meta:HasWeapon()
 	return IsValid(self:GetWeapon())
 end
@@ -56,6 +60,16 @@ end
 
 function meta:SafeWeaponCall(func, ifNone, ...)
 	local wep = self:GetWeapon()
+
+	if not IsValid(wep) then
+		return ifNone
+	end
+
+	return wep[func](wep, ...)
+end
+
+function meta:SafeWeaponCall2(func, ifNone, ...)
+	local wep = self:PredictSelectWeapon()
 
 	if not IsValid(wep) then
 		return ifNone
@@ -76,12 +90,28 @@ function meta:ShouldDisplaySecondaryAmmo()
 	return self:HasWeapon() and self:GetWeapon().DrawAmmo ~= false and (self:GetVarClipMax2() > 0 or self:GetVarClip2() > 0 or self:GetVarAmmoType2() ~= -1)
 end
 
+function meta:ShouldDisplayAmmo2()
+	return self:HasPredictedWeapon() and self:PredictSelectWeapon().DrawAmmo ~= false and (self:GetVarClipMax1_Select() > 0 or self:GetVarClipMax2_Select() > 0 or self:GetVarAmmoType1_Select() ~= -1 or self:GetVarAmmoType2_Select() ~= -1)
+end
+
+function meta:ShouldDisplaySecondaryAmmo2()
+	return self:HasPredictedWeapon() and self:PredictSelectWeapon().DrawAmmo ~= false and (self:GetVarClipMax2_Select() > 0 or self:GetVarClip2_Select() > 0 or self:GetVarAmmoType2_Select() ~= -1)
+end
+
 function meta:SelectSecondaryAmmoReady()
 	if self:GetVarClipMax2() == 0 then
 		return 0
 	end
 
 	return self:GetVarClip2()
+end
+
+function meta:SelectSecondaryAmmoReady2()
+	if self:GetVarClipMax2_Select() == 0 then
+		return 0
+	end
+
+	return self:GetVarClip2_Select()
 end
 
 function meta:SelectSecondaryAmmoStored()
@@ -92,12 +122,28 @@ function meta:SelectSecondaryAmmoStored()
 	return self:GetVarAmmo2()
 end
 
+function meta:SelectSecondaryAmmoStored2()
+	if self:GetVarAmmoType2_Select() == -1 then
+		return -1
+	end
+
+	return self:GetVarAmmo2_Select()
+end
+
 function meta:IsValidAmmoType1()
 	return self:GetVarAmmoType1() ~= -1
 end
 
 function meta:IsValidAmmoType2()
 	return self:GetVarAmmoType2() ~= -1
+end
+
+function meta:IsValidAmmoType1_Select()
+	return self:GetVarAmmoType1_Select() ~= -1
+end
+
+function meta:IsValidAmmoType2_Select()
+	return self:GetVarAmmoType2_Select() ~= -1
 end
 
 function meta:ShouldDisplayAmmoStored()
@@ -107,8 +153,19 @@ function meta:ShouldDisplayAmmoStored()
 		(self:IsValidAmmoType1() or self:IsValidAmmoType2())
 end
 
+function meta:ShouldDisplayAmmoStored2()
+	return self:HasPredictedWeapon() and
+		(self:GetVarClipMax1_Select() > 0 or self:GetVarClipMax2_Select() > 0) and
+		(self:GetVarAmmo1_Select() >= 0 or self:GetVarAmmo2_Select() >= 0) and
+		(self:IsValidAmmoType1_Select() or self:IsValidAmmoType2_Select())
+end
+
 function meta:ShouldDisplayAmmoReady()
 	return self:HasWeapon() and (self:GetVarClipMax1() > 0 or self:GetVarClipMax2() > 0)
+end
+
+function meta:ShouldDisplayAmmoReady2()
+	return self:HasPredictedWeapon() and (self:GetVarClipMax1_Select() > 0 or self:GetVarClipMax2_Select() > 0)
 end
 
 function meta:DefinePosition(name, ...)
@@ -137,6 +194,20 @@ function meta:GetAmmoFillage2()
 	if self:GetVarClip2() <= 0 then return 0 end
 	if self:GetVarClipMax2() <= self:GetVarClip2() then return 1 end
 	return self:GetVarClip2() / self:GetVarClipMax2()
+end
+
+function meta:GetAmmoFillage1_Select()
+	if self:GetVarClipMax1_Select() <= 0 then return 1 end
+	if self:GetVarClip1_Select() <= 0 then return 0 end
+	if self:GetVarClipMax1_Select() <= self:GetVarClip1_Select() then return 1 end
+	return self:GetVarClip1_Select() / self:GetVarClipMax1_Select()
+end
+
+function meta:GetAmmoFillage2_Select()
+	if self:GetVarClipMax2_Select() <= 0 then return 1 end
+	if self:GetVarClip2_Select() <= 0 then return 0 end
+	if self:GetVarClipMax2_Select() <= self:GetVarClip2_Select() then return 1 end
+	return self:GetVarClip2_Select() / self:GetVarClipMax2_Select()
 end
 
 function meta:RegisterRegularWeaponVariable(var, funcName, default)

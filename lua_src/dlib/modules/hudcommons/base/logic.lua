@@ -118,6 +118,11 @@ end
 
 function meta:DrawWeaponSelection(wep)
 	self.tryToSelectWeapon = wep
+
+	if self.tryToSelectWeaponLast < RealTime() then
+		self.tryToSelectWeaponFadeIn = RealTime() + 0.5
+	end
+
 	self.tryToSelectWeaponLast = RealTime() + 0.75
 	self.tryToSelectWeaponLastEnd = RealTime() + 1.25
 end

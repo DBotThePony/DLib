@@ -37,6 +37,11 @@ function meta:__construct(hudID, hudName)
 	self.thinkHash = {}
 	self.think = {}
 
+	self.tryToSelectWeapon = NULL
+	self.tryToSelectWeaponLast = 0
+	self.tryToSelectWeaponFadeIn = 0
+	self.tryToSelectWeaponLastEnd = 0
+
 	self.glitching = false
 	self.glitchEnd = 0
 
