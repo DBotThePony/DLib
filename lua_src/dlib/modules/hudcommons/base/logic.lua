@@ -115,3 +115,9 @@ end
 function meta:OnWeaponChanged(old, new)
 
 end
+
+function meta:DrawWeaponSelection(wep)
+	self.tryToSelectWeapon = wep
+	self.tryToSelectWeaponLast = RealTime() + 0.75
+	self.tryToSelectWeaponLastEnd = RealTime() + 1.25
+end

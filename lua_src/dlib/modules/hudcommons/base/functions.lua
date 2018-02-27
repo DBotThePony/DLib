@@ -22,6 +22,7 @@ local table = table
 local surface = surface
 local math = math
 local ScreenScale = ScreenScale
+local RealTime = RealTime
 
 function meta:GetWeapon()
 	local ply = self:SelectPlayer()
@@ -31,6 +32,18 @@ function meta:GetWeapon()
 	end
 
 	return ply:GetActiveWeapon() or NULL
+end
+
+function meta:PredictSelectWeapon()
+	if not IsValid(self.tryToSelectWeapon) then
+		return self:GetWeapon()
+	end
+
+	if self.tryToSelectWeaponLastEnd < RealTime() then
+		return self:GetWeapon()
+	end
+
+	return self.tryToSelectWeapon
 end
 
 function meta:HasWeapon()
@@ -128,6 +141,17 @@ end
 
 function meta:RegisterRegularWeaponVariable(var, funcName, default)
 	local newSelf = self:RegisterVariable(var, default)
+	local newSelf2 = self:RegisterVariable(var .. '_Select', default)
+
+	self:SetTickHook(var .. '_Select', function(self, hudSelf, localPlayer)
+		local wep = hudSelf:PredictSelectWeapon()
+
+		if IsValid(wep) then
+			return wep[funcName](wep)
+		else
+			return newSelf.default()
+		end
+	end)
 
 	self:SetTickHook(var, function(self, hudSelf, localPlayer)
 		local wep = hudSelf:GetWeapon()
@@ -139,7 +163,7 @@ function meta:RegisterRegularWeaponVariable(var, funcName, default)
 		end
 	end)
 
-	return newSelf
+	return newSelf, newSelf2
 end
 
 function meta:CreateScalableFont(fontBase, fontData)
