@@ -100,12 +100,12 @@ end
 
 function meta:AddHookCustom(event, id, funcIfAny, priority)
 	priority = priority or 3
-	funcIfAny = funcIfAny or self[event] or self[id]
+	funcIfAny = funcIfAny or self[id] or self[event]
 
-	self.chooks[id] = {event, id, funcIfAny, priority}
+	self.chooks[id] = {event, self.id .. '_' .. id, funcIfAny, priority}
 
 	if self:IsEnabled() then
-		hook.Add(event, id, function(...)
+		hook.Add(event, self.id .. '_' .. id, function(...)
 			return funcIfAny(self, ...)
 		end, priority)
 	end
@@ -121,7 +121,7 @@ end
 
 function meta:RemoveCustomHook(event, id)
 	self.chooks[id] = nil
-	hook.Remove(event, id)
+	hook.Remove(event, self.id .. '_' .. id)
 	return id
 end
 
@@ -139,7 +139,7 @@ function meta:Enable()
 	for id, data in pairs(self.chooks) do
 		local funcIfAny = data[3]
 
-		hook.Add(data[1], id, function(...)
+		hook.Add(data[1], data[2], function(...)
 			return funcIfAny(self, ...)
 		end, data[4])
 	end
