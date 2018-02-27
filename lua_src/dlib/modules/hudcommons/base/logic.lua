@@ -87,8 +87,18 @@ function meta:ThinkLogic(lPly)
 			end
 		else
 			self:CallOnGlitchEnd()
+			self:OnGlitchEnd()
 		end
 	end
+end
+
+-- override
+function meta:OnGlitchStart(timeLong)
+
+end
+
+function meta:OnGlitchEnd()
+
 end
 
 function meta:TriggerGlitch(timeLong)
@@ -98,6 +108,7 @@ function meta:TriggerGlitch(timeLong)
 	if not self.glitching then
 		self.glitching = true
 		self:CallOnGlitchStart(timeLong)
+		self:OnGlitchStart(timeLong)
 	end
 
 	return old ~= self.glitchEnd
