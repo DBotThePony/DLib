@@ -97,6 +97,7 @@ function meta:OnGlitchStart(timeLong)
 
 end
 
+-- override
 function meta:OnGlitchEnd()
 
 end

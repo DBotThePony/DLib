@@ -100,7 +100,7 @@ end
 
 function meta:AddHookCustom(event, id, funcIfAny, priority)
 	priority = priority or 3
-	funcIfAny = funcIfAny or self[event]
+	funcIfAny = funcIfAny or self[event] or self[id]
 
 	self.chooks[id] = {event, id, funcIfAny, priority}
 
