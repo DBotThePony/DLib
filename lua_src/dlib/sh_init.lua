@@ -64,6 +64,7 @@ DLib.register('extensions/ctakedmg.lua')
 DLib.register('extensions/table.lua')
 DLib.register('extensions/cvar.lua')
 DLib.register('extensions/entity.lua')
+DLib.register('extensions/render.lua')
 DLib.register('extensions/player.lua').export(_G.player)
 
 DLib.simpleInclude('luabridge/lobject.lua')
