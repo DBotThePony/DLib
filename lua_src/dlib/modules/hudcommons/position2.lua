@@ -131,10 +131,10 @@ local function UpdateShift(delta)
 	local changePitch = math.AngleDifference(ang.p, Pos2.LastAngle.p)
 	local changeYaw = math.AngleDifference(ang.y, Pos2.LastAngle.y)
 
-	Pos2.LastAngle = LerpAngle(delta * 44, Pos2.LastAngle, ang)
+	Pos2.LastAngle = LerpAngle(delta * 22, Pos2.LastAngle, ang)
 
-	Pos2.ShiftX = math.Clamp(Pos2.ShiftX + changeYaw * 1.8, -120, 120)
-	Pos2.ShiftY = math.Clamp(Pos2.ShiftY - changePitch * 1.8, -80, 80)
+	Pos2.ShiftX = math.Clamp(Pos2.ShiftX + changeYaw * 1.8, -30, 30)
+	Pos2.ShiftY = math.Clamp(Pos2.ShiftY - changePitch * 1.8, -20, 20)
 
 	local oldX, oldY = Pos2.ShiftX, Pos2.ShiftY
 
@@ -229,8 +229,8 @@ local function UpdateWeaponShift(delta)
 	--lastWeaponPosY = ys
 	--lastWeaponPosZ = zs
 
-	Pos2.ShiftX_Weapon = math.Clamp(Pos2.ShiftX_Weapon + ((changeX / delta) - (changeY / delta)) * 0.3, -80, 80)
-	Pos2.ShiftY_Weapon = math.Clamp(Pos2.ShiftY_Weapon + ((changeZ / delta)) * 0.3, -80, 80)
+	Pos2.ShiftX_Weapon = math.Clamp(Pos2.ShiftX_Weapon + ((changeX / delta) - (changeY / delta)) * 0.3, -40, 40)
+	Pos2.ShiftY_Weapon = math.Clamp(Pos2.ShiftY_Weapon + ((changeZ / delta)) * 0.3, -40, 40)
 end
 
 local lastThink = RealTime()
