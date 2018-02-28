@@ -20,11 +20,12 @@ function meta:__InitVaribles()
 	self:RegisterRegularVariable('alive', 'IsAlive', true)
 
 	self:SetOnChangeHook('alive', function(self, hudSelf, localPlayer, old, new)
+		hudSelf.glitchEnd = 0
+		hudSelf.glitching = false
+
 		if new then
 			hudSelf:CallOnRespawn()
 		else
-			hudSelf.glitchEnd = 0
-			hudSelf.glitching = false
 			hudSelf:CallOnDeath()
 		end
 	end)

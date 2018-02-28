@@ -118,6 +118,52 @@ for i, hookType in ipairs(hooks) do
 		return ldata
 	end
 
+	meta['Patch' .. hName .. 'Hook'] = function(self, var, newFunction)
+		assert(type(var) == 'string', 'ID is not a string!')
+		assert(type(newFunction) == 'function', 'Input is not a function!')
+
+		local ldata
+
+		for i, data in ipairs(self.variables) do
+			if data.var == var then
+				ldata = data
+				break
+			end
+		end
+
+		if not ldata then
+			error('Variable must be initialized before setting its hooks')
+		end
+
+		local old = ldata[hookType]
+
+		ldata[hookType] = function(...)
+			old(...)
+			return newFunction(...)
+		end
+
+		return ldata
+	end
+
+	meta['Get' .. hName .. 'Hook'] = function(self, var)
+		assert(type(var) == 'string', 'ID is not a string!')
+
+		local ldata
+
+		for i, data in ipairs(self.variables) do
+			if data.var == var then
+				ldata = data
+				break
+			end
+		end
+
+		if not ldata then
+			error('Variable must be initialized before setting its hooks')
+		end
+
+		return ldata[hookType]
+	end
+
 	meta['Call' .. hName] = function(self, ...)
 		if #self.variables == 0 then return end
 		local vars = self.variables
