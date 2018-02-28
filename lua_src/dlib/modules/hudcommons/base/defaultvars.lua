@@ -23,6 +23,8 @@ function meta:__InitVaribles()
 		if new then
 			hudSelf:CallOnRespawn()
 		else
+			hudSelf.glitchEnd = 0
+			hudSelf.glitching = false
 			hudSelf:CallOnDeath()
 		end
 	end)
