@@ -115,6 +115,18 @@ function meta:TriggerGlitch(timeLong)
 	return old ~= self.glitchEnd
 end
 
+function meta:ExtendGlitch(timeLong)
+	self.glitchEnd = math.max(self.glitchEnd + timeLong, RealTime() + timeLong)
+
+	if not self.glitching then
+		self.glitching = true
+		self:CallOnGlitchStart(timeLong)
+		self:OnGlitchStart(timeLong)
+	end
+
+	return true
+end
+
 function meta:GlitchTimeRemaining()
 	return math.max(0, self.glitchEnd - RealTime())
 end
