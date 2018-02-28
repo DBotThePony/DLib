@@ -44,6 +44,7 @@ function meta:__construct(hudID, hudName)
 
 	self.glitching = false
 	self.glitchEnd = 0
+	self.glitchingSicne = 0
 
 	self.enabled = CreateConVar(hudID .. '_enabled', '1', {FCVAR_ARCHIVE}, 'Enable ' .. hudName)
 	cvars.AddChangeCallback(hudID .. '_enabled', function(var, old, new) self:EnableSwitch(old, new) end, hudID)

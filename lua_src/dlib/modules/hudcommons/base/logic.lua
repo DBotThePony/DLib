@@ -108,6 +108,7 @@ function meta:TriggerGlitch(timeLong)
 
 	if not self.glitching then
 		self.glitching = true
+		self.glitchingSicne = RealTime()
 		self:CallOnGlitchStart(timeLong)
 		self:OnGlitchStart(timeLong)
 	end
@@ -120,6 +121,7 @@ function meta:ExtendGlitch(timeLong)
 
 	if not self.glitching then
 		self.glitching = true
+		self.glitchingSicne = RealTime()
 		self:CallOnGlitchStart(timeLong)
 		self:OnGlitchStart(timeLong)
 	end
@@ -129,6 +131,14 @@ end
 
 function meta:GlitchTimeRemaining()
 	return math.max(0, self.glitchEnd - RealTime())
+end
+
+function meta:GlitchingSince()
+	return self.glitchingSicne
+end
+
+function meta:GlitchingFor()
+	return RealTime() - self.glitchingSicne
 end
 
 function meta:IsGlitching()
