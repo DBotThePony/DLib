@@ -17,11 +17,16 @@
 
 local PhysObj = FindMetaTable('PhysObj')
 local vectorMeta = FindMetaTable('Vector')
+local vehicleMeta = FindMetaTable('Vehicle')
 local Color = Color
 local math = math
 local ipairs = ipairs
 local assert = assert
 local select = select
+local language = language
+local list = list
+local pairs = pairs
+local CLIENT = CLIENT
 
 function PhysObj:SetAngleVelocity(newAngle)
 	return self:AddAngleVelocity(newAngle - self:GetAngleVelocity())
@@ -137,4 +142,53 @@ function math.average(...)
 	end
 
 	return total / amount
+end
+
+local VehicleListIterable = {}
+
+timer.Create('DLib.RebuildVehicleListNames', 10, 0, function()
+	for classname, data in pairs(list.GetForEdit('Vehicles')) do
+		if data.Model then
+			VehicleListIterable[data.Model:lower()] = data
+		end
+	end
+end)
+
+if CLIENT then
+	function vehicleMeta:GetPrintName()
+		if self.__dlibCachedName then
+			return self.__dlibCachedName
+		end
+
+		local getname = self.PrintName
+
+		if not getname then
+			local classname = self:GetClass()
+			getname = language.GetPhrase(classname)
+
+			if getname == classname then
+				getname = VehicleListIterable[self:GetModel()] or classname
+			end
+		end
+
+		self.__dlibCachedName = getname
+
+		return getname
+	end
+else
+	function vehicleMeta:GetPrintName()
+		if self.__dlibCachedName then
+			return self.__dlibCachedName
+		end
+
+		local getname = self.PrintName
+
+		if not getname then
+			getname = VehicleListIterable[self:GetModel()] or self:GetClass()
+		end
+
+		self.__dlibCachedName = getname
+
+		return getname
+	end
 end

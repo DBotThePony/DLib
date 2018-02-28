@@ -89,4 +89,6 @@ function meta:__InitVaribles()
 			return localPlayer:GetAmmoCount(atype)
 		end
 	end)
+
+	self:RegisterVehicleVariable('GetPrintName', '')
 end

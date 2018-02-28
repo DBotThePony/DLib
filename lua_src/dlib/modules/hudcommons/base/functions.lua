@@ -237,6 +237,39 @@ function meta:RegisterRegularWeaponVariable(var, funcName, default)
 	return newSelf, newSelf2
 end
 
+function meta:GetEntityVehicle()
+	local ply = self:SelectPlayer()
+	if not IsValid(ply) then return end
+
+	local vehicle, lastVehicle = ply:GetVehicle(), NULL
+	local MEM = {}
+
+	while IsValid(vehicle) and not vehicle:GetClass():startsWith('prop_') do
+		if MEM[vehicle] then break end
+		lastVehicle = vehicle
+		MEM[vehicle] = true
+		vehicle = vehicle:GetParent()
+	end
+
+	return lastVehicle
+end
+
+function meta:RegisterVehicleVariable(var, funcName, default)
+	local newSelf = self:RegisterVariable(var, default)
+
+	self:SetTickHook(var, function(self, hudSelf, localPlayer)
+		local wep = hudSelf:GetEntityVehicle()
+
+		if IsValid(wep) then
+			return wep[funcName](wep)
+		else
+			return newSelf.default()
+		end
+	end)
+
+	return newSelf
+end
+
 function meta:CreateScalableFont(fontBase, fontData)
 	fontData.size = math.floor(ScreenScale(fontData.size * 0.6) + 0.5)
 	return self:CreateFont(fontBase, fontData)
