@@ -18,6 +18,7 @@
 local PhysObj = FindMetaTable('PhysObj')
 local vectorMeta = FindMetaTable('Vector')
 local vehicleMeta = FindMetaTable('Vehicle')
+local entMeta = FindMetaTable('Entity')
 local Color = Color
 local math = math
 local ipairs = ipairs
@@ -174,6 +175,11 @@ if CLIENT then
 
 		return getname
 	end
+
+	function entMeta:GetPrintNameDLib()
+		if self.GetPrintName then return self:GetPrintName() end
+		return self.PrintName or language.GetPhrase(self:GetClass())
+	end
 else
 	function vehicleMeta:GetPrintName()
 		if self.__dlibCachedName then
@@ -189,5 +195,10 @@ else
 		self.__dlibCachedName = getname
 
 		return getname
+	end
+
+	function entMeta:GetPrintNameDLib()
+		if self.GetPrintName then return self:GetPrintName() end
+		return self.PrintName
 	end
 end
