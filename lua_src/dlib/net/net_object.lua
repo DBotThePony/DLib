@@ -50,6 +50,11 @@ local function ErrorNoHalt(message)
 	end
 end
 
+local function ErrorNoHalt3(message)
+	if not DLib.DEBUG_MODE:GetBool() then return end
+	return ErrorNoHalt2(traceback(message) .. '\n')
+end
+
 local messageMeta = DLib.netMessageMeta or {}
 DLib.netMessageMeta = messageMeta
 
@@ -558,12 +563,12 @@ local function CheckSendInput(targets)
 	end
 
 	if inputType == 'table' and #targets == 0 then
-		if not net.QUIET_SEND then ErrorNoHalt('net.Send - Possibly a mistake: Input table is empty!') end
+		if not net.QUIET_SEND then ErrorNoHalt3('net.Send - Possibly a mistake: Input table is empty!') end
 		return false
 	end
 
 	if inputType == 'CRecipientFilter' and targets:GetCount() == 0 then
-		if not net.QUIET_SEND then ErrorNoHalt('net.Send - Possibly a mistake: Input CRecipientFilter is empty!') end
+		if not net.QUIET_SEND then ErrorNoHalt3('net.Send - Possibly a mistake: Input CRecipientFilter is empty!') end
 		return false
 	end
 
