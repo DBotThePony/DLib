@@ -91,15 +91,18 @@ function meta:__InitVaribles()
 		end
 	end)
 
-	self:RegisterVehicleVariable('vehicleName', 'GetPrintName', '')
+	self:RegisterVehicleVariable('vehicleName', 'GetPrintNameDLib', '')
 	self:RegisterVehicleVariable('vehicleHP', 'GetHealth', 0)
 	self:RegisterVehicleVariable('vehicleHP2', 'GetHP', 0)
+	self:RegisterVehicleVariable('vehicleHP3', 'GetCurHealth', 0)
+	self:RegisterVehicleVariable('vehicleHP4', 'GetCurrentHealth', 0)
+	self:RegisterVehicleVariable('vehicleHP5', 'GetVehicleHealth', 0)
 	self:RegisterVehicleVariable('vehicleMHP', 'GetMaxHealth', 0)
 	self:RegisterVehicleVariable('vehicleMHP2', 'GetMaxHP', 0)
 end
 
 function meta:GetVarVehicleHealth()
-	return math.max(self:GetVarVehicleHP(), self:GetVarVehicleHP2())
+	return math.max(self:GetVarVehicleHP(), self:GetVarVehicleHP2(), self:GetVarVehicleHP3(), self:GetVarVehicleHP4(), self:GetVarVehicleHP5())
 end
 
 function meta:GetVarVehicleMaxHealth()
