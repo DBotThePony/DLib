@@ -14,6 +14,7 @@
 -- limitations under the License.
 
 local meta = DLib.FindMetaTable('HUDCommonsBase')
+local math = math
 
 -- do not override
 function meta:__InitVaribles()
@@ -90,5 +91,17 @@ function meta:__InitVaribles()
 		end
 	end)
 
-	self:RegisterVehicleVariable('GetPrintName', '')
+	self:RegisterVehicleVariable('vehicleName', 'GetPrintName', '')
+	self:RegisterVehicleVariable('vehicleHP', 'GetHealth', 0)
+	self:RegisterVehicleVariable('vehicleHP2', 'GetHP', 0)
+	self:RegisterVehicleVariable('vehicleMHP', 'GetMaxHealth', 0)
+	self:RegisterVehicleVariable('vehicleMHP2', 'GetMaxHP', 0)
+end
+
+function meta:GetVarVehicleHealth()
+	return math.max(self:GetVarVehicleHP(), self:GetVarVehicleHP2())
+end
+
+function meta:GetVarVehicleMaxHealth()
+	return math.max(self:GetVarVehicleMHP(), self:GetVarVehicleMHP2())
 end

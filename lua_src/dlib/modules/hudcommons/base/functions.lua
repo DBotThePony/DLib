@@ -17,6 +17,7 @@ local meta = DLib.FindMetaTable('HUDCommonsBase')
 local DLib = DLib
 local LocalPlayer = LocalPlayer
 local LocalWeapon = LocalWeapon
+local IsValid2 = IsValid
 local IsValid = FindMetaTable('Entity').IsValid
 local table = table
 local surface = surface
@@ -217,7 +218,7 @@ function meta:RegisterRegularWeaponVariable(var, funcName, default)
 	self:SetTickHook(var .. '_Select', function(self, hudSelf, localPlayer)
 		local wep = hudSelf:PredictSelectWeapon()
 
-		if IsValid(wep) then
+		if IsValid(wep) and wep[funcName] then
 			return wep[funcName](wep)
 		else
 			return newSelf.default()
@@ -227,7 +228,7 @@ function meta:RegisterRegularWeaponVariable(var, funcName, default)
 	self:SetTickHook(var, function(self, hudSelf, localPlayer)
 		local wep = hudSelf:GetWeapon()
 
-		if IsValid(wep) then
+		if IsValid(wep) and wep[funcName] then
 			return wep[funcName](wep)
 		else
 			return newSelf.default()
@@ -244,7 +245,7 @@ function meta:GetEntityVehicle()
 	local vehicle, lastVehicle = ply:GetVehicle(), NULL
 	local MEM = {}
 
-	while IsValid(vehicle) and not vehicle:GetClass():startsWith('prop_') do
+	while IsValid2(vehicle) and (vehicle:IsVehicle() or not vehicle:GetClass():startsWith('prop_')) do
 		if MEM[vehicle] then break end
 		lastVehicle = vehicle
 		MEM[vehicle] = true
@@ -258,10 +259,10 @@ function meta:RegisterVehicleVariable(var, funcName, default)
 	local newSelf = self:RegisterVariable(var, default)
 
 	self:SetTickHook(var, function(self, hudSelf, localPlayer)
-		local wep = hudSelf:GetEntityVehicle()
+		local veh = hudSelf:GetEntityVehicle()
 
-		if IsValid(wep) then
-			return wep[funcName](wep)
+		if IsValid(veh) and veh[funcName] then
+			return veh[funcName](veh)
 		else
 			return newSelf.default()
 		end

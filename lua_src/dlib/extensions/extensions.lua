@@ -146,13 +146,16 @@ end
 
 local VehicleListIterable = {}
 
-timer.Create('DLib.RebuildVehicleListNames', 10, 0, function()
+local function rebuildVehicleList()
 	for classname, data in pairs(list.GetForEdit('Vehicles')) do
 		if data.Model then
 			VehicleListIterable[data.Model:lower()] = data
 		end
 	end
-end)
+end
+
+timer.Create('DLib.RebuildVehicleListNames', 10, 0, rebuildVehicleList)
+rebuildVehicleList()
 
 if CLIENT then
 	function vehicleMeta:GetPrintName()
@@ -160,15 +163,11 @@ if CLIENT then
 			return self.__dlibCachedName
 		end
 
-		local getname = self.PrintName
+		local getname = self.PrintName or (VehicleListIterable[self:GetModel()] and VehicleListIterable[self:GetModel()].Name)
 
 		if not getname then
 			local classname = self:GetClass()
 			getname = language.GetPhrase(classname)
-
-			if getname == classname then
-				getname = VehicleListIterable[self:GetModel()] or classname
-			end
 		end
 
 		self.__dlibCachedName = getname
