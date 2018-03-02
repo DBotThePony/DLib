@@ -108,3 +108,9 @@ end
 function meta:GetVarVehicleMaxHealth()
 	return math.max(self:GetVarVehicleMHP(), self:GetVarVehicleMHP2())
 end
+
+function meta:GetVehicleHealthFillage()
+	if self:GetVarVehicleMaxHealth() <= 0 then return 1 end
+	if self:GetVarVehicleMaxHealth() <= self:GetVarVehicleHealth() then return 1 end
+	return math.max(0, self:GetVarVehicleHealth() / self:GetVarVehicleMaxHealth())
+end
