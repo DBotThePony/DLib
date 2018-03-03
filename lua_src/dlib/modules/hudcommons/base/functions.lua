@@ -184,6 +184,7 @@ function meta:RegisterRegularVariable(var, funcName, default)
 end
 
 function meta:GetAmmoFillage1()
+	if not self:ShouldDisplayAmmo() then return 1 end
 	if self:GetVarClipMax1() <= 0 then return 1 end
 	if self:GetVarClip1() <= 0 then return 0 end
 	if self:GetVarClipMax1() <= self:GetVarClip1() then return 1 end
@@ -191,6 +192,7 @@ function meta:GetAmmoFillage1()
 end
 
 function meta:GetAmmoFillage2()
+	if not self:ShouldDisplaySecondaryAmmo() then return 1 end
 	if self:GetVarClipMax2() <= 0 then return 1 end
 	if self:GetVarClip2() <= 0 then return 0 end
 	if self:GetVarClipMax2() <= self:GetVarClip2() then return 1 end
@@ -198,6 +200,7 @@ function meta:GetAmmoFillage2()
 end
 
 function meta:GetAmmoFillage1_Select()
+	if not self:ShouldDisplayAmmo2() then return 1 end
 	if self:GetVarClipMax1_Select() <= 0 then return 1 end
 	if self:GetVarClip1_Select() <= 0 then return 0 end
 	if self:GetVarClipMax1_Select() <= self:GetVarClip1_Select() then return 1 end
@@ -205,6 +208,7 @@ function meta:GetAmmoFillage1_Select()
 end
 
 function meta:GetAmmoFillage2_Select()
+	if not self:ShouldDisplaySecondaryAmmo2() then return 1 end
 	if self:GetVarClipMax2_Select() <= 0 then return 1 end
 	if self:GetVarClip2_Select() <= 0 then return 0 end
 	if self:GetVarClipMax2_Select() <= self:GetVarClip2_Select() then return 1 end
