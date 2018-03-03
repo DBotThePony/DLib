@@ -129,6 +129,12 @@ function meta:ExtendGlitch(timeLong)
 	return true
 end
 
+function meta:ClampGlitchTime(maximal)
+	local old = self.glitchEnd
+	self.glitchEnd = self.glitchEnd:max(RealTime() + maximal)
+	return self.glitchEnd ~= old
+end
+
 function meta:GlitchTimeRemaining()
 	return math.max(0, self.glitchEnd - RealTime())
 end
