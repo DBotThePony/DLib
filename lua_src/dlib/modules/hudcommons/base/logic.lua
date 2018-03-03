@@ -131,7 +131,7 @@ end
 
 function meta:ClampGlitchTime(maximal)
 	local old = self.glitchEnd
-	self.glitchEnd = self.glitchEnd:max(RealTime() + maximal)
+	self.glitchEnd = self.glitchEnd:min(RealTime() + maximal)
 	return self.glitchEnd ~= old
 end
 
