@@ -282,6 +282,7 @@ end
 
 function meta:CreateFont(fontBase, fontData)
 	local font = self:GetID() .. fontBase
+	fontData.weight = fontData.weight or 500
 	local fontNames = {}
 
 	fontNames.REGULAR = font .. '_REGULAR'
@@ -305,80 +306,84 @@ function meta:CreateFont(fontBase, fontData)
 
 	surface.CreateFont(fontNames.REGULAR, fontData)
 
-	do
-		local newData = table.Copy(fontData)
-		newData.italic = true
-		surface.CreateFont(fontNames.ITALIC, newData)
-	end
+	local function buildFonts()
+		do
+			local newData = table.Copy(fontData)
+			newData.italic = true
+			surface.CreateFont(fontNames.ITALIC, newData)
+		end
 
-	do
-		local newData = table.Copy(fontData)
-		newData.scanlines = 4
-		newData.blursize = 8
-		surface.CreateFont(fontNames.STRIKE, newData)
-	end
+		do
+			local newData = table.Copy(fontData)
+			newData.scanlines = 4
+			newData.blursize = 8
+			surface.CreateFont(fontNames.STRIKE, newData)
+		end
 
-	do
-		local newData = table.Copy(fontData)
-		newData.scanlines = 4
-		newData.blursize = 16
-		surface.CreateFont(fontNames.BLURRY_STRIKE, newData)
-	end
+		do
+			local newData = table.Copy(fontData)
+			newData.scanlines = 4
+			newData.blursize = 16
+			surface.CreateFont(fontNames.BLURRY_STRIKE, newData)
+		end
 
-	do
-		local newData = table.Copy(fontData)
-		newData.italic = true
-		newData.scanlines = 4
-		newData.blursize = 16
-		surface.CreateFont(fontNames.BLURRY_STRIKE_ITALIC, newData)
-	end
+		do
+			local newData = table.Copy(fontData)
+			newData.italic = true
+			newData.scanlines = 4
+			newData.blursize = 16
+			surface.CreateFont(fontNames.BLURRY_STRIKE_ITALIC, newData)
+		end
 
-	do
-		local newData = table.Copy(fontData)
-		newData.blursize = 8
-		surface.CreateFont(fontNames.BLURRY, newData)
-	end
+		do
+			local newData = table.Copy(fontData)
+			newData.blursize = 8
+			surface.CreateFont(fontNames.BLURRY, newData)
+		end
 
-	do
-		local newData = table.Copy(fontData)
-		newData.blursize = 4
-		surface.CreateFont(fontNames.BLURRY_ROUGH, newData)
-	end
+		do
+			local newData = table.Copy(fontData)
+			newData.blursize = 4
+			surface.CreateFont(fontNames.BLURRY_ROUGH, newData)
+		end
 
-	do
-		local newData = table.Copy(fontData)
-		newData.scanlines = 4
-		surface.CreateFont(fontNames.STRIKE_SHARP, newData)
-	end
+		do
+			local newData = table.Copy(fontData)
+			newData.scanlines = 4
+			surface.CreateFont(fontNames.STRIKE_SHARP, newData)
+		end
 
-	do
-		local newData = table.Copy(fontData)
-		newData.italic = true
-		newData.scanlines = 4
-		newData.blursize = 8
-		surface.CreateFont(fontNames.STRIKE_ITALIC, newData)
-	end
+		do
+			local newData = table.Copy(fontData)
+			newData.italic = true
+			newData.scanlines = 4
+			newData.blursize = 8
+			surface.CreateFont(fontNames.STRIKE_ITALIC, newData)
+		end
 
-	do
-		local newData = table.Copy(fontData)
-		newData.italic = true
-		newData.blursize = 8
-		surface.CreateFont(fontNames.BLURRY_ITALIC, newData)
-	end
+		do
+			local newData = table.Copy(fontData)
+			newData.italic = true
+			newData.blursize = 8
+			surface.CreateFont(fontNames.BLURRY_ITALIC, newData)
+		end
 
-	do
-		local newData = table.Copy(fontData)
-		newData.italic = true
-		newData.scanlines = 4
-		surface.CreateFont(fontNames.STRIKE_SHARP_ITALIC, newData)
-	end
+		do
+			local newData = table.Copy(fontData)
+			newData.italic = true
+			newData.scanlines = 4
+			surface.CreateFont(fontNames.STRIKE_SHARP_ITALIC, newData)
+		end
 
-	for name, mapped in pairs(fontNames) do
-		if type(mapped) == 'string' then
-			surface.SetFont(mapped)
-			fontNames[name .. '_SIZE_W'], fontNames[name .. '_SIZE_H'] = surface.GetTextSize('W')
+		for name, mapped in pairs(fontNames) do
+			if type(mapped) == 'string' then
+				surface.SetFont(mapped)
+				fontNames[name .. '_SIZE_W'], fontNames[name .. '_SIZE_H'] = surface.GetTextSize('W')
+			end
 		end
 	end
+
+	buildFonts()
 
 	return fontNames
 end
