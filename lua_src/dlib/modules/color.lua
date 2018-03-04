@@ -29,7 +29,7 @@ local colorMeta = FindMetaTable('Color') or {}
 colorMeta.__index = colorMeta
 debug.getregistry().Color = colorMeta
 
-function _G.Color(r, g, b, a)
+local function Color(r, g, b, a)
 	if type(r) == 'table' then
 		g = r.g
 		b = r.b
@@ -56,7 +56,7 @@ function _G.ColorFromSeed(seedIn)
 	return Color(srnd(seedIn, 0, 255, 0), srnd(seedIn, 0, 255, 1), srnd(seedIn, 0, 255, 2))
 end
 
-local Color = Color
+_G.Color = Color
 
 function _G.ColorAlpha(target, newAlpha)
 	if target.Copy then
@@ -66,7 +66,7 @@ function _G.ColorAlpha(target, newAlpha)
 	end
 end
 
-function _G.IsColor(object)
+local function IsColor(object)
 	if type(object) ~= 'table' then
 		return false
 	end
@@ -79,8 +79,7 @@ function _G.IsColor(object)
 end
 
 _G.iscolor = IsColor
-
-local IsColor = IsColor
+_G.IsColor = IsColor
 
 function colorMeta:__tostring()
 	return string.format('Color[%i %i %i %i]', self.r, self.g, self.b, self.a)
@@ -145,7 +144,7 @@ function colorMeta:__eq(target)
 end
 
 function colorMeta:__add(target)
-	if type(self) ~= 'table' and type(target) == 'table' then
+	if not IsColor(self) and IsColor(target) then
 		local s1, s2 = self, target
 		target = s1
 		self = s2
@@ -165,7 +164,7 @@ function colorMeta:__add(target)
 end
 
 function colorMeta:__sub(target)
-	if type(self) ~= 'table' and type(target) == 'table' then
+	if not IsColor(self) and IsColor(target) then
 		local s1, s2 = self, target
 		target = s1
 		self = s2
@@ -185,7 +184,7 @@ function colorMeta:__sub(target)
 end
 
 function colorMeta:__mul(target)
-	if type(self) ~= 'table' and type(target) == 'table' then
+	if not IsColor(self) and IsColor(target) then
 		local s1, s2 = self, target
 		target = s1
 		self = s2
@@ -205,7 +204,7 @@ function colorMeta:__mul(target)
 end
 
 function colorMeta:__div(target)
-	if type(self) ~= 'table' and type(target) == 'table' then
+	if not IsColor(self) and IsColor(target) then
 		local s1, s2 = self, target
 		target = s1
 		self = s2
@@ -225,7 +224,7 @@ function colorMeta:__div(target)
 end
 
 function colorMeta:__mod(target)
-	if type(self) ~= 'table' and type(target) == 'table' then
+	if not IsColor(self) and IsColor(target) then
 		local s1, s2 = self, target
 		target = s1
 		self = s2
@@ -245,7 +244,7 @@ function colorMeta:__mod(target)
 end
 
 function colorMeta:__pow(target)
-	if type(self) ~= 'table' and type(target) == 'table' then
+	if not IsColor(self) and IsColor(target) then
 		local s1, s2 = self, target
 		target = s1
 		self = s2
@@ -273,7 +272,7 @@ function colorMeta:__concat(target)
 end
 
 function colorMeta:__lt(target)
-	if type(self) ~= 'table' and type(target) == 'table' then
+	if not IsColor(self) and IsColor(target) then
 		local s1, s2 = self, target
 		target = s1
 		self = s2
@@ -293,7 +292,7 @@ function colorMeta:__lt(target)
 end
 
 function colorMeta:__le(target)
-	if type(self) ~= 'table' and type(target) == 'table' then
+	if not IsColor(self) and IsColor(target) then
 		local s1, s2 = self, target
 		target = s1
 		self = s2

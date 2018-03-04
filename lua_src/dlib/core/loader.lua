@@ -107,8 +107,10 @@ function Loader.svmodule(fil)
 	return include('dlib/modules/' .. fil)
 end
 
+local loaderIsGlobal = false
 function Loader.start(moduleName, noGlobal)
 	currentModuleEnv = DLib[moduleName] or {}
+	loaderIsGlobal = not noGlobal
 
 	if DLib[moduleName] then
 		local hit = false
@@ -138,7 +140,7 @@ function Loader.finish(allowGlobal, renameHack)
 	local created = currentModuleEnv
 	local createdModule = currentModule
 
-	if not allowGlobal then
+	if not allowGlobal and loaderIsGlobal then
 		_G[currentModule] = nil
 	end
 

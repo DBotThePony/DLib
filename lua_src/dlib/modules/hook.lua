@@ -571,8 +571,7 @@ setmetatable(hook, {
 	end
 })
 
-
-if ghook ~= DLib.ghook then
+if ghook ~= DLib.ghook and (SERVER and CurTime() < 100 or CLIENT and FrameNumber() < 100) then
 	DLib.ghook = ghook
 
 	for k, v in pairs(ghook) do
@@ -598,6 +597,10 @@ if ghook ~= DLib.ghook then
 			return self.Add(...)
 		end
 	})
+elseif ghook ~= DLib.ghook then
+	function ghook.AddPostModifier()
+
+	end
 end
 
 DLib.benchhook = {

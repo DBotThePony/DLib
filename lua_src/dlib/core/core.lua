@@ -15,7 +15,7 @@
 -- limitations under the License.
 --
 
-local meta = {}
+local meta = debug.getmetatable(1) or {}
 local math = math
 
 function meta:__index(key)
