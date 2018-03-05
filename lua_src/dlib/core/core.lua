@@ -23,3 +23,7 @@ function meta:__index(key)
 end
 
 debug.setmetatable(1, meta)
+
+for k, v in pairs(math) do
+	math[k:sub(1, 1):lower() .. k:sub(2)] = v
+end
