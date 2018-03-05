@@ -81,8 +81,18 @@ function meta:GetID()
 	return self.id
 end
 
-function meta:CreateConVar(name, default, desc)
-	return CreateConVar(self.id .. '_' .. name, default or '1', desc or '')
+function meta:CreateConVar(cvar, default, desc)
+	return CreateConVar(self.id .. '_' .. cvar, default or '1', {FCVAR_ARCHIVE}, desc or '')
+end
+
+function meta:TrackConVar(cvar, func, id)
+	if type(func) == 'string' then
+		local a, b = func, id
+		func = b
+		id = a
+	end
+
+	cvars.AddChangeCallback(self.id .. '_' .. cvar, func, id or self:GetID())
 end
 
 function meta:AddHook(event, funcIfAny, priority)

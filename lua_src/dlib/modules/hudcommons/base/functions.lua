@@ -276,6 +276,7 @@ function meta:RegisterVehicleVariable(var, funcName, default)
 end
 
 function meta:CreateScalableFont(fontBase, fontData)
+	fontData.osize = fontData.size
 	fontData.size = math.floor(ScreenScale(fontData.size * 0.6) + 0.5)
 	return self:CreateFont(fontBase, fontData)
 end
@@ -283,7 +284,17 @@ end
 function meta:CreateFont(fontBase, fontData)
 	local font = self:GetID() .. fontBase
 	fontData.weight = fontData.weight or 500
+
+	local cvarFont = self:CreateConVar('font_' .. fontBase:lower(), fontData.font, 'Font for ' .. fontBase .. ' stuff')
+	local weightVar = self:CreateConVar('fontw_' .. fontBase:lower(), fontData.weight, 'Font weight for ' .. fontBase .. ' stuff')
+	local sizeVar = self:CreateConVar('fonts_' .. fontBase:lower(), fontData.osize or fontData.size, 'Font size for ' .. fontBase .. ' stuff')
 	local fontNames = {}
+
+	local fontAspectRatio = 1
+
+	if fontData.osize then
+		fontAspectRatio = fontData.size / fontData.osize
+	end
 
 	fontNames.REGULAR = font .. '_REGULAR'
 	fontNames.ITALIC = font .. '_ITALIC'
@@ -304,9 +315,13 @@ function meta:CreateFont(fontBase, fontData)
 
 	fontData.extended = true
 
-	surface.CreateFont(fontNames.REGULAR, fontData)
-
 	local function buildFonts()
+		fontData.font = cvarFont:GetString()
+		fontData.weight = weightVar:GetInt()
+		fontData.size = sizeVar:GetFloat() * fontAspectRatio
+
+		surface.CreateFont(fontNames.REGULAR, fontData)
+
 		do
 			local newData = table.Copy(fontData)
 			newData.italic = true
@@ -384,6 +399,9 @@ function meta:CreateFont(fontBase, fontData)
 	end
 
 	buildFonts()
+	self:TrackConVar('font_' .. fontBase:lower(), 'fonts', buildFonts)
+	self:TrackConVar('fonts_' .. fontBase:lower(), 'fonts', buildFonts)
+	self:TrackConVar('fontw_' .. fontBase:lower(), 'fonts', buildFonts)
 
 	return fontNames
 end
