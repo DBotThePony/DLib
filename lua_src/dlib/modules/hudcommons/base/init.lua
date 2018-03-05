@@ -205,11 +205,11 @@ function meta:RemoveCustomHook(event, id)
 end
 
 function meta:CreateColor(class, name, r, g, b, a)
-	return HUDCommons.CreateColor(self:GetID() .. '_' .. class, name, r, g, b, a)
+	return HUDCommons.CreateColor(self:GetID() .. '_' .. class, self:GetName() .. ' ' .. name, r, g, b, a)
 end
 
 function meta:CreateColorN(class, name, r, g, b, a)
-	return HUDCommons.CreateColorN(self:GetID() .. '_' .. class, name, r, g, b, a)
+	return HUDCommons.CreateColorN(self:GetID() .. '_' .. class, self:GetName() .. ' ' .. name, r, g, b, a)
 end
 
 function meta:Enable()
