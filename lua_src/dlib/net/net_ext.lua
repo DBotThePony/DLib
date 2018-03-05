@@ -13,7 +13,7 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
-local net = DLib.netModule
+local net = net
 local messageMeta = FindMetaTable('LNetworkMessage')
 local table = table
 local Entity = Entity

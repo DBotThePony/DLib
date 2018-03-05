@@ -67,7 +67,7 @@ function friends.Serealize(status)
 end
 
 function friends.Read()
-	local rply = net.ReadPlayer()
+	local rply = (net.ReadPlayer or net.ReadEntity)()
 
 	local readData = {
 		isFriend = false,

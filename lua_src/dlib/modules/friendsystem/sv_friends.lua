@@ -55,11 +55,11 @@ net.receive('DLib.friendsystem', function(len, ply)
 	end
 
 	net.Start('DLib.friendsystem')
-	net.WritePlayer(ply)
+	(net.WritePlayer or net.WriteEntity)(ply)
 	net.WriteUInt(namount, 8)
 
 	for ply, status in pairs(target) do
-		net.WritePlayer(ply)
+		(net.WritePlayer or net.WriteEntity)(ply)
 		friends.Serealize(status)
 	end
 

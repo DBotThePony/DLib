@@ -316,7 +316,7 @@ function friends.SendToServer()
 	net.WriteUInt(table.Count(friends.currentStatus), 8)
 
 	for ply, status in pairs(friends.currentStatus) do
-		net.WritePlayer(ply)
+		(net.WritePlayer or net.WriteEntity)(ply)
 		friends.Serealize(status)
 	end
 
@@ -324,7 +324,7 @@ function friends.SendToServer()
 end
 
 net.receive('DLib.friendsystem', function(len)
-	local ply = net.ReadPlayer()
+	local ply = (net.ReadPlayer or net.ReadEntity)()
 	if not IsValid(ply) then return end
 
 	local amount = net.ReadUInt(8)
