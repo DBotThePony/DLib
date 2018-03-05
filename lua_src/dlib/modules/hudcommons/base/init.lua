@@ -212,6 +212,10 @@ function meta:CreateColorN(class, name, r, g, b, a)
 	return HUDCommons.CreateColorN(self:GetID() .. '_' .. class, self:GetName() .. ' ' .. name, r, g, b, a)
 end
 
+function meta:CreateColorN2(class, name, r, g, b, a)
+	return HUDCommons.CreateColorN2(self:GetID() .. '_' .. class, self:GetName() .. ' ' .. name, r, g, b, a)
+end
+
 function meta:Enable()
 	--if self:IsEnabled() then return end
 

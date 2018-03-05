@@ -15,6 +15,8 @@
 -- limitations under the License.
 --
 
+local HUDCommons = HUDCommons
+local setmetatable = setmetatable
 local Color = Color
 local CreateConVar = CreateConVar
 local FCVAR_ARCHIVE = FCVAR_ARCHIVE
@@ -26,6 +28,7 @@ HUDCommons.Colors = HUDCommons.Colors or {}
 HUDCommons.ColorsN = HUDCommons.ColorsN or {}
 HUDCommons.ColorsVars = HUDCommons.ColorsVars or {}
 HUDCommons.ColorsVarsN = HUDCommons.ColorsVarsN or {}
+HUDCommons.ColorsVarsN_Proxies = HUDCommons.ColorsVarsN_Proxies or {}
 
 function HUDCommons.CreateColor(class, name, r, g, b, a)
 	if type(r) == 'table' then
@@ -123,6 +126,14 @@ function HUDCommons.CreateColorN(class, name, r, g, b, a)
 			color:SetAlpha(HUDCommons.ColorsN[class]:GetAlpha())
 		end
 
+		if HUDCommons.ColorsVarsN_Proxies[class] then
+			local target = HUDCommons.ColorsVarsN_Proxies[class]
+			target.r = color.r
+			target.g = color.g
+			target.b = color.b
+			target.a = color.a
+		end
+
 		HUDCommons.ColorsN[class] = color
 		currentColor = color
 	end
@@ -140,6 +151,18 @@ function HUDCommons.CreateColorN(class, name, r, g, b, a)
 
 		return currentColor
 	end
+end
+
+function HUDCommons.CreateColorN2(class, ...)
+	local colorProxy = Color()
+	local color = HUDCommons.CreateColorN(class, ...)
+	HUDCommons.ColorsVarsN_Proxies[class] = colorProxy
+	color = color()
+	colorProxy.r = color.r
+	colorProxy.g = color.g
+	colorProxy.b = color.b
+	colorProxy.a = color.a
+	return colorProxy
 end
 
 function HUDCommons.GetColor(class)
