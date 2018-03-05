@@ -132,7 +132,6 @@ function HUDCommons.CreateColorN(class, name, r, g, b, a)
 	cvars.AddChangeCallback(rn, colorUpdated, 'HUDCommons.Colors')
 	cvars.AddChangeCallback(gn, colorUpdated, 'HUDCommons.Colors')
 	cvars.AddChangeCallback(bn, colorUpdated, 'HUDCommons.Colors')
-	cvars.AddChangeCallback(an, colorUpdated, 'HUDCommons.Colors')
 
 	return function(alpha)
 		if alpha ~= nil then
