@@ -18,6 +18,7 @@ if SERVER then return end
 local render = render
 local assert = assert
 local type = type
+local table = table
 
 -- nope, nu stack object, because util.Stack() sux
 local stack = {}
@@ -31,10 +32,10 @@ function render.PushScissorRect(x, y, xEnd, yEnd)
 	local top = stack[#stack]
 
 	if top then
-		x = math.max(top[1], x)
-		y = math.max(top[2], y)
-		xEnd = math.min(top[3], xEnd)
-		yEnd = math.min(top[4], yEnd)
+		x = top[1]:max(x)
+		y = top[2]:max(y)
+		xEnd = top[3]:min(xEnd)
+		yEnd = top[4]:min(yEnd)
 	end
 
 	table.insert(stack, {x, y, xEnd, yEnd})
