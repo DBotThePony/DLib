@@ -22,6 +22,7 @@ end
 local ConVar = FindMetaTable('ConVar')
 local math = math
 local error = error
+local RunConsoleCommand = RunConsoleCommand
 
 function ConVar:GetByType(typeIn, ...)
 	if typeIn == 'string' then
