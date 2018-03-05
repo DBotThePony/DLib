@@ -15,18 +15,35 @@
 -- limitations under the License.
 --
 
+local Color = Color
+local CreateConVar = CreateConVar
+local FCVAR_ARCHIVE = FCVAR_ARCHIVE
+local type = type
+local cvars = cvars
+local tostring = tostring
+
 HUDCommons.Colors = HUDCommons.Colors or {}
+HUDCommons.ColorsN = HUDCommons.ColorsN or {}
 HUDCommons.ColorsVars = HUDCommons.ColorsVars or {}
+HUDCommons.ColorsVarsN = HUDCommons.ColorsVarsN or {}
 
 function HUDCommons.CreateColor(class, name, r, g, b, a)
-    local help_r = 'Changes Red Channel of ' .. name .. ' HUDCommons element'
+	if type(r) == 'table' then
+		g = r.g
+		b = r.b
+		a = r.a
+		r = r.r
+	end
+
+	local help_r = 'Changes Red Channel of ' .. name .. ' HUDCommons element'
 	local help_g = 'Changes Green Channel of ' .. name .. ' HUDCommons element'
 	local help_b = 'Changes Blue Channel of ' .. name .. ' HUDCommons element'
 	local help_a = 'Changes Alpha Channel of ' .. name .. ' HUDCommons element'
-    r = r or 255
-    g = g or 255
-    b = b or 255
-    a = a or 255
+
+	r = (r or 255):clamp(0, 255):floor()
+	g = (g or 255):clamp(0, 255):floor()
+	b = (b or 255):clamp(0, 255):floor()
+	a = (a or 255):clamp(0, 255):floor()
 
 	local rn = 'h_color_' .. class .. '_r'
 	local gn = 'h_color_' .. class .. '_g'
@@ -46,11 +63,11 @@ function HUDCommons.CreateColor(class, name, r, g, b, a)
 	}
 
 	local t = HUDCommons.ColorsVars[class]
-    local currentColor
+	local currentColor
 
 	local function colorUpdated()
 		HUDCommons.Colors[class] = Color(t.r:GetInt() or r, t.g:GetInt() or g, t.b:GetInt() or b, t.a:GetInt() or a)
-        currentColor = HUDCommons.Colors[class]
+		currentColor = HUDCommons.Colors[class]
 	end
 
 	colorUpdated()
@@ -60,11 +77,74 @@ function HUDCommons.CreateColor(class, name, r, g, b, a)
 	cvars.AddChangeCallback(bn, colorUpdated, 'HUDCommons.Colors')
 	cvars.AddChangeCallback(an, colorUpdated, 'HUDCommons.Colors')
 
-    return function()
-        return currentColor
-    end
+	return function()
+		return currentColor
+	end
+end
+
+function HUDCommons.CreateColorN(class, name, r, g, b)
+	if type(r) == 'table' then
+		g = r.g
+		b = r.b
+		r = r.r
+	end
+
+	local help_r = 'Changes Red Channel of ' .. name .. ' HUDCommons element'
+	local help_g = 'Changes Green Channel of ' .. name .. ' HUDCommons element'
+	local help_b = 'Changes Blue Channel of ' .. name .. ' HUDCommons element'
+
+	r = (r or 255):clamp(0, 255):floor()
+	g = (g or 255):clamp(0, 255):floor()
+	b = (b or 255):clamp(0, 255):floor()
+
+	local rn = class .. '_r'
+	local gn =  class .. '_g'
+	local bn = class .. '_b'
+
+	HUDCommons.ColorsVarsN[class] = {
+		name = name,
+		rdef = r,
+		bdef = b,
+		gdef = g,
+		r = CreateConVar(rn, tostring(r), {FCVAR_ARCHIVE}, help_r),
+		g = CreateConVar(gn, tostring(g), {FCVAR_ARCHIVE}, help_g),
+		b = CreateConVar(bn, tostring(b), {FCVAR_ARCHIVE}, help_b),
+	}
+
+	local t = HUDCommons.ColorsVarsN[class]
+	local currentColor
+
+	local function colorUpdated()
+		local color = Color(t.r:GetInt() or r, t.g:GetInt() or g, t.b:GetInt() or b, 255)
+
+		if HUDCommons.ColorsN[class] then
+			color:SetAlpha(HUDCommons.ColorsN[class]:GetAlpha())
+		end
+
+		HUDCommons.ColorsN[class] = color
+		currentColor = color
+	end
+
+	colorUpdated()
+
+	cvars.AddChangeCallback(rn, colorUpdated, 'HUDCommons.Colors')
+	cvars.AddChangeCallback(gn, colorUpdated, 'HUDCommons.Colors')
+	cvars.AddChangeCallback(bn, colorUpdated, 'HUDCommons.Colors')
+	cvars.AddChangeCallback(an, colorUpdated, 'HUDCommons.Colors')
+
+	return function(alpha)
+		if alpha then
+			currentColor:SetAlpha(alpha)
+		end
+
+		return currentColor
+	end
 end
 
 function HUDCommons.GetColor(class)
 	return HUDCommons.Colors[class]
+end
+
+function HUDCommons.GetColorN(class)
+	return HUDCommons.ColorsN[class]
 end

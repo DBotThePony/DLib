@@ -15,6 +15,7 @@
 
 local DLib = DLib
 local meta = DLib.CreateLuaObject('HUDCommonsBase', true)
+local HUDCommons = HUDCommons
 local pairs = pairs
 local hook = hook
 local table = table
@@ -201,6 +202,14 @@ function meta:RemoveCustomHook(event, id)
 	self.chooks[id] = nil
 	hook.Remove(event, self:GetID() .. '_' .. id)
 	return id
+end
+
+function meta:CreateColor(class, name, r, g, b, a)
+	return HUDCommons.CreateColor(self:GetID() .. '_' .. class, name, r, g, b, a)
+end
+
+function meta:CreateColorN(class, name, r, g, b)
+	return HUDCommons.CreateColorN(self:GetID() .. '_' .. class, name, r, g, b)
 end
 
 function meta:Enable()
