@@ -13,6 +13,7 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
+local DLib = DLib
 local meta = DLib.CreateLuaObject('HUDCommonsBase', true)
 local pairs = pairs
 local hook = hook
@@ -23,6 +24,7 @@ local type = type
 local RealTime = RealTime
 
 function meta:__construct(hudID, hudName)
+	DLib.CMessage(self, hudName)
 	self.id = hudID
 	self.hudID = hudID
 	self.name = hudName
@@ -36,6 +38,12 @@ function meta:__construct(hudID, hudName)
 	self.tick = {}
 	self.thinkHash = {}
 	self.think = {}
+
+	self.fontCVars = {
+		font = {},
+		weight = {},
+		size = {}
+	}
 
 	self.tryToSelectWeapon = NULL
 	self.tryToSelectWeaponLast = 0
@@ -59,6 +67,59 @@ function meta:__construct(hudID, hudName)
 
 	self:InitHooks()
 	self:InitHUD()
+
+	self:Concommand('set_all_font', function(args)
+		if #args == 0 then
+			self.Message('No arguments were passed')
+			return
+		end
+
+		self:SetAllFontsTo(table.concat(args, ' '))
+	end)
+
+	self:Concommand('set_all_font_weight', function(args)
+		if #args == 0 then
+			self.Message('No arguments were passed')
+			return
+		end
+
+		if not tonumber(args[1]) then
+			self.Message('Invalid argument - ' .. args[1])
+			return
+		end
+
+		self:SetAllWeightTo(tonumber(args[1]))
+	end)
+
+	self:Concommand('set_all_font_size', function(args)
+		if #args == 0 then
+			self.Message('No arguments were passed')
+			return
+		end
+
+		if not tonumber(args[1]) then
+			self.Message('Invalid argument - ' .. args[1])
+			return
+		end
+
+		self:SetAllSizeTo(tonumber(args[1]))
+	end)
+
+	self:Concommand('reset_fonts', function(args)
+		self:ResetFonts()
+	end)
+
+	self:Concommand('reset_fonts_size', function(args)
+		self:ResetFontsSize()
+	end)
+
+	self:Concommand('reset_fonts_weight', function(args)
+		self:ResetFontsWeight()
+	end)
+
+	self:Concommand('reset_fonts_bare', function(args)
+		self:ResetFontsBare()
+	end)
 end
 
 function meta:InitHUD()
@@ -82,7 +143,7 @@ function meta:GetID()
 end
 
 function meta:CreateConVar(cvar, default, desc)
-	return CreateConVar(self.id .. '_' .. cvar, default or '1', {FCVAR_ARCHIVE}, desc or '')
+	return CreateConVar(self:GetID() .. '_' .. cvar, default or '1', {FCVAR_ARCHIVE}, desc or '')
 end
 
 function meta:TrackConVar(cvar, func, id)
@@ -92,7 +153,13 @@ function meta:TrackConVar(cvar, func, id)
 		id = a
 	end
 
-	cvars.AddChangeCallback(self.id .. '_' .. cvar, func, id or self:GetID())
+	cvars.AddChangeCallback(self:GetID() .. '_' .. cvar, func, id or self:GetID())
+end
+
+function meta:Concommand(name, callback)
+	return concommand.Add(self:GetID() .. '_' .. name, function(ply, cmd, args)
+		return callback(args)
+	end)
 end
 
 function meta:AddHook(event, funcIfAny, priority)
@@ -101,22 +168,22 @@ function meta:AddHook(event, funcIfAny, priority)
 	self.hooks[event] = {funcIfAny, priority}
 
 	if self:IsEnabled() then
-		hook.Add(event, self.id .. '_' .. event, function(...)
+		hook.Add(event, self:GetID() .. '_' .. event, function(...)
 			return funcIfAny(self, ...)
 		end, priority)
 	end
 
-	return self.id .. '_' .. event
+	return self:GetID() .. '_' .. event
 end
 
 function meta:AddHookCustom(event, id, funcIfAny, priority)
 	priority = priority or 3
 	funcIfAny = funcIfAny or self[id] or self[event]
 
-	self.chooks[id] = {event, self.id .. '_' .. id, funcIfAny, priority}
+	self.chooks[id] = {event, self:GetID() .. '_' .. id, funcIfAny, priority}
 
 	if self:IsEnabled() then
-		hook.Add(event, self.id .. '_' .. id, function(...)
+		hook.Add(event, self:GetID() .. '_' .. id, function(...)
 			return funcIfAny(self, ...)
 		end, priority)
 	end
@@ -126,13 +193,13 @@ end
 
 function meta:RemoveHook(event)
 	self.hooks[event] = nil
-	hook.Remove(event, self.id .. '_' .. event)
-	return self.id .. '_' .. event
+	hook.Remove(event, self:GetID() .. '_' .. event)
+	return self:GetID() .. '_' .. event
 end
 
 function meta:RemoveCustomHook(event, id)
 	self.chooks[id] = nil
-	hook.Remove(event, self.id .. '_' .. id)
+	hook.Remove(event, self:GetID() .. '_' .. id)
 	return id
 end
 
@@ -142,7 +209,7 @@ function meta:Enable()
 	for event, data in pairs(self.hooks) do
 		local funcIfAny = data[1]
 
-		hook.Add(event, self.id .. '_' .. event, function(...)
+		hook.Add(event, self:GetID() .. '_' .. event, function(...)
 			return funcIfAny(self, ...)
 		end, data[2])
 	end
@@ -162,7 +229,7 @@ function meta:Disable()
 	--if not self:IsEnabled() then return end
 
 	for event, data in pairs(self.hooks) do
-		hook.Remove(event, self.id .. '_' .. event)
+		hook.Remove(event, self:GetID() .. '_' .. event)
 	end
 
 	for id, data in pairs(self.chooks) do

@@ -13,6 +13,12 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
+local GetConVar = GetConVar
+
+function _G.ConVar(...)
+	return GetConVar(...)
+end
+
 local ConVar = FindMetaTable('ConVar')
 local math = math
 local error = error
@@ -23,7 +29,7 @@ function ConVar:GetByType(typeIn, ...)
 	elseif typeIn == 'int' or typeIn == 'integer' or typeIn == 'number' then
 		return self:GetInt(...)
 	elseif typeIn == 'uint' or typeIn == 'uinteger' or typeIn == 'unumber' then
-		return math.max(self:GetInt(...), 0)
+		return self:GetInt(...):max(0)
 	elseif typeIn == 'float' then
 		return self:GetFloat(...)
 	elseif typeIn == 'bool' or typeIn == 'boolean' then
@@ -31,4 +37,10 @@ function ConVar:GetByType(typeIn, ...)
 	else
 		error('Unknown variable type - ' .. typeIn .. '!')
 	end
+end
+
+function ConVar:Reset()
+	local default = self:GetDefault()
+	RunConsoleCommand(self:GetName(), default)
+	return default
 end

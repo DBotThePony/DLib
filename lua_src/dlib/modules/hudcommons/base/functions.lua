@@ -281,6 +281,56 @@ function meta:CreateScalableFont(fontBase, fontData)
 	return self:CreateFont(fontBase, fontData)
 end
 
+function meta:SetAllFontsTo(fontTarget)
+	for i, cvar in ipairs(self.fontCVars.font) do
+		cvar:SetString(fontTarget)
+	end
+end
+
+function meta:SetAllWeightTo(weightTarget)
+	for i, cvar in ipairs(self.fontCVars.weight) do
+		cvar:SetInt(weightTarget)
+	end
+end
+
+function meta:SetAllSizeTo(sizeTarget)
+	for i, cvar in ipairs(self.fontCVars.size) do
+		cvar:SetFloat(sizeTarget)
+	end
+end
+
+function meta:ResetFonts()
+	for i, cvar in ipairs(self.fontCVars.font) do
+		cvar:Reset()
+	end
+
+	for i, cvar in ipairs(self.fontCVars.weight) do
+		cvar:Reset()
+	end
+
+	for i, cvar in ipairs(self.fontCVars.size) do
+		cvar:Reset()
+	end
+end
+
+function meta:ResetFontsSize()
+	for i, cvar in ipairs(self.fontCVars.size) do
+		cvar:Reset()
+	end
+end
+
+function meta:ResetFontsBare()
+	for i, cvar in ipairs(self.fontCVars.font) do
+		cvar:Reset()
+	end
+end
+
+function meta:ResetFontsWeight()
+	for i, cvar in ipairs(self.fontCVars.weight) do
+		cvar:Reset()
+	end
+end
+
 function meta:CreateFont(fontBase, fontData)
 	local font = self:GetID() .. fontBase
 	fontData.weight = fontData.weight or 500
@@ -288,6 +338,11 @@ function meta:CreateFont(fontBase, fontData)
 	local cvarFont = self:CreateConVar('font_' .. fontBase:lower(), fontData.font, 'Font for ' .. fontBase .. ' stuff')
 	local weightVar = self:CreateConVar('fontw_' .. fontBase:lower(), fontData.weight, 'Font weight for ' .. fontBase .. ' stuff')
 	local sizeVar = self:CreateConVar('fonts_' .. fontBase:lower(), fontData.osize or fontData.size, 'Font size for ' .. fontBase .. ' stuff')
+
+	table.insert(self.fontCVars.font, cvarFont)
+	table.insert(self.fontCVars.weight, weightVar)
+	table.insert(self.fontCVars.size, sizeVar)
+
 	local fontNames = {}
 
 	local fontAspectRatio = 1
