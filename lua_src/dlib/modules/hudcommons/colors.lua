@@ -82,10 +82,11 @@ function HUDCommons.CreateColor(class, name, r, g, b, a)
 	end
 end
 
-function HUDCommons.CreateColorN(class, name, r, g, b)
+function HUDCommons.CreateColorN(class, name, r, g, b, a)
 	if type(r) == 'table' then
 		g = r.g
 		b = r.b
+		a = r.a
 		r = r.r
 	end
 
@@ -96,6 +97,7 @@ function HUDCommons.CreateColorN(class, name, r, g, b)
 	r = (r or 255):clamp(0, 255):floor()
 	g = (g or 255):clamp(0, 255):floor()
 	b = (b or 255):clamp(0, 255):floor()
+	a = (a or 255):clamp(0, 255):floor()
 
 	local rn = class .. '_r'
 	local gn =  class .. '_g'
@@ -115,7 +117,7 @@ function HUDCommons.CreateColorN(class, name, r, g, b)
 	local currentColor
 
 	local function colorUpdated()
-		local color = Color(t.r:GetInt() or r, t.g:GetInt() or g, t.b:GetInt() or b, 255)
+		local color = Color(t.r:GetInt() or r, t.g:GetInt() or g, t.b:GetInt() or b, a)
 
 		if HUDCommons.ColorsN[class] then
 			color:SetAlpha(HUDCommons.ColorsN[class]:GetAlpha())
