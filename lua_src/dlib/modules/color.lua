@@ -361,6 +361,12 @@ do
 			return self
 		end
 
+		colorMeta['Modify' .. method] = function(self, newValue)
+			local new = Color(self)
+			new[key] = newValue
+			return new
+		end
+
 		colorMeta['Get' .. method] = function(self)
 			return self[key]
 		end
