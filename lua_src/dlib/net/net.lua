@@ -444,7 +444,7 @@ net.RegisterWrapper('Type')
 net.RegisterWrapper('Header')
 net.RegisterWrapper('Number')
 
-if DLib.gNet ~= gnet and (SERVER and CurTime() < 100 or CLIENT and FrameNumber() < 100) then
+if DLib.gNet ~= gnet and ents.GetCount() < 10 then
 	DLib.gNet = gnet
 
 	for key, value in pairs(gnet) do

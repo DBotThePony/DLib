@@ -571,7 +571,7 @@ setmetatable(hook, {
 	end
 })
 
-if ghook ~= DLib.ghook and (SERVER and CurTime() < 100 or CLIENT and FrameNumber() < 100) then
+if ghook ~= DLib.ghook and ents.GetCount() < 10 then
 	DLib.ghook = ghook
 
 	for k, v in pairs(ghook) do
