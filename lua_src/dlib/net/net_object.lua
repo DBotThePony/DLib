@@ -517,6 +517,7 @@ if CLIENT then
 	local AUTO_REGISTER_KBYTES = CreateConVar('net_graph_dlib_kbytes', '16', {FCVAR_ARCHIVE}, 'Auto register kilobytes limit per 5 seconds')
 
 	local function flushGraph()
+		if not net.GraphUL then return end
 		local frame = gotBuffer
 		gotBuffer = {}
 

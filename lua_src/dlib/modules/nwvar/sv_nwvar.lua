@@ -69,7 +69,10 @@ local function NetworkedVarFull(len, ply, auto)
 		net.WriteUInt(0, 32)
 	end
 
-	net.CompressOngoing()
+	if net.CompressOngoing then
+		net.CompressOngoing()
+	end
+
 	net.Send(ply)
 
 	return true

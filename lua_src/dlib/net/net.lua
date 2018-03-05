@@ -243,6 +243,7 @@ do
 		local AUTO_REGISTER_KBYTES = CreateConVar('net_graph_dlib_kbytes', '16', {FCVAR_ARCHIVE}, 'Auto register kilobytes limit per 5 seconds')
 
 		local function flushGraph()
+			if not net.Graph then return end
 			local frame = gotBuffer
 			gotBuffer = {}
 
@@ -463,6 +464,22 @@ if DLib.gNet ~= gnet and (SERVER and CurTime() < 100 or CLIENT and FrameNumber()
 			net[key] = value
 		end
 	})
+elseif DLib.gNet ~= gnet then
+	function gnet.CompressOngoing()
+
+	end
+
+	function gnet.RegisterWrapper()
+
+	end
+
+	function gnet.WritePlayer(ply)
+		return gnet.WriteEntity(ply)
+	end
+
+	function gnet.ReadPlayer()
+		return gnet.ReadEntity()
+	end
 end
 
 local messageMeta = FindMetaTable('LNetworkMessage')
