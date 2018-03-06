@@ -349,7 +349,7 @@ function VLL.LoadWorkshopSV(id, noreplicate, loadLua)
 	end
 
 	if CLIENT then
-		VLL.LoadWorkshop(id, false, loadLua)
+		VLL.LoadWorkshop(id, false, loadLua, noreplicate)
 		return
 	end
 
@@ -397,14 +397,16 @@ end
 
 file.CreateDir('vll/wcache')
 
-function VLL.LoadWorkshop(id, nolist, loadLua)
+function VLL.LoadWorkshop(id, nolist, loadLua, noreplicate)
 	VLL.Message('Trying to download workshop addon ' .. id .. '.')
 
-	VLL.REPLICATED_WORK[tostring(id)] = id
+	if not noreplicate then
+		VLL.REPLICATED_WORK[tostring(id)] = id
+	end
 
 	--nuh
 	if SERVER then
-		VLL.LoadWorkshopSV(id, false, loadLua)
+		VLL.LoadWorkshopSV(id, noreplicate, loadLua)
 		return
 	end
 
