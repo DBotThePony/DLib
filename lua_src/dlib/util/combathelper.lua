@@ -13,6 +13,10 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
+local IsValid = FindMetaTable('Entity').IsValid
+local type = type
+local NULL = NULL
+local table = table
 local combat = DLib.module('combat')
 
 function combat.findWeapon(dmginfo)
@@ -52,6 +56,58 @@ function combat.detect(dmginfo)
 	end
 
 	return attacker, weapon, inflictor
+end
+
+function combat.findPlayers(self)
+	if not IsValid(self) then
+		return false
+	end
+
+	if type(self) == 'Player' then
+		return {self}
+	end
+
+	if type(self) == 'Vehicle' then
+		local driver = self:GetDriver()
+
+		if not IsValid(driver) then
+			return false
+		end
+
+		return {driver}
+	end
+
+	local MEM = {}
+	local iterate = {self}
+	local list = {}
+
+	while #iterate > 0 do
+		local ent = table.remove(iterate)
+
+		if MEM[ent] then
+			goto CONTINUE
+		end
+
+		MEM[ent] = true
+
+		for i, ent2 in ipairs(self:GetChildren()) do
+			if type(ent2) == 'Player' then
+				table.insert(list, ent2)
+			elseif type(ent2) == 'Vehicle' then
+				local driver = self:GetDriver()
+
+				if IsValid(driver) then
+					table.insert(list, driver)
+				end
+			else
+				table.insert(iterate, ent2)
+			end
+		end
+
+		::CONTINUE::
+	end
+
+	return #list ~= 0 and table.deduplicate(list) or false
 end
 
 return combat
