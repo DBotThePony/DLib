@@ -328,4 +328,20 @@ function tableutil.removeByMember(tableIn, memberID, memberValue)
 	return removed
 end
 
+function tableutil.deduplicate(tableIn)
+	local values = {}
+	local toremove = {}
+
+	for i, v in ipairs(tableIn) do
+		if values[v] then
+			insert(toremove, i)
+		else
+			values[v] = true
+		end
+	end
+
+	tableutil.removeValues(tableIn, toremove)
+	return tableIn
+end
+
 return tableutil
