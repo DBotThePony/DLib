@@ -180,6 +180,15 @@ if CLIENT then
 		if self.GetPrintName then return self:GetPrintName() end
 		return self.PrintName or language.GetPhrase(self:GetClass())
 	end
+
+	-- cache and speedup lookups a bit
+	local ScrW = ScrW
+
+	function _G.ScreenScale(modify)
+		return ScrW() / 640 * modify
+	end
+
+	_G.ScreenSize = ScreenScale
 else
 	function vehicleMeta:GetPrintName()
 		if self.__dlibCachedName then
