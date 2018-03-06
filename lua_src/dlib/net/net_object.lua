@@ -636,15 +636,31 @@ function messageMeta:SendPVS(targetPos)
 	net.CURRENT_OBJECT_TRACE = nil
 end
 
+local game = game
+local CurTime = CurTime
+
 function messageMeta:Broadcast()
 	if CLIENT then error('Not a server!') end
 
 	local msg = self:GetMessageName()
 	if not msg then error('Starting a net message without name!') end
 
-	nnet.Start(msg, self:GetUnreliable())
-	self:WriteNetwork()
-	nnet.Broadcast()
+	if not game.SinglePlayer() or CurTime() > 60 then
+		nnet.Start(msg, self:GetUnreliable())
+		self:WriteNetwork()
+		nnet.Broadcast()
+	else
+		DLib.Message('GMOD BUG: Broadcasting message too early, and game is singleplayer! Doing workaround... Affected message - ' .. self:GetMessageName())
+
+		timer.Simple(0.5, function()
+			timer.Simple(0.5, function()
+				nnet.Start(msg, self:GetUnreliable())
+				self:WriteNetwork()
+				nnet.Broadcast()
+			end)
+		end)
+	end
+
 	net.CURRENT_OBJECT_TRACE = nil
 end
 
