@@ -403,9 +403,6 @@ do
 	end
 end
 
-DLib.simpleInclude('net/net_object.lua')
-DLib.simpleInclude('net/net_ext.lua')
-
 for i, n in ipairs({8, 16, 32, 64, 96}) do
 	net.RegisterWrapper('UInt' .. n)
 	net.RegisterWrapper('Int' .. n)
@@ -482,6 +479,8 @@ elseif DLib.gNet ~= gnet then
 	end
 end
 
+DLib.simpleInclude('net/net_object.lua')
+
 local messageMeta = FindMetaTable('LNetworkMessage')
 
 function messageMeta:WriteColor(colIn)
@@ -512,3 +511,4 @@ end
 DLib.simpleInclude('net/umsg.lua')
 DLib.simpleInclude('net/usermessage.lua')
 DLib.simpleInclude('net/net_graph.lua')
+DLib.simpleInclude('net/net_ext.lua')
