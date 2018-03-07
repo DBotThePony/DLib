@@ -23,7 +23,7 @@ local game = game
 
 function entMeta:IsValid()
 	local tp = type(self)
-	return tp ~= 'table' and tp ~= 'string' and tp ~= 'number' and tp ~= 'boolean' and tp ~= 'nil' and not rawequal(self, NULL) and not rawequal(self, worldspawn)
+	return tp ~= 'table' and tp ~= 'string' and tp ~= 'number' and tp ~= 'boolean' and tp ~= 'nil' and self ~= NULL and not rawequal(self, worldspawn)
 end
 
 timer.Create('dlib_worldspawn', 10, 0, function()
