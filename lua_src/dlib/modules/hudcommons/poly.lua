@@ -18,6 +18,7 @@ local surface = surface
 local draw = draw
 local ipairs = ipairs
 local render = render
+local table = table
 
 function HUDCommons.DrawTriangle(x, y, w, h, rotate)
 	local poly = {
