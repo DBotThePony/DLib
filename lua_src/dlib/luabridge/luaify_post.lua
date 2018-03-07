@@ -13,12 +13,18 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
--- local rawequal = rawequal
--- local entMeta = FindMetaTable('Entity')
--- local NULL = NULL
--- local type = type
+local Entity = Entity
+local rawequal = rawequal
+local entMeta = FindMetaTable('Entity')
+local NULL = NULL
+local type = type
+local worldspawn = Entity(0)
 
--- function entMeta:IsValid()
--- 	local tp = type(self)
--- 	return tp ~= 'table' and tp ~= 'string' and tp ~= 'number' and tp ~= 'boolean' and tp ~= 'nil' and not rawequal(self, NULL)
--- end
+function entMeta:IsValid()
+	local tp = type(self)
+	return tp ~= 'table' and tp ~= 'string' and tp ~= 'number' and tp ~= 'boolean' and tp ~= 'nil' and not rawequal(self, NULL) and not rawequal(self, worldspawn)
+end
+
+timer.Create('dlib_worldspawn', 10, 0, function()
+	worldspawn = game.GetWorld()
+end)
