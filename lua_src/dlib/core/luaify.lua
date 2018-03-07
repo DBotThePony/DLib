@@ -54,15 +54,30 @@ local function type(var)
 	return metaname
 end
 
-local cmeta = getmetatable(coroutine.create(getmetatable)) or {}
-cmeta.MetaName = 'thread'
-setmetatable(coroutine.create(getmetatable), cmeta)
+local ctime = coroutine.create(getmetatable)
+
+if ctime ~= false then
+	local cmeta = getmetatable(ctime) or {}
+	cmeta.MetaName = 'thread'
+	setmetatable(ctime, cmeta)
+end
 
 local bmeta = getmetatable(true) or {}
 bmeta.MetaName = 'boolean'
 setmetatable(true, cmeta)
 
-getmetatable('').MetaName = 'string'
+local strmeta = getmetatable('') or {}
+strmeta.MetaName = 'string'
+
+function strmeta:IsValid()
+	return false
+end
+
+function string:IsValid()
+	return false
+end
+
+setmetatable('', strmeta)
 
 ProtectedCall(function()
 	assert(type(1) == 'number', type(1))

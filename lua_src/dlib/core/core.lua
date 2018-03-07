@@ -20,7 +20,7 @@ local math = math
 meta.MetaName = 'number'
 
 function meta:__index(key)
-	return math[key] or bit[key]
+	return meta[key] or math[key] or bit[key]
 end
 
 function meta:IsValid()
