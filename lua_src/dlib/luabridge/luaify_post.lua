@@ -19,6 +19,7 @@ local entMeta = FindMetaTable('Entity')
 local NULL = NULL
 local type = type
 local worldspawn = Entity(0)
+local game = game
 
 function entMeta:IsValid()
 	local tp = type(self)
