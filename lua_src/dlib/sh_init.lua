@@ -31,6 +31,8 @@ function DLib.simpleInclude(fil)
 end
 
 DLib.simpleInclude('core/core.lua')
+DLib.simpleInclude('core/funclib.lua')
+DLib.simpleInclude('core/luaify.lua')
 DLib.simpleInclude('util/alias.lua')
 DLib.module = DLib.simpleInclude('core/module.lua')
 DLib.manifest = DLib.simpleInclude('core/manifest.lua')
