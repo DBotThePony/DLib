@@ -13,12 +13,12 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
-local rawequal = rawequal
-local entMeta = FindMetaTable('Entity')
-local NULL = NULL
-local type = type
+-- local rawequal = rawequal
+-- local entMeta = FindMetaTable('Entity')
+-- local NULL = NULL
+-- local type = type
 
-function entMeta:IsValid()
-	local tp = type(self)
-	return tp ~= 'table' and tp ~= 'string' and tp ~= 'number' and tp ~= 'boolean' and tp ~= 'nil' and not rawequal(self, NULL)
-end
+-- function entMeta:IsValid()
+-- 	local tp = type(self)
+-- 	return tp ~= 'table' and tp ~= 'string' and tp ~= 'number' and tp ~= 'boolean' and tp ~= 'nil' and not rawequal(self, NULL)
+-- end
