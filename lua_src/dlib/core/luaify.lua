@@ -39,12 +39,12 @@ local function type(var)
 		return 'table'
 	end
 
-	local metaname = rawget(meta, 'MetaName')
+	local metaname = meta.MetaName
 
-	if rawequal(metaname, nil) == true then
-		local metaname2 = rawget(meta, '__type')
+	if metaname == nil then
+		local metaname2 = meta.__type
 
-		if rawequal(metaname2, nil) == true then
+		if metaname2 == nil then
 			return 'table'
 		end
 

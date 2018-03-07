@@ -23,6 +23,12 @@ local isValid = entMeta.IsValid
 local getTable = entMeta.GetTable
 local ent__eq = entMeta.__eq
 local entIndex = entMeta.EntIndex
+local debug = debug
+local rawget = rawget
+local rawset = rawset
+local type = type
+local setmetatable = setmetatable
+local Entity = Entity
 
 entMeta.GetStrongEntity = function(self, ...)
     return self
@@ -119,7 +125,21 @@ local metaData = {
         if key == '__strong_entity_meta' then return debug.getmetatable(self) end
         if key == '__strong_entity_link' then return debug.getmetatable(self).__strong_entity_link end
         if key == '__strong_entity_link_id' then return debug.getmetatable(self).__strong_entity_link_id end
-        if key == '__strong_entity_table' then return debug.getmetatable(self).__strong_entity_table end
+		if key == '__strong_entity_table' then return debug.getmetatable(self).__strong_entity_table end
+
+		if key == 'MetaName' then
+			if isValid(self.__strong_entity_link) then
+				local meta = debug.getmetatable(self.__strong_entity_link)
+
+				if meta then
+					return meta.MetaName
+				else
+					return 'Entity'
+				end
+			else
+				return 'Entity'
+			end
+		end
 
         local value = rawget(self, key)
 
@@ -199,7 +219,17 @@ local metaData = {
         local tType = type(target)
         local validEnt = tType ~= 'number' and tType ~= 'string'
         return ent == target or validEnt and (ent == target.__strong_entity_link or target.EntIndex and target.EntIndex == self.__strong_entity_link_id)
-    end
+	end
+}
+
+local metaFix = {
+	__index = function(self, key)
+		if key == 'MetaName' then
+			return metaData.__index(self, 'MetaName')
+		end
+
+		return rawget(self, key)
+	end
 }
 
 local function InitStrongEntity(entIndex)
@@ -231,9 +261,9 @@ local function InitStrongEntity(entIndex)
         __strong_entity = true,
         __strong_entity_link_id = entIndex,
         __strong_entity_link = Entity(entIndex),
-    }
+	}
 
-    local newObject = setmetatable({}, newMeta)
+    local newObject = setmetatable({}, setmetatable(newMeta, metaFix))
 
     STRONG_ENTITIES_REGISTRY[entIndex] = newObject
     return newObject
