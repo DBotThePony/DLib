@@ -19,9 +19,11 @@ nw.NETWORK_DB = nw.NETWORK_DB or {}
 nw.NetworkVars = nw.NetworkVars or {}
 
 function entMeta:DLibVar(var, ifNothing)
+	if not self:IsValid() then return ifNothing end
 	var = var:lower()
 	if not nw.NetworkVars[var] then return ifNothing end
 	local uid = self:EntIndex()
+	print(uid, self, self:IsValid(), self.DLibVars)
 
 	if uid > 0 then
 		local data = nw.NETWORK_DB[uid]
