@@ -1,19 +1,17 @@
 
---
 -- Copyright (C) 2017-2018 DBot
---
+
 -- Licensed under the Apache License, Version 2.0 (the "License");
 -- you may not use this file except in compliance with the License.
 -- You may obtain a copy of the License at
---
+
 --     http://www.apache.org/licenses/LICENSE-2.0
---
+
 -- Unless required by applicable law or agreed to in writing, software
 -- distributed under the License is distributed on an "AS IS" BASIS,
 -- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
---
 
 local HUDCommons = HUDCommons
 local surface = surface
@@ -144,19 +142,4 @@ function HUDCommons.DrawCheckboxUnchecked(x, y, w, h, color, g, b, a)
 
 	HUDCommons.DrawRotatedRect(x + size * 0.25, y + size * 0.15, size * 1.2, size * 0.15, 45)
 	HUDCommons.DrawRotatedRect(x + size * 0.15, y + size, size * 1.2, size * 0.15, -45)
-end
-
-function HUDCommons.DrawTriangle(x, y, w, h, rotate)
-	local poly = {
-		{x = x + w / 2, y = y},
-		{x = x + w, y = y + h},
-		{x = x, y = y + h},
-	}
-
-	if rotate then
-		HUDCommons.RotatePolyMatrix(poly, rotate)
-	end
-
-	surface.DrawPoly(poly)
-	return poly
 end
