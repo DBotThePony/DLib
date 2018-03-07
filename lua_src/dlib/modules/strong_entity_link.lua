@@ -103,7 +103,11 @@ local StrongLinkMetadata = {
                 end
             end
         })
-    end,
+	end,
+
+	IsValid = function(self)
+		return isValid(self.__strong_entity_link)
+	end,
 
     EntIndex = function(self)
         return self.__strong_entity_link_id

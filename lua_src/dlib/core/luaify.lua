@@ -91,7 +91,6 @@ ProtectedCall(function()
 	local overridetypes = {
 		'string',
 		'number',
-		'Entity',
 		'Angle',
 		'Vector',
 		'Panel',
@@ -117,4 +116,18 @@ ProtectedCall(function()
 		_G['is' .. rawname:lower()] = ischeck
 		_G['is' .. rawname:sub(1, 1) .. rawname:sub(2)] = ischeck
 	end
+
+	function _G.IsEntity(var)
+		local tp = type(var)
+
+		return tp == 'Entity' or
+			tp == 'NextBot' or
+			tp == 'NPC' or
+			tp == 'Vehicle' or
+			tp == 'Player' or
+			tp == 'Weapon'
+	end
+
+	_G.isEntity = IsEntity
+	_G.isentity = IsEntity
 end)
