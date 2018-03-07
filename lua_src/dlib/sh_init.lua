@@ -31,8 +31,8 @@ function DLib.simpleInclude(fil)
 end
 
 DLib.simpleInclude('core/core.lua')
-DLib.simpleInclude('core/funclib.lua')
 DLib.simpleInclude('core/luaify.lua')
+DLib.simpleInclude('core/funclib.lua')
 DLib.simpleInclude('util/alias.lua')
 DLib.module = DLib.simpleInclude('core/module.lua')
 DLib.manifest = DLib.simpleInclude('core/manifest.lua')
@@ -70,6 +70,7 @@ DLib.register('extensions/render.lua')
 DLib.register('extensions/player.lua').export(_G.player)
 
 DLib.simpleInclude('luabridge/lobject.lua')
+DLib.simpleInclude('luabridge/luaify_post.lua')
 DLib.Loader.shmodule('color.lua')
 
 DLib.simpleInclude('net/net.lua')
