@@ -60,6 +60,7 @@ DLib.simpleInclude('core/loader_modes.lua')
 
 DLib.Loader.shmodule('bitworker.lua').register()
 
+DLib.simpleInclude('luabridge/luaify_post.lua')
 DLib.register('extensions/extensions.lua')
 DLib.register('extensions/string.lua')
 DLib.register('extensions/ctakedmg.lua')
@@ -70,7 +71,6 @@ DLib.register('extensions/render.lua')
 DLib.register('extensions/player.lua').export(_G.player)
 
 DLib.simpleInclude('luabridge/lobject.lua')
-DLib.simpleInclude('luabridge/luaify_post.lua')
 DLib.Loader.shmodule('color.lua')
 
 DLib.simpleInclude('net/net.lua')
