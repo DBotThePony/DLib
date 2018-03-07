@@ -16,6 +16,8 @@
 local HUDCommons = HUDCommons
 local surface = surface
 local draw = draw
+local ipairs = ipairs
+local render = render
 
 function HUDCommons.DrawTriangle(x, y, w, h, rotate)
 	local poly = {
@@ -48,9 +50,177 @@ function HUDCommons.DrawCircle(x, y, radius, segments)
 		})
 	end
 
-	draw.NoTexture()
 	HUDCommons.TranslatePolyMatrix(poly, x, y)
 	surface.DrawPoly(poly)
+
+	return poly
+end
+
+function HUDCommons.DrawPolyFrame(polydata)
+	local x, y
+
+	HUDCommons.DrawCircle(polydata[1].x - 4, polydata[1].y - 4, 8, 16)
+
+	for i, vertex in ipairs(polydata) do
+		local X, Y = vertex.x, vertex.y
+		x = x or X
+		y = y or Y
+		surface.DrawLine(x, y, X, Y)
+		x = X
+		y = Y
+	end
+
+	HUDCommons.DrawCircle(x - 6, y - 6, 12, 16)
+end
+
+-- function HUDCommons.DrawArcHollow(x, y, radius, segments, inLength, arc)
+-- 	local poly = {}
+-- 	local center = radius / 2
+-- 	local inRadius = radius - inLength
+-- 	local centerIn = inRadius / 2
+
+-- 	-- outer
+-- 	for i = 1, segments do
+-- 		if i ~= segments then
+-- 			local progress = i / segments
+-- 			local ang = progress * -arc
+
+-- 			table.insert(poly, {
+-- 				x = center + ang:rad():sin() * center,
+-- 				y = center + ang:rad():cos() * center,
+-- 			})
+-- 		end
+-- 	end
+
+-- 	-- inner
+-- 	for i = 1, segments do
+-- 		if i ~= segments then
+-- 			local progress = 1 - i / segments
+-- 			local ang = progress * -arc
+
+-- 			table.insert(poly, {
+-- 				x = center + ang:rad():sin() * centerIn,
+-- 				y = center + ang:rad():cos() * centerIn,
+-- 			})
+-- 		end
+-- 	end
+
+-- 	table.insert(poly, {
+-- 		x = center + (0):sin() * center,
+-- 		y = center + (0):cos() * center,
+-- 	})
+
+-- 	draw.NoTexture()
+-- 	HUDCommons.TranslatePolyMatrix(poly, x, y)
+-- 	surface.SetDrawColor(255, 255, 255)
+-- 	surface.DrawPoly(poly)
+-- 	surface.SetDrawColor(80, 80, 80)
+-- 	HUDCommons.DrawPolyFrame(poly)
+
+-- 	return poly
+-- end
+
+local STENCIL_KEEP = STENCIL_KEEP
+local STENCIL_REPLACE = STENCIL_REPLACE
+local STENCIL_ALWAYS = STENCIL_ALWAYS
+local STENCIL_NOTEQUAL = STENCIL_NOTEQUAL
+
+local stencilMat = CreateMaterial('dlib_arc_white', 'UnlitGeneric', {
+	['$basetexture'] = 'models/debug/debugwhite',
+	['$alpha'] = '0',
+	['$translucent'] = '1',
+})
+
+function HUDCommons.DrawArcHollow(x, y, radius, segments, inLength, arc, color)
+	arc = 360 - arc
+	local poly = {}
+	local center = radius / 2
+	local inRadius = radius - inLength * 2
+	local centerIn = inRadius / 2
+
+	render.SetStencilEnable(true)
+
+	render.SetStencilReferenceValue(1)
+	render.SetStencilWriteMask(1)
+	render.SetStencilTestMask(1)
+
+	render.SetStencilPassOperation(STENCIL_REPLACE)
+	render.SetStencilFailOperation(STENCIL_KEEP)
+	render.SetStencilZFailOperation(STENCIL_KEEP)
+
+	render.ClearStencil()
+
+	render.SetStencilCompareFunction(STENCIL_ALWAYS)
+
+	surface.SetMaterial(stencilMat)
+	surface.SetDrawColor(0, 0, 0, 255)
+	HUDCommons.DrawCircle(x + inLength / 2, y + inLength / 2, radius - inLength, segments)
+
+	local deg = arc
+
+	if arc > 180 then
+		deg = 180
+	end
+
+	table.insert(poly, {
+		x = center,
+		y = center,
+	})
+
+	for i = 0, 20 do
+		local progress = i / 20
+		local ang = progress * -deg
+
+		table.insert(poly, {
+			x = center + ang:rad():sin() * center * 1.1,
+			y = center + ang:rad():cos() * center * 1.1,
+		})
+	end
+
+	table.insert(poly, {
+		x = center,
+		y = center,
+	})
+
+	HUDCommons.TranslatePolyMatrix(poly, x, y)
+	surface.DrawPoly(poly)
+
+	if arc > 180 then
+		deg = arc - 180
+		poly = {}
+
+		table.insert(poly, {
+			x = center,
+			y = center,
+		})
+
+		for i = 0, 20 do
+			local progress = i / 20
+			local ang = progress * -deg - 180
+
+			table.insert(poly, {
+				x = center + ang:rad():sin() * center * 1.1,
+				y = center + ang:rad():cos() * center * 1.1,
+			})
+		end
+
+		table.insert(poly, {
+			x = center,
+			y = center,
+		})
+
+		HUDCommons.TranslatePolyMatrix(poly, x, y)
+		surface.DrawPoly(poly)
+	end
+
+	render.SetStencilCompareFunction(STENCIL_NOTEQUAL)
+
+	draw.NoTexture()
+	surface.SetDrawColor(color)
+	poly = HUDCommons.DrawCircle(x, y, radius, segments)
+
+	render.ClearStencil()
+	render.SetStencilEnable(false)
 
 	return poly
 end
