@@ -167,6 +167,7 @@ local function UpdateWeaponShift(delta)
 	Pos2.ShiftY_Weapon = LerpSinusine(delta * 7, Pos2.ShiftY_Weapon, 0)
 
 	local ply = HUDCommons.SelectPlayer()
+	if ply:InVehicle() then return end
 	local wep = ply:GetActiveWeapon()
 	if not IsValid(wep) then return end
 	local plyPos = ply:EyePos()
