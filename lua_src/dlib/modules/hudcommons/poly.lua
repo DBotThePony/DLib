@@ -33,3 +33,24 @@ function HUDCommons.DrawTriangle(x, y, w, h, rotate)
 	surface.DrawPoly(poly)
 	return poly
 end
+
+function HUDCommons.DrawCircle(x, y, radius, segments)
+	local poly = {}
+	local center = radius / 2
+
+	for i = 1, segments do
+		local progress = i / segments
+		local ang = progress * -360
+
+		table.insert(poly, {
+			x = center + ang:rad():sin() * center,
+			y = center + ang:rad():cos() * center,
+		})
+	end
+
+	draw.NoTexture()
+	HUDCommons.TranslatePolyMatrix(poly, x, y)
+	surface.DrawPoly(poly)
+
+	return poly
+end
