@@ -66,6 +66,10 @@ local bmeta = getmetatable(true) or {}
 bmeta.MetaName = 'boolean'
 setmetatable(true, cmeta)
 
+local fmeta = debug.getmetatable(function() end) or {}
+fmeta.MetaName = 'function'
+setmetatable(function() end, fmeta)
+
 local strmeta = getmetatable('') or {}
 strmeta.MetaName = 'string'
 
