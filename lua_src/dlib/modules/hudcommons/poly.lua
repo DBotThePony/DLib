@@ -225,3 +225,100 @@ function HUDCommons.DrawArcHollow(x, y, radius, segments, inLength, arc, color)
 
 	return poly
 end
+
+function HUDCommons.DrawArcHollow2(x, y, radius, segments, inLength, arc1, arc2, color)
+	local poly = {}
+	local center = radius / 2
+	local inRadius = radius - inLength * 2
+	local centerIn = inRadius / 2
+
+	render.SetStencilEnable(true)
+
+	render.SetStencilReferenceValue(1)
+	render.SetStencilWriteMask(1)
+	render.SetStencilTestMask(1)
+
+	render.SetStencilPassOperation(STENCIL_REPLACE)
+	render.SetStencilFailOperation(STENCIL_KEEP)
+	render.SetStencilZFailOperation(STENCIL_KEEP)
+
+	render.ClearStencil()
+
+	render.SetStencilCompareFunction(STENCIL_ALWAYS)
+
+	surface.SetMaterial(stencilMat)
+	surface.SetDrawColor(0, 0, 0, 255)
+	HUDCommons.DrawCircle(x + inLength / 2, y + inLength / 2, radius - inLength, segments)
+
+	table.insert(poly, {
+		x = center,
+		y = center,
+	})
+
+	for i = 0, 20 do
+		local progress = i / 20
+		local ang = progress * -arc2 - arc1
+
+		table.insert(poly, {
+			x = center + ang:rad():sin() * center * 1.1,
+			y = center + ang:rad():cos() * center * 1.1,
+		})
+	end
+
+	table.insert(poly, {
+		x = center,
+		y = center,
+	})
+
+	HUDCommons.TranslatePolyMatrix(poly, x, y)
+	surface.DrawPoly(poly)
+
+	render.SetStencilCompareFunction(STENCIL_NOTEQUAL)
+
+	draw.NoTexture()
+	surface.SetDrawColor(color)
+	poly = HUDCommons.DrawCircle(x, y, radius, segments)
+
+	render.ClearStencil()
+	render.SetStencilEnable(false)
+
+	return poly
+end
+
+function HUDCommons.DrawCircleHollow(x, y, radius, segments, inLength, color)
+	local poly = {}
+	local center = radius / 2
+	local inRadius = radius - inLength * 2
+	local centerIn = inRadius / 2
+
+	render.SetStencilEnable(true)
+
+	render.SetStencilReferenceValue(1)
+	render.SetStencilWriteMask(1)
+	render.SetStencilTestMask(1)
+
+	render.SetStencilPassOperation(STENCIL_REPLACE)
+	render.SetStencilFailOperation(STENCIL_KEEP)
+	render.SetStencilZFailOperation(STENCIL_KEEP)
+
+	render.ClearStencil()
+
+	render.SetStencilCompareFunction(STENCIL_ALWAYS)
+
+	surface.SetMaterial(stencilMat)
+	surface.SetDrawColor(0, 0, 0, 255)
+	HUDCommons.DrawCircle(x + inLength / 2, y + inLength / 2, radius - inLength, segments)
+
+	HUDCommons.TranslatePolyMatrix(poly, x, y)
+	surface.DrawPoly(poly)
+	render.SetStencilCompareFunction(STENCIL_NOTEQUAL)
+
+	draw.NoTexture()
+	surface.SetDrawColor(color)
+	poly = HUDCommons.DrawCircle(x, y, radius, segments)
+
+	render.ClearStencil()
+	render.SetStencilEnable(false)
+
+	return poly
+end
