@@ -21,6 +21,8 @@ local type = type
 local error = error
 
 function meta:RegisterVariable(var, default)
+	self.varMeta = nil
+
 	if default == nil then
 		default = function() return 0 end
 	end
@@ -42,6 +44,8 @@ function meta:RegisterVariable(var, default)
 	if not ldata then
 		ldata = {
 			var = var,
+			fname = var:formatname(),
+			func = 'GetVar' .. var:formatname()
 		}
 
 		ldata.id = table.insert(self.variables, ldata)
@@ -200,6 +204,32 @@ function meta:TickVariables(lPly)
 			entry.value = grab
 		end
 	end
+end
+
+function meta:BuildVariableMeta()
+	self.varMeta = {}
+
+	for i, data in ipairs(self.variables) do
+		self.varMeta[data.func] = function()
+			return self[data.var]
+		end
+	end
+end
+
+local setmetatable = setmetatable
+
+function meta:RecordVariableState()
+	if not self.varMeta then
+		self:BuildVariableMeta()
+	end
+
+	local vars = setmetatable({}, self.varMeta)
+
+	for i, data in ipairs(self.variables) do
+		vars[data.var] = self[data.func](self)
+	end
+
+	return vars
 end
 
 include('defaultvars.lua')
