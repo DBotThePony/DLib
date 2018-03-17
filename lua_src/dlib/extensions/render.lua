@@ -19,6 +19,7 @@ local render = render
 local assert = assert
 local type = type
 local table = table
+local debug = debug
 
 -- nope, nu stack object, because util.Stack() sux
 local stack = {}
@@ -38,22 +39,35 @@ function render.PushScissorRect(x, y, xEnd, yEnd)
 		yEnd = top[4]:min(yEnd)
 	end
 
-	table.insert(stack, {x, y, xEnd, yEnd})
+	table.insert(stack, {x, y, xEnd, yEnd, debug.traceback()})
 	render.SetScissorRect(x, y, xEnd, yEnd, true)
 end
 
 function render.PopScissorRect()
 	if #stack == 0 then
 		render.SetScissorRect(0, 0, 0, 0, false)
+		return
 	end
 
-	local pop = table.remove(stack, #stack)
-	render.SetScissorRect(pop[1], pop[2], pop[3], pop[4], false)
+	if #stack == 1 then
+		table.remove(stack)
+		render.SetScissorRect(0, 0, 0, 0, false)
+		return
+	end
+
+	table.remove(stack, #stack)
+	local pop = stack[#stack]
+	render.SetScissorRect(pop[1], pop[2], pop[3], pop[4], true)
 end
 
 local function PreRender()
-	if #stack == 0 then return end
-	stack = {}
+	if #stack ~= 0 then
+		for i, val in ipairs(stack) do
+			print(val[5])
+		end
+
+		stack = {}
+	end
 end
 
 hook.Add('PreRender', 'render.PushScissorRect', PreRender)
