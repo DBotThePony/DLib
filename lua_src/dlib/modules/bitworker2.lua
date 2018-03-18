@@ -166,52 +166,12 @@ function bitworker.UIntegerToBinary(numberIn, bitsNum)
 	return bits
 end
 
-function bitworker.FloatToBinary(numberIn, precision)
-	if not isValidNumber(numberIn) then
-		local bits = {0, 0}
-
-		for i = 1, precision do
-			table_insert(bits, 0)
-		end
-
-		return bits
-	end
-
-	precision = precision or 6
-	local float = math.abs(numberIn) % 1
-	local bits
-	local dir = numberIn < 0
-
-	if dir then
-		bits = bitworker.IntegerToBinary(numberIn + float)
-	else
-		bits = bitworker.IntegerToBinary(numberIn - float)
-	end
-
-	local lastMult = float
-
-	for i = 1, precision do
-		local mult = lastMult * 2
-
-		if mult >= 1 then
-			table_insert(bits, 1)
-			mult = mult - 1
-		else
-			table_insert(bits, 0)
-		end
-
-		lastMult = mult
-	end
-
-	return bits
-end
-
 function bitworker.NumberToMantiss(numberIn, bitsAllowed)
 	if not isValidNumber(numberIn) then
 		local bits = {}
 
 		for i = 1, bitsAllowed do
-			table_insert(bits, 0)
+			bits[i] = 0
 		end
 
 		return bits
@@ -258,37 +218,12 @@ function bitworker.MantissToNumber(bitsIn, shiftNum)
 	local num = 0
 
 	for i = 1, #bitsIn do
-		if bitsIn[i] ~= 0 then
+		if bitsIn[i] == 1 then
 			num = num + math.pow(2, -i + shiftNum)
 		end
 	end
 
 	return num
-end
-
-function bitworker.BinaryToFloat(inputTable, precision)
-	local amount = #inputTable
-	precision = precision or 6
-
-	local integerPart = {}
-	for i = 1, amount - precision do
-		table_insert(integerPart, inputTable[i])
-	end
-
-	local integer = bitworker.BinaryToInteger(integerPart)
-	local float = 0
-
-	for i = amount - precision + 1, amount do
-		if inputTable[i] > 0 then
-			float = float + math.pow(2, amount - precision - i)
-		end
-	end
-
-	if integer < 0 then
-		return integer - float
-	else
-		return integer + float
-	end
 end
 
 -- final range is bitsExponent + bitsMantissa + 2
