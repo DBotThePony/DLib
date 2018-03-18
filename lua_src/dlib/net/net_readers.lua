@@ -70,7 +70,7 @@ function messageMeta:ReadIntInternal(bitCount, direction)
 	bitCount = math.floor(bitCount)
 	local buffer = self:ReadBufferDirection(bitCount, direction)
 
-	return math.floor(DLib.bitworker.BinaryToIntegerFixed(buffer))
+	return math.floor(DLib.bitworker2.BinaryToInteger2(buffer))
 end
 
 function messageMeta:ReadIntInternalTwos(bitCount, direction)
@@ -85,7 +85,7 @@ function messageMeta:ReadIntInternalTwos(bitCount, direction)
 	bitCount = math.floor(bitCount)
 	local buffer = self:ReadBufferDirection(bitCount, direction)
 
-	return math.floor(DLib.bitworker.BinaryToInteger(buffer))
+	return math.floor(DLib.bitworker2.BinaryToInteger(buffer))
 end
 
 function messageMeta:ReadUIntInternal(bitCount, direction)
@@ -105,7 +105,7 @@ function messageMeta:ReadUIntInternal(bitCount, direction)
 	bitCount = math.floor(bitCount)
 	local buffer = self:ReadBufferDirection(bitCount, direction)
 
-	return math.floor(DLib.bitworker.BinaryToUInteger(buffer))
+	return math.floor(DLib.bitworker2.BinaryToUInteger(buffer))
 end
 
 function messageMeta:ReadInt(bitCount)
@@ -184,7 +184,7 @@ function messageMeta:ReadNumber(bitsExponent, bitsMantissa, driection)
 	end
 
 	local buffer = self:ReadBufferDirection(totalBits, direction)
-	local readFloat = DLib.bitworker.BinaryToFloatIEEE(buffer, bitsExponent, bitsMantissa)
+	local readFloat = DLib.bitworker2.BinaryToFloatIEEE(buffer, bitsExponent, bitsMantissa)
 
 	--local ceil = math.pow(10, math.max(1, math.floor(bitsMantissa / 3)))
 	--readFloat = math.floor(readFloat * ceil + 0.5) / ceil
@@ -230,7 +230,7 @@ function messageMeta:ReadDataInternal(bytesRead, direction)
 	local bytes = {}
 
 	for byte = 1, bytesRead do
-		table.insert(bytes, DLib.bitworker.BinaryToUInteger(self:ReadBufferDirection(8, direction)))
+		table.insert(bytes, DLib.bitworker2.BinaryToUInteger(self:ReadBufferDirection(8, direction)))
 	end
 
 	if #bytes <= 500 then
@@ -277,7 +277,7 @@ function messageMeta:ReadStringInternal(direction)
 		return ''
 	end
 
-	local nextChar = DLib.bitworker.BinaryToUInteger(self:ReadBufferBackward(8))
+	local nextChar = DLib.bitworker2.BinaryToUInteger(self:ReadBufferBackward(8))
 	local bytes = {}
 
 	while nextChar ~= 0 do
@@ -287,7 +287,7 @@ function messageMeta:ReadStringInternal(direction)
 		end
 
 		table.insert(bytes, nextChar)
-		nextChar = DLib.bitworker.BinaryToUInteger(self:ReadBufferDirection(8, direction))
+		nextChar = DLib.bitworker2.BinaryToUInteger(self:ReadBufferDirection(8, direction))
 	end
 
 	if #bytes <= 500 then

@@ -76,11 +76,7 @@ function messageMeta:WriteIntInternal(input, bitCount, direction)
 	bitCount = math.floor(bitCount)
 	assert(bitCount < 127 and bitCount > 2, 'Bit amount overflow')
 
-	local output = DLib.bitworker.IntegerToBinaryFixed(input, bitCount)
-
-	if #output > bitCount and DLib.DEBUG_MODE:GetBool() then
-		ErrorNoHalt('WriteInt - input integer is larger than integer that can be represented with ' .. bitCount .. ' bits!')
-	end
+	local output = DLib.bitworker2.IntegerToBinary2(input, bitCount)
 
 	if not direction then
 		self:WriteBitsRawBackward(output)
@@ -101,11 +97,7 @@ function messageMeta:WriteIntInternalTwos(input, bitCount, direction)
 	bitCount = math.floor(bitCount)
 	assert(bitCount <= 127 and bitCount >= 2, 'Bit amount overflow')
 
-	local output = DLib.bitworker.IntegerToBinary(input)
-
-	if #output > bitCount and DLib.DEBUG_MODE:GetBool() then
-		ErrorNoHalt('WriteIntTwos - input integer is larger than integer that can be represented with ' .. bitCount .. ' bits!')
-	end
+	local output = DLib.bitworker2.IntegerToBinary(input, bitCount)
 
 	if not direction then
 		local sign = table.remove(output, 1)
@@ -172,12 +164,7 @@ function messageMeta:WriteUIntInternal(input, bitCount, direction)
 		input = math.pow(2, bitCount) + input
 	end
 
-	local output = DLib.bitworker.UIntegerToBinary(input)
-
-	if #output > bitCount and DLib.DEBUG_MODE:GetBool() then
-		ErrorNoHalt('WriteUInt - input integer is larger than integer that can be represented with ' .. bitCount .. ' bits!')
-	end
-
+	local output = DLib.bitworker2.UIntegerToBinary(input, bitCount)
 	self:WriteBitsRawDirection(output, bitCount, direction)
 
 	return self
@@ -224,7 +211,7 @@ function messageMeta:WriteNumber(input, bitsExponent, bitsMantissa, direction)
 	assert(bitsExponent <= 24 and bitsExponent >= 4, 'Exponent bits amount overflow')
 	assert(bitsMantissa <= 127 and bitsMantissa >= 4, 'Mantissa bits amount overflow')
 
-	self:WriteBitsRawDirection(DLib.bitworker.FloatToBinaryIEEE(input, bitsExponent, bitsMantissa), nil, direction)
+	self:WriteBitsRawDirection(DLib.bitworker2.FloatToBinaryIEEE(input, bitsExponent, bitsMantissa), nil, direction)
 
 	return self
 end
@@ -286,7 +273,7 @@ function messageMeta:WriteDataInternal(binaryData, bytesToSend, direction)
 	end
 
 	for i, char in ipairs(chars) do
-		self:WriteBitsRawDirection(DLib.bitworker.UIntegerToBinary(char), 8, direction)
+		self:WriteBitsRawDirection(DLib.bitworker2.UIntegerToBinary(char, 8), nil, direction)
 	end
 
 	return self
@@ -343,7 +330,7 @@ function messageMeta:WriteStringInternal(stringIn, direction)
 				ErrorNoHalt('Writting binary data using net.WriteString?!')
 			end
 
-			self:WriteBitsRawDirection(DLib.bitworker.UIntegerToBinary(char), 8, direction)
+			self:WriteBitsRawDirection(DLib.bitworker2.UIntegerToBinary(char, 8), 8, direction)
 		end
 	end
 

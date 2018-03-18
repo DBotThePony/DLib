@@ -160,7 +160,7 @@ function bitworker.UIntegerToBinary(numberIn, bitsNum)
 		if numberIn == 0 then break end
 		local div = numberIn % 2
 		numberIn = (numberIn - div) / 2
-		bits[bitsNum - i + 2] = div
+		bits[bitsNum - i + 1] = div
 	end
 
 	return bits
@@ -241,7 +241,7 @@ function bitworker.FloatToBinaryIEEE(numberIn, bitsExponent, bitsMantissa)
 
 	local bits = {numberIn >= 0 and 0 or 1}
 	local mantissa, exp = bitworker.NumberToMantiss(numberIn, bitsMantissa)
-	local expBits = fixedBits(bitworker.UIntegerToBinary(exp + 127), bitsExponent)
+	local expBits = bitworker.UIntegerToBinary(exp + 127, 8)
 
 	table.append(bits, expBits)
 	table.append(bits, mantissa)

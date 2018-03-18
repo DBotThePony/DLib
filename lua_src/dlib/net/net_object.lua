@@ -712,7 +712,7 @@ function messageMeta:WriteBitRaw(bitIn)
 end
 
 function messageMeta:WriteBitsRaw(bitsIn, fixedAmount)
-	if not fixedAmount then
+	if fixedAmount == nil or fixedAmount == #bitsIn then
 		for i = 1, #bitsIn do
 			self.pointer = self.pointer + 1
 			self.bits[self.pointer] = bitsIn[i]
@@ -735,7 +735,7 @@ function messageMeta:WriteBitsRaw(bitsIn, fixedAmount)
 end
 
 function messageMeta:WriteBitsRawBackward(bitsIn, fixedAmount)
-	if not fixedAmount then
+	if fixedAmount == nil or fixedAmount == #bitsIn then
 		for i = #bitsIn, 1, -1 do
 			self.pointer = self.pointer + 1
 			self.bits[self.pointer] = bitsIn[i]
