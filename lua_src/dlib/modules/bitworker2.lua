@@ -241,7 +241,7 @@ function bitworker.FloatToBinaryIEEE(numberIn, bitsExponent, bitsMantissa)
 
 	local bits = {numberIn >= 0 and 0 or 1}
 	local mantissa, exp = bitworker.NumberToMantiss(numberIn, bitsMantissa)
-	local expBits = bitworker.UIntegerToBinary(exp + 127, 8)
+	local expBits = bitworker.UIntegerToBinary(exp + 127, bitsExponent)
 
 	table.append(bits, expBits)
 	table.append(bits, mantissa)
