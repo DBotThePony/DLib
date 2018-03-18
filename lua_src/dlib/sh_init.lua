@@ -59,6 +59,7 @@ DLib.register('core/loader.lua')
 DLib.simpleInclude('core/loader_modes.lua')
 
 DLib.Loader.shmodule('bitworker.lua').register()
+DLib.Loader.shmodule('bitworker2.lua').register()
 
 DLib.register('extensions/extensions.lua')
 DLib.register('extensions/string.lua')
