@@ -38,6 +38,7 @@ if SERVER then
 end
 
 file.CreateDir('vll')
+file.CreateDir('vll/bundlecache')
 
 VLL = VLL or {}
 VLL.FILE_MEMORY = VLL.FILE_MEMORY or {}
@@ -493,6 +494,19 @@ function VLL.LoadBundle(contents, bundle)
 
 	if contents == '' then
 		VLL.Message('No bundle!')
+		return
+	end
+
+	file.Write('vll/bundlecache/' .. util.CRC(bundle) .. '.dat', util.Compress(contents))
+	VLL.PurgeBundle(bundle)
+	VLL.SetupFiles(contents, bundle)
+	VLL.RunBundle(bundle)
+end
+
+function VLL.LoadCached(bundle)
+	local contents = util.Decompress(file.Read('vll/bundlecache/' .. util.CRC(bundle) .. '.dat', 'DATA'))
+	if not contents or contents == '' then
+		VLL.Message('No specified bundle found on the disk')
 		return
 	end
 
@@ -1889,6 +1903,17 @@ concommand.Add('vll_load', function(ply, cmd, args)
 	VLL.Load(args[1])
 end)
 
+concommand.Add('vll_cload', function(ply, cmd, args)
+	if IsValid(ply) and SERVER then return end
+
+	if not args[1] then
+		VLL.Message('No Bundle!')
+		return
+	end
+
+	VLL.LoadCached(args[1])
+end)
+
 concommand.Add('vll_workshop', function(ply, cmd, args)
 	if IsValid(ply) and SERVER then return end
 
@@ -1914,6 +1939,17 @@ concommand.Add('vll_load_silent', function(ply, cmd, args)
 	end
 
 	VLL.Load(args[1], true)
+end)
+
+concommand.Add('vll_cload_silent', function(ply, cmd, args)
+	if IsValid(ply) and SERVER then return end
+
+	if not args[1] then
+		VLL.Message('No Bundle!')
+		return
+	end
+
+	VLL.LoadCached(args[1], true)
 end)
 
 concommand.Add('vll_unload_hooks', function(ply, cmd, args)
@@ -2173,7 +2209,6 @@ local function PopulateContent(pnl, treeNode, node)
 	end
 end
 
-
 if CLIENT then
 	net.Receive('VLL.Load', function()
 		local bundle = net.ReadString()
@@ -2297,6 +2332,17 @@ else
 		VLL.Load(args[1])
 	end)
 
+	concommand.Add('vll_cload_server', function(ply, cmd, args)
+		if IsValid(ply) and not ply:IsSuperAdmin() then VLL.MessagePlayer(ply, 'Not a Super Admin!') return end
+
+		if not args[1] then
+			VLL.MessagePlayer(ply, 'No Bundle!')
+			return
+		end
+
+		VLL.LoadCached(args[1])
+	end)
+
 	concommand.Add('vll_load_server_silent', function(ply, cmd, args)
 		if IsValid(ply) and not ply:IsSuperAdmin() then VLL.MessagePlayer(ply, 'Not a Super Admin!') return end
 
@@ -2306,6 +2352,17 @@ else
 		end
 
 		VLL.Load(args[1], true)
+	end)
+
+	concommand.Add('vll_cload_server_silent', function(ply, cmd, args)
+		if IsValid(ply) and not ply:IsSuperAdmin() then VLL.MessagePlayer(ply, 'Not a Super Admin!') return end
+
+		if not args[1] then
+			VLL.MessagePlayer(ply, 'No Bundle!')
+			return
+		end
+
+		VLL.LoadCached(args[1], true)
 	end)
 
 	concommand.Add('vll_unreplicate', function(ply, cmd, args)
