@@ -91,11 +91,35 @@ function meta:GetBytes()
 	return self.bytes
 end
 
+local function wrap(num, maximal)
+	if num >= 0 then
+		return num
+	end
+
+	return maximal * 2 + num
+end
+
+local function unwrap(num, maximal)
+	if num < maximal then
+		return num
+	end
+
+	return num - maximal * 2
+end
+
 -- Primitive read/write
-function meta:WriteByte(valueIn)
+-- wrap overflow
+function meta:WriteByte_2(valueIn)
 	assert(type(valueIn) == 'number', 'WriteByte - argument type is ' .. type(valueIn))
 	assert(valueIn >= -0x80 and valueIn <= 0x7F, 'WriteByte - size overflow (' .. valueIn .. ')')
 	return self:WriteUByte(math.floor(valueIn) + 0x80)
+end
+
+-- one's component
+function meta:WriteByte(valueIn)
+	assert(type(valueIn) == 'number', 'WriteByte - argument type is ' .. type(valueIn))
+	assert(valueIn >= -0x80 and valueIn <= 0x7F, 'WriteByte - size overflow (' .. valueIn .. ')')
+	return self:WriteUByte(wrap(math.floor(valueIn), 0x80))
 end
 
 function meta:WriteUByte(valueIn)
@@ -116,10 +140,16 @@ function meta:WriteChar(char)
 	return self
 end
 
-function meta:WriteInt16(valueIn)
+function meta:WriteInt16_2(valueIn)
 	assert(type(valueIn) == 'number', 'WriteInt16 - argument type is ' .. type(valueIn))
 	assert(valueIn >= -0x8000 and valueIn <= 0x7FFF, 'WriteInt16 - size overflow (' .. valueIn .. ')')
 	return self:WriteUInt16(math.floor(valueIn) + 0x8000)
+end
+
+function meta:WriteInt16(valueIn)
+	assert(type(valueIn) == 'number', 'WriteInt16 - argument type is ' .. type(valueIn))
+	assert(valueIn >= -0x8000 and valueIn <= 0x7FFF, 'WriteInt16 - size overflow (' .. valueIn .. ')')
+	return self:WriteUInt16(wrap(math.floor(valueIn), 0x8000))
 end
 
 function meta:WriteUInt16(valueIn)
@@ -132,10 +162,16 @@ function meta:WriteUInt16(valueIn)
 	return self
 end
 
-function meta:WriteInt32(valueIn)
+function meta:WriteInt32_2(valueIn)
 	assert(type(valueIn) == 'number', 'WriteInt32 - argument type is ' .. type(valueIn))
 	assert(valueIn >= -0x80000000 and valueIn <= 0x7FFFFFFF, 'WriteInt32 - size overflow (' .. valueIn .. ')')
 	return self:WriteUInt32(math.floor(valueIn) + 0x80000000)
+end
+
+function meta:WriteInt32(valueIn)
+	assert(type(valueIn) == 'number', 'WriteInt32 - argument type is ' .. type(valueIn))
+	assert(valueIn >= -0x80000000 and valueIn <= 0x7FFFFFFF, 'WriteInt32 - size overflow (' .. valueIn .. ')')
+	return self:WriteUInt32(wrap(math.floor(valueIn), 0x80000000))
 end
 
 function meta:WriteUInt32(valueIn)
@@ -154,8 +190,13 @@ function meta:WriteUInt32(valueIn)
 	return self
 end
 
-function meta:WriteInt64(valueIn)
+function meta:WriteInt64_2(valueIn)
 	self:WriteUInt64(valueIn + 0x100000000)
+	return self
+end
+
+function meta:WriteInt64(valueIn)
+	self:WriteUInt64(wrap(valueIn, 0x100000000))
 	return self
 end
 
@@ -170,8 +211,12 @@ function meta:CheckOverflow(name, moveBy)
 	assert(self.pointer + moveBy <= self.length, 'Read' .. name .. ' - bytes amount overflow (' .. self.pointer .. ' + ' .. moveBy .. ' vs ' .. self.length .. ')')
 end
 
-function meta:ReadByte()
+function meta:ReadByte_2()
 	return self:ReadUByte() - 0x80
+end
+
+function meta:ReadByte()
+	return unwrap(self:ReadUByte(), 0x80)
 end
 
 function meta:ReadUByte()
@@ -183,8 +228,12 @@ end
 meta.ReadInt8 = meta.ReadByte
 meta.ReadUInt8 = meta.ReadUByte
 
-function meta:ReadInt16()
+function meta:ReadInt16_2()
 	return self:ReadUInt16() - 0x8000
+end
+
+function meta:ReadInt16()
+	return unwrap(self:ReadUInt16(), 0x8000)
 end
 
 function meta:ReadUInt16()
@@ -193,8 +242,12 @@ function meta:ReadUInt16()
 	return self.bytes[self.pointer] + self.bytes[self.pointer - 1] * 256
 end
 
-function meta:ReadInt32()
+function meta:ReadInt32_2()
 	return self:ReadUInt32() - 0x80000000
+end
+
+function meta:ReadInt32()
+	return unwrap(self:ReadUInt32(), 0x80000000)
 end
 
 function meta:ReadUInt32()
@@ -206,8 +259,12 @@ function meta:ReadUInt32()
 		self.bytes[self.pointer - 3] * 256 * 256 * 256
 end
 
-function meta:ReadInt64()
+function meta:ReadInt64_2()
 	return self:ReadUint64() - 0x100000000
+end
+
+function meta:ReadInt64()
+	return unwrap(self:ReadUint64(), 0x100000000)
 end
 
 function meta:ReadUInt64()
@@ -225,28 +282,28 @@ end
 
 -- Float
 function meta:WriteFloat(valueIn)
-	local bits = DLib.bitworker.FloatToBinaryIEEE(valueIn, 8, 23)
-	local bitsInNumber = DLib.bitworker.BinaryToUInteger(bits)
+	local bits = DLib.bitworker2.FloatToBinaryIEEE(valueIn, 8, 23)
+	local bitsInNumber = DLib.bitworker2.BinaryToUInteger(bits)
 	return self:WriteUInt32(bitsInNumber)
 end
 
 function meta:ReadFloat()
 	local bitsInNumber = self:ReadUInt32()
-	local bits = DLib.bitworker.IntegerToBinaryFixed(bitsInNumber, 32)
-	return DLib.bitworker.BinaryToFloatIEEE(bits, 8, 23)
+	local bits = DLib.bitworker2.UIntegerToBinary(bitsInNumber, 32)
+	return DLib.bitworker2.BinaryToFloatIEEE(bits, 8, 23)
 end
 
 function meta:WriteDouble(valueIn)
-	local bits = DLib.bitworker.FloatToBinaryIEEE(valueIn, 11, 52)
-	local bitsInNumber = DLib.bitworker.BinaryToUInteger(bits)
+	local bits = DLib.bitworker2.FloatToBinaryIEEE(valueIn, 11, 52)
+	local bitsInNumber = DLib.bitworker2.BinaryToUInteger(bits)
 	self:WriteUInt64(bitsInNumber)
 	return self
 end
 
 function meta:ReadDouble()
 	local bitsInNumber = self:ReadUInt64()
-	local bits = DLib.bitworker.IntegerToBinaryFixed(bitsInNumber, 64)
-	return DLib.bitworker.BinaryToFloatIEEE(bits, 11, 52)
+	local bits = DLib.bitworker2.UIntegerToBinary(bitsInNumber, 64)
+	return DLib.bitworker2.BinaryToFloatIEEE(bits, 11, 52)
 end
 
 -- String
@@ -309,36 +366,6 @@ function meta:ReadBinary(readAmount)
 	end
 
 	return DLib.string.bcharTable(output)
-end
-
-function meta:WriteFloat(floatNum)
-	local bytes = DLib.bitworker2.BitsToBytes(DLib.bitworker2.FloatToBinaryIEEE(floatNum, 8, 23))
-
-	for i, byte in ipairs(bytes) do
-		self:WriteUByte(byte)
-	end
-
-	return self
-end
-
-function meta:WriteDouble(floatNum)
-	local bytes = DLib.bitworker2.BitsToBytes(DLib.bitworker2.FloatToBinaryIEEE(floatNum, 11, 52))
-
-	for i, byte in ipairs(bytes) do
-		self:WriteUByte(byte)
-	end
-
-	return self
-end
-
-function meta:ReadFloat(floatNum)
-	local bytes = self:ReadUInt32()
-	return DLib.bitworker2.BinaryToFloatIEEE(DLib.bitworker2.UIntegerToBinary(bytes, 32), 8, 23)
-end
-
-function meta:ReadFloat(floatNum)
-	local bytes = self:ReadUInt64()
-	return DLib.bitworker2.BinaryToFloatIEEE(DLib.bitworker2.UIntegerToBinary(bytes, 64), 11, 52)
 end
 
 meta.WriteData = meta.WriteBinary
