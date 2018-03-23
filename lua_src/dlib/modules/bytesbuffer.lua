@@ -311,6 +311,36 @@ function meta:ReadBinary(readAmount)
 	return DLib.string.bcharTable(output)
 end
 
+function meta:WriteFloat(floatNum)
+	local bytes = DLib.bitworker2.BitsToBytes(DLib.bitworker2.FloatToBinaryIEEE(floatNum, 8, 23))
+
+	for i, byte in ipairs(bytes) do
+		self:WriteUByte(byte)
+	end
+
+	return self
+end
+
+function meta:WriteDouble(floatNum)
+	local bytes = DLib.bitworker2.BitsToBytes(DLib.bitworker2.FloatToBinaryIEEE(floatNum, 11, 52))
+
+	for i, byte in ipairs(bytes) do
+		self:WriteUByte(byte)
+	end
+
+	return self
+end
+
+function meta:ReadFloat(floatNum)
+	local bytes = self:ReadUInt32()
+	return DLib.bitworker2.BinaryToFloatIEEE(DLib.bitworker2.UIntegerToBinary(bytes, 32), 8, 23)
+end
+
+function meta:ReadFloat(floatNum)
+	local bytes = self:ReadUInt64()
+	return DLib.bitworker2.BinaryToFloatIEEE(DLib.bitworker2.UIntegerToBinary(bytes, 64), 11, 52)
+end
+
 meta.WriteData = meta.WriteBinary
 meta.ReadData = meta.ReadBinary
 
