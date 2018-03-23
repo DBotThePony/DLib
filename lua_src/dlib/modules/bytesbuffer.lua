@@ -94,14 +94,13 @@ end
 -- Primitive read/write
 function meta:WriteByte(valueIn)
 	assert(type(valueIn) == 'number', 'WriteByte - argument type is ' .. type(valueIn))
-	assert(valueIn >= -0x80 and valueIn <= 0x7F, 'WriteByte - size overflow')
-	valueIn = math.floor(valueIn) + 0x80
+	assert(valueIn >= -0x80 and valueIn <= 0x7F, 'WriteByte - size overflow (' .. valueIn .. ')')
 	return self:WriteUByte(math.floor(valueIn) + 0x80)
 end
 
 function meta:WriteUByte(valueIn)
 	assert(type(valueIn) == 'number', 'WriteUByte - argument type is ' .. type(valueIn))
-	assert(valueIn >= 0 and valueIn <= 0xFF, 'WriteUByte - size overflow')
+	assert(valueIn >= 0 and valueIn <= 0xFF, 'WriteUByte - size overflow (' .. valueIn .. ')')
 	valueIn = math.floor(valueIn)
 	self.pointer = self.pointer + 1
 	self.bytes[self.pointer] = valueIn
@@ -119,13 +118,13 @@ end
 
 function meta:WriteInt16(valueIn)
 	assert(type(valueIn) == 'number', 'WriteInt16 - argument type is ' .. type(valueIn))
-	assert(valueIn >= -0x8000 and valueIn <= 0x7FFF, 'WriteInt16 - size overflow')
+	assert(valueIn >= -0x8000 and valueIn <= 0x7FFF, 'WriteInt16 - size overflow (' .. valueIn .. ')')
 	return self:WriteUInt16(math.floor(valueIn) + 0x8000)
 end
 
 function meta:WriteUInt16(valueIn)
 	assert(type(valueIn) == 'number', 'WriteUInt16 - argument type is ' .. type(valueIn))
-	assert(valueIn >= 0 and valueIn <= 0xFFFF, 'WriteUInt16 - size overflow')
+	assert(valueIn >= 0 and valueIn <= 0xFFFF, 'WriteUInt16 - size overflow (' .. valueIn .. ')')
 	valueIn = math.floor(valueIn)
 	self.bytes[self.pointer + 2] = valueIn % 0x100
 	self.bytes[self.pointer + 1] = (valueIn - valueIn % 0x100) / 0x100
@@ -135,13 +134,13 @@ end
 
 function meta:WriteInt32(valueIn)
 	assert(type(valueIn) == 'number', 'WriteInt32 - argument type is ' .. type(valueIn))
-	assert(valueIn >= -0x80000000 and valueIn <= 0x7FFFFFFF, 'WriteByte - size overflow')
+	assert(valueIn >= -0x80000000 and valueIn <= 0x7FFFFFFF, 'WriteInt32 - size overflow (' .. valueIn .. ')')
 	return self:WriteUInt32(math.floor(valueIn) + 0x80000000)
 end
 
 function meta:WriteUInt32(valueIn)
 	assert(type(valueIn) == 'number', 'WriteUInt32 - argument type is ' .. type(valueIn))
-	assert(valueIn >= -0 and valueIn <= 0xFFFFFFFF, 'WriteUInt32 - size overflow')
+	assert(valueIn >= -0 and valueIn <= 0xFFFFFFFF, 'WriteUInt32 - size overflow (' .. valueIn .. ')')
 	valueIn = math.floor(valueIn)
 	self.bytes[self.pointer + 4] = valueIn % 0x100
 	valueIn = (valueIn - valueIn % 0x100) / 0x100
@@ -298,7 +297,8 @@ function meta:WriteBinary(binaryString)
 end
 
 function meta:ReadBinary(readAmount)
-	assert(readAmount > 0, 'Read amount must be positive and not equal zero')
+	assert(readAmount >= 0, 'Read amount must be positive')
+	if readAmount == 0 then return end
 	self:CheckOverflow('Binary', readAmount)
 
 	local output = {}
