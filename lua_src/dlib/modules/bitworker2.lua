@@ -187,14 +187,17 @@ function bitworker.NumberToMantiss(numberIn, bitsAllowed)
 		local div = numberIn / 2
 		local num = div % 1
 
-		if num ~= 0 then
+		if num ~= 0 and numberIn ~= 1 then
 			table_insert(bits, 1)
 		else
 			table_insert(bits, 0)
 		end
 
+		if numberIn ~= 1 then
+			exp = exp + 1
+		end
+
 		numberIn = numberIn - div - num
-		exp = exp + 1
 	end
 
 	bits = table.flip(bits)
@@ -213,23 +216,23 @@ function bitworker.NumberToMantiss(numberIn, bitsAllowed)
 	return bits, exp
 end
 
-function bitworker.MantissToNumber(bitsIn, shiftNum)
-	shiftNum = shiftNum or 0
+function bitworker.MantissToNumber(bitsIn, exp)
+	exp = exp or 0
 	local num = 0
 
 	for i = 1, #bitsIn do
 		if bitsIn[i] == 1 then
-			num = num + math.pow(2, -i + shiftNum)
+			num = num + math.pow(2, -i + 1)
 		end
 	end
 
-	return num
+	return math.pow(2, exp) * (1 + num)
 end
 
 -- final range is bitsExponent + bitsMantissa + 2
 -- where 2 is two bits which one forwards number sign and one forward exponent sign
 function bitworker.FloatToBinaryIEEE(numberIn, bitsExponent, bitsMantissa)
-	if not isValidNumber(numberIn) then
+	if not isValidNumber(numberIn) or numberIn == 0 then
 		local bits = {}
 
 		for i = 0, bitsExponent + bitsMantissa do
@@ -250,6 +253,17 @@ function bitworker.FloatToBinaryIEEE(numberIn, bitsExponent, bitsMantissa)
 end
 
 function bitworker.BinaryToFloatIEEE(bitsIn, bitsExponent, bitsMantissa)
+	local valid = false
+
+	for i = 1, #bitsIn do
+		if bitsIn[i] ~= 0 then
+			valid = true
+			break
+		end
+	end
+
+	if not valid then return 0 end
+
 	local forward = bitsIn[1]
 	local exponent = table.gcopyRange(bitsIn, 2, 2 + bitsExponent - 1)
 	local exp = bitworker.BinaryToUInteger(exponent)
@@ -262,6 +276,25 @@ function bitworker.BinaryToFloatIEEE(bitsIn, bitsExponent, bitsMantissa)
 	else
 		return -value
 	end
+end
+
+function bitworker.BitsToBytes(bitsIn)
+	assert(#bitsIn % 8 == 0, 'Not full bytes')
+	local output = {}
+
+	for i = 1, #bitsIn / 8 do
+		output[i] =
+			bitsIn[(i - 1) * 8 + 8] +
+			bitsIn[(i - 1) * 8 + 7] * 2 +
+			bitsIn[(i - 1) * 8 + 6] * 4 +
+			bitsIn[(i - 1) * 8 + 5] * 8 +
+			bitsIn[(i - 1) * 8 + 4] * 16 +
+			bitsIn[(i - 1) * 8 + 3] * 32 +
+			bitsIn[(i - 1) * 8 + 2] * 64 +
+			bitsIn[(i - 1) * 8 + 1] * 128
+	end
+
+	return output
 end
 
 return bitworker
