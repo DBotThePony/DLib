@@ -275,12 +275,6 @@ function meta:RegisterVehicleVariable(var, funcName, default)
 	return newSelf
 end
 
-function meta:CreateScalableFont(fontBase, fontData)
-	fontData.osize = fontData.size
-	fontData.size = math.floor(ScreenScale(fontData.size * 0.6) + 0.5)
-	return self:CreateFont(fontBase, fontData)
-end
-
 function meta:SetAllFontsTo(fontTarget)
 	for i, cvar in ipairs(self.fontCVars.font) do
 		cvar:SetString(fontTarget)
@@ -329,6 +323,12 @@ function meta:ResetFontsWeight()
 	for i, cvar in ipairs(self.fontCVars.weight) do
 		cvar:Reset()
 	end
+end
+
+function meta:CreateScalableFont(fontBase, fontData)
+	fontData.osize = fontData.size
+	fontData.size = math.floor(ScreenScale(fontData.size * 0.6) + 0.5)
+	return self:CreateFont(fontBase, fontData)
 end
 
 function meta:CreateFont(fontBase, fontData)
@@ -386,14 +386,14 @@ function meta:CreateFont(fontBase, fontData)
 		do
 			local newData = table.Copy(fontData)
 			newData.scanlines = 4
-			newData.blursize = 8
+			newData.blursize = fontData.size / 8
 			surface.CreateFont(fontNames.STRIKE, newData)
 		end
 
 		do
 			local newData = table.Copy(fontData)
 			newData.scanlines = 4
-			newData.blursize = 16
+			newData.blursize = fontData.size / 4
 			surface.CreateFont(fontNames.BLURRY_STRIKE, newData)
 		end
 
@@ -401,19 +401,19 @@ function meta:CreateFont(fontBase, fontData)
 			local newData = table.Copy(fontData)
 			newData.italic = true
 			newData.scanlines = 4
-			newData.blursize = 16
+			newData.blursize = fontData.size / 2
 			surface.CreateFont(fontNames.BLURRY_STRIKE_ITALIC, newData)
 		end
 
 		do
 			local newData = table.Copy(fontData)
-			newData.blursize = 8
+			newData.blursize = fontData.size / 8
 			surface.CreateFont(fontNames.BLURRY, newData)
 		end
 
 		do
 			local newData = table.Copy(fontData)
-			newData.blursize = 4
+			newData.blursize = fontData.size / 16
 			surface.CreateFont(fontNames.BLURRY_ROUGH, newData)
 		end
 
