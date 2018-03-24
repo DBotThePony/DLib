@@ -177,7 +177,6 @@ function bitworker.NumberToMantiss(numberIn, bitsAllowed)
 		return bits
 	end
 
-	local bits = {}
 	local exp = 0
 	numberIn = math.abs(numberIn)
 	local lastMult = numberIn % 1
@@ -199,9 +198,13 @@ function bitworker.NumberToMantiss(numberIn, bitsAllowed)
 		end
 	end
 
+	-- if number is not a zero, it is known amoung all computers that
+	-- first bit of mantissa is always 1
+	-- so let's assume so
 	numberIn = numberIn - 1
 
-	while bitsAllowed > #bits do
+	local bits = {}
+	for i = 1, bitsAllowed do
 		numberIn = numberIn * 2
 
 		if numberIn >= 1 then
