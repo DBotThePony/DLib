@@ -65,7 +65,7 @@ local function wrap(compiled, environment, accessGlobal, global)
 
 		if not meta.__index then
 			function meta:__index(key)
-				local val = environment[key]
+				local val = rawget(environment, key)
 
 				if val ~= nil then
 					return val
