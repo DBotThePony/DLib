@@ -246,7 +246,7 @@ function meta:Disable()
 	end
 
 	for id, data in pairs(self.chooks) do
-		hook.Remove(data[1], id)
+		hook.Remove(data[1], data[2])
 	end
 
 	self:CallOnDisabled()
