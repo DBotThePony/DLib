@@ -38,6 +38,7 @@ DLib.module = DLib.simpleInclude('core/module.lua')
 DLib.manifest = DLib.simpleInclude('core/manifest.lua')
 DLib.MessageMaker = DLib.simpleInclude('util/message.lua')
 DLib.MessageMaker(DLib, 'DLib')
+DLib.register('core/sandbox.lua')
 
 DLib.CMessage = DLib.MessageMaker
 DLib.ConstructMessage = DLib.MessageMaker
