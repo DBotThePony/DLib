@@ -181,33 +181,32 @@ function bitworker.NumberToMantiss(numberIn, bitsAllowed)
 	local exp = 0
 	numberIn = math.abs(numberIn)
 	local lastMult = numberIn % 1
-	numberIn = numberIn - lastMult
 
-	while numberIn >= 1 and bitsAllowed > #bits do
-		local div = numberIn / 2
-		local num = div % 1
-
-		if num ~= 0 and numberIn ~= 1 then
-			table_insert(bits, 1)
-		else
-			table_insert(bits, 0)
-		end
-
-		if numberIn ~= 1 then
+	if numberIn >= 2 then
+		-- try to normalize number to be less than 2
+		-- shift to right
+		while numberIn >= 2 do
+			numberIn = numberIn / 2
 			exp = exp + 1
 		end
-
-		numberIn = numberIn - div - num
 	end
 
-	bits = table.flip(bits)
+	-- if our number is less than one, shift to left
+	if exp == 0 and numberIn < 1 then
+		while numberIn < 1 do
+			numberIn = numberIn * 2
+			exp = exp - 1
+		end
+	end
+
+	numberIn = numberIn - 1
 
 	while bitsAllowed > #bits do
-		lastMult = lastMult * 2
+		numberIn = numberIn * 2
 
-		if lastMult >= 1 then
+		if numberIn >= 1 then
 			table_insert(bits, 1)
-			lastMult = lastMult - 1
+			numberIn = numberIn - 1
 		else
 			table_insert(bits, 0)
 		end
@@ -222,7 +221,7 @@ function bitworker.MantissToNumber(bitsIn, exp)
 
 	for i = 1, #bitsIn do
 		if bitsIn[i] == 1 then
-			num = num + math.pow(2, -i + 1)
+			num = num + math.pow(2, -i)
 		end
 	end
 
