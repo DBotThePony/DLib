@@ -40,6 +40,10 @@ DLib.MessageMaker = DLib.simpleInclude('util/message.lua')
 DLib.MessageMaker(DLib, 'DLib')
 DLib.register('core/sandbox.lua')
 
+if jit then
+	jit.vmdef = DLib.simpleInclude('core/vmdef.lua')
+end
+
 DLib.CMessage = DLib.MessageMaker
 DLib.ConstructMessage = DLib.MessageMaker
 
