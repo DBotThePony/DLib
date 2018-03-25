@@ -27,6 +27,33 @@ function combat.findWeapon(dmginfo)
 	return weapon, attacker, inflictor
 end
 
+local function interval(val, min, max)
+	return val > min and val <= max
+end
+
+function combat.inPVS(point1, point2, eyes, yawLimit, pitchLimit)
+	if type(point1) ~= 'Vector' then
+		if point1.EyeAngles then
+			eyes = eyes or point1:EyeAngles()
+		end
+
+		point1 = point1:EyePos()
+	end
+
+	if type(point2) ~= 'Vector' then
+		point2 = point2:EyePos()
+	end
+
+	yawLimit = yawLimit or 60
+	pitchLimit = pitchLimit or 60
+
+	local ang = (point2 - point1):Angle()
+	local diffPith = ang.p:AngleDifference(eyes.p)
+	local diffYaw = ang.y:AngleDifference(eyes.y)
+
+	return interval(diffYaw, -yawLimit, yawLimit) and interval(diffPith, -pitchLimit, pitchLimit)
+end
+
 function combat.findWeaponAlt(dmginfo)
 	local attacker, inflictor = dmginfo:GetAttacker(), dmginfo:GetInflictor()
 	local weapon = inflictor
