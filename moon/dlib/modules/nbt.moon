@@ -183,6 +183,7 @@ class DLib.NBT.TagArrayBased extends DLib.NBT.Base
 		@AddValue(value) for value in *values
 
 	GetArray: => @array
+	GetValue: => [tag\GetValue() for tag in *@array]
 	CopyArray: => [tag for tag in *@array]
 
 	AddValue: (value) =>
@@ -334,7 +335,12 @@ class DLib.NBT.TagCompound extends DLib.NBT.Base
 
 	AddTag: (key = '', value) =>
 		@table[tostring(key)] = value
+		value\SetTagName(key)
 		return @
+
+	SetTag: (...) => @AddTag(...)
+	SetTag2: (...) => @AddTag2(...)
+
 	AddTag2: (key = '', value) =>
 		@AddTag(key, value)
 		return value
@@ -342,6 +348,11 @@ class DLib.NBT.TagCompound extends DLib.NBT.Base
 	RemoveTag: (key = '') =>
 		@table[tostring(key)] = nil
 		return @
+
+	GetValue: => error('You cant call GetValue on NBTTagCompound!')
+	iterate: => pairs @table
+	iterator: => pairs @table
+	pairs: => pairs @table
 	HasTag: (key = '') => @table[tostring(key)] ~= nil
 	GetTag: (key = '') => @table[tostring(key)]
 	GetTagValue: (key = '') => @table[tostring(key)]\GetValue()
