@@ -217,6 +217,19 @@ class DLib.NBT.TagIntArray extends DLib.NBT.TagArrayBased
 	GetType: => 'array_ints'
 	MetaName: 'NBTArrayInt'
 
+class DLib.NBT.TagLongArray extends DLib.NBT.TagArrayBased
+	@FIELD_LENGTH = 8
+	@RANGE = 4
+
+	AddValue: (value) =>
+		@length += 1
+		table.insert(@GetArray(), DLib.NBT.TagLong('long', value))
+		return @
+	ReadTag: (bytesbuffer) => DLib.NBT.TagLong('long')\Deserialize(bytesbuffer)
+	@NAME = 'TAG_Long_Array'
+	GetType: => 'array_longs'
+	MetaName: 'NBTArrayLong'
+
 class DLib.NBT.TagList extends DLib.NBT.TagArrayBased
 	@FIELD_LENGTH = -1
 	@RANGE = 4
@@ -351,6 +364,7 @@ TypeID = {
 	TAG_List: 9
 	TAG_Compound: 10
 	TAG_Int_Array: 11
+	TAG_Long_Array: 12
 }
 
 Typed[TypeID[classname.NAME]] = classname for k, classname in pairs DLib.NBT when TypeID[classname.NAME]
