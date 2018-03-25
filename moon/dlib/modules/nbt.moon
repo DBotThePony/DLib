@@ -380,8 +380,11 @@ class DLib.NBT.TagCompound extends DLib.NBT.Base
 	AddInt: (key = '', value) => @AddTag(key, DLib.NBT.TagInt(key, value))
 	AddFloat: (key = '', value) => @AddTag(key, DLib.NBT.TagFloat(key, value))
 	AddDouble: (key = '', value) => @AddTag(key, DLib.NBT.TagDouble(key, value))
+	AddLong: (key = '', value) => @AddTag(key, DLib.NBT.TagLong(key, value))
 	AddString: (key = '', value) => @AddTag(key, DLib.NBT.TagString(key, value))
 	AddByteArray: (key = '', values) => @AddTag2(key, DLib.NBT.TagByteArray(key, value))
+	AddIntArray: (key = '', values) => @AddTag2(key, DLib.NBT.TagIntArray(key, value))
+	AddLongArray: (key = '', values) => @AddTag2(key, DLib.NBT.TagLongArray(key, value))
 	AddTagList: (key = '', tagID, values) => @AddTag2(key, DLib.NBT.TagList(key, tagID, value))
 	AddTagCompound: (key = '', values) => @AddTag2(key, DLib.NBT.TagCompound(key, value))
 	AddTypedValue: (key = '', value) =>
