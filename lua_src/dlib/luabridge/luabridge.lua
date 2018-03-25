@@ -89,6 +89,16 @@ if CLIENT then
 
 	timer.Create('DLib.DrawWeaponSelection', 10, 0, updateWeaponFix)
 	updateWeaponFix()
+
+	local vgui = vgui
+	vgui.CreateC = vgui.CreateC or vgui.Create
+
+	function vgui.Create(...)
+		local pnl = vgui.CreateC(...)
+		if not pnl then return end
+		hook.Run('VGUIPanelCreated', pnl, ...)
+		return pnl
+	end
 end
 
 local CSoundPatch = FindMetaTable('CSoundPatch')
