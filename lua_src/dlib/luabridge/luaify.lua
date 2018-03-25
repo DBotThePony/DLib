@@ -17,6 +17,7 @@
 
 if SERVER then return end
 
+local DLib = DLib
 _G.FrameNumberC = FrameNumberC or FrameNumber
 local FrameNumberC = FrameNumberC
 _G.RealTimeC = RealTimeC or RealTime
@@ -24,24 +25,24 @@ local RealTimeC = RealTimeC
 _G.CurTimeC = CurTimeC or CurTime
 local CurTimeC = CurTimeC
 
-local rTime = RealTimeC()
-local cTime = CurTimeC()
-local frameNum = FrameNumberC()
+DLib.luaify_rTime = RealTimeC()
+DLib.luaify_cTime = CurTimeC()
+DLib.luaify_frameNum = FrameNumberC()
 
 function _G.RealTime()
-	return rTime
+	return DLib.luaify_rTime
 end
 
 function _G.FrameNumber()
-	return frameNum
+	return DLib.luaify_frameNum
 end
 
 function _G.CurTime()
-	return cTime
+	return DLib.luaify_cTime
 end
 
 hook.Add('PreRender', 'DLib.UpdateFrameOptions', function()
-	rTime = RealTimeC()
-	cTime = CurTimeC()
-	frameNum = FrameNumberC()
+	DLib.luaify_rTime = RealTimeC()
+	DLib.luaify_cTime = CurTimeC()
+	DLib.luaify_frameNum = FrameNumberC()
 end, -9)
