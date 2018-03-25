@@ -77,6 +77,8 @@ class DLib.NBT.Base
 	IsIntArray: => @Name() == 'TAG_Int_Array'
 	IsLongArray: => @Name() == 'TAG_Long_Array'
 
+	__tostring: => @Name() .. '[' .. @GetTagName() .. '][' .. tostring(@value) .. ']'
+
 class DLib.NBT.TagEnd extends DLib.NBT.Base
 	Serialize: (bytesbuffer) => @
 	Deserialize: (bytesbuffer) => @
@@ -185,7 +187,13 @@ class DLib.NBT.TagArrayBased extends DLib.NBT.Base
 	@FIELD_LENGTH = 1
 	@RANGE = 4
 
-	new: (name = 'array', values = {}) =>
+	new: (name, values) =>
+		if values == nil and name ~= nil
+			values = name
+			name = 'array'
+		elseif name == nil and values == nil
+			name = 'array'
+			values = {}
 		super(name, -1)
 		@array = {}
 		@AddValue(value) for value in *values
@@ -216,6 +224,8 @@ class DLib.NBT.TagArrayBased extends DLib.NBT.Base
 	@NAME = 'TAG_Array'
 	GetType: => 'array_undefined'
 	MetaName: 'NBTArray'
+
+	__tostring: => @Name() .. '[' .. @GetTagName() .. '][' .. @length .. ']{' .. tostring(@array) .. '}'
 
 class DLib.NBT.TagByteArray extends DLib.NBT.TagArrayBased
 	@FIELD_LENGTH = 1
@@ -357,6 +367,7 @@ class DLib.NBT.TagCompound extends DLib.NBT.Base
 		@table[tostring(key)] = nil
 		return @
 
+	__tostring: => @Name() .. '[' .. @GetTagName() .. '][?]{' .. tostring(@table) .. '}'
 	GetValue: => error('You cant call GetValue on NBTTagCompound!')
 	iterate: => pairs @table
 	iterator: => pairs @table
