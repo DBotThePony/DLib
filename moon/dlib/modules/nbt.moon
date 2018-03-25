@@ -19,11 +19,18 @@ jit.on()
 DLib.NBT = {}
 
 class DLib.NBT.Base
-	new: (name = 'tag', value = 0) =>
+	new: (name, value) =>
+		if value == nil and name ~= nil
+			value = name
+			name = 'tag'
+		elseif name == nil and value == nil
+			name = 'tag'
+			value = @GetDefault()
 		@length = 0 if not @length
 		@value = value
 		@name = name
 
+	GetDefault: => 0
 	GetLength: => @length
 	CheckValue: (value) => assert(type(value) ~= 'nil', 'value can not be nil')
 	GetValue: => @value
@@ -167,6 +174,7 @@ class DLib.NBT.TagString extends DLib.NBT.Base
 		@value = bytesbuffer\ReadBinary(@length)
 		return @
 
+	GetDefault: => ''
 	GetLength: => #@value
 	GetPayload: => 2 + @GetLength()
 	@NAME = 'TAG_String'
