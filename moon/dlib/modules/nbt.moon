@@ -324,6 +324,7 @@ class DLib.NBT.TagCompound extends DLib.NBT.Base
 	RemoveTag: (key = '') =>
 		@table[tostring(key)] = nil
 		return @
+	HasTag: (key = '') => @table[tostring(key)] ~= nil
 	GetTag: (key = '') => @table[tostring(key)]
 	GetTagValue: (key = '') => @table[tostring(key)]\GetValue()
 	AddByte: (key = '', value) => @AddTag(key, DLib.NBT.TagByte(key, value))
