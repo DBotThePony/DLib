@@ -54,6 +54,22 @@ class DLib.NBT.Base
 	GetType: => 'undefined'
 	MetaName: 'NBTBase'
 
+	IsBase: => @Name() == 'TAG_Base'
+	IsEnd: => @Name() == 'TAG_End'
+	IsByte: => @Name() == 'TAG_Byte'
+	IsShort: => @Name() == 'TAG_Short'
+	IsInt: => @Name() == 'TAG_Int'
+	IsLong: => @Name() == 'TAG_Long'
+	IsFloat: => @Name() == 'TAG_Float'
+	IsDouble: => @Name() == 'TAG_Double'
+	IsByteArray: => @Name() == 'TAG_Byte_Array'
+	IsString: => @Name() == 'TAG_String'
+	IsList: => @Name() == 'TAG_List'
+	IsTagCompound: => @Name() == 'TAG_Compound'
+	IsCompound: => @Name() == 'TAG_Compound'
+	IsIntArray: => @Name() == 'TAG_Int_Array'
+	IsLongArray: => @Name() == 'TAG_Long_Array'
+
 class DLib.NBT.TagEnd extends DLib.NBT.Base
 	Serialize: (bytesbuffer) => @
 	Deserialize: (bytesbuffer) => @
