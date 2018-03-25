@@ -368,7 +368,7 @@ class DLib.NBT.TagCompound extends DLib.NBT.Base
 		return @
 
 	__tostring: => @Name() .. '[' .. @GetTagName() .. '][?]{' .. tostring(@table) .. '}'
-	GetValue: => error('You cant call GetValue on NBTTagCompound!')
+	GetValue: => {key, tag\GetValue() for key, tag in pairs @table}
 	iterate: => pairs @table
 	iterator: => pairs @table
 	pairs: => pairs @table
