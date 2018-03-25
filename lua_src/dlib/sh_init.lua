@@ -41,7 +41,10 @@ DLib.MessageMaker(DLib, 'DLib')
 DLib.register('core/sandbox.lua')
 
 if jit then
-	jit.vmdef = DLib.simpleInclude('core/vmdef.lua')
+	local vmdef = CompileFile('dlib/core/vmdef.lua')
+	jit.vmdef = nil
+	vmdef('jit_vmdef')
+	jit.vmdef = jit_vmdef
 end
 
 DLib.CMessage = DLib.MessageMaker

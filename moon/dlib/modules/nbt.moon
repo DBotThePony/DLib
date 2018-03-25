@@ -15,6 +15,7 @@
 
 import assert, error, DLib, table, type from _G
 
+jit.on()
 DLib.NBT = {}
 
 class DLib.NBT.Base
@@ -272,10 +273,11 @@ class DLib.NBT.TagList extends DLib.NBT.TagArrayBased
 	MetaName: 'NBTList'
 
 class DLib.NBT.TagCompound extends DLib.NBT.Base
-	new: (name = 'data', values = {}) =>
+	new: (name = 'data', values) =>
 		super(name, -1)
 		@table = {}
-		@AddTypedValue(key, value) for key, value in pairs values
+		if values
+			@AddTypedValue(key, value) for key, value in pairs values
 
 	ReadFile: (bytesbuffer) =>
 		assert(bytesbuffer\ReadUByte() == 10, 'invalid header')
@@ -377,5 +379,9 @@ DLib.NBT.TYPEID = TypeID
 DLib.NBT.TYPED = Typed
 DLib.NBT.TYPED_BY_ID = TypedByID
 
-DLib.NBT.GetTyped = (index = 0) -> assert(Typed[index], 'invalid tag id specified - ' .. index)
-DLib.NBT.GetTypedID = (id = 'TAG_Byte') -> assert(TypedByID[id], 'invalid tag string id specified - '.. index)
+DLib.NBT.GetTyped = (index = 0) ->
+	error('invalid tag id specified - ' .. index) if not Typed[index]
+	Typed[index]
+DLib.NBT.GetTypedID = (id = 'TAG_Byte') ->
+	error('invalid tag string id specified - '.. index) if not TypedByID[id]
+	TypedByID[id]

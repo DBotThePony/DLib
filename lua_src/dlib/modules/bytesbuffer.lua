@@ -13,6 +13,7 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
+jit.on()
 local DLib = DLib
 local meta = FindMetaTable('LBytesBuffer') or {}
 debug.getregistry().LBytesBuffer = meta
@@ -208,7 +209,9 @@ function meta:WriteUInt64(valueIn)
 end
 
 function meta:CheckOverflow(name, moveBy)
-	assert(self.pointer + moveBy <= self.length, 'Read' .. name .. ' - bytes amount overflow (' .. self.pointer .. ' + ' .. moveBy .. ' vs ' .. self.length .. ')')
+	if self.pointer + moveBy > self.length then
+		error('Read' .. name .. ' - bytes amount overflow (' .. self.pointer .. ' + ' .. moveBy .. ' vs ' .. self.length .. ')')
+	end
 end
 
 function meta:ReadByte_2()
