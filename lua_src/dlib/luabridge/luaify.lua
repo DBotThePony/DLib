@@ -15,6 +15,8 @@
 
 -- make some functions be jit compilable
 
+if SERVER then return end
+
 _G.FrameNumberC = FrameNumberC or FrameNumber
 local FrameNumberC = FrameNumberC
 _G.RealTimeC = RealTimeC or RealTime
