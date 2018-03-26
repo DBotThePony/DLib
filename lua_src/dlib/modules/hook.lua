@@ -415,7 +415,79 @@ local function Run(...)
 	return hook.Run2(...)
 end
 
+local __breakage1 = {
+	'HUDPaint',
+	'PreDrawHUD',
+	'PostDrawHUD',
+	'Initialize',
+	'InitPostEntity',
+	'PreGamemodeInit',
+	'PostGamemodeInit',
+	'PostGamemodeInitialize',
+	'PreGamemodeInitialize',
+	'PostGamemodeLoaded',
+	'PreGamemodeLoaded',
+	'PostRenderVGUI',
+	'OnGamemodeLoaded',
+}
+
+local __breakage = {}
+
+for i, str in ipairs(__breakage1) do
+	__breakage[str] = true
+end
+
+-- these hooks can't return any values
+hook.StaticHooks = __breakage
+
+function hook.CallStatic(event, hookTable, ...)
+	local post = __tableModifiersPostOptimized[event]
+	local events = __tableOptimized[event]
+
+	if events == nil then
+		if hookTable == nil then
+			return
+		end
+
+		local gamemodeFunction = hookTable[event]
+
+		if gamemodeFunction == nil then
+			return
+		end
+
+		return gamemodeFunction(hookTable, ...)
+	end
+
+	local i = 1
+	local nextevent = events[i]
+
+	::loop::
+	nextevent(...)
+	i = i + 1
+	nextevent = events[i]
+
+	if nextevent ~= nil then
+		goto loop
+	end
+
+	if hookTable == nil then
+		return
+	end
+
+	local gamemodeFunction = hookTable[event]
+
+	if gamemodeFunction == nil then
+		return
+	end
+
+	return gamemodeFunction(hookTable, ...)
+end
+
 function hook.Call2(event, hookTable, ...)
+	if __breakage[event] == true then
+		return hook.CallStatic(event, hookTable, ...)
+	end
+
 	local post = __tableModifiersPostOptimized[event]
 	local events = __tableOptimized[event]
 
