@@ -41,7 +41,7 @@ end
 
 function plyMeta:IsFriend(target)
 	local f = self:GetFriendStatus(target)
-	return f == 'friend' or f == 'requested'
+	return f == 'friend'
 end
 
 local function checkFriendDisable(self)
@@ -59,12 +59,12 @@ function plyMeta:IsFriend2(target)
 	if not checkFriendDisable(target) then return false end
 
 	local f = self:GetFriendStatus(target)
-	return f == 'friend' or f == 'requested'
+	return f == 'friend'
 end
 
 function plyMeta:IsSteamFriend(target)
 	local f = self:GetFriendStatus(target)
-	return f == 'friend' or f == 'requested'
+	return f == 'friend'
 end
 
 function plyMeta:IsSteamFriend2(target)
@@ -72,7 +72,7 @@ function plyMeta:IsSteamFriend2(target)
 	if not checkFriendDisable(target) then return false end
 
 	local f = self:GetFriendStatus(target)
-	return f == 'friend' or f == 'requested'
+	return f == 'friend'
 end
 
 function plyMeta:IsSteamBlocked(target)
