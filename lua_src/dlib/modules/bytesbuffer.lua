@@ -436,7 +436,7 @@ function meta:ToFileStream(fileStream)
 	::loop::
 	i = i + 1
 
-	fileStream:WriteByte(bytes[i])
+	fileStream:WriteByte(self.bytes[i])
 
 	if i < bytes then
 		goto loop
