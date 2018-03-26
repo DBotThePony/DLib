@@ -137,9 +137,15 @@ function string.bchar(...)
 
 	local input = {...}
 	local output = ''
+	local i = -799
 
-	for i = 1, bytes, 800 do
-		output = output .. string.char(unpack(input, i, math.min(i + 799, bytes)))
+	::loop::
+	i = i + 800
+
+	output = output .. string.char(unpack(input, i, math.min(i + 799, bytes)))
+
+	if i + 799 < bytes then
+		goto loop
 	end
 
 	return output
@@ -147,25 +153,32 @@ end
 
 function string.bcharTable(input)
 	local bytes = #input
+	if bytes == 0 then return '' end
 
 	if bytes < 800 then
 		return string.char(unpack(input))
 	end
 
 	local output = ''
+	local i = -799
 
-	for i = 1, bytes, 800 do
-		local status, output2 = pcall(string.char, unpack(input, i, math.min(i + 799, bytes)))
+	::loop::
+	i = i + 800
 
-		if not status then
-			for i2 = i, math.min(i + 799, bytes) do
-				if input[i2] < 0 or input[i2] > 255 then
-					error(output2 .. ' (' .. input[i2] .. ')')
-				end
+	local status, output2 = pcall(string.char, unpack(input, i, math.min(i + 799, bytes)))
+
+	if not status then
+		for i2 = i, math.min(i + 799, bytes) do
+			if input[i2] < 0 or input[i2] > 255 then
+				error(output2 .. ' (' .. input[i2] .. ')')
 			end
 		end
+	end
 
-		output = output .. output2
+	output = output .. output2
+
+	if i + 799 < bytes then
+		goto loop
 	end
 
 	return output
@@ -181,8 +194,15 @@ function string.bbyte(strIn, sliceStart, sliceEnd)
 
 	local output = table()
 
-	for i = sliceStart, sliceEnd, 800 do
-		output:append({string.byte(strIn, i, math.min(i + 799, sliceEnd))})
+	local i = sliceStart - 800
+
+	::loop::
+	i = i + 800
+
+	output:append({string.byte(strIn, i, math.min(i + 799, sliceEnd))})
+
+	if i + 799 < sliceEnd then
+		goto loop
 	end
 
 	return output
