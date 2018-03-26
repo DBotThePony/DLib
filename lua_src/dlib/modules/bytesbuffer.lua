@@ -397,3 +397,11 @@ end
 function meta:ToString()
 	return DLib.string.bcharTable(self.bytes)
 end
+
+function meta:ToFileStream(fileStream)
+	for i, byte in ipairs(self.bytes) do
+		fileStream:WriteByte()
+	end
+
+	return fileStream
+end
