@@ -189,19 +189,31 @@ function string.bbyte(strIn, sliceStart, sliceEnd)
 	local delta = sliceEnd - sliceStart
 
 	if delta < 800 then
-		return {strIn:byte(sliceStart, sliceEnd)}
+		local i = sliceStart - 1
+		local output = {}
+
+		::loop1::
+		i = i + 1
+
+		table.insert(output, strIn:byte(i, i))
+
+		if i < sliceEnd then
+			goto loop1
+		end
+
+		return output
 	end
 
-	local output = table()
+	local output = {}
 
-	local i = sliceStart - 800
+	local i = sliceStart - 1
 
 	::loop::
-	i = i + 800
+	i = i + 1
 
-	output:append({string.byte(strIn, i, math.min(i + 799, sliceEnd))})
+	table.insert(output, strIn:byte(i, i))
 
-	if i + 799 < sliceEnd then
+	if i < sliceEnd then
 		goto loop
 	end
 
