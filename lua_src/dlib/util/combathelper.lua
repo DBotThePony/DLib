@@ -33,7 +33,9 @@ end
 
 function combat.inPVS(point1, point2, eyes, yawLimit, pitchLimit)
 	if type(point1) ~= 'Vector' then
-		if point1.EyeAngles then
+		if point1.EyeAnglesFixed then
+			eyes = eyes or point1:EyeAnglesFixed()
+		elseif point1.EyeAngles then
 			eyes = eyes or point1:EyeAngles()
 		end
 
