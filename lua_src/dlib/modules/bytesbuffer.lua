@@ -429,8 +429,17 @@ function meta:ToString()
 end
 
 function meta:ToFileStream(fileStream)
-	for i, byte in ipairs(self.bytes) do
-		fileStream:WriteByte()
+	local bytes = #self.bytes
+	if bytes == 0 then return fileStream end
+	local i = 0
+
+	::loop::
+	i = i + 1
+
+	fileStream:WriteByte(bytes[i])
+
+	if i < bytes then
+		goto loop
 	end
 
 	return fileStream
