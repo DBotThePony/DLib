@@ -83,6 +83,21 @@ function plyMeta:GetInfoFloat(convar, ifNone)
 	return tonumber(info or ifNone) or ifNone
 end
 
+local LocalPlayer = LocalPlayer
+local SERVER = SERVER
+
+function plyMeta:EyeAnglesFixed()
+	if SERVER or self ~= LocalPlayer() then
+		return self:EyeAngles()
+	end
+
+	if not self:InVehicle() then
+		return self:EyeAngles()
+	end
+
+	return self:GetVehicle():GetAngles() + self:EyeAngles()
+end
+
 function plyMeta:GetInfoBool(convar, ifNone)
 	if ifNone == nil then ifNone = false end
 	local info = self:GetInfoDLib(convar)
