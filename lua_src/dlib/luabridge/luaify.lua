@@ -63,10 +63,10 @@ function _G.ScrH()
 end
 
 function _G.render.SetViewPort(x, y, w, h)
-	assert(type(w) == 'number' and w > 0, 'invalid W value')
-	assert(type(h) == 'number' and h > 0, 'invalid H value')
-	assert(type(x) == 'number' and x > 0, 'invalid X value')
-	assert(type(y) == 'number' and y > 0, 'invalid Y value')
+	assert(type(w) == 'number' and w >= 0, 'invalid W value')
+	assert(type(h) == 'number' and h >= 0, 'invalid H value')
+	assert(type(x) == 'number' and x >= 0, 'invalid X value')
+	assert(type(y) == 'number' and y >= 0, 'invalid Y value')
 	DLib.luaify_scrw = w
 	DLib.luaify_scrh = h
 	return render.SetViewPortC(x, y, w, h)
