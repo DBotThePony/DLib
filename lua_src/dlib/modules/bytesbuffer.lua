@@ -325,14 +325,23 @@ end
 -- String
 function meta:WriteString(stringIn)
 	assertType(stringIn, 'string', 'WriteString')
+	if #stringIn == 0 then return self end
+	local bytes = DLib.string.bbyte(stringIn, 1, #stringIn)
+	local i = 0
+	local len = #bytes
 
-	for i, byte in ipairs(DLib.string.bbyte(stringIn, 1, #stringIn)) do
-		if byte == 0 then
-			error('Binary data in a string?!')
-		end
+	::loop::
+	i = i + 1
 
-		self.pointer = self.pointer + 1
-		self.bytes[self.pointer] = byte
+	if bytes[i] == 0 then
+		error('Binary data in a string?!')
+	end
+
+	self.pointer = self.pointer + 1
+	self.bytes[self.pointer] = bytes[i]
+
+	if i < len then
+		goto loop
 	end
 
 	self.pointer = self.pointer + 1
@@ -347,14 +356,18 @@ function meta:ReadString()
 	local readNext = self.bytes[self.pointer]
 	local output = {}
 
-	while readNext ~= 0 and readNext ~= nil do
-		table.insert(output, readNext)
-		self.pointer = self.pointer + 1
-		readNext = self.bytes[self.pointer]
+	::loop::
 
-		if readNext == nil then
-			error('No NULL terminator was found, buffer overflow!')
-		end
+	table.insert(output, readNext)
+	self.pointer = self.pointer + 1
+	readNext = self.bytes[self.pointer]
+
+	if readNext == nil then
+		error('No NULL terminator was found, buffer overflow!')
+	end
+
+	if readNext ~= 0 and readNext ~= nil then
+		goto loop
 	end
 
 	return DLib.string.bcharTable(output)
@@ -364,9 +377,19 @@ end
 
 function meta:WriteBinary(binaryString)
 	assertType(binaryString, 'string', 'WriteBinary')
-	for i, byte in ipairs(DLib.string.bbyte(binaryString, 1, #binaryString)) do
-		self.pointer = self.pointer + 1
-		self.bytes[self.pointer] = byte
+	if #binaryString == 0 then return false end
+	local bytes = DLib.string.bbyte(binaryString, 1, #binaryString)
+	local len = #bytes
+	local i = 0
+
+	::loop::
+
+	i = i + 1
+	self.pointer = self.pointer + 1
+	self.bytes[self.pointer] = bytes[i]
+
+	if i < len then
+		goto loop
 	end
 
 	return self
@@ -374,14 +397,21 @@ end
 
 function meta:ReadBinary(readAmount)
 	assert(readAmount >= 0, 'Read amount must be positive')
-	if readAmount == 0 then return end
+	if readAmount == 0 then return '' end
 	self:CheckOverflow('Binary', readAmount)
 
 	local output = {}
 
-	for i = 1, readAmount do
-		self.pointer = self.pointer + 1
-		table.insert(output, self.bytes[self.pointer])
+	local i = 0
+
+	::loop::
+
+	i = i + 1
+	self.pointer = self.pointer + 1
+	table.insert(output, self.bytes[self.pointer])
+
+	if i < readAmount then
+		goto loop
 	end
 
 	return DLib.string.bcharTable(output)
