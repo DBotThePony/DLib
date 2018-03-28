@@ -120,6 +120,7 @@ local function ContinueMountGMA(path, listname, nolist, loadLua, bundle)
 	local time = SysTime()
 	local status, models = game.MountGMA(path)
 	local newTime = (SysTime() - time) * 1000
+	models = models or {}
 
 	if newTime < 500 and not mountingAll then
 		mountingAll = true
