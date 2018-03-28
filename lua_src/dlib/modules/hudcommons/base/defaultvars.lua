@@ -97,16 +97,20 @@ function meta:__InitVaribles()
 	self:RegisterVehicleVariable('vehicleHP3', 'GetCurHealth', 0)
 	self:RegisterVehicleVariable('vehicleHP4', 'GetCurrentHealth', 0)
 	self:RegisterVehicleVariable('vehicleHP5', 'GetVehicleHealth', 0)
+
 	self:RegisterVehicleVariable('vehicleMHP', 'GetMaxHealth', 0)
 	self:RegisterVehicleVariable('vehicleMHP2', 'GetMaxHP', 0)
+	self:RegisterVehicleVariable('vehicleMHP3', 'GetMaxVehicleHealth', 0)
+	self:RegisterVehicleVariable('vehicleMHP4', 'GetVehicleHealthMax', 0)
+	self:RegisterVehicleVariable('vehicleMHP5', 'GetVehicleMaxHealth', 0)
 end
 
 function meta:GetVarVehicleHealth()
-	return math.max(self:GetVarVehicleHP(), self:GetVarVehicleHP2(), self:GetVarVehicleHP3(), self:GetVarVehicleHP4(), self:GetVarVehicleHP5())
+	return math.max(self:GetVarVehicleHP(), self:GetVarVehicleHP2(), self:GetVarVehicleHP3(), self:GetVarVehicleHP4(), self:GetVarVehicleHP5()):floor()
 end
 
 function meta:GetVarVehicleMaxHealth()
-	return math.max(self:GetVarVehicleMHP(), self:GetVarVehicleMHP2())
+	return math.max(self:GetVarVehicleMHP(), self:GetVarVehicleMHP2(), self:GetVarVehicleMHP3(), self:GetVarVehicleMHP4(), self:GetVarVehicleMHP5()):floor()
 end
 
 function meta:GetVehicleHealthFillage()
