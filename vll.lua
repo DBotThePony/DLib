@@ -627,6 +627,7 @@ function VLL.__runString(str, err, handle)
 end
 
 function VLL.__realRequire(str)
+	str = str:lower()
 	if VLL.IsMyFile('includes/modules/' .. str .. '.lua') then
 		return VLL.Include('includes/modules/' .. str .. '.lua')
 	else
@@ -887,6 +888,7 @@ VLL.DEFAULT_COLOR = Color(200, 200, 200)
 VLL.WARN_COLOR = Color(255, 255, 0)
 
 function VLL.Include(path)
+	path = path:lower()
 	local sayFunc = VLL.SILENT_INCLUDE and VLL.EMPTY_FUNCTION or VLL.Message
 	local env = getfenv(2)
 	local dir = env.VLL_CURR_DIR
@@ -992,6 +994,7 @@ end
 VLL.REQUIRE_CACHE = VLL.REQUIRE_CACHE or {}
 
 function VLL.Require(File)
+	File = File:lower()
 	if VLL.REQUIRE_CACHE[File] ~= nil then
 		return unpack(VLL.REQUIRE_CACHE[File].data)
 	else
@@ -1006,6 +1009,7 @@ end
 
 function VLL.CSLua(File)
 	if not File then return end
+	File = File:lower()
 	local env = getfenv(2)
 	local path = env.VLL_CURR_DIR
 	if VLL.IsMyFile(File) or (path and VLL.IsMyFile(path .. '/' .. File)) then return end
@@ -1044,7 +1048,7 @@ function VLL.SaveFile(Path, Contents, Bundle)
 end
 
 function VLL.IsMyFile(File)
-	return VLL.FILE_MEMORY[File] ~= nil
+	return VLL.FILE_MEMORY[File:lower()] ~= nil
 end
 
 VLL.FileExists = VLL.IsMyFile
@@ -1282,6 +1286,7 @@ function VLL.module(name, ...)
 end
 
 function VLL.Compile(File)
+	File = File:lower()
 	local Env = {
 		file = fileFuncs,
 		print = VLL.__print,
