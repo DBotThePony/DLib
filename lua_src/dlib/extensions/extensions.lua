@@ -41,7 +41,7 @@ PhysObj.DLibEnableGravity = PhysObj.DLibEnableGravity or PhysObj.EnableGravity
 
 function PhysObj:SetMass(newMass)
 	if newMass <= 0 then
-		error('Mass can not be lower or equal to 0!', 2)
+		print(debug.traceback('Mass can not be lower or equal to 0!', 2))
 	end
 
 	return self:DLibSetMass(newMass)
@@ -55,7 +55,7 @@ function PhysObj:EnableCollisions(newStatus)
 	worldspawnPhys = worldspawnPhys or worldspawn:GetPhysicsObject()
 
 	if worldspawnPhys == self then
-		error('Attempt to call :EnableCollisions() on World PhysObj!', 2)
+		print(debug.traceback('Attempt to call :EnableCollisions() on World PhysObj!', 2))
 	end
 
 	return self:DLibEnableCollisions(newStatus)
