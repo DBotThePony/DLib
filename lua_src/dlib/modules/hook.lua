@@ -485,7 +485,8 @@ end
 
 function hook.Call2(event, hookTable, ...)
 	if __breakage[event] == true then
-		return hook.CallStatic(event, hookTable, ...)
+		hook.CallStatic(event, hookTable, ...)
+		return
 	end
 
 	local post = __tableModifiersPostOptimized[event]

@@ -18,6 +18,7 @@
 if SERVER then return end
 
 local DLib = DLib
+local update
 _G.FrameNumberC = FrameNumberC or FrameNumber
 local FrameNumberC = FrameNumberC
 _G.RealTimeC = RealTimeC or RealTime
@@ -27,6 +28,7 @@ local CurTimeC = CurTimeC
 
 _G.ScrWC = ScrWC or ScrW
 _G.ScrHC = ScrHC or ScrH
+_G.IsFirstTimePredictedC = IsFirstTimePredictedC or IsFirstTimePredicted
 render.SetViewPortC = render.SetViewPortC or render.SetViewPort
 
 local ScrWC = ScrWC
@@ -34,6 +36,7 @@ local ScrHC = ScrHC
 local render = render
 local type = type
 local assert = assert
+local IsFirstTimePredictedC = IsFirstTimePredictedC
 
 DLib.luaify_rTime = RealTimeC()
 DLib.luaify_cTime = CurTimeC()
@@ -41,6 +44,18 @@ DLib.luaify_frameNum = FrameNumberC()
 
 DLib.luaify_scrw = ScrWC()
 DLib.luaify_scrh = ScrHC()
+DLib.pstatus = false
+
+function _G.IsFirstTimePredicted()
+	local status = IsFirstTimePredictedC()
+
+	if status ~= DLib.pstatus then
+		DLib.pstatus = status
+		update()
+	end
+
+	return status
+end
 
 function _G.RealTime()
 	return DLib.luaify_rTime
@@ -72,11 +87,16 @@ function _G.render.SetViewPort(x, y, w, h)
 	return render.SetViewPortC(x, y, w, h)
 end
 
-hook.Add('PreRender', 'DLib.UpdateFrameOptions', function()
+function update()
 	DLib.luaify_rTime = RealTimeC()
 	DLib.luaify_cTime = CurTimeC()
 	DLib.luaify_frameNum = FrameNumberC()
 
 	DLib.luaify_scrw = ScrWC()
 	DLib.luaify_scrh = ScrHC()
-end, -9)
+	DLib.pstatus = false
+end
+
+hook.Add('PreRender', 'DLib.UpdateFrameOptions', update, -9)
+hook.Add('Think', 'DLib.UpdateFrameOptions', update, -9)
+hook.Add('Tick', 'DLib.UpdateFrameOptions', update, -9)
