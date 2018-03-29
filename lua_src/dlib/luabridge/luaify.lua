@@ -82,10 +82,9 @@ function _G.render.SetViewPort(x, y, w, h)
 end
 
 function _G.render.PushRenderTarget(texture)
-	assert(type(texture) == 'ITexture', 'invalid texture specified')
-	DLib.luaify_scrw = texture:Width()
-	DLib.luaify_scrh = texture:Height()
-	return render.PushRenderTargetC(texture)
+	render.PushRenderTargetC(texture)
+	DLib.luaify_scrw = ScrWC()
+	DLib.luaify_scrh = ScrHC()
 end
 
 function _G.render.PopRenderTarget()
@@ -95,10 +94,9 @@ function _G.render.PopRenderTarget()
 end
 
 function _G.render.SetRenderTarget(texture)
-	assert(type(texture) == 'ITexture', 'invalid texture specified')
-	DLib.luaify_scrw = texture:Width()
-	DLib.luaify_scrh = texture:Height()
-	return render.SetRenderTargetC(texture)
+	render.SetRenderTargetC(texture)
+	DLib.luaify_scrw = ScrWC()
+	DLib.luaify_scrh = ScrHC()
 end
 
 function update()
