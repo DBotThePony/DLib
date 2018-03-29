@@ -21,6 +21,7 @@ local NULL = NULL
 local type = type
 local assert = assert
 local RealTime = RealTime
+local CurTime = CurTime
 local math = math
 local IsValid = FindMetaTable('Entity').IsValid
 
@@ -104,11 +105,11 @@ end
 
 function meta:TriggerGlitch(timeLong)
 	local old = self.glitchEnd
-	self.glitchEnd = math.max(self.glitchEnd, RealTime() + timeLong)
+	self.glitchEnd = math.max(self.glitchEnd, CurTime() + timeLong)
 
 	if not self.glitching then
 		self.glitching = true
-		self.glitchingSince = RealTime()
+		self.glitchingSince = CurTime()
 		self:CallOnGlitchStart(timeLong)
 		self:OnGlitchStart(timeLong)
 	end
@@ -117,11 +118,11 @@ function meta:TriggerGlitch(timeLong)
 end
 
 function meta:ExtendGlitch(timeLong)
-	self.glitchEnd = math.max(self.glitchEnd + timeLong, RealTime() + timeLong)
+	self.glitchEnd = math.max(self.glitchEnd + timeLong, CurTime() + timeLong)
 
 	if not self.glitching then
 		self.glitching = true
-		self.glitchingSince = RealTime()
+		self.glitchingSince = CurTime()
 		self:CallOnGlitchStart(timeLong)
 		self:OnGlitchStart(timeLong)
 	end
@@ -131,12 +132,12 @@ end
 
 function meta:ClampGlitchTime(maximal)
 	local old = self.glitchEnd
-	self.glitchEnd = self.glitchEnd:min(RealTime() + maximal)
+	self.glitchEnd = self.glitchEnd:min(CurTime() + maximal)
 	return self.glitchEnd ~= old
 end
 
 function meta:GlitchTimeRemaining()
-	return math.max(0, self.glitchEnd - RealTime())
+	return math.max(0, self.glitchEnd - CurTime())
 end
 
 function meta:GlitchingSince()
@@ -144,7 +145,7 @@ function meta:GlitchingSince()
 end
 
 function meta:GlitchingFor()
-	return RealTime() - self.glitchingSince
+	return CurTime() - self.glitchingSince
 end
 
 function meta:IsGlitching()
