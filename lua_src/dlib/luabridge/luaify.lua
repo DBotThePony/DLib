@@ -16,7 +16,7 @@
 -- make some functions be jit compilable
 
 if SERVER then return end
-if game.Singleplayer() then return end
+if game.SinglePlayer() then return end
 
 local DLib = DLib
 local update
@@ -83,6 +83,18 @@ function update()
 	DLib.luaify_scrw = ScrWC()
 	DLib.luaify_scrh = ScrHC()
 	DLib.pstatus = false
+end
+
+local luaified = {
+	'CurTime',
+	'FrameNumber',
+	'ScrW',
+	'ScrH',
+	'RealTime',
+}
+
+for i, func in ipairs(luaified) do
+	_G[func .. 'L'] = _G[func]
 end
 
 hook.Add('PreRender', 'DLib.UpdateFrameOptions', update, -9)
