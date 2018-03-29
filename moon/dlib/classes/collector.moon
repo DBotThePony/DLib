@@ -24,18 +24,18 @@ class DLib.Collector
 		@rebuild()
 
 	add: (val = @def, update = true) =>
-		time = CurTime()
+		time = CurTimeL()
 		@values[@nextvalue] = {val, time}
 		@nextvalue += 1
 		@nextvalue = 1 if @nextvalue > @steps
 		@update() if update
 
 	rebuild: =>
-		time = CurTime()
+		time = CurTimeL()
 		@values = [{@def, time} for i = 1, @steps]
 
 	update: =>
-		time = CurTime()
+		time = CurTimeL()
 		@values = for valData in *@values
 			if valData[2] + @timeout < time
 				{@def, time}

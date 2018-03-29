@@ -32,7 +32,7 @@ local ipairs = ipairs
 local pairs = pairs
 local table = table
 local math = math
-local ScrW, ScrH = ScrW, ScrH
+local ScrWL, ScrHL = ScrWL, ScrHL
 local surface = surface
 local string = string
 local DLib = DLib
@@ -133,7 +133,7 @@ surface.CreateFont('DLib.NetGraphLogo', {
 
 local function HUDPaint()
 	if net_graph:GetInt() < 5 then return end
-	local W, H = ScrW(), ScrH()
+	local W, H = ScrWL(), ScrHL()
 	local nodeStep = (W - 100) / net.GraphNodesMax
 	local abscissa = H * 0.75
 

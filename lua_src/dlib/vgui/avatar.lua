@@ -72,7 +72,7 @@ function PANEL:Think()
 
 	local hover = self:IsHovered()
 
-	local w, h = ScrW(), ScrH()
+	local w, h = ScrWL(), ScrHL()
 
 	if x + 204 >= w then
 		x = x - 214

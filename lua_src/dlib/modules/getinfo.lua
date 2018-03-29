@@ -17,7 +17,7 @@ local DLib = DLib
 local util = util
 local pairs = pairs
 local ipairs = ipairs
-local RealTime = RealTime
+local RealTimeL = RealTimeL
 local GetConVar = GetConVar
 local net = net
 local table = table
@@ -63,7 +63,7 @@ function getinfo.Replicate(cvarname, valuetype, default)
 	getinfo.bank[cvarname] = {
 		crc = crc,
 		uid = tonumber(crc),
-		created = RealTime(),
+		created = RealTimeL(),
 		cvar = GetConVar(cvarname),
 		default = default,
 		valuetype = valuetype,

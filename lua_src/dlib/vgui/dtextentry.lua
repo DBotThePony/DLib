@@ -17,7 +17,7 @@ local vgui = vgui
 local hook = hook
 local IsValid = IsValid
 local DLib = DLib
-local RealTime = RealTime
+local RealTimeL = RealTimeL
 local color_white = color_white
 local Color = Color
 local color_dlib = color_dlib
@@ -185,13 +185,13 @@ function PANEL:Ding(reason)
 	reason = reason or self.defaultReason
 	self.tooltipReason = reason
 
-	if self.tooltipTime - 1.95 > RealTime() then
-		self.tooltipTime = RealTime() + 1
+	if self.tooltipTime - 1.95 > RealTimeL() then
+		self.tooltipTime = RealTimeL() + 1
 		self.tooltip = true
 		return
 	end
 
-	self.tooltipTime = RealTime() + 2
+	self.tooltipTime = RealTimeL() + 2
 	--surface.PlaySound('resource/warning.wav')
 	self.tooltip = true
 end
@@ -205,7 +205,7 @@ surface.CreateFont('DLib_TextEntry_Warning', {
 function PANEL:PostRenderVGUI()
 	if not IsValid(self) then return end
 	if not self.tooltip then return end
-	local time = RealTime()
+	local time = RealTimeL()
 
 	if self.tooltipTime < time then
 		self.tooltip = false

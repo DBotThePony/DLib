@@ -30,7 +30,7 @@ class NotifyBase
 
 		@m_text = contents
 
-		@m_lastThink = CurTime!
+		@m_lastThink = CurTimeL!
 		@m_created = @m_lastThink
 		@m_start = @m_created
 		@m_finish = @m_start + @m_length
@@ -187,7 +187,7 @@ class NotifyBase
 
 		return @
 
-	SetStart: (val = CurTime(), resetTimer = true) =>
+	SetStart: (val = CurTimeL(), resetTimer = true) =>
 		assert(@IsValid!, 'tried to use a finished Slide Notification!')
 		assert(type(val) == 'number', '#1 must be a number')
 		assert(type(resetTimer) == 'boolean', '#2 must be a boolean')
@@ -208,7 +208,7 @@ class NotifyBase
 
 	ResetTimer: (affectStart = true) =>
 		assert(@IsValid!, 'tried to use a finished Slide Notification!')
-		if affectStart then @m_start = CurTime()
+		if affectStart then @m_start = CurTimeL()
 		@m_finish = @m_start + @m_length
 
 		return @
@@ -232,7 +232,7 @@ class NotifyBase
 		@ResetTimer!
 		return @
 
-	SetFinish: (new = CurTime! + 4) =>
+	SetFinish: (new = CurTimeL! + 4) =>
 		assert(@IsValid!, 'tried to use a finished Slide Notification!')
 		assert(type(new) == 'number', 'must be a number')
 		@m_finish = new
@@ -253,7 +253,7 @@ class NotifyBase
 
 	ExtendTimer: (val = @m_calculatedLength) =>
 		assert(type(val) == 'number', 'must be a number')
-		@SetFinish(CurTime! + val)
+		@SetFinish(CurTimeL! + val)
 		return @
 
 	SetThink: (val = (->)) =>
@@ -342,7 +342,7 @@ class NotifyBase
 
 	Think: =>
 		assert(@IsValid!, 'tried to use a finished Slide Notification!')
-		deltaThink = CurTime() - @m_lastThink
+		deltaThink = CurTimeL() - @m_lastThink
 
 		if not @m_timer
 			@m_created += deltaThink
@@ -350,7 +350,7 @@ class NotifyBase
 
 			@ThinkNotTimer(deltaThink)
 		else
-			cTime = CurTime()
+			cTime = CurTimeL()
 
 			if @GetNonValidTime! <= cTime
 				@Remove!
@@ -365,8 +365,8 @@ class NotifyDispatcherBase
 	new: (data = {}) =>
 		@x_start = data.x or 0
 		@y_start = data.y or 0
-		@width = data.width or ScrW!
-		@height = data.height or ScrH!
+		@width = data.width or ScrWL!
+		@height = data.height or ScrHL!
 
 		@heightFunc = data.getheight
 		@xFunc = data.getx

@@ -33,7 +33,7 @@ end
 local blurrt, blurMat
 
 timer.Simple(0, function()
-	blurrt = GetRenderTarget('dlib_hudcommons_blur', ScrW(), ScrH(), false)
+	blurrt = GetRenderTarget('dlib_hudcommons_blur', ScrWL(), ScrHL(), false)
 	blurMat = CreateMaterial('dlib_hudcommons_blurmat2', 'UnlitGeneric', {
 		['$basetexture'] = 'models/debug/debugwhite',
 		['$halflambert'] = '1',

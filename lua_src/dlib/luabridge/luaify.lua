@@ -48,23 +48,23 @@ DLib.luaify_scrw = ScrWC()
 DLib.luaify_scrh = ScrHC()
 DLib.pstatus = false
 
-function _G.RealTime()
+function _G.RealTimeL()
 	return DLib.luaify_rTime
 end
 
-function _G.FrameNumber()
+function _G.FrameNumberL()
 	return DLib.luaify_frameNum
 end
 
-function _G.CurTime()
+function _G.CurTimeL()
 	return DLib.luaify_cTime
 end
 
-function _G.ScrW()
+function _G.ScrWL()
 	return DLib.luaify_scrw
 end
 
-function _G.ScrH()
+function _G.ScrHL()
 	return DLib.luaify_scrh
 end
 
@@ -106,18 +106,6 @@ function update()
 	DLib.luaify_scrw = ScrWC()
 	DLib.luaify_scrh = ScrHC()
 	DLib.pstatus = false
-end
-
-local luaified = {
-	'CurTime',
-	'FrameNumber',
-	'ScrW',
-	'ScrH',
-	'RealTime',
-}
-
-for i, func in ipairs(luaified) do
-	_G[func .. 'L'] = _G[func]
 end
 
 hook.Add('PreRender', 'DLib.UpdateFrameOptions', update, -9)

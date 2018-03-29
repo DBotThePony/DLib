@@ -21,7 +21,7 @@ local ENABLE_SHIFTING_SV = CreateConVar('sv_dlib_hud_shift', '1', {FCVAR_REPLICA
 local ENABLE_SHIFTING_SV_WEAPON = CreateConVar('sv_dlib_hud_shift_wp', '1', {FCVAR_REPLICATED, FCVAR_NOTIFY}, 'SV Override: Enable HUD shifting with weapons')
 local HUDCommons = HUDCommons
 local table = table
-local RealTime = RealTime
+local RealTimeL = RealTimeL
 local math = math
 local LerpCubic = LerpCubic
 local LerpCosine = LerpCosine
@@ -58,11 +58,11 @@ function Pos2.DefinePosition(name, x, y, shouldShift)
 	end
 
 	if x > 1 then
-		x = x / ScrW()
+		x = x / ScrWL()
 	end
 
 	if y > 1 then
-		y = y / ScrW()
+		y = y / ScrWL()
 	end
 
 	Pos2.XPositions_original[name] = x
@@ -103,7 +103,7 @@ end
 Pos2.GetPosition = Pos2.GetPos
 
 local function UpdatePositions()
-	local w, h = ScrW(), ScrH()
+	local w, h = ScrWL(), ScrHL()
 
 	if ENABLE_SHIFTING:GetBool() and ENABLE_SHIFTING_SV:GetBool() then
 		for k, v in ipairs(Pos2.XPositions) do
@@ -240,10 +240,10 @@ local function UpdateWeaponShift(delta)
 	Pos2.ShiftY_Weapon = math.Clamp(Pos2.ShiftY_Weapon + ((changeZ / delta)) * 0.3, -M, M)
 end
 
-local lastThink = RealTime()
+local lastThink = RealTimeL()
 
 local function Think()
-	local time = RealTime()
+	local time = RealTimeL()
 	local delta = time - lastThink
 	lastThink = time
 	if delta == 0 then return end

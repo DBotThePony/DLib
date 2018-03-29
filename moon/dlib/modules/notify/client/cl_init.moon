@@ -69,10 +69,10 @@ Notify.CreateDefaultDispatchers = ->
 		y: flipPos(SLIDE_POS)
 		gety: => flipPos(SLIDE_POS)
 
-		width: ScrW!
-		height: ScrH!
-		getheight: ScrH
-		getwidth: ScrW
+		width: ScrWL!
+		height: ScrHL!
+		getheight: ScrHL
+		getwidth: ScrWL
 	}
 
 	centerData = {
@@ -81,11 +81,11 @@ Notify.CreateDefaultDispatchers = ->
 		y: flipPos(CENTER_POS)
 		gety: => flipPos(CENTER_POS)
 
-		width: ScrW!
-		height: ScrH!
+		width: ScrWL!
+		height: ScrHL!
 
-		getheight: ScrH
-		getwidth: ScrW
+		getheight: ScrHL
+		getwidth: ScrWL
 	}
 
 	badgeData = {
@@ -94,11 +94,11 @@ Notify.CreateDefaultDispatchers = ->
 		y: flipPos(BADGE_POS)
 		gety: => flipPos(BADGE_POS)
 
-		width: ScrW!
-		height: ScrH!
+		width: ScrWL!
+		height: ScrHL!
 
-		getheight: => ScrH! * 0.6
-		getwidth: ScrW
+		getheight: => ScrHL! * 0.6
+		getwidth: ScrWL
 	}
 
 	legacyData = {
@@ -107,10 +107,10 @@ Notify.CreateDefaultDispatchers = ->
 		y: flipPos(LEGACY_POS)
 		gety: => flipPos(LEGACY_POS)
 
-		width: ScrW! - 50
-		getwidth: => ScrW! - 50
-		height: ScrH! * 0.45
-		getheight: => ScrH! * 0.45
+		width: ScrWL! - 50
+		getwidth: => ScrWL! - 50
+		height: ScrHL! * 0.45
+		getheight: => ScrHL! * 0.45
 	}
 
 	Notify.DefaultDispatchers.slide = Notify.SlideNotifyDispatcher(slideData)

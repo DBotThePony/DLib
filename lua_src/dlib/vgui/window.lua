@@ -94,7 +94,7 @@ PANEL = {}
 DLib.VGUI.Window = PANEL
 
 function PANEL:Init()
-	self:SetSize(ScrW() - 100, ScrH() - 100)
+	self:SetSize(ScrWL() - 100, ScrHL() - 100)
 	self:Center()
 	self:MakePopup()
 	self:SetTitle('DLib Window')

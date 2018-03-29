@@ -13,12 +13,12 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
-local ScrW, ScrH = ScrW, ScrH
-local lastW, lastH = ScrW(), ScrH()
+local ScrWL, ScrHL = ScrWL, ScrHL
+local lastW, lastH = ScrWL(), ScrHL()
 local hook = hook
 
 local function check()
-	local w, h = ScrW(), ScrH()
+	local w, h = ScrWL(), ScrHL()
 	local hit = w ~= lastW or h ~= lastH
 
 	if not hit then return end

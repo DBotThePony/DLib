@@ -24,8 +24,8 @@ class DLib.NetworkChangeState
 		@oldValue = obj[key]
 		@newValue = newValue
 		@ply = ply
-		@time = CurTime()
-		@rtime = RealTime()
+		@time = CurTimeL()
+		@rtime = RealTimeL()
 		@stime = SysTime()
 		@obj = obj
 		@objID = obj.netID
@@ -50,12 +50,12 @@ class DLib.NetworkChangeState
 	NewValue: => @newValue
 	GetOldValue: => @oldValue
 	OldValue: => @oldValue
-	CurTime: => @time
-	GetCurTime: => @time
+	CurTimeL: => @time
+	GetCurTimeL: => @time
 	GetReceiveTime: => @time
 	GetReceiveStamp: => @time
-	RealTime: => @rtime
-	GetRealTime: => @rtime
+	RealTimeL: => @rtime
+	GetRealTimeL: => @rtime
 	SysTime: => @stime
 	GetSysTime: => @stime
 	GetObject: => @obj
@@ -124,8 +124,8 @@ class DLib.NetworkedData extends DLib.ModifierBase
 			netID = net.ReadUInt(16)
 			obj = @NW_Objects[netID]
 			return unless obj
-			return if obj.__LastReject and obj.__LastReject > RealTime()
-			obj.__LastReject = RealTime() + 3
+			return if obj.__LastReject and obj.__LastReject > RealTimeL()
+			obj.__LastReject = RealTimeL() + 3
 			obj.NETWORKED = false
 			obj\Create()
 		net.Receive @NW_Broadcast, (len = 0, ply = NULL) ->
@@ -184,17 +184,17 @@ class DLib.NetworkedData extends DLib.ModifierBase
 			ply[@NW_CooldownTimer] = ply[@NW_CooldownTimer] or 0
 			ply[@NW_CooldownTimerCount] = ply[@NW_CooldownTimerCount] or 0
 
-			if ply[@NW_CooldownTimer] < RealTime()
+			if ply[@NW_CooldownTimer] < RealTimeL()
 				ply[@NW_CooldownTimerCount] = 1
-				ply[@NW_CooldownTimer] = RealTime() + 10
+				ply[@NW_CooldownTimer] = RealTimeL() + 10
 			else
 				ply[@NW_CooldownTimerCount] += 1
 
 			if ply[@NW_CooldownTimerCount] >= 3
 				ply[@NW_CooldownMessage] = ply[@NW_CooldownMessage] or 0
-				if ply[@NW_CooldownMessage] < RealTime()
+				if ply[@NW_CooldownMessage] < RealTimeL()
 					DLib.Message 'Player ', ply, " is creating #{@__name} too quickly!"
-					ply[@NW_CooldownMessage] = RealTime() + 1
+					ply[@NW_CooldownMessage] = RealTimeL() + 1
 				return
 
 			waitID = net.ReadUInt(16)

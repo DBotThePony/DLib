@@ -39,8 +39,8 @@ end
 
 local function NetworkedVarFull(len, ply, auto)
 	ply.DLib_NetowrkingFullLast = ply.DLib_NetowrkingFullLast or 0
-	if ply.DLib_NetowrkingFullLast > CurTime() then return false end
-	ply.DLib_NetowrkingFullLast = CurTime() + 10
+	if ply.DLib_NetowrkingFullLast > CurTimeL() then return false end
+	ply.DLib_NetowrkingFullLast = CurTimeL() + 10
 
 	local reply = {}
 

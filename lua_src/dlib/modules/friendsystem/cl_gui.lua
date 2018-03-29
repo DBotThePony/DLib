@@ -138,7 +138,7 @@ function friends.OpenGUI()
 
 	div:SetTop(topwrapper)
 	div:SetBottom(bottomwrapper)
-	div:SetTopHeight(ScrH() / 2) -- lesser than current friends
+	div:SetTopHeight(ScrHL() / 2) -- lesser than current friends
 
 	local label = DLib.VCreate('DLabel', topwrapper)
 	label:SetFont('DLib.FriendsTooltip')

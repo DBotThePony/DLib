@@ -182,10 +182,10 @@ if CLIENT then
 	end
 
 	-- cache and speedup lookups a bit
-	local ScrW = ScrW
+	local ScrWL = ScrWL
 
 	function _G.ScreenScale(modify)
-		return ScrW() / 640 * modify
+		return ScrWL() / 640 * modify
 	end
 
 	_G.ScreenSize = ScreenScale

@@ -52,7 +52,7 @@ function ENT:DoSpawn(ply)
 	self.LastGun = ent
 	self.LastPly = ply
 
-	self:SetNextSpawn(CurTime() + (self.ResetTimer or self.RESET_TIMER:GetFloat()))
+	self:SetNextSpawn(CurTimeL() + (self.ResetTimer or self.RESET_TIMER:GetFloat()))
 
 	return true
 end

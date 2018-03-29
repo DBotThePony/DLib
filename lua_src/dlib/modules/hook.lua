@@ -196,7 +196,7 @@ function hook.Add(event, stringID, funcToCall, priority)
 		funcToCall = funcToCall,
 		id = stringID,
 		idString = tostring(stringID),
-		registeredAt = RealTime(),
+		registeredAt = RealTimeL(),
 		typeof = type(stringID) == 'string'
 	}
 
@@ -264,7 +264,7 @@ function hook.AddPostModifier(event, stringID, funcToCall)
 		funcToCall = funcToCall,
 		id = stringID,
 		idString = tostring(stringID),
-		registeredAt = RealTime(),
+		registeredAt = RealTimeL(),
 		typeof = type(stringID) == 'string'
 	}
 

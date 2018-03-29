@@ -23,7 +23,7 @@ local table = table
 local surface = surface
 local math = math
 local ScreenScale = ScreenScale
-local RealTime = RealTime
+local RealTimeL = RealTimeL
 
 function meta:GetWeapon()
 	local ply = self:SelectPlayer()
@@ -40,7 +40,7 @@ function meta:PredictSelectWeapon()
 		return self:GetWeapon()
 	end
 
-	if self.tryToSelectWeaponLastEnd < RealTime() then
+	if self.tryToSelectWeaponLastEnd < RealTimeL() then
 		return self:GetWeapon()
 	end
 

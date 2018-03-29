@@ -44,11 +44,11 @@ function HUDCommons.DefinePosition(name, x, y, shouldShift)
 	end
 
 	if x < 1 then
-		x = ScrW() * x
+		x = ScrWL() * x
 	end
 
 	if y < 1 then
-		y = ScrH() * y
+		y = ScrHL() * y
 	end
 
 	HUDCommons.XPositions_original[name] = x

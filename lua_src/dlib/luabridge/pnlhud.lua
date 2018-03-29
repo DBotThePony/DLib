@@ -18,21 +18,21 @@ if SERVER then return end
 local hook = hook
 local DLib = DLib
 local surface = surface
-local ScrH = ScrH
-local ScrW = ScrW
+local ScrHL = ScrHL
+local ScrWL = ScrWL
 local IsValid = IsValid
 
 hook.Add('Think', 'DLib.HUDPanelHidden', function()
 	if IsValid(DLib.HUDPanelHidden) then
 		DLib.HUDPanelHidden:SetPos(0, 0)
-		DLib.HUDPanelHidden:SetSize(ScrW(), ScrH())
+		DLib.HUDPanelHidden:SetSize(ScrWL(), ScrHL())
 		return
 	end
 
 	DLib.HUDPanelHidden = vgui.Create('EditablePanel')
 	if not IsValid(DLib.HUDPanelHidden) then return end
 	DLib.HUDPanelHidden:SetPos(0, 0)
-	DLib.HUDPanelHidden:SetSize(ScrW(), ScrH())
+	DLib.HUDPanelHidden:SetSize(ScrWL(), ScrHL())
 	DLib.HUDPanelHidden:SetMouseInputEnabled(false)
 	DLib.HUDPanelHidden:SetKeyboardInputEnabled(false)
 	DLib.HUDPanelHidden:SetRenderInScreenshots(false)

@@ -32,7 +32,7 @@ class DLib.SequenceHolder extends DLib.ModifierBase
 		@@NEXT_HOOK_ID += 1
 		@fid = @@NEXT_HOOK_ID
 		@hookID = "DLib.#{@@__name}.#{@@NEXT_HOOK_ID}"
-		@lastThink = RealTime()
+		@lastThink = RealTimeL()
 		@lastThinkDelta = 0
 		@currentSequences = {}
 		@currentSequencesIterable = {}
@@ -114,8 +114,8 @@ class DLib.SequenceHolder extends DLib.ModifierBase
 
 	Think: (ent = @ent) =>
 		return if not @IsValid()
-		delta = RealTime() - @lastThink
-		@lastThink = RealTime()
+		delta = RealTimeL() - @lastThink
+		@lastThink = RealTimeL()
 		@lastThinkDelta = delta
 		if @nwController and not IsValid(@ent)
 			@ent = @nwController.ent

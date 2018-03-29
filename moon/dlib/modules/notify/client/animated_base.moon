@@ -67,7 +67,7 @@ class NotifyAnimated extends NotifyBase
 		@m_animated = val
 		return @
 
-	SetFinish: (new = CurTime! + 4) =>
+	SetFinish: (new = CurTimeL! + 4) =>
 		super(new)
 		@m_finishFinal = @m_finish + 1
 		return @

@@ -34,7 +34,7 @@ class DLib.SequenceBase
 		@speed = 1
 		@scale = 1
 		@frame = 0
-		@start = RealTime()
+		@start = RealTimeL()
 		@finish = @start + @time
 		@parent = parent
 
@@ -47,7 +47,7 @@ class DLib.SequenceBase
 
 	SetTime: (newTime = @time, refresh = true) =>
 		@frame = 0
-		@start = RealTime() if refresh
+		@start = RealTimeL() if refresh
 		@time = newTime
 		@finish = @start + @time
 
@@ -58,7 +58,7 @@ class DLib.SequenceBase
 
 	Reset: =>
 		@frame = 0
-		@start = RealTime()
+		@start = RealTimeL()
 		@finish = @start + @time
 		@deltaAnim = 1
 		@resetfunc() if @resetfunc
@@ -84,11 +84,11 @@ class DLib.SequenceBase
 				@Stop()
 				return false
 
-			@deltaAnim = (@finish - RealTime()) / @time
+			@deltaAnim = (@finish - RealTimeL()) / @time
 			if @deltaAnim < 0
 				@deltaAnim = 1
 				@frame = 0
-				@start = RealTime()
+				@start = RealTimeL()
 				@finish = @start + @time
 			@frame += 1
 
@@ -127,4 +127,4 @@ class DLib.SequenceBase
 
 	HasFinished: =>
 		return false if @dorepeat
-		return RealTime() > @finish
+		return RealTimeL() > @finish

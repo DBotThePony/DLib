@@ -20,8 +20,8 @@ local LocalPlayer = LocalPlayer
 local NULL = NULL
 local type = type
 local assert = assert
-local RealTime = RealTime
-local CurTime = CurTime
+local RealTimeL = RealTimeL
+local CurTimeL = CurTimeL
 local math = math
 local IsValid = FindMetaTable('Entity').IsValid
 
@@ -105,11 +105,11 @@ end
 
 function meta:TriggerGlitch(timeLong)
 	local old = self.glitchEnd
-	self.glitchEnd = math.max(self.glitchEnd, CurTime() + timeLong)
+	self.glitchEnd = math.max(self.glitchEnd, CurTimeL() + timeLong)
 
 	if not self.glitching then
 		self.glitching = true
-		self.glitchingSince = CurTime()
+		self.glitchingSince = CurTimeL()
 		self:CallOnGlitchStart(timeLong)
 		self:OnGlitchStart(timeLong)
 	end
@@ -118,11 +118,11 @@ function meta:TriggerGlitch(timeLong)
 end
 
 function meta:ExtendGlitch(timeLong)
-	self.glitchEnd = math.max(self.glitchEnd + timeLong, CurTime() + timeLong)
+	self.glitchEnd = math.max(self.glitchEnd + timeLong, CurTimeL() + timeLong)
 
 	if not self.glitching then
 		self.glitching = true
-		self.glitchingSince = CurTime()
+		self.glitchingSince = CurTimeL()
 		self:CallOnGlitchStart(timeLong)
 		self:OnGlitchStart(timeLong)
 	end
@@ -132,12 +132,12 @@ end
 
 function meta:ClampGlitchTime(maximal)
 	local old = self.glitchEnd
-	self.glitchEnd = self.glitchEnd:min(CurTime() + maximal)
+	self.glitchEnd = self.glitchEnd:min(CurTimeL() + maximal)
 	return self.glitchEnd ~= old
 end
 
 function meta:GlitchTimeRemaining()
-	return math.max(0, self.glitchEnd - CurTime())
+	return math.max(0, self.glitchEnd - CurTimeL())
 end
 
 function meta:GlitchingSince()
@@ -145,7 +145,7 @@ function meta:GlitchingSince()
 end
 
 function meta:GlitchingFor()
-	return CurTime() - self.glitchingSince
+	return CurTimeL() - self.glitchingSince
 end
 
 function meta:IsGlitching()
@@ -160,10 +160,10 @@ end
 function meta:DrawWeaponSelection(wep)
 	self.tryToSelectWeapon = wep
 
-	if self.tryToSelectWeaponLast < RealTime() then
-		self.tryToSelectWeaponFadeIn = RealTime() + 0.5
+	if self.tryToSelectWeaponLast < RealTimeL() then
+		self.tryToSelectWeaponFadeIn = RealTimeL() + 0.5
 	end
 
-	self.tryToSelectWeaponLast = RealTime() + 0.75
-	self.tryToSelectWeaponLastEnd = RealTime() + 1.25
+	self.tryToSelectWeaponLast = RealTimeL() + 0.75
+	self.tryToSelectWeaponLastEnd = RealTimeL() + 1.25
 end

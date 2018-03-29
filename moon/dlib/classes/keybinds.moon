@@ -370,7 +370,7 @@ class bind.KeyBindsAdapter
 	OpenKeybindsMenu: =>
 		with frame = vgui.Create('DFrame')
 			\SetSkin('DLib_Black')
-			\SetSize(470, ScrH() - 200)
+			\SetSize(470, ScrHL() - 200)
 			\SetTitle(@vname .. ' Keybinds')
 			\Center()
 			\MakePopup()
@@ -425,8 +425,8 @@ bind.PANEL_BIND_FIELD =
 				@StopLock()
 				return
 			prev = @lastMousePress
-			@lastMousePress = RealTime() + 0.4
-			return if prev < RealTime()
+			@lastMousePress = RealTimeL() + 0.4
+			return if prev < RealTimeL()
 			@lock = true
 			@combinationNew = {}
 			@combinationLabel\SetText('???')
@@ -435,8 +435,8 @@ bind.PANEL_BIND_FIELD =
 			@pressedKeys = {key, false for key in *KEY_LIST}
 		elseif code == MOUSE_RIGHT and not @lock
 			prev = @lastMousePressRight
-			@lastMousePressRight = RealTime() + 0.4
-			return if prev < RealTime()
+			@lastMousePressRight = RealTimeL() + 0.4
+			return if prev < RealTimeL()
 			@combinationNew = {}
 			@GetParent()\OnCombinationUpdates(@, @combinationNew)
 			@combination = @combinationNew

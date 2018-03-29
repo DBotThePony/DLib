@@ -100,7 +100,7 @@ end
 local MINS, MAXS = Vector(-10, -10, 0), Vector(10, 10, 10)
 
 function ENT:GetIsSpawned()
-	return self:GetNextSpawn() < CurTime()
+	return self:GetNextSpawn() < CurTimeL()
 end
 
 function ENT:Initialize()
@@ -164,13 +164,13 @@ function ENT:ClientsideEntity()
 end
 
 function ENT:DoSpawn(ply)
-	if ply.EntSpawnerCooldown and ply.EntSpawnerCooldown > CurTime() then return false end
+	if ply.EntSpawnerCooldown and ply.EntSpawnerCooldown > CurTimeL() then return false end
 
 	local try = hook.Run(self.SPAWN_HOOK_CALL, ply, self.CLASS)
 	if try == false then return false end
 
 	if not ply:CheckLimit('sents') then
-		ply.EntSpawnerCooldown = CurTime() + 10
+		ply.EntSpawnerCooldown = CurTimeL() + 10
 		return false
 	end
 
@@ -216,7 +216,7 @@ function ENT:DoSpawn(ply)
 	self.LastEntity = ent
 	self.LastPly = ply
 
-	self:SetNextSpawn(CurTime() + (self.ResetTimer or RESET_TIMER:GetFloat()))
+	self:SetNextSpawn(CurTimeL() + (self.ResetTimer or RESET_TIMER:GetFloat()))
 
 	undo.Create('SENT')
 	undo.AddEntity(ent)
@@ -261,7 +261,7 @@ function ENT:Draw()
 	local pos = self:GetPos()
 
 	ang.y = ang.y + FrameTime() * 33
-	pos.z = pos.z + math.sin(CurTime() * 2) * 10 + 20
+	pos.z = pos.z + math.sin(CurTimeL() * 2) * 10 + 20
 
 	ang:Normalize()
 
