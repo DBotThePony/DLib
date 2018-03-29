@@ -30,6 +30,9 @@ local CurTimeC = CurTimeC
 _G.ScrWC = ScrWC or ScrW
 _G.ScrHC = ScrHC or ScrH
 render.SetViewPortC = render.SetViewPortC or render.SetViewPort
+render.PushRenderTargetC = render.PushRenderTargetC or render.PushRenderTarget
+render.PopRenderTargetC = render.PopRenderTargetC or render.PopRenderTarget
+render.SetRenderTargetC = render.SetRenderTargetC or render.SetRenderTarget
 
 local ScrWC = ScrWC
 local ScrHC = ScrHC
@@ -73,6 +76,26 @@ function _G.render.SetViewPort(x, y, w, h)
 	DLib.luaify_scrw = w
 	DLib.luaify_scrh = h
 	return render.SetViewPortC(x, y, w, h)
+end
+
+function _G.render.PushRenderTarget(texture)
+	assert(type(texture) == 'ITexture', 'invalid texture specified')
+	DLib.luaify_scrw = texture:Width()
+	DLib.luaify_scrh = texture:Height()
+	return render.PushRenderTargetC(texture)
+end
+
+function _G.render.PopRenderTarget()
+	render.PopRenderTargetC()
+	DLib.luaify_scrw = ScrWC()
+	DLib.luaify_scrh = ScrHC()
+end
+
+function _G.render.SetRenderTarget(texture)
+	assert(type(texture) == 'ITexture', 'invalid texture specified')
+	DLib.luaify_scrw = texture:Width()
+	DLib.luaify_scrh = texture:Height()
+	return render.SetRenderTargetC(texture)
 end
 
 function update()
