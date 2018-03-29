@@ -15,8 +15,11 @@
 
 -- make some functions be jit compilable
 
-if SERVER then return end
-if game.SinglePlayer() then return end
+if SERVER then
+	_G.CurTimeL = CurTime
+	_G.RealTimeL = RealTime
+	return
+end
 
 local DLib = DLib
 local update
