@@ -16,6 +16,7 @@
 -- make some functions be jit compilable
 
 if SERVER then return end
+if game.Singleplayer() then return end
 
 local DLib = DLib
 local update
@@ -28,7 +29,6 @@ local CurTimeC = CurTimeC
 
 _G.ScrWC = ScrWC or ScrW
 _G.ScrHC = ScrHC or ScrH
-_G.IsFirstTimePredictedC = IsFirstTimePredictedC or IsFirstTimePredicted
 render.SetViewPortC = render.SetViewPortC or render.SetViewPort
 
 local ScrWC = ScrWC
@@ -36,7 +36,6 @@ local ScrHC = ScrHC
 local render = render
 local type = type
 local assert = assert
-local IsFirstTimePredictedC = IsFirstTimePredictedC
 
 DLib.luaify_rTime = RealTimeC()
 DLib.luaify_cTime = CurTimeC()
@@ -45,17 +44,6 @@ DLib.luaify_frameNum = FrameNumberC()
 DLib.luaify_scrw = ScrWC()
 DLib.luaify_scrh = ScrHC()
 DLib.pstatus = false
-
-function _G.IsFirstTimePredicted()
-	local status = IsFirstTimePredictedC()
-
-	if status ~= DLib.pstatus then
-		DLib.pstatus = status
-		update()
-	end
-
-	return status
-end
 
 function _G.RealTime()
 	return DLib.luaify_rTime
@@ -100,3 +88,16 @@ end
 hook.Add('PreRender', 'DLib.UpdateFrameOptions', update, -9)
 hook.Add('Think', 'DLib.UpdateFrameOptions', update, -9)
 hook.Add('Tick', 'DLib.UpdateFrameOptions', update, -9)
+hook.Add('PlayerSwitchWeapon', 'DLib.UpdateFrameOptions', update, -9)
+hook.Add('StartCommand', 'DLib.UpdateFrameOptions', update, -9)
+hook.Add('SetupMove', 'DLib.UpdateFrameOptions', update, -9)
+hook.Add('Move', 'DLib.UpdateFrameOptions', update, -9)
+hook.Add('VehicleMove', 'DLib.UpdateFrameOptions', update, -9)
+hook.Add('PlayerTick', 'DLib.UpdateFrameOptions', update, -9)
+hook.Add('ShouldCollide', 'DLib.UpdateFrameOptions', update, -9)
+hook.Add('PlayerButtonDown', 'DLib.UpdateFrameOptions', update, -9)
+hook.Add('PlayerButtonUp', 'DLib.UpdateFrameOptions', update, -9)
+hook.Add('PhysgunPickup', 'DLib.UpdateFrameOptions', update, -9)
+hook.Add('KeyPress', 'DLib.UpdateFrameOptions', update, -9)
+hook.Add('KeyRelease', 'DLib.UpdateFrameOptions', update, -9)
+hook.Add('FinishMove', 'DLib.UpdateFrameOptions', update, -9)
