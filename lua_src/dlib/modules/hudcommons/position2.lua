@@ -28,6 +28,7 @@ local LerpCosine = LerpCosine
 local LerpAngle = LerpAngle
 local LerpSinusine = LerpSinusine
 local WorldToLocal = WorldToLocal
+local ScreenSize = ScreenSize
 
 HUDCommons.Position2 = HUDCommons.Position2 or {}
 local Pos2 = HUDCommons.Position2
@@ -56,12 +57,12 @@ function Pos2.DefinePosition(name, x, y, shouldShift)
 		shouldShift = function() return true end
 	end
 
-	if x < 1 then
-		x = ScrW() * x
+	if x > 1 then
+		x = x / ScrW()
 	end
 
-	if y < 1 then
-		y = ScrH() * y
+	if y > 1 then
+		y = y / ScrW()
 	end
 
 	Pos2.XPositions_original[name] = x
@@ -102,21 +103,23 @@ end
 Pos2.GetPosition = Pos2.GetPos
 
 local function UpdatePositions()
+	local w, h = ScrW(), ScrH()
+
 	if ENABLE_SHIFTING:GetBool() and ENABLE_SHIFTING_SV:GetBool() then
-		for k, v in pairs(Pos2.XPositions) do
-			Pos2.XPositions_modified[v] = Pos2.XPositions_original[v] + Pos2.ShiftX + Pos2.ShiftX_Weapon
+		for k, v in ipairs(Pos2.XPositions) do
+			Pos2.XPositions_modified[v] = Pos2.XPositions_original[v] * w + Pos2.ShiftX + Pos2.ShiftX_Weapon
 		end
 
-		for k, v in pairs(Pos2.YPositions) do
-			Pos2.YPositions_modified[v] = Pos2.YPositions_original[v] + Pos2.ShiftY + Pos2.ShiftY_Weapon
+		for k, v in ipairs(Pos2.YPositions) do
+			Pos2.YPositions_modified[v] = Pos2.YPositions_original[v] * h + Pos2.ShiftY + Pos2.ShiftY_Weapon
 		end
 	else
-		for k, v in pairs(Pos2.XPositions) do
-			Pos2.XPositions_modified[v] = Pos2.XPositions_original[v]
+		for k, v in ipairs(Pos2.XPositions) do
+			Pos2.XPositions_modified[v] = Pos2.XPositions_original[v] * w
 		end
 
-		for k, v in pairs(Pos2.YPositions) do
-			Pos2.YPositions_modified[v] = Pos2.YPositions_original[v]
+		for k, v in ipairs(Pos2.YPositions) do
+			Pos2.YPositions_modified[v] = Pos2.YPositions_original[v] * h
 		end
 	end
 end
@@ -132,9 +135,10 @@ local function UpdateShift(delta)
 	local changeYaw = math.AngleDifference(ang.y, Pos2.LastAngle.y)
 
 	Pos2.LastAngle = LerpAngle(delta * 22, Pos2.LastAngle, ang)
+	local M1, M2 = ScreenSize(20), ScreenSize(30)
 
-	Pos2.ShiftX = math.Clamp(Pos2.ShiftX + changeYaw * 1.8, -30, 30)
-	Pos2.ShiftY = math.Clamp(Pos2.ShiftY - changePitch * 1.8, -20, 20)
+	Pos2.ShiftX = math.Clamp(Pos2.ShiftX + changeYaw * 1.8, -M2, M2)
+	Pos2.ShiftY = math.Clamp(Pos2.ShiftY - changePitch * 1.8, -M1, M1)
 
 	local oldX, oldY = Pos2.ShiftX, Pos2.ShiftY
 
@@ -214,11 +218,12 @@ local function UpdateWeaponShift(delta)
 	end
 
 	if amount <= 2 then return end
+	local div = ScreenSize(1)
 
 	xs, ys, zs = xs / amount, ys / amount, zs / amount
-	local changeX = xs - lastWeaponPosX
-	local changeY = ys - lastWeaponPosY
-	local changeZ = zs - lastWeaponPosZ
+	local changeX = (xs - lastWeaponPosX) * div
+	local changeY = (ys - lastWeaponPosY) * div
+	local changeZ = (zs - lastWeaponPosZ) * div
 
 	lastWeaponPosX = LerpCubic(delta * 44, lastWeaponPosX, xs)
 	lastWeaponPosY = LerpCubic(delta * 44, lastWeaponPosY, ys)
@@ -230,8 +235,9 @@ local function UpdateWeaponShift(delta)
 	--lastWeaponPosY = ys
 	--lastWeaponPosZ = zs
 
-	Pos2.ShiftX_Weapon = math.Clamp(Pos2.ShiftX_Weapon + ((changeX / delta) - (changeY / delta)) * 0.3, -40, 40)
-	Pos2.ShiftY_Weapon = math.Clamp(Pos2.ShiftY_Weapon + ((changeZ / delta)) * 0.3, -40, 40)
+	local M = ScreenSize(20)
+	Pos2.ShiftX_Weapon = math.Clamp(Pos2.ShiftX_Weapon + ((changeX / delta) - (changeY / delta)) * 0.3, -M, M)
+	Pos2.ShiftY_Weapon = math.Clamp(Pos2.ShiftY_Weapon + ((changeZ / delta)) * 0.3, -M, M)
 end
 
 local lastThink = RealTime()
