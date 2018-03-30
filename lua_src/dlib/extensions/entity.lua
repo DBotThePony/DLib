@@ -39,11 +39,14 @@ if CLIENT then
 	end
 
 	function Ent:IsClientsideEntity()
-		return false
+		return self:GetClass() == 'class C_PhysPropClientside'
 	end
 
 	function Ent:Remove()
-		print(debug.traceback('[DLib] Maybe removal of non clientside entity', 1))
+		if self:GetClass() ~= 'class C_PhysPropClientside' then
+			print(debug.traceback('[DLib] Maybe removal of non clientside entity', 1))
+		end
+
 		return self:RemoveDLib()
 	end
 else
