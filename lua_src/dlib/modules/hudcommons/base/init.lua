@@ -39,6 +39,8 @@ function meta:__construct(hudID, hudName)
 	self.tick = {}
 	self.thinkHash = {}
 	self.think = {}
+	self.fonts = {}
+	self.fontsNames = {}
 
 	self.fontCVars = {
 		font = {},
@@ -62,6 +64,7 @@ function meta:__construct(hudID, hudName)
 	self:AddHook('Think')
 	self:AddHook('HUDPaint')
 	self:AddHook('DrawWeaponSelection')
+	self:AddHook('ScreenSizeChanged')
 
 	self:__InitVaribles()
 	self:InitVaribles()

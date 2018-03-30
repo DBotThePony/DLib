@@ -332,6 +332,7 @@ function meta:CreateScalableFont(fontBase, fontData)
 end
 
 function meta:CreateFont(fontBase, fontData)
+	self.fonts[fontBase] = fontData
 	local font = self:GetID() .. fontBase
 	fontData.weight = fontData.weight or 500
 
@@ -343,7 +344,8 @@ function meta:CreateFont(fontBase, fontData)
 	table.insert(self.fontCVars.weight, weightVar)
 	table.insert(self.fontCVars.size, sizeVar)
 
-	local fontNames = {}
+	local fontNames = self.fontsNames[fontBase] or {}
+	self.fontsNames[fontBase] = fontNames
 
 	local fontAspectRatio = 1
 
@@ -459,4 +461,10 @@ function meta:CreateFont(fontBase, fontData)
 	self:TrackConVar('fontw_' .. fontBase:lower(), 'fonts', buildFonts)
 
 	return fontNames
+end
+
+function meta:ScreenSizeChanged(ow, oh, w, h)
+	for fontBase, fontData in pairs(self.fonts) do
+		self:CreateFont(fontBase, fontData)
+	end
 end
