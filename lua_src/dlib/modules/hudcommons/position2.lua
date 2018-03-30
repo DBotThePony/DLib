@@ -19,6 +19,13 @@ local ENABLE_SHIFTING = CreateConVar('dlib_hud_shift', '1', {FCVAR_ARCHIVE}, 'En
 local ENABLE_SHIFTING_WEAPON = CreateConVar('dlib_hud_shift_wp', '1', {FCVAR_ARCHIVE}, 'Enable HUD shifting with weapons')
 local ENABLE_SHIFTING_SV = CreateConVar('sv_dlib_hud_shift', '1', {FCVAR_REPLICATED, FCVAR_NOTIFY}, 'SV Override: Enable HUD shifting')
 local ENABLE_SHIFTING_SV_WEAPON = CreateConVar('sv_dlib_hud_shift_wp', '1', {FCVAR_REPLICATED, FCVAR_NOTIFY}, 'SV Override: Enable HUD shifting with weapons')
+
+local SHIFTING_CLAMP_DEF = CreateConVar('dlib_hud_shift_clamp', '1', {FCVAR_ARCHIVE}, 'Clamp of cam move affect for hud')
+local SHIFTING_CLAMP_WEP = CreateConVar('dlib_hud_shift_wepclamp', '1', {FCVAR_ARCHIVE}, 'Clamp of weapon move affect for hud')
+
+local SHIFTING_MULT_DEF = CreateConVar('dlib_hud_shift_mult', '1', {FCVAR_ARCHIVE}, 'Multiplier of cam move affect for hud')
+local SHIFTING_MULT_WEP = CreateConVar('dlib_hud_shift_wepmult', '1', {FCVAR_ARCHIVE}, 'Multiplier of weapon move affect for hud')
+
 local HUDCommons = HUDCommons
 local table = table
 local RealTimeL = RealTimeL
@@ -135,15 +142,15 @@ local function UpdateShift(delta)
 	local changeYaw = math.AngleDifference(ang.y, Pos2.LastAngle.y)
 
 	Pos2.LastAngle = LerpAngle(delta * 22, Pos2.LastAngle, ang)
-	local M1, M2 = ScreenSize(20), ScreenSize(30)
+	local M1, M2 = ScreenSize(20) * SHIFTING_CLAMP_DEF:GetFloat():clamp(0, 10), ScreenSize(30) * SHIFTING_CLAMP_DEF:GetFloat():clamp(0, 10)
 
 	Pos2.ShiftX = math.Clamp(Pos2.ShiftX + changeYaw * 1.8, -M2, M2)
 	Pos2.ShiftY = math.Clamp(Pos2.ShiftY - changePitch * 1.8, -M1, M1)
 
 	local oldX, oldY = Pos2.ShiftX, Pos2.ShiftY
 
-	Pos2.ShiftX = Pos2.ShiftX - Pos2.ShiftX * delta * 11
-	Pos2.ShiftY = Pos2.ShiftY - Pos2.ShiftY * delta * 11
+	Pos2.ShiftX = Pos2.ShiftX - Pos2.ShiftX * delta * 11 * SHIFTING_MULT_DEF:GetFloat():clamp(0, 10)
+	Pos2.ShiftY = Pos2.ShiftY - Pos2.ShiftY * delta * 11 * SHIFTING_MULT_DEF:GetFloat():clamp(0, 10)
 
 	if oldX > 0 and Pos2.ShiftX < 0 or oldX < 0 and Pos2.ShiftX > 0 then
 		Pos2.ShiftX = 0
@@ -218,7 +225,7 @@ local function UpdateWeaponShift(delta)
 	end
 
 	if amount <= 2 then return end
-	local div = ScreenSize(1)
+	local div = ScreenSize(1) * SHIFTING_MULT_WEP:GetFloat():clamp(0, 10)
 
 	xs, ys, zs = xs / amount, ys / amount, zs / amount
 	local changeX = (xs - lastWeaponPosX) * div
@@ -235,7 +242,7 @@ local function UpdateWeaponShift(delta)
 	--lastWeaponPosY = ys
 	--lastWeaponPosZ = zs
 
-	local M = ScreenSize(20)
+	local M = ScreenSize(20) * SHIFTING_CLAMP_WEP:GetFloat():clamp(0, 10)
 	Pos2.ShiftX_Weapon = math.Clamp(Pos2.ShiftX_Weapon + ((changeX / delta) - (changeY / delta)) * 0.3, -M, M)
 	Pos2.ShiftY_Weapon = math.Clamp(Pos2.ShiftY_Weapon + ((changeZ / delta)) * 0.3, -M, M)
 end
