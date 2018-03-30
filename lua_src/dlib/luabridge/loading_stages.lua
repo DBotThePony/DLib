@@ -15,10 +15,10 @@
 
 local hook = hook
 local DLib = DLib
-local CurTimeL = CurTimeL
+local CurTime = CurTime
 
-local init_post_entity = CurTimeL() > 60
-local initialize = CurTimeL() > 60
+local init_post_entity = CurTime() > 60
+local initialize = CurTime() > 60
 
 function _G.AreEntitiesAvaliable()
 	return init_post_entity

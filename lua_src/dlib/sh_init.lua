@@ -41,6 +41,7 @@ DLib.MessageMaker(DLib, 'DLib')
 DLib.register('core/sandbox.lua')
 
 if jit then
+	if SERVER then AddCSLuaFile('dlib/core/vmdef.lua') end
 	local vmdef = CompileFile('dlib/core/vmdef.lua')
 	jit.vmdef = nil
 	vmdef('jit_vmdef')
@@ -69,6 +70,8 @@ DLib.simpleInclude('core/loader_modes.lua')
 DLib.Loader.shmodule('bitworker.lua').register()
 DLib.Loader.shmodule('bitworker2.lua').register()
 
+DLib.simpleInclude('luabridge/luaify.lua')
+
 DLib.register('extensions/extensions.lua')
 DLib.register('extensions/string.lua')
 DLib.register('extensions/ctakedmg.lua')
@@ -78,7 +81,8 @@ DLib.register('extensions/entity.lua')
 DLib.register('extensions/render.lua')
 DLib.register('extensions/player.lua').export(_G.player)
 
-DLib.simpleInclude('luabridge/luaify.lua')
+DLib.Loader.shmodule('hook.lua')
+DLib.simpleInclude('luabridge/luaify2.lua')
 DLib.simpleInclude('luabridge/lobject.lua')
 DLib.Loader.shmodule('color.lua')
 
@@ -86,7 +90,6 @@ DLib.simpleInclude('net/net.lua')
 DLib.Loader.shmodule('bytesbuffer.lua')
 DLib.Loader.shmodule('nbt.lua')
 DLib.Loader.shmodule('lerp.lua')
-DLib.Loader.shmodule('hook.lua')
 DLib.Loader.shmodule('sh_cami.lua')
 DLib.Loader.shmodule('getinfo.lua').register()
 DLib.Loader.shmodule('strong_entity_link.lua')
