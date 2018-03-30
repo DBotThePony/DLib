@@ -123,7 +123,7 @@ function combat.findPlayers(self)
 			if type(ent2) == 'Player' then
 				table.insert(list, ent2)
 			elseif type(ent2) == 'Vehicle' then
-				local driver = self:GetDriver()
+				local driver = ent2:GetDriver()
 
 				if IsValid(driver) then
 					table.insert(list, driver)
