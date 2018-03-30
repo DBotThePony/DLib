@@ -23,6 +23,7 @@ local RealTimeC = RealTimeC
 local CurTimeC = CurTimeC
 local ScrWC = ScrWC
 local ScrHC = ScrHC
+local hook = hook
 
 local function update()
 	DLib.luaify_rTime = RealTimeC()
@@ -31,11 +32,19 @@ local function update()
 
 	DLib.luaify_scrw = ScrWC()
 	DLib.luaify_scrh = ScrHC()
-	DLib.pstatus = false
+
+	hook.Run('DLib.ScreenSettingsUpdate', DLib.luaify_scrw, DLib.luaify_scrh)
 end
 
 hook.Add('PreRender', 'DLib.UpdateFrameOptions', update, -9)
 hook.Add('Think', 'DLib.UpdateFrameOptions', update, -9)
+
+local function update()
+	DLib.luaify_rTime = RealTimeC()
+	DLib.luaify_cTime = CurTimeC()
+	DLib.luaify_frameNum = FrameNumberC()
+end
+
 hook.Add('Tick', 'DLib.UpdateFrameOptions', update, -9)
 hook.Add('PlayerSwitchWeapon', 'DLib.UpdateFrameOptions', update, -9)
 hook.Add('StartCommand', 'DLib.UpdateFrameOptions', update, -9)

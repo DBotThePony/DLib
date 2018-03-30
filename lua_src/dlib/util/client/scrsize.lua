@@ -13,15 +13,11 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
-local ScrWL, ScrHL = ScrWL, ScrHL
 local lastW, lastH = ScrWL(), ScrHL()
 local hook = hook
 
-local function check()
-	local w, h = ScrWL(), ScrHL()
-	local hit = w ~= lastW or h ~= lastH
-
-	if not hit then return end
+local function check(w, h)
+	if w ~= lastW and h ~= lastH then return end
 
 	if w ~= lastW then
 		hook.Run('ScreenWidthChanges', lastW, w)
@@ -39,4 +35,4 @@ local function check()
 	lastW, lastH = w, h
 end
 
-hook.Add('Think', 'DLib.UpdateScreenSize', check)
+hook.Add('DLib.ScreenSettingsUpdate', 'DLib.UpdateScreenSize', check)
