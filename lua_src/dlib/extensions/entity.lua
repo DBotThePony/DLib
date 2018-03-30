@@ -31,9 +31,20 @@ npcMeta.GetActiveWeaponClass = plyMeta.GetActiveWeaponClass
 
 if CLIENT then
 	local CSEnt = FindMetaTable('CSEnt')
+	local Ent = FindMetaTable('Entity')
+	Ent.RemoveDLib = Ent.RemoveDLib or Ent.Remove
 
 	function CSEnt:IsClientsideEntity()
 		return true
+	end
+
+	function Ent:IsClientsideEntity()
+		return false
+	end
+
+	function Ent:Remove()
+		print(debug.traceback('[DLib] Maybe removal of non clientside entity', 1))
+		return self:RemoveDLib()
 	end
 else
 	function entMeta:BuddhaEnable()
