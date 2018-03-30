@@ -17,7 +17,7 @@ local lastW, lastH = ScrWL(), ScrHL()
 local hook = hook
 
 local function check(w, h)
-	if w ~= lastW and h ~= lastH then return end
+	if w == lastW and h == lastH then return end
 
 	if w ~= lastW then
 		hook.Run('ScreenWidthChanges', lastW, w)
