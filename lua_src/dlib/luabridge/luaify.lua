@@ -28,11 +28,6 @@ _G.CurTimeC = CurTimeC or CurTime
 
 _G.ScrWC = ScrWC or ScrW
 _G.ScrHC = ScrHC or ScrH
-render.SetViewPortC = render.SetViewPortC or render.SetViewPort
-render.PushRenderTargetC = render.PushRenderTargetC or render.PushRenderTarget
-render.PopRenderTargetC = render.PopRenderTargetC or render.PopRenderTarget
-render.SetRenderTargetC = render.SetRenderTargetC or render.SetRenderTarget
-
 local ScrWC = ScrWC
 local ScrHC = ScrHC
 local render = render
@@ -65,32 +60,4 @@ end
 
 function _G.ScrHL()
 	return DLib.luaify_scrh
-end
-
-function _G.render.SetViewPort(x, y, w, h)
-	assert(type(w) == 'number' and w >= 0, 'invalid W value')
-	assert(type(h) == 'number' and h >= 0, 'invalid H value')
-	assert(type(x) == 'number' and x >= 0, 'invalid X value')
-	assert(type(y) == 'number' and y >= 0, 'invalid Y value')
-	DLib.luaify_scrw = w
-	DLib.luaify_scrh = h
-	return render.SetViewPortC(x, y, w, h)
-end
-
-function _G.render.PushRenderTarget(texture)
-	render.PushRenderTargetC(texture)
-	DLib.luaify_scrw = ScrWC()
-	DLib.luaify_scrh = ScrHC()
-end
-
-function _G.render.PopRenderTarget()
-	render.PopRenderTargetC()
-	DLib.luaify_scrw = ScrWC()
-	DLib.luaify_scrh = ScrHC()
-end
-
-function _G.render.SetRenderTarget(texture)
-	render.SetRenderTargetC(texture)
-	DLib.luaify_scrw = ScrWC()
-	DLib.luaify_scrh = ScrHC()
 end
