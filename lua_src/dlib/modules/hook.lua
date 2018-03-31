@@ -119,7 +119,7 @@ if ghook ~= DLib.ghook then
 	end
 end
 
-local function transformStringID(stringID, transformFuncCall, event)
+local function transformStringID(stringID, event)
 	if type(stringID) == 'number' then
 		stringID = tostring(stringID)
 	end
@@ -134,19 +134,10 @@ local function transformStringID(stringID, transformFuncCall, event)
 			if DLib.DEBUG_MODE:GetBool() then
 				DLib.Message(traceback('hook.Add - hook ID is not a string and not a valid object! Using tostring() instead. ' .. type(funcToCall)))
 			end
-		elseif transformFuncCall and event then
-			return stringID, function(...)
-				if not stringID.IsValid(stringID) then
-					hook.Remove(event, stringID)
-					return
-				end
-
-				return transformFuncCall(stringID, ...)
-			end
 		end
 	end
 
-	return stringID, transformFuncCall
+	return stringID
 end
 
 function hook.Add(event, stringID, funcToCall, priority)
@@ -168,7 +159,7 @@ function hook.Add(event, stringID, funcToCall, priority)
 		return
 	end
 
-	stringID, funcToCall = transformStringID(stringID, funcToCall, event)
+	stringID = transformStringID(stringID, event)
 
 	for priority = maximalPriority, minimalPriority do
 		local eventsTable = __table[event][priority]
@@ -222,7 +213,7 @@ function hook.Remove(event, stringID)
 	__tableGmod[event] = __tableGmod[event] or {}
 	__tableGmod[event][stringID] = nil
 
-	stringID = transformStringID(stringID, nil, event)
+	stringID = transformStringID(stringID, event)
 
 	for priority = maximalPriority, minimalPriority do
 		local eventsTable = __table[event][priority]
@@ -257,7 +248,7 @@ function hook.AddPostModifier(event, stringID, funcToCall)
 		return false
 	end
 
-	stringID, funcToCall = transformStringID(stringID, funcToCall, event)
+	stringID = transformStringID(stringID, event)
 
 	local hookData = {
 		event = event,
@@ -276,7 +267,7 @@ end
 function hook.RemovePostModifier(event, stringID)
 	if not __tableModifiersPost[event] then return false end
 
-	stringID = transformStringID(stringID, nil, event)
+	stringID = transformStringID(stringID, event)
 	if __tableModifiersPost[event][stringID] then
 		local old = __tableModifiersPost[event][stringID]
 		__tableModifiersPost[event][stringID] = nil
@@ -358,7 +349,15 @@ function hook.Reconstruct(eventToReconstruct)
 				local look = __tableOptimized[event]
 
 				for i, hookData in ipairs(order) do
-					table.insert(look, hookData.funcToCall)
+					if type(hookData.id) == 'string' then
+						table.insert(look, hookData.funcToCall)
+					else
+						local self = hookData.id
+						local upvalueFunc = hookData.funcToCall
+						table.insert(look, function(...)
+							return upvalueFunc(self, ...)
+						end)
+					end
 				end
 			end
 		end
@@ -399,7 +398,15 @@ function hook.Reconstruct(eventToReconstruct)
 			local target = __tableOptimized[eventToReconstruct]
 
 			for i = 1, cnt do
-				table.insert(target, ordered[i].funcToCall)
+				if type(ordered[i].id) == 'string' then
+					table.insert(target, ordered[i].funcToCall)
+				else
+					local self = ordered[i].id
+					local upvalueFunc = ordered[i].funcToCall
+					table.insert(target, function(...)
+						return upvalueFunc(self, ...)
+					end)
+				end
 			end
 		end
 
