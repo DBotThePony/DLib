@@ -355,6 +355,11 @@ function hook.Reconstruct(eventToReconstruct)
 						local self = hookData.id
 						local upvalueFunc = hookData.funcToCall
 						table.insert(look, function(...)
+							if not self:IsValid() then
+								hook.Remove(hookData.event, self)
+								return
+							end
+
 							return upvalueFunc(self, ...)
 						end)
 					end
@@ -404,6 +409,11 @@ function hook.Reconstruct(eventToReconstruct)
 					local self = ordered[i].id
 					local upvalueFunc = ordered[i].funcToCall
 					table.insert(target, function(...)
+						if not self:IsValid() then
+							hook.Remove(ordered[i].event, self)
+							return
+						end
+
 						return upvalueFunc(self, ...)
 					end)
 				end
