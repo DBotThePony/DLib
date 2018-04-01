@@ -291,7 +291,7 @@ function messageMeta:WriteNetwork()
 		self:RemoveFlag(net.MESSAGE_COMPRESSED)
 	end
 
-	if net.AllowMessageFlags then
+	if net.AllowMessageFlags and net.AllowMessageFlagsCVar:GetBool() then
 		WriteUIntNative(self.flags, 32)
 	else
 		return self:WriteNetworkRaw()

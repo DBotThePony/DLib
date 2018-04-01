@@ -62,6 +62,7 @@ local Hooks = net.Hooks
 -- dlib network library with native net library
 -- (DLib.nativeNet)
 net.AllowMessageFlags = true
+net.AllowMessageFlagsCVar = DLib.util.CreateSharedConvar('dlib_net_flags', '1', 'Allow Network Flags')
 
 net.NO_FLAGS = 0x0
 net.MESSAGE_COMPRESSED = 0x2
@@ -221,7 +222,7 @@ do
 
 		local flags = 0
 
-		if net.AllowMessageFlags then
+		if net.AllowMessageFlags and net.AllowMessageFlagsCVar:GetBool() then
 			flags = ReadUIntNative(32)
 			length = length - 32
 		end
