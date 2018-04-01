@@ -26,6 +26,7 @@ DLib.Loader.loadPureCSTop('dlib/modules/hudcommons')
 DLib.simpleInclude('modules/hudcommons/base/init.lua')
 DLib.Loader.finish()
 
+DLib.Loader.loadPureCS('dlib/vgui')
 DLib.register('util/client/scrsize.lua')
 DLib.register('util/client/chat.lua')
 

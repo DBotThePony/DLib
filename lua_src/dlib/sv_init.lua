@@ -32,6 +32,7 @@ DLib.Loader.csModule('dlib/modules/client')
 DLib.Loader.loadPureSVTop('dlib/modules/server')
 DLib.Loader.svmodule('dmysql.lua')
 
+DLib.Loader.loadPureCS('dlib/vgui')
 DLib.registerSV('util/server/chat.lua')
 
 if not VLL_CURR_FILE then

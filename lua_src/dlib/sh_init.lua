@@ -132,8 +132,6 @@ if CLIENT then
 	DLib.VGUI = DLib.VGUI or {}
 end
 
-DLib.Loader.loadPureCS('dlib/vgui')
-
 DLib.simpleInclude('luabridge/luabridge.lua')
 DLib.simpleInclude('luabridge/physgunhandler.lua')
 DLib.simpleInclude('luabridge/pnlhud.lua')
