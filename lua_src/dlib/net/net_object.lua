@@ -70,6 +70,10 @@ function net.CreateMessage(length, read, msg, flags)
 	self.isReading = read
 	self.flags = flags or 0
 
+	if msg then
+		self:SetMessageName(msg)
+	end
+
 	if read then
 		self:ReadNetwork(length, msg)
 	else
