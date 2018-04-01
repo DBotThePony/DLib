@@ -102,10 +102,6 @@ DLib.register('util/queue.lua')
 
 DLib.Loader.loadPureSHTop('dlib/enums')
 
-DLib.Loader.shclass('modifier_base.lua')
-DLib.Loader.shclass('networked_data.lua')
-DLib.Loader.shclass('sequence_base.lua')
-DLib.Loader.shclass('sequence_holder.lua')
 DLib.Loader.shclass('astar.lua')
 DLib.Loader.shclass('collector.lua')
 DLib.Loader.shclass('average.lua')
