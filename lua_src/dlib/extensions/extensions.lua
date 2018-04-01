@@ -164,6 +164,9 @@ function math.bezier(t, a, b, ...)
 	-- square
 	elseif amount == 3 then
 		return (1 - t):pow(2) * a + 2 * t * (1 - t) * b + t:pow(2) * select(1, ...)
+	-- cube
+	elseif amount == 4 then
+		return (1 - t):pow(3) * a + 3 * t * (1 - t):pow(2) * b + 3 * t:pow(2) * (1 - t) * select(1, ...) + t:pow(3) * select(2, ...)
 	end
 
 	-- instead of implementing matrix, using bare loops
