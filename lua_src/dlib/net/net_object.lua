@@ -143,7 +143,7 @@ function messageMeta:DecompressNow(length)
 	local decompressed = util.Decompress(readBuff)
 
 	if not decompressed then
-		error('Unable to decompress message! length to decompress - ' .. length .. ' bytes; message length - ' .. self.length .. ' bits (' .. ((self.length - self.length % 8) / 8) .. ' bytes)')
+		error('Unable to decompress message! length to decompress - ' .. length .. ' bytes; message length - ' .. self.length .. ' bits (' .. ((self.length - self.length % 8) / 8) .. ' bytes)\nAffected message: ' .. self:GetMessageName())
 	end
 
 	self:ResetBuffer()
