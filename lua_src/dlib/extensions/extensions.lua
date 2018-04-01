@@ -147,6 +147,40 @@ function math.average(...)
 	return total / amount
 end
 
+local type = type
+local table = table
+local unpack = unpack
+
+function math.bezier(t, a, b, ...)
+	assert(type(t) == 'number', 'invalid T variable')
+	assert(t >= 0 and t <= 1, '0 <= t <= 1!')
+	assert(type(a) == 'number', '(a) at least two numbers should be valid')
+	assert(type(b) == 'number', '(b) at least two numbers should be valid')
+	local amount = select('#', ...) + 2
+
+	-- linear
+	if amount == 2 then
+		return a + (b - a) * t
+	-- square
+	elseif amount == 3 then
+		return (1 - t):pow(2) * a + 2 * t * (1 - t) * b + t:pow(2) * select(1, ...)
+	end
+
+	-- instead of implementing matrix, using bare loops
+	local vararg = {a, b, ...}
+	local points = {}
+
+	for point = 1, amount do
+		local point1 = vararg[point]
+		local point2 = vararg[point + 1]
+		if not point2 then break end
+		local newpoint = point1 + (point2 - point1) * t
+		table.insert(points, newpoint)
+	end
+
+	return math.bezier(t, unpack(points))
+end
+
 local VehicleListIterable = {}
 
 local function rebuildVehicleList()
