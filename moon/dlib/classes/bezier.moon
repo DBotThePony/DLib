@@ -81,3 +81,24 @@ class DLib.Bezier.Vector extends DLib.Bezier.Number
 
 	BezierValues: (t) => Vector(t\tbezier(@valuesX), t\tbezier(@valuesY), t\tbezier(@valuesZ))
 	Lerp: (t, a, b) => LerpVector(t, a, b)
+
+import Angle, LerpAngle from _G
+
+class DLib.Bezier.Angle extends DLib.Bezier.Number
+	new: (...) =>
+		super(...)
+		@valuesP = {}
+		@valuesY = {}
+		@valuesR = {}
+
+	CheckValues: => #@valuesP > 1
+	GetValues: => @valuesP, @valuesY, @valuesR
+	CopyValues: => [val for val in *@valuesP], [val for val in *@valuesY], [val for val in *@valuesR]
+	AddPoint: (value) =>
+		table.insert(@valuesP, value.p)
+		table.insert(@valuesY, value.y)
+		table.insert(@valuesR, value.r)
+		return @
+
+	BezierValues: (t) => Angle(t\tbezier(@valuesX), t\tbezier(@valuesY), t\tbezier(@valuesZ))
+	Lerp: (t, a, b) => LerpAngle(t, a, b)
