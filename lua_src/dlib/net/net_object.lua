@@ -637,7 +637,7 @@ function messageMeta:SendPVS(targetPos)
 end
 
 local game = game
-local CurTimeL = CurTimeL
+local CurTime = CurTime
 
 function messageMeta:Broadcast()
 	if CLIENT then error('Not a server!') end
@@ -645,7 +645,7 @@ function messageMeta:Broadcast()
 	local msg = self:GetMessageName()
 	if not msg then error('Starting a net message without name!') end
 
-	if not game.SinglePlayer() or CurTimeL() > 60 then
+	if not game.SinglePlayer() or CurTime() > 60 then
 		nnet.Start(msg, self:GetUnreliable())
 		self:WriteNetwork()
 		nnet.Broadcast()
