@@ -61,7 +61,10 @@ local Hooks = net.Hooks
 -- set this to false if you want to debug
 -- dlib network library with native net library
 -- (DLib.nativeNet)
-net.AllowMessageFlags = true
+if net.AllowMessageFlags == nil then
+	net.AllowMessageFlags = true
+end
+
 net.AllowMessageFlagsCVar = DLib.util.CreateSharedConvar('dlib_net_flags', '1', 'Allow Network Flags')
 
 net.NO_FLAGS = 0x0
