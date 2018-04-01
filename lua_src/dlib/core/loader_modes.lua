@@ -15,6 +15,15 @@
 
 local Loader = DLib.Loader
 
+local function include2(fileIn)
+	local status = {xpcall(Loader.include, function(err) print(debug.traceback('[DLIB STARTUP ERROR] ' .. err)) end, fileIn)}
+	local bool = table.remove(status, 1)
+
+	if bool then
+		return unpack(status)
+	end
+end
+
 function Loader.load(targetDir)
 	local output = {}
 	local files = DLib.fs.FindRecursiveVisible(targetDir)
@@ -24,7 +33,7 @@ function Loader.load(targetDir)
 	if SERVER then
 		for i, fil in ipairs(sh) do
 			AddCSLuaFile(fil)
-			table.insert(output, {fil, Loader.include(fil)})
+			table.insert(output, {fil, include2(fil)})
 		end
 
 		for i, fil in ipairs(cl) do
@@ -32,15 +41,15 @@ function Loader.load(targetDir)
 		end
 
 		for i, fil in ipairs(sv) do
-			table.insert(output, {fil, Loader.include(fil)})
+			table.insert(output, {fil, include2(fil)})
 		end
 	else
 		for i, fil in ipairs(sh) do
-			table.insert(output, {fil, Loader.include(fil)})
+			table.insert(output, {fil, include2(fil)})
 		end
 
 		for i, fil in ipairs(cl) do
-			table.insert(output, {fil, Loader.include(fil)})
+			table.insert(output, {fil, include2(fil)})
 		end
 	end
 
@@ -56,7 +65,7 @@ function Loader.loadTop(targetDir)
 	if SERVER then
 		for i, fil in ipairs(sh) do
 			AddCSLuaFile(fil)
-			table.insert(output, {fil, Loader.include(fil)})
+			table.insert(output, {fil, include2(fil)})
 		end
 
 		for i, fil in ipairs(cl) do
@@ -64,15 +73,15 @@ function Loader.loadTop(targetDir)
 		end
 
 		for i, fil in ipairs(sv) do
-			table.insert(output, {fil, Loader.include(fil)})
+			table.insert(output, {fil, include2(fil)})
 		end
 	else
 		for i, fil in ipairs(sh) do
-			table.insert(output, {fil, Loader.include(fil)})
+			table.insert(output, {fil, include2(fil)})
 		end
 
 		for i, fil in ipairs(cl) do
-			table.insert(output, {fil, Loader.include(fil)})
+			table.insert(output, {fil, include2(fil)})
 		end
 	end
 
@@ -95,11 +104,11 @@ function Loader.loadCS(targetDir)
 		end
 	else
 		for i, fil in ipairs(sh) do
-			table.insert(output, {fil, Loader.include(fil)})
+			table.insert(output, {fil, include2(fil)})
 		end
 
 		for i, fil in ipairs(cl) do
-			table.insert(output, {fil, Loader.include(fil)})
+			table.insert(output, {fil, include2(fil)})
 		end
 	end
 
@@ -116,7 +125,7 @@ function Loader.loadPureCS(targetDir)
 		end
 	else
 		for i, fil in ipairs(files) do
-			table.insert(output, {fil, Loader.include(fil)})
+			table.insert(output, {fil, include2(fil)})
 		end
 	end
 
@@ -129,7 +138,7 @@ function Loader.loadPureSV(targetDir)
 	local files = DLib.fs.FindRecursiveVisible(targetDir)
 
 	for i, fil in ipairs(files) do
-		table.insert(output, {fil, Loader.include(fil)})
+		table.insert(output, {fil, include2(fil)})
 	end
 
 	return output
@@ -142,11 +151,11 @@ function Loader.loadPureSH(targetDir)
 	if SERVER then
 		for i, fil in ipairs(files) do
 			AddCSLuaFile(fil)
-			table.insert(output, {fil, Loader.include(fil)})
+			table.insert(output, {fil, include2(fil)})
 		end
 	else
 		for i, fil in ipairs(files) do
-			table.insert(output, {fil, Loader.include(fil)})
+			table.insert(output, {fil, include2(fil)})
 		end
 	end
 
@@ -163,7 +172,7 @@ function Loader.loadPureCSTop(targetDir)
 		end
 	else
 		for i, fil in ipairs(files) do
-			table.insert(output, {fil, Loader.include(fil)})
+			table.insert(output, {fil, include2(fil)})
 		end
 	end
 
@@ -178,7 +187,7 @@ function Loader.loadPureSVTop(targetDir)
 	local files = DLib.fs.FindVisiblePrepend(targetDir, 'LUA')
 
 	for i, fil in ipairs(files) do
-		table.insert(output, {fil, Loader.include(fil)})
+		table.insert(output, {fil, include2(fil)})
 	end
 
 	return output
@@ -191,11 +200,11 @@ function Loader.loadPureSHTop(targetDir)
 	if SERVER then
 		for i, fil in ipairs(files) do
 			AddCSLuaFile(fil)
-			table.insert(output, {fil, Loader.include(fil)})
+			table.insert(output, {fil, include2(fil)})
 		end
 	else
 		for i, fil in ipairs(files) do
-			table.insert(output, {fil, Loader.include(fil)})
+			table.insert(output, {fil, include2(fil)})
 		end
 	end
 
