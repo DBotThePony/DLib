@@ -15,12 +15,17 @@
 
 _G.DLib = _G.DLib or {}
 
-if SERVER then
-	AddCSLuaFile('dlib/cl_init.lua')
-	AddCSLuaFile('dlib/sh_init.lua')
-	include('dlib/sh_init.lua')
-	include('dlib/sv_init.lua')
-else
-	include('dlib/sh_init.lua')
-	include('dlib/cl_init.lua')
+local function load()
+	if SERVER then
+		AddCSLuaFile('dlib/cl_init.lua')
+		AddCSLuaFile('dlib/sh_init.lua')
+		include('dlib/sh_init.lua')
+		include('dlib/sv_init.lua')
+	else
+		include('dlib/sh_init.lua')
+		include('dlib/cl_init.lua')
+	end
 end
+
+concommand.Add('dlib_restart', load)
+load()
