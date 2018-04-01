@@ -181,7 +181,40 @@ function math.bezier(t, a, b, ...)
 		table.insert(points, newpoint)
 	end
 
-	return math.bezier(t, unpack(points))
+	return math.tbezier(t, points)
+end
+
+-- accepts table
+function math.tbezier(t, values)
+	assert(type(t) == 'number', 'invalid T variable')
+	assert(t >= 0 and t <= 1, '0 <= t <= 1!')
+	assert(#values >= 2, 'at least two values must be provided')
+	local amount = #values
+	local a, b = values[1], values[2]
+
+	-- linear
+	if amount == 2 then
+		return a + (b - a) * t
+	-- square
+	elseif amount == 3 then
+		return (1 - t):pow(2) * a + 2 * t * (1 - t) * b + t:pow(2) * values[3]
+	-- cube
+	elseif amount == 4 then
+		return (1 - t):pow(3) * a + 3 * t * (1 - t):pow(2) * b + 3 * t:pow(2) * (1 - t) * values[3] + t:pow(3) * values[4]
+	end
+
+	-- instead of implementing matrix, using bare loops
+	local points = {}
+
+	for point = 1, amount do
+		local point1 = values[point]
+		local point2 = values[point + 1]
+		if not point2 then break end
+		local newpoint = point1 + (point2 - point1) * t
+		table.insert(points, newpoint)
+	end
+
+	return math.tbezier(t, points)
 end
 
 local VehicleListIterable = {}
