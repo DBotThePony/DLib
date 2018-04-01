@@ -39,13 +39,17 @@ class DLib.Bezier.Number
 
 	BezierValues: (t) => t\tbezier(@values)
 
+	CheckValues: => #@values > 1
 	Populate: =>
-		assert(#@values > 1, 'at least two values must present')
+		assert(@CheckValues(), 'at least two values must present')
 		@status = true
 		@populated = [@BezierValues(t) for t = @startpos, @endpos, @step]
 		return @
 
+	CopyValues: => [val for val in *@values]
 	GetValues: => @values
+	GetPopulatedValues: => @populated
+	CopyPopulatedValues: => [val for val in *@populated]
 	Lerp: (t, a, b) => Lerp(t, a, b)
 	GetValue: (t = 0) =>
 		assert(@status, 'Not populated!')
@@ -56,3 +60,24 @@ class DLib.Bezier.Number
 		prevValue = @populated[t2 - 1] or @populated[1]
 		nextValue = @populated[t2] or @populated[2]
 		return @Lerp(t % 1, prevValue, nextValue)
+
+import Vector, LerpVector from _G
+
+class DLib.Bezier.Vector extends DLib.Bezier.Number
+	new: (...) =>
+		super(...)
+		@valuesX = {}
+		@valuesY = {}
+		@valuesZ = {}
+
+	CheckValues: => #@valuesX > 1
+	GetValues: => @valuesX, @valuesY, @valuesZ
+	CopyValues: => [val for val in *@valuesX], [val for val in *@valuesY], [val for val in *@valuesZ]
+	AddPoint: (value) =>
+		table.insert(@valuesX, value.x)
+		table.insert(@valuesY, value.y)
+		table.insert(@valuesZ, value.z)
+		return @
+
+	BezierValues: (t) => Vector(t\tbezier(@valuesX), t\tbezier(@valuesY), t\tbezier(@valuesZ))
+	Lerp: (t, a, b) => LerpVector(t, a, b)
