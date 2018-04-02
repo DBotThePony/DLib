@@ -21,7 +21,7 @@ local type = type
 local ipairs = ipairs
 
 local function isValidNumber(numIn)
-	return type(numIn) == 'number' and numberIn == numberIn and numberIn ~= math.huge and numberIn ~= -math.huge
+	return type(numIn) == 'number' and numIn == numIn and numIn ~= math.huge and numIn ~= -math.huge
 end
 
 local function table_insert(tabIn, val)

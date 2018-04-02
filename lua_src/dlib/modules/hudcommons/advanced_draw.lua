@@ -102,7 +102,7 @@ function HUDCommons.SoftBarBackground(x, y, w, h, color, bgcolor, name)
 end
 
 function HUDCommons.SoftBarBackgroundMult(x, y, w, h, mult, color, bgcolor1, bgcolor2, name)
-    HUDCommons.DrawBox(x, y, w, h, bgcolor)
+    HUDCommons.DrawBox(x, y, w, h, bgcolor1)
     w = w * math.Clamp(mult, 0, 1)
 	HUDCommons.BarData4[name] = HUDCommons.BarData4[name] or w
 
@@ -114,7 +114,7 @@ function HUDCommons.SoftBarBackgroundMult(x, y, w, h, mult, color, bgcolor1, bgc
 		HUDCommons.BarData4[name] = HUDCommons.BarData4[name] + delta
 	end
 
-	HUDCommons.DrawBox(x, y, HUDCommons.BarData4[name], h, bgcolor)
+	HUDCommons.DrawBox(x, y, HUDCommons.BarData4[name], h, bgcolor2)
     HUDCommons.DrawBox(x, y, w, h, color)
 end
 

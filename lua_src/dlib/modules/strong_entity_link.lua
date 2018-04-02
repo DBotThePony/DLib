@@ -406,8 +406,6 @@ else
 				net.WriteUInt(ent:EntIndex(), 16)
 			end
 		end
-
-		return self
 	end
 
 	function net.ReadStrongEntity()

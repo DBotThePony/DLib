@@ -130,10 +130,10 @@ local function transformStringID(stringID, event)
 		end)
 
 		if not success then
-			stringID = tostring(stringID)
 			if DLib.DEBUG_MODE:GetBool() then
-				DLib.Message(traceback('hook.Add - hook ID is not a string and not a valid object! Using tostring() instead. ' .. type(funcToCall)))
+				DLib.Message(traceback('hook.Add - hook ID is not a string and not a valid object! Using tostring() instead. ' .. type(stringID)))
 			end
+			stringID = tostring(stringID)
 		end
 	end
 
