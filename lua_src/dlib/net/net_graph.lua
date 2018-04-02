@@ -25,7 +25,7 @@ if SERVER then
 	return
 end
 
-local net = net
+local net = DLib.netModule
 local net_graph = GetConVar('net_graph')
 
 local ipairs = ipairs

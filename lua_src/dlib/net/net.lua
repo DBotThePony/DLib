@@ -116,6 +116,10 @@ function net.RegisterWrapper(nameIn)
 	local read, write = 'Read' .. nameIn, 'Write' .. nameIn
 
 	net[read] = function(...)
+		if DLib.__cakeHack then
+			return nnet[read]
+		end
+
 		if not net.CURRENT_OBJECT then
 			ErrorNoHalt('net.' .. read .. ' - Not currently reading a message.')
 			return
@@ -125,6 +129,10 @@ function net.RegisterWrapper(nameIn)
 	end
 
 	net[write] = function(...)
+		if DLib.__cakeHack then
+			return nnet[write]
+		end
+
 		if not net.CURRENT_SEND_OBJECT then
 			ErrorNoHalt('net.' .. write .. ' - Not currently writing a message.')
 			return
@@ -334,7 +342,7 @@ function net.Start(messageName, unreliable)
 
 	if messageName:startsWith('\xe2\x81\xac\xe2\x80\xad\xe2\x81\xac\xe2\x81\xad\xe2\x81') then
 		DLib.__cakeHack = true
-		return DLib.gNetPass.Start(messageName, unreliable)
+		return nnet.Start(messageName, unreliable)
 	else
 		DLib.__cakeHack = false
 	end
@@ -388,6 +396,11 @@ do
 
 	for i, func in ipairs(sendFuncs) do
 		net[func] = function(...)
+			if DLib.__cakeHack then
+				DLib.__cakeHack = false
+				return nnet[func](...)
+			end
+
 			if not net.CURRENT_SEND_OBJECT then
 				ErrorNoHalt('net.' .. func .. ' - Not currently writing a message.')
 				return
@@ -403,6 +416,11 @@ do
 
 	for i, func in ipairs(sendFuncs2) do
 		net[func] = function(...)
+			if DLib.__cakeHack then
+				DLib.__cakeHack = false
+				return nnet[func](...)
+			end
+
 			if not net.CURRENT_SEND_OBJECT then
 				ErrorNoHalt('net.' .. func .. ' - Not currently writing a message.')
 				return
@@ -475,17 +493,15 @@ net.RegisterWrapper('Number')
 
 if DLib.gNet ~= gnet and ents.GetCount() < 10 then
 	DLib.gNet = gnet
-	DLib.gNetPass = {}
 
 	for key, value in pairs(gnet) do
-		DLib.gNetPass[key] = value
 		rawset(gnet, key, nil)
 	end
 
 	setmetatable(gnet, {
 		__index = function(self, key)
-			if net.__cakeHack and key ~= 'Start' then
-				return DLib.gNetPass[key]
+			if DLib.__cakeHack and key ~= 'Start' and key ~= 'Receivers' then
+				return nnet[key]
 			end
 
 			return net[key]
