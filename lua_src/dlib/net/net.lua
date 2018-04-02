@@ -260,13 +260,6 @@ do
 
 		if not status then
 			DLib.Message('Listener on ' .. strName .. ' has failed!')
-			local str = ''
-
-			for k, v in strName:gmatch('.') do
-				str = str .. '\\' .. v:byte()
-			end
-
-			print(str)
 		end
 	end
 
