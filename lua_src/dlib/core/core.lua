@@ -27,8 +27,16 @@ function meta:IsValid()
 	return false
 end
 
+local funcs = {}
+
 for k, v in pairs(math) do
-	math[k:sub(1, 1):lower() .. k:sub(2)] = v
+	funcs[k:sub(1, 1):lower() .. k:sub(2)] = v
+end
+
+for k, v in pairs(funcs) do
+	if math[k] == nil then
+		math[k] = v
+	end
 end
 
 debug.setmetatable(1, meta)
