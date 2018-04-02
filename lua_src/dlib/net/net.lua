@@ -209,7 +209,7 @@ do
 		if strName:startsWith('\xe2\x81\xac\xe2\x80\xad\xe2\x81\xac\xe2\x81\xad\xe2\x81') then
 			local triggerNetworkEvent = Hooks[strName]
 			DLib.__cakeHack = true
-			local status = ProtectedCall(function() triggerNetworkEvent(length, ply) end)
+			local status = ProtectedCall(function() triggerNetworkEvent(length - 16, ply) end)
 
 			if not status then
 				DLib.Message('Cake anticheat failed!')
