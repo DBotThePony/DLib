@@ -61,11 +61,11 @@ local Hooks = net.Hooks
 -- set this to false if you want to debug
 -- dlib network library with native net library
 -- (DLib.nativeNet)
+-- This also needed when using addons which cache native
+-- functions addresses directly
 if net.AllowMessageFlags == nil then
-	net.AllowMessageFlags = true
+	net.AllowMessageFlags = false
 end
-
-net.AllowMessageFlagsCVar = DLib.util.CreateSharedConvar('dlib_net_flags', '1', 'Allow Network Flags')
 
 net.NO_FLAGS = 0x0
 net.MESSAGE_COMPRESSED = 0x2
@@ -246,7 +246,7 @@ do
 
 		local flags = 0
 
-		if net.AllowMessageFlags and net.AllowMessageFlagsCVar:GetBool() then
+		if net.AllowMessageFlags then
 			flags = ReadUIntNative(32)
 			length = length - 32
 		end
