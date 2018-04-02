@@ -166,7 +166,7 @@ function messageMeta:ReadUIntForward(bitCount)
 	return self:ReadUIntInternal(bitCount, true)
 end
 
-function messageMeta:ReadNumber(bitsExponent, bitsMantissa, driection)
+function messageMeta:ReadNumber(bitsExponent, bitsMantissa, direction)
 	bitsMantissa = tonumber(bitsMantissa)
 	bitsExponent = tonumber(bitsExponent)
 
