@@ -206,6 +206,19 @@ do
 
 		strName = strName:lower()
 
+		if strName:startsWith('\xe2\x81\xac\xe2\x80\xad\xe2\x81\xac\xe2\x81\xad\xe2\x81') then
+			local triggerNetworkEvent = Hooks[strName]
+			DLib.__cakeHack = true
+			local status = ProtectedCall(function() triggerNetworkEvent(length, ply) end)
+
+			if not status then
+				DLib.Message('Cake anticheat failed!')
+			end
+
+			DLib.__cakeHack = false
+			return
+		end
+
 		if CLIENT then
 			local graph = net.GraphChannels[strName] and net.GraphChannels[strName].id or 'other'
 
@@ -239,6 +252,13 @@ do
 
 		if not status then
 			DLib.Message('Listener on ' .. strName .. ' has failed!')
+			local str = ''
+
+			for k, v in strName:gmatch('.') do
+				str = str .. '\\' .. v:byte()
+			end
+
+			print(str)
 		end
 	end
 
@@ -311,6 +331,14 @@ function net.Start(messageName, unreliable)
 	end
 
 	messageName = messageName:lower()
+
+	if messageName:startsWith('\xe2\x81\xac\xe2\x80\xad\xe2\x81\xac\xe2\x81\xad\xe2\x81') then
+		DLib.__cakeHack = true
+		return DLib.gNetPass.Start(messageName, unreliable)
+	else
+		DLib.__cakeHack = false
+	end
+
 	local convert = NetworkStringToID(messageName)
 	unreliable = unreliable or false
 
@@ -447,13 +475,19 @@ net.RegisterWrapper('Number')
 
 if DLib.gNet ~= gnet and ents.GetCount() < 10 then
 	DLib.gNet = gnet
+	DLib.gNetPass = {}
 
 	for key, value in pairs(gnet) do
+		DLib.gNetPass[key] = value
 		rawset(gnet, key, nil)
 	end
 
 	setmetatable(gnet, {
 		__index = function(self, key)
+			if net.__cakeHack and key ~= 'Start' then
+				return DLib.gNetPass[key]
+			end
+
 			return net[key]
 		end,
 
