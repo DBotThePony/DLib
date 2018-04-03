@@ -36,6 +36,30 @@ function meta:GetWeapon()
 end
 
 function meta:PredictSelectWeapon()
+	if self.LookupSelectWeapon then
+		local weapon, state = self:LookupSelectWeapon()
+		local gweapon = self:GetWeapon()
+
+		if state == nil then state = true end
+
+		if weapon:IsValid() and weapon ~= gweapon then
+			local rtime = RealTimeL()
+
+			if state then
+				if self.tryToSelectWeaponLast < rtime then
+					self.tryToSelectWeaponFadeIn = rtime + 0.5
+				end
+
+				self.tryToSelectWeaponLast = rtime + 0.75
+				self.tryToSelectWeaponLastEnd = rtime + 1.25
+			end
+
+			return weapon
+		else
+			return gweapon
+		end
+	end
+
 	if not IsValid(self.tryToSelectWeapon) then
 		return self:GetWeapon()
 	end
