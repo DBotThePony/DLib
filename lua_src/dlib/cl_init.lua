@@ -13,6 +13,12 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
+local MsgC = MsgC
+local SysTime = SysTime
+local timeStart = SysTime()
+
+MsgC('[DLib] Initializing DLib clientside ... ')
+
 DLib.Loader.start('Notify', true)
 DLib.Loader.include('dlib/modules/notify/client/cl_init.lua')
 DLib.Loader.finish(false)
@@ -32,7 +38,14 @@ DLib.register('util/client/chat.lua')
 
 DLib.Loader.loadPureCSTop('dlib/modules/client')
 
+MsgC(string.format('%.2f ms\n', (SysTime() - timeStart) * 1000))
+timeStart = SysTime()
+MsgC('[DLib] Running addons ... \n')
+
 if not VLL_CURR_FILE then
 	DLib.Loader.loadPureSHTop('dlib/autorun')
 	DLib.Loader.loadPureCSTop('dlib/autorun/client')
 end
+
+MsgC(string.format('[DLib] Addons were initialized in %.2f ms\n', (SysTime() - timeStart) * 1000))
+MsgC('---------------------------------------------------------------\n')

@@ -30,6 +30,32 @@ function DLib.simpleInclude(fil)
 	return include('dlib/' .. fil)
 end
 
+local startupText = [[
+	___  _    _ ___
+	|  \ |    | |__]
+	|__/ |___ | |__]
+
+	____ ____ ___  ____ ____ _ _  _ _ _  _ ____
+	|__/ |___ |  \ |___ |___ | |\ | | |\ | | __
+	|  \ |___ |__/ |___ |    | | \| | | \| |__]
+
+	____ _    _  _ ____
+	| __ |    |  | |__|
+	|__] |___ |__| |  |
+
+]]
+
+for line in string.gmatch(startupText, '(.-)\r?\n') do
+	MsgC(line .. '\n')
+end
+
+local MsgC = MsgC
+local SysTime = SysTime
+local timeStart = SysTime()
+
+MsgC('---------------------------------------------------------------\n')
+MsgC('[DLib] Initializing DLib core ... ')
+
 DLib.simpleInclude('core/core.lua')
 DLib.simpleInclude('core/luaify.lua')
 DLib.simpleInclude('core/funclib.lua')
@@ -67,6 +93,10 @@ DLib.register('core/fsutil.lua').export(_G.file)
 DLib.register('core/loader.lua')
 DLib.simpleInclude('core/loader_modes.lua')
 
+MsgC(string.format('%.2f ms\n', (SysTime() - timeStart) * 1000))
+timeStart = SysTime()
+MsgC('[DLib] Initializing DLib GLua extensions ... ')
+
 DLib.Loader.shmodule('bitworker.lua').register()
 DLib.Loader.shmodule('bitworker2.lua').register()
 
@@ -86,6 +116,10 @@ DLib.simpleInclude('luabridge/luaify2.lua')
 DLib.simpleInclude('luabridge/lobject.lua')
 DLib.Loader.shmodule('color.lua')
 
+MsgC(string.format('%.2f ms\n', (SysTime() - timeStart) * 1000))
+timeStart = SysTime()
+MsgC('[DLib] Initializing DLib modules ... ')
+
 DLib.simpleInclude('net/net.lua')
 DLib.Loader.shmodule('bytesbuffer.lua')
 DLib.Loader.shmodule('nbt.lua')
@@ -101,6 +135,10 @@ DLib.Loader.finish()
 DLib.register('util/queue.lua')
 
 DLib.Loader.loadPureSHTop('dlib/enums')
+
+MsgC(string.format('%.2f ms\n', (SysTime() - timeStart) * 1000))
+timeStart = SysTime()
+MsgC('[DLib] Initializing DLib classes ... ')
 
 DLib.Loader.shclass('astar.lua')
 DLib.Loader.shclass('collector.lua')
@@ -128,6 +166,10 @@ if CLIENT then
 	DLib.VGUI = DLib.VGUI or {}
 end
 
+MsgC(string.format('%.2f ms\n', (SysTime() - timeStart) * 1000))
+timeStart = SysTime()
+MsgC('[DLib] Initializing DLib LuaBridge ... ')
+
 DLib.simpleInclude('luabridge/luabridge.lua')
 DLib.simpleInclude('luabridge/physgunhandler.lua')
 DLib.simpleInclude('luabridge/pnlhud.lua')
@@ -135,3 +177,5 @@ DLib.simpleInclude('luabridge/loading_stages.lua')
 DLib.Loader.loadPureSHTop('dlib/modules/workarounds')
 
 DLib.hl2wdata = DLib.simpleInclude('data/hl2sweps.lua')
+
+MsgC(string.format('%.2f ms\n', (SysTime() - timeStart) * 1000))

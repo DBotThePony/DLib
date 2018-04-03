@@ -19,6 +19,12 @@ function DLib.registerSV(fil)
 	return result.register()
 end
 
+local MsgC = MsgC
+local SysTime = SysTime
+local timeStart = SysTime()
+
+MsgC('[DLib] Initializing DLib serverside ... ')
+
 CreateConVar('sv_dlib_hud_shift', '1', {FCVAR_REPLICATED, FCVAR_NOTIFY}, 'SV Override: Enable HUD shifting')
 
 AddCSLuaFile('dlib/modules/notify/client/cl_init.lua')
@@ -35,8 +41,15 @@ DLib.Loader.svmodule('dmysql.lua')
 DLib.Loader.loadPureCS('dlib/vgui')
 DLib.registerSV('util/server/chat.lua')
 
+MsgC(string.format('%.2f ms\n', (SysTime() - timeStart) * 1000))
+timeStart = SysTime()
+MsgC('[DLib] Running addons ... \n')
+
 if not VLL_CURR_FILE then
 	DLib.Loader.loadPureSHTop('dlib/autorun')
 	DLib.Loader.loadPureSVTop('dlib/autorun/server')
 	DLib.Loader.loadPureCSTop('dlib/autorun/client')
 end
+
+MsgC(string.format('[DLib] Addons were initialized in %.2f ms\n', (SysTime() - timeStart) * 1000))
+MsgC('---------------------------------------------------------------\n')
