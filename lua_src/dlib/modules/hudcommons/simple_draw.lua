@@ -87,11 +87,11 @@ function HUDCommons.WordBox(text, font, x, y, col, colBox, center)
 		x = x - w / 2
 	end
 
-	HUDCommons.DrawBox(x - 4, y - 2, w + 8, h + 4, colBox)
+	HUDCommons.DrawBox(x - w * 0.2, y - h * 0.1, w * 1.4, h * 1.2, colBox)
 	surface.SetTextPos(x, y)
 	surface.DrawText(text)
 
-    return w + 8, h + 8
+    return w * 1.4, h * 1.2
 end
 
 function HUDCommons.VerticalBar(x, y, w, h, mult, color)
