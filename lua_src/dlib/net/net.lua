@@ -64,7 +64,7 @@ local Hooks = net.Hooks
 -- This also needed when using addons which cache native
 -- functions addresses directly
 if net.AllowMessageFlags == nil then
-	net.AllowMessageFlags = false
+	net.AllowMessageFlags = true
 end
 
 net.NO_FLAGS = 0x0
