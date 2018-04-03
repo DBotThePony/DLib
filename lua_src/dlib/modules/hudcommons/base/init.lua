@@ -169,6 +169,11 @@ end
 function meta:AddHook(event, funcIfAny, priority)
 	priority = priority or 3
 	funcIfAny = funcIfAny or self[event]
+
+	if type(funcIfAny) == 'string' then
+		funcIfAny = self[funcIfAny]
+	end
+
 	self.hooks[event] = {funcIfAny, priority}
 
 	if self:IsEnabled() then
