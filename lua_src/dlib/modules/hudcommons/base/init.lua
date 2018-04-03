@@ -35,6 +35,10 @@ function meta:__construct(hudID, hudName)
 	self.variablesHash = {}
 	self.paintHash = {}
 	self.paint = {}
+	self.paintPostHash = {}
+	self.paintPost = {}
+	self.paintOverlayHash = {}
+	self.paintOverlay = {}
 	self.tickHash = {}
 	self.tick = {}
 	self.thinkHash = {}
@@ -63,6 +67,8 @@ function meta:__construct(hudID, hudName)
 	self:AddHook('Tick')
 	self:AddHook('Think')
 	self:AddHook('HUDPaint')
+	self:AddHook('PostDrawHUD')
+	self:AddHook('DrawOverlay')
 	self:AddHook('DrawWeaponSelection')
 	self:AddHook('ScreenSizeChanged')
 
@@ -281,6 +287,28 @@ function meta:AddPaintHook(id, funcToCall)
 	end
 end
 
+function meta:AddPostPaintHook(id, funcToCall)
+	funcToCall = funcToCall or self[id]
+	assert(type(funcToCall) == 'function', 'Input is not a function!')
+	self.paintPostHash[id] = funcToCall
+	self.paintPost = {}
+
+	for id, func in pairs(self.paintPostHash) do
+		table.insert(self.paintPost, func)
+	end
+end
+
+function meta:AddOverlayPaintHook(id, funcToCall)
+	funcToCall = funcToCall or self[id]
+	assert(type(funcToCall) == 'function', 'Input is not a function!')
+	self.paintOverlayHash[id] = funcToCall
+	self.paintOverlay = {}
+
+	for id, func in pairs(self.paintOverlayHash) do
+		table.insert(self.paintOverlay, func)
+	end
+end
+
 function meta:AddThinkHook(id, funcToCall)
 	funcToCall = funcToCall or self[id]
 	assert(type(funcToCall) == 'function', 'Input is not a function!')
@@ -346,6 +374,48 @@ function meta:HUDPaint()
 	if nextevent ~= nil then
 		goto loop
 	end
+end
+
+local cam = cam
+
+function meta:PostDrawHUD()
+	local paint = self.paintPost
+	if #paint == 0 then return end
+
+	cam.Start2D()
+	local ply = self:SelectPlayer()
+
+	local i, nextevent = 1, paint[1]
+	::loop::
+
+	nextevent(self, ply)
+	i = i + 1
+	nextevent = paint[i]
+
+	if nextevent ~= nil then
+		goto loop
+	end
+	cam.End2D()
+end
+
+function meta:DrawOverlay()
+	local paint = self.paintOverlay
+	if #paint == 0 then return end
+
+	cam.Start2D()
+	local ply = self:SelectPlayer()
+
+	local i, nextevent = 1, paint[1]
+	::loop::
+
+	nextevent(self, ply)
+	i = i + 1
+	nextevent = paint[i]
+
+	if nextevent ~= nil then
+		goto loop
+	end
+	cam.End2D()
 end
 
 function meta:Think()
