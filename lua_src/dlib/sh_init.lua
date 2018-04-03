@@ -45,8 +45,37 @@ local startupText = [[
 
 ]]
 
-for line in string.gmatch(startupText, '(.-)\r?\n') do
-	MsgC(line .. '\n')
+local startupText2 = [[
+	___  _    _ ___
+	|  \ |    | |__]
+	|__/ |___ | |__]
+
+	___  ____ ____ ____ _  _ _ _  _ ____
+	|__] |__/ |___ |__| |_/  | |\ | | __
+	|__] |  \ |___ |  | | \_ | | \| |__]
+
+	_   _ ____ _  _ ____
+	 \_/  |  | |  | |__/
+	  |   |__| |__| |  \
+
+	____ _  _ _ ___
+	[__  |__| |  |
+	___] |  | |  |
+
+	___ _  _
+	 |  |\/|
+	 |  |  |
+
+]]
+
+if math.random() > 0.25 then
+	for line in string.gmatch(startupText, '(.-)\r?\n') do
+		MsgC(line .. '\n')
+	end
+else
+	for line in string.gmatch(startupText2, '(.-)\r?\n') do
+		MsgC(line .. '\n')
+	end
 end
 
 local MsgC = MsgC
