@@ -91,7 +91,7 @@ function HUDCommons.WordBox(text, font, x, y, col, colBox, center)
 	surface.SetTextPos(x, y)
 	surface.DrawText(text)
 
-    return w, h
+    return w + 8, h + 8
 end
 
 function HUDCommons.VerticalBar(x, y, w, h, mult, color)
