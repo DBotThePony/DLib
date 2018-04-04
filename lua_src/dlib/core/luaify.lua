@@ -21,21 +21,17 @@ local setmetatable = debug.setmetatable
 local rawget = rawget
 
 local function type(var)
-	if rawequal(var, nil) == true then
+	if rawequal(var, nil) then
 		return 'nil'
 	end
 
-	if rawequal(var, true) == true then
-		return 'boolean'
-	end
-
-	if rawequal(var, false) == true then
+	if rawequal(var, true) or rawequal(var, false) then
 		return 'boolean'
 	end
 
 	local meta = getmetatable(var)
 
-	if rawequal(meta, nil) == true then
+	if rawequal(meta, nil) then
 		return 'table'
 	end
 
