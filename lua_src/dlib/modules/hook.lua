@@ -446,6 +446,10 @@ local __breakage1 = {
 	'PreGamemodeLoaded',
 	'PostRenderVGUI',
 	'OnGamemodeLoaded',
+
+	'CreateMove',
+	'StartCommand',
+	'SetupMove',
 }
 
 local __breakage = {}
