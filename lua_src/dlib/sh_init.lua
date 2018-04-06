@@ -68,7 +68,7 @@ local startupText2 = [[
 
 ]]
 
-if math.random() > 0.25 then
+if math.random() > 0.1 then
 	for line in string.gmatch(startupText, '(.-)\r?\n') do
 		MsgC(line .. '\n')
 	end
