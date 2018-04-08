@@ -497,7 +497,13 @@ if DLib.gNet ~= gnet and ents.GetCount() < 10 then
 				return nnet[key]
 			end
 
-			return net[key]
+			local val = net[key]
+
+			if val ~= nil then
+				return val
+			end
+
+			return DLib.nativeNet[key]
 		end,
 
 		__newindex = function(self, key, value)
