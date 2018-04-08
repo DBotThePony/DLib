@@ -512,6 +512,10 @@ if DLib.gNet ~= gnet and ents.GetCount() < 10 then
 			end
 
 			net[key] = value
+
+			if value == nil then
+				DLib.nativeNet[key] = value
+			end
 		end
 	})
 elseif DLib.gNet ~= gnet then
