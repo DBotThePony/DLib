@@ -115,6 +115,10 @@ DLib.register('util/vector.lua')
 
 DLib.node = DLib.simpleInclude('util/node.lua')
 
+if CLIENT then
+	DLib.register('util/client/localglobal.lua')
+end
+
 file.mkdir('dlib')
 
 DLib.register('core/tableutil.lua').export(_G.table)
