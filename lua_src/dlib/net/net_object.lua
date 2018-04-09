@@ -642,6 +642,7 @@ end
 
 local game = game
 local CurTime = CurTime
+local patchedNWs = {}
 
 function messageMeta:Broadcast()
 	if CLIENT then error('Not a server!') end
@@ -654,7 +655,10 @@ function messageMeta:Broadcast()
 		self:WriteNetwork()
 		nnet.Broadcast()
 	else
-		DLib.Message('GMOD BUG: Broadcasting message too early, and game is singleplayer! Doing workaround... Affected message - ' .. self:GetMessageName())
+		if not patchedNWs[self:GetMessageName()] then
+			patchedNWs[self:GetMessageName()] = true
+			DLib.Message('GMOD BUG: Broadcasting message too early, and game is singleplayer! Doing workaround... Affected message - ' .. self:GetMessageName())
+		end
 
 		timer.Simple(0.5, function()
 			timer.Simple(0.5, function()
