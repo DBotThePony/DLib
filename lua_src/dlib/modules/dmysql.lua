@@ -224,7 +224,10 @@ local tmsql, moo = file.Exists("bin/gmsv_tmysql4_*", "LUA"), file.Exists("bin/gm
 
 function obj:Connect()
 	if not self.UseMySQL then
-		DMySQL3.Message(self.config, ': Using SQLite')
+		if self.config ~= 'default' then
+			DMySQL3.Message(self.config, ': Using SQLite')
+		end
+
 		self.IsMySQL = false
 		return
 	end
