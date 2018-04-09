@@ -68,6 +68,8 @@ local startupText2 = [[
 
 ]]
 
+MsgC('---------------------------------------------------------------\n')
+
 if math.random() > 0.1 then
 	for line in string.gmatch(startupText, '(.-)\r?\n') do
 		MsgC(line .. '\n')
