@@ -56,6 +56,24 @@ function combat.inPVS(point1, point2, eyes, yawLimit, pitchLimit)
 	return interval(diffYaw, -yawLimit, yawLimit) and interval(diffPith, -pitchLimit, pitchLimit)
 end
 
+function combat.turnAngle(point1, point2, eyes)
+	if type(point1) ~= 'Vector' then
+		if point1.EyeAnglesFixed then
+			eyes = eyes or point1:EyeAnglesFixed()
+		elseif point1.EyeAngles then
+			eyes = eyes or point1:EyeAngles()
+		end
+
+		point1 = point1:EyePos()
+	end
+
+	if type(point2) ~= 'Vector' then
+		point2 = point2:EyePos()
+	end
+
+	return ang.p:AngleDifference(eyes.p), ang.y:AngleDifference(eyes.y)
+end
+
 function combat.findWeaponAlt(dmginfo)
 	local attacker, inflictor = dmginfo:GetAttacker(), dmginfo:GetInflictor()
 	local weapon = inflictor
