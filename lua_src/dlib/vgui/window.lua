@@ -119,6 +119,12 @@ function PANEL:UpdateSize(w, h)
 	self:Center()
 end
 
+function PANEL:RemoveResize()
+	if IsValid(self.bottomBar) then
+		self.bottomBar:Remove()
+	end
+end
+
 function PANEL:SetLabel(str)
 	return self:SetTitle(str)
 end
