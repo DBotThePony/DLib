@@ -71,6 +71,7 @@ function combat.turnAngle(point1, point2, eyes)
 		point2 = point2:EyePos()
 	end
 
+	local ang = (point2 - point1):Angle()
 	return ang.p:AngleDifference(eyes.p), ang.y:AngleDifference(eyes.y)
 end
 
