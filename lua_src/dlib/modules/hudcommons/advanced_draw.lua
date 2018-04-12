@@ -19,6 +19,8 @@ local HUDCommons = HUDCommons
 local surface = surface
 local render = render
 local cam = cam
+local RealTimeL = RealTimeL
+local math = math
 
 HUDCommons.BarData = HUDCommons.BarData or {}
 HUDCommons.BarData2 = HUDCommons.BarData2 or {}
@@ -42,6 +44,10 @@ timer.Simple(0, function()
 
 	blurMat:SetTexture('$basetexture', blurrt)
 end)
+
+function HUDCommons.DrawLoading(x, y, radius, color, segments, inlength)
+	HUDCommons.DrawArcHollow2(x, y, radius, segments or 60, inlength or (radius / 12.5), (RealTimeL() * 4) % 4 * 90, math.sin(RealTimeL() * 2) * 180 + 180, color)
+end
 
 function HUDCommons.DrawBlurredRect(x, y, w, h, blurx, blury, passes)
 	render.PushRenderTarget(blurrt)
