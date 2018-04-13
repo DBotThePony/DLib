@@ -36,6 +36,8 @@ function i18n.refreshFileList()
 			end
 		end
 	end
+
+	return filesLoad
 end
 
 function i18n.loadFileList()
