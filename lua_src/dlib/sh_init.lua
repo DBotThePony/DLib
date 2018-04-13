@@ -193,6 +193,10 @@ DLib.Loader.start('lang')
 DLib.Loader.load('dlib/modules/lang')
 DLib.Loader.finish()
 
+DLib.Loader.start('i18n')
+DLib.Loader.load('dlib/modules/i18n')
+DLib.Loader.finish()
+
 DLib.Loader.start('friends', true)
 DLib.Loader.load('dlib/modules/friendsystem')
 DLib.Loader.finish()
