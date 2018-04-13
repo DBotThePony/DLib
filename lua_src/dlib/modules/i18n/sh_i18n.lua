@@ -36,7 +36,7 @@ function i18n.localizeByLang(phrase, lang, ...)
 		unformatted = i18n.hashedLang[lang][phrase] or i18n.hashed[phrase] or phrase
 	end
 
-	local status, formatted = pcall(string.format, phrase, ...)
+	local status, formatted = pcall(string.format, unformatted, ...)
 
 	if status then
 		return formatted
@@ -112,3 +112,4 @@ function i18n.safePhrase(phrase)
 end
 
 i18n.exists = i18n.phrasePresent
+i18n.phraseExists = i18n.phrasePresent

@@ -22,7 +22,12 @@ function lang.update()
 	gmod_language = gmod_language or GetConVar('gmod_language')
 	if not gmod_language then return end
 	lang.CURRENT_LANG = gmod_language:GetString():lower()
-	if LastLanguage ~= lang.CURRENT_LANG then hook.Call('DLib.LanguageChanged') end
+
+	if LastLanguage ~= lang.CURRENT_LANG then
+		hook.Call('DLib.LanguageChanged')
+		hook.Call('DLib.LanguageChanged2')
+	end
+
 	LastLanguage = lang.CURRENT_LANG
 end
 
