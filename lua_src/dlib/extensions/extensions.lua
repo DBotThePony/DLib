@@ -152,35 +152,48 @@ local table = table
 local unpack = unpack
 
 function math.bezier(t, a, b, ...)
+	-- check arguments
 	assert(type(t) == 'number', 'invalid T variable')
 	assert(t >= 0 and t <= 1, '0 <= t <= 1!')
 	assert(type(a) == 'number', '(a) at least two numbers should be valid')
 	assert(type(b) == 'number', '(b) at least two numbers should be valid')
+
+	-- get amount of points passed
 	local amount = select('#', ...) + 2
 
-	-- linear
+	-- linear, 2 points provided
 	if amount == 2 then
 		return a + (b - a) * t
-	-- square
+	-- square, 3 points provided
 	elseif amount == 3 then
 		return (1 - t):pow(2) * a + 2 * t * (1 - t) * b + t:pow(2) * select(1, ...)
-	-- cube
+	-- cube, 4 points provided
 	elseif amount == 4 then
 		return (1 - t):pow(3) * a + 3 * t * (1 - t):pow(2) * b + 3 * t:pow(2) * (1 - t) * select(1, ...) + t:pow(3) * select(2, ...)
 	end
 
-	-- instead of implementing matrix, using bare loops
+	-- instead of implementing matrix, using bare loops and recursion
+	-- collect all passed points
 	local vararg = {a, b, ...}
+
+	-- output points
 	local points = {}
 
+	-- iterate over all points
 	for point = 1, amount do
+		-- gather our current and next point
 		local point1 = vararg[point]
 		local point2 = vararg[point + 1]
+		-- if we did hit the end of point list, break out from list
+		-- so on the output there would be points - 1 from initial amount of points
 		if not point2 then break end
+		-- calculate linear bezier between these two points
+		-- and use it as our new point
 		local newpoint = point1 + (point2 - point1) * t
 		table.insert(points, newpoint)
 	end
 
+	-- calculate points - 1 bezier
 	return math.tbezier(t, points)
 end
 
