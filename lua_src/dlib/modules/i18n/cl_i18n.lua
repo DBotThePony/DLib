@@ -64,6 +64,7 @@ do
 
 	local function vguiPanelCreated(self)
 		if not self.SetLabel then return end
+		if self:GetClassName():lower():find('textentry') then return end
 
 		self._SetLabelDLib = self._SetLabelDLib or self.SetLabel
 		self.SetLabel = SetLabel
