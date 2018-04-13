@@ -19,7 +19,9 @@ local string = string
 
 i18n.namespace = i18n.namespace or {}
 i18n.hashed = i18n.hashed or {}
+i18n.hashedNoArgs = i18n.hashedNoArgs or {}
 i18n.hashedLang = i18n.hashedLang or {}
+i18n.hashedNoArgsLang = i18n.hashedNoArgsLang or {}
 
 function i18n.localizeByLang(phrase, lang, ...)
 	if not i18n.hashed[phrase] then
@@ -43,12 +45,39 @@ function i18n.localizeByLang(phrase, lang, ...)
 	end
 end
 
+function i18n.countExpressions(str)
+	local i = 0
+
+	for line in str:gmatch('[%%][^%%]') do
+		i = i + 1
+	end
+
+	return i
+end
+
 function i18n.registerPhrase(lang, phrase, unformatted)
 	if lang == 'en' then
 		i18n.hashed[phrase] = unformatted
 	else
+		i18n.hashed[phrase] = i18n.hashed[phrase] or phrase
 		i18n.hashedLang[lang] = i18n.hashedLang[lang] or {}
 		i18n.hashedLang[lang][phrase] = unformatted
+	end
+
+	if i18n.countExpressions(phrase) == 0 then
+		if lang == 'en' then
+			i18n.hashedNoArgs[phrase] = unformatted
+		else
+			i18n.hashedNoArgsLang[lang] = i18n.hashedNoArgsLang[lang] or {}
+			i18n.hashedNoArgsLang[lang][phrase] = unformatted
+		end
+	else
+		if lang == 'en' then
+			i18n.hashedNoArgs[phrase] = nil
+		else
+			i18n.hashedNoArgsLang[lang] = i18n.hashedNoArgsLang[lang] or {}
+			i18n.hashedNoArgsLang[lang][phrase] = nil
+		end
 	end
 
 	return true
@@ -58,8 +87,28 @@ function i18n.localize(phrase, ...)
 	return i18n.localizeByLang(phrase, lang.CURRENT_LANG, ...)
 end
 
+function i18n.getRaw(phrase)
+	return i18n.getRawByLang(phrase, lang.CURRENT_LANG)
+end
+
+function i18n.getRaw2(phrase)
+	return i18n.getRawByLang2(phrase, lang.CURRENT_LANG)
+end
+
+function i18n.getRawByLang(phrase, lang)
+	return i18n.hashedLang[lang] and i18n.hashedLang[lang][phrase]
+end
+
+function i18n.getRawByLang2(phrase, lang)
+	return i18n.hashedLang[lang] and i18n.hashedLang[lang][phrase] or i18n.hashedLang[phrase] and i18n.hashedLang[phrase][lang]
+end
+
 function i18n.phrasePresent(phrase)
 	return i18n.hashed[phrase] ~= nil
+end
+
+function i18n.safePhrase(phrase)
+	return i18n.hashedNoArgs[phrase] ~= nil
 end
 
 i18n.exists = i18n.phrasePresent
