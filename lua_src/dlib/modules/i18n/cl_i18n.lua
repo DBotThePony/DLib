@@ -36,7 +36,7 @@ do
 
 	local function vguiPanelCreated(self)
 		if not self.SetText then return end
-		if self:GetClassName():lower():find('textentry') then return end
+		if self:GetClassName():lower():find('textentry') or self:GetClassName():lower():find('input') or self:GetClassName():lower():find('editor') then return end
 
 		self._SetTextDLib = self._SetTextDLib or self.SetText
 		self.SetText = SetText
@@ -64,7 +64,7 @@ do
 
 	local function vguiPanelCreated(self)
 		if not self.SetLabel then return end
-		if self:GetClassName():lower():find('textentry') then return end
+		if self:GetClassName():lower():find('textentry') or self:GetClassName():lower():find('input') or self:GetClassName():lower():find('editor') then return end
 
 		self._SetLabelDLib = self._SetLabelDLib or self.SetLabel
 		self.SetLabel = SetLabel
@@ -99,3 +99,10 @@ do
 
 	hook.Add('VGUIPanelCreated', 'DLib.I18n_Title', vguiPanelCreated)
 end
+
+function i18n.AddChat(...)
+	local rebuild = i18n.rebuildTable({...})
+	return chat.AddText(unpack(rebuild))
+end
+
+chat.AddTextLocalized = i18n.AddChat

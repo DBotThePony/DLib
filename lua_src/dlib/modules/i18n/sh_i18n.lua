@@ -96,11 +96,11 @@ function i18n.getRaw2(phrase)
 end
 
 function i18n.getRawByLang(phrase, lang)
-	return i18n.hashedLang[lang] and i18n.hashedLang[lang][phrase]
+	return i18n.hashedLang[lang] and i18n.hashedLang[lang][phrase] or i18n.hashed[phrase]
 end
 
 function i18n.getRawByLang2(phrase, lang)
-	return i18n.hashedLang[lang] and i18n.hashedLang[lang][phrase] or i18n.hashedLang[phrase] and i18n.hashedLang[phrase][lang]
+	return i18n.hashedLang[lang] and i18n.hashedLang[lang][phrase] or i18n.hashedLang[phrase] and i18n.hashedLang[phrase][lang] or i18n.hashed[phrase]
 end
 
 function i18n.phrasePresent(phrase)
@@ -113,3 +113,56 @@ end
 
 i18n.exists = i18n.phrasePresent
 i18n.phraseExists = i18n.phrasePresent
+
+local table = table
+local type = type
+
+function i18n.rebuildTable(args)
+	return i18n.rebuildTableByLang(args, lang.CURRENT_LANG)
+end
+
+function i18n.rebuildTableByLang(args, lang)
+	local rebuild = {}
+	local i = 1
+
+	while i <= #args do
+		local arg = args[i]
+
+		if type(arg) ~= 'string' or not i18n.exists(arg) then
+			table.insert(rebuild, arg)
+			i = i + 1
+		else
+			local phrase = i18n.getRawByLang(arg, lang)
+			local count = i18n.countExpressions(phrase)
+
+			if count == 0 then
+				table.insert(rebuild, phrase)
+				i = i + 1
+			else
+				local arguments = {}
+				local original = i
+				local success = true
+
+				for n = 1, count do
+					if type(args[i + n]) ~= 'string' then
+						success = false
+						i = original
+						break
+					end
+
+					table.insert(arguments, args[i + n])
+				end
+
+				if success then
+					table.insert(rebuild, i18n.localizeByLang(arg, lang, unpack(arguments)))
+					i = i + 1 + count
+				else
+					table.insert(rebuild, arg)
+					i = i + 1
+				end
+			end
+		end
+	end
+
+	return rebuild
+end
