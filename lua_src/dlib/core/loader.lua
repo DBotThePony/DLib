@@ -16,6 +16,7 @@
 local Loader = DLib.module('Loader')
 
 local currentModule, currentModuleEnv
+local fenv2 = getfenv(1)
 
 function Loader.include(filIn)
 	if not currentModule then
@@ -39,7 +40,7 @@ function Loader.include(filIn)
 					return Loader.include
 				end
 
-				return _G[key]
+				return fenv2[key]
 			end,
 
 			__newindex = function(self, key, value)
@@ -47,7 +48,7 @@ function Loader.include(filIn)
 					return
 				end
 
-				_G[key] = value
+				fenv2[key] = value
 			end
 		}))
 

@@ -42,7 +42,7 @@ end
 
 function i18n.loadFileList()
 	for i, data in ipairs(filesLoad) do
-		AddCSLuaFile('dlib/i18n/' .. dir .. '/' .. luafile)
+		AddCSLuaFile(data[2])
 		i18n.executeFile(data[1], data[2])
 	end
 end
