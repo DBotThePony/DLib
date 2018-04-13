@@ -13,6 +13,16 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
+local table = table
+local DLib = DLib
+
+-- this WILL break EPOE
+-- local MsgC = MsgC
+-- local Msg = Msg
+
+local type = type
+local net = net
+
 local function RepackMessage(strIn)
 	local output = {}
 
@@ -104,9 +114,18 @@ end
 
 return function(tableTarget, moduleName, moduleColor)
 	local nwname = 'DLib.Message.' .. util.CRC(moduleName)
+	local nwnameL = 'DLib.Message.' .. util.CRC(moduleName) .. '.L'
 
-	if SERVER then net.pool(nwname) end
-	if net.BindMessageGroup then net.BindMessageGroup(nwname, 'dlibmessages') end
+	if SERVER then
+		net.pool(nwname)
+		net.pool(nwnameL)
+	end
+
+	if net.BindMessageGroup then
+		net.BindMessageGroup(nwname, 'dlibmessages')
+		net.BindMessageGroup(nwnameL, 'dlibmessages')
+	end
+
 	local PREFIX = '[' .. moduleName .. '] '
 	local PREFIX_COLOR = moduleColor or Color(0, 200, 0)
 
@@ -117,8 +136,21 @@ return function(tableTarget, moduleName, moduleColor)
 		return formatted
 	end
 
+	local function LMessage(...)
+		local formatted = FormatMessageInternal(DLib.i18n.rebuildTable({...}))
+		MsgC(PREFIX_COLOR, PREFIX, unpack(formatted))
+		MsgC('\n')
+		return formatted
+	end
+
 	local function Chat(...)
 		local formatted = FormatMessageInternal({...})
+		chat.AddText(PREFIX_COLOR, PREFIX, unpack(formatted))
+		return formatted
+	end
+
+	local function LChat(...)
+		local formatted = FormatMessageInternal(DLib.i18n.rebuildTable({...}))
 		chat.AddText(PREFIX_COLOR, PREFIX, unpack(formatted))
 		return formatted
 	end
@@ -139,16 +171,35 @@ return function(tableTarget, moduleName, moduleColor)
 		end
 	end
 
+	local function LMessagePlayer(ply, ...)
+		if CLIENT then return end
+
+		if type(ply) == 'table' or type(ply) == 'Player' then
+			net.Start(nwname)
+			net.WriteArray({...})
+			net.Send(ply)
+		else
+			LMessage(...)
+		end
+	end
+
 	if CLIENT then
 		net.receive(nwname, function()
 			local array = net.ReadArray()
 			Message(unpack(array))
 		end)
+
+		net.receive(nwnameL, function()
+			local array = net.ReadArray()
+			LMessage(unpack(array))
+		end)
 	end
 
 	local function export(tableTo)
 		tableTo.Message = Message
+		tableTo.LMessage = LMessage
 		tableTo.message = Message
+		tableTo.lmessage = LMessage
 		tableTo.RepackMessage = RepackMessage
 		tableTo.repackMessage = RepackMessage
 		tableTo.FormatMessage = FormatMessage
@@ -162,10 +213,20 @@ return function(tableTarget, moduleName, moduleColor)
 			tableTo.ChatPrint = Chat
 			tableTo.AddChat = Chat
 			tableTo.chatMessage = Chat
+
+			tableTo.LChat = LChat
+			tableTo.LChatMessage = LChat
+			tableTo.LChatPrint = LChat
+			tableTo.LAddChat = LChat
+			tableTo.lchatMessage = LChat
 		else
 			tableTo.MessagePlayer = MessagePlayer
 			tableTo.messagePlayer = MessagePlayer
 			tableTo.messageP = MessagePlayer
+
+			tableTo.LMessagePlayer = LMessagePlayer
+			tableTo.lmessagePlayer = LMessagePlayer
+			tableTo.lmessageP = LMessagePlayer
 		end
 	end
 
