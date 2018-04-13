@@ -25,10 +25,10 @@ local getfenv = getfenv
 function i18n.refreshFileList()
 	filesLoad = {}
 
-	local _, dirs = file.Find('dlib/i18n/*')
+	local _, dirs = file.Find('dlib/i18n/*', 'LUA')
 
 	for i, dir in ipairs(dirs) do
-		local files = file.Find('dlib/i18n/' .. dir .. '/*')
+		local files = file.Find('dlib/i18n/' .. dir .. '/*', 'LUA')
 
 		for i2, luafile in ipairs(files) do
 			if luafile:sub(-4) == '.lua' then
@@ -40,6 +40,7 @@ end
 
 function i18n.loadFileList()
 	for i, data in ipairs(filesLoad) do
+		AddCSLuaFile('dlib/i18n/' .. dir .. '/' .. luafile)
 		i18n.executeFile(data[1], data[2])
 	end
 end

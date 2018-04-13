@@ -52,4 +52,13 @@ if not VLL_CURR_FILE then
 end
 
 MsgC(string.format('[DLib] Addons were initialized in %.2f ms\n', (SysTime() - timeStart) * 1000))
+
+timeStart = SysTime()
+MsgC('[DLib] Loading translations for i18n ... ')
+
+DLib.i18n.refreshFileList()
+DLib.i18n.loadFileList()
+
+MsgC(string.format('%.2f ms\n', (SysTime() - timeStart) * 1000))
+
 MsgC('---------------------------------------------------------------\n')
