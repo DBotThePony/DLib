@@ -16,7 +16,7 @@
 local Loader = DLib.module('Loader')
 
 local currentModule, currentModuleEnv
-local fenv2 = getfenv(1)
+local fenv2 = debug.getinfo(1) and getfenv(1) or _G
 
 function Loader.include(filIn)
 	if not currentModule then
