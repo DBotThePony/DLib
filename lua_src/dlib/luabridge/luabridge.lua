@@ -91,10 +91,16 @@ if CLIENT then
 	updateWeaponFix()
 
 	local vgui = vgui
-	vgui.CreateC = vgui.CreateC or vgui.Create
+	vgui.DLib_Create = vgui.DLib_Create or vgui.Create
+	local ignore = 0
 
 	function vgui.Create(...)
-		local pnl = vgui.CreateC(...)
+		if ignore == FrameNumberL() then return vgui.DLib_Create(...) end
+
+		ignore = FrameNumberL()
+		local pnl = vgui.DLib_Create(...)
+		ignore = 0
+
 		if not pnl then return end
 		hook.Run('VGUIPanelCreated', pnl, ...)
 		return pnl
