@@ -33,3 +33,20 @@ end
 plyMeta.DLibPhrase = plyMeta.LocalizePhrase
 plyMeta.DLibLocalize = plyMeta.LocalizePhrase
 plyMeta.GetDLibPhrase = plyMeta.LocalizePhrase
+
+local ipairs = ipairs
+local player = player
+
+local function tickPlayers()
+	for i, ply in ipairs(player.GetAll()) do
+		local nick = ply:Nick()
+
+		if nick == 'unnamed' or i18n.exists(nick) then
+			ply:Kick('[DLib/I18N] Invalid nickname')
+		end
+	end
+end
+
+timer.Create('DLib.TickPlayerNames', 0.5, 0, tickPlayers)
+hook.Add('PlayerSpawn', 'DLib.TickPlayerNames', tickPlayers)
+hook.Add('DoPlayerDeath', 'DLib.TickPlayerNames', tickPlayers)
