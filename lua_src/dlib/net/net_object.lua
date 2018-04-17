@@ -657,7 +657,9 @@ function messageMeta:Broadcast()
 	else
 		if not patchedNWs[self:GetMessageName()] then
 			patchedNWs[self:GetMessageName()] = true
-			DLib.Message('GMOD BUG: Broadcasting message too early, and game is singleplayer! Doing workaround... Affected message - ' .. self:GetMessageName())
+			if DLib.DEBUG_MODE:GetBool() then
+				DLib.Message('GMOD BUG: Broadcasting message too early, and game is singleplayer! Doing workaround... Affected message - ' .. self:GetMessageName())
+			end
 		end
 
 		timer.Simple(0.5, function()
