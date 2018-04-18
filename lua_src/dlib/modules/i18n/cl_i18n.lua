@@ -75,6 +75,34 @@ end
 
 do
 	local function languageWatchdog(self)
+		self:_SetTooltipDLib(i18n.localize(self._DLibLocalize, unpack(self._DLibLocalizeArgs)))
+	end
+
+	local function SetTooltip(self, text, ...)
+		if not i18n.exists(text) then
+			hook.Remove('DLib.LanguageChanged2', self)
+			return self:_SetTooltipDLib(text, ...)
+		end
+
+		hook.Add('DLib.LanguageChanged2', self, languageWatchdog)
+		self._DLibLocalize = text
+		self._DLibLocalizeArgs = {...}
+		return self:_SetTooltipDLib(i18n.localize(text, ...))
+	end
+
+	local function vguiPanelCreated(self)
+		if not self.SetTooltip then return end
+		if self:GetClassName():lower():find('textentry') or self:GetClassName():lower():find('input') or self:GetClassName():lower():find('editor') then return end
+
+		self._SetTooltipDLib = self._SetTooltipDLib or self.SetTooltip
+		self.SetTooltip = SetTooltip
+	end
+
+	hook.Add('VGUIPanelCreated', 'DLib.I18n_Tooltip', vguiPanelCreated)
+end
+
+do
+	local function languageWatchdog(self)
 		self:_SetTitleDLib(i18n.localize(self._DLibLocalize, unpack(self._DLibLocalizeArgs)))
 	end
 
