@@ -17,6 +17,8 @@ local i18n = i18n
 local hook = hook
 local unpack = unpack
 
+local DefaultPanelCreated
+
 do
 	local function languageWatchdog(self)
 		self:_SetTextDLib(i18n.localize(self._DLibLocalize, unpack(self._DLibLocalizeArgs)))
@@ -34,16 +36,15 @@ do
 		return self:_SetTextDLib(i18n.localize(text, ...))
 	end
 
-	local function vguiPanelCreated(self)
+	function DefaultPanelCreated(self)
 		if not self.SetText then return end
-		if self:GetClassName():lower():find('textentry') or self:GetClassName():lower():find('input') or self:GetClassName():lower():find('editor') then return end
 
 		self._SetTextDLib = self._SetTextDLib or self.SetText
 		self.SetText = SetText
 	end
-
-	hook.Add('VGUIPanelCreated', 'DLib.I18n', vguiPanelCreated)
 end
+
+local LabelPanelCreated
 
 do
 	local function languageWatchdog(self)
@@ -62,16 +63,15 @@ do
 		return self:_SetLabelDLib(i18n.localize(text, ...))
 	end
 
-	local function vguiPanelCreated(self)
+	function LabelPanelCreated(self)
 		if not self.SetLabel then return end
-		if self:GetClassName():lower():find('textentry') or self:GetClassName():lower():find('input') or self:GetClassName():lower():find('editor') then return end
 
 		self._SetLabelDLib = self._SetLabelDLib or self.SetLabel
 		self.SetLabel = SetLabel
 	end
-
-	hook.Add('VGUIPanelCreated', 'DLib.I18n_Label', vguiPanelCreated)
 end
+
+local TooltipPanelCreated
 
 do
 	local function languageWatchdog(self)
@@ -90,16 +90,15 @@ do
 		return self:_SetTooltipDLib(i18n.localize(text, ...))
 	end
 
-	local function vguiPanelCreated(self)
+	function TooltipPanelCreated(self)
 		if not self.SetTooltip then return end
-		if self:GetClassName():lower():find('textentry') or self:GetClassName():lower():find('input') or self:GetClassName():lower():find('editor') then return end
 
 		self._SetTooltipDLib = self._SetTooltipDLib or self.SetTooltip
 		self.SetTooltip = SetTooltip
 	end
-
-	hook.Add('VGUIPanelCreated', 'DLib.I18n_Tooltip', vguiPanelCreated)
 end
+
+local TitlePanelCreated
 
 do
 	local function languageWatchdog(self)
@@ -118,14 +117,21 @@ do
 		return self:_SetTitleDLib(i18n.localize(text, ...))
 	end
 
-	local function vguiPanelCreated(self)
+	function TitlePanelCreated(self)
 		if not self.SetTitle then return end
 
 		self._SetTitleDLib = self._SetTitleDLib or self.SetTitle
 		self.SetTitle = SetTitle
 	end
+end
 
-	hook.Add('VGUIPanelCreated', 'DLib.I18n_Title', vguiPanelCreated)
+local function vguiPanelCreated(self)
+	if self:GetClassName():lower():find('textentry') or self:GetClassName():lower():find('input') or self:GetClassName():lower():find('editor') then return end
+
+	DefaultPanelCreated(self)
+	LabelPanelCreated(self)
+	TooltipPanelCreated(self)
+	TitlePanelCreated(self)
 end
 
 function i18n.AddChat(...)
@@ -133,4 +139,5 @@ function i18n.AddChat(...)
 	return chat.AddText(unpack(rebuild))
 end
 
+hook.Add('VGUIPanelCreated', 'DLib.I18n', vguiPanelCreated)
 chat.AddTextLocalized = i18n.AddChat
