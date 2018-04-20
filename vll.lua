@@ -1899,7 +1899,7 @@ function VLL.Format256Color(col)
 end
 
 concommand.Add('vll_load', function(ply, cmd, args)
-	if IsValid(ply) and SERVER then return end
+	if IsValid(ply) and SERVER and not game.SinglePlayer() then return end
 
 	if not args[1] then
 		VLL.Message('No Bundle!')
@@ -1910,7 +1910,7 @@ concommand.Add('vll_load', function(ply, cmd, args)
 end)
 
 concommand.Add('vll_cload', function(ply, cmd, args)
-	if IsValid(ply) and SERVER then return end
+	if IsValid(ply) and SERVER and not game.SinglePlayer() then return end
 
 	if not args[1] then
 		VLL.Message('No Bundle!')
@@ -1921,7 +1921,7 @@ concommand.Add('vll_cload', function(ply, cmd, args)
 end)
 
 concommand.Add('vll_workshop', function(ply, cmd, args)
-	if IsValid(ply) and SERVER then return end
+	if IsValid(ply) and SERVER and not game.SinglePlayer() then return end
 
 	if not args[1] then
 		VLL.Message('Not a valid workshop ID')
@@ -1937,7 +1937,7 @@ concommand.Add('vll_workshop', function(ply, cmd, args)
 end)
 
 concommand.Add('vll_load_silent', function(ply, cmd, args)
-	if IsValid(ply) and SERVER then return end
+	if IsValid(ply) and SERVER and not game.SinglePlayer() then return end
 
 	if not args[1] then
 		VLL.Message('No Bundle!')
@@ -1948,7 +1948,7 @@ concommand.Add('vll_load_silent', function(ply, cmd, args)
 end)
 
 concommand.Add('vll_cload_silent', function(ply, cmd, args)
-	if IsValid(ply) and SERVER then return end
+	if IsValid(ply) and SERVER and not game.SinglePlayer() then return end
 
 	if not args[1] then
 		VLL.Message('No Bundle!')
@@ -1959,7 +1959,7 @@ concommand.Add('vll_cload_silent', function(ply, cmd, args)
 end)
 
 concommand.Add('vll_unload_hooks', function(ply, cmd, args)
-	if IsValid(ply) and SERVER then return end
+	if IsValid(ply) and SERVER and not game.SinglePlayer() then return end
 
 	if not args[1] then
 		VLL.Message('No Bundle!')
@@ -1971,13 +1971,13 @@ concommand.Add('vll_unload_hooks', function(ply, cmd, args)
 end)
 
 concommand.Add('vll_reload', function(ply, cmd, args)
-	if IsValid(ply) and SERVER then return end
+	if IsValid(ply) and SERVER and not game.SinglePlayer() then return end
 
 	http.Fetch('https://dbot.serealia.ca/vll/vll.lua', function(b) RunString(b, 'VLL') end)
 end)
 
 concommand.Add('vll_reload_silent', function(ply, cmd, args)
-	if IsValid(ply) and SERVER then return end
+	if IsValid(ply) and SERVER and not game.SinglePlayer() then return end
 
 	http.Fetch('https://dbot.serealia.ca/vll/vll.lua', function(b)
 		VLL.LoadSilent = true
@@ -1986,7 +1986,7 @@ concommand.Add('vll_reload_silent', function(ply, cmd, args)
 end)
 
 concommand.Add('vll_mountall', function(ply, cmd, args)
-	if IsValid(ply) and SERVER then return end
+	if IsValid(ply) and SERVER and not game.SinglePlayer() then return end
 
 	for i, val in ipairs(VLL.CMOUNTING_GMA) do
 		ContinueMountGMA(unpack(val))
@@ -2009,7 +2009,7 @@ concommand.Add('vll_workshop', function(ply, cmd, args)
 end)
 
 concommand.Add('vll', function(ply, cmd, args)
-	if IsValid(ply) and SERVER then return end
+	if IsValid(ply) and SERVER and not game.SinglePlayer() then return end
 	MsgC([[
 VVL - Virtual Lua Loader
 Maded by DBot
