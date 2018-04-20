@@ -650,13 +650,14 @@ function messageMeta:Broadcast()
 	local msg = self:GetMessageName()
 	if not msg then error('Starting a net message without name!') end
 
-	if not game.SinglePlayer() or CurTime() > 60 then
+	if not game.SinglePlayer() or CurTime() > 15 then
 		nnet.Start(msg, self:GetUnreliable())
 		self:WriteNetwork()
 		nnet.Broadcast()
 	else
 		if not patchedNWs[self:GetMessageName()] then
 			patchedNWs[self:GetMessageName()] = true
+
 			if DLib.DEBUG_MODE:GetBool() then
 				DLib.Message('GMOD BUG: Broadcasting message too early, and game is singleplayer! Doing workaround... Affected message - ' .. self:GetMessageName())
 			end
