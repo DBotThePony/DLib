@@ -19,12 +19,20 @@ local chat = DLib.module('chat', 'chat')
 
 function chat.generate(name, targetTable)
 	local nw = 'DLib.AddChatText.' .. name
+	local nwL = 'DLib.AddChatTextL.' .. name
 	net.pool(nw)
+	net.pool(nwL)
 
 	local newModule = targetTable or {}
 
 	function newModule.chatPlayer(ply, ...)
 		net.Start(nw, true)
+		net.WriteArray({...})
+		net.Send(ply)
+	end
+
+	function newModule.lchatPlayer(ply, ...)
+		net.Start(nwL, true)
 		net.WriteArray({...})
 		net.Send(ply)
 	end
@@ -39,11 +47,34 @@ function chat.generate(name, targetTable)
 		end
 	end
 
+	function newModule.lchatPlayer2(ply, ...)
+		if IsValid(ply) and not ply:IsBot() then
+			net.Start(nwL, true)
+			net.WriteArray({...})
+			net.Send(ply)
+		elseif newModule.Message then
+			newModule.Message(ply, ' -> ', ...)
+		end
+	end
+
 	function newModule.chatAll(...)
 		net.Start(nw, true)
 		net.WriteArray({...})
 		net.Broadcast()
 	end
+
+	function newModule.lchatAll(...)
+		net.Start(nwL, true)
+		net.WriteArray({...})
+		net.Broadcast()
+	end
+
+	newModule.ChatPlayer = chatPlayer.chatPlayer
+	newModule.ChatPlayer2 = chatPlayer.chatPlayer2
+	newModule.LChatPlayer = chatPlayer.lchatPlayer
+	newModule.LChatPlayer2 = chatPlayer.lchatPlayer2
+	newModule.ChatAll = chatPlayer.chatAll
+	newModule.LChatAll = chatPlayer.lchatAll
 
 	return newModule
 end

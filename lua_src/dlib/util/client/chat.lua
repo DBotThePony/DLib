@@ -17,6 +17,7 @@ local chat = DLib.module('chat', 'chat')
 
 function chat.registerChat(vname, ...)
 	local nw = 'DLib.AddChatText.' .. vname
+	local nwL = 'DLib.AddChatTextL.' .. vname
 	local values = {...}
 	local func = values[1]
 
@@ -24,9 +25,17 @@ function chat.registerChat(vname, ...)
 		net.receive(nw, function()
 			chat.AddText(unpack(table.unshift(net.ReadArray(), unpack(values))))
 		end)
+
+		net.receive(nwL, function()
+			chat.AddTextLocalized(unpack(table.unshift(net.ReadArray(), unpack(values))))
+		end)
 	else
 		net.receive(nw, function()
 			chat.AddText(func(net.ReadArray()))
+		end)
+
+		net.receive(nwL, function()
+			chat.AddTextLocalized(func(net.ReadArray()))
 		end)
 	end
 
