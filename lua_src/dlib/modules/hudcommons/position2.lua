@@ -231,20 +231,34 @@ local function UpdateWeaponShift(delta)
 	local changeX = (xs - lastWeaponPosX) * div
 	local changeY = (ys - lastWeaponPosY) * div
 	local changeZ = (zs - lastWeaponPosZ) * div
+	local nancheck = changeX ~= changeX or changeY ~= changeY or changeZ ~= changeZ
 
-	lastWeaponPosX = LerpCubic(delta * 44, lastWeaponPosX, xs)
-	lastWeaponPosY = LerpCubic(delta * 44, lastWeaponPosY, ys)
-	lastWeaponPosZ = LerpCubic(delta * 44, lastWeaponPosZ, zs)
+	if not nancheck then
+		lastWeaponPosX = LerpCubic(delta * 44, lastWeaponPosX, xs)
+		lastWeaponPosY = LerpCubic(delta * 44, lastWeaponPosY, ys)
+		lastWeaponPosZ = LerpCubic(delta * 44, lastWeaponPosZ, zs)
 
-	if math.abs(changeX) > 100 or math.abs(changeY) > 100 or math.abs(changeY) > 100 then return end
+		if math.abs(changeX) > 100 or math.abs(changeY) > 100 or math.abs(changeY) > 100 then return end
 
-	--lastWeaponPosX = xs
-	--lastWeaponPosY = ys
-	--lastWeaponPosZ = zs
+		--lastWeaponPosX = xs
+		--lastWeaponPosY = ys
+		--lastWeaponPosZ = zs
 
-	local M = ScreenSize(20) * SHIFTING_CLAMP_WEP:GetFloat():clamp(0, 10)
-	Pos2.ShiftX_Weapon = math.Clamp(Pos2.ShiftX_Weapon + ((changeX / delta) - (changeY / delta)) * 0.3, -M, M)
-	Pos2.ShiftY_Weapon = math.Clamp(Pos2.ShiftY_Weapon + ((changeZ / delta)) * 0.3, -M, M)
+		local M = ScreenSize(20) * SHIFTING_CLAMP_WEP:GetFloat():clamp(0, 10)
+		Pos2.ShiftX_Weapon = math.Clamp(Pos2.ShiftX_Weapon + ((changeX / delta) - (changeY / delta)) * 0.3, -M, M)
+		Pos2.ShiftY_Weapon = math.Clamp(Pos2.ShiftY_Weapon + ((changeZ / delta)) * 0.3, -M, M)
+	else
+		if DLib.DEBUG_MODE:GetBool() then
+			DLib.Message('Invalid position of weapon viewmodel')
+		end
+
+		lastWeaponPosX = 0
+		lastWeaponPosY = 0
+		lastWeaponPosZ = 0
+
+		Pos2.ShiftX_Weapon = 0
+		Pos2.ShiftY_Weapon = 0
+	end
 end
 
 local lastThink = RealTimeL()
