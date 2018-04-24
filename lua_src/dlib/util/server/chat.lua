@@ -69,12 +69,12 @@ function chat.generate(name, targetTable)
 		net.Broadcast()
 	end
 
-	newModule.ChatPlayer = chatPlayer.chatPlayer
-	newModule.ChatPlayer2 = chatPlayer.chatPlayer2
-	newModule.LChatPlayer = chatPlayer.lchatPlayer
-	newModule.LChatPlayer2 = chatPlayer.lchatPlayer2
-	newModule.ChatAll = chatPlayer.chatAll
-	newModule.LChatAll = chatPlayer.lchatAll
+	newModule.ChatPlayer = newModule.chatPlayer
+	newModule.ChatPlayer2 = newModule.chatPlayer2
+	newModule.LChatPlayer = newModule.lchatPlayer
+	newModule.LChatPlayer2 = newModule.lchatPlayer2
+	newModule.ChatAll = newModule.chatAll
+	newModule.LChatAll = newModule.lchatAll
 
 	return newModule
 end
