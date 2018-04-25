@@ -144,7 +144,7 @@ function i18n.rebuildTableByLang(args, lang)
 				local success = true
 
 				for n = 1, count do
-					if type(args[i + n]) ~= 'string' then
+					if type(args[i + n]) ~= 'string' and type(args[i + n]) ~= 'number' then
 						success = false
 						i = original
 						break

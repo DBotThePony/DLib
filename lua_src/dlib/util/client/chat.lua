@@ -35,13 +35,15 @@ function chat.registerChat(vname, ...)
 			chat.AddText(func(net.ReadArray()))
 		end)
 
-		if type(func2) == 'function' then
+		if type(func2) ~= 'function' then
 			net.receive(nwL, function()
 				chat.AddTextLocalized(func(net.ReadArray()))
 			end)
 		else
 			net.receive(nwL, function()
-				chat.AddText(func2(net.ReadArray()))
+				local arr = net.ReadArray()
+				PrintTable(arr)
+				chat.AddText(func2(arr))
 			end)
 		end
 	end
