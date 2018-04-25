@@ -159,6 +159,10 @@ return function(tableTarget, moduleName, moduleColor)
 		return FormatMessageInternal({PREFIX_COLOR, PREFIX, DEFAULT_TEXT_COLOR, ...})
 	end
 
+	local function LFormatMessage(...)
+		return FormatMessageInternal(DLib.i18n.rebuildTable({PREFIX_COLOR, PREFIX, DEFAULT_TEXT_COLOR, ...}))
+	end
+
 	local function MessagePlayer(ply, ...)
 		if CLIENT then return end
 
@@ -204,6 +208,8 @@ return function(tableTarget, moduleName, moduleColor)
 		tableTo.repackMessage = RepackMessage
 		tableTo.FormatMessage = FormatMessage
 		tableTo.formatMessage = FormatMessage
+		tableTo.LFormatMessage = LFormatMessage
+		tableTo.lformatMessage = LFormatMessage
 		tableTo.prefix = PREFIX
 		tableTo.textcolor = DEFAULT_TEXT_COLOR
 

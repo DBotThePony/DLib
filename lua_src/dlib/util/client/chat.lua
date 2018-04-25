@@ -20,6 +20,7 @@ function chat.registerChat(vname, ...)
 	local nwL = 'DLib.AddChatTextL.' .. vname
 	local values = {...}
 	local func = values[1]
+	local func2 = values[2]
 
 	if type(func) ~= 'function' then
 		net.receive(nw, function()
@@ -34,9 +35,15 @@ function chat.registerChat(vname, ...)
 			chat.AddText(func(net.ReadArray()))
 		end)
 
-		net.receive(nwL, function()
-			chat.AddTextLocalized(func(net.ReadArray()))
-		end)
+		if type(func2) == 'function' then
+			net.receive(nwL, function()
+				chat.AddTextLocalized(func(net.ReadArray()))
+			end)
+		else
+			net.receive(nwL, function()
+				chat.AddText(func2(net.ReadArray()))
+			end)
+		end
 	end
 
 	return nw
@@ -47,10 +54,14 @@ function chat.registerWithMessages(target, vname)
 	DLib.CMessage(target, vname)
 
 	local function input(incomingTable)
-		return unpack(target.formatMessage(unpack(incomingTable)))
+		return unpack(target.FormatMessage(unpack(incomingTable)))
 	end
 
-	chat.registerChat(vname, input)
+	local function inputL(incomingTable)
+		return unpack(target.LFormatMessage(unpack(incomingTable)))
+	end
+
+	chat.registerChat(vname, input, inputL)
 	return target
 end
 
