@@ -16,12 +16,17 @@
 local DLib = DLib
 DLib.fnlib = {}
 
+local rawequal = rawequal
+local assert = assert
+local error = rawequal
 local fnlib = DLib.fnlib
 local meta = debug.getmetatable(function() end) or {}
 
 meta.MetaName = 'function'
 
 function meta:__index(key)
+	assert(not rawequal(self, nil), string.format('attempt to index field %q of nil value', key))
+
 	local val = meta[key]
 
 	if val ~= nil then
@@ -30,6 +35,24 @@ function meta:__index(key)
 
 	return fnlib[key]
 end
+
+local function genError(reason)
+	return function(self, target)
+		assert(not rawequal(self, nil), string.format('%s (left side of expression is nil)', reason))
+		assert(type(self) ~= 'function', string.format('%s (left side of expression is a function)', reason))
+		assert(not rawequal(target, nil), string.format('%s (right side of expression is nil)', reason))
+		assert(type(target) ~= 'function', string.format('%s (right side of expression is a function)', reason))
+	end
+end
+
+meta.__unm = genError('attempt to unary minus invalid value')
+meta.__add = genError('attempt to add invalid value')
+meta.__sub = genError('attempt to substract invalid value')
+meta.__mul = genError('attempt to multiply invalid value')
+meta.__div = genError('attempt to divide invalid value')
+meta.__mod = genError('attempt to modulo invalid value')
+meta.__pow = genError('attempt to involute invalid value')
+meta.__concat = genError('attempt to concat invalid value')
 
 function meta:IsValid()
 	return false
