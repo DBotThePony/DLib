@@ -18,7 +18,6 @@ DLib.fnlib = {}
 
 local rawequal = rawequal
 local assert = assert
-local error = rawequal
 local fnlib = DLib.fnlib
 local meta = debug.getmetatable(function() end) or {}
 
