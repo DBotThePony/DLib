@@ -52,6 +52,8 @@ meta.__div = genError('attempt to divide invalid value')
 meta.__mod = genError('attempt to modulo invalid value')
 meta.__pow = genError('attempt to involute invalid value')
 meta.__concat = genError('attempt to concat invalid value')
+meta.__lt = genError('attempt to compare (<) invalid value(s)')
+meta.__le = genError('attempt to compare (<=) invalid value(s)')
 
 function meta:IsValid()
 	return false
