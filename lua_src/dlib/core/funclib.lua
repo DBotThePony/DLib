@@ -44,11 +44,10 @@ end
 
 local function genError(reason)
 	return function(self, target)
-		local reason = reason:format(type(self))
-		assert(rawequal(self, nil), string.format('%s (left side of expression is nil)', reason))
-		assert(type(self) == 'function', string.format('%s (left side of expression is a function)', reason))
-		assert(rawequal(target, nil), string.format('%s (right side of expression is nil)', reason))
-		assert(type(target) == 'function', string.format('%s (right side of expression is a function)', reason))
+		assert(rawequal(self, nil), string.format('%s (left side of expression is nil)', reason:format(type(self))))
+		assert(type(self) == 'function', string.format('%s (left side of expression is a function)', reason:format(type(self))))
+		assert(rawequal(target, nil), string.format('%s (right side of expression is nil)', reason:format(type(target))))
+		assert(type(target) == 'function', string.format('%s (right side of expression is a function)', reason:format(type(target))))
 	end
 end
 
