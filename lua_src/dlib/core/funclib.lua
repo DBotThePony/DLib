@@ -37,6 +37,7 @@ end
 
 local function genError(reason)
 	return function(self, target)
+		local reason = reason:format(type(self))
 		assert(not rawequal(self, nil), string.format('%s (left side of expression is nil)', reason))
 		assert(type(self) ~= 'function', string.format('%s (left side of expression is a function)', reason))
 		assert(not rawequal(target, nil), string.format('%s (right side of expression is nil)', reason))
@@ -44,16 +45,16 @@ local function genError(reason)
 	end
 end
 
-meta.__unm = genError('attempt to unary minus invalid value')
-meta.__add = genError('attempt to add invalid value')
-meta.__sub = genError('attempt to substract invalid value')
-meta.__mul = genError('attempt to multiply invalid value')
-meta.__div = genError('attempt to divide invalid value')
-meta.__mod = genError('attempt to modulo invalid value')
-meta.__pow = genError('attempt to involute invalid value')
-meta.__concat = genError('attempt to concat invalid value')
-meta.__lt = genError('attempt to compare (<) invalid value(s)')
-meta.__le = genError('attempt to compare (<=) invalid value(s)')
+meta.__unm = genError('attempt to unary minus %q value')
+meta.__add = genError('attempt to add %q value')
+meta.__sub = genError('attempt to substract %q value')
+meta.__mul = genError('attempt to multiply %q value')
+meta.__div = genError('attempt to divide %q value')
+meta.__mod = genError('attempt to modulo %q value')
+meta.__pow = genError('attempt to involute %q value')
+meta.__concat = genError('attempt to concat %q value')
+meta.__lt = genError('attempt to compare (<) %q value(s)')
+meta.__le = genError('attempt to compare (<=) %q value(s)')
 
 function meta:IsValid()
 	return false
