@@ -17,14 +17,21 @@ local DLib = DLib
 DLib.fnlib = {}
 
 local rawequal = rawequal
-local assert = assert
+local error = error
+local assert2 = assert
 local fnlib = DLib.fnlib
 local meta = debug.getmetatable(function() end) or {}
 
 meta.MetaName = 'function'
 
+local function assert(cond, reason)
+	if cond then
+		error(reason, 3)
+	end
+end
+
 function meta:__index(key)
-	assert(not rawequal(self, nil), string.format('attempt to index field %q of nil value', key))
+	assert(rawequal(self, nil), string.format('attempt to index field %q of nil value', key))
 
 	local val = meta[key]
 
@@ -38,12 +45,14 @@ end
 local function genError(reason)
 	return function(self, target)
 		local reason = reason:format(type(self))
-		assert(not rawequal(self, nil), string.format('%s (left side of expression is nil)', reason))
-		assert(type(self) ~= 'function', string.format('%s (left side of expression is a function)', reason))
-		assert(not rawequal(target, nil), string.format('%s (right side of expression is nil)', reason))
-		assert(type(target) ~= 'function', string.format('%s (right side of expression is a function)', reason))
+		assert(rawequal(self, nil), string.format('%s (left side of expression is nil)', reason))
+		assert(type(self) == 'function', string.format('%s (left side of expression is a function)', reason))
+		assert(rawequal(target, nil), string.format('%s (right side of expression is nil)', reason))
+		assert(type(target) == 'function', string.format('%s (right side of expression is a function)', reason))
 	end
 end
+
+local assert = assert2
 
 meta.__unm = genError('attempt to unary minus %q value')
 meta.__add = genError('attempt to add %q value')
