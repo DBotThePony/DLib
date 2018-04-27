@@ -57,8 +57,13 @@ function _G.ColorFromSeed(seedIn)
 end
 
 _G.Color = Color
+local IsColor
 
 function _G.ColorAlpha(target, newAlpha)
+	if not IsColor(target) then
+		error('Input is not a color! typeof ' .. type(target))
+	end
+
 	if target.Copy then
 		return target:Copy():SetAlpha(newAlpha)
 	else
@@ -66,7 +71,7 @@ function _G.ColorAlpha(target, newAlpha)
 	end
 end
 
-local function IsColor(object)
+function IsColor(object)
 	if type(object) ~= 'table' then
 		return false
 	end
