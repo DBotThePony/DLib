@@ -36,9 +36,18 @@ plyMeta.GetDLibPhrase = plyMeta.LocalizePhrase
 
 local ipairs = ipairs
 local player = player
+local GetName = FindMetaTable('Entity').GetName
+local SetName = FindMetaTable('Entity').SetName
 
 local function tickPlayers()
 	for i, ply in ipairs(player.GetAll()) do
+		local name = GetName(ply)
+
+		if #name < 4 then
+			DLib.Message(ply, ' network name was treated as exploit, changing...')
+			SetName(ply, '_bad_playername_' .. ply:UserID())
+		end
+
 		local nick = ply:Nick()
 
 		if nick == 'unnamed' or i18n.exists(nick) then
