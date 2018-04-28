@@ -133,6 +133,7 @@ local stencilMat = CreateMaterial('dlib_arc_white', 'UnlitGeneric', {
 })
 
 function HUDCommons.DrawArcHollow(x, y, radius, segments, inLength, arc, color)
+	if radius <= 1 then return end
 	arc = 360 - arc
 	local poly = {}
 	local center = radius / 2
@@ -227,6 +228,7 @@ function HUDCommons.DrawArcHollow(x, y, radius, segments, inLength, arc, color)
 end
 
 function HUDCommons.DrawArcHollow2(x, y, radius, segments, inLength, arc1, arc2, color)
+	if radius <= 1 then return end
 	local center = radius / 2
 	local inRadius = radius - inLength * 2
 	local centerIn = inRadius / 2
@@ -285,6 +287,7 @@ function HUDCommons.DrawArcHollow2(x, y, radius, segments, inLength, arc1, arc2,
 end
 
 function HUDCommons.DrawCircleHollow(x, y, radius, segments, inLength, color)
+	if radius <= 1 then return end
 	local poly = {}
 	local center = radius / 2
 	local inRadius = radius - inLength * 2
