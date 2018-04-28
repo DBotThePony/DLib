@@ -275,6 +275,13 @@ if CLIENT then
 
 	_G.ScreenSize = ScreenScale
 else
+	entMeta.GetNetworkName = entMeta.GetName
+	entMeta.SetNetworkName = entMeta.SetName
+	entMeta.GetNetworkedName = entMeta.GetName
+	entMeta.SetNetworkedName = entMeta.SetName
+	entMeta.GetTargetName = entMeta.GetName
+	entMeta.SetTargetName = entMeta.SetName
+
 	function vehicleMeta:GetPrintName()
 		if self.__dlibCachedName then
 			return self.__dlibCachedName
