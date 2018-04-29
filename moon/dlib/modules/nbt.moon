@@ -199,6 +199,7 @@ class DLib.NBT.TagArrayBased extends DLib.NBT.Base
 		@AddValue(value) for value in *values
 
 	GetArray: => @array
+	ExtractValue: (index = 1) => @array[index]
 	GetValue: => [tag\GetValue() for tag in *@array]
 	CopyArray: => [tag for tag in *@array]
 
@@ -309,6 +310,7 @@ class DLib.NBT.TagList extends DLib.NBT.TagArrayBased
 	@NAME = 'TAG_List'
 	GetType: => 'array'
 	MetaName: 'NBTList'
+	__tostring: => @Name() .. '[' .. @GetTagName() .. '][' .. (DLib.NBT.TYPEID_F[@tagClass.TAG_ID] or 'ERROR') .. '][' .. @length .. ']{' .. tostring(@array) .. '}'
 
 class DLib.NBT.TagCompound extends DLib.NBT.Base
 	new: (name = 'data', values) =>
@@ -428,6 +430,7 @@ TypedByID[classname.NAME] = classname for k, classname in pairs DLib.NBT
 classname.TAG_ID = typeid for typeid, classname in pairs Typed
 
 DLib.NBT.TYPEID = TypeID
+DLib.NBT.TYPEID_F = {k, v for v, k in pairs TypeID}
 DLib.NBT.TYPED = Typed
 DLib.NBT.TYPED_BY_ID = TypedByID
 
