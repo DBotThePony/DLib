@@ -274,11 +274,11 @@ function meta:ReadUInt32()
 end
 
 function meta:ReadInt64_2()
-	return self:ReadUint64() - 0x100000000
+	return self:ReadUInt64() - 0x100000000
 end
 
 function meta:ReadInt64()
-	return unwrap(self:ReadUint64(), 0x100000000)
+	return unwrap(self:ReadUInt64(), 0x100000000)
 end
 
 function meta:ReadUInt64()

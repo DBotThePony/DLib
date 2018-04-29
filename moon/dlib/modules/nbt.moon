@@ -271,9 +271,10 @@ class DLib.NBT.TagList extends DLib.NBT.TagArrayBased
 	@RANGE = 4
 
 	new: (name = 'array', tagID = 1) =>
-		super(name)
 		@tagID = tagID
 		@tagClass = DLib.NBT.GetTyped(tagID)
+		error('Invalid tag ID specified as array type - ' .. tagID) if not @tagClass
+		super(name)
 
 	Serialize: (bytesbuffer) =>
 		bytesbuffer\WriteUByte(@tagID)
@@ -284,6 +285,7 @@ class DLib.NBT.TagList extends DLib.NBT.TagArrayBased
 	Deserialize: (bytesbuffer) =>
 		@tagID = bytesbuffer\ReadUByte()
 		@tagClass = DLib.NBT.GetTyped(@tagID)
+		error('Invalid tag ID specified as array type - ' .. @tagID) if not @tagClass
 		@length = bytesbuffer\ReadUInt32()
 		@array = [@ReadTag(bytesbuffer) for i = 1, @length]
 		return @
@@ -291,6 +293,7 @@ class DLib.NBT.TagList extends DLib.NBT.TagArrayBased
 	AddValue: (...) =>
 		@length += 1
 		classIn = @tagClass
+		error('Invalid tag ID specified as array type - ' .. @tagID) if not classIn
 		table.insert(@GetArray(), classIn('value', ...))
 		return @
 
