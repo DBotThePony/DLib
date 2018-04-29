@@ -42,7 +42,6 @@ function chat.registerChat(vname, ...)
 		else
 			net.receive(nwL, function()
 				local arr = net.ReadArray()
-				PrintTable(arr)
 				chat.AddText(func2(arr))
 			end)
 		end
