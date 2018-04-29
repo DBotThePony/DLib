@@ -470,6 +470,10 @@ end
 -- these hooks can't return any values
 hook.StaticHooks = __breakage
 
+function hook.HasHooks(event)
+	return __tableModifiersPostOptimized[event] ~= nil and #__tableModifiersPostOptimized[event] ~= 0
+end
+
 function hook.CallStatic(event, hookTable, ...)
 	local post = __tableModifiersPostOptimized[event]
 	local events = __tableOptimized[event]
