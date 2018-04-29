@@ -50,7 +50,7 @@ function chat.registerChat(vname, ...)
 	return nw
 end
 
-function chat.registerWithMessages(target, vname)
+function chat.registerWithMessages(target, vname, ...)
 	target = target or {}
 	DLib.CMessage(target, vname)
 
@@ -62,7 +62,7 @@ function chat.registerWithMessages(target, vname)
 		return unpack(target.LFormatMessage(unpack(incomingTable)))
 	end
 
-	chat.registerChat(vname, input, inputL)
+	chat.registerChat(vname, input, inputL, ...)
 	return target
 end
 
