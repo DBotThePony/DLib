@@ -16,11 +16,15 @@
 local Lerp = Lerp
 local math = math
 
+local function Lerp(t, a, b)
+	return a + (b - a) * t
+end
+
 function _G.LerpQuintic(t, a, b)
 	if t < 0 then return a end
 	if t >= 1 then return b end
 	local value = t * t * t * (t * (t * 6 - 15) + 10)
-	return Lerp(math.min(1, value), a, b)
+	return Lerp(value, a, b)
 end
 
 function _G.Quintic(t)
@@ -31,7 +35,7 @@ function _G.LerpCosine(t, a, b)
 	if t < 0 then return a end
 	if t >= 1 then return b end
 	local value = (1 - math.cos(t * math.pi)) / 2
-	return Lerp(math.min(1, value), a, b)
+	return Lerp(value, a, b)
 end
 
 function _G.Cosine(t)
@@ -42,7 +46,7 @@ function _G.LerpSinusine(t, a, b)
 	if t < 0 then return a end
 	if t >= 1 then return b end
 	local value = (1 - math.sin(t * math.pi)) / 2
-	return Lerp(math.min(1, value), a, b)
+	return Lerp(value, a, b)
 end
 
 function _G.Sinusine(t)
@@ -53,7 +57,7 @@ function _G.LerpCubic(t, a, b)
 	if t < 0 then return a end
 	if t >= 1 then return b end
 	local value = -2 * t * t * t + 3 * t * t
-	return Lerp(math.min(1, value), a, b)
+	return Lerp(value, a, b)
 end
 
 function _G.Cubic(t)
