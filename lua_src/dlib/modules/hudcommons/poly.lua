@@ -354,7 +354,7 @@ function HUDCommons.DrawCircleHollow(x, y, radius, segments, inLength, color)
 	segments = assert(type(segments) == 'number' and segments, 'Invalid amount of segments'):floor()
 	inLength = assert(type(inLength) == 'number' and inLength, 'Invalid length inside'):floor()
 
-	local crc = CRC(x .. y .. radius .. segments .. inLength .. arc1 .. arc2)
+	local crc = CRC(x .. y .. radius .. segments .. inLength)
 
 	local center = radius / 2
 	local inRadius = radius - inLength * 2
