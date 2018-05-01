@@ -37,24 +37,34 @@ function HUDCommons.DrawTriangle(x, y, w, h, rotate)
 	return poly
 end
 
+local CRC = util.CRC
+local DrawCircleCache = {}
 function HUDCommons.DrawCircle(x, y, radius, segments)
-	local poly = {}
-	local center = radius / 2
+	if radius <= 1 then return end
+	if segments <= 4 then return end -- ???
+	local crc = CRC(x .. y .. radius .. segments)
 
-	for i = 1, segments do
-		local progress = i / segments
-		local ang = progress * -360
+	if not DrawCircleCache[crc] then
+		local poly = {}
+		local center = radius / 2
 
-		table.insert(poly, {
-			x = center + ang:rad():sin() * center,
-			y = center + ang:rad():cos() * center,
-		})
+		for i = 1, segments do
+			local progress = i / segments
+			local ang = progress * -360
+
+			table.insert(poly, {
+				x = center + ang:rad():sin() * center,
+				y = center + ang:rad():cos() * center,
+			})
+		end
+
+		HUDCommons.TranslatePolyMatrix(poly, x, y)
+		DrawCircleCache[crc] = poly
 	end
 
-	HUDCommons.TranslatePolyMatrix(poly, x, y)
-	surface.DrawPoly(poly)
+	surface.DrawPoly(DrawCircleCache[crc])
 
-	return poly
+	return DrawCircleCache[crc]
 end
 
 function HUDCommons.DrawPolyFrame(polydata)
@@ -132,10 +142,14 @@ local stencilMat = CreateMaterial('dlib_arc_white', 'UnlitGeneric', {
 	['$translucent'] = '1',
 })
 
+local DrawArcHollowCache_1 = {}
+local DrawArcHollowCache_2 = {}
 function HUDCommons.DrawArcHollow(x, y, radius, segments, inLength, arc, color)
 	if radius <= 1 then return end
+	if inLength <= 1 then return end
+	local crc = CRC(x .. y .. radius .. segments .. inLength .. arc)
+
 	arc = 360 - arc
-	local poly = {}
 	local center = radius / 2
 	local inRadius = radius - inLength * 2
 	local centerIn = inRadius / 2
@@ -164,32 +178,8 @@ function HUDCommons.DrawArcHollow(x, y, radius, segments, inLength, arc, color)
 		deg = 180
 	end
 
-	table.insert(poly, {
-		x = center,
-		y = center,
-	})
-
-	for i = 0, 20 do
-		local progress = i / 20
-		local ang = progress * -deg
-
-		table.insert(poly, {
-			x = center + ang:rad():sin() * center * 1.1,
-			y = center + ang:rad():cos() * center * 1.1,
-		})
-	end
-
-	table.insert(poly, {
-		x = center,
-		y = center,
-	})
-
-	HUDCommons.TranslatePolyMatrix(poly, x, y)
-	surface.DrawPoly(poly)
-
-	if arc > 180 then
-		deg = arc - 180
-		poly = {}
+	if not DrawArcHollowCache_1[crc] then
+		local poly = {}
 
 		table.insert(poly, {
 			x = center,
@@ -198,7 +188,7 @@ function HUDCommons.DrawArcHollow(x, y, radius, segments, inLength, arc, color)
 
 		for i = 0, 20 do
 			local progress = i / 20
-			local ang = progress * -deg - 180
+			local ang = progress * -deg
 
 			table.insert(poly, {
 				x = center + ang:rad():sin() * center * 1.1,
@@ -212,14 +202,49 @@ function HUDCommons.DrawArcHollow(x, y, radius, segments, inLength, arc, color)
 		})
 
 		HUDCommons.TranslatePolyMatrix(poly, x, y)
-		surface.DrawPoly(poly)
+		DrawArcHollowCache_1[crc] = poly
+	end
+
+	surface.DrawPoly(DrawArcHollowCache_1[crc])
+
+	if arc > 180 then
+		deg = arc - 180
+
+		if not DrawArcHollowCache_2[crc] then
+			local poly = {}
+
+			table.insert(poly, {
+				x = center,
+				y = center,
+			})
+
+			for i = 0, 20 do
+				local progress = i / 20
+				local ang = progress * -deg - 180
+
+				table.insert(poly, {
+					x = center + ang:rad():sin() * center * 1.1,
+					y = center + ang:rad():cos() * center * 1.1,
+				})
+			end
+
+			table.insert(poly, {
+				x = center,
+				y = center,
+			})
+
+			HUDCommons.TranslatePolyMatrix(poly, x, y)
+			DrawArcHollowCache_2[crc] = poly
+		end
+
+		surface.DrawPoly(DrawArcHollowCache_2[crc])
 	end
 
 	render.SetStencilCompareFunction(STENCIL_NOTEQUAL)
 
 	draw.NoTexture()
 	surface.SetDrawColor(color)
-	poly = HUDCommons.DrawCircle(x, y, radius, segments)
+	local poly = HUDCommons.DrawCircle(x, y, radius, segments)
 
 	render.ClearStencil()
 	render.SetStencilEnable(false)
@@ -227,8 +252,12 @@ function HUDCommons.DrawArcHollow(x, y, radius, segments, inLength, arc, color)
 	return poly
 end
 
+local DrawArcHollow2Cache = {}
 function HUDCommons.DrawArcHollow2(x, y, radius, segments, inLength, arc1, arc2, color)
 	if radius <= 1 then return end
+	if inLength <= 1 then return end
+	local crc = CRC(x .. y .. radius .. segments .. inLength .. arc1 .. arc2)
+
 	local center = radius / 2
 	local inRadius = radius - inLength * 2
 	local centerIn = inRadius / 2
@@ -255,40 +284,46 @@ function HUDCommons.DrawArcHollow2(x, y, radius, segments, inLength, arc1, arc2,
 	draw.NoTexture()
 	surface.SetDrawColor(color)
 
-	local poly = {}
-
-	table.insert(poly, {
-		x = center,
-		y = center,
-	})
-
-	for i = 0, segments do
-		local progress = i / segments
-		local ang = progress * -arc2 - arc1
+	if not DrawArcHollow2Cache[crc] then
+		local poly = {}
 
 		table.insert(poly, {
-			x = center + ang:rad():sin() * center,
-			y = center + ang:rad():cos() * center,
+			x = center,
+			y = center,
 		})
+
+		for i = 0, segments do
+			local progress = i / segments
+			local ang = progress * -arc2 - arc1
+
+			table.insert(poly, {
+				x = center + ang:rad():sin() * center,
+				y = center + ang:rad():cos() * center,
+			})
+		end
+
+		table.insert(poly, {
+			x = center,
+			y = center,
+		})
+
+		HUDCommons.TranslatePolyMatrix(poly, x, y)
+		DrawArcHollow2Cache[crc] = poly
 	end
 
-	table.insert(poly, {
-		x = center,
-		y = center,
-	})
-
-	HUDCommons.TranslatePolyMatrix(poly, x, y)
-	surface.DrawPoly(poly)
+	surface.DrawPoly(DrawArcHollow2Cache[crc])
 
 	render.ClearStencil()
 	render.SetStencilEnable(false)
 
-	return poly
+	return DrawArcHollow2Cache[crc]
 end
 
 function HUDCommons.DrawCircleHollow(x, y, radius, segments, inLength, color)
 	if radius <= 1 then return end
-	local poly = {}
+	if inLength <= 1 then return end
+	local crc = CRC(x .. y .. radius .. segments .. inLength .. arc1 .. arc2)
+
 	local center = radius / 2
 	local inRadius = radius - inLength * 2
 	local centerIn = inRadius / 2
@@ -310,9 +345,6 @@ function HUDCommons.DrawCircleHollow(x, y, radius, segments, inLength, color)
 	surface.SetMaterial(stencilMat)
 	surface.SetDrawColor(0, 0, 0, 255)
 	HUDCommons.DrawCircle(x + inLength / 2, y + inLength / 2, radius - inLength, segments)
-
-	HUDCommons.TranslatePolyMatrix(poly, x, y)
-	surface.DrawPoly(poly)
 	render.SetStencilCompareFunction(STENCIL_NOTEQUAL)
 
 	draw.NoTexture()
@@ -324,3 +356,12 @@ function HUDCommons.DrawCircleHollow(x, y, radius, segments, inLength, color)
 
 	return poly
 end
+
+local function cleanup()
+	DrawCircleCache = {}
+	DrawArcHollow2Cache = {}
+	DrawArcHollowCache_1 = {}
+	DrawArcHollowCache_2 = {}
+end
+
+timer.Create('DLib.PolyCacheCleanup', 400, 0, cleanup)
