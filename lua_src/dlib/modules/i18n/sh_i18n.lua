@@ -25,7 +25,7 @@ i18n.hashedNoArgsLang = i18n.hashedNoArgsLang or {}
 
 function i18n.localizeByLang(phrase, lang, ...)
 	if not i18n.hashed[phrase] then
-		return '%%' .. phrase .. '%%'
+		return phrase
 	end
 
 	local unformatted
