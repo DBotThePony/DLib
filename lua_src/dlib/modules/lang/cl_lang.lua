@@ -13,11 +13,10 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
-local LangSetup, gmod_language, LastLanguage
+local gmod_language, LastLanguage
 local LANG_OVERRIDE = CreateConVar('gmod_language_dlib_cl', '', {FCVAR_ARCHIVE}, 'gmod_language override for DLib based addons')
 
 function lang.update()
-	LangSetup = true
 	gmod_language = gmod_language or GetConVar('gmod_language')
 	if not gmod_language then return end
 	local grablang = LANG_OVERRIDE:GetString():lower():trim()
@@ -41,5 +40,6 @@ function lang.update()
 end
 
 cvars.AddChangeCallback('gmod_language', lang.update, 'DLib')
+cvars.AddChangeCallback('gmod_language_dlib_cl', lang.update, 'DLib')
 lang.update()
 timer.Simple(0, lang.update)
