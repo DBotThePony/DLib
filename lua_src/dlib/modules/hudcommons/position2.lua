@@ -161,12 +161,12 @@ local function UpdateShift(delta)
 	end
 end
 
-local lastWeaponPosX = 0
-local lastWeaponPosY = 0
-local lastWeaponPosZ = 0
+local lastWeaponPosX, lastWeaponPosY, lastWeaponPosZ = 0, 0, 0
+local lastChangeX, lastChangeY, lastChangeZ = 0, 0, 0
 local lastWeapon = NULL
 local WorldToLocal = WorldToLocal
 local IsValid = FindMetaTable('Entity').IsValid
+local Lerp = Lerp
 
 local function UpdateWeaponShift(delta)
 	if not ENABLE_SHIFTING:GetBool() then return end
@@ -234,9 +234,12 @@ local function UpdateWeaponShift(delta)
 	local nancheck = changeX ~= changeX or changeY ~= changeY or changeZ ~= changeZ
 
 	if not nancheck then
-		lastWeaponPosX = LerpCubic(delta * 44, lastWeaponPosX, xs)
-		lastWeaponPosY = LerpCubic(delta * 44, lastWeaponPosY, ys)
-		lastWeaponPosZ = LerpCubic(delta * 44, lastWeaponPosZ, zs)
+		lastChangeX = Lerp(delta * 11, lastChangeX, changeX)
+		lastChangeY = Lerp(delta * 11, lastChangeY, changeY)
+		lastChangeZ = Lerp(delta * 11, lastChangeZ, changeZ)
+		lastWeaponPosX = Lerp(delta * 44, lastWeaponPosX, xs)
+		lastWeaponPosY = Lerp(delta * 44, lastWeaponPosY, ys)
+		lastWeaponPosZ = Lerp(delta * 44, lastWeaponPosZ, zs)
 
 		if math.abs(changeX) > 100 or math.abs(changeY) > 100 or math.abs(changeY) > 100 then return end
 
@@ -245,16 +248,15 @@ local function UpdateWeaponShift(delta)
 		--lastWeaponPosZ = zs
 
 		local M = ScreenSize(20) * SHIFTING_CLAMP_WEP:GetFloat():clamp(0, 10)
-		Pos2.ShiftX_Weapon = math.Clamp(Pos2.ShiftX_Weapon + ((changeX / delta) - (changeY / delta)) * 0.3, -M, M)
-		Pos2.ShiftY_Weapon = math.Clamp(Pos2.ShiftY_Weapon + ((changeZ / delta)) * 0.3, -M, M)
+		Pos2.ShiftX_Weapon = math.Clamp(Pos2.ShiftX_Weapon + ((lastChangeX / delta) - (lastChangeY / delta)) * 0.3, -M, M)
+		Pos2.ShiftY_Weapon = math.Clamp(Pos2.ShiftY_Weapon + ((lastChangeZ / delta)) * 0.3, -M, M)
 	else
 		if DLib.DEBUG_MODE:GetBool() then
 			DLib.Message('Invalid position of weapon viewmodel')
 		end
 
-		lastWeaponPosX = 0
-		lastWeaponPosY = 0
-		lastWeaponPosZ = 0
+		lastWeaponPosX, lastWeaponPosY, lastWeaponPosZ = 0, 0, 0
+		lastChangeX, lastChangeY, lastChangeZ = 0, 0, 0
 
 		Pos2.ShiftX_Weapon = 0
 		Pos2.ShiftY_Weapon = 0
