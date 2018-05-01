@@ -19,6 +19,9 @@ local draw = draw
 local ipairs = ipairs
 local render = render
 local table = table
+local assert = assert
+local type = type
+local CRC = util.CRC
 
 function HUDCommons.DrawTriangle(x, y, w, h, rotate)
 	local poly = {
@@ -37,11 +40,16 @@ function HUDCommons.DrawTriangle(x, y, w, h, rotate)
 	return poly
 end
 
-local CRC = util.CRC
 local DrawCircleCache = {}
 function HUDCommons.DrawCircle(x, y, radius, segments)
 	if radius <= 1 then return end
 	if segments <= 4 then return end -- ???
+
+	x = assert(type(x) == 'number' and x, 'Invalid X'):floor()
+	y = assert(type(y) == 'number' and y, 'Invalid Y'):floor()
+	radius = assert(type(radius) == 'number' and radius, 'Invalid Radius'):floor()
+	segments = assert(type(segments) == 'number' and segments, 'Invalid amount of segments'):floor()
+
 	local crc = CRC(x .. y .. radius .. segments)
 
 	if not DrawCircleCache[crc] then
@@ -147,6 +155,14 @@ local DrawArcHollowCache_2 = {}
 function HUDCommons.DrawArcHollow(x, y, radius, segments, inLength, arc, color)
 	if radius <= 1 then return end
 	if inLength <= 1 then return end
+
+	x = assert(type(x) == 'number' and x, 'Invalid X'):floor()
+	y = assert(type(y) == 'number' and y, 'Invalid Y'):floor()
+	radius = assert(type(radius) == 'number' and radius, 'Invalid Radius'):floor()
+	segments = assert(type(segments) == 'number' and segments, 'Invalid amount of segments'):floor()
+	inLength = assert(type(inLength) == 'number' and inLength, 'Invalid length inside'):floor()
+	arc = assert(type(arc) == 'number' and arc, 'Invalid arc degree'):floor()
+
 	local crc = CRC(x .. y .. radius .. segments .. inLength .. arc)
 
 	arc = 360 - arc
@@ -256,6 +272,15 @@ local DrawArcHollow2Cache = {}
 function HUDCommons.DrawArcHollow2(x, y, radius, segments, inLength, arc1, arc2, color)
 	if radius <= 1 then return end
 	if inLength <= 1 then return end
+
+	x = assert(type(x) == 'number' and x, 'Invalid X'):floor()
+	y = assert(type(y) == 'number' and y, 'Invalid Y'):floor()
+	radius = assert(type(radius) == 'number' and radius, 'Invalid Radius'):floor()
+	segments = assert(type(segments) == 'number' and segments, 'Invalid amount of segments'):floor()
+	inLength = assert(type(inLength) == 'number' and inLength, 'Invalid length inside'):floor()
+	arc1 = assert(type(arc1) == 'number' and arc1, 'Invalid arc1 degree'):floor()
+	arc2 = assert(type(arc2) == 'number' and arc2, 'Invalid arc2 degree'):floor()
+
 	local crc = CRC(x .. y .. radius .. segments .. inLength .. arc1 .. arc2)
 
 	local center = radius / 2
@@ -322,6 +347,13 @@ end
 function HUDCommons.DrawCircleHollow(x, y, radius, segments, inLength, color)
 	if radius <= 1 then return end
 	if inLength <= 1 then return end
+
+	x = assert(type(x) == 'number' and x, 'Invalid X'):floor()
+	y = assert(type(y) == 'number' and y, 'Invalid Y'):floor()
+	radius = assert(type(radius) == 'number' and radius, 'Invalid Radius'):floor()
+	segments = assert(type(segments) == 'number' and segments, 'Invalid amount of segments'):floor()
+	inLength = assert(type(inLength) == 'number' and inLength, 'Invalid length inside'):floor()
+
 	local crc = CRC(x .. y .. radius .. segments .. inLength .. arc1 .. arc2)
 
 	local center = radius / 2
