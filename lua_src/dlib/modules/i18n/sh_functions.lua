@@ -38,23 +38,23 @@ function i18n.tformatByLang(time, lang)
 	local seconds = math.floor(time)
 
 	if seconds ~= 0 then
-		str = seconds .. ' ' .. i18n.localizeByLang('info.dlib.tformat.seconds')
+		str = seconds .. ' ' .. i18n.localizeByLang('info.dlib.tformat.seconds', lang)
 	end
 
 	if minutes ~= 0 then
-		str = minutes .. ' ' .. i18n.localizeByLang('info.dlib.tformat.minutes') .. ' ' .. str
+		str = minutes .. ' ' .. i18n.localizeByLang('info.dlib.tformat.minutes', lang) .. ' ' .. str
 	end
 
 	if hours ~= 0 then
-		str = hours .. ' ' .. i18n.localizeByLang('info.dlib.tformat.hours') .. ' ' .. str
+		str = hours .. ' ' .. i18n.localizeByLang('info.dlib.tformat.hours', lang) .. ' ' .. str
 	end
 
 	if days ~= 0 then
-		str = days .. ' ' .. i18n.localizeByLang('info.dlib.tformat.days') .. ' ' .. str
+		str = days .. ' ' .. i18n.localizeByLang('info.dlib.tformat.days', lang) .. ' ' .. str
 	end
 
 	if weeks ~= 0 then
-		str = weeks .. ' ' .. i18n.localizeByLang('info.dlib.tformat.weeks') .. ' ' .. str
+		str = weeks .. ' ' .. i18n.localizeByLang('info.dlib.tformat.weeks', lang) .. ' ' .. str
 	end
 
 	return str
