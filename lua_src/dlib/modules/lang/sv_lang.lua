@@ -16,12 +16,19 @@
 net.pool('DLib.UpdateLang')
 
 local LangSetup, gmod_language, LastLanguage
+local LANG_OVERRIDE = CreateConVar('gmod_language_dlib_sv', '', {FCVAR_ARCHIVE}, 'gmod_language override for DLib based addons')
 
 function lang.update()
 	LangSetup = true
 	gmod_language = gmod_language or GetConVar('gmod_language')
 	if not gmod_language then return end
-	lang.CURRENT_LANG = gmod_language:GetString():lower()
+	local grablang = LANG_OVERRIDE:GetString():lower():trim()
+
+	if grablang ~= '' then
+		lang.CURRENT_LANG = grablang
+	else
+		lang.CURRENT_LANG = gmod_language:GetString():lower():trim()
+	end
 
 	if LastLanguage ~= lang.CURRENT_LANG then
 		hook.Call('DLib.LanguageChanged')
