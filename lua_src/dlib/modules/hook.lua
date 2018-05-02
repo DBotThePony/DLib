@@ -471,7 +471,7 @@ end
 hook.StaticHooks = __breakage
 
 function hook.HasHooks(event)
-	return __tableModifiersPostOptimized[event] ~= nil and #__tableModifiersPostOptimized[event] ~= 0
+	return __tableOptimized[event] ~= nil and #__tableOptimized[event] ~= 0
 end
 
 function hook.CallStatic(event, hookTable, ...)
