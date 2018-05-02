@@ -197,6 +197,10 @@ function meta:DefinePosition(name, ...)
 	return DLib.HUDCommons.Position2.DefinePosition(self:GetID() .. '_' .. name, ...)
 end
 
+function meta:DefinePositionA3D(name, ...)
+	return DLib.HUDCommons.A3D.DefinePosition(self:GetID() .. '_' .. name, ...)
+end
+
 function meta:RegisterRegularVariable(var, funcName, default)
 	local newSelf = self:RegisterVariable(var, default)
 

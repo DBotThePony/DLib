@@ -24,11 +24,16 @@ local assert = assert
 local type = type
 local RealTimeL = RealTimeL
 
+local paint3DHooks = {
+	'Left', 'Right', 'Center'
+}
+
 function meta:__construct(hudID, hudName)
 	DLib.CMessage(self, hudName)
 	self.id = hudID
 	self.hudID = hudID
 	self.name = hudName
+
 	self.hooks = {}
 	self.chooks = {}
 	self.variables = {}
@@ -45,6 +50,11 @@ function meta:__construct(hudID, hudName)
 	self.think = {}
 	self.fonts = {}
 	self.fontsNames = {}
+
+	for i, name in ipairs(paint3DHooks) do
+		self['paint3D' .. name] = {}
+		self['paint3D' .. name .. 'Hash'] = {}
+	end
 
 	self.fontCVars = {
 		font = {},
@@ -71,6 +81,9 @@ function meta:__construct(hudID, hudName)
 	self:AddHook('DrawOverlay')
 	self:AddHook('DrawWeaponSelection')
 	self:AddHook('ScreenSizeChanged')
+	for i, name in ipairs(paint3DHooks) do
+		self:AddHook('HUDCommons_3DRender' .. name)
+	end
 
 	self:__InitVaribles()
 	self:InitVaribles()
@@ -276,6 +289,22 @@ function meta:EnableSwitch(old, new)
 	end
 end
 
+for i, name in ipairs(paint3DHooks) do
+	local array = 'paint3D' .. name
+	local arrayHash = 'paint3D' .. name .. 'Hash'
+
+	meta['Add3DPaint' .. name .. 'Hook'] = function(self, id, funcToCall)
+		funcToCall = funcToCall or self[id]
+		assert(type(funcToCall) == 'function', 'Input is not a function!')
+		self[arrayHash][id] = funcToCall
+		self[array] = {}
+
+		for id, func in pairs(self[arrayHash]) do
+			table.insert(self[array], func)
+		end
+	end
+end
+
 function meta:AddPaintHook(id, funcToCall)
 	funcToCall = funcToCall or self[id]
 	assert(type(funcToCall) == 'function', 'Input is not a function!')
@@ -373,6 +402,29 @@ function meta:HUDPaint()
 
 	if nextevent ~= nil then
 		goto loop
+	end
+end
+
+for i, name in ipairs(paint3DHooks) do
+	local array = 'paint3D' .. name
+	local arrayHash = 'paint3D' .. name .. 'Hash'
+
+	meta['HUDCommons_3DRender' .. name] = function(self)
+		local paint = self[array]
+		if #paint == 0 then return end
+
+		local ply = self:SelectPlayer()
+
+		local i, nextevent = 1, paint[1]
+		::loop::
+
+		nextevent(self, ply)
+		i = i + 1
+		nextevent = paint[i]
+
+		if nextevent ~= nil then
+			goto loop
+		end
 	end
 end
 
