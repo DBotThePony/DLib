@@ -36,6 +36,9 @@ local LerpAngle = LerpAngle
 local LerpSinusine = LerpSinusine
 local WorldToLocal = WorldToLocal
 local ScreenSize = ScreenSize
+local ScrWL = ScrWL
+local ScrHL = ScrHL
+local ipairs = ipairs
 
 HUDCommons.Position2 = HUDCommons.Position2 or {}
 local Pos2 = HUDCommons.Position2
@@ -64,12 +67,12 @@ function Pos2.DefinePosition(name, x, y, shouldShift)
 		shouldShift = function() return true end
 	end
 
-	if x > 1 then
-		x = x / ScrWL()
+	if x > 1 or x < 0 then
+		error('Invalid position! DefinePosition can only receive 0 <= x <= 1')
 	end
 
-	if y > 1 then
-		y = y / ScrWL()
+	if y > 1 or y < 0 then
+		error('Invalid position! DefinePosition can only receive 0 <= y <= 1')
 	end
 
 	Pos2.XPositions_original[name] = x
@@ -167,6 +170,15 @@ local lastWeapon = NULL
 local WorldToLocal = WorldToLocal
 local IsValid = FindMetaTable('Entity').IsValid
 local Lerp = Lerp
+local LerpQuintic = LerpQuintic
+
+Pos2.Weapon_PosX_Change = 0
+Pos2.Weapon_PosY_Change = 0
+Pos2.Weapon_PosZ_Change = 0
+
+Pos2.Weapon_PosX_ChangeLerp = 0
+Pos2.Weapon_PosY_ChangeLerp = 0
+Pos2.Weapon_PosZ_ChangeLerp = 0
 
 local function UpdateWeaponShift(delta)
 	if not ENABLE_SHIFTING:GetBool() then return end
@@ -174,8 +186,12 @@ local function UpdateWeaponShift(delta)
 	if not ENABLE_SHIFTING_SV:GetBool() then return end
 	if not ENABLE_SHIFTING_SV_WEAPON:GetBool() then return end
 
-	Pos2.ShiftX_Weapon = LerpCosine(delta * 7, Pos2.ShiftX_Weapon, 0)
-	Pos2.ShiftY_Weapon = LerpSinusine(delta * 7, Pos2.ShiftY_Weapon, 0)
+	Pos2.ShiftX_Weapon = Lerp(delta * 7, Pos2.ShiftX_Weapon, 0)
+	Pos2.ShiftY_Weapon = Lerp(delta * 7, Pos2.ShiftY_Weapon, 0)
+
+	Pos2.Weapon_PosX_ChangeLerp = Lerp(delta, Pos2.Weapon_PosX_ChangeLerp, 0)
+	Pos2.Weapon_PosY_ChangeLerp = Lerp(delta, Pos2.Weapon_PosY_ChangeLerp, 0)
+	Pos2.Weapon_PosZ_ChangeLerp = Lerp(delta, Pos2.Weapon_PosZ_ChangeLerp, 0)
 
 	local ply = HUDCommons.SelectPlayer()
 	if ply:InVehicle() then return end
@@ -233,6 +249,10 @@ local function UpdateWeaponShift(delta)
 	local changeZ = (zs - lastWeaponPosZ) * div
 	local nancheck = changeX ~= changeX or changeY ~= changeY or changeZ ~= changeZ
 
+	Pos2.Weapon_PosX_Change = changeX
+	Pos2.Weapon_PosY_Change = changeY
+	Pos2.Weapon_PosZ_Change = changeZ
+
 	if not nancheck then
 		lastChangeX = Lerp(delta * 11, lastChangeX, changeX)
 		lastChangeY = Lerp(delta * 11, lastChangeY, changeY)
@@ -240,6 +260,10 @@ local function UpdateWeaponShift(delta)
 		lastWeaponPosX = Lerp(delta * 44, lastWeaponPosX, xs)
 		lastWeaponPosY = Lerp(delta * 44, lastWeaponPosY, ys)
 		lastWeaponPosZ = Lerp(delta * 44, lastWeaponPosZ, zs)
+
+		Pos2.Weapon_PosX_ChangeLerp = Lerp(delta * 22, Pos2.Weapon_PosX_ChangeLerp, changeX)
+		Pos2.Weapon_PosY_ChangeLerp = Lerp(delta * 22, Pos2.Weapon_PosY_ChangeLerp, changeY)
+		Pos2.Weapon_PosZ_ChangeLerp = Lerp(delta * 22, Pos2.Weapon_PosZ_ChangeLerp, changeZ)
 
 		if math.abs(changeX) > 100 or math.abs(changeY) > 100 or math.abs(changeY) > 100 then return end
 
@@ -255,11 +279,19 @@ local function UpdateWeaponShift(delta)
 			DLib.Message('Invalid position of weapon viewmodel')
 		end
 
+		Pos2.Weapon_PosX_Change = 0
+		Pos2.Weapon_PosY_Change = 0
+		Pos2.Weapon_PosZ_Change = 0
+
 		lastWeaponPosX, lastWeaponPosY, lastWeaponPosZ = 0, 0, 0
 		lastChangeX, lastChangeY, lastChangeZ = 0, 0, 0
 
 		Pos2.ShiftX_Weapon = 0
 		Pos2.ShiftY_Weapon = 0
+
+		Pos2.Weapon_PosX_ChangeLerp = 0
+		Pos2.Weapon_PosY_ChangeLerp = 0
+		Pos2.Weapon_PosZ_ChangeLerp = 0
 	end
 end
 
