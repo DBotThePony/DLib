@@ -29,17 +29,22 @@ function render.PushScissorRect(x, y, xEnd, yEnd)
 	y = assert(type(y) == 'number' and y, 'y must be a number!')
 	xEnd = assert(type(xEnd) == 'number' and xEnd, 'xEnd must be a number!')
 	yEnd = assert(type(yEnd) == 'number' and yEnd, 'xEnd must be a number!')
+	local amount = #stack
 
-	local top = stack[#stack]
+	if amount ~= 0 then
+		local x2, y2, xEnd2, yEnd2 = stack[amount - 4], stack[amount - 3], stack[amount - 2], stack[amount - 1]
 
-	if top then
-		x = top[1]:max(x)
-		y = top[2]:max(y)
-		xEnd = top[3]:min(xEnd)
-		yEnd = top[4]:min(yEnd)
+		x = x2:max(x)
+		y = y2:max(y)
+		xEnd = xEnd2:min(xEnd)
+		yEnd = yEnd2:min(yEnd)
 	end
 
-	table.insert(stack, {x, y, xEnd, yEnd, debug.traceback()})
+	table.insert(stack, x)
+	table.insert(stack, y)
+	table.insert(stack, xEnd)
+	table.insert(stack, yEnd)
+	table.insert(stack, debug.traceback())
 	render.SetScissorRect(x, y, xEnd, yEnd, true)
 end
 
@@ -49,21 +54,30 @@ function render.PopScissorRect()
 		return
 	end
 
-	if #stack == 1 then
+	if #stack == 5 then
+		table.remove(stack)
+		table.remove(stack)
+		table.remove(stack)
+		table.remove(stack)
 		table.remove(stack)
 		render.SetScissorRect(0, 0, 0, 0, false)
 		return
 	end
 
-	table.remove(stack, #stack)
-	local pop = stack[#stack]
-	render.SetScissorRect(pop[1], pop[2], pop[3], pop[4], true)
+	table.remove(stack)
+	table.remove(stack)
+	table.remove(stack)
+	table.remove(stack)
+	table.remove(stack)
+	local amount = #stack
+	local x, y, xEnd, yEnd = stack[amount - 4], stack[amount - 3], stack[amount - 2], stack[amount - 1]
+	render.SetScissorRect(x, y, xEnd, yEnd, true)
 end
 
 local function PreRender()
 	if #stack ~= 0 then
-		for i, val in ipairs(stack) do
-			print(val[5])
+		for i = 5, #stack, 5 do
+			print(stack[i])
 		end
 
 		stack = {}
