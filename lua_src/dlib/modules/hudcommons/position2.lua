@@ -160,16 +160,16 @@ local function UpdateShift(delta)
 
 		if ground then
 			Pos2.ShiftX_Ground = 0
-			Pos2.ShiftY_Ground = M1 * 4
+			Pos2.ShiftY_Ground = -M1 * 4
 		else
-			LastOnGroundIdle = RealTimeL()
+			LastOnGroundIdle = RealTimeL() + 0.7
 		end
 	end
 
-	if not ground then
+	if not ground and LastOnGroundIdle < RealTimeL() then
 		local anim = (RealTimeL() % math.pi) * (1 + RealTimeL():progression(LastOnGroundIdle, LastOnGroundIdle + 4)) * 5
 		Pos2.ShiftX_Ground = anim:sin() * (RealTimeL() - LastOnGroundIdle + 1):min(8) * ScreenSize(8)
-		Pos2.ShiftY_Ground = Pos2.ShiftY_Ground - M1 * delta * 5
+		Pos2.ShiftY_Ground = Pos2.ShiftY_Ground + M1 * delta * 5
 	end
 
 	local changePitch = math.AngleDifference(ang.p, Pos2.LastAngle.p)
