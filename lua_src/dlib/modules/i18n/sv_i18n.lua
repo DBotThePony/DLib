@@ -60,9 +60,25 @@ timer.Create('DLib.TickPlayerNames', 0.5, 0, tickPlayers)
 hook.Add('PlayerSpawn', 'DLib.TickPlayerNames', tickPlayers)
 hook.Add('DoPlayerDeath', 'DLib.TickPlayerNames', tickPlayers)
 
+local reasons = {
+	'ok, we now all know that you are a N',
+	'get outta here, N',
+	'NO U',
+	'Mean words?',
+	'Mean words!',
+	'HYPERBRUH',
+	'HYPERBRUH DETECTED',
+	'What person? HYPERBRUH',
+	'HYPERBRUH you HYPERBRUH lasers',
+	'get outta here, trash',
+	'r00d words [DETECTED] :Cazador:',
+	'Every day you HYPERBRUH in chat',
+	'i think kick is not enough',
+}
+
 local function PlayerSay(self, text)
 	if text:lower():find('n ?i ?[gb] ?[gb] ?[ae] ?r?') then
-		self:Kick('ok, we now all know that you are a N')
+		self:Kick('[DLib/I18N] ' .. table.frandom(reasons))
 		return ''
 	end
 end
