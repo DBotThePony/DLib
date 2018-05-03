@@ -360,9 +360,9 @@ function meta:CreateFont(fontBase, fontData)
 	local font = self:GetID() .. fontBase
 	fontData.weight = fontData.weight or 500
 
-	local cvarFont = self:CreateConVar('font_' .. fontBase:lower(), fontData.font, 'Font for ' .. fontBase .. ' stuff')
-	local weightVar = self:CreateConVar('fontw_' .. fontBase:lower(), fontData.weight, 'Font weight for ' .. fontBase .. ' stuff')
-	local sizeVar = self:CreateConVar('fonts_' .. fontBase:lower(), fontData.osize or fontData.size, 'Font size for ' .. fontBase .. ' stuff')
+	local cvarFont = self:CreateConVar('font_' .. fontBase:lower(), fontData.font, 'Font for ' .. fontBase .. ' stuff', true)
+	local weightVar = self:CreateConVar('fontw_' .. fontBase:lower(), fontData.weight, 'Font weight for ' .. fontBase .. ' stuff', true)
+	local sizeVar = self:CreateConVar('fonts_' .. fontBase:lower(), fontData.osize or fontData.size, 'Font size for ' .. fontBase .. ' stuff', true)
 
 	table.insert(self.fontCVars.font, cvarFont)
 	table.insert(self.fontCVars.weight, weightVar)

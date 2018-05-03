@@ -45,6 +45,7 @@ function meta:__construct(hudID, hudName)
 	self.think = {}
 	self.fonts = {}
 	self.fontsNames = {}
+	self.convars = {}
 
 	self.fontCVars = {
 		font = {},
@@ -61,8 +62,8 @@ function meta:__construct(hudID, hudName)
 	self.glitchEnd = 0
 	self.glitchingSince = 0
 
-	self.enabled = CreateConVar(hudID .. '_enabled', '1', {FCVAR_ARCHIVE}, 'Enable ' .. hudName)
-	cvars.AddChangeCallback(hudID .. '_enabled', function(var, old, new) self:EnableSwitch(old, new) end, hudID)
+	self.enabled = self:CreateConVar('enabled', '1', 'Enable ' .. hudName)
+	cvars.AddChangeCallback(self.enabled:GetName(), function(var, old, new) self:EnableSwitch(old, new) end, hudID)
 
 	self:AddHook('Tick')
 	self:AddHook('Think')
@@ -71,6 +72,7 @@ function meta:__construct(hudID, hudName)
 	self:AddHook('DrawOverlay')
 	self:AddHook('DrawWeaponSelection')
 	self:AddHook('ScreenSizeChanged')
+	self:AddHookCustom('PopulateToolMenu', 'PopulateToolMenuDefault')
 
 	self:__InitVaribles()
 	self:InitVaribles()
@@ -152,8 +154,14 @@ function meta:GetID()
 	return self.id
 end
 
-function meta:CreateConVar(cvar, default, desc)
-	return CreateConVar(self:GetID() .. '_' .. cvar, default or '1', {FCVAR_ARCHIVE}, desc or '')
+function meta:CreateConVar(cvar, default, desc, nomenu)
+	local convar = CreateConVar(self:GetID() .. '_' .. cvar, default or '1', {FCVAR_ARCHIVE}, desc or '')
+
+	if not nomenu then
+		table.insert(self.convars, convar)
+	end
+
+	return convar
 end
 
 function meta:TrackConVar(cvar, func, id)
@@ -442,3 +450,4 @@ end
 include('functions.lua')
 include('variables.lua')
 include('logic.lua')
+include('menus.lua')
