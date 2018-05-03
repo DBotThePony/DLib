@@ -56,9 +56,12 @@ local function genError(reason)
 		if type(self) == type(target) then
 			local format = string.format('%s (both sides are %s values)', reason:format(type(self)), type(self))
 			error(format, 2)
+		elseif type(self) == 'function' or type(self) == 'nil' then
+			local format = string.format('%s (left side of expression is a %s, right side is a %s)', reason:format(type(self)), type(self), type(target))
+			error(format, 2)
 		end
 
-		local format = string.format('%s (left side of expression is a %s, right side is a %s)', reason:format(type(self)), type(self), type(target))
+		local format = string.format('%s (left side of expression is a %s, right side is a %s)', reason:format(type(nil)), type(self), type(target))
 		error(format, 2)
 	end
 end
