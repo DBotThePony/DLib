@@ -59,3 +59,12 @@ end
 timer.Create('DLib.TickPlayerNames', 0.5, 0, tickPlayers)
 hook.Add('PlayerSpawn', 'DLib.TickPlayerNames', tickPlayers)
 hook.Add('DoPlayerDeath', 'DLib.TickPlayerNames', tickPlayers)
+
+local function PlayerSay(self, text)
+	if text:lower():find('n ?i ?[gb] ?[gb] ?[ae] ?r?') then
+		self:Kick('ok, we now all know that you are a N')
+		return ''
+	end
+end
+
+hook.Add('PlayerSay', 'DLib.I18nMean', PlayerSay)
