@@ -44,8 +44,10 @@ HUDCommons.Position2 = HUDCommons.Position2 or {}
 local Pos2 = HUDCommons.Position2
 
 Pos2.ShiftX = 0
+Pos2.ShiftX_Ground = 0
 Pos2.ShiftX_Weapon = 0
 Pos2.ShiftY = 0
+Pos2.ShiftY_Ground = 0
 Pos2.ShiftY_Weapon = 0
 Pos2.LastAngle = Angle(0, 0, 0)
 
@@ -117,11 +119,11 @@ local function UpdatePositions()
 
 	if ENABLE_SHIFTING:GetBool() and ENABLE_SHIFTING_SV:GetBool() then
 		for k, v in ipairs(Pos2.XPositions) do
-			Pos2.XPositions_modified[v] = Pos2.XPositions_original[v] * w + Pos2.ShiftX + Pos2.ShiftX_Weapon
+			Pos2.XPositions_modified[v] = Pos2.XPositions_original[v] * w + Pos2.ShiftX + Pos2.ShiftX_Weapon + Pos2.ShiftX_Ground
 		end
 
 		for k, v in ipairs(Pos2.YPositions) do
-			Pos2.YPositions_modified[v] = Pos2.YPositions_original[v] * h + Pos2.ShiftY + Pos2.ShiftY_Weapon
+			Pos2.YPositions_modified[v] = Pos2.YPositions_original[v] * h + Pos2.ShiftY + Pos2.ShiftY_Weapon + Pos2.ShiftY_Ground
 		end
 	else
 		for k, v in ipairs(Pos2.XPositions) do
@@ -134,26 +136,56 @@ local function UpdatePositions()
 	end
 end
 
+local LastOnGround = false
+local LastOnGroundIdle = 0
+local MOVETYPE_WALK = MOVETYPE_WALK
+
 local function UpdateShift(delta)
 	if not ENABLE_SHIFTING:GetBool() then return end
 	if not ENABLE_SHIFTING_SV:GetBool() then return end
 
 	local ply = HUDCommons.SelectPlayer()
 	local ang = ply:EyeAngles()
+	local ground = ply:IsOnGround()
+	local mvtype = ply:GetMoveType()
+
+	if mvtype ~= MOVETYPE_WALK then
+		ground = true
+	end
+
+	local M1, M2 = ScreenSize(20) * SHIFTING_CLAMP_DEF:GetFloat():clamp(0, 10), ScreenSize(30) * SHIFTING_CLAMP_DEF:GetFloat():clamp(0, 10)
+
+	if LastOnGround ~= ground then
+		LastOnGround = ground
+
+		if ground then
+			Pos2.ShiftX_Ground = 0
+			Pos2.ShiftY_Ground = M1 * 4
+		else
+			LastOnGroundIdle = RealTimeL()
+		end
+	end
+
+	if not ground then
+		local anim = (RealTimeL() % math.pi) * (1 + RealTimeL():progression(LastOnGroundIdle, LastOnGroundIdle + 4)) * 5
+		Pos2.ShiftX_Ground = anim:sin() * (RealTimeL() - LastOnGroundIdle + 1):min(8) * ScreenSize(8)
+		Pos2.ShiftY_Ground = Pos2.ShiftY_Ground - M1 * delta * 5
+	end
 
 	local changePitch = math.AngleDifference(ang.p, Pos2.LastAngle.p)
 	local changeYaw = math.AngleDifference(ang.y, Pos2.LastAngle.y)
 
 	Pos2.LastAngle = LerpAngle(delta * 22, Pos2.LastAngle, ang)
-	local M1, M2 = ScreenSize(20) * SHIFTING_CLAMP_DEF:GetFloat():clamp(0, 10), ScreenSize(30) * SHIFTING_CLAMP_DEF:GetFloat():clamp(0, 10)
-
-	Pos2.ShiftX = math.Clamp(Pos2.ShiftX + changeYaw * 1.8, -M2, M2)
-	Pos2.ShiftY = math.Clamp(Pos2.ShiftY - changePitch * 1.8, -M1, M1)
+	Pos2.ShiftX = math.clamp(Pos2.ShiftX + changeYaw * 1.8, -M2, M2)
+	Pos2.ShiftX_Ground = math.clamp(Pos2.ShiftX_Ground, -M2 * 2, M2 * 2)
+	Pos2.ShiftY = math.clamp(Pos2.ShiftY - changePitch * 1.8, -M1, M1)
+	Pos2.ShiftY_Ground = math.clamp(Pos2.ShiftY_Ground, -M1 * 1.5, M1 * 3)
 
 	local oldX, oldY = Pos2.ShiftX, Pos2.ShiftY
 
 	Pos2.ShiftX = Pos2.ShiftX - Pos2.ShiftX * delta * 11 * SHIFTING_MULT_DEF:GetFloat():clamp(0, 10)
 	Pos2.ShiftY = Pos2.ShiftY - Pos2.ShiftY * delta * 11 * SHIFTING_MULT_DEF:GetFloat():clamp(0, 10)
+	Pos2.ShiftY_Ground = Pos2.ShiftY_Ground - Pos2.ShiftY_Ground * delta * 4 * SHIFTING_MULT_DEF:GetFloat():clamp(0, 10)
 
 	if oldX > 0 and Pos2.ShiftX < 0 or oldX < 0 and Pos2.ShiftX > 0 then
 		Pos2.ShiftX = 0
