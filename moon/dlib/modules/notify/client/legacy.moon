@@ -22,6 +22,7 @@ surface.CreateFont('NotifyLegacy', {
 	font: 'Roboto'
 	size: 16
 	weight: 500
+	extended: true
 })
 
 -- Math on paper o.o

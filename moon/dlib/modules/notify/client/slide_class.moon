@@ -22,6 +22,7 @@ surface.CreateFont('NotifySlide', {
 	font: 'Roboto'
 	size: 16
 	weight: 500
+	extended: true
 })
 
 class SlideNotify extends NotifyAnimated

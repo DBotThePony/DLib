@@ -22,6 +22,7 @@ surface.CreateFont('NotifyBadge', {
 	font: 'Roboto'
 	size: 14
 	weight: 500
+	extended: true
 })
 
 class BadgeNotify extends CentereNotify

@@ -22,6 +22,7 @@ surface.CreateFont('NotifyCentered', {
 	font: 'Roboto'
 	size: 18
 	weight: 600
+	extended: true
 })
 
 class CentereNotify extends NotifyAnimated
