@@ -18,6 +18,11 @@ surface.CreateFont('BuyCSSFont', {
 	size = 32
 })
 
+surface.CreateFont('BuyCSSFont2', {
+	font = 'Comic Sans MS',
+	size = 24
+})
+
 surface.CreateFont('BuyDLibPremium', {
 	font = 'PT Serif',
 	size = 32
@@ -42,7 +47,7 @@ local Textings = {
 	{'go play\nvalve idiot', 'BuyDLibPremium'},
 	{'hl2.exe\nis\ndumb', 'Default'},
 	{'F U C K\nBY CSS\nF U C K', 'BuyCSSFont'},
-	{'here, buy\nyourself some\ncounter-strike', 'BuyCSSFont'},
+	{'here, buy\nyourself some\ncounter-strike', 'BuyCSSFont2'},
 	{':RT:', 'BuyRTFont'},
 	{'Times\nNew\nRumanian', 'BuyFontsFont'},
 	{'install\nnew\nfonts', 'BuyFontsFont'},
