@@ -37,6 +37,29 @@ local function PopulateColors(Panel)
 	end
 end
 
+local function PopulateColors2(Panel)
+	if not IsValid(Panel) then return end
+	Panel:Clear()
+
+	for k, v in SortedPairsByMemberValue(HUDCommons.ColorsVarsN, 'name') do
+		local collapse = vgui.Create('DCollapsibleCategory', Panel)
+		Panel:AddItem(collapse)
+		collapse:SetExpanded(false)
+		collapse:SetLabel(v.name .. ' (' .. k .. ')')
+
+		local picker = vgui.Create('DColorMixer', collapse)
+		collapse:SetContents(picker)
+		picker:SetConVarR('h_color_' .. k .. '_r')
+		picker:SetConVarG('h_color_' .. k .. '_g')
+		picker:SetConVarB('h_color_' .. k .. '_b')
+		picker:SetAlphaBar(false)
+
+		picker:Dock(TOP)
+		picker:SetHeight(200)
+	end
+end
+
 hook.Add('PopulateToolMenu', 'HUDCommons.PopulateMenus', function()
 	spawnmenu.AddToolMenuOption('Utilities', 'User', 'HUDCommons.Populate', 'HUDCommons Colors', '', '', PopulateColors)
+	spawnmenu.AddToolMenuOption('Utilities', 'User', 'HUDCommons.Populate2', 'HUDCommons Colors 2', '', '', PopulateColors2)
 end)
