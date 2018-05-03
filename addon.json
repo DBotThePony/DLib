@@ -17,6 +17,7 @@
         "README.md",
         ".vscode*",
         "LICENSE",
+        ".editorconfig",
         "*.md",
         "vll.lua"
     ]
