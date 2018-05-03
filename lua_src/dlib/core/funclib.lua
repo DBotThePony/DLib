@@ -18,20 +18,29 @@ DLib.fnlib = {}
 
 local rawequal = rawequal
 local error = error
-local assert2 = assert
 local fnlib = DLib.fnlib
 local meta = debug.getmetatable(function() end) or {}
 
 meta.MetaName = 'function'
 
-local function assert(cond, reason)
-	if cond then
-		error(reason, 3)
-	end
-end
-
 function meta:__index(key)
-	assert(rawequal(self, nil), string.format('attempt to index field %q of nil value', key))
+	if rawequal(self, nil) then
+		local lastname
+		local i = 1
+
+		while true do
+			local name, value = debug.getlocal(2, i)
+			if name == nil then break end
+			i = i + 1
+			if value == nil then lastname = name end
+		end
+
+		if lastname then
+			error(string.format('attempt to index field %q of a nil value (probably %s?)', key, lastname), 2)
+		else
+			error(string.format('attempt to index field %q of a nil value', key, lastname), 2)
+		end
+	end
 
 	local val = meta[key]
 
@@ -44,25 +53,26 @@ end
 
 local function genError(reason)
 	return function(self, target)
-		assert(rawequal(self, nil), string.format('%s (left side of expression is nil)', reason:format(type(self))))
-		assert(type(self) == 'function', string.format('%s (left side of expression is a function)', reason:format(type(self))))
-		assert(rawequal(target, nil), string.format('%s (right side of expression is nil)', reason:format(type(target))))
-		assert(type(target) == 'function', string.format('%s (right side of expression is a function)', reason:format(type(target))))
+		if type(self) == type(target) then
+			local format = string.format('%s (both sides are %s values)', reason:format(type(self)), type(self))
+			error(format, 2)
+		end
+
+		local format = string.format('%s (left side of expression is a %s, right side is a %s)', reason:format(type(self)), type(self), type(target))
+		error(format, 2)
 	end
 end
 
-local assert = assert2
-
-meta.__unm = genError('attempt to unary minus %q value')
-meta.__add = genError('attempt to add %q value')
-meta.__sub = genError('attempt to substract %q value')
-meta.__mul = genError('attempt to multiply %q value')
-meta.__div = genError('attempt to divide %q value')
-meta.__mod = genError('attempt to modulo %q value')
-meta.__pow = genError('attempt to involute %q value')
-meta.__concat = genError('attempt to concat %q value')
-meta.__lt = genError('attempt to compare (<) %q value(s)')
-meta.__le = genError('attempt to compare (<=) %q value(s)')
+meta.__unm = genError('attempt to unary minus a %s value')
+meta.__add = genError('attempt to add a %s value')
+meta.__sub = genError('attempt to substract a %s value')
+meta.__mul = genError('attempt to multiply a %s value')
+meta.__div = genError('attempt to divide a %s value')
+meta.__mod = genError('attempt to modulo a %s value')
+meta.__pow = genError('attempt to involute a %s value')
+meta.__concat = genError('attempt to concat a %s value')
+meta.__lt = genError('attempt to compare (<) a %s value(s)')
+meta.__le = genError('attempt to compare (<=) a %s value(s)')
 
 function meta:IsValid()
 	return false
