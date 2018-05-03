@@ -28,15 +28,25 @@ surface.CreateFont('BuyRTFont', {
 	size = 48
 })
 
+surface.CreateFont('BuyFontsFont', {
+	font = 'Times New Roman',
+	size = 32
+})
+
 local buy_rt = GetRenderTargetEx('buy_counter_strike', 128, 128, RT_SIZE_NO_CHANGE, MATERIAL_RT_DEPTH_SHARED, 0, CREATERENDERTARGETFLAGS_UNFILTERABLE_OK, IMAGE_FORMAT_RGB888)
 
 local Textings = {
 	{'buy\ncounter\nstrike', 'BuyCSSFont'},
 	{'buy\ndlib\npremium', 'BuyDLibPremium'},
+	{'install\ndlib\nv3', 'BuyDLibPremium'},
+	{'go play\nvalve idiot', 'BuyDLibPremium'},
 	{'hl2.exe\nis\ndumb', 'Default'},
 	{'F U C K\nBY CSS\nF U C K', 'BuyCSSFont'},
 	{'here, buy\nyourself some\ncounter-strike', 'BuyCSSFont'},
 	{':RT:', 'BuyRTFont'},
+	{'Times\nNew\nRumanian', 'BuyFontsFont'},
+	{'install\nnew\nfonts', 'BuyFontsFont'},
+	{'use\ncomic sans', 'BuyFontsFont'},
 }
 
 local Backgrounds = {
@@ -69,6 +79,8 @@ local BackgroundColorCurrent, BackgroundColorState, BackgroundColorNext
 
 local CurrentText, CurrentFont
 local NextText = 0
+local LocalPlayer = LocalPlayer
+local nextTraceCheck = 0
 
 local function RedrawRT()
 	local compute = false
@@ -86,6 +98,8 @@ local function RedrawRT()
 
 		if BackgroundIndex > #Backgrounds then
 			BackgroundIndex = 1
+			BackgroundColorCurrent = Backgrounds[1]
+			BackgroundColorNext = Backgrounds[2]
 		elseif BackgroundIndex == #Backgrounds then
 			BackgroundColorCurrent = Backgrounds[BackgroundIndex]
 			BackgroundColorNext = Backgrounds[1]
@@ -94,23 +108,23 @@ local function RedrawRT()
 			BackgroundColorNext = Backgrounds[BackgroundIndex + 1]
 		end
 
-		BackgroundStart = RealTimeL()
-		BackgroundNext = RealTimeL() + 20
+		BackgroundStart = time
+		BackgroundNext = time + 20
 	end
 
 	if time > NextText then
 		local data = table.frandom(Textings)
 		CurrentText, CurrentFont = data[1], data[2]
-		NextText = RealTimeL() + math.random(60, 120)
+		NextText = time + math.random(60, 120)
 	end
 
-	BackgroundColorState = LerpQuintic(time:progression(BackgroundStart, BackgroundNext), BackgroundColorCurrent, BackgroundColorNext)
+	BackgroundColorState = BackgroundColorCurrent:Lerp(time:progression(BackgroundStart, BackgroundNext), BackgroundColorNext)
 
 	render.PushRenderTarget(buy_rt)
 	cam.Start2D()
 
 	draw.NoTexture()
-	surface.SetDrawColor(255, 255, 255, 255)
+	surface.SetDrawColor(BackgroundColorState)
 	surface.DrawRect(0, 0, 128, 128)
 	draw.DrawText(CurrentText, CurrentFont, 64, 18, BackgroundColorState:Invert(), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
 	render.CopyRenderTargetToTexture(DLib.ErrorTexture)
@@ -121,6 +135,26 @@ local function RedrawRT()
 	if compute then
 		errormat:SetTexture('$basetexture', buy_rt)
 		errormat:Recompute()
+	end
+
+	if time > nextTraceCheck then
+		local tr = LocalPlayer():GetEyeTrace()
+		local HitTexture = tr.HitTexture
+
+		if HitTexture then
+			local mat = Material(HitTexture)
+
+			if mat then
+				local tex = mat:GetTexture('$basetexture')
+
+				if not tex or tex:GetName() == '__error' or tex:GetName() == 'error' then
+					mat:SetTexture('$basetexture', buy_rt)
+					mat:Recompute()
+				end
+			end
+		end
+
+		nextTraceCheck = time + 1
 	end
 end
 
