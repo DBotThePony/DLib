@@ -153,6 +153,10 @@ local function UpdateShift(delta)
 		ground = true
 	end
 
+	if ply:WaterLevel() ~= 0 then
+		ground = true
+	end
+
 	local M1, M2 = ScreenSize(20) * SHIFTING_CLAMP_DEF:GetFloat():clamp(0, 10), ScreenSize(30) * SHIFTING_CLAMP_DEF:GetFloat():clamp(0, 10)
 
 	if LastOnGround ~= ground then
