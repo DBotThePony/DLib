@@ -31,6 +31,8 @@ function meta:__InitVaribles()
 		end
 	end)
 
+	self:RegisterRegularVariable('inVehicle', 'InVehicle', false)
+	self:RegisterRegularVariable('weaponsInVehicle', 'GetAllowWeaponsInVehicle', false)
 	self:RegisterRegularVariable('health', 'GetHealth', 0)
 	self:RegisterRegularVariable('maxHealth', 'GetMaxHealth', 100)
 	self:RegisterRegularVariable('armor', 'GetArmor', 0)
