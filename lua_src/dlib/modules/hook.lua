@@ -726,10 +726,64 @@ DLib.benchhook = {
 	GetTable = hook.GetTable,
 }
 
-local function lua_findhooks(eventName)
-	DLib.Message(string.format('Finding %s hooks for event %q', CLIENT and 'CLIENTSIDE' or 'SERVERSIDE', eventName))
+local function lua_findhooks(eventName, ply)
+	DLib.MessagePlayer(ply, '----------------------------------')
+	DLib.MessagePlayer(ply, string.format('Finding %s hooks for event %q', CLIENT and 'CLIENTSIDE' or 'SERVERSIDE', eventName))
+
+	local tableToUse = __table[eventName]
+
+	if tableToUse and table.Count(tableToUse) ~= 0 then
+		for priority = maximalPriority, minimalPriority do
+			local hookList = tableToUse[priority]
+
+			if hookList then
+				for stringID, hookData in pairs(hookList) do
+					local info = debug.getinfo(hookData.funcToCall)
+					DLib.MessagePlayer(ply,
+						string.format(
+							'\t\t%q [%s] at %p (%s: %i->%i)',
+							stringID,
+							priority,
+							hookData.funcToCall,
+							info.source,
+							info.linedefined,
+							info.lastlinedefined
+						)
+					)
+				end
+			end
+		end
+	else
+		DLib.MessagePlayer(ply, 'No hooks defined for specified event')
+	end
+
+	DLib.MessagePlayer(ply, '----------------------------------')
 end
 
-local function lua_findhooks_cl()
+local function lua_findhooks_cl(ply, cmd, args)
+	if not game.SinglePlayer() and IsValid(ply) and ply:IsPlayer() and not ply:IsAdmin() then return end
 
+	if not args[1] then
+		DLib.Message('No event name were provided!')
+		return
+	end
+
+	lua_findhooks(table.concat(args, ' '):trim(), ply)
+end
+
+local function lua_findhooks_sv(ply, cmd, args)
+	if not game.SinglePlayer() and IsValid(ply) and ply:IsPlayer() and not ply:IsAdmin() then return end
+
+	if not args[1] then
+		DLib.Message('No event name were provided!')
+		return
+	end
+
+	lua_findhooks(table.concat(args, ' '):trim(), ply)
+end
+
+if CLIENT then
+	concommand.Add('lua_findhooks_cl', lua_findhooks_cl)
+else
+	concommand.Add('lua_findhooks', lua_findhooks_sv)
 end

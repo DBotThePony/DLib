@@ -112,6 +112,8 @@ local function FormatMessageInternal(tabIn)
 	return output
 end
 
+local LocalPlayer = LocalPlayer
+
 return function(tableTarget, moduleName, moduleColor)
 	local nwname = 'DLib.Message.' .. util.CRC(moduleName)
 	local nwnameL = 'DLib.Message.' .. util.CRC(moduleName) .. '.L'
@@ -164,6 +166,7 @@ return function(tableTarget, moduleName, moduleColor)
 	end
 
 	local function MessagePlayer(ply, ...)
+		if CLIENT and ply == LocalPlayer() then return Message(...) end
 		if CLIENT then return end
 
 		if type(ply) == 'table' or type(ply) == 'Player' then
@@ -176,6 +179,7 @@ return function(tableTarget, moduleName, moduleColor)
 	end
 
 	local function LMessagePlayer(ply, ...)
+		if CLIENT and ply == LocalPlayer() then return LMessage(...) end
 		if CLIENT then return end
 
 		if type(ply) == 'table' or type(ply) == 'Player' then
@@ -225,15 +229,15 @@ return function(tableTarget, moduleName, moduleColor)
 			tableTo.LChatPrint = LChat
 			tableTo.LAddChat = LChat
 			tableTo.lchatMessage = LChat
-		else
-			tableTo.MessagePlayer = MessagePlayer
-			tableTo.messagePlayer = MessagePlayer
-			tableTo.messageP = MessagePlayer
-
-			tableTo.LMessagePlayer = LMessagePlayer
-			tableTo.lmessagePlayer = LMessagePlayer
-			tableTo.lmessageP = LMessagePlayer
 		end
+
+		tableTo.MessagePlayer = MessagePlayer
+		tableTo.messagePlayer = MessagePlayer
+		tableTo.messageP = MessagePlayer
+
+		tableTo.LMessagePlayer = LMessagePlayer
+		tableTo.lmessagePlayer = LMessagePlayer
+		tableTo.lmessageP = LMessagePlayer
 	end
 
 	tableTarget = tableTarget or {}
