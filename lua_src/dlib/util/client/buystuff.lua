@@ -151,8 +151,11 @@ local function RedrawRT()
 
 			if mat then
 				local tex = mat:GetTexture('$basetexture')
+				local tex2 = mat:GetTexture('$refracttexture')
+				local check1 = not tex or tex:GetName() == '__error' or tex:GetName() == 'error'
+				local check2 = not tex2 or tex2:GetName() == '__error' or tex2:GetName() == 'error'
 
-				if not tex or tex:GetName() == '__error' or tex:GetName() == 'error' then
+				if check1 and check2 then
 					mat:SetTexture('$basetexture', buy_rt)
 					mat:Recompute()
 				end
