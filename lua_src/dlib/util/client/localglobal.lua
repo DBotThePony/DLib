@@ -25,6 +25,12 @@ local function LocalWeapon()
 	return weapon
 end
 
+function _G.LocalViewModel(...)
+	local ply = LocalPlayer()
+	if not IsValid(ply) then return NULL end
+	return ply:GetViewModel(...)
+end
+
 function _G.LocalClip1()
 	local weapon = LocalWeapon()
 	if not IsValid(weapon) then return -1 end
