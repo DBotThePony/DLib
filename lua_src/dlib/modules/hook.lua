@@ -725,3 +725,11 @@ DLib.benchhook = {
 	Remove = hook.Remove,
 	GetTable = hook.GetTable,
 }
+
+local function lua_findhooks(eventName)
+	DLib.Message(string.format('Finding %s hooks for event %q', CLIENT and 'CLIENTSIDE' or 'SERVERSIDE', eventName))
+end
+
+local function lua_findhooks_cl()
+
+end

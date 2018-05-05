@@ -247,9 +247,9 @@ function meta:RegisterRegularWeaponVariable(var, funcName, default)
 		local wep = hudSelf:PredictSelectWeapon()
 
 		if IsValid(wep) and wep[funcName] then
-			return wep[funcName](wep)
+			return wep[funcName](wep), wep
 		else
-			return newSelf.default()
+			return newSelf.default(), wep
 		end
 	end)
 
@@ -257,9 +257,9 @@ function meta:RegisterRegularWeaponVariable(var, funcName, default)
 		local wep = hudSelf:GetWeapon()
 
 		if IsValid(wep) and wep[funcName] then
-			return wep[funcName](wep)
+			return wep[funcName](wep), wep
 		else
-			return newSelf.default()
+			return newSelf.default(), wep
 		end
 	end)
 
