@@ -125,6 +125,33 @@ do
 	end
 end
 
+local NamedPanelCreated
+
+do
+	local function languageWatchdog(self)
+		self:_SetNameDLib(i18n.localize(self._DLibLocalize, unpack(self._DLibLocalizeArgs)))
+	end
+
+	local function SetName(self, text, ...)
+		if not i18n.exists(text) then
+			hook.Remove('DLib.LanguageChanged2', self)
+			return self:_SetNameDLib(text, ...)
+		end
+
+		hook.Add('DLib.LanguageChanged2', self, languageWatchdog)
+		self._DLibLocalize = text
+		self._DLibLocalizeArgs = {...}
+		return self:_SetNameDLib(i18n.localize(text, ...))
+	end
+
+	function NamedPanelCreated(self)
+		if not self.SetName then return end
+
+		self._SetNameDLib = self._SetNameDLib or self.SetName
+		self.SetName = SetName
+	end
+end
+
 local function vguiPanelCreated(self)
 	if self:GetClassName():lower():find('textentry') or self:GetClassName():lower():find('input') or self:GetClassName():lower():find('editor') then return end
 
@@ -132,6 +159,7 @@ local function vguiPanelCreated(self)
 	LabelPanelCreated(self)
 	TooltipPanelCreated(self)
 	TitlePanelCreated(self)
+	NamedPanelCreated(self)
 end
 
 function i18n.AddChat(...)
