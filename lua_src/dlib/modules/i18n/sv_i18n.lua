@@ -36,10 +36,18 @@ plyMeta.GetDLibPhrase = plyMeta.LocalizePhrase
 
 local ipairs = ipairs
 local player = player
+local game = game
 local GetName = FindMetaTable('Entity').GetName
 local SetName = FindMetaTable('Entity').SetName
 
 local function tickPlayers()
+	if game.SinglePlayer() then
+		timer.Remove('DLib.TickPlayerNames')
+		hook.Remove('PlayerSpawn', 'DLib.TickPlayerNames')
+		hook.Remove('DoPlayerDeath', 'DLib.TickPlayerNames')
+		return
+	end
+
 	for i, ply in ipairs(player.GetAll()) do
 		local name = GetName(ply)
 
