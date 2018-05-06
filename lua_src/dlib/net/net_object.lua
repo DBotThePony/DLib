@@ -563,7 +563,7 @@ local function CheckSendInput(targets)
 	local inputType = type(targets)
 
 	if inputType ~= 'CRecipientFilter' and inputType ~= 'Player' and inputType ~= 'table' then
-		error('net.Send - unacceptable input! typeof ' .. inputType .. ' (' .. tostring(targets) .. ')')
+		error('net.Send - unacceptable input! typeof ' .. inputType .. ' (' .. tostring(targets) .. ')', 4)
 		return false
 	end
 
