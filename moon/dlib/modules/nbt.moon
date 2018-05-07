@@ -320,6 +320,11 @@ class DLib.NBT.TagCompound extends DLib.NBT.Base
 			@AddTypedValue(key, value) for key, value in pairs values
 
 	ReadFile: (bytesbuffer) =>
+		status = ProtectedCall -> @ReadFileProtected()
+		if not status
+			DLib.Message('Error reading a NBT file from Bytes Buffer! Is file/buffer a valid NBT file and is not corrupted?')
+
+	ReadFileProtected: (bytesbuffer) =>
 		assert(bytesbuffer\ReadUByte() == 10, 'invalid header')
 
 		readNameLen = bytesbuffer\ReadUInt16()

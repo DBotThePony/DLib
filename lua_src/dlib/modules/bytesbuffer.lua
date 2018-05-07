@@ -110,12 +110,12 @@ end
 
 local function assertType(valueIn, desiredType, funcName)
 	if type(valueIn) == desiredType then return end
-	error(funcName .. ' - input is not a ' .. desiredType .. '! typeof ' .. type(valueIn))
+	error(funcName .. ' - input is not a ' .. desiredType .. '! typeof ' .. type(valueIn), 3)
 end
 
 local function assertRange(valueIn, min, max, funcName)
 	if valueIn >= min and valueIn <= max then return end
-	error(funcName .. ' - size overflow (' .. min .. ' -> ' .. max .. ' vs ' .. valueIn .. ')')
+	error(funcName .. ' - size overflow (' .. min .. ' -> ' .. max .. ' vs ' .. valueIn .. ')', 3)
 end
 
 -- Primitive read/write
@@ -221,7 +221,7 @@ end
 
 function meta:CheckOverflow(name, moveBy)
 	if self.pointer + moveBy > self.length then
-		error('Read' .. name .. ' - bytes amount overflow (' .. self.pointer .. ' + ' .. moveBy .. ' vs ' .. self.length .. ')')
+		error('Read' .. name .. ' - bytes amount overflow (' .. self.pointer .. ' + ' .. moveBy .. ' vs ' .. self.length .. ')', 3)
 	end
 end
 
