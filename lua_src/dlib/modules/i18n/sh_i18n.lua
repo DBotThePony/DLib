@@ -17,7 +17,6 @@ local lang = DLib.lang
 local i18n = i18n
 local string = string
 
-i18n.namespace = i18n.namespace or {}
 i18n.hashed = i18n.hashed or {}
 i18n.hashedNoArgs = i18n.hashedNoArgs or {}
 i18n.hashedLang = i18n.hashedLang or {}

@@ -144,15 +144,10 @@ local function protectedFunc(langSpace, funcToRun)
 		LANGUAGE = langSpace
 	}
 
-	local namespace = i18n.namespace[langSpace]
+	local namespace = {}
 
-	if not namespace then
-		i18n.namespace[langSpace] = {}
-		namespace = i18n.namespace[langSpace]
-
-		for i, def in ipairs(defaultNames) do
-			namespace[def] = createNamedTable(def)
-		end
+	for i, def in ipairs(defaultNames) do
+		namespace[def] = createNamedTable(def)
 	end
 
 	for key, value in pairs(namespace) do
