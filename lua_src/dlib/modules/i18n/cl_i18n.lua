@@ -26,11 +26,11 @@ do
 
 	local function SetText(self, text, ...)
 		if not i18n.exists(text) then
-			hook.Remove('DLib.LanguageChanged2', self)
+			hook.Remove('DLib.i18n.LangUpdate5', self)
 			return self:_SetTextDLib(text, ...)
 		end
 
-		hook.Add('DLib.LanguageChanged2', self, languageWatchdog)
+		hook.Add('DLib.i18n.LangUpdate5', self, languageWatchdog)
 		self._DLibLocalize = text
 		self._DLibLocalizeArgs = {...}
 		return self:_SetTextDLib(i18n.localize(text, ...))
@@ -53,11 +53,11 @@ do
 
 	local function SetLabel(self, text, ...)
 		if not i18n.exists(text) then
-			hook.Remove('DLib.LanguageChanged2', self)
+			hook.Remove('DLib.i18n.LangUpdate4', self)
 			return self:_SetLabelDLib(text, ...)
 		end
 
-		hook.Add('DLib.LanguageChanged2', self, languageWatchdog)
+		hook.Add('DLib.i18n.LangUpdate4', self, languageWatchdog)
 		self._DLibLocalize = text
 		self._DLibLocalizeArgs = {...}
 		return self:_SetLabelDLib(i18n.localize(text, ...))
@@ -80,11 +80,11 @@ do
 
 	local function SetTooltip(self, text, ...)
 		if not i18n.exists(text) then
-			hook.Remove('DLib.LanguageChanged2', self)
+			hook.Remove('DLib.i18n.LangUpdate3', self)
 			return self:_SetTooltipDLib(text, ...)
 		end
 
-		hook.Add('DLib.LanguageChanged2', self, languageWatchdog)
+		hook.Add('DLib.i18n.LangUpdate3', self, languageWatchdog)
 		self._DLibLocalize = text
 		self._DLibLocalizeArgs = {...}
 		return self:_SetTooltipDLib(i18n.localize(text, ...))
@@ -107,11 +107,11 @@ do
 
 	local function SetTitle(self, text, ...)
 		if not i18n.exists(text) then
-			hook.Remove('DLib.LanguageChanged2', self)
+			hook.Remove('DLib.i18n.LangUpdate2', self)
 			return self:_SetTitleDLib(text, ...)
 		end
 
-		hook.Add('DLib.LanguageChanged2', self, languageWatchdog)
+		hook.Add('DLib.i18n.LangUpdate2', self, languageWatchdog)
 		self._DLibLocalize = text
 		self._DLibLocalizeArgs = {...}
 		return self:_SetTitleDLib(i18n.localize(text, ...))
@@ -134,11 +134,11 @@ do
 
 	local function SetName(self, text, ...)
 		if not i18n.exists(text) then
-			hook.Remove('DLib.LanguageChanged2', self)
+			hook.Remove('DLib.i18n.LangUpdate1', self)
 			return self:_SetNameDLib(text, ...)
 		end
 
-		hook.Add('DLib.LanguageChanged2', self, languageWatchdog)
+		hook.Add('DLib.i18n.LangUpdate1', self, languageWatchdog)
 		self._DLibLocalize = text
 		self._DLibLocalizeArgs = {...}
 		return self:_SetNameDLib(i18n.localize(text, ...))
@@ -151,6 +151,15 @@ do
 		self.SetName = SetName
 	end
 end
+
+-- lmao this way to workaround
+hook.Add('DLib.LanguageChanged2', 'DLib.i18nPanelsBridge', function(...)
+	hook.Run('DLib.i18n.LangUpdate1', ...)
+	hook.Run('DLib.i18n.LangUpdate2', ...)
+	hook.Run('DLib.i18n.LangUpdate3', ...)
+	hook.Run('DLib.i18n.LangUpdate4', ...)
+	hook.Run('DLib.i18n.LangUpdate5', ...)
+end)
 
 local function vguiPanelCreated(self)
 	if self:GetClassName():lower():find('textentry') or self:GetClassName():lower():find('input') or self:GetClassName():lower():find('editor') then return end
