@@ -85,24 +85,15 @@ function net.CreateMessage(length, read, msg, flags)
 	return self
 end
 
-function messageMeta:__index(key)
-	if key == 'length' then
-		return #self.bits
-	end
-
-	local val = messageMeta[key]
-
-	if val ~= nil then
-		return val
-	end
-
-	return rawget(self, key)
-end
-
+messageMeta.__index = messageMeta
 debug.getregistry().LNetworkMessage = messageMeta
 
+function messageMeta:GetLength()
+	return #self.bits
+end
+
 function messageMeta:IsCompressionEffective()
-	return self.length >= 600
+	return self:GetLength() >= 600
 end
 
 function messageMeta:Compress()
@@ -118,8 +109,8 @@ function messageMeta:CompressNow()
 	self.knownForCompression = true
 
 	local compressed = self:CompressBitsBuffer()
-	local untouchedBits = self.length % 8
-	local bits = table.gcopyRange(self.bits, self.length - untouchedBits + 1, self.length)
+	local untouchedBits = self:GetLength() % 8
+	local bits = table.gcopyRange(self.bits, self:GetLength() - untouchedBits + 1, self:GetLength())
 
 	self:ResetBuffer()
 	self:WriteData(compressed, #compressed)
@@ -139,15 +130,15 @@ function messageMeta:DecompressNow(length)
 		return self
 	end
 
-	length = length or (self.length - self.length % 8) / 8
+	length = length or (self:GetLength() - self:GetLength() % 8) / 8
 
-	local untouchedBits = self.length % 8
-	local bits = table.gcopyRange(self.bits, self.length - untouchedBits + 1, self.length)
+	local untouchedBits = self:GetLength() % 8
+	local bits = table.gcopyRange(self.bits, self:GetLength() - untouchedBits + 1, self:GetLength())
 	local readBuff = self:ReadData(length)
 	local decompressed = util.Decompress(readBuff)
 
 	if not decompressed then
-		error('Unable to decompress message! length to decompress - ' .. length .. ' bytes; message length - ' .. self.length .. ' bits (' .. ((self.length - self.length % 8) / 8) .. ' bytes)\nAffected message: ' .. self:GetMessageName())
+		error('Unable to decompress message! length to decompress - ' .. length .. ' bytes; message length - ' .. self:GetLength() .. ' bits (' .. ((self:GetLength() - self:GetLength() % 8) / 8) .. ' bytes)\nAffected message: ' .. self:GetMessageName())
 	end
 
 	self:ResetBuffer()
@@ -418,11 +409,11 @@ end
 function messageMeta:ReportOutOfRange(func, bitsToAdd)
 	if not DLib.DEBUG_MODE:GetBool() then return end
 
-	if bitsToAdd + self.pointer < self.length then
+	if bitsToAdd + self.pointer < self:GetLength() then
 		ErrorNoHalt(string.format('%s - Read bits amount is smaller than possible! %i bits were provided', func, bitsToAdd))
 	else
 		self.outboundsScore = self.outboundsScore + bitsToAdd
-		ErrorNoHalt(string.format('%s - Read buffer overflow. Message length is %i bits (~%i b/%.2f kb); Pointer: %i, reading %i bits -> %i bits outside from message bounds (%i total).', func, self.length, self.length / 8, self.length / 8192, self.pointer, bitsToAdd, self.pointer + bitsToAdd - self.length, self.outboundsScore))
+		ErrorNoHalt(string.format('%s - Read buffer overflow. Message length is %i bits (~%i b/%.2f kb); Pointer: %i, reading %i bits -> %i bits outside from message bounds (%i total).', func, self:GetLength(), self:GetLength() / 8, self:GetLength() / 8192, self.pointer, bitsToAdd, self.pointer + bitsToAdd - self:GetLength(), self.outboundsScore))
 	end
 end
 
@@ -677,11 +668,11 @@ end
 
 -- Header 2 bytes + end of message one byte
 function messageMeta:BytesWritten()
-	return math.floor(self.length / 8) + 3
+	return math.floor(self:GetLength() / 8) + 3
 end
 
 function messageMeta:BitsWritten()
-	return self.length
+	return self:GetLength()
 end
 
 function messageMeta:Seek(moveTo)
@@ -689,7 +680,7 @@ function messageMeta:Seek(moveTo)
 		error('Must be a number')
 	end
 
-	if moveTo > self.length or moveTo < 0 then
+	if moveTo > self:GetLength() or moveTo < 0 then
 		error('Out of range')
 	end
 
@@ -709,7 +700,7 @@ function messageMeta:BitAt(moveTo)
 		error('Must be a number')
 	end
 
-	if moveTo > self.length or moveTo < 0 then
+	if moveTo > self:GetLength() or moveTo < 0 then
 		error('Out of range')
 	end
 

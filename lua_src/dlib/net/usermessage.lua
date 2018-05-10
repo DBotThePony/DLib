@@ -80,7 +80,7 @@ local messageMeta = DLib.umsgMessageMeta or {}
 DLib.umsgMessageMeta = messageMeta
 function messageMeta:__index(key)
 	if key == 'length' then
-		return self.nwobject.length
+		return self.nwobject:GetLength()
 	elseif key == 'pointer' then
 		return self.nwobject.pointer
 	end

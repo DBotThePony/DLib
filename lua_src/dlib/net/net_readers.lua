@@ -45,7 +45,7 @@ local function ErrorNoHalt(message)
 end
 
 function messageMeta:ReadBit()
-	if self.pointer == self.length then
+	if self.pointer == self:GetLength() then
 		self:ReportOutOfRange('ReadBit', 1)
 		return 0
 	end
@@ -62,7 +62,7 @@ function messageMeta:ReadIntInternal(bitCount, direction)
 	bitCount = tonumber(bitCount)
 	assert(type(bitCount) == 'number', 'Bit amount is not a number!')
 
-	if self.pointer + bitCount > self.length or bitCount < 2 then
+	if self.pointer + bitCount > self:GetLength() or bitCount < 2 then
 		self:ReportOutOfRange('ReadInt', bitCount)
 		return 0
 	end
@@ -77,7 +77,7 @@ function messageMeta:ReadIntInternalTwos(bitCount, direction)
 	bitCount = tonumber(bitCount)
 	assert(type(bitCount) == 'number', 'Bit amount is not a number!')
 
-	if self.pointer + bitCount > self.length or bitCount < 2 then
+	if self.pointer + bitCount > self:GetLength() or bitCount < 2 then
 		self:ReportOutOfRange('ReadIntTwos', bitCount)
 		return 0
 	end
@@ -97,7 +97,7 @@ function messageMeta:ReadUIntInternal(bitCount, direction)
 		return self:ReadBit()
 	end
 
-	if self.pointer + bitCount > self.length or bitCount < 1 then
+	if self.pointer + bitCount > self:GetLength() or bitCount < 1 then
 		self:ReportOutOfRange('ReadUInt', bitCount)
 		return 0
 	end
@@ -178,7 +178,7 @@ function messageMeta:ReadNumber(bitsExponent, bitsMantissa, direction)
 
 	local totalBits = bitsExponent + bitsMantissa + 1
 
-	if self.pointer + totalBits > self.length then
+	if self.pointer + totalBits > self:GetLength() then
 		self:ReportOutOfRange('ReadNumber', totalBits)
 		return 0
 	end
@@ -221,9 +221,9 @@ function messageMeta:ReadDataInternal(bytesRead, direction)
 
 	local bitsRead = bytesRead * 8
 
-	if self.pointer + bitsRead > self.length then
+	if self.pointer + bitsRead > self:GetLength() then
 		ErrorNoHalt('ReadData - out of bounds, clamping read range...')
-		bitsRead = self.length - self.pointer
+		bitsRead = self:GetLength() - self.pointer
 		bytesRead = math.floor(bitsRead / 8)
 	end
 
@@ -272,7 +272,7 @@ function messageMeta:ReadDoubleForward()
 end
 
 function messageMeta:ReadStringInternal(direction)
-	if self.length < self.pointer + 8 then
+	if self:GetLength() < self.pointer + 8 then
 		ErrorNoHalt('net.ReadString - unable to read - buffer is exhausted!')
 		return ''
 	end
@@ -281,7 +281,7 @@ function messageMeta:ReadStringInternal(direction)
 	local bytes = {}
 
 	while nextChar ~= 0 do
-		if self.length < self.pointer + 8 then
+		if self:GetLength() < self.pointer + 8 then
 			ErrorNoHalt('net.ReadString - string has no NULL terminator! Buffer overflow!')
 			return ''
 		end
@@ -365,7 +365,7 @@ function messageMeta:ReadTable()
 		readValue = self:ReadType()
 		if readValue == nil then break end
 		output[readKey] = readValue
-	until readKey == nil or readValue == nil or self.pointer >= self.length
+	until readKey == nil or readValue == nil or self.pointer >= self:GetLength()
 
 	return output
 end
