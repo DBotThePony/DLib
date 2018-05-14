@@ -28,8 +28,26 @@ function meta:PopulateDefaultSettings(panel)
 	end
 end
 
+function meta:PopulatePositionSettings(panel)
+	if not IsValid(panel) then return end
+
+	for i, convar in ipairs(self.positionsConVars) do
+		panel:Help(convar.name)
+		panel:NumSlider('X', convar.cvarX:GetName(), 0, 1, 2)
+		panel:NumSlider('Y', convar.cvarY:GetName(), 0, 1, 2)
+		panel:Button('Reset').DoClick = function()
+			convar.cvarX:Reset()
+			convar.cvarY:Reset()
+		end
+	end
+end
+
 function meta:PopulateToolMenuDefault()
 	spawnmenu.AddToolMenuOption('Utilities', 'User', self:GetID() .. '_menus', self:GetName(), '', '', function(panel)
 		self:PopulateDefaultSettings(panel)
+	end)
+
+	spawnmenu.AddToolMenuOption('Utilities', 'User', self:GetID() .. '_menus_pos', self:GetName() .. ' positions', '', '', function(panel)
+		self:PopulatePositionSettings(panel)
 	end)
 end

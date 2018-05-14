@@ -53,6 +53,8 @@ Pos2.LastAngle = Angle(0, 0, 0)
 
 Pos2.XPositions = Pos2.XPositions or {}
 Pos2.YPositions = Pos2.YPositions or {}
+Pos2.XPositions_CVars = Pos2.XPositions_CVars or {}
+Pos2.YPositions_CVars = Pos2.YPositions_CVars or {}
 Pos2.XPositions_modified = Pos2.XPositions_modified or {}
 Pos2.YPositions_modified = Pos2.YPositions_modified or {}
 Pos2.XPositions_original = Pos2.XPositions_original or {}
@@ -77,11 +79,25 @@ function Pos2.DefinePosition(name, x, y, shouldShift)
 		error('Invalid position! DefinePosition can only receive 0 <= y <= 1')
 	end
 
-	Pos2.XPositions_original[name] = x
-	Pos2.YPositions_original[name] = y
+	local cvarX = CreateConVar('dlib_hpos_' .. name .. '_x', tostring(x), {FCVAR_ARCHIVE}, 'X position of corresponding HUD element')
+	local cvarY = CreateConVar('dlib_hpos_' .. name .. '_y', tostring(y), {FCVAR_ARCHIVE}, 'X position of corresponding HUD element')
 
-	Pos2.XPositions_modified[name] = x
-	Pos2.YPositions_modified[name] = y
+	Pos2.XPositions_original[name] = cvarX:GetFloat()
+	Pos2.YPositions_original[name] = cvarY:GetFloat()
+
+	Pos2.XPositions_modified[name] = x * ScrWL()
+	Pos2.YPositions_modified[name] = y * ScrHL()
+
+	cvars.AddChangeCallback('dlib_hpos_' .. name .. '_x', function()
+		Pos2.XPositions_original[name] = cvarX:GetFloat()
+	end, 'DLib.HUDCommons')
+
+	cvars.AddChangeCallback('dlib_hpos_' .. name .. '_y', function()
+		Pos2.YPositions_original[name] = cvarY:GetFloat()
+	end, 'DLib.HUDCommons')
+
+	Pos2.XPositions_CVars[name] = cvarX
+	Pos2.YPositions_CVars[name] = cvarY
 
 	if not table.HasValue(Pos2.XPositions, name) then
 		table.insert(Pos2.XPositions, name)
@@ -97,9 +113,9 @@ function Pos2.DefinePosition(name, x, y, shouldShift)
 		if shouldShift() then
 			return Pos2.XPositions_modified[name], Pos2.YPositions_modified[name]
 		else
-			return Pos2.XPositions_original[name], Pos2.YPositions_original[name]
+			return Pos2.XPositions_original[name] * ScrWL(), Pos2.YPositions_original[name] * ScrHL()
 		end
-	end
+	end, cvarX, cvarY
 end
 
 Pos2.CreatePosition = Pos2.DefinePosition

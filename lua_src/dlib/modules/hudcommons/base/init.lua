@@ -47,6 +47,8 @@ function meta:__construct(hudID, hudName)
 	self.fontsNames = {}
 	self.convars = {}
 
+	self.positionsConVars = {}
+
 	self.fontCVars = {
 		font = {},
 		weight = {},
