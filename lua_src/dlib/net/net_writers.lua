@@ -74,7 +74,7 @@ function messageMeta:WriteIntInternal(input, bitCount, direction)
 
 	input = math.floor(input + 0.5)
 	bitCount = math.floor(bitCount)
-	assert(bitCount < 127 and bitCount > 2, 'Bit amount overflow')
+	assert(bitCount <= 127 and bitCount > 1, 'Bit amount overflow')
 
 	local output = DLib.bitworker2.IntegerToBinary2(input, bitCount)
 
@@ -157,7 +157,7 @@ function messageMeta:WriteUIntInternal(input, bitCount, direction)
 
 	input = math.floor(input + 0.5)
 	bitCount = math.floor(bitCount)
-	assert(bitCount <= 127 and bitCount >= 2, 'Bit amount overflow')
+	assert(bitCount <= 127 and bitCount >= 1, 'Bit amount overflow')
 
 	if input < 0 then
 		ErrorNoHalt('WriteUInt - input integer is lesser than 0! To keep backward compability, it gets bit shift to flip')
