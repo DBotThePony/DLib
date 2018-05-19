@@ -59,7 +59,36 @@ local function PopulateColors2(Panel)
 	end
 end
 
+local function PopulatePositions(Panel)
+	if not IsValid(Panel) then return end
+	Panel:Clear()
+
+	for name, v in SortedPairs(HUDCommons.Position2.XPositions_CVars) do
+		local collapse = vgui.Create('DCollapsibleCategory', Panel)
+		Panel:AddItem(collapse)
+		collapse:SetExpanded(false)
+		local cvarX = HUDCommons.Position2.XPositions_CVars[name]
+		local cvarY = HUDCommons.Position2.YPositions_CVars[name]
+		collapse:SetLabel(name)
+
+		local parent = vgui.Create('EditablePanel', Panel)
+		collapse:SetContents(parent)
+
+		parent:Add(Panel:NumSlider('X', cvarX:GetName(), 0, 1, 2))
+		parent:Add(Panel:NumSlider('Y', cvarY:GetName(), 0, 1, 2))
+		local reset = Panel:Button('Reset')
+
+		parent:Add(reset)
+
+		reset.DoClick = function()
+			cvarX:Reset()
+			cvarY:Reset()
+		end
+	end
+end
+
 hook.Add('PopulateToolMenu', 'HUDCommons.PopulateMenus', function()
 	spawnmenu.AddToolMenuOption('Utilities', 'User', 'HUDCommons.Populate', 'HUDCommons Colors', '', '', PopulateColors)
 	spawnmenu.AddToolMenuOption('Utilities', 'User', 'HUDCommons.Populate2', 'HUDCommons Colors 2', '', '', PopulateColors2)
+	spawnmenu.AddToolMenuOption('Utilities', 'User', 'HUDCommons.Positions2', 'HUDCommons Positions 2', '', '', PopulatePositions)
 end)

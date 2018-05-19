@@ -31,7 +31,7 @@ end
 function meta:PopulatePositionSettings(panel)
 	if not IsValid(panel) then return end
 
-	for i, convar in ipairs(self.positionsConVars) do
+	for i, convar in SortedPairsByMemberValue(self.positionsConVars, 'name') do
 		panel:Help(convar.name)
 		panel:NumSlider('X', convar.cvarX:GetName(), 0, 1, 2)
 		panel:NumSlider('Y', convar.cvarY:GetName(), 0, 1, 2)
