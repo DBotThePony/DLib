@@ -45,13 +45,21 @@ local Textings = {
 	{'buy\ndlib\npremium', 'BuyDLibPremium'},
 	{'install\ndlib\nv3', 'BuyDLibPremium'},
 	{'go play\nvalve idiot', 'BuyDLibPremium'},
+	{'put texture\nHere!!1', 'BuyDLibPremium'},
 	{'hl2.exe\nis\ndumb', 'Default'},
-	{'F U C K\nBY CSS\nF U C K', 'BuyCSSFont'},
+	{'F U C K\nBUY CSS\nF U C K', 'BuyCSSFont'},
 	{'here, buy\nyourself some\ncounter-strike', 'BuyCSSFont2'},
 	{':RT:', 'BuyRTFont'},
+	{':missing:', 'BuyRTFont'},
 	{'Times\nNew\nRumanian', 'BuyFontsFont'},
+	{':missing_texture:', 'BuyFontsFont'},
 	{'install\nnew\nfonts', 'BuyFontsFont'},
 	{'use\ncomic sans', 'BuyFontsFont'},
+	{'you forgot\nyour texture', 'BuyDLibPremium'},
+	{'buy yourself\nsome textures', 'BuyFontsFont'},
+	{'texture\nGone\nMISSING', 'BuyDLibPremium'},
+	{'dlib did nothing\nto this missing\nTEXTURE', 'BuyCSSFont2'},
+	{'no missing\ntextures for\nU', 'BuyCSSFont2'},
 }
 
 local Backgrounds = {
