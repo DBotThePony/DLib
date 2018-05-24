@@ -157,16 +157,14 @@ local function RedrawRT()
 		if HitTexture then
 			local mat = Material(HitTexture)
 
-			if mat then
-				local tex = mat:GetTexture('$basetexture')
-				local tex2 = mat:GetTexture('$refracttexture')
-				local check1 = not tex or tex:GetName() == '__error' or tex:GetName() == 'error'
-				local check2 = not tex2 or tex2:GetName() == '__error' or tex2:GetName() == 'error'
+			if mat and mat:IsError() then
+				--local tex = mat:GetTexture('$basetexture')
+				--local tex2 = mat:GetTexture('$refracttexture')
+				--local check1 = not tex or tex:GetName() == '__error' or tex:GetName() == 'error'
+				--local check2 = not tex2 or tex2:GetName() == '__error' or tex2:GetName() == 'error'
 
-				if check1 and check2 then
-					mat:SetTexture('$basetexture', buy_rt)
-					mat:Recompute()
-				end
+				mat:SetTexture('$basetexture', buy_rt)
+				mat:Recompute()
 			end
 		end
 
