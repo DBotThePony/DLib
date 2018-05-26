@@ -198,6 +198,7 @@ function meta:DefinePosition(name, ...)
 
 	table.insert(self.positionsConVars, {
 		name = name:formatname(),
+		oname = name,
 		cvarX = cvarX,
 		cvarY = cvarY
 	})

@@ -14,6 +14,7 @@
 -- limitations under the License.
 
 local meta = DLib.FindMetaTable('HUDCommonsBase')
+local HUDCommons = DLib.HUDCommons
 local DLib = DLib
 local IsValid = IsValid
 local table = table
@@ -30,6 +31,29 @@ end
 
 function meta:PopulatePositionSettings(panel)
 	if not IsValid(panel) then return end
+
+	if table.Count(self.positionsConVars) == 0 then
+		Panel:Help('No convars registered!')
+		Panel:Help('Nothing to edit.')
+		return
+	end
+
+	panel:Button('Reset all').DoClick = function()
+		for i, convar in pairs(self.positionsConVars) do
+			convar.cvarX:Reset()
+			convar.cvarY:Reset()
+		end
+	end
+
+	panel:Button('Enter interactive mode').DoClick = function()
+		local filter = {}
+
+		for i, convar in pairs(self.positionsConVars, 'name') do
+			table.insert(filter, self:GetID() .. '_' .. convar.oname)
+		end
+
+		HUDCommons.EnterPositionEditMode(filter)
+	end
 
 	for i, convar in SortedPairsByMemberValue(self.positionsConVars, 'name') do
 		panel:Help(convar.name)

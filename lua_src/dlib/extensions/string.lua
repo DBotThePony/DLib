@@ -22,7 +22,7 @@ local math = math
 local table = table
 
 function gstring.formatname(self)
-	return self:sub(1, 1):upper() .. self:sub(2)
+	return self:sub(1, 1):upper() .. self:sub(2):replace('_', ' ')
 end
 
 function string.tformat(time)
