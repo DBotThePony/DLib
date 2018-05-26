@@ -233,8 +233,12 @@ local metaFix = {
 }
 
 local function InitStrongEntity(entIndex)
-    if type(entIndex) ~= 'number' then
-        if IsValid(entIndex) then
+	if type(entIndex) ~= 'number' then
+		if IsValid(entIndex) then
+			if CLIENT and entIndex:IsClientsideEntity() then
+				return entIndex
+			end
+
             entIndex = entIndex:EntIndex()
 
 			if entIndex < 0 then
