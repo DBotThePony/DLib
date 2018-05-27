@@ -267,6 +267,7 @@ function HUDCommons.EnterPositionEditMode(filter)
 		if not input.IsKeyDown(KEY_ESCAPE) then return end
 		IN_EDIT_MODE = false
 		toppanel:Remove()
+		hook.Run('HUDCommons_ExitEditMode', filter)
 	end)
 
 	toppanel = vgui.Create('EditablePanel')
