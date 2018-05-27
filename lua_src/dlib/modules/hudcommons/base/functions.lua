@@ -197,7 +197,7 @@ function meta:DefinePosition(name, ...)
 	local callable, cvarX, cvarY = DLib.HUDCommons.Position2.DefinePosition(self:GetID() .. '_' .. name, ...)
 
 	table.insert(self.positionsConVars, {
-		name = name:formatname(),
+		name = name:formatname2(),
 		oname = name,
 		cvarX = cvarX,
 		cvarY = cvarY

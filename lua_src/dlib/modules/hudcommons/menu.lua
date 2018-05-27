@@ -157,7 +157,7 @@ end
 
 function PANEL:SetCVars(name)
 	self.convarname = name
-	self.name = name:formatname()
+	self.name = name:formatname2()
 	self.cvarX = HUDCommons.Position2.XPositions_CVars[name]
 	self.cvarY = HUDCommons.Position2.YPositions_CVars[name]
 	self.calculatedX = self.cvarX:GetFloat() * ScrWL()

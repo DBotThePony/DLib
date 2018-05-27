@@ -22,6 +22,10 @@ local math = math
 local table = table
 
 function gstring.formatname(self)
+	return self:sub(1, 1):upper() .. self:sub(2)
+end
+
+function gstring.formatname2(self)
 	return self:sub(1, 1):upper() .. self:sub(2):replace('_', ' ')
 end
 
