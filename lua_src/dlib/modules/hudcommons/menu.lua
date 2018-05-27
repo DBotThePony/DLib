@@ -143,6 +143,7 @@ function PANEL:Init()
 	self.calculatedX = 0
 	self.calculatedY = 0
 	self.tw, self.th = 0, 0
+	self.fade = 0
 	self.name = 'noname'
 	self:SetSize(ScreenSize(12), ScreenSize(12))
 	self:SetCursor('sizeall')
@@ -170,6 +171,18 @@ function PANEL:SetCVars(name)
 	self.valid = true
 end
 
+function PANEL:Reset()
+	self.cvarX:Reset()
+	self.cvarY:Reset()
+
+	timer.Simple(0, function()
+		self.calculatedX = self.cvarX:GetFloat() * ScrWL()
+		self.calculatedY = self.cvarY:GetFloat() * ScrHL()
+		self:Reposition()
+		input.SetCursorPos(self.calculatedX, self.calculatedY)
+	end)
+end
+
 function PANEL:OnMousePressed(code)
 	if code ~= MOUSE_LEFT then return end
 	self.dragging = true
@@ -182,14 +195,34 @@ function PANEL:ApplyChanges()
 end
 
 function PANEL:OnMouseReleased(code)
+	if code == MOUSE_RIGHT then
+		local menu = DermaMenu()
+		menu:AddOption('Hide', function() self:Remove() end)
+		menu:AddOption('Reset', function() self:Reset() end)
+		menu:AddOption('Close', function() end)
+		menu:Open()
+		self.openMenu = menu
+
+		return
+	end
+
 	if code ~= MOUSE_LEFT then return end
 	self.dragging = false
 
 	self:ApplyChanges()
 end
 
+local RealFrameTime = RealFrameTime
+
 function PANEL:Think()
 	if not self.valid or not IN_EDIT_MODE then return self:Remove() end
+
+	if self:IsHovered() then
+		self.fade = math.min(0.7, self.fade + RealFrameTime() * 4)
+	else
+		self.fade = math.max(0, self.fade - RealFrameTime() * 4)
+	end
+
 	if not self.dragging then return end
 
 	local x, y = gui.MousePos()
@@ -209,6 +242,7 @@ local draw = draw
 local surface = surface
 
 function PANEL:PostRenderVGUI()
+	if IsValid(self.openMenu) then return end
 	surface.SetFont('DLib.HUDThingName')
 	local w, h = self.tw, self.th
 	local drawPosX, drawPosY = self.calculatedX + ScreenSize(14), self.calculatedY + ScreenSize(2)
@@ -221,12 +255,12 @@ function PANEL:PostRenderVGUI()
 		drawPosY = self.calculatedY - ScreenSize(2) - h
 	end
 
-	surface.SetTextColor(DRAW_COLOR_TEXT_SHADOW)
+	surface.SetTextColor(40, 40, 40, 255 * (1 - self.fade))
 	local shift = ScreenSize(1)
 	surface.SetTextPos(drawPosX + shift, drawPosY + shift / 2)
 	surface.DrawText(self.name)
 
-	surface.SetTextColor(DRAW_COLOR_TEXT)
+	surface.SetTextColor(255, 255, 255,  255 * (1 - self.fade))
 	surface.SetTextPos(drawPosX, drawPosY)
 	surface.DrawText(self.name)
 end
