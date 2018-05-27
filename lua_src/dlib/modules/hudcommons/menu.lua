@@ -285,6 +285,8 @@ function HUDCommons.EnterPositionEditMode(filter)
 		local button = vgui.Create('DLib.EditHUDPosition', toppanel)
 		button:SetCVars(name)
 	end
+
+	hook.Run('HUDCommons_EnterEditMode', filter)
 end
 
 hook.Add('PopulateToolMenu', 'HUDCommons.PopulateMenus', function()
