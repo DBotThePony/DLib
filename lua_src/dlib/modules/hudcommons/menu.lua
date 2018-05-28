@@ -83,14 +83,14 @@ local function PopulatePositions(Panel)
 		return
 	end
 
-	panel:Button('Reset all').DoClick = function()
+	Panel:Button('Reset all').DoClick = function()
 		for name, v in pairs(HUDCommons.Position2.XPositions_CVars) do
 			HUDCommons.Position2.XPositions_CVars[name]:Reset()
 			HUDCommons.Position2.YPositions_CVars[name]:Reset()
 		end
 	end
 
-	panel:Button('Enter interactive mode').DoClick = function()
+	Panel:Button('Enter interactive mode').DoClick = function()
 		HUDCommons.EnterPositionEditMode()
 	end
 
