@@ -143,6 +143,7 @@ function PANEL:Init()
 	self.calculatedX = 0
 	self.calculatedY = 0
 	self.tw, self.th = 0, 0
+	self.direction = 'LEFT'
 	self.fade = 0
 	self.name = 'noname'
 	self:SetSize(ScreenSize(12), ScreenSize(12))
@@ -154,6 +155,7 @@ end
 function PANEL:Reposition()
 	local w, h = self:GetSize()
 	self:SetPos(self.calculatedX - w / 2, self.calculatedY - h / 2)
+	self.direction = self.calculatedX / ScrWL() < 0.33 and 'LEFT' or self.calculatedX / ScrWL() > 0.66 and 'RIGHT' or 'CENTER'
 end
 
 function PANEL:SetCVars(name)
@@ -247,8 +249,10 @@ function PANEL:PostRenderVGUI()
 	local w, h = self.tw, self.th
 	local drawPosX, drawPosY = self.calculatedX + ScreenSize(14), self.calculatedY + ScreenSize(2)
 
-	if drawPosX + w > ScrWL() then
+	if self.direction == 'RIGHT' then
 		drawPosX = self.calculatedX - ScreenSize(14) - w
+	elseif self.direction == 'CENTER' then
+		drawPosX = self.calculatedX - w / 2
 	end
 
 	if drawPosY + h > ScrHL() then
