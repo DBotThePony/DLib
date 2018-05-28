@@ -82,18 +82,18 @@ function Pos2.DefinePosition(name, x, y, shouldShift)
 	local cvarX = CreateConVar('dlib_hpos_' .. name .. '_x', tostring(x), {FCVAR_ARCHIVE}, 'X position of corresponding HUD element')
 	local cvarY = CreateConVar('dlib_hpos_' .. name .. '_y', tostring(y), {FCVAR_ARCHIVE}, 'X position of corresponding HUD element')
 
-	Pos2.XPositions_original[name] = cvarX:GetFloat()
-	Pos2.YPositions_original[name] = cvarY:GetFloat()
+	Pos2.XPositions_original[name] = cvarX:GetFloat():clamp(0, 1)
+	Pos2.YPositions_original[name] = cvarY:GetFloat():clamp(0, 1)
 
 	Pos2.XPositions_modified[name] = x * ScrWL()
 	Pos2.YPositions_modified[name] = y * ScrHL()
 
 	cvars.AddChangeCallback('dlib_hpos_' .. name .. '_x', function()
-		Pos2.XPositions_original[name] = cvarX:GetFloat()
+		Pos2.XPositions_original[name] = cvarX:GetFloat():clamp(0, 1)
 	end, 'DLib.HUDCommons')
 
 	cvars.AddChangeCallback('dlib_hpos_' .. name .. '_y', function()
-		Pos2.YPositions_original[name] = cvarY:GetFloat()
+		Pos2.YPositions_original[name] = cvarY:GetFloat():clamp(0, 1)
 	end, 'DLib.HUDCommons')
 
 	Pos2.XPositions_CVars[name] = cvarX
@@ -116,6 +116,24 @@ function Pos2.DefinePosition(name, x, y, shouldShift)
 			return Pos2.XPositions_original[name] * ScrWL(), Pos2.YPositions_original[name] * ScrHL()
 		end
 	end, cvarX, cvarY
+end
+
+function Pos2.GetSide(name)
+	if Pos2.XPositions_original[name] < 0.33 then
+		return 'LEFT'
+	elseif Pos2.XPositions_original[name] > 0.66 then
+		return 'RIGHT'
+	else
+		return 'CENTER'
+	end
+end
+
+function Pos2.GetSideStrict(name)
+	if Pos2.XPositions_original[name] < 0.5 then
+		return 'LEFT'
+	else
+		return 'RIGHT'
+	end
 end
 
 Pos2.CreatePosition = Pos2.DefinePosition
