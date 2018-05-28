@@ -223,6 +223,7 @@ local WorldToLocal = WorldToLocal
 local IsValid = FindMetaTable('Entity').IsValid
 local Lerp = Lerp
 local LerpQuintic = LerpQuintic
+local RealFrameTime = RealFrameTime
 
 Pos2.Weapon_PosX_Change = 0
 Pos2.Weapon_PosY_Change = 0
@@ -231,6 +232,77 @@ Pos2.Weapon_PosZ_Change = 0
 Pos2.Weapon_PosX_ChangeLerp = 0
 Pos2.Weapon_PosY_ChangeLerp = 0
 Pos2.Weapon_PosZ_ChangeLerp = 0
+
+local function grabShiftOfEntity(plyPos, plyAng, view)
+	local xs, ys, zs = 0, 0, 0
+	local viewt = view:GetTable()
+
+	if not viewt.__dlib_position2 then
+		viewt.__dlib_position2 = {
+			multX = 0.25,
+			multY = 0.25,
+			multZ = 0.25,
+			bonesX = {},
+			bonesY = {},
+			bonesZ = {},
+
+			weighedXLast = 0,
+			weighedX = 0.25,
+			weighedY = 0.25,
+			weighedYLast = 0,
+			weighedZ = 0.25,
+			weighedZLast = 0,
+		}
+	end
+
+	local private = viewt.__dlib_position2
+	local rft = RealFrameTime()
+
+	local bones = view:GetBoneCount()
+
+	for bone = 0, bones - 1 do
+		local bpos, bang = view:GetBonePosition(bone)
+		bang = bang + view:GetManipulateBoneAngles(bone)
+		bpos = bpos + view:GetManipulateBonePosition(bone)
+		local npos, nang = WorldToLocal(bpos, bang, plyPos, plyAng)
+		private.bonesX[bone + 1] = private.bonesX[bone + 1] or npos.x
+		private.bonesY[bone + 1] = private.bonesY[bone + 1] or npos.y
+		private.bonesZ[bone + 1] = private.bonesZ[bone + 1] or npos.z
+
+		local diffX, diffY, diffZ = (npos.x - private.bonesX[bone + 1]):abs(), (npos.y - private.bonesY[bone + 1]):abs(), (npos.z - private.bonesZ[bone + 1]):abs()
+
+		private.multX = math.max(Lerp(rft, private.multX, diffX), 0.1)
+		private.multY = math.max(Lerp(rft, private.multY, diffY), 0.1)
+		private.multZ = math.max(Lerp(rft, private.multZ, diffZ), 0.1)
+
+		xs = xs + npos.x / private.multX
+		ys = ys + npos.y / private.multY
+		zs = zs + npos.z / private.multZ
+
+		private.bonesX[bone + 1] = npos.x
+		private.bonesY[bone + 1] = npos.y
+		private.bonesZ[bone + 1] = npos.z
+	end
+
+	private.weighedXLast = private.weighedXLast or xs
+	private.weighedYLast = private.weighedYLast or ys
+	private.weighedZLast = private.weighedZLast or zs
+
+	local diffX, diffY, diffZ = (xs - private.weighedXLast):abs(), (ys - private.weighedYLast):abs(), (zs - private.weighedZLast):abs()
+
+	private.weighedX = math.max(Lerp(rft, private.weighedX, diffX), 0.1)
+	private.weighedY = math.max(Lerp(rft, private.weighedY, diffY), 0.1)
+	private.weighedZ = math.max(Lerp(rft, private.weighedZ, diffZ), 0.1)
+
+	xs = xs / private.weighedX
+	ys = ys / private.weighedY
+	zs = zs / private.weighedZ
+
+	private.weighedXLast = xs
+	private.weighedYLast = ys
+	private.weighedZLast = zs
+	return bones, xs, ys, zs
+end
 
 local function UpdateWeaponShift(delta)
 	if not ENABLE_SHIFTING:GetBool() then return end
@@ -258,18 +330,11 @@ local function UpdateWeaponShift(delta)
 		local view = ply:GetViewModel()
 
 		if IsValid(view) then
-			local bones = view:GetBoneCount()
+			local bones, xs2, ys2, zs2 = grabShiftOfEntity(plyPos, plyAng, view)
 			amount = amount + bones
-
-			for bone = 0, bones - 1 do
-				local bpos, bang = view:GetBonePosition(bone)
-				bang = bang + view:GetManipulateBoneAngles(bone)
-				bpos = bpos + view:GetManipulateBonePosition(bone)
-				local npos, nang = WorldToLocal(bpos, bang, plyPos, plyAng)
-				xs = xs + npos.x
-				ys = ys + npos.y
-				zs = zs + npos.z
-			end
+			xs = xs + xs2
+			ys = ys + ys2
+			zs = zs + zs2
 		end
 	end
 
@@ -277,24 +342,18 @@ local function UpdateWeaponShift(delta)
 		local hands = ply:GetHands()
 
 		if IsValid(hands) then
-			local bones = hands:GetBoneCount()
+			local bones, xs2, ys2, zs2 = grabShiftOfEntity(plyPos, plyAng, hands)
 			amount = amount + bones
-
-			for bone = 0, bones - 1 do
-				local bpos, bang = hands:GetBonePosition(bone)
-				bang = bang + hands:GetManipulateBoneAngles(bone)
-				bpos = bpos + hands:GetManipulateBonePosition(bone)
-				local npos, nang = WorldToLocal(bpos, bang, plyPos, plyAng)
-				xs = xs + npos.x
-				ys = ys + npos.y
-				zs = zs + npos.z
-			end
+			xs = xs + xs2
+			ys = ys + ys2
+			zs = zs + zs2
 		end
 	end
 
 	if amount <= 2 then return end
 	local div = ScreenSize(1) * SHIFTING_MULT_WEP:GetFloat():clamp(0, 10)
 
+	amount = amount / 12
 	xs, ys, zs = xs / amount, ys / amount, zs / amount
 	local changeX = (xs - lastWeaponPosX) * div
 	local changeY = (ys - lastWeaponPosY) * div
