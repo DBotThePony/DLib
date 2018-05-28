@@ -265,11 +265,28 @@ function PANEL:PostRenderVGUI()
 	surface.DrawText(self.name)
 end
 
+local function DrawRect(x, y, w, h)
+	x = x:ceil()
+	y = y:ceil()
+	w = w:ceil()
+	h = h:ceil()
+
+	if w % 2 == 0 then
+		w = w + 1
+	end
+
+	if h % 2 == 0 then
+		h = h + 1
+	end
+
+	surface.DrawRect(x ~= 0 and (x - w / 2 - 1):ceil() or 0, y ~= 0 and (y - h / 2 - 1):ceil() or 0, w, h)
+end
+
 function PANEL:Paint(w, h)
 	draw.NoTexture()
 	surface.SetDrawColor(DRAW_COLOR1)
-	surface.DrawRect(0, h / 2 - w * 0.1, w, w * 0.2)
-	surface.DrawRect(w / 2 - w * 0.1, 0, w * 0.2, h)
+	DrawRect(0, h / 2, w, h * 0.1)
+	DrawRect(w / 2, 0, w * 0.1, h)
 	HUDCommons.DrawCircleHollow(0, 0, w, w * 2, w * 0.2, DRAW_COLOR1)
 end
 
