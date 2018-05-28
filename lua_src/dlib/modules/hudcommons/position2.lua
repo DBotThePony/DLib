@@ -115,7 +115,15 @@ function Pos2.DefinePosition(name, x, y, shouldShift)
 		else
 			return Pos2.XPositions_original[name] * ScrWL(), Pos2.YPositions_original[name] * ScrHL()
 		end
-	end, cvarX, cvarY
+	end, cvarX, cvarY, function()
+		if Pos2.XPositions_original[name] < 0.33 then
+			return 'LEFT'
+		elseif Pos2.XPositions_original[name] > 0.66 then
+			return 'RIGHT'
+		else
+			return 'CENTER'
+		end
+	end
 end
 
 function Pos2.GetSide(name)

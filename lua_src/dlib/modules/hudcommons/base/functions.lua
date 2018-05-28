@@ -194,7 +194,7 @@ function meta:ShouldDisplayAmmoReady2()
 end
 
 function meta:DefinePosition(name, ...)
-	local callable, cvarX, cvarY = DLib.HUDCommons.Position2.DefinePosition(self:GetID() .. '_' .. name, ...)
+	local callable, cvarX, cvarY, callable2 = DLib.HUDCommons.Position2.DefinePosition(self:GetID() .. '_' .. name, ...)
 
 	table.insert(self.positionsConVars, {
 		name = name:formatname2(),
@@ -203,7 +203,7 @@ function meta:DefinePosition(name, ...)
 		cvarY = cvarY
 	})
 
-	return callable
+	return callable, callable2
 end
 
 function meta:RegisterRegularVariable(var, funcName, default)
