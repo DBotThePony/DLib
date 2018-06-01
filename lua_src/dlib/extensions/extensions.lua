@@ -273,7 +273,9 @@ if CLIENT then
 		return ScrWL() / 640 * modify
 	end
 
-	_G.ScreenSize = ScreenScale
+	function _G.ScreenSize(modify)
+		return ScrHL() / 480 * modify
+	end
 else
 	entMeta.GetNetworkName = entMeta.GetName
 	entMeta.SetNetworkName = entMeta.SetName
