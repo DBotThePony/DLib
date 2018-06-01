@@ -22,7 +22,7 @@ local IsValid = FindMetaTable('Entity').IsValid
 local table = table
 local surface = surface
 local math = math
-local ScreenScale = ScreenScale
+local ScreenSize = ScreenSize
 local RealTimeL = RealTimeL
 
 function meta:GetWeapon()
@@ -360,7 +360,7 @@ end
 
 function meta:CreateScalableFont(fontBase, fontData)
 	fontData.osize = fontData.size
-	fontData.size = math.floor(ScreenScale(fontData.size * 0.6) + 0.5)
+	fontData.size = math.floor(ScreenSize(fontData.size * 0.6) + 0.5)
 	return self:CreateFont(fontBase, fontData)
 end
 
