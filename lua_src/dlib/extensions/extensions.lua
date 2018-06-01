@@ -268,6 +268,7 @@ if CLIENT then
 
 	-- cache and speedup lookups a bit
 	local ScrWL = ScrWL
+	local ScrHL = ScrHL
 
 	function _G.ScreenScale(modify)
 		return ScrWL() / 640 * modify
