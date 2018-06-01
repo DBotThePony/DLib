@@ -291,7 +291,6 @@ function PANEL:Paint(w, h)
 	surface.SetDrawColor(DRAW_COLOR1)
 	DrawRect(0, h / 2, w, h * 0.1)
 	DrawRect(w / 2, 0, w * 0.1, h)
-	HUDCommons.DrawCircleHollow(0, 0, w, w * 2, w * 0.2, DRAW_COLOR1)
 end
 
 vgui.Register('DLib.EditHUDPosition', PANEL, 'EditablePanel')
