@@ -360,7 +360,7 @@ end
 
 function meta:CreateScalableFont(fontBase, fontData)
 	fontData.osize = fontData.size
-	fontData.size = math.floor(ScreenSize(fontData.size * 0.6) + 0.5)
+	fontData.size = math.floor(ScreenSize(fontData.size * 0.8) + 0.5)
 	return self:CreateFont(fontBase, fontData)
 end
 
