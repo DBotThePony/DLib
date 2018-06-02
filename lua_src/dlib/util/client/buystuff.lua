@@ -38,6 +38,7 @@ surface.CreateFont('BuyFontsFont', {
 	size = 32
 })
 
+local ENABLED = CreateConVar('dlib_replace_missing_textures', '0', {FCVAR_ARCHIVE}, 'Replace missing textures with something less boring')
 local buy_rt = GetRenderTargetEx('buy_counter_strike', 128, 128, RT_SIZE_NO_CHANGE, MATERIAL_RT_DEPTH_SHARED, 0, CREATERENDERTARGETFLAGS_UNFILTERABLE_OK, IMAGE_FORMAT_RGB888)
 
 local Textings = {
@@ -96,6 +97,7 @@ local LocalPlayer = LocalPlayer
 local nextTraceCheck = 0
 
 local function RedrawRT()
+	if not ENABLED:GetBool() then return end
 	local compute = false
 
 	if not errormat then
