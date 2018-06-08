@@ -31,6 +31,7 @@ function meta:__construct(hudID, hudName)
 	self.name = hudName
 	self.hooks = {}
 	self.chooks = {}
+	self.phooks = {}
 	self.variables = {}
 	self.variablesHash = {}
 	self.paintHash = {}
@@ -74,7 +75,7 @@ function meta:__construct(hudID, hudName)
 	self:AddHook('DrawOverlay')
 	self:AddHook('DrawWeaponSelection')
 	self:AddHook('ScreenSizeChanged')
-	self:AddHookCustom('PopulateToolMenu', 'PopulateToolMenuDefault')
+	self:AddHookCustomPersistent('PopulateToolMenu', 'PopulateToolMenuDefault')
 
 	self:__InitVaribles()
 	self:InitVaribles()
@@ -216,6 +217,19 @@ function meta:AddHookCustom(event, id, funcIfAny, priority)
 	return id
 end
 
+function meta:AddHookCustomPersistent(event, id, funcIfAny, priority)
+	priority = priority or 3
+	funcIfAny = funcIfAny or self[id] or self[event]
+
+	self.phooks[id] = {event, self:GetID() .. '_' .. id, funcIfAny, priority}
+
+	hook.Add(event, self:GetID() .. '_' .. id, function(...)
+		return funcIfAny(self, ...)
+	end, priority)
+
+	return id
+end
+
 function meta:RemoveHook(event)
 	self.hooks[event] = nil
 	hook.Remove(event, self:GetID() .. '_' .. event)
@@ -224,6 +238,12 @@ end
 
 function meta:RemoveCustomHook(event, id)
 	self.chooks[id] = nil
+	hook.Remove(event, self:GetID() .. '_' .. id)
+	return id
+end
+
+function meta:RemoveCustomHookPersistent(event, id)
+	self.phooks[id] = nil
 	hook.Remove(event, self:GetID() .. '_' .. id)
 	return id
 end
