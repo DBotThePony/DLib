@@ -41,8 +41,10 @@ hook.__table = hook.__table or {}
 hook.__tableGmod = hook.__tableGmod or {}
 hook.__tableModifiersPost = hook.__tableModifiersPost or {}
 hook.__tableModifiersPostOptimized = hook.__tableModifiersPostOptimized or {}
+hook.__disabled = hook.__disabled or {}
 
 local __table = hook.__table
+local __disabled = hook.__disabled
 local __tableOptimized = hook.__tableOptimized
 local __tableGmod = hook.__tableGmod
 local __tableModifiersPost = hook.__tableModifiersPost
@@ -81,6 +83,46 @@ end
 
 function hook.GetDLibTable()
 	return __table
+end
+
+function hook.GetDisabledHooks()
+	return __disabled
+end
+
+function hook.DisableHook(event)
+	assert(type(event) == 'string', 'Invalid event ID (typeof ' .. type(event) .. ')')
+
+	if __disabled[event] then
+		return false
+	end
+
+	__disabled[event] = true
+	return true
+end
+
+function hook.EnableAllHooks()
+	local toenable = {}
+
+	for k, v in pairs(__disabled) do
+		table.insert(toenable, k)
+	end
+
+	for i, v in ipairs(toenable) do
+		__disabled[v] = nil
+	end
+
+	return toenable
+end
+
+function hook.EnableHook(event)
+	assert(type(event) == 'string', 'Invalid event ID (typeof ' .. type(event) .. ')')
+
+	if not __disabled[event] then
+		return false
+	end
+
+	__disabled[event] = nil
+	return true
 end
 
 local oldHooks
@@ -522,6 +564,10 @@ function hook.Call2(event, hookTable, ...)
 		hook.Reconstruct(IS_DIRTY_ID)
 		IS_DIRTY = false
 		IS_DIRTY_ID = nil
+	end
+
+	if __disabled[event] then
+		return
 	end
 
 	ITERATING = event
