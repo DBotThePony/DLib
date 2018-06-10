@@ -58,8 +58,8 @@ net.receive('DLib.friendsystem', function(len, ply)
 	net.WritePlayer(ply)
 	net.WriteUInt(namount, 8)
 
-	for ply, status in pairs(target) do
-		net.WritePlayer(ply)
+	for ply2, status in pairs(target) do
+		net.WritePlayer(ply2)
 		friends.Serealize(status)
 	end
 
