@@ -25,20 +25,43 @@ meta.MetaName = 'function'
 
 function meta:__index(key)
 	if rawequal(self, nil) then
-		local lastname
 		local i = 1
+		local lasts, lastsAll = {}, {}
 
 		while true do
 			local name, value = debug.getlocal(2, i)
 			if name == nil then break end
 			i = i + 1
-			if value == nil then lastname = name end
+
+			if value == nil then
+				table.insert(lastsAll, name)
+
+				if name ~= '(*temporary)' then
+					table.insert(lasts, name)
+				end
+			end
 		end
 
-		if lastname then
-			error(string.format('attempt to index field %q of a nil value (probably %s?)', key, lastname), 2)
+		if #lasts == 0 and #lastsAll ~= 0 then
+			error(string.format('attempt to index field %q of a nil value (bytecode local variable)', key), 2)
+		elseif #lasts == 0 and #lastsAll == 0 then
+			error(string.format('attempt to index field %q of a nil value (unable to detect)', key), 2)
+		elseif #lasts == 1 then
+			error(string.format('attempt to index field %q of a nil value (probably %s?)', key, lasts[1]), 2)
+		elseif #lasts <= 4 then
+			error(string.format('attempt to index field %q of a nil value (%i possibilities: %s)', key, #lasts, table.concat(lasts, ', ')))
 		else
-			error(string.format('attempt to index field %q of a nil value', key, lastname), 2)
+			local things = {}
+
+			for i = #lasts - 4, #lasts do
+				table.insert(things, lasts[i])
+			end
+
+			if #lastsAll ~= #lasts then
+				error(string.format('attempt to index field %q of a nil value (%i possibilities + bytecode local variables, probably %s)', key, #lasts, table.concat(things, ', ')))
+			else
+				error(string.format('attempt to index field %q of a nil value (%i possibilities, probably %s)', key, #lasts, table.concat(things, ', ')))
+			end
 		end
 	end
 
