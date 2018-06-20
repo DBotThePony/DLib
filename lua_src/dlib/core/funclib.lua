@@ -49,7 +49,7 @@ function meta:__index(key)
 		elseif #lasts == 1 then
 			error(string.format('attempt to index field %q of a nil value (probably %s?)', key, lasts[1]), 2)
 		elseif #lasts <= 4 then
-			error(string.format('attempt to index field %q of a nil value (%i possibilities: %s)', key, #lasts, table.concat(lasts, ', ')))
+			error(string.format('attempt to index field %q of a nil value (%i possibilities: %s)', key, #lasts, table.concat(lasts, ', ')), 2)
 		else
 			local things = {}
 
@@ -58,9 +58,9 @@ function meta:__index(key)
 			end
 
 			if #lastsAll ~= #lasts then
-				error(string.format('attempt to index field %q of a nil value (%i possibilities + bytecode local variables, probably %s)', key, #lasts, table.concat(things, ', ')))
+				error(string.format('attempt to index field %q of a nil value (%i possibilities + bytecode local variables, probably %s)', key, #lasts, table.concat(things, ', ')), 2)
 			else
-				error(string.format('attempt to index field %q of a nil value (%i possibilities, probably %s)', key, #lasts, table.concat(things, ', ')))
+				error(string.format('attempt to index field %q of a nil value (%i possibilities, probably %s)', key, #lasts, table.concat(things, ', ')), 2)
 			end
 		end
 	end
