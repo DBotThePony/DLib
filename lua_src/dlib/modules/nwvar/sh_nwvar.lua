@@ -51,6 +51,8 @@ function entMeta:DLibVar(var, ifNothing)
 	end
 end
 
+entMeta.GetDLibVar = entMeta.DLibVar
+
 function nw.GetNetworkDataTable(self)
 	local uid = self:EntIndex()
 
