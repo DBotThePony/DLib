@@ -111,3 +111,17 @@ end
 
 nw.pool = nw.var
 nw.RegisterNetworkVar = nw.RegisterNetworkVar
+
+do
+	local values = {}
+
+	for key, val in pairs(nw) do
+		if type(val) == 'function' then
+			table.insert(values, {key, val})
+		end
+	end
+
+	for i, data in ipairs(values) do
+		nw[data[1]:sub(1, 1):upper() .. data[1]:sub(2)] = data[2]
+	end
+end
