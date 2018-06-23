@@ -63,7 +63,7 @@ function HUDCommons.DrawBlurredRect(x, y, w, h, blurx, blury, passes)
 end
 
 function HUDCommons.SoftBar(x, y, w, h, color, name)
-	HUDCommons.BarData[name] = HUDCommons.BarData[name] or w
+	HUDCommons.BarData[name] = HUDCommons.BarData[name] == HUDCommons.BarData[name] and HUDCommons.BarData[name] or w
 
 	local delta = w - HUDCommons.BarData[name]
 
@@ -79,7 +79,7 @@ end
 function HUDCommons.SoftBarMult(x, y, w, h, mult, color, bgcolor, name)
     HUDCommons.DrawBox(x, y, w, h, bgcolor)
     w = w * math.Clamp(mult, 0, 1)
-	HUDCommons.BarData2[name] = HUDCommons.BarData2[name] or w
+	HUDCommons.BarData2[name] = HUDCommons.BarData2[name] == HUDCommons.BarData2[name] and HUDCommons.BarData2[name] or w
 
 	local delta = w - HUDCommons.BarData2[name]
 
@@ -93,7 +93,7 @@ function HUDCommons.SoftBarMult(x, y, w, h, mult, color, bgcolor, name)
 end
 
 function HUDCommons.SoftBarBackground(x, y, w, h, color, bgcolor, name)
-	HUDCommons.BarData3[name] = HUDCommons.BarData3[name] or w
+	HUDCommons.BarData3[name] = HUDCommons.BarData3[name] == HUDCommons.BarData3[name] and HUDCommons.BarData3[name] or w
 
 	local delta = w - HUDCommons.BarData3[name]
 
@@ -110,7 +110,7 @@ end
 function HUDCommons.SoftBarBackgroundMult(x, y, w, h, mult, color, bgcolor1, bgcolor2, name)
     HUDCommons.DrawBox(x, y, w, h, bgcolor1)
     w = w * math.Clamp(mult, 0, 1)
-	HUDCommons.BarData4[name] = HUDCommons.BarData4[name] or w
+	HUDCommons.BarData4[name] = HUDCommons.BarData4[name] == HUDCommons.BarData4[name] or w
 
 	local delta = w - HUDCommons.BarData4[name]
 
@@ -126,7 +126,7 @@ end
 
 function HUDCommons.SoftSkyrimBar(x, y, w, h, color, name, speed)
 	speed = speed or .1
-	HUDCommons.BarData[name] = HUDCommons.BarData[name] or w
+	HUDCommons.BarData[name] = HUDCommons.BarData[name] == HUDCommons.BarData[name] and HUDCommons.BarData[name] or w
 
 	local delta = w - HUDCommons.BarData[name]
 
