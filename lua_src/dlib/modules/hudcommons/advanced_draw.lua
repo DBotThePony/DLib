@@ -22,11 +22,11 @@ local cam = cam
 local RealTimeL = RealTimeL
 local math = math
 
-HUDCommons.BarData = HUDCommons.BarData or {}
-HUDCommons.BarData2 = HUDCommons.BarData2 or {}
-HUDCommons.BarData3 = HUDCommons.BarData3 or {}
-HUDCommons.BarData4 = HUDCommons.BarData4 or {}
-HUDCommons.WordBarData = HUDCommons.WordBarData or {}
+HUDCommons.BarData = {}
+HUDCommons.BarData2 = {}
+HUDCommons.BarData3 = {}
+HUDCommons.BarData4 = {}
+HUDCommons.WordBarData = {}
 
 local function InInterval(val, min, max)
 	return val > min and val < max
