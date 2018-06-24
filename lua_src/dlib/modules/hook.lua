@@ -178,7 +178,7 @@ end
 
 function hook.DisableAllHooksExcept(event, stringID)
 	assert(type(event) == 'string', 'hook.DisableAllHooksExcept - event is not a string! ' .. type(event))
-	assert(type(stringID) ~= 'nil', 'hook.DisableAllHooksExcept - ID is not a valid value! ' .. type(event))
+	assert(type(stringID) ~= 'nil', 'hook.DisableAllHooksExcept - ID is not a valid value! ' .. type(stringID))
 
 	if not __table[event] then return false end
 	stringID = transformStringID(stringID, event)
@@ -194,6 +194,94 @@ function hook.DisableAllHooksExcept(event, stringID)
 	end
 
 	hook.Reconstruct(event)
+	return true
+end
+
+function hook.DisableHooksByPredicate(event, predicate)
+	assert(type(event) == 'string', 'hook.DisableAllHooksByPredicate - event is not a string! ' .. type(event))
+	assert(type(predicate) == 'function', 'hook.DisableAllHooksByPredicate - invalid predicate function! ' .. type(predicate))
+
+	if not __table[event] then return false end
+
+	for priority = -10, 10 do
+		if __table[event][priority] then
+			for id, hookData in pairs(__table[event][priority]) do
+				local reply = predicate(event, id, priority, hookData)
+
+				if reply then
+					hookData.disabled = true
+				end
+			end
+		end
+	end
+
+	hook.Reconstruct(event)
+	return true
+end
+
+function hook.DisableAllHooksByPredicate(predicate)
+	assert(type(predicate) == 'function', 'hook.DisableAllHooksByPredicate - invalid predicate function! ' .. type(predicate))
+
+	for event, eventData in pairs(__table) do
+		for priority = -10, 10 do
+			if eventData[priority] then
+				for id, hookData in pairs(eventData[priority]) do
+					local reply = predicate(event, id, priority, hookData)
+
+					if reply then
+						hookData.disabled = true
+					end
+				end
+			end
+		end
+
+		hook.Reconstruct(event)
+	end
+
+	return true
+end
+
+function hook.EnableHooksByPredicate(event, predicate)
+	assert(type(event) == 'string', 'hook.DisableAllHooksByPredicate - event is not a string! ' .. type(event))
+	assert(type(predicate) == 'function', 'hook.DisableAllHooksByPredicate - invalid predicate function! ' .. type(predicate))
+
+	if not __table[event] then return false end
+
+	for priority = -10, 10 do
+		if __table[event][priority] then
+			for id, hookData in pairs(__table[event][priority]) do
+				local reply = predicate(event, id, priority, hookData)
+
+				if reply then
+					hookData.disabled = false
+				end
+			end
+		end
+	end
+
+	hook.Reconstruct(event)
+	return true
+end
+
+function hook.EnableAllHooksByPredicate(predicate)
+	assert(type(predicate) == 'function', 'hook.DisableAllHooksByPredicate - invalid predicate function! ' .. type(predicate))
+
+	for event, eventData in pairs(__table) do
+		for priority = -10, 10 do
+			if eventData[priority] then
+				for id, hookData in pairs(eventData[priority]) do
+					local reply = predicate(event, id, priority, hookData)
+
+					if reply then
+						hookData.disabled = false
+					end
+				end
+			end
+		end
+
+		hook.Reconstruct(event)
+	end
+
 	return true
 end
 
