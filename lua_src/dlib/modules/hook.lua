@@ -527,109 +527,67 @@ end
 
 function hook.Reconstruct(eventToReconstruct)
 	if not eventToReconstruct then
-		__tableOptimized = {}
-		local ordered = {}
-
-		for event, priorityTable in pairs(__table) do
-			ordered[event] = {}
-			local look = ordered[event]
-
-			for priority = maximalPriority, minimalPriority do
-				local hookList = priorityTable[priority]
-
-				if hookList then
-					for stringID, hookData in pairs(hookList) do
-						table.insert(look, hookData)
-					end
-				end
-			end
+		for event, data in pairs(__table) do
+			hook.Reconstruct(event)
 		end
 
-		for event, order in pairs(ordered) do
-			if #order == 0 then
-				__tableOptimized[event] = nil
-			else
-				__tableOptimized[event] = {}
-				local look = __tableOptimized[event]
-
-				for i, hookData in ipairs(order) do
-					if not hookData.disabled then
-						if hookData.typeof ~= false then
-							table.insert(look, hookData.funcToCall)
-						else
-							local self = hookData.id
-							local upvalueFunc = hookData.funcToCall
-							table.insert(look, function(...)
-								if not self:IsValid() then
-									hook.Remove(hookData.event, self)
-									return
-								end
-
-								return upvalueFunc(self, ...)
-							end)
-						end
-					end
-				end
-			end
-		end
-
-		return __tableOptimized, ordered
-	else
-		__tableOptimized[eventToReconstruct] = {}
-		local ordered = {}
-		local priorityTable = __table[eventToReconstruct]
-		local inboundgmod = __tableGmod[eventToReconstruct]
-
-		if priorityTable then
-			for priority = maximalPriority, minimalPriority do
-				local hookList = priorityTable[priority]
-
-				if hookList then
-					for stringID, hookData in pairs(hookList) do
-						if not hookData.disabled then
-							if hookData.typeof == false then
-								if hookData.id:IsValid() then
-									table.insert(ordered, hookData)
-								else
-									hookList[stringID] = nil
-									inboundgmod[stringID] = nil
-								end
-							else
-								table.insert(ordered, hookData)
-							end
-						end
-					end
-				end
-			end
-		end
-
-		local cnt = #ordered
-
-		if cnt == 0 then
-			__tableOptimized[eventToReconstruct] = nil
-		else
-			local target = __tableOptimized[eventToReconstruct]
-
-			for i = 1, cnt do
-				if type(ordered[i].id) == 'string' then
-					table.insert(target, ordered[i].funcToCall)
-				else
-					local self = ordered[i].id
-					local upvalueFunc = ordered[i].funcToCall
-					table.insert(target, function(...)
-						if not self:IsValid() then
-							hook.Remove(ordered[i].event, self)
-							return
-						end
-
-						return upvalueFunc(self, ...)
-					end)
-				end
-			end
-		end
-
-		return __tableOptimized, ordered
+		return
 	end
+
+	__tableOptimized[eventToReconstruct] = {}
+	local ordered = {}
+	local priorityTable = __table[eventToReconstruct]
+	local inboundgmod = __tableGmod[eventToReconstruct]
+
+	if priorityTable then
+		for priority = maximalPriority, minimalPriority do
+			local hookList = priorityTable[priority]
+
+			if hookList then
+				for stringID, hookData in pairs(hookList) do
+					if not hookData.disabled then
+						if hookData.typeof == false then
+							if hookData.id:IsValid() then
+								table.insert(ordered, hookData)
+							else
+								hookList[stringID] = nil
+								inboundgmod[stringID] = nil
+							end
+						else
+							table.insert(ordered, hookData)
+						end
+					end
+				end
+			end
+		end
+	end
+
+	local cnt = #ordered
+
+	if cnt == 0 then
+		__tableOptimized[eventToReconstruct] = nil
+	else
+		local target = __tableOptimized[eventToReconstruct]
+
+		for i = 1, cnt do
+			if type(ordered[i].id) == 'string' then
+				table.insert(target, ordered[i].funcToCall)
+			else
+				local self = ordered[i].id
+				local upvalueFunc = ordered[i].funcToCall
+				table.insert(target, function(...)
+					if not self:IsValid() then
+						hook.Remove(ordered[i].event, self)
+						return
+					end
+
+					return upvalueFunc(self, ...)
+				end)
+			end
+		end
+	end
+
+	return __tableOptimized, ordered
 end
 
 local function Call(...)
