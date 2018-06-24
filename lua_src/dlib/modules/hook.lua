@@ -89,42 +89,6 @@ function hook.GetDisabledHooks()
 	return __disabled
 end
 
-function hook.DisableHook(event)
-	assert(type(event) == 'string', 'Invalid event ID (typeof ' .. type(event) .. ')')
-
-	if __disabled[event] then
-		return false
-	end
-
-	__disabled[event] = true
-	return true
-end
-
-function hook.EnableAllHooks()
-	local toenable = {}
-
-	for k, v in pairs(__disabled) do
-		table.insert(toenable, k)
-	end
-
-	for i, v in ipairs(toenable) do
-		__disabled[v] = nil
-	end
-
-	return toenable
-end
-
-function hook.EnableHook(event)
-	assert(type(event) == 'string', 'Invalid event ID (typeof ' .. type(event) .. ')')
-
-	if not __disabled[event] then
-		return false
-	end
-
-	__disabled[event] = nil
-	return true
-end
-
 local oldHooks
 
 if ghook ~= DLib.ghook then
@@ -183,6 +147,107 @@ local function transformStringID(stringID, event)
 	end
 
 	return stringID
+end
+
+function hook.DisableHook(event, stringID)
+	assert(type(event) == 'string', 'hook.DisableHook - event is not a string! ' .. type(event))
+
+	if not stringID then
+		if __disabled[event] then
+			return false
+		end
+
+		__disabled[event] = true
+		return true
+	else
+		if not __table[event] then return false end
+		stringID = transformStringID(stringID, event)
+
+		for priority = -10, 10 do
+			if __table[event][priority] and __table[event][priority][stringID] then
+				local wasDisabled = __table[event][priority][stringID].disabled
+				__table[event][priority][stringID].disabled = true
+				hook.Reconstruct(event)
+				return not wasDisabled
+			end
+		end
+
+		return false
+	end
+end
+
+function hook.DisableAllHooksExcept(event, stringID)
+	assert(type(event) == 'string', 'hook.DisableAllHooksExcept - event is not a string! ' .. type(event))
+	assert(type(stringID) ~= 'nil', 'hook.DisableAllHooksExcept - ID is not a valid value! ' .. type(event))
+
+	if not __table[event] then return false end
+	stringID = transformStringID(stringID, event)
+
+	for priority = -10, 10 do
+		if __table[event][priority] then
+			for id, hookData in pairs(__table[event][priority]) do
+				if id ~= stringID then
+					hookData.disabled = true
+				end
+			end
+		end
+	end
+
+	hook.Reconstruct(event)
+	return true
+end
+
+function hook.EnableAllHooks()
+	local toenable = {}
+
+	for k, v in pairs(__disabled) do
+		table.insert(toenable, k)
+	end
+
+	for i, v in ipairs(toenable) do
+		__disabled[v] = nil
+	end
+
+	for event, eventData in pairs(__table) do
+		for priority = -10, 10 do
+			if eventData[priority] then
+				for id, hookData in pairs(eventData[priority]) do
+					hookData.disabled = false
+				end
+			end
+		end
+
+		hook.Reconstruct(event)
+	end
+
+	return toenable
+end
+
+function hook.EnableHook(event, stringID)
+	assert(type(event) == 'string', 'hook.EnableHook - event is not a string! ' .. type(event))
+
+	if not stringID then
+		if not __disabled[event] then
+			return false
+		end
+
+		__disabled[event] = nil
+		return true
+	else
+		if not __table[event] then return false end
+		stringID = transformStringID(stringID, event)
+
+		for priority = -10, 10 do
+			if __table[event][priority] and __table[event][priority][stringID] then
+				local wasDisabled = __table[event][priority][stringID].disabled
+				__table[event][priority][stringID].disabled = false
+				hook.Reconstruct(event)
+				return wasDisabled
+			end
+		end
+
+		return false
+	end
 end
 
 function hook.Add(event, stringID, funcToCall, priority)
@@ -400,19 +465,21 @@ function hook.Reconstruct(eventToReconstruct)
 				local look = __tableOptimized[event]
 
 				for i, hookData in ipairs(order) do
-					if type(hookData.id) == 'string' then
-						table.insert(look, hookData.funcToCall)
-					else
-						local self = hookData.id
-						local upvalueFunc = hookData.funcToCall
-						table.insert(look, function(...)
-							if not self:IsValid() then
-								hook.Remove(hookData.event, self)
-								return
-							end
+					if not hookData.disabled then
+						if hookData.typeof ~= false then
+							table.insert(look, hookData.funcToCall)
+						else
+							local self = hookData.id
+							local upvalueFunc = hookData.funcToCall
+							table.insert(look, function(...)
+								if not self:IsValid() then
+									hook.Remove(hookData.event, self)
+									return
+								end
 
-							return upvalueFunc(self, ...)
-						end)
+								return upvalueFunc(self, ...)
+							end)
+						end
 					end
 				end
 			end
@@ -431,15 +498,17 @@ function hook.Reconstruct(eventToReconstruct)
 
 				if hookList then
 					for stringID, hookData in pairs(hookList) do
-						if hookData.typeof == false then
-							if hookData.id:IsValid() then
-								table.insert(ordered, hookData)
+						if not hookData.disabled then
+							if hookData.typeof == false then
+								if hookData.id:IsValid() then
+									table.insert(ordered, hookData)
+								else
+									hookList[stringID] = nil
+									inboundgmod[stringID] = nil
+								end
 							else
-								hookList[stringID] = nil
-								inboundgmod[stringID] = nil
+								table.insert(ordered, hookData)
 							end
-						else
-							table.insert(ordered, hookData)
 						end
 					end
 				end
