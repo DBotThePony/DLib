@@ -25,11 +25,11 @@ function friends.OpenGUIForPlayer(steamid)
 
 	local frame = vgui.Create('DLib_Window')
 	frame:UpdateSize(400, 400)
-	frame:SetTitle((wasfriend and 'Editing ' or 'Adding ') .. nick .. ' <' .. steamid .. '>')
+	frame:SetTitle(wasfriend and 'gui.dlib.friends.edit.edit_title' or 'gui.dlib.friends.edit.add_title', nick, steamid)
 
 	local label = vgui.Create('DLabel', frame)
 	label:Dock(TOP)
-	label:SetText('You are ' .. (wasfriend and 'a friend' or 'going to be a friend') .. ' with ' .. nick .. ' in...')
+	label:SetText(wasfriend and 'gui.dlib.friends.edit.youare' or 'gui.dlib.friends.edit.going', nick)
 
 	local scroll = vgui.Create('DScrollPanel', frame)
 	scroll:Dock(FILL)
@@ -48,7 +48,7 @@ function friends.OpenGUIForPlayer(steamid)
 	end
 
 	local button = vgui.Create('DButton', frame)
-	button:SetText('Apply')
+	button:SetText('gui.misc.apply')
 	button:Dock(BOTTOM)
 
 	function button.DoClick()
@@ -78,7 +78,7 @@ function friends.OpenGUIForPlayer(steamid)
 
 	if wasfriend then
 		button = vgui.Create('DButton', frame)
-		button:SetText('Remove friend')
+		button:SetText('gui.dlib.friends.edit.remove')
 		button:Dock(BOTTOM)
 
 		function button.DoClick()
@@ -88,7 +88,7 @@ function friends.OpenGUIForPlayer(steamid)
 	end
 
 	button = vgui.Create('DButton', frame)
-	button:SetText('Decline')
+	button:SetText('gui.misc.cancel')
 	button:Dock(BOTTOM)
 
 	function button.DoClick()
@@ -106,7 +106,7 @@ surface.CreateFont('DLib.FriendsTooltip', {
 
 function friends.OpenGUI()
 	local frame = vgui.Create('DLib_Window')
-	frame:SetTitle('DLib Friends')
+	frame:SetTitle('gui.dlib.friends.title')
 
 	local steamidInput = DLib.VCreate('DLib_TextInput', frame)
 	steamidInput:SetPos(100, 3)
@@ -117,12 +117,12 @@ function friends.OpenGUI()
 		if DLib.util.ValidateSteamID(value) then
 			friends.OpenGUIForPlayer(value)
 		else
-			Derma_Message(value .. ' doesnt look like valid steamid!', 'Invalid SteamID', 'Okay :(')
+			Derma_Message(DLib.i18n.localize('gui.dlib.friends.invalid.desc', value), 'gui.dlib.friends.invalid.title', 'gui.dlib.friends.invalid.ok')
 		end
 	end
 
 	local treat = DLib.VCreate('DCheckBoxLabel', frame)
-	treat:SetText('Treat steam friends as dlib friends')
+	treat:SetText('gui.dlib.friends.settings.steam')
 	treat:SetConVar('cl_dlib_steamfriends')
 	treat:SetPos(510, 3)
 	treat:SizeToContents()
@@ -144,14 +144,14 @@ function friends.OpenGUI()
 	label:SetFont('DLib.FriendsTooltip')
 	label:Dock(TOP)
 	label:DockMargin(4, 4, 4, 4)
-	label:SetText('Your friends ->')
+	label:SetText('gui.dlib.friends.settings.your')
 	label:SizeToContents()
 
 	label = DLib.VCreate('DLabel', bottomwrapper)
 	label:SetFont('DLib.FriendsTooltip')
 	label:Dock(TOP)
 	label:DockMargin(4, 4, 4, 4)
-	label:SetText('Server players ->')
+	label:SetText('gui.dlib.friends.settings.server')
 	label:SizeToContents()
 
 	myfriends:Dock(FILL)
@@ -220,8 +220,8 @@ local function PopulateToolMenu()
 		if not IsValid(self) then return end
 		self:Clear()
 		self:SetSkin('DLib_Black')
-		self:Button('Open Friends Menu', 'dlib_friends')
-		self:CheckBox('Treat steam friends as dlib friends', 'cl_dlib_steamfriends')
+		self:Button('gui.dlib.friends.open', 'dlib_friends')
+		self:CheckBox('gui.dlib.friends.settings.steam', 'cl_dlib_steamfriends')
 	end)
 end
 
