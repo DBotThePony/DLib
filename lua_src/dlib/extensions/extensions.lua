@@ -244,6 +244,17 @@ timer.Create('DLib.RebuildVehicleListNames', 10, 0, rebuildVehicleList)
 rebuildVehicleList()
 
 if CLIENT then
+	local surface = surface
+	surface._DLibPlaySound = surface._DLibPlaySound or surface.PlaySound
+	local hook = hook
+
+	function surface.PlaySound(path)
+		assert(type(path) == 'string', 'surface.PlaySound - string expected, got ' .. type(path))
+		local can = hook.Run('SurfaceEmitSound', path)
+		if can == false then return end
+		return surface._DLibPlaySound(path)
+	end
+
 	function vehicleMeta:GetPrintName()
 		if self.__dlibCachedName then
 			return self.__dlibCachedName
