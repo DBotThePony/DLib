@@ -14,7 +14,7 @@
 -- limitations under the License.
 
 gui.misc.apply = 'Apply'
-gui.misc.cancel = 'Canel'
+gui.misc.cancel = 'Cancel'
 
 info.dlib.tformat.seconds = 'seconds'
 info.dlib.tformat.minutes = 'minutes'
