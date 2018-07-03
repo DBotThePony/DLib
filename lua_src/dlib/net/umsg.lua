@@ -33,6 +33,8 @@ local net = DLib.netModule
 
 local isWrittingMessage = false
 local oldTrace, cPlayers
+local currentMessagePayload = {}
+local currentMessageName
 
 function umsg.Start(strIn, pFilter)
 	if type(strIn) ~= 'string' then
@@ -52,9 +54,11 @@ function umsg.Start(strIn, pFilter)
 	oldTrace = traceback()
 	isWrittingMessage = true
 	cPlayers = pFilter
+	currentMessagePayload = {}
 
-	net.Start('dlib.umsg')
-	net.WriteUInt(tonumber(util.CRC(strIn)), 32)
+	--net.Start('dlib.umsg')
+	--net.WriteUInt(tonumber(util.CRC(strIn)), 32)
+	currentMessageName = strIn
 end
 
 function umsg.End()
@@ -65,6 +69,13 @@ function umsg.End()
 	isWrittingMessage = false
 	oldTrace = nil
 
+	net.Start('dlib.umsg')
+	net.WriteUInt(tonumber(util.CRC(currentMessageName)), 32)
+
+	for i, payload in ipairs(currentMessagePayload) do
+		payload()
+	end
+
 	if SERVER then
 		net.QUIET_SEND = true
 		net.Send(cPlayers)
@@ -72,7 +83,23 @@ function umsg.End()
 	else
 		net.SendToServer()
 	end
+
+	currentMessagePayload = nil
+	currentMessageName = nil
 end
+
+local payloadFunctions = {
+	'Angle',
+	'Entity',
+	'Float',
+	'Vector',
+	'String',
+	'Bool',
+	'Char',
+	'Long',
+	'Short',
+	'VectorNormal',
+}
 
 do
 	local mappings = {
@@ -113,6 +140,24 @@ function umsg.PoolString()
 end
 
 umsg.VectorNormal = net.WriteNormal
+
+for i, payloadName in ipairs(payloadFunctions) do
+	local payload = umsg[payloadName]
+
+	if not payload then
+		error('No payload function for ' .. payloadName .. '!')
+	end
+
+	umsg[payloadName] = function(value)
+		if not isWrittingMessage then
+			error('umsg.' .. payloadName .. ' - not currently writting a message')
+		end
+
+		table.insert(currentMessagePayload, function()
+			payload(value)
+		end)
+	end
+end
 
 if not gumsg then
 	gumsg = {}
