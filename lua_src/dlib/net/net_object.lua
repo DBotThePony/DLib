@@ -97,7 +97,7 @@ function messageMeta:IsCompressionEffective()
 end
 
 function messageMeta:Compress()
-	if self.isReading then error('Compressing incoming message!') end
+	if self.isReading then error('Attempt to compress incoming message!') end
 	return self:AddFlag(net.MESSAGE_COMPRESSED)
 end
 
@@ -121,7 +121,7 @@ function messageMeta:CompressNow()
 end
 
 function messageMeta:Decompress()
-	if self.isReading then error('Compressing incoming message!') end
+	if self.isReading then error('Attempt to remove decompress flag of incoming message!') end
 	return self:RemoveFlag(net.MESSAGE_COMPRESSED)
 end
 
@@ -492,7 +492,7 @@ if CLIENT then
 
 	function messageMeta:SendToServer()
 		local strName = self:GetMessageName()
-		if not strName then error('Starting a net message without name!') end
+		if not strName then error('Starting a net message without name! This should never happen!') end
 
 		local graph = net.GraphChannels[strName] and net.GraphChannels[strName].id or 'other'
 
@@ -572,12 +572,13 @@ local function CheckSendInput(targets)
 end
 
 function messageMeta:Send(targets)
-	if CLIENT then error('Not a server!') end
+	if CLIENT then error('Attempt to send data to other clients on clientside realm!') end
+
 	local status = CheckSendInput(targets)
 	if not status then return end
 
 	local msg = self:GetMessageName()
-	if not msg then error('Starting a net message without name!') end
+	if not msg then error('Starting a net message without name! This should never happen!') end
 
 	nnet.Start(msg, self:GetUnreliable())
 	self:WriteNetwork()
@@ -586,12 +587,13 @@ function messageMeta:Send(targets)
 end
 
 function messageMeta:SendOmit(targets)
-	if CLIENT then error('Not a server!') end
+	if CLIENT then error('Attempt to send data to other clients on clientside realm!') end
+
 	local status = CheckSendInput(targets)
 	if not status then return end
 
 	local msg = self:GetMessageName()
-	if not msg then error('Starting a net message without name!') end
+	if not msg then error('Starting a net message without name! This should never happen!') end
 
 	nnet.Start(msg, self:GetUnreliable())
 	self:WriteNetwork()
@@ -600,14 +602,14 @@ function messageMeta:SendOmit(targets)
 end
 
 function messageMeta:SendPAS(targetPos)
-	if CLIENT then error('Not a server!') end
+	if CLIENT then error('Attempt to send data to other clients on clientside realm!') end
 
 	if type(targetPos) ~= 'Vector' then
 		error('Invalid vector input. typeof ' .. type(targetPos))
 	end
 
 	local msg = self:GetMessageName()
-	if not msg then error('Starting a net message without name!') end
+	if not msg then error('Starting a net message without name! This should never happen!') end
 
 	nnet.Start(msg, self:GetUnreliable())
 	self:WriteNetwork()
@@ -616,14 +618,14 @@ function messageMeta:SendPAS(targetPos)
 end
 
 function messageMeta:SendPVS(targetPos)
-	if CLIENT then error('Not a server!') end
+	if CLIENT then error('Attempt to send data to other clients on clientside realm!') end
 
 	if type(targetPos) ~= 'Vector' then
 		error('Invalid vector input. typeof ' .. type(targetPos))
 	end
 
 	local msg = self:GetMessageName()
-	if not msg then error('Starting a net message without name!') end
+	if not msg then error('Starting a net message without name! This should never happen!') end
 
 	nnet.Start(msg, self:GetUnreliable())
 	self:WriteNetwork()
@@ -636,10 +638,10 @@ local CurTime = CurTime
 local patchedNWs = {}
 
 function messageMeta:Broadcast()
-	if CLIENT then error('Not a server!') end
+	if CLIENT then error('Attempt to send data to other clients on clientside realm!') end
 
 	local msg = self:GetMessageName()
-	if not msg then error('Starting a net message without name!') end
+	if not msg then error('Starting a net message without name! This should never happen!') end
 
 	if not game.SinglePlayer() or CurTime() > 15 then
 		nnet.Start(msg, self:GetUnreliable())
