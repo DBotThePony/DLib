@@ -407,11 +407,20 @@ function hook.Remove(event, stringID)
 		return
 	end
 
+	if type(stringID) == 'nil' then
+		if DLib.DEBUG_MODE:GetBool() then
+			DLib.Message(traceback('hook.Remove - hook id is nil!'))
+		end
+
+		return
+	end
+
 	if not __table[event] then return end
 	__tableGmod[event] = __tableGmod[event] or {}
-	__tableGmod[event][stringID] = nil
 
 	stringID = transformStringID(stringID, event)
+
+	__tableGmod[event][stringID] = nil
 
 	for priority = maximalPriority, minimalPriority do
 		local eventsTable = __table[event][priority]
