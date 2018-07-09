@@ -139,9 +139,9 @@ local function transformStringID(stringID, event)
 		end)
 
 		if not success then
-			if DLib.DEBUG_MODE:GetBool() then
+			--if DLib.DEBUG_MODE:GetBool() then
 				DLib.Message(traceback('hook.Add - hook ID is not a string and not a valid object! Using tostring() instead. ' .. type(stringID)))
-			end
+			--end
 			stringID = tostring(stringID)
 		end
 	end
@@ -340,9 +340,9 @@ end
 
 function hook.Add(event, stringID, funcToCall, priority)
 	if type(event) ~= 'string' then
-		if DLib.DEBUG_MODE:GetBool() then
+		--if DLib.DEBUG_MODE:GetBool() then
 			DLib.Message(traceback('hook.Add - event is not a string! ' .. type(event)))
-		end
+		--end
 
 		return
 	end
@@ -350,9 +350,9 @@ function hook.Add(event, stringID, funcToCall, priority)
 	__table[event] = __table[event] or {}
 
 	if type(funcToCall) ~= 'function' then
-		if DLib.DEBUG_MODE:GetBool() then
+		--if DLib.DEBUG_MODE:GetBool() then
 			DLib.Message(traceback('hook.Add - function is not a function! ' .. type(funcToCall)))
-		end
+		--end
 
 		return
 	end
@@ -400,17 +400,17 @@ end
 
 function hook.Remove(event, stringID)
 	if type(event) ~= 'string' then
-		if DLib.DEBUG_MODE:GetBool() then
+		--if DLib.DEBUG_MODE:GetBool() then
 			DLib.Message(traceback('hook.Remove - event is not a string! ' .. type(event)))
-		end
+		--end
 
 		return
 	end
 
 	if type(stringID) == 'nil' then
-		if DLib.DEBUG_MODE:GetBool() then
+		--if DLib.DEBUG_MODE:GetBool() then
 			DLib.Message(traceback('hook.Remove - hook id is nil!'))
-		end
+		--end
 
 		return
 	end
@@ -446,17 +446,17 @@ function hook.AddPostModifier(event, stringID, funcToCall)
 	__tableModifiersPost[event] = __tableModifiersPost[event] or {}
 
 	if type(event) ~= 'string' then
-		if DLib.DEBUG_MODE:GetBool() then
+		--if DLib.DEBUG_MODE:GetBool() then
 			DLib.Message(traceback('hook.AddPostModifier - event is not a string! ' .. type(event)))
-		end
+		--end
 
 		return false
 	end
 
 	if type(funcToCall) ~= 'function' then
-		if DLib.DEBUG_MODE:GetBool() then
+		--if DLib.DEBUG_MODE:GetBool() then
 			DLib.Message(traceback('hook.AddPostModifier - function is not a function! ' .. type(funcToCall)))
-		end
+		--end
 
 		return false
 	end
