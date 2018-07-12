@@ -1,3 +1,5 @@
 lua/
 resource
 doc/node_modules/
+doc/**/*.js
+doc/output/
