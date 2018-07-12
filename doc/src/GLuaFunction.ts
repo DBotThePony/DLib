@@ -29,7 +29,6 @@ class GLuaFunction extends GLuaEntryBase {
 
 		return `# DLib documentation
 ## ${levels}${this.name}
-[Go up](../index.md)
 
 ### Usage:
 ${levels}${this.id}(${this.args.buildMarkdown()})
@@ -42,7 +41,9 @@ ${this.generateNotes()}
 
 ${this.generateWarnings()}
 
-${this.generateDisclaimers()}`
+${this.generateDisclaimers()}
+
+[Go up](../index.md)`
 	}
 }
 
