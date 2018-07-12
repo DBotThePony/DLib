@@ -25,7 +25,14 @@ local insert = function(self, val)
 	return newIndex
 end
 
--- Appends numeric indexed tables
+--[[
+	@Documentation
+	@Path table.append
+	@Arguments table destination, table source
+
+	@Description
+	Appends values from source table to destination table. Works only with nurmerical indexed tables
+]]
 function tableutil.append(destination, source)
 	if #source == 0 then return destination end
 
