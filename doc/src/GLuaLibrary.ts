@@ -29,12 +29,12 @@ class GLuaLibrary {
 
 	}
 
-	buildLevels(): string {
+	buildLevels(level = 1): string {
 		if (this.parent == null) {
-			return this.name
+			return `[${this.id}](../index.md).`
 		}
 
-		return this.parent.buildLevels() + '.' + this.name
+		return this.parent.buildLevels(level + 1) + `[${this.id}](${'../'.repeat(level)}/index.md).`
 	}
 
 	getSubLibrary(name: string) {
@@ -78,9 +78,9 @@ class GLuaLibrary {
 			sublibs.push(`* [${library.name}](./sub/${name}/index.md)`)
 		}
 
-		return `
+		return `# DLib documentation
+## ${this.name}
 [../index.md](Go up)
-# ${this.name}
 ### Sub-libraries
 ${sublibs.join('  \n')}
 ### Functions/Methods

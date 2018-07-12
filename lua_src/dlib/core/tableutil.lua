@@ -51,6 +51,14 @@ function tableutil.append(destination, source)
 	return destination
 end
 
+--[[
+	@Documentation
+	@Path table.prependString
+	@Arguments table destination, string prepend
+
+	@Description
+	Iterates over destination and prepends string to all values (assuming array contains only strings)
+]]
 function tableutil.prependString(destination, prepend)
 	for i, value in ipairs(destination) do
 		destination[i] = prepend .. value

@@ -63,8 +63,7 @@ class DocumentationRoot {
 			}
 		}
 
-		return `
-# DLib documentation
+		return `# DLib documentation
 This small documentation fastly describes features (lol no, just points) of DLib library for GMod.
 
 You can find many things outta here.

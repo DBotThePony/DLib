@@ -14,7 +14,6 @@
 // limitations under the License.
 
 import { GLuaEntryBase } from "./GLuaEntryBase";
-import { GLuaLibrary } from "./GLuaLibrary";
 import { LuaArguments } from "./GLuaDefinitions";
 
 class GLuaFunction extends GLuaEntryBase {
@@ -22,10 +21,14 @@ class GLuaFunction extends GLuaEntryBase {
 
 	generatePage() {
 		const deprecated = this.deprecated && '\n**DEPRECATED: This funciton is either deprecated in DLib or GMod itself (if acceptable). Do not use (really)**' || ''
-		let levels = this.library && this.library.buildLevels() + '.' || ''
+		let levels = ''
 
-		return `
-## ${this.name}
+		if (this.library) {
+			levels = this.library.buildLevels()
+		}
+
+		return `# DLib documentation
+## ${levels}${this.name}
 [Go up](../index.md)
 
 ### Usage:
@@ -34,7 +37,7 @@ ${levels}${this.id}(${this.args.buildMarkdown()})
 ### Description
 ${this.description}
 ${deprecated}
-
+---------------------
 ${this.generateNotes()}
 
 ${this.generateWarnings()}
