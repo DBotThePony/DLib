@@ -155,7 +155,7 @@ MsgC(string.format('%.2f ms\n', (SysTime() - timeStart) * 1000))
 timeStart = SysTime()
 MsgC('[DLib] Initializing DLib modules ... ')
 
-DLib.simpleInclude('net/net.lua')
+DLib.Loader.shmodule('net_ext.lua')
 DLib.Loader.shmodule('bytesbuffer.lua')
 DLib.Loader.shmodule('nbt.lua')
 DLib.Loader.shmodule('lerp.lua')
