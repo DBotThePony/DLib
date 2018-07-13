@@ -75,6 +75,8 @@ local function NetworkedVarFull(len, ply, auto)
 end
 
 local function EntityRemoved(ent)
+	if player.GetCount() == 0 then return end
+	if game.SinglePlayer() and CurTime() < 10 then return end
 	local euid = ent:EntIndex()
 
 	nw.NETWORK_DB[euid] = nil
