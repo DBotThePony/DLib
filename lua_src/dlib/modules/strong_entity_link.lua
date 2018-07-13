@@ -342,7 +342,9 @@ else
 
     -- For some reason, some of entities are not being passed to this function
     -- Example - ragdolls with posed flexes
-    hook.Add('EntityRemoved', 'StrongEntity', function(self)
+	hook.Add('EntityRemoved', 'StrongEntity', function(self)
+		if player.GetCount() == 0 then return end
+		if game.SinglePlayer() and CurTime() < 10 then return end
         local entIndex = self:EntIndex()
         net.Start('StrongEntity.Removed')
         net.WriteUInt(entIndex, 16)
