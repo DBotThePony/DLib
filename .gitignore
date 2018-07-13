@@ -3,3 +3,4 @@ resource
 doc/node_modules/
 doc/**/*.js
 doc/output/
+doc/package-lock.json
