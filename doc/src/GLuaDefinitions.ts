@@ -28,6 +28,7 @@ class LuaArgument {
 			|| this.type == 'function'
 			|| this.type == 'userdata'
 			|| this.type == 'thread'
+			|| this.type == 'vararg'
 	}
 
 	setNumber(num: number) {
@@ -50,9 +51,15 @@ class LuaArgument {
 					return 'http://www.lua.org/pil/2.5.html'
 				case 'function':
 					return 'http://www.lua.org/pil/2.6.html'
+				case 'vararg':
+					return 'http://www.lua.org/pil/5.2.html'
 				default:
 					return 'http://www.lua.org/pil/2.7.html'
 			}
+		}
+
+		if (this.type == 'any') {
+			return 'http://wiki.garrysmod.com/page/Category:any'
 		}
 
 		if (this.isDlibBased) {
