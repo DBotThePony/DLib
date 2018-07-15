@@ -90,6 +90,13 @@ ${globals.join('  \n')}`
 				func.args.push(new LuaArgument(arg.type, arg.name))
 			}
 
+			let argnum = 0
+
+			for (const arg of annotation.returnsParsed) {
+				argnum++
+				func.returns.push((new LuaArgument(arg.type, arg.name, arg.description)).setNumber(argnum))
+			}
+
 			if (annotation.library == null) {
 				this.globals.set(annotation.funcname!, func)
 			} else if (typeof annotation.library == 'string') {

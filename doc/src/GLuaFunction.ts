@@ -18,6 +18,7 @@ import { LuaArguments } from "./GLuaDefinitions";
 
 class GLuaFunction extends GLuaEntryBase {
 	args = new LuaArguments()
+	returns = new LuaArguments()
 
 	generatePage() {
 		const deprecated = this.deprecated && '\n**DEPRECATED: This funciton is either deprecated in DLib or GMod itself (if acceptable). Do not use (really)**' || ''
@@ -28,22 +29,34 @@ class GLuaFunction extends GLuaEntryBase {
 		}
 
 		return `# DLib documentation
+
 ## ${levels}${this.name}
 
 ### Usage:
-${levels}${this.id}(${this.args.buildMarkdown()})
+
+\u200B\xA0\xA0\xA0\xA0\xA0\xA0${levels}${this.id}(${this.args.buildMarkdown()})
 
 ### Description
-${this.description}
+
+${this.description.replace(/^/, '\u200B\xA0\xA0\xA0\xA0\xA0\xA0\xA0\xA0')}
+
 ${deprecated}
+
 ---------------------
+
+### Returns
+
+${this.returns.buildReturns()}
+
+---------------------
+
 ${this.generateNotes()}
 
 ${this.generateWarnings()}
 
 ${this.generateDisclaimers()}
 
-[Go up](../index.md)`
+### [Go to upper level](../index.md)`
 	}
 }
 

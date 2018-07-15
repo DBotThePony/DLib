@@ -14,7 +14,9 @@
 // limitations under the License.
 
 class LuaArgument {
-	constructor(public type: string, public name: string) {
+	num: number | null = null
+
+	constructor(public type: string, public name?: string, public description?: string) {
 
 	}
 
@@ -26,6 +28,11 @@ class LuaArgument {
 			|| this.type == 'function'
 			|| this.type == 'userdata'
 			|| this.type == 'thread'
+	}
+
+	setNumber(num: number) {
+		this.num = num
+		return this
 	}
 
 	isDlibBased = false
@@ -62,6 +69,18 @@ class LuaArgument {
 
 	buildMarkdown() {
 		return `[${this.type}](${this.getLink()}) ${this.name}`
+	}
+
+	buildReturns() {
+		const description = this.description || '*No description of variable avaliable*'
+
+		if (this.name) {
+			return `${this.num || ''} [${this.type}](${this.getLink()}): ${this.name}\x20\x20
+${description.replace(/^/, '\u200B\xA0\xA0\xA0\xA0\xA0\xA0\xA0\xA0')}`
+		} else {
+			return `${this.num || ''} [${this.type}](${this.getLink()})\x20\x20
+${description.replace(/^/, '\u200B\xA0\xA0\xA0\xA0\xA0\xA0\xA0\xA0')}`
+		}
 	}
 }
 
@@ -101,6 +120,20 @@ class LuaArguments {
 		}
 
 		return list.join(', ')
+	}
+
+	buildReturns() {
+		if (this.args.length == 0) {
+			return `*void*`
+		}
+
+		const list = []
+
+		for (const arg of this.args) {
+			list.push(arg.buildReturns())
+		}
+
+		return list.join('\n\n')
 	}
 }
 

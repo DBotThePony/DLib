@@ -18,13 +18,22 @@ interface CommentaryArgument {
 	name: string
 }
 
+interface CommentaryReturn {
+	type: string
+	name?: string
+	description?: string
+}
+
 class AnnotationCommentary {
 	isFunction = false
 	isEnum = false
 	isType = false
 
 	path: string | null = null
+	aliases: string[] = []
 	arguments: string | null = null
+	returns: string[] = []
+	returnsParsed: CommentaryReturn[] = []
 	descriptionLines: string[] = []
 	description = 'No description prodivded'
 
@@ -35,18 +44,29 @@ class AnnotationCommentary {
 
 	constructor(public source: string, public text: string[]) {
 		let description = false
+		let returns = false
 
 		for (const line of text) {
 			const trim = line.trim()
 			const lower = trim.toLowerCase()
 
-			if (lower == '@enddescription') {
+			if (lower == '@enddescription' && description) {
 				description = false
+				continue
+			}
+
+			if (lower == '@endreturns' && returns) {
+				returns = false
 				continue
 			}
 
 			if (description) {
 				this.descriptionLines.push(trim)
+				continue
+			}
+
+			if (returns) {
+				this.returns.push(trim)
 				continue
 			}
 
@@ -64,6 +84,12 @@ class AnnotationCommentary {
 				continue
 			}
 
+			if (lower.startsWith('@alias')) {
+				this.isFunction = true
+				this.aliases.push(trim.substr(8).trim())
+				continue
+			}
+
 			if (lower.startsWith('@arguments')) {
 				this.isFunction = true
 				this.arguments = trim.substr(11).trim()
@@ -72,6 +98,14 @@ class AnnotationCommentary {
 
 			if (lower == '@description') {
 				description = true
+				continue
+			}
+
+			if (lower == '@returns') {
+				returns = true
+				continue
+			} else if (lower.startsWith('@returns')) {
+				this.returns.push(trim.substr(9).trim())
 				continue
 			}
 
@@ -95,6 +129,34 @@ class AnnotationCommentary {
 				} else {
 					console.error('Malformed argument string: ' + this.arguments)
 					console.warn('...in ' + source)
+				}
+			}
+		}
+
+		{
+			for (const line of this.returns) {
+				const trim = line.trim()
+				const divide = trim.split(':')
+
+				if (divide[0] && divide[1]) {
+					const name = divide[0].match(/\[([^]])+$\]/)
+
+					if (name) {
+						this.returnsParsed.push({
+							'type': divide[0],
+							'description': divide[1],
+							'name': name[1]
+						})
+					} else {
+						this.returnsParsed.push({
+							'type': divide[0],
+							'description': divide[1]
+						})
+					}
+				} else {
+					this.returnsParsed.push({
+						type: divide[0]
+					})
 				}
 			}
 		}
