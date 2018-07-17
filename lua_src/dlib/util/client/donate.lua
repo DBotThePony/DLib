@@ -51,7 +51,7 @@ local function makeWindow()
 	if #DLib.RegisteredAddons < 4 then
 		modlist = table.concat(DLib.RegisteredAddons, ', ')
 	else
-		modlist = table.concat(table.gcopyRange(DLib.RegisteredAddons, 1, 4), ', ') .. DLib.i18n.localize('gui.dlib.donate.button.learnabout_url', #DLib.RegisteredAddons - 4)
+		modlist = table.concat(table.gcopyRange(DLib.RegisteredAddons, 1, 4), ', ') .. DLib.i18n.localize('gui.dlib.donate.more', #DLib.RegisteredAddons - 4)
 	end
 
 	if table.qhasValue(yandexmoney, system.GetCountry():lower()) then
