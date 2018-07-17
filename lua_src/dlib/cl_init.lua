@@ -36,6 +36,7 @@ DLib.Loader.loadPureCS('dlib/vgui')
 DLib.register('util/client/scrsize.lua')
 DLib.register('util/client/chat.lua')
 DLib.register('util/client/buystuff.lua')
+DLib.register('util/client/donate.lua')
 
 DLib.Loader.loadPureCSTop('dlib/modules/client')
 
