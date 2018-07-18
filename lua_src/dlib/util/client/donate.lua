@@ -18,7 +18,7 @@
 local RealTimeL = RealTimeL
 local table = table
 local timer = timer
-local lastMove = 0
+local lastMove = RealTime()
 local cPnl
 local gui = gui
 local Derma_Query = Derma_Query
@@ -120,6 +120,18 @@ local function Think()
 	end
 end
 
+local frames = 0
+
+local function Think2()
+	frames = frames + 1
+
+	if frames > 200 then
+		hook.Remove('Think', 'DLib.DonationThink2')
+	end
+
+	lastMove = RealTimeL()
+end
+
 local function Heartbeat()
 	lastMove = RealTimeL()
 end
@@ -128,3 +140,4 @@ concommand.Add('dlib_donate', makeWindow)
 
 timer.Create('DLib.DonationThink', 60, 0, Think)
 hook.Add('PlayerBindPress', 'DLib.DonationThink', Heartbeat, -4)
+hook.Add('Think', 'DLib.DonationThink2', Think2, -4)
