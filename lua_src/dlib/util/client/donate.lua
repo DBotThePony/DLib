@@ -91,7 +91,7 @@ local function makeWindow()
 			'gui.dlib.donate.top',
 			'gui.dlib.donate.button.yes',
 			function()
-				gui.OpenURL('https://www.paypal.me/DBotThePony')
+				gui.OpenURL('https://www.paypal.me/DBotThePony/5' .. (system.GetCountry():lower() == 'us' and 'USD' or 'EUR'))
 			end,
 			'gui.dlib.donate.button.learnabout',
 			function()
