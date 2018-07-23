@@ -64,6 +64,10 @@ local function tickPlayers()
 	end
 end
 
+function i18n.RegisterProxy(...)
+	-- do nothing
+end
+
 timer.Create('DLib.TickPlayerNames', 0.5, 0, tickPlayers)
 hook.Add('PlayerSpawn', 'DLib.TickPlayerNames', tickPlayers)
 hook.Add('DoPlayerDeath', 'DLib.TickPlayerNames', tickPlayers)
