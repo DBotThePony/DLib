@@ -96,8 +96,12 @@ function colorMeta:ToHex()
 	return string.format('0x%02x%02x%02x', self.r, self.g, self.b)
 end
 
-function colorMeta:ToNumberLittle()
-	return self.r + self.g * 256 + self.b * 256 * 256
+function colorMeta:ToNumberLittle(writeAlpha)
+	if writeAlpha then
+		return self.r:band(255) + self.g:band(255):lshift(8) + self.b:band(255):lshift(16) + self.a:band(255):lshift(24)
+	else
+		return self.r:band(255) + self.g:band(255):lshift(8) + self.b:band(255):lshift(16)
+	end
 end
 
 function colorMeta:ToNumber(writeAlpha)
@@ -117,6 +121,26 @@ colorMeta.ToNumberLE = colorMeta.ToNumberLittle
 function _G.ColorFromNumberLittle(numIn, hasAlpha)
 	assert(type(numIn) == 'number', 'Must be a number!')
 	if hasAlpha then
+		local a, b, g, r =
+			numIn:rshift(24):band(255),
+			numIn:rshift(16):band(255),
+			numIn:rshift(8):band(255),
+			numIn:band(255)
+
+		return Color(r, g, b, a)
+	end
+
+	local b, g, r =
+		numIn:rshift(16):band(255),
+		numIn:rshift(8):band(255),
+		numIn:band(255)
+
+	return Color(r, g, b)
+end
+
+function _G.ColorFromNumber(numIn, hasAlpha)
+	assert(type(numIn) == 'number', 'Must be a number!')
+	if hasAlpha then
 		local r, g, b, a =
 			numIn:rshift(24):band(255),
 			numIn:rshift(16):band(255),
@@ -132,18 +156,6 @@ function _G.ColorFromNumberLittle(numIn, hasAlpha)
 		numIn:band(255)
 
 	return Color(r, g, b)
-end
-
-function _G.ColorFromNumber(numIn)
-	assert(type(numIn) == 'number', 'Must be a number!')
-	local red = numIn % 256
-	numIn = (numIn - numIn % 256) / 256
-	local green = numIn % 256
-	numIn = (numIn - numIn % 256) / 256
-	local blue = numIn % 256
-	numIn = (numIn - numIn % 256) / 256
-
-	return Color(blue, green, red)
 end
 
 local ColorFromNumber = ColorFromNumber
