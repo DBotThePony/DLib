@@ -278,6 +278,7 @@ if CLIENT then
 	end
 
 	-- cache and speedup lookups a bit
+	local use_type = CreateConVar('dlib_screenscale', '1', {FCVAR_ARCHIVE}, 'Use screen height as screen scale parameter instead of screen width')
 	local ScrWL = ScrWL
 	local ScrHL = ScrHL
 
@@ -285,9 +286,31 @@ if CLIENT then
 		return ScrWL() / 640 * modify
 	end
 
-	function _G.ScreenSize(modify)
-		return ScrHL() / 480 * modify
+	if use_type:GetBool() then
+		function _G.ScreenSize(modify)
+			return ScrHL() / 480 * modify
+		end
+	else
+		function _G.ScreenSize(modify)
+			return ScrWL() / 640 * modify
+		end
 	end
+
+	local function dlib_screenscale_chages()
+		if use_type:GetBool() then
+			function _G.ScreenSize(modify)
+				return ScrHL() / 480 * modify
+			end
+		else
+			function _G.ScreenSize(modify)
+				return ScrWL() / 640 * modify
+			end
+		end
+
+		hook.Run('DLib.ScreenSettingsUpdate', ScrWL(), ScrHL())
+	end
+
+	cvars.AddChangeCallback('dlib_screenscale', dlib_screenscale_chages, 'DLib')
 else
 	entMeta.GetNetworkName = entMeta.GetName
 	entMeta.SetNetworkName = entMeta.SetName
