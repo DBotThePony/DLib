@@ -307,7 +307,7 @@ if CLIENT then
 			end
 		end
 
-		hook.Run('DLib.ScreenSettingsUpdate', ScrWL(), ScrHL())
+		DLib.TriggerScreenSizeUpdate(ScrWL(), ScrHL(), ScrWL(), ScrHL())
 	end
 
 	cvars.AddChangeCallback('dlib_screenscale', dlib_screenscale_chages, 'DLib')
