@@ -172,9 +172,9 @@ end
 
 function fnlib:Compose(funcList, ...)
 	if type(funcList) == 'table' then
-		return Compose(unpack(funcList))
+		return Compose(self, unpack(funcList))
 	else
-		return Compose(funcList, ...)
+		return Compose(self, funcList, ...)
 	end
 end
 
