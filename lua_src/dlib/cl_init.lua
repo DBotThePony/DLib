@@ -57,6 +57,8 @@ MsgC('[DLib] Loading translations for i18n ... ')
 DLib.i18n.refreshFileList()
 DLib.i18n.loadFileList()
 
+hook.Run('DLib.TranslationsReloaded')
+
 MsgC(string.format('%.2f ms\n', (SysTime() - timeStart) * 1000))
 
 MsgC('---------------------------------------------------------------\n')
