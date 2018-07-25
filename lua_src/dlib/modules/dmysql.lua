@@ -296,6 +296,10 @@ function obj:Connect()
 	end
 end
 
+function obj:AI()
+	return self.IsMySQL and 'AUTO_INCREMENT' or 'AUTOINCREMENT'
+end
+
 function obj:Disconnect()
 	DMySQL3.Message(self.config .. ': disconnected from database')
 	if not self.IsMySQL then return end
