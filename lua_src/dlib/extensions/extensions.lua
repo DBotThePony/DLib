@@ -243,10 +243,41 @@ end
 timer.Create('DLib.RebuildVehicleListNames', 10, 0, rebuildVehicleList)
 rebuildVehicleList()
 
+local CLIENT = CLIENT
+local hook = hook
+local net = net
+
+if SERVER then
+	net.pool('dlib.limithitfix')
+end
+
+local plyMeta = FindMetaTable('Player')
+
+function plyMeta:LimitHit(limit)
+	-- we call CheckLimit() on client just for prediction
+	-- so when we actually hit limit - it can produce two messages because client will also try to
+	-- display this message by calling hook LimitHit. So, let's call that only once.
+
+	-- if you want to call this function clientside despite this text and warning
+	-- you can run hooks on LimitHit manually by doing so:
+	-- hook.Run('LimitHit', 'mylimit')
+	-- you shouldn't really call this function directly clientside
+	if CLIENT then return end
+
+	net.Start('dlib.limithitfix')
+	net.WriteString(limit)
+	net.Send(self)
+end
+
+if CLIENT then
+	net.receive('dlib.limithitfix', function()
+		hook.Run('LimitHit', net.ReadString())
+	end)
+end
+
 if CLIENT then
 	local surface = surface
 	surface._DLibPlaySound = surface._DLibPlaySound or surface.PlaySound
-	local hook = hook
 
 	function surface.PlaySound(path)
 		assert(type(path) == 'string', 'surface.PlaySound - string expected, got ' .. type(path))
