@@ -28,8 +28,8 @@ function lang.update()
 	end
 
 	if LastLanguage ~= lang.CURRENT_LANG then
-		hook.Call('DLib.LanguageChanged', LastLanguage, lang.CURRENT_LANG)
-		hook.Call('DLib.LanguageChanged2', LastLanguage, lang.CURRENT_LANG)
+		hook.Run('DLib.LanguageChanged', LastLanguage, lang.CURRENT_LANG)
+		hook.Run('DLib.LanguageChanged2', LastLanguage, lang.CURRENT_LANG)
 	end
 
 	LastLanguage = lang.CURRENT_LANG
