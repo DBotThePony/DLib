@@ -317,23 +317,29 @@ if CLIENT then
 		return ScrWL() / 640 * modify
 	end
 
+	local screenfunc
+
 	if use_type:GetBool() then
-		function _G.ScreenSize(modify)
+		function screenfunc(modify)
 			return ScrHL() / 480 * modify
 		end
 	else
-		function _G.ScreenSize(modify)
+		function screenfunc(modify)
 			return ScrWL() / 640 * modify
 		end
 	end
 
+	function _G.ScreenSize(modify)
+		return screenfunc(modify)
+	end
+
 	local function dlib_screenscale_chages()
 		if use_type:GetBool() then
-			function _G.ScreenSize(modify)
+			function screenfunc(modify)
 				return ScrHL() / 480 * modify
 			end
 		else
-			function _G.ScreenSize(modify)
+			function screenfunc(modify)
 				return ScrWL() / 640 * modify
 			end
 		end
