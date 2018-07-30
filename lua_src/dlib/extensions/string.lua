@@ -32,6 +32,8 @@ end
 function string.tformat(time)
 	if time > 0xFFFFFFFFF then
 		return 'Way too long'
+	elseif time <= 1 then
+		return 'Right now'
 	end
 
 	local str = ''
