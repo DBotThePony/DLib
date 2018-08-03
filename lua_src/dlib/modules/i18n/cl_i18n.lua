@@ -176,5 +176,20 @@ function i18n.AddChat(...)
 	return chat.AddText(unpack(rebuild))
 end
 
+i18n.WatchLegacyPhrases = i18n.WatchLegacyPhrases or {}
+
+function i18n.RegisterProxy(legacyName, newName)
+	newName = newName or legacyName
+
+	i18n.WatchLegacyPhrases[legacyName] = newName
+	language.Add(legacyName, i18n.localize(newName))
+end
+
+hook.Add('DLib.LanguageChanged', 'DLib.i18n.WatchLegacyPhrases', function(...)
+	for legacyName, newName in pairs(i18n.WatchLegacyPhrases) do
+		language.Add(legacyName, i18n.localize(newName))
+	end
+end)
+
 hook.Add('VGUIPanelCreated', 'DLib.I18n', vguiPanelCreated)
 chat.AddTextLocalized = i18n.AddChat

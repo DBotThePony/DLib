@@ -296,6 +296,10 @@ function obj:Connect()
 	end
 end
 
+function obj:AI()
+	return self.IsMySQL and 'AUTO_INCREMENT' or 'AUTOINCREMENT'
+end
+
 function obj:Disconnect()
 	DMySQL3.Message(self.config .. ': disconnected from database')
 	if not self.IsMySQL then return end
@@ -351,9 +355,9 @@ function obj:Query(str, success, failed)
 		local data = sql.Query(str)
 
 		if data == false then
-			xpcall(failed, debug.traceback, sql.LastError())
+			xpcall(failed, DLib.Message:Compose(debug.traceback), sql.LastError())
 		else
-			xpcall(success, debug.traceback, data or {})
+			xpcall(success, DLib.Message:Compose(debug.traceback), data or {})
 		end
 
 		return
@@ -373,9 +377,9 @@ function obj:Query(str, success, failed)
 			local data = data[1]
 
 			if not data.status then
-				xpcall(failed, debug.traceback, data.error)
+				xpcall(failed, DLib.Message:Compose(debug.traceback), data.error)
 			else
-				xpcall(success, debug.traceback, data.data or {})
+				xpcall(success, DLib.Message:Compose(debug.traceback), data.data or {})
 			end
 		end)
 
@@ -385,7 +389,7 @@ function obj:Query(str, success, failed)
 	local obj = self.LINK:query(str)
 
 	function obj.onSuccess(q, data)
-		xpcall(success, debug.traceback, data or {})
+		xpcall(success, DLib.Message:Compose(debug.traceback), data or {})
 	end
 
 	function obj.onError(q, err)
@@ -395,7 +399,7 @@ function obj:Query(str, success, failed)
 			return
 		end
 
-		xpcall(failed, debug.traceback, err)
+		xpcall(failed, DLib.Message:Compose(debug.traceback), err)
 	end
 
 	obj:start()
@@ -435,16 +439,16 @@ function obj:Commit(finish)
 	local success, err
 
 	function success(data)
-		xpcall(TRX[current][2], debug.traceback, data)
+		xpcall(TRX[current][2], DLib.Message:Compose(debug.traceback), data)
 		current = current + 1
-		if current > total then xpcall(finish, debug.traceback) return end
+		if current > total then xpcall(finish, DLib.Message:Compose(debug.traceback)) return end
 		self:Query(TRX[current][1], success, err)
 	end
 
 	function err(data)
-		xpcall(TRX[current][3], debug.traceback, data)
+		xpcall(TRX[current][3], DLib.Message:Compose(debug.traceback), data)
 		current = current + 1
-		if current > total then xpcall(finish, debug.traceback) return end
+		if current > total then xpcall(finish, DLib.Message:Compose(debug.traceback)) return end
 		self:Query(TRX[current][1], success, err)
 	end
 

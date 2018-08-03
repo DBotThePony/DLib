@@ -30,7 +30,19 @@ function gstring.formatname2(self)
 end
 
 function string.tformat(time)
+	if time > 0xFFFFFFFFF then
+		return 'Way too long'
+	elseif time <= 1 then
+		return 'Right now'
+	end
+
 	local str = ''
+
+	local ages = (time - time % 0xBBF81E00) / 0xBBF81E00
+	time = time - ages * 0xBBF81E00
+
+	local years = (time - time % 0x01E13380) / 0x01E13380
+	time = time - years * 0x01E13380
 
 	local weeks = (time - time % 604800) / 604800
 	time = time - weeks * 604800
@@ -64,6 +76,14 @@ function string.tformat(time)
 
 	if weeks ~= 0 then
 		str = weeks .. ' weeks ' .. str
+	end
+
+	if years ~= 0 then
+		str = years .. ' years ' .. str
+	end
+
+	if ages ~= 0 then
+		str = ages .. ' ages ' .. str
 	end
 
 	return str

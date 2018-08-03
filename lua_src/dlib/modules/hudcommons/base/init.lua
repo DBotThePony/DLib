@@ -75,6 +75,7 @@ function meta:__construct(hudID, hudName)
 	self:AddHook('DrawOverlay')
 	self:AddHook('DrawWeaponSelection')
 	self:AddHook('ScreenSizeChanged')
+	self.PreInitFrameThinks = 0
 	self:AddHookCustomPersistent('PopulateToolMenu', 'PopulateToolMenuDefault')
 
 	self:__InitVaribles()
@@ -453,6 +454,15 @@ function meta:Think()
 	if not IsValid(lPly) then return end
 	if self.LastThink == RealTimeL() then return end
 	self:ThinkLogic(lPly)
+
+	if self.PreInitFrameThinks then
+		self.PreInitFrameThinks = self.PreInitFrameThinks + 1
+
+		if self.PreInitFrameThinks > 200 then
+			self.PreInitFrameThinks = nil
+			self:ScreenSizeChanged()
+		end
+	end
 
 	local think = self.think
 	if #think ~= 0 then

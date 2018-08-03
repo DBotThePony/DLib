@@ -183,7 +183,7 @@ return function(tableTarget, moduleName, moduleColor)
 		if CLIENT then return end
 
 		if type(ply) == 'table' or type(ply) == 'Player' then
-			net.Start(nwname)
+			net.Start(nwnameL)
 			net.WriteArray({...})
 			net.Send(ply)
 		else

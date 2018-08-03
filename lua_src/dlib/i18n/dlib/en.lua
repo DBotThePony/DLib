@@ -15,6 +15,8 @@
 
 gui.misc.apply = 'Apply'
 gui.misc.cancel = 'Cancel'
+gui.misc.yes = 'Yes'
+gui.misc.no = 'No'
 
 info.dlib.tformat.seconds = 'seconds'
 info.dlib.tformat.minutes = 'minutes'
@@ -38,3 +40,24 @@ gui.dlib.friends.invalid.desc = '%q doesnt look like valid steamid!'
 gui.dlib.friends.settings.steam = 'Treat steam friends as DLib friends'
 gui.dlib.friends.settings.your = 'Your friends ->'
 gui.dlib.friends.settings.server = 'Server players ->'
+
+gui.dlib.donate.top = 'DLib: Make a donation?'
+gui.dlib.donate.button.yes = 'Make a donation!'
+gui.dlib.donate.button.paypal = 'Make a donation, but on PayPal!'
+gui.dlib.donate.button.no = 'Ask me later'
+gui.dlib.donate.button.never = 'Never ask again'
+gui.dlib.donate.button.learnabout = 'Read about "Donationware"...'
+gui.dlib.donate.button.learnabout_url = 'https://en.wikipedia.org/wiki/Donationware'
+
+gui.dlib.donate.text = [[Hello there! I see you were AFK for a long time (if you slept all these time, good morning... or whatever),
+but so, if you are awake, i want to ask you: Can you please make a dontation?
+DLib and all official addons on top of it are Donationware!
+Just a bit of donation! Even if you can only give 1$ or 1€, thats great if you would ask! Just imagine:
+If everyone who is subscribed to my addons will donate money for a cup of tea it will be enough to cover
+all my parent's credits. It could also help a lot to my mother who spend entire days on her job.
+Currently, the only thing i do is developing these free addons just for you!
+Just for community! For free and it is even open source with easy way of contribution! If you could just
+make a small donation you will support next addons:
+DLib%s]]
+
+gui.dlib.donate.more = ' and %i more addons!..'

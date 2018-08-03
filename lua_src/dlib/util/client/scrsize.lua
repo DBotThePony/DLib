@@ -28,12 +28,16 @@ local function check(w, h)
 		hook.Run('ScreenHeightChanges', lastH, h)
 	end
 
-	hook.Run('ScreenResolutionChanged', lastW, lastH, w, h)
-	hook.Run('ScreenSizeChanged', lastW, lastH, w, h)
-	hook.Run('OnScreenSizeChanged', lastW, lastH, w, h)
-	hook.Run('OnScreenResolutionUpdated', lastW, lastH, w, h)
+	DLib.TriggerScreenSizeUpdate(lastW, lastH, w, h)
 
 	lastW, lastH = w, h
+end
+
+function DLib.TriggerScreenSizeUpdate(...)
+	hook.Run('ScreenResolutionChanged', ...)
+	hook.Run('ScreenSizeChanged', ...)
+	hook.Run('OnScreenSizeChanged', ...)
+	hook.Run('OnScreenResolutionUpdated', ...)
 end
 
 local dlib_guiding_lines = CreateConVar('dlib_guiding_lines', '0', {}, 'Draw guiding lines on screen')

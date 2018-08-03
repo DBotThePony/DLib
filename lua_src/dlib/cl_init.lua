@@ -36,6 +36,7 @@ DLib.Loader.loadPureCS('dlib/vgui')
 DLib.register('util/client/scrsize.lua')
 DLib.register('util/client/chat.lua')
 DLib.register('util/client/buystuff.lua')
+DLib.register('util/client/donate.lua')
 
 DLib.Loader.loadPureCSTop('dlib/modules/client')
 
@@ -55,6 +56,8 @@ MsgC('[DLib] Loading translations for i18n ... ')
 
 DLib.i18n.refreshFileList()
 DLib.i18n.loadFileList()
+
+hook.Run('DLib.TranslationsReloaded')
 
 MsgC(string.format('%.2f ms\n', (SysTime() - timeStart) * 1000))
 

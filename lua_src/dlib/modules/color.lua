@@ -35,6 +35,8 @@ local function Color(r, g, b, a)
 		b = r.b
 		a = r.a
 		r = r.r
+	elseif type(r) == 'number' and r > 255 and not g and not b and not a then
+		return ColorBE(r)
 	end
 
 	r = math.Clamp(math.floor(tonumber(r) or 255), 0, 255)
@@ -94,51 +96,86 @@ function colorMeta:ToHex()
 	return string.format('0x%02x%02x%02x', self.r, self.g, self.b)
 end
 
-function colorMeta:ToNumberLittle()
-	return self.r + self.g * 256 + self.b * 256 * 256
+function colorMeta:ToNumberLittle(writeAlpha)
+	if writeAlpha then
+		return self.r:band(255) + self.g:band(255):lshift(8) + self.b:band(255):lshift(16) + self.a:band(255):lshift(24)
+	else
+		return self.r:band(255) + self.g:band(255):lshift(8) + self.b:band(255):lshift(16)
+	end
 end
 
-function colorMeta:ToNumber()
-	return self.b + self.g * 256 + self.r * 256 * 256
+function colorMeta:ToNumber(writeAlpha)
+	if writeAlpha then
+		return self.r:band(255):lshift(24) + self.g:band(255):lshift(16) + self.b:band(255):lshift(8) + self.a:band(255)
+	else
+		return self.r:band(255):lshift(16) + self.g:band(255):lshift(8) + self.b:band(255)
+	end
 end
 
 colorMeta.ToNumberBig = colorMeta.ToNumber
 colorMeta.ToNumberBigEndian = colorMeta.ToNumber
+colorMeta.ToNumberBE = colorMeta.ToNumber
 colorMeta.ToNumberLittlEndian = colorMeta.ToNumberLittle
+colorMeta.ToNumberLE = colorMeta.ToNumberLittle
 
-function _G.ColorFromNumberLittle(numIn)
+function _G.ColorFromNumberLittle(numIn, hasAlpha)
 	assert(type(numIn) == 'number', 'Must be a number!')
-	local red = numIn % 256
-	numIn = (numIn - numIn % 256) / 256
-	local green = numIn % 256
-	numIn = (numIn - numIn % 256) / 256
-	local blue = numIn % 256
-	numIn = (numIn - numIn % 256) / 256
+	if hasAlpha then
+		local a, b, g, r =
+			numIn:rshift(24):band(255),
+			numIn:rshift(16):band(255),
+			numIn:rshift(8):band(255),
+			numIn:band(255)
 
-	return Color(red, green, blue)
+		return Color(r, g, b, a)
+	end
+
+	local b, g, r =
+		numIn:rshift(16):band(255),
+		numIn:rshift(8):band(255),
+		numIn:band(255)
+
+	return Color(r, g, b)
 end
 
-function _G.ColorFromNumber(numIn)
+function _G.ColorFromNumber(numIn, hasAlpha)
 	assert(type(numIn) == 'number', 'Must be a number!')
-	local red = numIn % 256
-	numIn = (numIn - numIn % 256) / 256
-	local green = numIn % 256
-	numIn = (numIn - numIn % 256) / 256
-	local blue = numIn % 256
-	numIn = (numIn - numIn % 256) / 256
+	if hasAlpha then
+		local r, g, b, a =
+			numIn:rshift(24):band(255),
+			numIn:rshift(16):band(255),
+			numIn:rshift(8):band(255),
+			numIn:band(255)
 
-	return Color(blue, green, red)
+		return Color(r, g, b, a)
+	end
+
+	local r, g, b =
+		numIn:rshift(16):band(255),
+		numIn:rshift(8):band(255),
+		numIn:band(255)
+
+	return Color(r, g, b)
 end
 
 local ColorFromNumber = ColorFromNumber
 
-function _G.ColorFromHex(hex)
-	return ColorFromNumber(tonumber(hex, 16))
+function _G.ColorFromHex(hex, hasAlpha)
+	return ColorFromNumber(tonumber(hex, 16), hasAlpha)
 end
 
+_G.ColorHex = _G.ColorFromHex
+_G.ColorHEX = _G.ColorFromHex
+_G.ColorFromHEX = _G.ColorFromHex
+_G.Color16 = _G.ColorFromHex
+_G.ColorFrom16 = _G.ColorFromHex
 _G.ColorFromNumberLittleEndian = _G.ColorFromNumberLittle
+_G.ColorFromNumberLE = _G.ColorFromNumberLittle
+_G.ColorLE = _G.ColorFromNumberLittle
 _G.ColorFromNumberBig = _G.ColorFromNumber
 _G.ColorFromNumberBigEndian = _G.ColorFromNumber
+_G.ColorFromNumberBE = _G.ColorFromNumber
+_G.ColorBE = _G.ColorFromNumber
 
 function colorMeta:__eq(target)
 	if not IsColor(target) then
