@@ -177,6 +177,34 @@ _G.ColorFromNumberBigEndian = _G.ColorFromNumber
 _G.ColorFromNumberBE = _G.ColorFromNumber
 _G.ColorBE = _G.ColorFromNumber
 
+_G.HSVToColorC = HSVToColorC or HSVToColor
+
+function _G.HSVToColor(hue, saturation, value)
+	assert(type(hue) == 'number' and hue >= 0 and hue <= 360, 'Invalid hue value. It must be a number and be in 0-360 range')
+	assert(type(saturation) == 'number' and saturation >= 0 and saturation <= 1, 'Invalid saturation value. It must be a number and be in 0-1 (float) range')
+	assert(type(value) == 'number' and value >= 0 and value <= 1, 'Invalid color value (brightness). It must be a number and be in 0-1 (float) range')
+
+	local huei = (hue / 60):floor() % 6
+	local valueMin = (1 - saturation) * value
+	local delta = (value - valueMin) * (hue % 60) / 60
+	local valueInc = valueMin + delta
+	local valueDec = value - delta
+
+	if huei == 0 then
+		return Color(value * 255, valueInc * 255, valueMin * 255)
+	elseif huei == 1 then
+		return Color(valueDec * 255, value * 255, valueMin * 255)
+	elseif huei == 2 then
+		return Color(valueMin * 255, value * 255, valueInc * 255)
+	elseif huei == 3 then
+		return Color(valueMin * 255, valueDec * 255, value * 255)
+	elseif huei == 4 then
+		return Color(valueInc * 255, valueMin * 255, value * 255)
+	end
+
+	return Color(value * 255, valueMin * 255, valueDec * 255)
+end
+
 function colorMeta:__eq(target)
 	if not IsColor(target) then
 		return false
