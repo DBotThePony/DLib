@@ -61,6 +61,12 @@ function meta:__newindex(key, value)
 end
 
 local function LVector(x, y, z)
+	if type(x) == 'Vector' or type(x) == 'LVector' then
+		y = x.y
+		z = x.z
+		x = x.x
+	end
+
 	if type(x) ~= 'nil' and type(x) ~= 'number' then
 		error('Invalid X variable. typeof ' .. type(x))
 	end
@@ -90,19 +96,23 @@ function meta:ToNative()
 end
 
 function meta:ToLua()
-	return LVector(self.x, self.y, self.z)
+	return LVector(self)
 end
 
 function meta:Copy()
-	return LVector(self.x, self.y, self.z)
+	return LVector(self)
 end
 
 function meta:ToVector()
-	return LVector(self.x, self.y, self.z)
+	return LVector(self)
 end
 
 function meta:__tostring()
 	return string.format('LuaVector [%.6f %.6f %.6f]', self.x, self.y, self.z)
+end
+
+function meta:__call()
+	return LVector(self)
 end
 
 -- Vector maths

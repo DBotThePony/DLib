@@ -253,6 +253,7 @@ math.tostring = meta.tostring
 
 local entMeta = FindMetaTable('Entity')
 local Vector, Angle = Vector, Angle
+local LVector = LVector
 
 function entMeta:ApplyBoneManipulations()
 	self.__dlib_BoneManipCache = self.__dlib_BoneManipCache or {}
@@ -265,12 +266,11 @@ function entMeta:ApplyBoneManipulations()
 		end
 
 		if __dlib_BoneManipCache.position[boneid + 1] then
-			--print(boneid, __dlib_BoneManipCache.position[boneid + 1])
-			self:ManipulateBonePosition(boneid, __dlib_BoneManipCache.position[boneid + 1])
+			self:ManipulateBonePosition(boneid, __dlib_BoneManipCache.position[boneid + 1]:ToNative())
 		end
 
 		if __dlib_BoneManipCache.scale[boneid + 1] then
-			self:ManipulateBoneScale(boneid, __dlib_BoneManipCache.scale[boneid + 1])
+			self:ManipulateBoneScale(boneid, __dlib_BoneManipCache.scale[boneid + 1]:ToNative())
 		end
 
 		if __dlib_BoneManipCache.jiggle[boneid + 1] then
@@ -292,8 +292,8 @@ function entMeta:ResetBoneManipCache()
 
 	for boneid = 0, self:GetBoneCount() - 1 do
 		__dlib_BoneManipCache.angles[boneid + 1] = self:GetManipulateBoneAngles(boneid)
-		__dlib_BoneManipCache.position[boneid + 1] = self:GetManipulateBonePosition(boneid)
-		__dlib_BoneManipCache.scale[boneid + 1] = self:GetManipulateBoneScale(boneid)
+		__dlib_BoneManipCache.position[boneid + 1] = LVector(self:GetManipulateBonePosition(boneid))
+		__dlib_BoneManipCache.scale[boneid + 1] = LVector(self:GetManipulateBoneScale(boneid))
 		__dlib_BoneManipCache.jiggle[boneid + 1] = self:GetManipulateBoneJiggle(boneid)
 	end
 
@@ -320,14 +320,14 @@ end
 function entMeta:GetManipulateBonePosition2(boneid)
 	assert(type(boneid) == 'number' and boneid >= 0, 'invalid boneid')
 	local __dlib_BoneManipCache = assert(self.__dlib_BoneManipCache, 'second tables must be initialized first')
-	__dlib_BoneManipCache.scale[boneid + 1] = __dlib_BoneManipCache.scale[boneid + 1] or Vector(0, 0, 0)
+	__dlib_BoneManipCache.scale[boneid + 1] = __dlib_BoneManipCache.scale[boneid + 1] or LVector(0, 0, 0)
 	return __dlib_BoneManipCache.scale[boneid + 1]
 end
 
 function entMeta:GetManipulateBoneScale2(boneid)
 	assert(type(boneid) == 'number' and boneid >= 0, 'invalid boneid')
 	local __dlib_BoneManipCache = assert(self.__dlib_BoneManipCache, 'second tables must be initialized first')
-	__dlib_BoneManipCache.scale[boneid + 1] = __dlib_BoneManipCache.scale[boneid + 1] or Vector(0, 0, 0)
+	__dlib_BoneManipCache.scale[boneid + 1] = __dlib_BoneManipCache.scale[boneid + 1] or LVector(0, 0, 0)
 	return __dlib_BoneManipCache.scale[boneid + 1]
 end
 
@@ -347,15 +347,15 @@ end
 
 function entMeta:ManipulateBonePosition2(boneid, value)
 	assert(type(boneid) == 'number' and boneid >= 0, 'invalid boneid')
-	assert(type(value) == 'Vector', 'invalid angles')
-	__dlib_BoneManipCache.position[boneid + 1] = Vector(value)
+	assert(type(value) == 'Vector' or type(value) == 'LVector', 'invalid position')
+	__dlib_BoneManipCache.position[boneid + 1] = LVector(value)
 	return self
 end
 
 function entMeta:ManipulateBoneScale2(boneid, value)
 	assert(type(boneid) == 'number' and boneid >= 0, 'invalid boneid')
-	assert(type(value) == 'Vector', 'invalid angles')
-	__dlib_BoneManipCache.scale[boneid + 1] = Vector(value)
+	assert(type(value) == 'Vector' or type(value) == 'LVector', 'invalid scale')
+	__dlib_BoneManipCache.scale[boneid + 1] = LVector(value)
 	return self
 end
 
@@ -390,7 +390,7 @@ function entMeta:GetManipulateBonePosition2Safe(boneid)
 
 	if __dlib_BoneManipCache and __dlib_BoneManipCache.working then
 		assert(type(boneid) == 'number' and boneid >= 0, 'invalid boneid')
-		__dlib_BoneManipCache.position[boneid + 1] = __dlib_BoneManipCache.position[boneid + 1] or Vector(0, 0, 0)
+		__dlib_BoneManipCache.position[boneid + 1] = __dlib_BoneManipCache.position[boneid + 1] or LVector(0, 0, 0)
 		return __dlib_BoneManipCache.position[boneid + 1]
 	else
 		return self:GetManipulateBonePosition(boneid)
@@ -402,7 +402,7 @@ function entMeta:GetManipulateBoneScale2Safe(boneid)
 
 	if __dlib_BoneManipCache and __dlib_BoneManipCache.working then
 		assert(type(boneid) == 'number' and boneid >= 0, 'invalid boneid')
-		__dlib_BoneManipCache.scale[boneid + 1] = __dlib_BoneManipCache.scale[boneid + 1] or Vector(1, 1, 1)
+		__dlib_BoneManipCache.scale[boneid + 1] = __dlib_BoneManipCache.scale[boneid + 1] or LVector(1, 1, 1)
 		return __dlib_BoneManipCache.scale[boneid + 1]
 	else
 		return self:GetManipulateBoneScale(boneid)
@@ -428,7 +428,7 @@ function entMeta:ManipulateBoneJiggle2Safe(boneid, value)
 
 	if __dlib_BoneManipCache and __dlib_BoneManipCache.working then
 		assert(type(boneid) == 'number' and boneid >= 0, 'invalid boneid')
-		assert(type(value) == 'number', 'invalid angles')
+		assert(type(value) == 'number', 'invalid jiggle amount')
 		__dlib_BoneManipCache.jiggle[boneid + 1] = value
 	else
 		self:ManipulateBoneJiggle(boneid, value)
@@ -442,10 +442,10 @@ function entMeta:ManipulateBonePosition2Safe(boneid, value)
 
 	if __dlib_BoneManipCache and __dlib_BoneManipCache.working then
 		assert(type(boneid) == 'number' and boneid >= 0, 'invalid boneid')
-		assert(type(value) == 'Vector', 'invalid angles')
-		__dlib_BoneManipCache.position[boneid + 1] = Vector(value)
+		assert(type(value) == 'Vector' or type(value) == 'LVector', 'invalid position')
+		__dlib_BoneManipCache.position[boneid + 1] = LVector(value)
 	else
-		self:ManipulateBonePosition(boneid, value)
+		self:ManipulateBonePosition(boneid, value:ToNative())
 	end
 
 	return self
@@ -456,10 +456,10 @@ function entMeta:ManipulateBoneScale2Safe(boneid, value)
 
 	if __dlib_BoneManipCache and __dlib_BoneManipCache.working then
 		assert(type(boneid) == 'number' and boneid >= 0, 'invalid boneid')
-		assert(type(value) == 'Vector', 'invalid angles')
-		__dlib_BoneManipCache.scale[boneid + 1] = Vector(value)
+		assert(type(value) == 'Vector' or type(value) == 'LVector', 'invalid scale')
+		__dlib_BoneManipCache.scale[boneid + 1] = LVector(value)
 	else
-		return self:ManipulateBoneScale(boneid, value)
+		return self:ManipulateBoneScale(boneid, value:ToNative())
 	end
 
 	return self

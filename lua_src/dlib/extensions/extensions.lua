@@ -71,6 +71,10 @@ function vectorMeta:__call()
 	return Vector(self)
 end
 
+function vectorMeta:ToNative()
+	return self
+end
+
 function vectorMeta:IsNormalized()
 	return self.x <= 1 and self.y <= 1 and self.z <= 1 and self.x >= -1 and self.y >= -1 and self.z >= -1
 end
