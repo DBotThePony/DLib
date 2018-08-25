@@ -172,7 +172,7 @@ if CLIENT then
 					local status = xpcall(panel.Init, function(err)
 						recursive = false
 						err2 = err
-						ProtectedCall(error:Wrap(err))
+						ProtectedCall(error:Wrap(err, 2))
 					end, panel, ...)
 
 					if not status then
