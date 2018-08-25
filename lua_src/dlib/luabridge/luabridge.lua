@@ -142,7 +142,10 @@ if CLIENT then
 				end
 
 				local prevrecursive = recursive
-				recursive = true
+				if not prevrecursive then
+					recursive = true
+				end
+
 				local panel = vgui.Create(meta.Base, parent, name or classname)
 
 				if not panel then
@@ -159,19 +162,33 @@ if CLIENT then
 				panel.BaseClass = PanelDefinitions[meta.Base]
 				panel.ClassName = class
 
-				recursive = false
-
-				hook.Run('VGUIPanelConstructed', panel, ...)
-
-				if panel.Init then
-					panel:Init(...)
+				if not prevrecursive then
+					recursive = false
+					hook.Run('VGUIPanelConstructed', panel, ...)
 				end
 
-				hook.Run('VGUIPanelInitialized', panel, ...)
+				if panel.Init then
+					local err2
+					local status = xpcall(panel.Init, function(err)
+						recursive = false
+						err2 = err
+						ProtectedCall(error:Wrap(err))
+					end, panel, ...)
+
+					if not status then
+						error('Rethrow: Look for error above - ' .. err2)
+					end
+				end
+
+				if not prevrecursive then
+					hook.Run('VGUIPanelInitialized', panel, ...)
+				end
 
 				panel:Prepare()
 
-				hook.Run('VGUIPanelCreated', panel, ...)
+				if not prevrecursive then
+					hook.Run('VGUIPanelCreated', panel, ...)
+				end
 
 				return panel
 			end
