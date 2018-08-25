@@ -90,20 +90,113 @@ if CLIENT then
 	timer.Create('DLib.DrawWeaponSelection', 10, 0, updateWeaponFix)
 	updateWeaponFix()
 
-	local vgui = vgui
-	vgui.DLib_Create = vgui.DLib_Create or vgui.Create
-	local ignore = 0
+	if not DLib._PanelDefinitions then
+		local patched = false
 
-	function vgui.Create(...)
-		if ignore == FrameNumberL() then return vgui.DLib_Create(...) end
+		(function()
+			if not vgui.GetControlTable or not vgui.CreateX then
+				return
+			end
 
-		ignore = FrameNumberL()
-		local pnl = vgui.DLib_Create(...)
-		ignore = 0
+			local PanelDefinitions
 
-		if not pnl then return end
-		hook.Run('VGUIPanelCreated', pnl, ...)
-		return pnl
+			for i = 1, 10 do
+				local name, value = debug.getupvalue(vgui.GetControlTable, 1)
+
+				if name == 'PanelFactory' then
+					PanelDefinitions = value
+					break
+				end
+			end
+
+			if not PanelDefinitions then
+				return
+			end
+
+			patched = true
+			local vgui = vgui
+			vgui.CreateNative = vgui.CreateX
+			DLib._PanelDefinitions = PanelDefinitions
+			vgui.PanelDefinitions = PanelDefinitions
+			local CreateNative = vgui.CreateNative
+			local error = error
+			local table = table
+
+			local recursive = false
+
+			function vgui.Create(class, parent, name, ...)
+				if not PanelDefinitions[class] then
+					local panel = CreateNative(class, parent, name, ...)
+
+					if not panel and not recursive then
+						error('Native panel "' .. class .. '" is either invalid or does not exist. If code is trying to create this panel directly - this panel simply does not exist.', 2)
+					end
+
+					return panel
+				end
+
+				local meta = PanelDefinitions[class]
+
+				if not meta.Base then
+					error('Missing panel base of ' .. class .. '. This should never happen!')
+				end
+
+				local prevrecursive = recursive
+				recursive = true
+				local panel = vgui.Create(meta.Base, parent, name or classname)
+
+				if not panel then
+					recursive = false
+
+					if not prevrecursive then
+						error('Unable to create base panel "' .. meta.Base .. '" of "' .. class .. '" because base panel does not exist!')
+					else
+						error('Unable to find base panel "' .. meta.Base .. '" of "' .. class .. '". Panel inheritance tree might be corrupted because of missing base panels.')
+					end
+				end
+
+				table.Merge(panel:GetTable(), meta)
+				panel.BaseClass = PanelDefinitions[meta.Base]
+				panel.ClassName = class
+
+				recursive = false
+
+				hook.Run('VGUIPanelConstructed', panel, ...)
+
+				if panel.Init then
+					panel:Init(...)
+				end
+
+				hook.Run('VGUIPanelInitialized', panel, ...)
+
+				panel:Prepare()
+
+				hook.Run('VGUIPanelCreated', panel, ...)
+
+				return panel
+			end
+		end)()
+
+		if not patched then
+			DLib.Message('Unable to fully replace vgui.Create, falling back to old one patch of vgui.Create... Localization might break!')
+			local vgui = vgui
+			vgui.DLib_Create = vgui.DLib_Create or vgui.Create
+			local ignore = 0
+
+			function vgui.Create(...)
+				if ignore == FrameNumberL() then return vgui.DLib_Create(...) end
+
+				ignore = FrameNumberL()
+				local pnl = vgui.DLib_Create(...)
+				ignore = 0
+
+				if not pnl then return end
+				hook.Run('VGUIPanelConstructed', pnl, ...)
+				hook.Run('VGUIPanelInitialized', pnl, ...)
+				hook.Run('VGUIPanelCreated', pnl, ...)
+				return pnl
+			end
+		end
 	end
 end
 
