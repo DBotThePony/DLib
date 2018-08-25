@@ -162,7 +162,8 @@ hook.Add('DLib.LanguageChanged2', 'DLib.i18nPanelsBridge', function(...)
 end)
 
 local function vguiPanelCreated(self)
-	if self:GetClassName():lower():find('textentry') or self:GetClassName():lower():find('input') or self:GetClassName():lower():find('editor') then return end
+	local classname = self:GetClassName():lower()
+	if classname:find('textentry') or classname:lower():find('input') or classname:lower():find('editor') then return end
 
 	DefaultPanelCreated(self)
 	LabelPanelCreated(self)
