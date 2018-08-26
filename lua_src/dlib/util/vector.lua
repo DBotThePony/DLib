@@ -19,6 +19,7 @@ local error = error
 local math = math
 local ipairs = ipairs
 local Vector = Vector
+local LVector = LVector
 local type = type
 local setmetatable = setmetatable
 
@@ -49,6 +50,33 @@ function vector.FindPlaneCentre(mins, maxs)
 		local y2 = maxs.y
 
 		return Vector((x2 - x1) * 0.5, (y2 - y1) * 0.5, mins.z)
+	end
+
+	error('One or both of arguments is not a 2D plane!')
+end
+
+function vector.LFindPlaneCentre(mins, maxs)
+	if mins.y == maxs.y then
+		local x1 = mins.x
+		local x2 = maxs.x
+		local y1 = mins.z
+		local y2 = maxs.z
+
+		return LVector((x2 - x1) * 0.5, mins.y, (y2 - y1) * 0.5)
+	elseif mins.x == maxs.x then
+		local x1 = mins.y
+		local x2 = maxs.y
+		local y1 = mins.z
+		local y2 = maxs.z
+
+		return LVector(mins.x, (x2 - x1) * 0.5, (y2 - y1) * 0.5)
+	elseif mins.z == maxs.z then
+		local x1 = mins.x
+		local x2 = maxs.x
+		local y1 = mins.y
+		local y2 = maxs.y
+
+		return LVector((x2 - x1) * 0.5, (y2 - y1) * 0.5, mins.z)
 	end
 
 	error('One or both of arguments is not a 2D plane!')
@@ -113,6 +141,53 @@ function vector.ExtractFaces(mins, maxs)
 	}
 end
 
+function vector.LExtractFaces(mins, maxs)
+	return {
+		{
+			LVector(mins.x, mins.y, mins.z),
+			LVector(mins.x, mins.y, maxs.z),
+			LVector(mins.x, maxs.y, maxs.z),
+			LVector(mins.x, maxs.y, mins.z),
+			LVector(-1, 0, 0)
+		},
+		{
+			LVector(mins.x, mins.y, mins.z),
+			LVector(maxs.x, mins.y, mins.z),
+			LVector(maxs.x, mins.y, maxs.z),
+			LVector(mins.x, mins.y, maxs.z),
+			LVector(0, -1, 0)
+		},
+		{
+			LVector(mins.x, maxs.y, mins.z),
+			LVector(maxs.x, maxs.y, mins.z),
+			LVector(maxs.x, maxs.y, maxs.z),
+			LVector(mins.x, maxs.y, maxs.z),
+			LVector(0, 1, 0)
+		},
+		{
+			LVector(maxs.x, mins.y, mins.z),
+			LVector(maxs.x, mins.y, maxs.z),
+			LVector(maxs.x, maxs.y, maxs.z),
+			LVector(maxs.x, maxs.y, mins.z),
+			LVector(1, 0, 0)
+		},
+		{
+			LVector(mins.x, mins.y, maxs.z),
+			LVector(maxs.x, mins.y, maxs.z),
+			LVector(maxs.x, maxs.y, maxs.z),
+			LVector(mins.x, maxs.y, maxs.z),
+			LVector(0, 0, 1)
+		},
+		{
+			LVector(mins.x, mins.y, mins.z),
+			LVector(maxs.x, mins.y, mins.z),
+			LVector(maxs.x, maxs.y, mins.z),
+			LVector(mins.x, maxs.y, mins.z),
+			LVector(0, 0, -1)
+		},
+	}
+end
+
 --[[
 	vector.ExtractFacesAndCentre: Table {
 		Face:
@@ -171,6 +246,13 @@ function vector.Centre(mins, maxs)
 	return Vector(mins.x + deltax * 0.5, mins.y + deltay * 0.5, mins.z + deltaz * 0.5)
 end
 
+function vector.LCentre(mins, maxs)
+	local deltax = maxs.x - mins.x
+	local deltay = maxs.y - mins.y
+	local deltaz = maxs.z - mins.z
+	return LVector(mins.x + deltax * 0.5, mins.y + deltay * 0.5, mins.z + deltaz * 0.5)
+end
+
 --[[
 	Give two vectors (e.g. mins and maxs) and origin position
 	origin position is Vector(0, 0, 0) if mins and maxs are WORLDSPACE vectors
@@ -182,7 +264,7 @@ end
 ]]
 
 function vector.CalculateSurfaceFromTwoPoints(mins, maxs, zero)
-	zero = zero or Vector(0, 0, 0)
+	zero = zero or LVector(0, 0, 0)
 
 	local x0, y0, z0 = zero.x, zero.y, zero.z
 	local x1, y1, z1 = mins.x, mins.y, mins.z

@@ -90,20 +90,130 @@ if CLIENT then
 	timer.Create('DLib.DrawWeaponSelection', 10, 0, updateWeaponFix)
 	updateWeaponFix()
 
-	local vgui = vgui
-	vgui.DLib_Create = vgui.DLib_Create or vgui.Create
-	local ignore = 0
+	if not DLib._PanelDefinitions then
+		local patched = false
 
-	function vgui.Create(...)
-		if ignore == FrameNumberL() then return vgui.DLib_Create(...) end
+		(function()
+			if not vgui.GetControlTable or not vgui.CreateX then
+				return
+			end
 
-		ignore = FrameNumberL()
-		local pnl = vgui.DLib_Create(...)
-		ignore = 0
+			local PanelDefinitions
 
-		if not pnl then return end
-		hook.Run('VGUIPanelCreated', pnl, ...)
-		return pnl
+			for i = 1, 10 do
+				local name, value = debug.getupvalue(vgui.GetControlTable, 1)
+
+				if name == 'PanelFactory' then
+					PanelDefinitions = value
+					break
+				end
+			end
+
+			if not PanelDefinitions then
+				return
+			end
+
+			patched = true
+			local vgui = vgui
+			vgui.CreateNative = vgui.CreateX
+			DLib._PanelDefinitions = PanelDefinitions
+			vgui.PanelDefinitions = PanelDefinitions
+			local CreateNative = vgui.CreateNative
+			local error = error
+			local table = table
+
+			local recursive = false
+
+			function vgui.Create(class, parent, name, ...)
+				if not PanelDefinitions[class] then
+					local panel = CreateNative(class, parent, name, ...)
+
+					if not panel and not recursive then
+						error('Native panel "' .. class .. '" is either invalid or does not exist. If code is trying to create this panel directly - this panel simply does not exist.', 2)
+					end
+
+					return panel
+				end
+
+				local meta = PanelDefinitions[class]
+
+				if not meta.Base then
+					error('Missing panel base of ' .. class .. '. This should never happen!')
+				end
+
+				local prevrecursive = recursive
+				if not prevrecursive then
+					recursive = true
+				end
+
+				local panel = vgui.Create(meta.Base, parent, name or classname)
+
+				if not panel then
+					recursive = false
+
+					if not prevrecursive then
+						error('Unable to create base panel "' .. meta.Base .. '" of "' .. class .. '" because base panel does not exist!')
+					else
+						error('Unable to find base panel "' .. meta.Base .. '" of "' .. class .. '". Panel inheritance tree might be corrupted because of missing base panels.')
+					end
+				end
+
+				table.Merge(panel:GetTable(), meta)
+				panel.BaseClass = PanelDefinitions[meta.Base]
+				panel.ClassName = class
+
+				if not prevrecursive then
+					recursive = false
+					hook.Run('VGUIPanelConstructed', panel, ...)
+				end
+
+				if panel.Init then
+					local err2
+					local status = xpcall(panel.Init, function(err)
+						recursive = false
+						err2 = err
+						ProtectedCall(error:Wrap(err, 2))
+					end, panel, ...)
+
+					if not status then
+						error('Rethrow: Look for error above - ' .. err2)
+					end
+				end
+
+				if not prevrecursive then
+					hook.Run('VGUIPanelInitialized', panel, ...)
+				end
+
+				panel:Prepare()
+
+				if not prevrecursive then
+					hook.Run('VGUIPanelCreated', panel, ...)
+				end
+
+				return panel
+			end
+		end)()
+
+		if not patched then
+			DLib.Message('Unable to fully replace vgui.Create, falling back to old one patch of vgui.Create... Localization might break!')
+			local vgui = vgui
+			vgui.DLib_Create = vgui.DLib_Create or vgui.Create
+			local ignore = 0
+
+			function vgui.Create(...)
+				if ignore == FrameNumberL() then return vgui.DLib_Create(...) end
+
+				ignore = FrameNumberL()
+				local pnl = vgui.DLib_Create(...)
+				ignore = 0
+
+				if not pnl then return end
+				hook.Run('VGUIPanelConstructed', pnl, ...)
+				hook.Run('VGUIPanelInitialized', pnl, ...)
+				hook.Run('VGUIPanelCreated', pnl, ...)
+				return pnl
+			end
+		end
 	end
 end
 
@@ -143,6 +253,7 @@ math.tostring = meta.tostring
 
 local entMeta = FindMetaTable('Entity')
 local Vector, Angle = Vector, Angle
+local LVector = LVector
 
 function entMeta:ApplyBoneManipulations()
 	self.__dlib_BoneManipCache = self.__dlib_BoneManipCache or {}
@@ -155,12 +266,11 @@ function entMeta:ApplyBoneManipulations()
 		end
 
 		if __dlib_BoneManipCache.position[boneid + 1] then
-			--print(boneid, __dlib_BoneManipCache.position[boneid + 1])
-			self:ManipulateBonePosition(boneid, __dlib_BoneManipCache.position[boneid + 1])
+			self:ManipulateBonePosition(boneid, __dlib_BoneManipCache.position[boneid + 1]:ToNative())
 		end
 
 		if __dlib_BoneManipCache.scale[boneid + 1] then
-			self:ManipulateBoneScale(boneid, __dlib_BoneManipCache.scale[boneid + 1])
+			self:ManipulateBoneScale(boneid, __dlib_BoneManipCache.scale[boneid + 1]:ToNative())
 		end
 
 		if __dlib_BoneManipCache.jiggle[boneid + 1] then
@@ -182,8 +292,8 @@ function entMeta:ResetBoneManipCache()
 
 	for boneid = 0, self:GetBoneCount() - 1 do
 		__dlib_BoneManipCache.angles[boneid + 1] = self:GetManipulateBoneAngles(boneid)
-		__dlib_BoneManipCache.position[boneid + 1] = self:GetManipulateBonePosition(boneid)
-		__dlib_BoneManipCache.scale[boneid + 1] = self:GetManipulateBoneScale(boneid)
+		__dlib_BoneManipCache.position[boneid + 1] = LVector(self:GetManipulateBonePosition(boneid))
+		__dlib_BoneManipCache.scale[boneid + 1] = LVector(self:GetManipulateBoneScale(boneid))
 		__dlib_BoneManipCache.jiggle[boneid + 1] = self:GetManipulateBoneJiggle(boneid)
 	end
 
@@ -210,14 +320,14 @@ end
 function entMeta:GetManipulateBonePosition2(boneid)
 	assert(type(boneid) == 'number' and boneid >= 0, 'invalid boneid')
 	local __dlib_BoneManipCache = assert(self.__dlib_BoneManipCache, 'second tables must be initialized first')
-	__dlib_BoneManipCache.scale[boneid + 1] = __dlib_BoneManipCache.scale[boneid + 1] or Vector(0, 0, 0)
+	__dlib_BoneManipCache.scale[boneid + 1] = __dlib_BoneManipCache.scale[boneid + 1] or LVector(0, 0, 0)
 	return __dlib_BoneManipCache.scale[boneid + 1]
 end
 
 function entMeta:GetManipulateBoneScale2(boneid)
 	assert(type(boneid) == 'number' and boneid >= 0, 'invalid boneid')
 	local __dlib_BoneManipCache = assert(self.__dlib_BoneManipCache, 'second tables must be initialized first')
-	__dlib_BoneManipCache.scale[boneid + 1] = __dlib_BoneManipCache.scale[boneid + 1] or Vector(0, 0, 0)
+	__dlib_BoneManipCache.scale[boneid + 1] = __dlib_BoneManipCache.scale[boneid + 1] or LVector(0, 0, 0)
 	return __dlib_BoneManipCache.scale[boneid + 1]
 end
 
@@ -237,15 +347,15 @@ end
 
 function entMeta:ManipulateBonePosition2(boneid, value)
 	assert(type(boneid) == 'number' and boneid >= 0, 'invalid boneid')
-	assert(type(value) == 'Vector', 'invalid angles')
-	__dlib_BoneManipCache.position[boneid + 1] = Vector(value)
+	assert(type(value) == 'Vector' or type(value) == 'LVector', 'invalid position')
+	__dlib_BoneManipCache.position[boneid + 1] = LVector(value)
 	return self
 end
 
 function entMeta:ManipulateBoneScale2(boneid, value)
 	assert(type(boneid) == 'number' and boneid >= 0, 'invalid boneid')
-	assert(type(value) == 'Vector', 'invalid angles')
-	__dlib_BoneManipCache.scale[boneid + 1] = Vector(value)
+	assert(type(value) == 'Vector' or type(value) == 'LVector', 'invalid scale')
+	__dlib_BoneManipCache.scale[boneid + 1] = LVector(value)
 	return self
 end
 
@@ -280,7 +390,7 @@ function entMeta:GetManipulateBonePosition2Safe(boneid)
 
 	if __dlib_BoneManipCache and __dlib_BoneManipCache.working then
 		assert(type(boneid) == 'number' and boneid >= 0, 'invalid boneid')
-		__dlib_BoneManipCache.position[boneid + 1] = __dlib_BoneManipCache.position[boneid + 1] or Vector(0, 0, 0)
+		__dlib_BoneManipCache.position[boneid + 1] = __dlib_BoneManipCache.position[boneid + 1] or LVector(0, 0, 0)
 		return __dlib_BoneManipCache.position[boneid + 1]
 	else
 		return self:GetManipulateBonePosition(boneid)
@@ -292,7 +402,7 @@ function entMeta:GetManipulateBoneScale2Safe(boneid)
 
 	if __dlib_BoneManipCache and __dlib_BoneManipCache.working then
 		assert(type(boneid) == 'number' and boneid >= 0, 'invalid boneid')
-		__dlib_BoneManipCache.scale[boneid + 1] = __dlib_BoneManipCache.scale[boneid + 1] or Vector(1, 1, 1)
+		__dlib_BoneManipCache.scale[boneid + 1] = __dlib_BoneManipCache.scale[boneid + 1] or LVector(1, 1, 1)
 		return __dlib_BoneManipCache.scale[boneid + 1]
 	else
 		return self:GetManipulateBoneScale(boneid)
@@ -318,7 +428,7 @@ function entMeta:ManipulateBoneJiggle2Safe(boneid, value)
 
 	if __dlib_BoneManipCache and __dlib_BoneManipCache.working then
 		assert(type(boneid) == 'number' and boneid >= 0, 'invalid boneid')
-		assert(type(value) == 'number', 'invalid angles')
+		assert(type(value) == 'number', 'invalid jiggle amount')
 		__dlib_BoneManipCache.jiggle[boneid + 1] = value
 	else
 		self:ManipulateBoneJiggle(boneid, value)
@@ -332,10 +442,10 @@ function entMeta:ManipulateBonePosition2Safe(boneid, value)
 
 	if __dlib_BoneManipCache and __dlib_BoneManipCache.working then
 		assert(type(boneid) == 'number' and boneid >= 0, 'invalid boneid')
-		assert(type(value) == 'Vector', 'invalid angles')
-		__dlib_BoneManipCache.position[boneid + 1] = Vector(value)
+		assert(type(value) == 'Vector' or type(value) == 'LVector', 'invalid position')
+		__dlib_BoneManipCache.position[boneid + 1] = LVector(value)
 	else
-		self:ManipulateBonePosition(boneid, value)
+		self:ManipulateBonePosition(boneid, value:ToNative())
 	end
 
 	return self
@@ -346,10 +456,10 @@ function entMeta:ManipulateBoneScale2Safe(boneid, value)
 
 	if __dlib_BoneManipCache and __dlib_BoneManipCache.working then
 		assert(type(boneid) == 'number' and boneid >= 0, 'invalid boneid')
-		assert(type(value) == 'Vector', 'invalid angles')
-		__dlib_BoneManipCache.scale[boneid + 1] = Vector(value)
+		assert(type(value) == 'Vector' or type(value) == 'LVector', 'invalid scale')
+		__dlib_BoneManipCache.scale[boneid + 1] = LVector(value)
 	else
-		return self:ManipulateBoneScale(boneid, value)
+		return self:ManipulateBoneScale(boneid, value:ToNative())
 	end
 
 	return self

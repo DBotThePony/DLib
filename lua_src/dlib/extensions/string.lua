@@ -38,8 +38,8 @@ function string.tformat(time)
 
 	local str = ''
 
-	local ages = (time - time % 0xBBF81E00) / 0xBBF81E00
-	time = time - ages * 0xBBF81E00
+	local centuries = (time - time % 0xBBF81E00) / 0xBBF81E00
+	time = time - centuries * 0xBBF81E00
 
 	local years = (time - time % 0x01E13380) / 0x01E13380
 	time = time - years * 0x01E13380
@@ -82,8 +82,8 @@ function string.tformat(time)
 		str = years .. ' years ' .. str
 	end
 
-	if ages ~= 0 then
-		str = ages .. ' ages ' .. str
+	if centuries ~= 0 then
+		str = centuries .. ' centuries ' .. str
 	end
 
 	return str
