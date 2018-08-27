@@ -393,7 +393,7 @@ function entMeta:GetManipulateBonePosition2Safe(boneid)
 		__dlib_BoneManipCache.position[boneid + 1] = __dlib_BoneManipCache.position[boneid + 1] or LVector(0, 0, 0)
 		return __dlib_BoneManipCache.position[boneid + 1]
 	else
-		return self:GetManipulateBonePosition(boneid)
+		return LVector(self:GetManipulateBonePosition(boneid))
 	end
 end
 
@@ -405,7 +405,7 @@ function entMeta:GetManipulateBoneScale2Safe(boneid)
 		__dlib_BoneManipCache.scale[boneid + 1] = __dlib_BoneManipCache.scale[boneid + 1] or LVector(1, 1, 1)
 		return __dlib_BoneManipCache.scale[boneid + 1]
 	else
-		return self:GetManipulateBoneScale(boneid)
+		return LVector(self:GetManipulateBoneScale(boneid))
 	end
 end
 
