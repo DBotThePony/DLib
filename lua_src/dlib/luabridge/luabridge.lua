@@ -129,7 +129,9 @@ if CLIENT then
 					local panel = CreateNative(class, parent, name, ...)
 
 					if not panel and not recursive then
-						error('Native panel "' .. class .. '" is either invalid or does not exist. If code is trying to create this panel directly - this panel simply does not exist.', 2)
+						ProtectedCall(function()
+							error('Native panel "' .. class .. '" is either invalid or does not exist. If code is trying to create this panel directly - this panel simply does not exist.', 4)
+						end)
 					end
 
 					return panel
