@@ -125,6 +125,8 @@ if CLIENT then
 			local recursive = false
 
 			function vgui.Create(class, parent, name, ...)
+				if class == '' then return end
+
 				if not PanelDefinitions[class] then
 					local panel = CreateNative(class, parent, name, ...)
 
