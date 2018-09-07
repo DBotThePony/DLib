@@ -93,7 +93,7 @@ local function dump()
 		registries = registries,
 		functions = functions,
 		libs = libs,
-	}, true)
+	})
 end
 
 local sv_allowcslua = GetConVar('sv_allowcslua')

@@ -48,12 +48,16 @@ function tableutil.prependString(destination, prepend)
 	for i, value in ipairs(destination) do
 		destination[i] = prepend .. value
 	end
+
+	return destination
 end
 
 function tableutil.appendString(destination, append)
 	for i, value in ipairs(destination) do
 		destination[i] = value .. append
 	end
+
+	return destination
 end
 
 -- Filters table passed
