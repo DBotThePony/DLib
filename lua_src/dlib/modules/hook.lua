@@ -930,6 +930,54 @@ local function lua_findhooks(eventName, ply)
 	DLib.MessagePlayer(ply, '----------------------------------')
 end
 
+function hook.GetDumpStr()
+	local lines = {}
+
+	local sorted = {}
+
+	for eventName, eventData in pairs(__table) do
+		table.insert(sorted, eventName)
+	end
+
+	table.sort(sorted)
+
+	for i, eventName in ipairs(sorted) do
+		local eventData = __table[eventName]
+
+		for priority = maximalPriority, minimalPriority do
+			local hookList = eventData[priority]
+
+			if hookList then
+				local llines = {}
+				table.insert(lines, '// Begin list hooks of event ' .. eventName)
+
+				for stringID, hookData in pairs(hookList) do
+					local info = debug.getinfo(hookData.funcToCall)
+
+					table.insert(llines,
+						string.format(
+							'\t%q [%s] at %p (%s: %i->%i)',
+							tostring(stringID),
+							tostring(priority),
+							hookData.funcToCall,
+							info.source,
+							info.linedefined,
+							info.lastlinedefined
+						)
+					)
+				end
+
+				table.sort(llines)
+				table.append(lines, llines)
+
+				table.insert(lines, '// End list hooks of event ' .. eventName .. '\n')
+			end
+		end
+	end
+
+	return table.concat(lines, '\n')
+end
+
 local function lua_findhooks_cl(ply, cmd, args)
 	if not game.SinglePlayer() and IsValid(ply) and ply:IsPlayer() and not ply:IsAdmin() then return end
 
