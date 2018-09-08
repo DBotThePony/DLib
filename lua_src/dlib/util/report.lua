@@ -46,7 +46,15 @@ local function hashfunc(func)
 		crc = util.CRC(string.dump(func))
 	end
 
-	return crc
+	return crc, info.short_src:startsWith('dlib/')
+		or info.short_src:startsWith('addons/dlib/')
+		or info.short_src:startsWith('lua/dlib/')
+		or info.short_src:find('dlib/modules')
+		or info.short_src:find('dlib/luabridge')
+		or info.short_src:find('dlib/extensions')
+		or info.short_src:find('dlib/core')
+		or info.short_src:find('lua/dlib')
+		or info.short_src:find('VLL: dlib')
 end
 
 local function getFuncInfo(func)
@@ -175,9 +183,9 @@ local function generate()
 	llines = {}
 
 	for key, value in pairs(pick_dump.functions) do
-		local crc = hashfunc(_G[key])
+		local crc, dlib = hashfunc(_G[key])
 
-		if crc ~= value then
+		if not dlib and crc ~= value then
 			table.insert(llines, string.format('\tFUNCTION %q IS REPLACED: Expected %q, got %q; %s', key, value, crc, getFuncInfo(_G[key])))
 		end
 	end
@@ -200,9 +208,9 @@ local function generate()
 			local glib = _G[libname]
 
 			for funcname, value in pairs(libvalue) do
-				local crc = hashfunc(glib[funcname])
+				local crc, dlib = hashfunc(glib[funcname])
 
-				if crc ~= value then
+				if not dlib and crc ~= value then
 					table.insert(llines, string.format('\tLIBRARY %q; FUNCTION %q IS REPLACED: Expected %q, got %q; %s', libname, funcname, value, crc, getFuncInfo(glib[funcname])))
 				end
 			end
@@ -241,17 +249,20 @@ local function generate()
 			local glib = foundResgistry[k]
 
 			for funcname, value in pairs(funclist) do
-				local crc = hashfunc(glib[funcname])
+				local crc, dlib = hashfunc(glib[funcname])
 
-				if crc ~= value then
+				if not dlib and crc ~= value then
 					table.insert(llines, string.format('\tRESITRY %q; FUNCTION %q IS REPLACED: Expected %q, got %q; %s', k, funcname, value, crc, getFuncInfo(glib[funcname])))
 				end
 			end
 
 			for funcname, value in pairs(glib) do
 				if type(value) == 'function' and not funclist[funcname] then
-					local crc = hashfunc(value)
-					table.insert(llines, string.format('\tRESITRY %q; Non default function %q: got %q; %s', k, funcname, crc, getFuncInfo(value)))
+					local crc, dlib = hashfunc(value)
+
+					if not dlib then
+						table.insert(llines, string.format('\tRESITRY %q; Non default function %q: got %q; %s', k, funcname, crc, getFuncInfo(value)))
+					end
 				end
 			end
 		end
