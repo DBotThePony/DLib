@@ -113,6 +113,10 @@ local function generate()
 		table.insert(lines, 'Screen size: ' .. ScrWL() .. 'x' .. ScrHL())
 	end
 
+	table.insert(lines, '\nDedicated status: ' .. tostring(game.IsDedicated()))
+	table.insert(lines, 'Max players: ' .. tostring(game.MaxPlayers()))
+	table.insert(lines, 'Current map: ' .. tostring(game.GetMap()))
+
 	local ram1 = collectgarbage("count")
 	collectgarbage()
 	local ram2 = collectgarbage("count")
