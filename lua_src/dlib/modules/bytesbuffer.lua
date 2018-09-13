@@ -455,10 +455,12 @@ function meta:ToFileStream(fileStream)
 			elseif len == 1 then
 				fileStream:WriteByte(self.bytes[i])
 			elseif len == 2 then
-				fileStream:WriteUShort(self.bytes[i])
+				fileStream:WriteByte(self.bytes[i]:rshift(8):band(0xFF))
+				fileStream:WriteByte(self.bytes[i]:band(0xFF))
 			else
-				fileStream:WriteUShort(self.bytes[i]:band(0xFFFF))
-				fileStream:WriteByte(self.bytes[i]:band((0xFF):lshift(16)))
+				fileStream:WriteByte(self.bytes[i]:rshift(16):band(0xFF))
+				fileStream:WriteByte(self.bytes[i]:rshift(8):band(0xFF))
+				fileStream:WriteByte(self.bytes[i]:band(0xFF))
 			end
 		end
 	end
