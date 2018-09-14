@@ -260,6 +260,16 @@ function tableutil.construct(input, funcToCall, times, ...)
 	return input
 end
 
+function tableutil.construct2(funcToCall, times, ...)
+	local output = {}
+
+	for i = 1, times do
+		output[#output + 1] = funcToCall(i, ...)
+	end
+
+	return output
+end
+
 function tableutil.frandom(tableIn)
 	return tableIn[math.random(1, #tableIn)]
 end
