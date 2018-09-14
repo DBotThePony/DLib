@@ -34,33 +34,13 @@ local rawset = rawset
 local setmetatable = setmetatable
 local string = string
 
-function meta:__index(key)
-	if key == 'length' then
-		return #self.bytes
-	end
-
-	if meta[key] ~= nil then
-		return meta[key]
-	end
-
-	return rawget(self, key)
-end
-
-local byteschecker = {}
-
-byteschecker.__index = byteschecker
-byteschecker.__newindex = function(self, key, value)
-	if value < 0 or value > 255 then
-		error('wtf? new byte is ' .. value)
-	end
-
-	rawset(self, key, value)
-end
+meta.__index = meta
 
 function DLib.BytesBuffer(stringIn)
 	local obj = setmetatable({}, meta)
-	obj.bytes = setmetatable({}, byteschecker)
+	obj.bytes = {}
 	obj.pointer = 0
+	obj.length = 0
 
 	if type(stringIn) == 'string' then
 		obj:WriteBinary(stringIn)
@@ -90,7 +70,7 @@ end
 
 function meta:Release()
 	self.pointer = 0
-	self.bytes = setmetatable({}, byteschecker)
+	self.bytes = {}
 	return self
 end
 
@@ -124,6 +104,44 @@ local function assertRange(valueIn, min, max, funcName)
 	error(funcName .. ' - size overflow (' .. min .. ' -> ' .. max .. ' vs ' .. valueIn .. ')', 3)
 end
 
+function meta:EndOfStream()
+	return self.pointer >= self.length
+end
+
+function meta:WriteUByte(valueIn)
+	if valueIn == 0 then
+		local internal = math.floor(self.pointer / 4) + 1
+		self.bytes[internal] = (self.bytes[internal] or 0)
+			:band((0xFF):lshift((self.pointer % 4) * 8):bnot())
+
+		self.pointer = self.pointer + 1
+
+		if self.length < self.pointer then
+			self.length = self.pointer
+		end
+
+		return self
+	end
+
+	assertType(valueIn, 'number', 'WriteUByte')
+	assertRange(valueIn, 0, 0xFF, 'WriteUByte')
+
+	valueIn = math.floor(valueIn)
+	local internal = math.floor(self.pointer / 4) + 1
+
+	self.bytes[internal] = (self.bytes[internal] or 0)
+		:band((0xFF):lshift((self.pointer % 4) * 8):bnot())
+		:bor(valueIn:lshift((self.pointer % 4) * 8))
+
+	self.pointer = self.pointer + 1
+
+	if self.length < self.pointer then
+		self.length = self.pointer
+	end
+
+	return self
+end
+
 -- Primitive read/write
 -- wrap overflow
 function meta:WriteByte_2(valueIn)
@@ -137,15 +155,6 @@ function meta:WriteByte(valueIn)
 	assertType(valueIn, 'number', 'WriteByte')
 	assertRange(valueIn, -0x80, 0x7F, 'WriteByte')
 	return self:WriteUByte(wrap(math.floor(valueIn), 0x80))
-end
-
-function meta:WriteUByte(valueIn)
-	assertType(valueIn, 'number', 'WriteUByte')
-	assertRange(valueIn, 0, 0xFF, 'WriteUByte')
-	valueIn = math.floor(valueIn)
-	self.pointer = self.pointer + 1
-	self.bytes[self.pointer] = valueIn
-	return self
 end
 
 meta.WriteInt8 = meta.WriteByte
@@ -174,9 +183,8 @@ function meta:WriteUInt16(valueIn)
 	assertType(valueIn, 'number', 'WriteUInt16')
 	assertRange(valueIn, 0, 0xFFFF, 'WriteUInt16')
 	valueIn = math.floor(valueIn)
-	self.bytes[self.pointer + 2] = valueIn % 0x100
-	self.bytes[self.pointer + 1] = (valueIn - valueIn % 0x100) / 0x100
-	self.pointer = self.pointer + 2
+	self:WriteUByte((valueIn - valueIn % 0x100) / 0x100)
+	self:WriteUByte(valueIn % 0x100)
 	return self
 end
 
@@ -196,15 +204,20 @@ function meta:WriteUInt32(valueIn)
 	assertType(valueIn, 'number', 'WriteUInt32')
 	assertRange(valueIn, 0, 0xFFFFFFFF, 'WriteUInt32')
 	valueIn = math.floor(valueIn)
-	self.bytes[self.pointer + 4] = valueIn % 0x100
+
+	local four = valueIn % 0x100
 	valueIn = (valueIn - valueIn % 0x100) / 0x100
-	self.bytes[self.pointer + 3] = valueIn % 0x100
+	local three = valueIn % 0x100
 	valueIn = (valueIn - valueIn % 0x100) / 0x100
-	self.bytes[self.pointer + 2] = valueIn % 0x100
+	local two = valueIn % 0x100
 	valueIn = (valueIn - valueIn % 0x100) / 0x100
-	self.bytes[self.pointer + 1] = valueIn % 0x100
-	valueIn = (valueIn - valueIn % 0x100) / 0x100
-	self.pointer = self.pointer + 4
+	local one = valueIn % 0x100
+
+	self:WriteUByte(one)
+	self:WriteUByte(two)
+	self:WriteUByte(three)
+	self:WriteUByte(four)
+
 	return self
 end
 
@@ -241,8 +254,12 @@ end
 
 function meta:ReadUByte()
 	self:CheckOverflow('UByte', 1)
+	local internal = math.floor(self.pointer / 4) + 1
+	local pointer = self.pointer
 	self.pointer = self.pointer + 1
-	return self.bytes[self.pointer]
+
+	return (self.bytes[internal] or 0)
+		:band((0xFF):lshift((pointer % 4) * 8)):rshift((pointer % 4) * 8)
 end
 
 meta.ReadInt8 = meta.ReadByte
@@ -258,8 +275,7 @@ end
 
 function meta:ReadUInt16()
 	self:CheckOverflow('UInt16', 2)
-	self.pointer = self.pointer + 2
-	return self.bytes[self.pointer] + self.bytes[self.pointer - 1] * 256
+	return self:ReadUByte() * 256 + self:ReadUByte()
 end
 
 function meta:ReadInt32_2()
@@ -272,11 +288,11 @@ end
 
 function meta:ReadUInt32()
 	self:CheckOverflow('UInt32', 4)
-	self.pointer = self.pointer + 4
-	return self.bytes[self.pointer] +
-		self.bytes[self.pointer - 1] * 256 +
-		self.bytes[self.pointer - 2] * 256 * 256 +
-		self.bytes[self.pointer - 3] * 256 * 256 * 256
+	return
+		self:ReadUByte() * 0x1000000 +
+		self:ReadUByte() * 0x10000 +
+		self:ReadUByte() * 0x100 +
+		self:ReadUByte()
 end
 
 function meta:ReadInt64_2()
@@ -290,14 +306,15 @@ end
 function meta:ReadUInt64()
 	self:CheckOverflow('UInt64', 8)
 	self.pointer = self.pointer + 8
-	return self.bytes[self.pointer] +
-		self.bytes[self.pointer - 1] * 256 +
-		self.bytes[self.pointer - 2] * 256 * 256 +
-		self.bytes[self.pointer - 3] * 256 * 256 * 256 +
-		self.bytes[self.pointer - 4] * 256 * 256 * 256 * 256 +
-		self.bytes[self.pointer - 5] * 256 * 256 * 256 * 256 * 256 +
-		self.bytes[self.pointer - 6] * 256 * 256 * 256 * 256 * 256 * 256 +
-		self.bytes[self.pointer - 7] * 256 * 256 * 256 * 256 * 256 * 256 * 256
+	return
+		self:ReadUByte() * 0x100000000000000 +
+		self:ReadUByte() * 0x1000000000000 +
+		self:ReadUByte() * 0x10000000000 +
+		self:ReadUByte() * 0x100000000 +
+		self:ReadUByte() * 0x1000000 +
+		self:ReadUByte() * 0x10000 +
+		self:ReadUByte() * 0x100 +
+		self:ReadUByte()
 end
 
 -- Float
@@ -343,34 +360,33 @@ function meta:WriteString(stringIn)
 		error('Binary data in a string?!')
 	end
 
-	self.pointer = self.pointer + 1
-	self.bytes[self.pointer] = bytes[i]
+	self:WriteUByte(bytes[i])
 
 	if i < len then
 		goto loop
 	end
 
-	self.pointer = self.pointer + 1
-	self.bytes[self.pointer] = 0
+	self:WriteUByte(0)
 
 	return self
 end
 
 function meta:ReadString()
 	self:CheckOverflow('ReadString', 1)
-	self.pointer = self.pointer + 1
-	local readNext = self.bytes[self.pointer]
+	local readNext = self:ReadUByte()
 	local output = {}
+
+	if readNext == 0 then return '' end
 
 	::loop::
 
 	table.insert(output, readNext)
-	self.pointer = self.pointer + 1
-	readNext = self.bytes[self.pointer]
 
-	if readNext == nil then
+	if self:EndOfStream() then
 		error('No NULL terminator was found, buffer overflow!')
 	end
+
+	readNext = self:ReadUByte()
 
 	if readNext ~= 0 and readNext ~= nil then
 		goto loop
@@ -383,19 +399,10 @@ end
 
 function meta:WriteBinary(binaryString)
 	assertType(binaryString, 'string', 'WriteBinary')
-	if #binaryString == 0 then return false end
-	local bytes = DLib.string.bbyte(binaryString, 1, #binaryString)
-	local len = #bytes
-	local i = 0
+	if #binaryString == 0 then return self end
 
-	::loop::
-
-	i = i + 1
-	self.pointer = self.pointer + 1
-	self.bytes[self.pointer] = bytes[i]
-
-	if i < len then
-		goto loop
+	for i = 1, #binaryString do
+		self:WriteUByte(binaryString:byte(i, i))
 	end
 
 	return self
@@ -413,8 +420,7 @@ function meta:ReadBinary(readAmount)
 	::loop::
 
 	i = i + 1
-	self.pointer = self.pointer + 1
-	table.insert(output, self.bytes[self.pointer])
+	table.insert(output, self:ReadUByte())
 
 	if i < readAmount then
 		goto loop
@@ -437,15 +443,26 @@ end
 function meta:ToFileStream(fileStream)
 	local bytes = #self.bytes
 	if bytes == 0 then return fileStream end
-	local i = 0
 
-	::loop::
-	i = i + 1
+	for i = 1, #self.bytes do
+		if i ~= self.bytes[i] then
+			fileStream:WriteULong(self.bytes[i])
+		else
+			local len = self.length % 4
 
-	fileStream:WriteByte(self.bytes[i])
-
-	if i < bytes then
-		goto loop
+			if len == 0 then
+				fileStream:WriteULong(self.bytes[i])
+			elseif len == 1 then
+				fileStream:WriteByte(self.bytes[i])
+			elseif len == 2 then
+				fileStream:WriteByte(self.bytes[i]:rshift(8):band(0xFF))
+				fileStream:WriteByte(self.bytes[i]:band(0xFF))
+			else
+				fileStream:WriteByte(self.bytes[i]:rshift(16):band(0xFF))
+				fileStream:WriteByte(self.bytes[i]:rshift(8):band(0xFF))
+				fileStream:WriteByte(self.bytes[i]:band(0xFF))
+			end
+		end
 	end
 
 	return fileStream
