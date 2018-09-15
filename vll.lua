@@ -412,7 +412,7 @@ function VLL.LoadWorkshop(id, nolist, loadLua, noreplicate)
 		return
 	end
 
-	if steamworks.IsSubscribed(tostring(id)) then
+	if steamworks.IsSubscribed(tostring(id)) and not loadLua then
 		VLL.Message('Not downloading addon ' .. id .. ' since it is already mounted on client.')
 		return
 	end
