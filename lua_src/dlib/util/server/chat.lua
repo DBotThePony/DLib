@@ -18,10 +18,10 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-
 net.pool('DLib.AddChatText')
 
-local chat = DLib.module('chat', 'chat')
+local chat = setmetatable(DLib.chat or {}, {__index = chat})
+DLib.chat = chat
 
 function chat.generate(name, targetTable)
 	local nw = 'DLib.AddChatText.' .. name

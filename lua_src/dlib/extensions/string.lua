@@ -18,9 +18,9 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-
 local gstring = _G.string
-local string = DLib.module('string', 'string')
+local string = setmetatable(DLib.string or {}, {__index = string})
+DLib.string = string
 local unpack = unpack
 local os = os
 local select = select
@@ -249,5 +249,3 @@ function string.bbyte(strIn, sliceStart, sliceEnd)
 
 	return output
 end
-
-return string

@@ -18,8 +18,8 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-
-local Loader = DLib.module('Loader')
+DLib.Loader = DLib.Loader or {}
+local Loader = DLib.Loader
 
 local currentModule, currentModuleEnv
 local fenv2 = debug.getinfo(1) and getfenv(1) or _G
@@ -158,5 +158,3 @@ function Loader.finish(allowGlobal, renameHack)
 
 	return created
 end
-
-return Loader

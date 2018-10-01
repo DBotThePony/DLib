@@ -19,10 +19,10 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-
 file.mkdir('dlib/keybinds')
 
-bind = DLib.module('bind')
+DLib.bind = DLib.bind or {}
+bind = DLib.bind
 
 bind.KeyMap = {
 	[KEY_FIRST]: 'FIRST'

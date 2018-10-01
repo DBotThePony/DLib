@@ -19,9 +19,8 @@
 -- DEALINGS IN THE SOFTWARE.
 
 
-local gplayer = _G.player
-local GetAll = gplayer.GetAll
-local player = DLib.module('player', 'player')
+local GetAll = player.GetAll
+local player = player
 local ipairs = ipairs
 local math = math
 local tonumber = tonumber
@@ -46,11 +45,13 @@ function player.inRange(position, range)
 	return output
 end
 
+player.InRange = player.inRange
+
 -- Fix performance a bit
 function player.GetBySteamID(steamid)
 	steamid = steamid:upper()
 
-	for i, ply in ipairs(gplayer.GetAll()) do
+	for i, ply in ipairs(player.GetAll()) do
 		if steamid == ply:SteamID() then return ply end
 	end
 
@@ -60,7 +61,7 @@ end
 function player.GetBySteamID64(steamid)
 	steamid = tostring(steamid)
 
-	for i, ply in ipairs(gplayer.GetAll()) do
+	for i, ply in ipairs(player.GetAll()) do
 		if steamid == ply:SteamID64() then return ply end
 	end
 
@@ -68,7 +69,7 @@ function player.GetBySteamID64(steamid)
 end
 
 function player.GetByUniqueID(id)
-	for i, ply in ipairs(gplayer.GetAll()) do
+	for i, ply in ipairs(player.GetAll()) do
 		if id == ply:UniqueID() then return ply end
 	end
 
@@ -140,5 +141,3 @@ function plyMeta:GetInfoString(convar, ifNone)
 
 	return info
 end
-
-return player

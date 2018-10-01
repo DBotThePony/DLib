@@ -39,10 +39,10 @@ DLib.simpleInclude('modules/hudcommons/base/init.lua')
 DLib.Loader.finish()
 
 DLib.Loader.loadPureCS('dlib/vgui')
-DLib.register('util/client/scrsize.lua')
-DLib.register('util/client/chat.lua')
-DLib.register('util/client/buystuff.lua')
-DLib.register('util/client/donate.lua')
+DLib.simpleInclude('util/client/scrsize.lua')
+DLib.simpleInclude('util/client/chat.lua')
+DLib.simpleInclude('util/client/buystuff.lua')
+DLib.simpleInclude('util/client/donate.lua')
 
 DLib.Loader.loadPureCSTop('dlib/modules/client')
 

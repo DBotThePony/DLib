@@ -100,11 +100,8 @@ function vectorMeta:ToColor()
 	return Color(self.x * 255, self.y * 255, self.z * 255)
 end
 
-local gsql = sql
-local sql = DLib.module('sql', 'sql')
-
-function sql.Query(...)
-	local data = gsql.Query(...)
+function sql.EQuery(...)
+	local data = sql.Query(...)
 
 	if data == false then
 		DLib.Message('SQL: ', ...)
@@ -113,8 +110,6 @@ function sql.Query(...)
 
 	return data
 end
-
-sql.register()
 
 function math.progression(self, min, max, middle)
 	if self < min then return 0 end

@@ -18,8 +18,8 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-
-local constraint = DLib.module('constraint')
+DLib.constraint = DLib.constraint or {}
+local constraint = DLib.constraint
 
 local mem = {}
 

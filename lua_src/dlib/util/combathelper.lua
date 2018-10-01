@@ -23,7 +23,8 @@ local IsValid = FindMetaTable('Entity').IsValid
 local type = type
 local NULL = NULL
 local table = table
-local combat = DLib.module('combat')
+DLib.combat = DLib.combat or {}
+local combat = DLib.combat
 
 function combat.findWeapon(dmginfo)
 	local attacker, inflictor = dmginfo:GetAttacker(), dmginfo:GetInflictor()
@@ -163,5 +164,3 @@ function combat.findPlayers(self)
 
 	return #list ~= 0 and table.deduplicate(list) or false
 end
-
-return combat

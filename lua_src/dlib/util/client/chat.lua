@@ -18,8 +18,8 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-
-local chat = DLib.module('chat', 'chat')
+local chat = setmetatable(DLib.chat or {}, {__index = chat})
+DLib.chat = chat
 
 function chat.registerChat(vname, ...)
 	local nw = 'DLib.AddChatText.' .. vname
@@ -73,5 +73,3 @@ function chat.registerWithMessages(target, vname, ...)
 end
 
 chat.registerChat('default')
-
-return chat

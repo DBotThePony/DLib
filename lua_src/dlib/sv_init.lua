@@ -18,13 +18,6 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-
-function DLib.registerSV(fil)
-	local result = include('dlib/' .. fil)
-	if not result then return end
-	return result.register()
-end
-
 local MsgC = MsgC
 local SysTime = SysTime
 local timeStart = SysTime()
@@ -45,7 +38,7 @@ DLib.Loader.loadPureSVTop('dlib/modules/server')
 DLib.Loader.svmodule('dmysql.lua')
 
 DLib.Loader.loadPureCS('dlib/vgui')
-DLib.registerSV('util/server/chat.lua')
+DLib.simpleInclude('util/server/chat.lua')
 
 MsgC(string.format('%.2f ms\n', (SysTime() - timeStart) * 1000))
 timeStart = SysTime()

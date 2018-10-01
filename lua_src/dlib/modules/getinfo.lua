@@ -35,7 +35,8 @@ if SERVER then
 end
 
 local plyMeta = FindMetaTable('Player')
-local getinfo = DLib.module('getinfo', nil, true)
+DLib.getinfo = DLib.getinfo or {}
+local getinfo = DLib.getinfo
 
 getinfo.bank = getinfo.bank or {}
 getinfo.bankCRC = getinfo.bankCRC or {}

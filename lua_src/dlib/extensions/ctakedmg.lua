@@ -18,9 +18,7 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-
 local meta = FindMetaTable('CTakeDamageInfo')
-local ctakedmg = DLib.module('ctakedmg')
 
 local damageTypes = {
 	{DMG_CRUSH, 'Crush'},
@@ -57,14 +55,12 @@ local damageTypes = {
 }
 
 for i, dmg in ipairs(damageTypes) do
-	ctakedmg['Is' .. dmg[2] .. 'Damage'] = function(self)
+	meta['Is' .. dmg[2] .. 'Damage'] = function(self)
 		return bit.band(self:GetDamageType(), dmg[1]) ~= 0
 	end
-
-	meta['Is' .. dmg[2] .. 'Damage'] = ctakedmg['Is' .. dmg[2] .. 'Damage']
 end
 
-function ctakedmg:TypesArray()
+function meta:TypesArray()
 	local output = {}
 	local types = self:GetDamageType()
 
@@ -77,9 +73,7 @@ function ctakedmg:TypesArray()
 	return output
 end
 
-meta.TypesArray = ctakedmg.TypesArray
-
-function ctakedmg:Copy(copyDataInto)
+function meta:Copy(copyDataInto)
 	local a = self:GetAttacker()
 	local b = self:GetInflictor()
 	local c = self:GetDamage()
@@ -99,7 +93,7 @@ function ctakedmg:Copy(copyDataInto)
 	return copyDataInto
 end
 
-function ctakedmg:Receive(from)
+function meta:Receive(from)
 	self:SetAttacker(from:GetAttacker())
 	self:SetInflictor(from:GetInflictor())
 	self:SetDamage(from:GetDamage())
@@ -109,8 +103,3 @@ function ctakedmg:Receive(from)
 	self:SetDamageType(from:GetDamageType())
 	return self
 end
-
-meta.Copy = ctakedmg.Copy
-meta.Receive = ctakedmg.Receive
-
-return ctakedmg

@@ -18,11 +18,11 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-
+DLib.bitworker2 = DLib.bitworker2 or {}
 local table = table
 local DLib = DLib
 local math = math
-local bitworker = DLib.module('bitworker2')
+local bitworker = DLib.bitworker2
 local type = type
 local ipairs = ipairs
 
@@ -304,5 +304,3 @@ function bitworker.BitsToBytes(bitsIn)
 
 	return output
 end
-
-return bitworker

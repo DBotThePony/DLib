@@ -24,13 +24,6 @@ local DLib = DLib
 DLib.DEBUG_MODE = CreateConVar('dlib_debug', '0', {FCVAR_REPLICATED}, 'Enable debug mode. Setting this to 1 can help you solve weird bugs.')
 DLib.STRICT_MODE = CreateConVar('dlib_strict', '0', {FCVAR_REPLICATED}, 'Enable strict mode. Enabling this turns all ErrorNoHalts into execution halting errors. The best way to fix bad code.')
 
-function DLib.register(fil)
-	if SERVER then AddCSLuaFile('dlib/' .. fil) end
-	local result = include('dlib/' .. fil)
-	if not result then return end
-	return result.register()
-end
-
 function DLib.simpleInclude(fil)
 	if SERVER then AddCSLuaFile('dlib/' .. fil) end
 	return include('dlib/' .. fil)
@@ -97,11 +90,9 @@ DLib.simpleInclude('core/core.lua')
 DLib.simpleInclude('core/luaify.lua')
 DLib.simpleInclude('core/funclib.lua')
 DLib.simpleInclude('util/alias.lua')
-DLib.module = DLib.simpleInclude('core/module.lua')
-DLib.manifest = DLib.simpleInclude('core/manifest.lua')
 DLib.MessageMaker = DLib.simpleInclude('util/message.lua')
 DLib.MessageMaker(DLib, 'DLib')
-DLib.register('core/sandbox.lua')
+DLib.simpleInclude('core/sandbox.lua')
 
 if jit then
 	if SERVER then AddCSLuaFile('dlib/core/vmdef.lua') end
@@ -116,41 +107,41 @@ DLib.ConstructMessage = DLib.MessageMaker
 
 DLib.simpleInclude('util/color.lua')
 
-DLib.register('util/combathelper.lua')
-DLib.register('util/util.lua')
-DLib.register('util/constraint.lua')
-DLib.register('util/vector.lua')
+DLib.simpleInclude('util/combathelper.lua')
+DLib.simpleInclude('util/util.lua')
+DLib.simpleInclude('util/constraint.lua')
+DLib.simpleInclude('util/vector.lua')
 
 DLib.node = DLib.simpleInclude('util/node.lua')
 
 if CLIENT then
-	DLib.register('util/client/localglobal.lua')
+	DLib.simpleInclude('util/client/localglobal.lua')
 end
 
 file.mkdir('dlib')
 
-DLib.register('core/tableutil.lua').export(_G.table)
-DLib.register('core/fsutil.lua').export(_G.file)
-DLib.register('core/loader.lua')
+DLib.simpleInclude('core/tableutil.lua')
+DLib.simpleInclude('core/fsutil.lua')
+DLib.simpleInclude('core/loader.lua')
 DLib.simpleInclude('core/loader_modes.lua')
 
 MsgC(string.format('%.2f ms\n', (SysTime() - timeStart) * 1000))
 timeStart = SysTime()
 MsgC('[DLib] Initializing DLib GLua extensions ... ')
 
-DLib.Loader.shmodule('bitworker.lua').register()
-DLib.Loader.shmodule('bitworker2.lua').register()
+DLib.Loader.shmodule('bitworker.lua')
+DLib.Loader.shmodule('bitworker2.lua')
 
 DLib.simpleInclude('luabridge/luaify.lua')
 
-DLib.register('extensions/extensions.lua')
-DLib.register('extensions/string.lua')
-DLib.register('extensions/ctakedmg.lua')
-DLib.register('extensions/table.lua')
-DLib.register('extensions/cvar.lua')
-DLib.register('extensions/entity.lua')
-DLib.register('extensions/render.lua')
-DLib.register('extensions/player.lua').export(_G.player)
+DLib.simpleInclude('extensions/extensions.lua')
+DLib.simpleInclude('extensions/string.lua')
+DLib.simpleInclude('extensions/ctakedmg.lua')
+DLib.simpleInclude('extensions/table.lua')
+DLib.simpleInclude('extensions/cvar.lua')
+DLib.simpleInclude('extensions/entity.lua')
+DLib.simpleInclude('extensions/render.lua')
+DLib.simpleInclude('extensions/player.lua')
 
 DLib.Loader.shmodule('hook.lua')
 DLib.simpleInclude('luabridge/luaify2.lua')
@@ -167,14 +158,14 @@ DLib.Loader.shmodule('bytesbuffer.lua')
 DLib.Loader.shmodule('nbt.lua')
 DLib.Loader.shmodule('lerp.lua')
 DLib.Loader.shmodule('sh_cami.lua')
-DLib.Loader.shmodule('getinfo.lua').register()
+DLib.Loader.shmodule('getinfo.lua')
 DLib.Loader.shmodule('strong_entity_link.lua')
 
 DLib.Loader.start('nw')
 DLib.Loader.load('dlib/modules/nwvar')
 DLib.Loader.finish()
 
-DLib.register('util/queue.lua')
+DLib.simpleInclude('util/queue.lua')
 
 DLib.Loader.loadPureSHTop('dlib/enums')
 
@@ -194,7 +185,7 @@ DLib.Loader.shclass('rainbow.lua')
 DLib.Loader.shclass('camiwatchdog.lua')
 DLib.Loader.shclass('measure.lua')
 DLib.Loader.shclass('bezier.lua')
-DLib.Loader.clclass('keybinds.lua').register()
+DLib.Loader.clclass('keybinds.lua')
 
 DLib.Loader.start('lang')
 DLib.Loader.load('dlib/modules/lang')
@@ -220,8 +211,8 @@ DLib.simpleInclude('luabridge/luabridge.lua')
 DLib.simpleInclude('luabridge/physgunhandler.lua')
 DLib.simpleInclude('luabridge/pnlhud.lua')
 DLib.simpleInclude('luabridge/loading_stages.lua')
-DLib.register('util/registry_dump.lua')
-DLib.register('util/report.lua')
+DLib.simpleInclude('util/registry_dump.lua')
+DLib.simpleInclude('util/report.lua')
 DLib.Loader.loadPureSHTop('dlib/modules/workarounds')
 
 DLib.hl2wdata = DLib.simpleInclude('data/hl2sweps.lua')

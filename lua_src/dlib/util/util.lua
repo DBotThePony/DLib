@@ -18,10 +18,10 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-
 jit.on()
 
-local util = DLib.module('util', 'util')
+local util = setmetatable(DLib.util or {}, {__index = util})
+DLib.util = util
 local DLib = DLib
 local vgui = vgui
 local type = type
