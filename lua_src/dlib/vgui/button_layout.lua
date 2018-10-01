@@ -22,10 +22,10 @@
 local PANEL = {}
 DLib.VGUI.ButtonLayout = PANEL
 
-DLib.util.AccessorFuncJIT(PANEL, 'spacingX', 'SpacingX')
-DLib.util.AccessorFuncJIT(PANEL, 'spacingY', 'SpacingY')
-DLib.util.AccessorFuncJIT(PANEL, 'layoutSizeX', 'LayoutSizeX')
-DLib.util.AccessorFuncJIT(PANEL, 'layoutSizeY', 'LayoutSizeY')
+AccessorFunc(PANEL, 'spacingX', 'SpacingX')
+AccessorFunc(PANEL, 'spacingY', 'SpacingY')
+AccessorFunc(PANEL, 'layoutSizeX', 'LayoutSizeX')
+AccessorFunc(PANEL, 'layoutSizeY', 'LayoutSizeY')
 
 function PANEL:Init()
 	self.layoutSizeX = 128

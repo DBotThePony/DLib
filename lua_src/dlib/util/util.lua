@@ -62,39 +62,6 @@ function util.composeEnums(input, ...)
 	return num:bor(...)
 end
 
-function util.AccessorFuncJIT(target, variable, name)
-	local set, get = CompileString([==[
-		local variable = [[]==] .. variable .. [==[]]
-
-		local function Set(self, newVar)
-			self.]==] .. variable .. [==[ = newVar
-
-			local callback = self.OnDVariableChange
-
-			if callback then
-				callback(self, variable, newVar)
-			end
-
-			callback = self.On]==] .. name .. [==[Changes
-
-			if callback then
-				callback(self, newVar)
-			end
-
-			return self
-		end
-
-		local function Get(self)
-			return self.]==] .. variable .. [==[
-		end
-
-		return Set, Get
-	]==], 'DLib.util.AccessorFuncJIT')()
-
-	target['Get' .. name] = get
-	target['Set' .. name] = set
-end
-
 function util.ValidateSteamID(input)
 	if not input then return false end
 	return input:match('STEAM_0:[0-1]:[0-9]+$') ~= nil
