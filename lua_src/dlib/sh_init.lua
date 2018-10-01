@@ -182,10 +182,6 @@ DLib.Loader.shclass('measure.lua')
 DLib.Loader.shclass('bezier.lua')
 DLib.Loader.clclass('keybinds.lua')
 
-DLib.Loader.start('lang')
-DLib.Loader.load('dlib/modules/lang')
-DLib.Loader.finish()
-
 DLib.Loader.start('i18n')
 DLib.Loader.load('dlib/modules/i18n')
 DLib.Loader.finish()
