@@ -236,12 +236,6 @@ function CSoundPatch:Remove()
 	return self:Stop()
 end
 
-local topatch = {
-	1, '', function() end, true
-}
-
-local tonumber, tostring = tonumber, tostring
-
 local meta = getmetatable(function() end) or {}
 
 function meta:tonumber()
@@ -252,13 +246,15 @@ function meta:tostring()
 	return tostring(self)
 end
 
-debug.setmetatable(value, meta)
+debug.setmetatable(function() end, meta)
 
 string.tonumber = meta.tonumber
 string.tostring = meta.tostring
 
 math.tonumber = meta.tonumber
 math.tostring = meta.tostring
+
+-- TODO: This probably needs to be moved out from DLib
 
 local entMeta = FindMetaTable('Entity')
 local Vector, Angle = Vector, Angle

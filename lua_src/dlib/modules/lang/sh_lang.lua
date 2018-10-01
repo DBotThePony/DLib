@@ -18,7 +18,7 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-
+-- TODO: Move all addons to i18n and remove this crap
 local langObjectMeta = {}
 
 function langObjectMeta:preprocess(...)

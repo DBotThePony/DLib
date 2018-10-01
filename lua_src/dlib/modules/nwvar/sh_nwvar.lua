@@ -18,7 +18,7 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-
+-- TODO: Move all addons to NW2
 local entMeta = FindMetaTable('Entity')
 
 nw.NETWORK_DB = nw.NETWORK_DB or {}

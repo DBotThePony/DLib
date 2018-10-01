@@ -89,7 +89,6 @@ MsgC('[DLib] Initializing DLib core ... ')
 DLib.simpleInclude('core/core.lua')
 DLib.simpleInclude('core/luaify.lua')
 DLib.simpleInclude('core/funclib.lua')
-DLib.simpleInclude('util/alias.lua')
 DLib.MessageMaker = DLib.simpleInclude('util/message.lua')
 DLib.MessageMaker(DLib, 'DLib')
 DLib.simpleInclude('core/sandbox.lua')
@@ -104,8 +103,6 @@ end
 
 DLib.CMessage = DLib.MessageMaker
 DLib.ConstructMessage = DLib.MessageMaker
-
-DLib.simpleInclude('util/color.lua')
 
 DLib.simpleInclude('util/combathelper.lua')
 DLib.simpleInclude('util/util.lua')
@@ -130,14 +127,12 @@ timeStart = SysTime()
 MsgC('[DLib] Initializing DLib GLua extensions ... ')
 
 DLib.Loader.shmodule('bitworker.lua')
-DLib.Loader.shmodule('bitworker2.lua')
 
 DLib.simpleInclude('luabridge/luaify.lua')
 
 DLib.simpleInclude('extensions/extensions.lua')
 DLib.simpleInclude('extensions/string.lua')
 DLib.simpleInclude('extensions/ctakedmg.lua')
-DLib.simpleInclude('extensions/table.lua')
 DLib.simpleInclude('extensions/cvar.lua')
 DLib.simpleInclude('extensions/entity.lua')
 DLib.simpleInclude('extensions/render.lua')
@@ -209,7 +204,6 @@ MsgC('[DLib] Initializing DLib LuaBridge ... ')
 
 DLib.simpleInclude('luabridge/luabridge.lua')
 DLib.simpleInclude('luabridge/physgunhandler.lua')
-DLib.simpleInclude('luabridge/pnlhud.lua')
 DLib.simpleInclude('luabridge/loading_stages.lua')
 DLib.simpleInclude('util/registry_dump.lua')
 DLib.simpleInclude('util/report.lua')

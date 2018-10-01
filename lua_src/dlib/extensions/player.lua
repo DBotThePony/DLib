@@ -31,7 +31,7 @@ local type = type
 player.all = player.GetAll
 player.getAll = player.GetAll
 
-function player.inRange(position, range)
+function player.InRange(position, range)
 	range = range ^ 2
 
 	local output = {}
@@ -44,8 +44,6 @@ function player.inRange(position, range)
 
 	return output
 end
-
-player.InRange = player.inRange
 
 -- Fix performance a bit
 function player.GetBySteamID(steamid)

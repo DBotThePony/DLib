@@ -131,20 +131,20 @@ class DLib.Freespace
 		return false
 
 	SearchAll: =>
-		output = table()
-		output\insert(@pos) if @check(@pos)
+		output = {}
+		table.insert(output, @pos) if @check(@pos)
 
 		for radius = 1, @radius
 			for x = -radius, radius
 				pos = @pos + Vector(x * @step, radius * @step, 0)
-				output\insert(pos) if @check(pos)
+				table.insert(output, pos) if @check(pos)
 				pos = @pos + Vector(x * @step, -radius * @step, 0)
-				output\insert(pos) if @check(pos)
+				table.insert(output, pos) if @check(pos)
 
 			for y = -radius, radius
 				pos = @pos + Vector(radius * @step, y * @step, 0)
-				output\insert(pos) if @check(pos)
+				table.insert(output, pos) if @check(pos)
 				pos = @pos + Vector(-radius * @step, y * @step, 0)
-				output\insert(pos) if @check(pos)
+				table.insert(output, pos) if @check(pos)
 
 		return output

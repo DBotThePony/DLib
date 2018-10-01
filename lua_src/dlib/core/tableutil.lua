@@ -29,6 +29,10 @@ local insert = function(self, val)
 	return newIndex
 end
 
+table.unpack = unpack
+table.pairs = pairs
+table.ipairs = ipairs
+
 -- Appends numeric indexed tables
 function table.append(destination, source)
 	if #source == 0 then return destination end
