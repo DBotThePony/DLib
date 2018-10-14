@@ -75,6 +75,8 @@ function i18n.RegisterProxy(...)
 	-- do nothing
 end
 
+local LANG_OVERRIDE = CreateConVar('gmod_language_dlib_sv', '', {FCVAR_ARCHIVE}, 'gmod_language override for DLib based addons')
+
 function i18n.UpdateLang()
 	gmod_language = gmod_language or GetConVar('gmod_language')
 	if not gmod_language then return end
