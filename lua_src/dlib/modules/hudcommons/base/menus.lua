@@ -38,12 +38,6 @@ end
 function meta:PopulatePositionSettings(panel)
 	if not IsValid(panel) then return end
 
-	if table.Count(self.positionsConVars) == 0 then
-		Panel:Help('No convars registered!')
-		Panel:Help('Nothing to edit.')
-		return
-	end
-
 	panel:Button('Reset all').DoClick = function()
 		for i, convar in pairs(self.positionsConVars) do
 			convar.cvarX:Reset()
@@ -77,7 +71,9 @@ function meta:PopulateToolMenuDefault()
 		self:PopulateDefaultSettings(panel)
 	end)
 
-	spawnmenu.AddToolMenuOption('Utilities', 'User', self:GetID() .. '_menus_pos', self:GetName() .. ' positions', '', '', function(panel)
-		self:PopulatePositionSettings(panel)
-	end)
+	if table.Count(self.positionsConVars) ~= 0 then
+		spawnmenu.AddToolMenuOption('Utilities', 'User', self:GetID() .. '_menus_pos', self:GetName() .. ' positions', '', '', function(panel)
+			self:PopulatePositionSettings(panel)
+		end)
+	end
 end
