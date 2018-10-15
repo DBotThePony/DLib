@@ -213,6 +213,14 @@ function meta:AddHookCustom(event, id, funcIfAny, priority)
 	priority = priority or 3
 	funcIfAny = funcIfAny or self[id] or self[event]
 
+	if type(funcIfAny) == 'string' then
+		funcIfAny = self[funcIfAny]
+	end
+
+	if type(funcIfAny) ~= 'function' then
+		error('Invalid function supplied (' .. type(funcIfAny) .. ')')
+	end
+
 	self.chooks[id] = {event, self:GetID() .. '_' .. id, funcIfAny, priority}
 
 	if self:IsEnabled() then
