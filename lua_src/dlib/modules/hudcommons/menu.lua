@@ -92,7 +92,6 @@ local function PopulateColors2(Panel)
 		end
 
 		local picker = vgui.Create('DColorMixer', canvas)
-		collapse:SetContents(picker)
 		picker:SetConVarR(v.r:GetName())
 		picker:SetConVarG(v.g:GetName())
 		picker:SetConVarB(v.b:GetName())
