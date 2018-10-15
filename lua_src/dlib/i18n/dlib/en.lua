@@ -24,6 +24,8 @@ gui.misc.cancel = 'Cancel'
 gui.misc.yes = 'Yes'
 gui.misc.no = 'No'
 
+gui.dlib.hudcommons.reset = 'Reset'
+
 info.dlib.tformat.seconds = 'seconds'
 info.dlib.tformat.minutes = 'minutes'
 info.dlib.tformat.hours = 'hours'

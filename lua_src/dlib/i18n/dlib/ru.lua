@@ -24,6 +24,8 @@ gui.misc.cancel = 'Отмена'
 gui.misc.yes = 'Да'
 gui.misc.no = 'Нет'
 
+gui.dlib.hudcommons.reset = 'Сбросить'
+
 info.dlib.tformat.seconds = 'секунд'
 info.dlib.tformat.minutes = 'минут'
 info.dlib.tformat.hours = 'часов'
