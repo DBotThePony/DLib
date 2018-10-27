@@ -92,6 +92,7 @@ DLib.simpleInclude('core/funclib.lua')
 DLib.MessageMaker = DLib.simpleInclude('util/message.lua')
 DLib.MessageMaker(DLib, 'DLib')
 DLib.simpleInclude('core/sandbox.lua')
+DLib.simpleInclude('core/promise.lua')
 
 if jit then
 	if SERVER then AddCSLuaFile('dlib/core/vmdef.lua') end
