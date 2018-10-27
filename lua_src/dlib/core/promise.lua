@@ -27,6 +27,7 @@ local type = type
 local error = error
 local xpcall = xpcall
 local debug = debug
+local ProtectedCall = ProtectedCall
 
 meta.MetaName = 'Promise'
 meta.__index = meta
@@ -44,6 +45,7 @@ local function constructor(handler)
 	self.executed = false
 	self.success = false
 	self.failure = false
+	self.traceback = debug.traceback(nil, 2)
 
 	self.__resolve = function(arg) return self:onResolve(arg) end
 	self.__reject = function(arg) return self:onReject(arg) end
@@ -75,17 +77,14 @@ function meta:onReject(arg)
 		error('Unhandled promise rejection: ' .. tostring(arg), 2)
 	end
 
-	local err2
-
 	xpcall(self.reject, function(err)
 		DLib.Message('Error while handling promise rejection. WTF?!')
 		DLib.Message(debug.traceback(err, 2))
-		err2 = err
-	end, arg)
+		DLib.Message('Promise created at')
+		DLib.Message(self.traceback)
 
-	if err2 then
-		error('Unhandled promise rejection: ' .. err2, 2)
-	end
+		ProtectedCall(error:Wrap('Unhandled promise rejection: ' .. err2, 3))
+	end, arg)
 end
 
 function meta:execute()

@@ -34,6 +34,8 @@ DLib.Loader.csModule('dlib/modules/notify/client')
 DLib.Loader.svmodule('notify/sv_dnotify.lua')
 DLib.Loader.csModule('dlib/util/client')
 DLib.Loader.csModule('dlib/modules/client')
+DLib.Loader.svmodule('server/dmysql4.lua')
+DLib.Loader.svmodule('server/dmysql4_bake.lua')
 DLib.Loader.svmodule('server/dmysql.lua')
 DLib.Loader.svmodule('server/friendstatus.lua')
 
