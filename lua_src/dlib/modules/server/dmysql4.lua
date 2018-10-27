@@ -58,7 +58,7 @@ function DMySQL4.Create(name)
 	local readConfig
 
 	if not file.Exists('dmysql4/' .. name .. '.txt', 'DATA') then
-		file.Write('dmysql4/' .. name .. '.txt', util.TableToJSON(default))
+		file.Write('dmysql4/' .. name .. '.txt', util.TableToJSON(default, true))
 		readConfig = table.Copy(default)
 	else
 		local read = file.Read('dmysql4/' .. name .. '.txt', 'DATA')
@@ -71,7 +71,7 @@ function DMySQL4.Create(name)
 			DMySQL4.Message('!!! It were saved as __' .. name .. '.txt')
 			DMySQL4.Message('!!!!!!!!!!!!!!!!!!')
 			readConfig = table.Copy(default)
-			file.Write('dmysql4/' .. name .. '.txt', util.TableToJSON(default))
+			file.Write('dmysql4/' .. name .. '.txt', util.TableToJSON(default, true))
 		else
 			for k, v in pairs(json) do
 				if default[k] == nil then
