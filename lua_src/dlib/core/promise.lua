@@ -90,7 +90,11 @@ end
 
 function meta:execute()
 	self.executed = true
-	self.handler(self.__resolve, self.__reject)
+
+	xpcall(self.handler, function(err)
+		self:onReject(debug.traceback(err, 2))
+	end, self.__resolve, self.__reject)
+
 	return self
 end
 
