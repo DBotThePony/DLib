@@ -72,6 +72,10 @@ function getinfo.Replicate(cvarname, valuetype, default)
 		nwGet = entMeta.GetNW2String
 	end
 
+	if not nwSet then
+		error('Missing NW Set for ' .. cvarname .. '! This should never happen')
+	end
+
 	getinfo.bank[cvarname] = {
 		crc = crc,
 		uid = tonumber(crc),
@@ -149,7 +153,7 @@ end
 
 function plyMeta:GetInfoDLib(cvarname)
 	if getinfo.bank[cvarname] then
-		return getinfo.bank[cvarname].nwGet(ply, cvarname)
+		return getinfo.bank[cvarname].nwGet(self, cvarname)
 	else
 		return self:GetInfo(cvarname)
 	end
