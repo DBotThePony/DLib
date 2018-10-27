@@ -35,6 +35,7 @@ if SERVER then
 end
 
 local plyMeta = FindMetaTable('Player')
+local entMeta = FindMetaTable('Entity')
 DLib.getinfo = DLib.getinfo or {}
 local getinfo = DLib.getinfo
 
@@ -45,26 +46,30 @@ getinfo.bankOptimized = {}
 function getinfo.Replicate(cvarname, valuetype, default)
 	valuetype = valuetype or 'boolean'
 	local crc = util.CRC(cvarname)
-	local writeFunc, readFunc
+	local writeFunc, readFunc, nwGet, nwSet
 
 	if valuetype == 'boolean' then
 		readFunc = net.ReadBool
 		writeFunc = net.WriteBool
-		DLib.nw.poolBoolean(cvarname, default)
+		nwSet = entMeta.SetNW2Bool
+		nwGet = entMeta.GetNW2Bool
 	elseif valuetype == 'integer' or valuetype == 'number' then
 		readFunc = net.GReadInt(val)
 		writeFunc = net.GWriteInt(val)
-		DLib.nw.poolInt(cvarname, default)
+		nwSet = entMeta.SetNW2Int
+		nwGet = entMeta.GetNW2Int
 	elseif valuetype == 'uinteger' then
 		readFunc = net.GReadUInt(val)
 		writeFunc = net.GWriteUInt(val)
-		DLib.nw.poolUInt(cvarname, default)
+		nwSet = entMeta.SetNW2UInt
+		nwGet = entMeta.GetNW2UInt
 	else
 		readFunc = net.ReadString
 		writeFunc = net.WriteString
 		default = tostring(default)
 		valuetype = 'string'
-		DLib.nw.poolString(cvarname, default)
+		nwSet = entMeta.SetNW2String
+		nwGet = entMeta.GetNW2String
 	end
 
 	getinfo.bank[cvarname] = {
@@ -78,6 +83,8 @@ function getinfo.Replicate(cvarname, valuetype, default)
 		cvarname = cvarname,
 		writeFunc = writeFunc,
 		readFunc = readFunc,
+		nwGet = nwGet,
+		nwSet = nwSet,
 	}
 
 	getinfo.bankCRC[crc] = getinfo.bank[cvarname]
@@ -115,7 +122,7 @@ if CLIENT then
 				net.WriteUInt(data.uid, 32)
 				data.writeFunc(val)
 
-				ply:SetDLibVar(data.id, val)
+				data.nwSet(ply, data.id, val)
 				data.oldval = val
 			--end
 		end
@@ -133,7 +140,7 @@ else
 			local bank = getinfo.bankCRC[nextID]
 
 			local val = bank.readFunc()
-			ply:SetDLibVar(bank.id, val)
+			bank.nwSet(ply, bank.id, val)
 
 			nextID = net.ReadUInt(32)
 		end
@@ -142,7 +149,7 @@ end
 
 function plyMeta:GetInfoDLib(cvarname)
 	if getinfo.bank[cvarname] then
-		return self:DLibVar(cvarname)
+		return getinfo.bank[cvarname].nwGet(ply, cvarname)
 	else
 		return self:GetInfo(cvarname)
 	end

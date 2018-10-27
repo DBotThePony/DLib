@@ -68,6 +68,44 @@ function PhysObj:EnableCollisions(newStatus)
 	return self:DLibEnableCollisions(newStatus)
 end
 
+function entMeta:SetNW2UInt(name, value)
+	assert(type(value) == 'number', 'Value passed is not a number')
+
+	if value < 0 then
+		error('Value can not be negative')
+	end
+
+	if value > 0x100000000 then
+		error('Integer overflow')
+	end
+
+	if value >= 0x7FFFFFFF then
+		value = value - 0x100000000
+	end
+
+	self:SetNW2Int(name, value)
+end
+
+function entMeta:GetNW2UInt(name, ifNone)
+	if type(ifNone) == 'number' then
+		if ifNone < 0 then
+			error('Value can not be negative')
+		end
+
+		if ifNone > 0x100000000 then
+			error('Integer overflow')
+		end
+	end
+
+	local value = self:GetNW2Int(name, ifNone)
+
+	if grab < 0 then
+		return 0x100000000 + value
+	else
+		return value
+	end
+end
+
 function vectorMeta:Copy()
 	return Vector(self)
 end
