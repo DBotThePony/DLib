@@ -628,8 +628,8 @@ function VLL.__compileString(str, err, handle)
 	return func
 end
 
-function VLL.__runString(str, err, handle)
-	return VLL.__compileString(str, err, handle)()
+function VLL.__runString(str, identifier, handle)
+	return VLL.__compileString(str, identifier or 'RunString', handle)()
 end
 
 function VLL.__realRequire(str)
