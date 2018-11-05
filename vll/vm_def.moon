@@ -28,9 +28,9 @@ VLL2.ENV_TEMPLATE = {
 		return if not fpath
 		def = getdef()
 		return if def\FindRelative(fpath)
-		return if file.Exists(fpath)
+		return if file.Exists(fpath, 'LUA')
 		canonize = VLL2.FileSystem.Canonize(def\Dir(fpath))
-		return if file.Exists(canonize)
+		return if file.Exists(canonize, 'LUA')
 		def\Msg('Unable to find specified file for AddCSLuaFile: ' .. fpath)
 
 	module: (moduleName, ...) ->
