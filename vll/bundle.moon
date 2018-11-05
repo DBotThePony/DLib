@@ -36,7 +36,7 @@ class VLL2.AbstractBundle
 	@STATUS_RUNNING = 3
 	@STATUS_ERROR = 4
 
-	@DISK_CACHE = {fil\gsub('%.dat', ''), file.Time('vll2/lua_cache/' .. fil, 'DATA') for _, fil in *file.Find('vll2/lua_cache/*', 'DATA')}
+	@DISK_CACHE = {fil\gsub('%.dat', ''), file.Time('vll2/lua_cache/' .. fil, 'DATA') for fil in *file.Find('vll2/lua_cache/*', 'DATA')}
 	@DISK_CACHE_READ = {}
 
 	@Checkup = (bname) =>
@@ -46,7 +46,7 @@ class VLL2.AbstractBundle
 	@__FromCache = (hash) =>
 		return @DISK_CACHE_READ[hash] if @DISK_CACHE_READ[hash]
 		@DISK_CACHE_READ[hash] = file.Read('vll2/lua_cache/' .. hash .. '.dat', 'DATA')
-		decompress = util.Decompress(@DISK_CACHE_READ[hash])
+		decompress = util.Decompress(@DISK_CACHE_READ[hash] or '')
 
 		if decompress == ''
 			@DISK_CACHE_READ[hash] = nil
@@ -145,7 +145,7 @@ class VLL2.URLBundle extends VLL2.AbstractBundle
 
 		req = {
 			method: 'GET'
-			url: url
+			url: url\gsub(' ', '%%20')
 			headers: {
 				'User-Agent': 'VLL2'
 				Referer: VLL2.Referer()
