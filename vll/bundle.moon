@@ -72,6 +72,12 @@ class VLL2.AbstractBundle
 		else
 			return @__FromCache(fname)
 
+	@WriteCache = (fname, contents) =>
+		hash = util.CRC(fname)
+		@DISK_CACHE[hash] = os.time()
+		@DISK_CACHE_READ[fname] = contents
+		file.Write('vll2/lua_cache/' .. hash .. '.dat', util.Compress(contents))
+
 	new: (name) =>
 		@name = name
 		@@_S[name] = @
@@ -160,6 +166,7 @@ class VLL2.URLBundle extends VLL2.AbstractBundle
 
 			@downloaded += 1
 			@fs\Write(fpath, body)
+			@@WriteCache(fpath, body)
 			@CheckIfRunnable()
 
 		HTTP(req)
