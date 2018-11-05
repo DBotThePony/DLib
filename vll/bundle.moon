@@ -89,7 +89,9 @@ class VLL2.AbstractBundle
 	IsIdle: => @status == @@STATUS_NONE
 	IsReplicated: => @replicated
 
-	Replicate: (ply = player.GetAll()) => error('Not implemented')
+	Replicate: (ply = player.GetAll()) =>
+		return if CLIENT
+		error('Not implemented')
 
 	Run: =>
 		vm = VLL2.VM(@name, @fs, VLL2.FileSystem.INSTANCE)
@@ -117,6 +119,7 @@ class VLL2.URLBundle extends VLL2.AbstractBundle
 		@downloaded = -1
 
 	Replicate: (ply = player.GetAll()) =>
+		return if CLIENT
 		return if player.GetHumans() == 0
 		net.Start('vll2.replicate_url')
 		net.WriteString(@name)
