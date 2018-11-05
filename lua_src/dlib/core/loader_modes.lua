@@ -18,9 +18,9 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-
 local Loader = DLib.Loader
 
+--[[
 local function include2(fileIn)
 	local status = {xpcall(Loader.include, function(err) print(debug.traceback('[DLIB STARTUP ERROR] ' .. err)) end, fileIn)}
 	local bool = table.remove(status, 1)
@@ -28,6 +28,11 @@ local function include2(fileIn)
 	if bool then
 		return unpack(status)
 	end
+end
+]]
+
+local function include2(fileIn)
+	return Loader.include(fileIn)
 end
 
 function Loader.load(targetDir)
