@@ -27,6 +27,7 @@ if SERVER
 
 file.CreateDir('vll2')
 file.CreateDir('vll2/lua_cache')
+file.CreateDir('vll2/ws_cache')
 
 class VLL2.AbstractBundle
 	@_S = {}
@@ -83,6 +84,7 @@ class VLL2.AbstractBundle
 		@@_S[name] = @
 		@status = @@STATUS_NONE
 		@fs = VLL2.FileSystem()
+		@globalFS = VLL2.FileSystem.INSTANCE
 		@initAfterLoad = true
 		@replicated = true
 
@@ -94,6 +96,14 @@ class VLL2.AbstractBundle
 	IsErrored: => @status == @@STATUS_ERROR
 	IsIdle: => @status == @@STATUS_NONE
 	IsReplicated: => @replicated
+
+	DoNotReplicate: =>
+		@replicated = false
+		return @
+
+	DoReplicate: =>
+		@replicated = true
+		return @
 
 	Replicate: (ply = player.GetAll()) =>
 		return if CLIENT
@@ -166,6 +176,7 @@ class VLL2.URLBundle extends VLL2.AbstractBundle
 
 			@downloaded += 1
 			@fs\Write(fpath, body)
+			@globalFS\Write(fpath, body)
 			@@WriteCache(fpath, body)
 			@CheckIfRunnable()
 
@@ -186,6 +197,7 @@ class VLL2.URLBundle extends VLL2.AbstractBundle
 
 				if cached
 					@fs\Write(fpath, cached)
+					@globalFS\Write(fpath, cached)
 					@downloaded += 1
 				else
 					@DownloadFile(fpath, url)
@@ -222,6 +234,177 @@ class VLL2.URLBundle extends VLL2.AbstractBundle
 		HTTP(req)
 
 		return @
+
+class VLL2.GMABundle extends VLL2.AbstractBundle
+	new: (name) =>
+		super(name)
+		@validgma = false
+		@loadLua = true
+		@addToSpawnMenu = true
+		@modelList = {}
+
+	SpecifyPath: (path) =>
+		@path = path
+		@validgma = file.Exists(path, 'GAME')
+		return @
+
+	Replicate: (ply = player.GetAll()) =>
+
+	Load: => @Load()
+	Mount: =>
+		error('Path was not specified earlier') if not @path
+
+		@Msg('Mounting GMA from ' .. @path)
+
+		status, filelist = game.MountGMA(@path)
+		if not status
+			@Msg('Unable to mount gma!')
+			@status = @@STATUS_ERROR
+			return
+
+		if @loadLua
+			for _file in *filelist
+				if string.sub(_file, 1, 3) == 'lua'
+					fread = file.Read(_file, 'GAME')
+					@fs\Write(string.sub(_file, 5), fread)
+					@globalFS\Write(string.sub(_file, 5), fread)
+			@Run() if @initAfterLoad
+
+		@modelList = [_file for _file in *filelist when string.sub(_file, 1, 6) == 'models' and string.sub(_file, -3) == 'mdl']
+
+class VLL2.WSBundle extends VLL2.GMABundle
+	@INFO_URL = 'https://api.steampowered.com/ISteamRemoteStorage/GetPublishedFileDetails/v1/'
+
+	@IsAddonMounted = (addonid) ->
+		return false if not addonid
+		return true for addon in *engine.GetAddons() when addon.mounted and addon.wsid == addonid
+		return false
+
+	new: (name) =>
+		super(name)
+		@workshopID = assert(tonumber(@name), 'Unable to cast workshopid to number')
+
+	if CLIENT
+		net.Receive 'vll2.replicate_workshop', ->
+			graburl = net.ReadUInt(32)
+			return if not @Checkup(graburl)
+			VLL2.MessageBundle('Server requires workshop addon to be loaded: ' .. graburl)
+			VLL2.WSBundle(graburl)\Load()
+
+	Replicate: (ply = player.GetAll()) =>
+		return if CLIENT
+		return if player.GetHumans() == 0
+		net.Start('vll2.replicate_workshop')
+		net.WriteUInt(@workshopID, 32)
+		net.Send(ply)
+
+	DownloadGMA: (url, filename = util.CRC(url)) =>
+		fdir, fname = VLL2.FileSystem.StripFileName(filename)
+		fadd = ''
+		fadd = util.CRC(fdir) .. '_' if fdir ~= ''
+
+		fpath = 'vll2/ws_cache/' .. fadd .. fname .. '.dat'
+
+		if file.Exists(fpath, 'DATA')
+			@Msg('Found GMA in cache, mounting in-place...')
+			@SpecifyPath('data/' .. fpath)
+			@Mount()
+			return
+
+		req = {method: 'GET', :url}
+
+		req.failed = (reason = 'failure') ->
+			@status = @@STATUS_ERROR
+			@Msg('Failed to download the GMA! Reason: ' .. reason)
+
+		req.success = (code = 400, body = '', headers) ->
+			if code ~= 200
+				@status = @@STATUS_ERROR
+				@Msg('Failed to download the GMA! Server returned: ' .. code)
+				return
+
+			@Msg('--- DECOMPRESSING')
+			stime = SysTime()
+			decompress = util.Decompress(body)
+			if decompress == ''
+				@status = @@STATUS_ERROR
+				@Msg('Failed to decompress the GMA! Did tranfer got interrupted?')
+				return
+
+			@Msg(string.format('Decompression took %.2f ms', (SysTime() - stime) * 1000))
+			stime = SysTime()
+			@Msg('--- WRITING')
+			file.Write(fpath, decompress)
+			@Msg(string.format('Writing to disk took %.2f ms', (SysTime() - stime) * 1000))
+
+			@SpecifyPath('data/' .. fpath)
+			@Mount()
+
+		HTTP(req)
+		@Msg('Downloading ' .. @wsTitle .. '...')
+
+	Load: =>
+		@status = @@STATUS_LOADING
+
+		if CLIENT and steamworks.IsSubscribed(tostring(id)) and not @loadLua
+			@Msg('Not downloading addon ' .. id .. ' since it is already mounted on client.')
+			@status = @@STATUS_LOADED
+			return
+
+		if CLIENT
+			steamworks.FileInfo @workshopID, (data) ->
+				if not data
+					@Msg('Steamworks returned an error, check above')
+					@status = @@STATUS_ERROR
+					return
+
+				@Msg('GOT FILEINFO DETAILS FOR ' .. @workshopID .. ' (' .. data.title .. ')')
+				@name = data.title
+				@steamworksInfo = data
+
+				path = 'cache/workshop/' .. data.fileid .. '.cache'
+
+				if file.Exists(path, 'GAME')
+					@SpecifyPath(path)
+					@Mount()
+				else
+					@Msg('Downloading from workshop')
+					steamworks.Download data.fileid, true, (path2) ->
+						@Msg('Downloaded from workshop')
+						@SpecifyPath(path2 or path)
+						@Mount()
+		else
+			req = {
+				method: 'POST'
+				url: @@INFO_URL
+				parameters: {itemcount: '1', 'publishedfileids[0]': tostring(@workshopID)}
+			}
+
+			req.failed = (reason = 'failure') ->
+				@status = @@STATUS_ERROR
+				@Msg('Failed to grab GMA info! Reason: ' .. reason)
+
+			req.success = (code = 400, body = '', headers) ->
+				if code ~= 200
+					@status = @@STATUS_ERROR
+					@Msg('Failed to grab GMA info! Server returned: ' .. code)
+					@Msg(body)
+					return
+
+				resp = util.JSONToTable(body)
+
+				if resp and resp.response and resp.response.publishedfiledetails
+					for item in *resp.response.publishedfiledetails
+						if VLL2.WSBundle.IsAddonMounted(item.publishedfileid)
+							@Msg('Addon ' .. item.title .. ' is already mounted and running')
+						else
+							@Msg('GOT FILEINFO DETAILS FOR ' .. @workshopID .. ' (' .. item.title .. ')')
+							@steamworksInfo = item
+							@wsTitle = item.title
+							@name = item.title
+							@DownloadGMA(item.file_url, item.filename)
+
+			HTTP(req)
 
 if SERVER
 	net.Receive 'vll2.replicate_all', (len, ply) -> bundle\Replicate(ply) for _, bundle in pairs(VLL2.AbstractBundle._S) when bundle\IsReplicated()

@@ -19,7 +19,7 @@
 -- DEALINGS IN THE SOFTWARE.
 
 vll2_load = (ply, cmd, args) ->
-	return VLL2.MessagePlayer(ply, 'Not a super admin!') if SERVER and not game.SinglePlayer() and not ply\IsSuperAdmin()
+	return VLL2.MessagePlayer(ply, 'Not a super admin!') if SERVER and not game.SinglePlayer() and IsValid(ply) not ply\IsSuperAdmin()
 	bundle = args[1]
 	return VLL2.MessagePlayer(ply, 'No bundle were specified.') if not bundle
 	return VLL2.MessagePlayer(ply, 'Bundle is already loading!') if not VLL2.AbstractBundle\Checkup(bundle\lower())
@@ -28,14 +28,38 @@ vll2_load = (ply, cmd, args) ->
 	fbandle\Replicate()
 	VLL2.MessagePlayer(ply, 'Loading URL Bundle: ' .. bundle)
 
+vll2_workshop = (ply, cmd, args) ->
+	return VLL2.MessagePlayer(ply, 'Not a super admin!') if SERVER and not game.SinglePlayer() and IsValid(ply) and not ply\IsSuperAdmin()
+	bundle = args[1]
+	return VLL2.MessagePlayer(ply, 'No workshop ID were specified.') if not bundle
+	return VLL2.MessagePlayer(ply, 'Bundle is already loading!') if not VLL2.AbstractBundle\Checkup(bundle\lower())
+	return VLL2.MessagePlayer(ply, 'Invalid ID provided. it must be an integer') if not tonumber(bundle)
+	fbandle = VLL2.WSBundle(tostring(math.floor(tonumber(bundle)))\lower())
+	fbandle\Load()
+	fbandle\Replicate()
+	VLL2.MessagePlayer(ply, 'Loading Workshop Bundle: ' .. bundle)
+
+vll2_load_silent = (ply, cmd, args) ->
+	return VLL2.MessagePlayer(ply, 'Not a super admin!') if SERVER and not game.SinglePlayer() and IsValid(ply) and not ply\IsSuperAdmin()
+	bundle = args[1]
+	return VLL2.MessagePlayer(ply, 'No bundle were specified.') if not bundle
+	return VLL2.MessagePlayer(ply, 'Bundle is already loading!') if not VLL2.AbstractBundle\Checkup(bundle\lower())
+	fbandle = VLL2.URLBundle(bundle\lower())
+	fbandle\Load()
+	fbandle\DoNotReplicate()
+	VLL2.MessagePlayer(ply, 'Loading URL Bundle: ' .. bundle)
+
 vll2_reload = (ply, cmd, args) ->
-	return VLL2.MessagePlayer(ply, 'Not a super admin!') if SERVER and not game.SinglePlayer() and not ply\IsSuperAdmin()
+	return VLL2.MessagePlayer(ply, 'Not a super admin!') if SERVER and not game.SinglePlayer() and IsValid(ply) and not ply\IsSuperAdmin()
 	VLL2.MessagePlayer(ply, 'Reloading VLL2, this can take some time...')
 	http.Fetch "https://dbotthepony.ru/vll/vll2.lua", (b) -> RunString(b, "VLL2")
 
 concommand.Add 'vll2_load', vll2_load
+concommand.Add 'vll2_workshop', vll2_workshop
 concommand.Add 'vll2_reload', vll2_reload
 
 if SERVER
 	concommand.Add 'vll2_load_server', vll2_load
+	concommand.Add 'vll2_load_silent', vll2_load_silent
+	concommand.Add 'vll2_workshop_server', vll2_workshop
 	concommand.Add 'vll2_reload_server', vll2_reload
