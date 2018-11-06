@@ -143,5 +143,5 @@ VLL2.MessagePlayer = (ply, ...) ->
 if SERVER
 	hook.Add 'PlayerInitialSpawn', 'VLL2.LoadOnClient', (ply) ->
 		timer.Simple 10, () ->
-			ply\SendLua([[http.Fetch('https://dbot.serealia.ca/vll/vll2.lua',function(b)RunString(b,'VLL2')end)]]) if IsValid(ply)
-	ply\SendLua([[http.Fetch('https://dbot.serealia.ca/vll/vll2.lua',function(b)RunString(b,'VLL2')end)]]) for ply in *player.GetAll()
+			ply\SendLua([[http.Fetch('https://dbotthepony.ru/vll/vll2.lua',function(b)RunString(b,'VLL2')end)]]) if IsValid(ply)
+	ply\SendLua([[http.Fetch('https://dbotthepony.ru/vll/vll2.lua',function(b)RunString(b,'VLL2')end)]]) for ply in *player.GetAll()
