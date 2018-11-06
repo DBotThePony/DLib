@@ -145,8 +145,8 @@ if SERVER
 	if VLL2.IS_WEB_LOADED
 		hook.Add 'PlayerInitialSpawn', 'VLL2.LoadOnClient', (ply) ->
 			timer.Simple 10, () ->
-				ply\SendLua([[http.Fetch('https://dbotthepony.ru/vll/vll2.lua',function(b)RunString(b,'VLL2')end)]]) if IsValid(ply)
-		ply\SendLua([[http.Fetch('https://dbotthepony.ru/vll/vll2.lua',function(b)RunString(b,'VLL2')end)]]) for ply in *player.GetAll()
+				ply\SendLua([[if VLL2 then return end http.Fetch('https://dbotthepony.ru/vll/vll2.lua',function(b)RunString(b,'VLL2')end)]]) if IsValid(ply)
+		ply\SendLua([[if VLL2 then return end http.Fetch('https://dbotthepony.ru/vll/vll2.lua',function(b)RunString(b,'VLL2')end)]]) for ply in *player.GetAll()
 	else
 		AddCSLuaFile()
 		hook.Remove 'PlayerInitialSpawn', 'VLL2.LoadOnClient'
