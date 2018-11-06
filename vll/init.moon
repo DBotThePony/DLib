@@ -23,6 +23,7 @@ if VLL2
 
 export VLL2
 VLL2 = {}
+VLL2.IS_WEB_LOADED = debug.getinfo(1).short_src == 'VLL2'
 
 import SERVER, CLIENT, string, game, GetHostName, table, util, MsgC, Color from _G
 
@@ -141,7 +142,11 @@ VLL2.MessagePlayer = (ply, ...) ->
 	net.Send(ply)
 
 if SERVER
-	hook.Add 'PlayerInitialSpawn', 'VLL2.LoadOnClient', (ply) ->
-		timer.Simple 10, () ->
-			ply\SendLua([[http.Fetch('https://dbotthepony.ru/vll/vll2.lua',function(b)RunString(b,'VLL2')end)]]) if IsValid(ply)
-	ply\SendLua([[http.Fetch('https://dbotthepony.ru/vll/vll2.lua',function(b)RunString(b,'VLL2')end)]]) for ply in *player.GetAll()
+	if VLL2.IS_WEB_LOADED
+		hook.Add 'PlayerInitialSpawn', 'VLL2.LoadOnClient', (ply) ->
+			timer.Simple 10, () ->
+				ply\SendLua([[http.Fetch('https://dbotthepony.ru/vll/vll2.lua',function(b)RunString(b,'VLL2')end)]]) if IsValid(ply)
+		ply\SendLua([[http.Fetch('https://dbotthepony.ru/vll/vll2.lua',function(b)RunString(b,'VLL2')end)]]) for ply in *player.GetAll()
+	else
+		AddCSLuaFile()
+		hook.Remove 'PlayerInitialSpawn', 'VLL2.LoadOnClient'
