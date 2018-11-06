@@ -34,7 +34,7 @@ class VLL2.FileDef
 
 	FileExists: (fpath) => fpath and (@localFS\Exists(fpath) or @globalFS and @globalFS\Exists(fpath))
 	ReadFile: (fpath) =>
-		return '' if not @Exists(fpath)
+		return '' if not @FileExists(fpath)
 		return @localFS\Read(fpath) if @localFS\Exists(fpath)
 		return @globalFS\Read(fpath) if @globalFS and @globalFS\Exists(fpath)
 		return ''
@@ -170,8 +170,9 @@ class VLL2.VM
 	Exists: (fpath) => @localFS\Exists(fpath) or @globalFS and @globalFS\Exists(fpath)
 
 	NewEnv: (fpath) =>
+		assert(type(fpath) ~= 'nil', 'No fpath were provided!')
 		env = {k, v for k, v in pairs(@env)}
-		env.VLL2_FILEDEF = VLL2.FileDef(fpath, @)
+		env.VLL2_FILEDEF = type(fpath) == 'string' and VLL2.FileDef(fpath, @) or fpath
 
 		setmetatable(env, {
 			__index: _G
@@ -180,7 +181,8 @@ class VLL2.VM
 
 		return env
 
-	CompileString: (strIn, identifier = 'CompileString') =>
+	CompileString: (strIn, identifier = 'CompileString', fdef) =>
+		assert(fdef, 'File definition from where CompileString was called must be present')
 		fcall = CompileString(strIn, identifier, false)
 
 		if type(fcall) == 'string'
@@ -197,7 +199,7 @@ class VLL2.VM
 			callable()
 			return callable, false, fcall
 
-		setfenv(fcall, @NewEnv())
+		setfenv(fcall, @NewEnv(fdef))
 		return fcall, true
 
 	__CompileFileFallback: (fpath) =>
@@ -217,7 +219,15 @@ class VLL2.VM
 			callable()
 			return callable, false, fcall
 
-		setfenv(fcall, @NewEnv())
+		if not fcall
+			callable = () ->
+				VLL2.MessageVM('File is missing: ' .. fpath .. ' inside ' .. @vmName)
+				nil
+			callable()
+			--return callable, false, 'Failed to include file: file not found'
+			return callable, true
+
+		setfenv(fcall, @NewEnv(fpath))
 		return fcall, true
 
 	Msg: (...) => VLL2.MessageVM(@vmName .. ': ', ...)

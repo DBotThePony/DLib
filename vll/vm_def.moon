@@ -76,7 +76,7 @@ VLL2.ENV_TEMPLATE = {
 		canonize = def\FindRelative(fpath)
 		vm\Msg('Running file ' .. (canonize or fpath))
 		fget, fstatus, ferror = vm\CompileFile(canonize or fpath)
-		assert(fstatus, ferror, 2)
+		assert(fstatus, ferror)
 		return fget()
 
 	CompileFile: (fpath) ->
@@ -86,13 +86,13 @@ VLL2.ENV_TEMPLATE = {
 		canonize = def\FindRelative(fpath)
 		vm\Msg('Compiling file ' .. (canonize or fpath))
 		fget, fstatus, ferror = vm\CompileFile(canonize or fpath)
-		assert(fstatus, ferror, 2)
+		assert(fstatus, ferror)
 		return fget
 
 	CompileString: (strIn, identifier, handle = true) ->
 		assert(identifier, 'Missing identifier', 2)
 		vm = getvm()
-		fget, fstatus, ferror = vm\CompileString(strIn, identifier)
+		fget, fstatus, ferror = vm\CompileString(strIn, identifier, getdef())
 		return ferror if not handle and not fstatus
 		error(ferror, 2) if handle and not fstatus
 		return fget
@@ -108,17 +108,16 @@ VLL2.ENV_TEMPLATE = {
 
 VLL2.ENV_TEMPLATE.file = setmetatable({
 	Exists: (fpath, fmod) ->
-		assert(fmod, 'Invalid FMOD provided', 2)
+		assert(fmod, 'Invalid FMOD provided')
 		return file.Exists(fpath, fmod) if fmod\lower() ~= 'lua'
 		return getdef()\FileExists(fpath) or file.Exists(fpath, fmod)
 
-	Read: (fpath, fmod) ->
-		assert(fmod, 'Invalid FMOD provided', 2)
+	Read: (fpath, fmod = 'DATA') ->
 		return file.Read(fpath, fmod) if fmod\lower() ~= 'lua'
 		return getdef()\ReadFile(fpath)
 
 	Find: (fpath, fmod) ->
-		assert(fmod, 'Invalid FMOD provided', 2)
+		assert(fmod, 'Invalid FMOD provided')
 		return file.Find(fpath, fmod) if fmod\lower() ~= 'lua'
 		return getdef()\FindFiles(fpath)
 }, {
