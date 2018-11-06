@@ -27,11 +27,20 @@ echo "
 -- http.Fetch('https://dbotthepony.ru/vll/vll2.lua',function(b)RunString(b,'VLL2')end)
 -- ulx luarun \"http.Fetch('https://dbotthepony.ru/vll/vll2.lua',function(b)RunString(b,'VLL2')end)\"
 
+local __cloadStatus, _cloadError = pcall(function()
 " > vll2.lua
 
 cat init.lua >> vll2.lua
 
 echo "
+end)
+
+if not __cloadStatus then
+	print('UNABLE TO LOAD VLL2 CORE')
+	print('LOAD CAN NOT CONTINUE')
+	return
+end
+
 VLL2.Message('Starting up...')
 local ___status, ___err = pcall(function()" >> vll2.lua
 cat util.lua >> vll2.lua
