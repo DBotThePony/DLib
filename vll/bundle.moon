@@ -133,6 +133,8 @@ class VLL2.URLBundle extends VLL2.AbstractBundle
 		super(name)
 		@toDownload = -1
 		@downloaded = -1
+		@downloadQueue = {}
+		@cDownloading = 0
 
 	Replicate: (ply = player.GetAll()) =>
 		return if CLIENT
@@ -150,8 +152,23 @@ class VLL2.URLBundle extends VLL2.AbstractBundle
 		@Run()
 
 	DownloadFile: (fpath, url) =>
+		if @cDownloading >= 16
+			table.insert(@downloadQueue, {fpath, url})
+			return
+
+		@DownloadNextFile(fpath, url)
+		return @
+
+	__DownloadCallback: =>
+		return if #@downloadQueue == 0
+		{fpath, url} = table.remove(@downloadQueue)
+		@DownloadNextFile(fpath, url)
+
+	DownloadNextFile: (fpath, url) =>
 		assert(fpath)
 		assert(url)
+
+		@cDownloading += 1
 
 		req = {
 			method: 'GET'
@@ -163,18 +180,24 @@ class VLL2.URLBundle extends VLL2.AbstractBundle
 		}
 
 		req.failed = (reason = 'failed') ->
+			@cDownloading -= 1
+			@__DownloadCallback()
 			@status = @@STATUS_ERROR
 			@Msg('download of ' .. fpath .. ' failed, reason: ' .. reason)
 			@Msg('URL: ' .. url)
 
 		req.success = (code = 400, body = '', headers) ->
+			@cDownloading -= 1
+
 			if code ~= 200
 				@Msg('download of ' .. fpath .. ' failed, server returned: ' .. code)
 				@Msg('URL: ' .. url)
 				@status = @@STATUS_ERROR
+				@__DownloadCallback()
 				return
 
 			@downloaded += 1
+			@__DownloadCallback()
 			@fs\Write(fpath, body)
 			@globalFS\Write(fpath, body)
 			@@WriteCache(fpath, body)

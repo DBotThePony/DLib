@@ -41,6 +41,18 @@ class VLL2.FSDirectory
 			@subdirs[directory] = dir
 			return dir
 
+	OpenRaw: (directory) =>
+		return @ if directory == '' or directory == '/' or directory\Trim() == ''
+		if string.find(directory, '/', 1, true)
+			startpos = string.find(directory, '/', 1, true)
+			namedir = string.sub(directory, 1, startpos - 1)\lower()
+			nextdir = string.sub(directory, startpos + 1)\lower()
+			return @subdirs[namedir]\OpenRaw(nextdir) if @subdirs[namedir]
+			return false
+		else
+			return @subdirs[directory] if @subdirs[directory]
+			return false
+
 	GetName: => @name
 
 	Write: (name, contents) =>

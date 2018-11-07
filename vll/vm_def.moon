@@ -106,7 +106,9 @@ VLL2.ENV_TEMPLATE = {
 		nil
 }
 
-VLL2.ENV_TEMPLATE.file = setmetatable({
+import rawget, file from _G
+
+VLL2.ENV_TEMPLATE.file = {
 	Exists: (fpath, fmod) ->
 		assert(fmod, 'Invalid FMOD provided')
 		return file.Exists(fpath, fmod) if fmod\lower() ~= 'lua'
@@ -120,10 +122,17 @@ VLL2.ENV_TEMPLATE.file = setmetatable({
 		assert(fmod, 'Invalid FMOD provided')
 		return file.Find(fpath, fmod) if fmod\lower() ~= 'lua'
 		return getdef()\FindFiles(fpath)
-}, {
-	__index: (key) =>
-		val = rawget(@, key)
-		return val if val ~= nil
-		return file[key]
+
+	IsDir: (fpath, fmod) ->
+		assert(fmod, 'Invalid FMOD provided')
+		return file.IsDir(fpath, fmod) if fmod\lower() ~= 'lua'
+		return getdef()\IsDir(fpath)
+}
+
+-- wtf
+VLL2.ENV_TEMPLATE.file[k] = v for k, v in pairs(file) when VLL2.ENV_TEMPLATE.file[k] == nil
+
+setmetatable(VLL2.ENV_TEMPLATE.file, {
+	__index: file
 	__newindex: file
 })

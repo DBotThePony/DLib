@@ -57,6 +57,8 @@ class VLL2.FileDef
 		table.sort(dirs)
 		return files, dirs
 
+	IsDir: (fpath) => @localFS\OpenRaw(fpath) ~= nil or @globalFS and @globalFS\OpenRaw(fpath) ~= nil
+
 	Msg: (...) => VLL2.MessageVM(@vm.vmName .. ':' .. @fpath .. ':', ...)
 
 class VLL2.VM
