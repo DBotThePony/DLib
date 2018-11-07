@@ -31,6 +31,7 @@ file.CreateDir('vll2/ws_cache')
 
 class VLL2.AbstractBundle
 	@_S = {}
+	@LISTING = {}
 	@STATUS_NONE = 0
 	@STATUS_LOADING = 1
 	@STATUS_LOADED = 2
@@ -82,6 +83,7 @@ class VLL2.AbstractBundle
 	new: (name) =>
 		@name = name
 		@@_S[name] = @
+		@@LISTING[name] = @
 		@status = @@STATUS_NONE
 		@fs = VLL2.FileSystem()
 		@globalFS = VLL2.FileSystem.INSTANCE
@@ -125,6 +127,14 @@ class VLL2.AbstractBundle
 
 class VLL2.URLBundle extends VLL2.AbstractBundle
 	@FETH_BUNDLE_URL = 'https://dbotthepony.ru/vll/package.php'
+	@LISTING = {}
+
+	@GetMessage = =>
+		return if SERVER
+		downloading = 0
+		downloading += 1 for _, bundle in pairs(@LISTING) when bundle\IsLoading()
+		return if downloading == 0
+		return 'VLL2 Is downloading ' .. downloading .. ' URL bundles'
 
 	if CLIENT
 		net.Receive 'vll2.replicate_url', ->
@@ -263,12 +273,40 @@ class VLL2.URLBundle extends VLL2.AbstractBundle
 		return @
 
 class VLL2.GMABundle extends VLL2.AbstractBundle
+	@LISTING = {}
+	@STATUS_GONNA_MOUNT = 734
+
 	new: (name) =>
 		super(name)
 		@validgma = false
 		@loadLua = true
 		@addToSpawnMenu = true
 		@modelList = {}
+
+	@GetMessage = =>
+		return if SERVER
+		msg1 = @GetMessage1()
+		msg2 = @GetMessage2()
+		return if not msg1 and not msg2
+		return msg1 if msg1 and not msg2
+		return msg2 if not msg1 and msg2
+		return {msg1, msg2}
+
+	@GetMessage1 = =>
+		return if SERVER
+		downloading = 0
+		downloading += 1 for _, bundle in pairs(@LISTING) when bundle\IsLoading()
+		return if downloading == 0
+		return 'VLL2 Is downloading ' .. downloading .. ' GMA bundles'
+
+	@GetMessage2 = =>
+		return if SERVER
+		downloading = 0
+		downloading += 1 for _, bundle in pairs(@LISTING) when bundle\IsGoingToMount()
+		return if downloading == 0
+		return 'VLL2 going to mount ' .. downloading .. ' GMA bundles\nFreeze (or crash) may occur\nthat\'s fine'
+
+	IsGoingToMount: => @status == @@STATUS_GONNA_MOUNT
 
 	DoLoadLua: => @SetLoadLua(true)
 	DoNotLoadLua: => @SetLoadLua(false)
@@ -290,6 +328,11 @@ class VLL2.GMABundle extends VLL2.AbstractBundle
 	Replicate: (ply = player.GetAll()) =>
 
 	Load: => @Load()
+	MountDelay: =>
+		return if @IsGoingToMount()
+		@status = @@STATUS_GONNA_MOUNT
+		timer.Simple 3, -> @Mount()
+
 	Mount: =>
 		error('Path was not specified earlier') if not @path
 		@status = @@STATUS_LOADING
@@ -316,15 +359,46 @@ class VLL2.GMABundle extends VLL2.AbstractBundle
 
 class VLL2.WSBundle extends VLL2.GMABundle
 	@INFO_URL = 'https://api.steampowered.com/ISteamRemoteStorage/GetPublishedFileDetails/v1/'
+	@LISTING = {}
+
+	@STATUS_GETTING_INFO = 5
 
 	@IsAddonMounted = (addonid) ->
 		return false if not addonid
 		return true for addon in *engine.GetAddons() when addon.mounted and addon.wsid == addonid
 		return false
 
+	@GetMessage = =>
+		return if SERVER
+		msg1 = @GetMessage1()
+		msg2 = @GetMessage2()
+		msgOld = VLL2.GMABundle.GetMessage2(@)
+		return if not msg1 and not msg2 and not msgOld
+		output = {}
+		table.insert(output, msg1) if msg1
+		table.insert(output, msg2) if msg2
+		table.insert(output, msgOld) if msgOld
+		return output
+
+	@GetMessage1 = =>
+		return if SERVER
+		downloading = 0
+		downloading += 1 for _, bundle in pairs(@LISTING) when bundle\IsLoading()
+		return if downloading == 0
+		return 'VLL2 Is downloading ' .. downloading .. ' Workshop addons'
+
+	@GetMessage2 = =>
+		return if SERVER
+		downloading = 0
+		downloading += 1 for _, bundle in pairs(@LISTING) when bundle\IsGettingInfo()
+		return if downloading == 0
+		return 'Getting info of ' .. downloading .. ' workshop addons'
+
 	new: (name) =>
 		super(name)
 		@workshopID = assert(tonumber(@name), 'Unable to cast workshopid to number')
+
+	IsGettingInfo: => @status == @@STATUS_GETTING_INFO
 
 	if CLIENT
 		net.Receive 'vll2.replicate_workshop', ->
@@ -357,7 +431,7 @@ class VLL2.WSBundle extends VLL2.GMABundle
 		if file.Exists(fpath, 'DATA')
 			@Msg('Found GMA in cache, mounting in-place...')
 			@SpecifyPath('data/' .. fpath)
-			@Mount()
+			@MountDelay()
 			return
 
 		req = {method: 'GET', :url}
@@ -387,7 +461,7 @@ class VLL2.WSBundle extends VLL2.GMABundle
 			@Msg(string.format('Writing to disk took %.2f ms', (SysTime() - stime) * 1000))
 
 			@SpecifyPath('data/' .. fpath)
-			@Mount()
+			@MountDelay()
 
 		HTTP(req)
 		@Msg('Downloading ' .. @wsTitle .. '...')
@@ -401,6 +475,7 @@ class VLL2.WSBundle extends VLL2.GMABundle
 			return
 
 		if CLIENT
+			@status = @@STATUS_GETTING_INFO
 			steamworks.FileInfo @workshopID, (data) ->
 				if not data
 					@Msg('Steamworks returned an error, check above')
@@ -415,14 +490,15 @@ class VLL2.WSBundle extends VLL2.GMABundle
 
 				if file.Exists(path, 'GAME')
 					@SpecifyPath(path)
-					@Mount()
+					@MountDelay()
 				else
 					@Msg('Downloading from workshop')
 					steamworks.Download data.fileid, true, (path2) ->
 						@Msg('Downloaded from workshop')
 						@SpecifyPath(path2 or path)
-						@Mount()
+						@MountDelay()
 		else
+			@status = @@STATUS_GETTING_INFO
 			req = {
 				method: 'POST'
 				url: @@INFO_URL

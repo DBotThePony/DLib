@@ -1,5 +1,5 @@
 
-moonc -t . bundle.moon fs.moon init.moon util.moon vm_def.moon vm.moon commands.moon
+moonc -t . bundle.moon fs.moon init.moon util.moon vm_def.moon vm.moon commands.moon hud.moon
 
 echo "
 -- Copyright (C) 2018 DBot
@@ -75,6 +75,16 @@ cat vm.lua >> vll2.lua
 echo "end)
 if not ___status then
 	VLL2.Message('STARTUP FAILURE AT VM: ', ___err)
+end" >> vll2.lua
+
+echo "
+if CLIENT then
+	___status, ___err = pcall(function()" >> vll2.lua
+	cat hud.lua >> vll2.lua
+	echo "end)
+	if not ___status then
+		VLL2.Message('STARTUP FAILURE AT HUD: ', ___err)
+	end
 end" >> vll2.lua
 
 echo "___status, ___err = pcall(function()" >> vll2.lua
