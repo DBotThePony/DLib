@@ -193,7 +193,7 @@ class VLL2.VM
 				string.gsub fcall, ':[0-9]+:', (w) ->
 					fline = string.sub(w, 2, #w - 1)
 					i = 0
-					for line in string.gmatch('\r?\n')
+					for line in string.gmatch(strIn, '\r?\n')
 						i += 1
 						if i == fline
 							VLL2.MessageVM(line)
@@ -208,16 +208,7 @@ class VLL2.VM
 		cstatus, fcall = pcall(CompileFile, fpath)
 
 		if not cstatus
-			callable = () ->
-				VLL2.MessageVM('Compilation failed for ' .. fpath .. ' inside ' .. @vmName)
-				string.gsub fcall, ':[0-9]+:', (w) ->
-					fline = string.sub(w, 2, #w - 1)
-					i = 0
-					for line in string.gmatch('\r?\n')
-						i += 1
-						if i == fline
-							VLL2.MessageVM(line)
-							break
+			callable = () -> VLL2.MessageVM('Compilation failed for ' .. fpath .. ' inside ' .. @vmName)
 			callable()
 			return callable, false, fcall
 
@@ -270,7 +261,7 @@ class VLL2.VM
 				string.gsub fcall, ':[0-9]+:', (w) ->
 					fline = string.sub(w, 2, #w - 1)
 					i = 0
-					for line in string.gmatch('\r?\n')
+					for line in string.gmatch(fread, '\r?\n')
 						i += 1
 						if i == fline
 							VLL2.MessageVM(line)

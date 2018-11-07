@@ -39,7 +39,7 @@ VLL2.ENV_TEMPLATE = {
 		mtab = _G[moduleName] or {}
 		_G[moduleName] = mtab
 
-		_env = getfenv(2)
+		_env = getfenv(1)
 
 		env = {
 			VLL2_VM: getvm()
@@ -57,7 +57,7 @@ VLL2.ENV_TEMPLATE = {
 			else
 				fcall(mtab)
 
-		setfenv(2, env)
+		setfenv(1, env)
 
 	require: (fpath) ->
 		assert(type(fpath) == 'string', 'Invalid path')
