@@ -66,6 +66,41 @@ vll2_workshop = (ply, cmd, args) ->
 	fbandle\Replicate()
 	VLL2.MessagePlayer(ply, 'Loading Workshop Bundle: ' .. bundle)
 
+vll2_workshop_silent = (ply, cmd, args) ->
+	return VLL2.MessagePlayer(ply, 'Not a super admin!') if SERVER and not game.SinglePlayer() and IsValid(ply) and not ply\IsSuperAdmin()
+	bundle = args[1]
+	return VLL2.MessagePlayer(ply, 'No workshop ID were specified.') if not bundle
+	return VLL2.MessagePlayer(ply, 'Bundle is already loading!') if not VLL2.AbstractBundle\Checkup(bundle\lower())
+	return VLL2.MessagePlayer(ply, 'Invalid ID provided. it must be an integer') if not tonumber(bundle)
+	fbandle = VLL2.WSBundle(tostring(math.floor(tonumber(bundle)))\lower())
+	fbandle\Load()
+	fbandle\DoNotReplicate()
+	VLL2.MessagePlayer(ply, 'Loading Workshop Bundle: ' .. bundle)
+
+vll2_workshop_content = (ply, cmd, args) ->
+	return VLL2.MessagePlayer(ply, 'Not a super admin!') if SERVER and not game.SinglePlayer() and IsValid(ply) and not ply\IsSuperAdmin()
+	bundle = args[1]
+	return VLL2.MessagePlayer(ply, 'No workshop ID were specified.') if not bundle
+	return VLL2.MessagePlayer(ply, 'Bundle is already loading!') if not VLL2.AbstractBundle\Checkup(bundle\lower())
+	return VLL2.MessagePlayer(ply, 'Invalid ID provided. it must be an integer') if not tonumber(bundle)
+	fbandle = VLL2.WSBundle(tostring(math.floor(tonumber(bundle)))\lower())
+	fbandle\DoNotLoadLua()
+	fbandle\Load()
+	fbandle\Replicate()
+	VLL2.MessagePlayer(ply, 'Loading Workshop Bundle: ' .. bundle .. ' without mounting Lua')
+
+vll2_workshop_content_silent = (ply, cmd, args) ->
+	return VLL2.MessagePlayer(ply, 'Not a super admin!') if SERVER and not game.SinglePlayer() and IsValid(ply) and not ply\IsSuperAdmin()
+	bundle = args[1]
+	return VLL2.MessagePlayer(ply, 'No workshop ID were specified.') if not bundle
+	return VLL2.MessagePlayer(ply, 'Bundle is already loading!') if not VLL2.AbstractBundle\Checkup(bundle\lower())
+	return VLL2.MessagePlayer(ply, 'Invalid ID provided. it must be an integer') if not tonumber(bundle)
+	fbandle = VLL2.WSBundle(tostring(math.floor(tonumber(bundle)))\lower())
+	fbandle\DoNotLoadLua()
+	fbandle\Load()
+	fbandle\DoNotReplicate()
+	VLL2.MessagePlayer(ply, 'Loading Workshop Bundle: ' .. bundle .. ' without mounting Lua')
+
 vll2_load_silent = (ply, cmd, args) ->
 	return VLL2.MessagePlayer(ply, 'Not a super admin!') if SERVER and not game.SinglePlayer() and IsValid(ply) and not ply\IsSuperAdmin()
 	bundle = args[1]
@@ -83,6 +118,9 @@ vll2_reload = (ply, cmd, args) ->
 
 concommand.Add 'vll2_load', vll2_load, vll2_autocomplete
 concommand.Add 'vll2_workshop', vll2_workshop
+concommand.Add 'vll2_workshop_content', vll2_workshop_content
+concommand.Add 'vll2_workshop_silent', vll2_workshop_silent
+concommand.Add 'vll2_workshop_content_silent', vll2_workshop_content_silent
 concommand.Add 'vll2_reload', vll2_reload
 
 if SERVER
@@ -90,6 +128,9 @@ if SERVER
 	concommand.Add 'vll2_load_server', vll2_load
 	concommand.Add 'vll2_load_silent', vll2_load_silent
 	concommand.Add 'vll2_workshop_server', vll2_workshop
+	concommand.Add 'vll2_workshop_content_server', vll2_workshop_content
+	concommand.Add 'vll2_workshop_silent_server', vll2_workshop_silent
+	concommand.Add 'vll2_workshop_content_silent_server', vll2_workshop_content_silent
 	concommand.Add 'vll2_reload_server', vll2_reload
 else
 	vll2_load_server = (ply, cmd, args) ->

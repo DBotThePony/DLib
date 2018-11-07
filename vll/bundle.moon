@@ -37,7 +37,7 @@ class VLL2.AbstractBundle
 	@STATUS_RUNNING = 3
 	@STATUS_ERROR = 4
 
-	@DISK_CACHE = {fil\gsub('%.dat', ''), file.Time('vll2/lua_cache/' .. fil, 'DATA') for fil in *file.Find('vll2/lua_cache/*', 'DATA')}
+	@DISK_CACHE = {fil\sub(1, -5)\Trim(), file.Time('vll2/lua_cache/' .. fil, 'DATA') for fil in *file.Find('vll2/lua_cache/*', 'DATA')}
 	@DISK_CACHE_READ = {}
 
 	@Checkup = (bname) =>
@@ -64,14 +64,14 @@ class VLL2.AbstractBundle
 
 		if fstamp
 			if @DISK_CACHE[hash] >= fstamp
-				return @__FromCache(fname)
+				return @__FromCache(hash)
 			else
 				@DISK_CACHE_READ[hash] = nil
 				@DISK_CACHE[hash] = nil
 				file.Delete('vll2/lua_cache/' .. hash .. '.dat')
 				return
 		else
-			return @__FromCache(fname)
+			return @__FromCache(hash)
 
 	@WriteCache = (fname, contents) =>
 		hash = util.CRC(fname)
@@ -103,6 +103,10 @@ class VLL2.AbstractBundle
 
 	DoReplicate: =>
 		@replicated = true
+		return @
+
+	SetReplicate: (status = @replicated) =>
+		@replicated = status
 		return @
 
 	Replicate: (ply = player.GetAll()) =>
@@ -266,6 +270,18 @@ class VLL2.GMABundle extends VLL2.AbstractBundle
 		@addToSpawnMenu = true
 		@modelList = {}
 
+	DoLoadLua: => @SetLoadLua(true)
+	DoNotLoadLua: => @SetLoadLua(false)
+	SetLoadLua: (status = @loadLua) =>
+		@loadLua = status
+		return @
+
+	DoAddToSpawnMenu: => @SetAddToSpawnMenu(true)
+	DoNotAddToSpawnMenu: => @SetAddToSpawnMenu(false)
+	SetAddToSpawnMenu: (status = @addToSpawnMenu) =>
+		@addToSpawnMenu = status
+		return @
+
 	SpecifyPath: (path) =>
 		@path = path
 		@validgma = file.Exists(path, 'GAME')
@@ -276,6 +292,7 @@ class VLL2.GMABundle extends VLL2.AbstractBundle
 	Load: => @Load()
 	Mount: =>
 		error('Path was not specified earlier') if not @path
+		@status = @@STATUS_LOADING
 
 		@Msg('Mounting GMA from ' .. @path)
 
@@ -295,6 +312,8 @@ class VLL2.GMABundle extends VLL2.AbstractBundle
 
 		@modelList = [_file for _file in *filelist when string.sub(_file, 1, 6) == 'models' and string.sub(_file, -3) == 'mdl']
 
+		@status = @@STATUS_LOADED
+
 class VLL2.WSBundle extends VLL2.GMABundle
 	@INFO_URL = 'https://api.steampowered.com/ISteamRemoteStorage/GetPublishedFileDetails/v1/'
 
@@ -311,14 +330,21 @@ class VLL2.WSBundle extends VLL2.GMABundle
 		net.Receive 'vll2.replicate_workshop', ->
 			graburl = net.ReadUInt(32)
 			return if not @Checkup(graburl)
+			loadLua = net.ReadBool()
+			addToSpawnMenu = net.ReadBool()
 			VLL2.MessageBundle('Server requires workshop addon to be loaded: ' .. graburl)
-			VLL2.WSBundle(graburl)\Load()
+			bundle = VLL2.WSBundle(graburl)
+			bundle.loadLua = loadLua
+			bundle.addToSpawnMenu = addToSpawnMenu
+			bundle\Load()
 
 	Replicate: (ply = player.GetAll()) =>
 		return if CLIENT
 		return if player.GetHumans() == 0
 		net.Start('vll2.replicate_workshop')
 		net.WriteUInt(@workshopID, 32)
+		net.WriteBool(@loadLua)
+		net.WriteBool(@addToSpawnMenu)
 		net.Send(ply)
 
 	DownloadGMA: (url, filename = util.CRC(url)) =>
