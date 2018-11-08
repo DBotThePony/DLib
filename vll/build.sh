@@ -95,4 +95,5 @@ if not ___status then
 end
 
 VLL2.Message('Startup finished')
+hook.Run('VLL2.Loaded')
 " >> vll2.lua
