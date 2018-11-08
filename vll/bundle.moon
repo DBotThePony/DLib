@@ -493,7 +493,11 @@ class VLL2.WSBundle extends VLL2.GMABundle
 					@MountDelay()
 				else
 					@Msg('Downloading from workshop')
+					msgid = 'vll2_dl_' .. @workshopID
+					notification.AddProgress(msgid, 'Downloading ' .. data.title .. ' from workshop')
+					@status = @@STATUS_LOADING
 					steamworks.Download data.fileid, true, (path2) ->
+						notification.Kill(msgid)
 						@Msg('Downloaded from workshop')
 						@SpecifyPath(path2 or path)
 						@MountDelay()

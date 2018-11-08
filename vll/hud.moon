@@ -27,7 +27,7 @@ bundlelist = {
 
 surface.CreateFont('VLL2.Message', {
 	font: 'Roboto'
-	size: ScreenScale(20)
+	size: ScreenScale(14)
 })
 
 WARN_COLOR = Color(188, 15, 20)
