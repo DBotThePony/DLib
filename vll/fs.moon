@@ -18,6 +18,8 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
+import string, table, VLL2 from _G
+
 class VLL2.FSDirectory
 	new: (name, parent) =>
 		@name = name\lower()

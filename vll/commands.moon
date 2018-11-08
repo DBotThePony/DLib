@@ -20,6 +20,10 @@
 
 import concommand, table, string, VLL2 from _G
 
+sv_allowcslua = GetConVar('sv_allowcslua')
+
+disallow = => SERVER and not game.SinglePlayer() and IsValid(@) and not @IsSuperAdmin() or CLIENT and not sv_allowcslua\GetBool()
+
 if SERVER
 	util.AddNetworkString('vll2_cmd_load_server')
 
@@ -32,7 +36,7 @@ if CLIENT
 		table.sort(autocomplete)
 
 vll2_load = (ply, cmd, args) ->
-	return VLL2.MessagePlayer(ply, 'Not a super admin!') if SERVER and not game.SinglePlayer() and IsValid(ply) and not ply\IsSuperAdmin()
+	return VLL2.MessagePlayer(ply, 'Not a super admin!') if disallow()
 	bundle = args[1]
 	return VLL2.MessagePlayer(ply, 'No bundle were specified.') if not bundle
 	return VLL2.MessagePlayer(ply, 'Bundle is already loading!') if not VLL2.AbstractBundle\Checkup(bundle\lower())
@@ -56,7 +60,7 @@ vll2_autocomplete2 = (cmd, args) ->
 	return result
 
 vll2_workshop = (ply, cmd, args) ->
-	return VLL2.MessagePlayer(ply, 'Not a super admin!') if SERVER and not game.SinglePlayer() and IsValid(ply) and not ply\IsSuperAdmin()
+	return VLL2.MessagePlayer(ply, 'Not a super admin!') if disallow()
 	bundle = args[1]
 	return VLL2.MessagePlayer(ply, 'No workshop ID were specified.') if not bundle
 	return VLL2.MessagePlayer(ply, 'Bundle is already loading!') if not VLL2.AbstractBundle\Checkup(bundle\lower())
@@ -67,7 +71,7 @@ vll2_workshop = (ply, cmd, args) ->
 	VLL2.MessagePlayer(ply, 'Loading Workshop Bundle: ' .. bundle)
 
 vll2_workshop_silent = (ply, cmd, args) ->
-	return VLL2.MessagePlayer(ply, 'Not a super admin!') if SERVER and not game.SinglePlayer() and IsValid(ply) and not ply\IsSuperAdmin()
+	return VLL2.MessagePlayer(ply, 'Not a super admin!') if disallow()
 	bundle = args[1]
 	return VLL2.MessagePlayer(ply, 'No workshop ID were specified.') if not bundle
 	return VLL2.MessagePlayer(ply, 'Bundle is already loading!') if not VLL2.AbstractBundle\Checkup(bundle\lower())
@@ -78,7 +82,7 @@ vll2_workshop_silent = (ply, cmd, args) ->
 	VLL2.MessagePlayer(ply, 'Loading Workshop Bundle: ' .. bundle)
 
 vll2_workshop_content = (ply, cmd, args) ->
-	return VLL2.MessagePlayer(ply, 'Not a super admin!') if SERVER and not game.SinglePlayer() and IsValid(ply) and not ply\IsSuperAdmin()
+	return VLL2.MessagePlayer(ply, 'Not a super admin!') if disallow()
 	bundle = args[1]
 	return VLL2.MessagePlayer(ply, 'No workshop ID were specified.') if not bundle
 	return VLL2.MessagePlayer(ply, 'Bundle is already loading!') if not VLL2.AbstractBundle\Checkup(bundle\lower())
@@ -90,7 +94,7 @@ vll2_workshop_content = (ply, cmd, args) ->
 	VLL2.MessagePlayer(ply, 'Loading Workshop Bundle: ' .. bundle .. ' without mounting Lua')
 
 vll2_workshop_content_silent = (ply, cmd, args) ->
-	return VLL2.MessagePlayer(ply, 'Not a super admin!') if SERVER and not game.SinglePlayer() and IsValid(ply) and not ply\IsSuperAdmin()
+	return VLL2.MessagePlayer(ply, 'Not a super admin!') if disallow()
 	bundle = args[1]
 	return VLL2.MessagePlayer(ply, 'No workshop ID were specified.') if not bundle
 	return VLL2.MessagePlayer(ply, 'Bundle is already loading!') if not VLL2.AbstractBundle\Checkup(bundle\lower())
@@ -102,7 +106,7 @@ vll2_workshop_content_silent = (ply, cmd, args) ->
 	VLL2.MessagePlayer(ply, 'Loading Workshop Bundle: ' .. bundle .. ' without mounting Lua')
 
 vll2_load_silent = (ply, cmd, args) ->
-	return VLL2.MessagePlayer(ply, 'Not a super admin!') if SERVER and not game.SinglePlayer() and IsValid(ply) and not ply\IsSuperAdmin()
+	return VLL2.MessagePlayer(ply, 'Not a super admin!') if disallow()
 	bundle = args[1]
 	return VLL2.MessagePlayer(ply, 'No bundle were specified.') if not bundle
 	return VLL2.MessagePlayer(ply, 'Bundle is already loading!') if not VLL2.AbstractBundle\Checkup(bundle\lower())
@@ -112,7 +116,7 @@ vll2_load_silent = (ply, cmd, args) ->
 	VLL2.MessagePlayer(ply, 'Loading URL Bundle: ' .. bundle)
 
 vll2_reload = (ply, cmd, args) ->
-	return VLL2.MessagePlayer(ply, 'Not a super admin!') if SERVER and not game.SinglePlayer() and IsValid(ply) and not ply\IsSuperAdmin()
+	return VLL2.MessagePlayer(ply, 'Not a super admin!') if disallow()
 	VLL2.MessagePlayer(ply, 'Reloading VLL2, this can take some time...')
 	http.Fetch "https://dbotthepony.ru/vll/vll2.lua", (b) -> RunString(b, "VLL2")
 
