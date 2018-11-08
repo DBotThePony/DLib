@@ -50,7 +50,7 @@ MsgC(string.format('%.2f ms\n', (SysTime() - timeStart) * 1000))
 timeStart = SysTime()
 MsgC('[DLib] Running addons ... \n')
 
-if not VLL_CURR_FILE then
+if not VLL_CURR_FILE and not VLL2_FILEDEF then
 	DLib.Loader.loadPureSHTop('dlib/autorun')
 	DLib.Loader.loadPureCSTop('dlib/autorun/client')
 end

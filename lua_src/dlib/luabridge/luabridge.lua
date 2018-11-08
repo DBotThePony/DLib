@@ -305,7 +305,7 @@ function entMeta:ResetBoneManipCache()
 	return self
 end
 
-local type = type
+local type = luatype
 local assert = assert
 
 function entMeta:GetManipulateBoneAngles2(boneid)
