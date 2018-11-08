@@ -23,6 +23,7 @@ import concommand, table, string, VLL2 from _G
 sv_allowcslua = GetConVar('sv_allowcslua')
 
 disallow = => SERVER and not game.SinglePlayer() and IsValid(@) and not @IsSuperAdmin() or CLIENT and not sv_allowcslua\GetBool()
+disallow2 = => SERVER and not game.SinglePlayer() and IsValid(@) and not @IsSuperAdmin()
 
 if SERVER
 	util.AddNetworkString('vll2_cmd_load_server')
@@ -82,7 +83,7 @@ vll2_workshop_silent = (ply, cmd, args) ->
 	VLL2.MessagePlayer(ply, 'Loading Workshop Bundle: ' .. bundle)
 
 vll2_workshop_content = (ply, cmd, args) ->
-	return VLL2.MessagePlayer(ply, 'Not a super admin!') if disallow()
+	return VLL2.MessagePlayer(ply, 'Not a super admin!') if disallow2()
 	bundle = args[1]
 	return VLL2.MessagePlayer(ply, 'No workshop ID were specified.') if not bundle
 	return VLL2.MessagePlayer(ply, 'Bundle is already loading!') if not VLL2.AbstractBundle\Checkup(bundle\lower())
@@ -94,7 +95,7 @@ vll2_workshop_content = (ply, cmd, args) ->
 	VLL2.MessagePlayer(ply, 'Loading Workshop Bundle: ' .. bundle .. ' without mounting Lua')
 
 vll2_workshop_content_silent = (ply, cmd, args) ->
-	return VLL2.MessagePlayer(ply, 'Not a super admin!') if disallow()
+	return VLL2.MessagePlayer(ply, 'Not a super admin!') if disallow2()
 	bundle = args[1]
 	return VLL2.MessagePlayer(ply, 'No workshop ID were specified.') if not bundle
 	return VLL2.MessagePlayer(ply, 'Bundle is already loading!') if not VLL2.AbstractBundle\Checkup(bundle\lower())
