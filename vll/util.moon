@@ -19,8 +19,10 @@
 -- DEALINGS IN THE SOFTWARE.
 
 VLL2.RecursiveMergeBase = (mergeMeta) ->
+	return if not mergeMeta
 	metaGet = baseclass.Get(mergeMeta)
 	return if not metaGet.Base
+	return if metaGet.Base == mergeMeta
 	VLL2.RecursiveMergeBase(metaGet.Base)
 	metaBase = baseclass.Get(metaGet.Base)
 	metaGet[key] = value for key, value in pairs(metaBase) when metaGet[key] == nil
