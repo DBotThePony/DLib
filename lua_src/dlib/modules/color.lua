@@ -33,6 +33,7 @@ local srnd = util.SharedRandom
 
 local colorMeta = FindMetaTable('Color') or {}
 colorMeta.__index = colorMeta
+colorMeta.MetaName = 'Color'
 debug.getregistry().Color = colorMeta
 
 local function Color(r, g, b, a)
