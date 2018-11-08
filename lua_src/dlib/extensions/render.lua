@@ -50,7 +50,6 @@ function render.PushScissorRect(x, y, xEnd, yEnd)
 	table.insert(stack, y)
 	table.insert(stack, xEnd)
 	table.insert(stack, yEnd)
-	table.insert(stack, debug.traceback())
 	render.SetScissorRect(x, y, xEnd, yEnd, true)
 end
 
@@ -60,8 +59,7 @@ function render.PopScissorRect()
 		return
 	end
 
-	if #stack == 5 then
-		table.remove(stack)
+	if #stack == 4 then
 		table.remove(stack)
 		table.remove(stack)
 		table.remove(stack)
@@ -70,7 +68,6 @@ function render.PopScissorRect()
 		return
 	end
 
-	table.remove(stack)
 	table.remove(stack)
 	table.remove(stack)
 	table.remove(stack)
@@ -82,10 +79,6 @@ end
 
 local function PreRender()
 	if #stack ~= 0 then
-		for i = 5, #stack, 5 do
-			print(stack[i])
-		end
-
 		stack = {}
 	end
 end
