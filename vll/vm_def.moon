@@ -99,7 +99,7 @@ VLL2.ENV_TEMPLATE = {
 
 	RunString: (strIn, identifier = 'RunString', handle = true) ->
 		vm = getvm()
-		fget, fstatus, ferror = vm\CompileString(strIn, identifier)
+		fget, fstatus, ferror = vm\CompileString(strIn, identifier, getdef())
 		return ferror if not handle and not fstatus
 		error(ferror, 2) if handle and not fstatus
 		fget()
