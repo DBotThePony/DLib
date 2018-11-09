@@ -99,6 +99,12 @@ class VLL2.AbstractBundle
 	IsIdle: => @status == @@STATUS_NONE
 	IsReplicated: => @replicated
 
+	SetInitAfterLoad: (status = @initAfterLoad) =>
+		@initAfterLoad = status
+		return @
+	DoInitAfterLoad: => @SetInitAfterLoad(true)
+	DoNotInitAfterLoad: => @SetInitAfterLoad(true)
+
 	DoNotReplicate: =>
 		@replicated = false
 		return @

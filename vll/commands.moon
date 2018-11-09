@@ -41,9 +41,9 @@ vll2_load = (ply, cmd, args) ->
 	bundle = args[1]
 	return VLL2.MessagePlayer(ply, 'No bundle were specified.') if not bundle
 	return VLL2.MessagePlayer(ply, 'Bundle is already loading!') if not VLL2.AbstractBundle\Checkup(bundle\lower())
-	fbandle = VLL2.URLBundle(bundle\lower())
-	fbandle\Load()
-	fbandle\Replicate()
+	fbundle = VLL2.URLBundle(bundle\lower())
+	fbundle\Load()
+	fbundle\Replicate()
 	VLL2.MessagePlayer(ply, 'Loading URL Bundle: ' .. bundle)
 
 vll2_autocomplete = (cmd, args) ->
@@ -66,9 +66,9 @@ vll2_workshop = (ply, cmd, args) ->
 	return VLL2.MessagePlayer(ply, 'No workshop ID were specified.') if not bundle
 	return VLL2.MessagePlayer(ply, 'Bundle is already loading!') if not VLL2.AbstractBundle\Checkup(bundle\lower())
 	return VLL2.MessagePlayer(ply, 'Invalid ID provided. it must be an integer') if not tonumber(bundle)
-	fbandle = VLL2.WSBundle(tostring(math.floor(tonumber(bundle)))\lower())
-	fbandle\Load()
-	fbandle\Replicate()
+	fbundle = VLL2.WSBundle(tostring(math.floor(tonumber(bundle)))\lower())
+	fbundle\Load()
+	fbundle\Replicate()
 	VLL2.MessagePlayer(ply, 'Loading Workshop Bundle: ' .. bundle)
 
 vll2_workshop_silent = (ply, cmd, args) ->
@@ -77,9 +77,9 @@ vll2_workshop_silent = (ply, cmd, args) ->
 	return VLL2.MessagePlayer(ply, 'No workshop ID were specified.') if not bundle
 	return VLL2.MessagePlayer(ply, 'Bundle is already loading!') if not VLL2.AbstractBundle\Checkup(bundle\lower())
 	return VLL2.MessagePlayer(ply, 'Invalid ID provided. it must be an integer') if not tonumber(bundle)
-	fbandle = VLL2.WSBundle(tostring(math.floor(tonumber(bundle)))\lower())
-	fbandle\Load()
-	fbandle\DoNotReplicate()
+	fbundle = VLL2.WSBundle(tostring(math.floor(tonumber(bundle)))\lower())
+	fbundle\Load()
+	fbundle\DoNotReplicate()
 	VLL2.MessagePlayer(ply, 'Loading Workshop Bundle: ' .. bundle)
 
 vll2_workshop_content = (ply, cmd, args) ->
@@ -88,10 +88,10 @@ vll2_workshop_content = (ply, cmd, args) ->
 	return VLL2.MessagePlayer(ply, 'No workshop ID were specified.') if not bundle
 	return VLL2.MessagePlayer(ply, 'Bundle is already loading!') if not VLL2.AbstractBundle\Checkup(bundle\lower())
 	return VLL2.MessagePlayer(ply, 'Invalid ID provided. it must be an integer') if not tonumber(bundle)
-	fbandle = VLL2.WSBundle(tostring(math.floor(tonumber(bundle)))\lower())
-	fbandle\DoNotLoadLua()
-	fbandle\Load()
-	fbandle\Replicate()
+	fbundle = VLL2.WSBundle(tostring(math.floor(tonumber(bundle)))\lower())
+	fbundle\DoNotLoadLua()
+	fbundle\Load()
+	fbundle\Replicate()
 	VLL2.MessagePlayer(ply, 'Loading Workshop Bundle: ' .. bundle .. ' without mounting Lua')
 
 vll2_workshop_content_silent = (ply, cmd, args) ->
@@ -100,10 +100,10 @@ vll2_workshop_content_silent = (ply, cmd, args) ->
 	return VLL2.MessagePlayer(ply, 'No workshop ID were specified.') if not bundle
 	return VLL2.MessagePlayer(ply, 'Bundle is already loading!') if not VLL2.AbstractBundle\Checkup(bundle\lower())
 	return VLL2.MessagePlayer(ply, 'Invalid ID provided. it must be an integer') if not tonumber(bundle)
-	fbandle = VLL2.WSBundle(tostring(math.floor(tonumber(bundle)))\lower())
-	fbandle\DoNotLoadLua()
-	fbandle\Load()
-	fbandle\DoNotReplicate()
+	fbundle = VLL2.WSBundle(tostring(math.floor(tonumber(bundle)))\lower())
+	fbundle\DoNotLoadLua()
+	fbundle\Load()
+	fbundle\DoNotReplicate()
 	VLL2.MessagePlayer(ply, 'Loading Workshop Bundle: ' .. bundle .. ' without mounting Lua')
 
 vll2_load_silent = (ply, cmd, args) ->
@@ -111,9 +111,9 @@ vll2_load_silent = (ply, cmd, args) ->
 	bundle = args[1]
 	return VLL2.MessagePlayer(ply, 'No bundle were specified.') if not bundle
 	return VLL2.MessagePlayer(ply, 'Bundle is already loading!') if not VLL2.AbstractBundle\Checkup(bundle\lower())
-	fbandle = VLL2.URLBundle(bundle\lower())
-	fbandle\Load()
-	fbandle\DoNotReplicate()
+	fbundle = VLL2.URLBundle(bundle\lower())
+	fbundle\Load()
+	fbundle\DoNotReplicate()
 	VLL2.MessagePlayer(ply, 'Loading URL Bundle: ' .. bundle)
 
 vll2_reload = (ply, cmd, args) ->
