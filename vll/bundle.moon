@@ -89,6 +89,9 @@ class VLL2.AbstractBundle
 		@globalFS = VLL2.FileSystem.INSTANCE
 		@initAfterLoad = true
 		@replicated = true
+		@errorCallbacks = {}
+		@finishCallbacks = {}
+		@loadCallbacks = {}
 
 	Msg: (...) => VLL2.MessageBundle(@name .. ': ', ...)
 
@@ -104,6 +107,32 @@ class VLL2.AbstractBundle
 		return @
 	DoInitAfterLoad: => @SetInitAfterLoad(true)
 	DoNotInitAfterLoad: => @SetInitAfterLoad(true)
+
+	AddLoadedHook: (fcall) =>
+		if @IsRunning()
+			fcall(@)
+			return @
+
+		table.insert(@loadCallbacks, fcall)
+		return @
+	AddFinishHook: (fcall) =>
+		if @IsRunning()
+			fcall(@)
+			return @
+
+		table.insert(@finishCallbacks, fcall)
+		return @
+	AddErrorHook: (fcall) =>
+		if @IsErrored()
+			fcall(@)
+			return @
+
+		table.insert(@errorCallbacks, fcall)
+		return @
+
+	CalllError: (...) => fcall(@, ...) for fcall in *@errorCallbacks
+	CallFinish: (...) => fcall(@, ...) for fcall in *@finishCallbacks
+	CallLoaded: (...) => fcall(@, ...) for fcall in *@loadCallbacks
 
 	DoNotReplicate: =>
 		@replicated = false
@@ -128,6 +157,7 @@ class VLL2.AbstractBundle
 		vm\LoadWeapons()
 		vm\LoadTFA()
 		@Msg('Bundle successfully initialized!')
+		@CallFinish()
 
 	Load: => error('Not implemented')
 
@@ -168,6 +198,7 @@ class VLL2.URLBundle extends VLL2.AbstractBundle
 		return if @toDownload > @downloaded
 		@status = @@STATUS_LOADED
 		@Msg('Bundle got downloaded')
+		@CallLoaded()
 		return if not @initAfterLoad
 		@Run()
 
@@ -205,6 +236,7 @@ class VLL2.URLBundle extends VLL2.AbstractBundle
 			@status = @@STATUS_ERROR
 			@Msg('download of ' .. fpath .. ' failed, reason: ' .. reason)
 			@Msg('URL: ' .. url)
+			@CalllError()
 
 		req.success = (code = 400, body = '', headers) ->
 			@cDownloading -= 1
@@ -214,6 +246,7 @@ class VLL2.URLBundle extends VLL2.AbstractBundle
 				@Msg('URL: ' .. url)
 				@status = @@STATUS_ERROR
 				@__DownloadCallback()
+				@CalllError()
 				return
 
 			@downloaded += 1
@@ -263,11 +296,13 @@ class VLL2.URLBundle extends VLL2.AbstractBundle
 			@status = @@STATUS_ERROR
 			@errReason = reason
 			@Msg('download of index file failed, reason: ' .. reason)
+			@CalllError()
 
 		req.success = (code = 400, body = '', headers) ->
 			if code ~= 200
 				@Msg('download of index file failed, server returned: ' .. code)
 				@status = @@STATUS_ERROR
+				@CalllError()
 				return
 
 			@bundleList = string.Explode('\n', body\Trim())
@@ -349,6 +384,7 @@ class VLL2.GMABundle extends VLL2.AbstractBundle
 		if not status
 			@Msg('Unable to mount gma!')
 			@status = @@STATUS_ERROR
+			@CalllError()
 			return
 
 		if @loadLua
@@ -403,8 +439,20 @@ class VLL2.WSBundle extends VLL2.GMABundle
 	new: (name) =>
 		super(name)
 		@workshopID = assert(tonumber(@name), 'Unable to cast workshopid to number')
+		@mountAfterLoad = true
 
+	SetMountAfterLoad: (status = @mountAfterLoad) =>
+		@mountAfterLoad = status
+		return @
+	DoMountAfterLoad: => @SetMountAfterLoad(true)
+	DoNotMountAfterLoad: => @SetMountAfterLoad(false)
 	IsGettingInfo: => @status == @@STATUS_GETTING_INFO
+
+	__Mount: =>
+		@status = @@STATUS_LOADED
+		@CallLoaded()
+		return if not @mountAfterLoad
+		@MountDelay()
 
 	if CLIENT
 		net.Receive 'vll2.replicate_workshop', ->
@@ -437,7 +485,7 @@ class VLL2.WSBundle extends VLL2.GMABundle
 		if file.Exists(fpath, 'DATA')
 			@Msg('Found GMA in cache, mounting in-place...')
 			@SpecifyPath('data/' .. fpath)
-			@MountDelay()
+			@__Mount()
 			return
 
 		req = {method: 'GET', :url}
@@ -445,11 +493,13 @@ class VLL2.WSBundle extends VLL2.GMABundle
 		req.failed = (reason = 'failure') ->
 			@status = @@STATUS_ERROR
 			@Msg('Failed to download the GMA! Reason: ' .. reason)
+			@CalllError()
 
 		req.success = (code = 400, body = '', headers) ->
 			if code ~= 200
 				@status = @@STATUS_ERROR
 				@Msg('Failed to download the GMA! Server returned: ' .. code)
+				@CalllError()
 				return
 
 			@Msg('--- DECOMPRESSING')
@@ -458,6 +508,7 @@ class VLL2.WSBundle extends VLL2.GMABundle
 			if decompress == ''
 				@status = @@STATUS_ERROR
 				@Msg('Failed to decompress the GMA! Did tranfer got interrupted?')
+				@CalllError()
 				return
 
 			@Msg(string.format('Decompression took %.2f ms', (SysTime() - stime) * 1000))
@@ -467,7 +518,7 @@ class VLL2.WSBundle extends VLL2.GMABundle
 			@Msg(string.format('Writing to disk took %.2f ms', (SysTime() - stime) * 1000))
 
 			@SpecifyPath('data/' .. fpath)
-			@MountDelay()
+			@__Mount()
 
 		HTTP(req)
 		@Msg('Downloading ' .. @wsTitle .. '...')
@@ -486,6 +537,7 @@ class VLL2.WSBundle extends VLL2.GMABundle
 				if not data
 					@Msg('Steamworks returned an error, check above')
 					@status = @@STATUS_ERROR
+					@CalllError()
 					return
 
 				@Msg('GOT FILEINFO DETAILS FOR ' .. @workshopID .. ' (' .. data.title .. ')')
@@ -496,7 +548,7 @@ class VLL2.WSBundle extends VLL2.GMABundle
 
 				if file.Exists(path, 'GAME')
 					@SpecifyPath(path)
-					@MountDelay()
+					@__Mount()
 				else
 					@Msg('Downloading from workshop')
 					msgid = 'vll2_dl_' .. @workshopID
@@ -506,7 +558,7 @@ class VLL2.WSBundle extends VLL2.GMABundle
 						notification.Kill(msgid)
 						@Msg('Downloaded from workshop')
 						@SpecifyPath(path2 or path)
-						@MountDelay()
+						@__Mount()
 		else
 			@status = @@STATUS_GETTING_INFO
 			req = {
@@ -518,12 +570,14 @@ class VLL2.WSBundle extends VLL2.GMABundle
 			req.failed = (reason = 'failure') ->
 				@status = @@STATUS_ERROR
 				@Msg('Failed to grab GMA info! Reason: ' .. reason)
+				@CalllError()
 
 			req.success = (code = 400, body = '', headers) ->
 				if code ~= 200
 					@status = @@STATUS_ERROR
 					@Msg('Failed to grab GMA info! Server returned: ' .. code)
 					@Msg(body)
+					@CalllError()
 					return
 
 				resp = util.JSONToTable(body)
