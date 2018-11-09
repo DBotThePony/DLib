@@ -30,11 +30,10 @@ if SERVER
 
 autocomplete = {}
 
-if CLIENT
-	timer.Simple 0, -> http.Fetch 'https://dbotthepony.ru/vll/plist.php', (body = '', size = string.len(body), headers = {}, code = 400) ->
-		return if code ~= 200
-		autocomplete = [_file\Trim()\lower() for _file in *string.Explode('\n', body) when _file\Trim() ~= '']
-		table.sort(autocomplete)
+timer.Simple 0, -> http.Fetch 'https://dbotthepony.ru/vll/plist.php', (body = '', size = string.len(body), headers = {}, code = 400) ->
+	return if code ~= 200
+	autocomplete = [_file\Trim()\lower() for _file in *string.Explode('\n', body) when _file\Trim() ~= '']
+	table.sort(autocomplete)
 
 vll2_load = (ply, cmd, args) ->
 	return VLL2.MessagePlayer(ply, 'Not a super admin!') if disallow()
@@ -46,19 +45,13 @@ vll2_load = (ply, cmd, args) ->
 	fbundle\Replicate()
 	VLL2.MessagePlayer(ply, 'Loading URL Bundle: ' .. bundle)
 
-vll2_autocomplete = (cmd, args) ->
-	return if not args
-	args = args\Trim()\lower()
-	return ['vll2_load ' .. _file for _file in *autocomplete] if args == ''
-	result = ['vll2_load ' .. _file for _file in *autocomplete when _file\StartWith(args)]
-	return result
-
-vll2_autocomplete2 = (cmd, args) ->
-	return if not args
-	args = args\Trim()\lower()
-	return ['vll2_load_server ' .. _file for _file in *autocomplete] if args == ''
-	result = ['vll2_load_server ' .. _file for _file in *autocomplete when _file\StartWith(args)]
-	return result
+vll2_mkautocomplete = (commandToReg) ->
+	return (cmd, args) ->
+		return if not args
+		args = args\Trim()\lower()
+		return [commandToReg .. ' ' .. _file for _file in *autocomplete] if args == ''
+		result = [commandToReg .. ' ' .. _file for _file in *autocomplete when _file\StartWith(args)]
+		return result
 
 vll2_workshop = (ply, cmd, args) ->
 	return VLL2.MessagePlayer(ply, 'Not a super admin!') if disallow()
@@ -121,7 +114,7 @@ vll2_reload = (ply, cmd, args) ->
 	VLL2.MessagePlayer(ply, 'Reloading VLL2, this can take some time...')
 	http.Fetch "https://dbotthepony.ru/vll/vll2.lua", (b) -> RunString(b, "VLL2")
 
-concommand.Add 'vll2_load', vll2_load, vll2_autocomplete
+concommand.Add 'vll2_load', vll2_load, vll2_mkautocomplete('vll2_load')
 concommand.Add 'vll2_workshop', vll2_workshop
 concommand.Add 'vll2_workshop_content', vll2_workshop_content
 concommand.Add 'vll2_workshop_silent', vll2_workshop_silent
@@ -130,8 +123,8 @@ concommand.Add 'vll2_reload', vll2_reload
 
 if SERVER
 	net.Receive 'vll2_cmd_load_server', (_, ply) -> vll2_load(ply, nil, string.Explode(' ', net.ReadString()\Trim()))
-	concommand.Add 'vll2_load_server', vll2_load
-	concommand.Add 'vll2_load_silent', vll2_load_silent
+	concommand.Add 'vll2_load_server', vll2_load, vll2_mkautocomplete('vll2_load_server')
+	concommand.Add 'vll2_load_silent', vll2_load_silent, vll2_mkautocomplete('vll2_load_silent')
 	concommand.Add 'vll2_workshop_server', vll2_workshop
 	concommand.Add 'vll2_workshop_content_server', vll2_workshop_content
 	concommand.Add 'vll2_workshop_silent_server', vll2_workshop_silent
@@ -146,4 +139,4 @@ else
 	timer.Simple 0, ->
 		timer.Simple 0, ->
 			if not game.SinglePlayer()
-				concommand.Add 'vll2_load_server', vll2_load_server, vll2_autocomplete2
+				concommand.Add 'vll2_load_server', vll2_load_server, vll2_mkautocomplete('vll2_load_server')
