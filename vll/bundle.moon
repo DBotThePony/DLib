@@ -567,7 +567,8 @@ class VLL2.WSBundle extends VLL2.GMABundle
 
 				if resp and resp.response and resp.response.publishedfiledetails
 					for item in *resp.response.publishedfiledetails
-						if VLL2.WSBundle.IsAddonMounted(item.publishedfileid)
+						if VLL2.WSBundle.IsAddonMounted(item.publishedfileid) and not @loadLua
+							@status = @@STATUS_LOADED
 							@Msg('Addon ' .. item.title .. ' is already mounted and running')
 						else
 							@Msg('GOT FILEINFO DETAILS FOR ' .. @workshopID .. ' (' .. item.title .. ')')
@@ -596,6 +597,9 @@ class VLL2.WSBundle extends VLL2.GMABundle
 									@Msg('Downloaded from workshop')
 									@SpecifyPath(path2 or path)
 									@__Mount()
+				else
+					@status = @@STATUS_ERROR
+					@Msg('Failed to grab GMA info! Server did not sent valid reply')
 
 			HTTP(req)
 		else
@@ -623,7 +627,8 @@ class VLL2.WSBundle extends VLL2.GMABundle
 
 				if resp and resp.response and resp.response.publishedfiledetails
 					for item in *resp.response.publishedfiledetails
-						if VLL2.WSBundle.IsAddonMounted(item.publishedfileid)
+						if VLL2.WSBundle.IsAddonMounted(item.publishedfileid) and not @loadLua
+							@status = @@STATUS_LOADED
 							@Msg('Addon ' .. item.title .. ' is already mounted and running')
 						else
 							@Msg('GOT FILEINFO DETAILS FOR ' .. @workshopID .. ' (' .. item.title .. ')')
