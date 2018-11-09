@@ -476,6 +476,17 @@ class VLL2.WSBundle extends VLL2.GMABundle
 		net.Send(ply)
 
 	DownloadGMA: (url, filename = util.CRC(url)) =>
+		if CLIENT
+			msgid = 'vll2_dl_' .. @workshopID
+			notification.AddProgress(msgid, 'Downloading ' .. data.title .. ' from workshop')
+			@status = @@STATUS_LOADING
+			steamworks.Download data.fileid, true, (path2) ->
+				notification.Kill(msgid)
+				@Msg('Downloaded from workshop')
+				@SpecifyPath(path2 or path)
+				@__Mount()
+			return
+
 		fdir, fname = VLL2.FileSystem.StripFileName(filename)
 		fadd = ''
 		fadd = util.CRC(fdir) .. '_' if fdir ~= ''
@@ -533,32 +544,53 @@ class VLL2.WSBundle extends VLL2.GMABundle
 
 		if CLIENT
 			@status = @@STATUS_GETTING_INFO
-			steamworks.FileInfo @workshopID, (data) ->
-				if not data
-					@Msg('Steamworks returned an error, check above')
+			req = {
+				method: 'POST'
+				url: @@INFO_URL
+				parameters: {itemcount: '1', 'publishedfileids[0]': tostring(@workshopID)}
+			}
+
+			req.failed = (reason = 'failure') ->
+				@status = @@STATUS_ERROR
+				@Msg('Failed to grab GMA info! Reason: ' .. reason)
+				@CalllError()
+
+			req.success = (code = 400, body = '', headers) ->
+				if code ~= 200
 					@status = @@STATUS_ERROR
+					@Msg('Failed to grab GMA info! Server returned: ' .. code)
+					@Msg(body)
 					@CalllError()
 					return
 
-				@Msg('GOT FILEINFO DETAILS FOR ' .. @workshopID .. ' (' .. data.title .. ')')
-				@name = data.title
-				@steamworksInfo = data
+				resp = util.JSONToTable(body)
 
-				path = 'cache/workshop/' .. data.fileid .. '.cache'
+				if resp and resp.response and resp.response.publishedfiledetails
+					for item in *resp.response.publishedfiledetails
+						if VLL2.WSBundle.IsAddonMounted(item.publishedfileid)
+							@Msg('Addon ' .. item.title .. ' is already mounted and running')
+						else
+							@Msg('GOT FILEINFO DETAILS FOR ' .. @workshopID .. ' (' .. item.title .. ')')
+							path = 'cache/workshop/' .. item.hcontent_file .. '.cache'
+							@steamworksInfo = item
+							@wsTitle = item.title
+							@name = item.title
 
-				if file.Exists(path, 'GAME')
-					@SpecifyPath(path)
-					@__Mount()
-				else
-					@Msg('Downloading from workshop')
-					msgid = 'vll2_dl_' .. @workshopID
-					notification.AddProgress(msgid, 'Downloading ' .. data.title .. ' from workshop')
-					@status = @@STATUS_LOADING
-					steamworks.Download data.fileid, true, (path2) ->
-						notification.Kill(msgid)
-						@Msg('Downloaded from workshop')
-						@SpecifyPath(path2 or path)
-						@__Mount()
+							if file.Exists(path, 'GAME')
+								@SpecifyPath(path)
+								@__Mount()
+							else
+								@Msg('Downloading from workshop')
+								msgid = 'vll2_dl_' .. @workshopID
+								notification.AddProgress(msgid, 'Downloading ' .. item.title .. ' from workshop')
+								@status = @@STATUS_LOADING
+								steamworks.Download item.hcontent_file, true, (path2) ->
+									notification.Kill(msgid)
+									@Msg('Downloaded from workshop')
+									@SpecifyPath(path2 or path)
+									@__Mount()
+
+			HTTP(req)
 		else
 			@status = @@STATUS_GETTING_INFO
 			req = {
@@ -591,6 +623,7 @@ class VLL2.WSBundle extends VLL2.GMABundle
 							@steamworksInfo = item
 							@wsTitle = item.title
 							@name = item.title
+							PrintTable(item)
 							@DownloadGMA(item.file_url, item.filename)
 
 			HTTP(req)
