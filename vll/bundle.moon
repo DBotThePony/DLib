@@ -576,6 +576,13 @@ class VLL2.WSBundle extends VLL2.GMABundle
 							@wsTitle = item.title
 							@name = item.title
 
+							if tobool(item.banned)
+								@Msg('-----------------------------')
+								@Msg('--- This workshop item was BANNED!')
+								@Msg('--- Ban reason: ' .. (item.ban_reason or '<unknown>'))
+								@Msg('--- But the addon will still be mounted though')
+								@Msg('-----------------------------')
+
 							if file.Exists(path, 'GAME')
 								@SpecifyPath(path)
 								@__Mount()
@@ -623,7 +630,14 @@ class VLL2.WSBundle extends VLL2.GMABundle
 							@steamworksInfo = item
 							@wsTitle = item.title
 							@name = item.title
-							PrintTable(item)
+
+							if tobool(item.banned)
+								@Msg('-----------------------------')
+								@Msg('--- This workshop item was BANNED!')
+								@Msg('--- Ban reason: ' .. (item.ban_reason or '<unknown>'))
+								@Msg('--- But the addon will still be mounted though')
+								@Msg('-----------------------------')
+
 							@DownloadGMA(item.file_url, item.filename)
 
 			HTTP(req)
