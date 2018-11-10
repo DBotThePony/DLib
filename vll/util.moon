@@ -50,6 +50,25 @@ VLL2.API = {
 		fbundle\SetReplicate(replicate)
 		return fbundle
 
+	LoadWorkshopCollection: (wsid, silent = false, replicate = true) ->
+		assert(type(wsid) == 'string', 'Bundle wsid must be a string')
+		wsid = tostring(math.floor(assert(tonumber(wsid), 'Bundle wsid must represent a valid number within string!')))
+		fbundle = VLL2.WSCollection(wsid)
+		fbundle\Load()
+		fbundle\Replicate() if not silent
+		fbundle\SetReplicate(replicate)
+		return fbundle
+
+	LoadWorkshopCollectionContent: (wsid, silent = false, replicate = true) ->
+		assert(type(wsid) == 'string', 'Bundle wsid must be a string')
+		wsid = tostring(math.floor(assert(tonumber(wsid), 'Bundle wsid must represent a valid number within string!')))
+		fbundle = VLL2.WSCollection(wsid)
+		fbundle\Load()
+		fbundle\DoNotLoadLua()
+		fbundle\Replicate() if not silent
+		fbundle\SetReplicate(replicate)
+		return fbundle
+
 	LoadWorkshop: (wsid, silent = false, replicate = true) ->
 		assert(type(wsid) == 'string', 'Bundle wsid must be a string')
 		wsid = tostring(math.floor(assert(tonumber(wsid), 'Bundle wsid must represent a valid number within string!')))

@@ -22,7 +22,9 @@ import VLL2, table, hook, surface, draw, ScrW, ScrH, TEXT_ALIGN_CENTER from _G
 
 bundlelist = {
 	VLL2.URLBundle
-	VLL2.WSBundle, VLL2.GMABundle
+	VLL2.WSBundle
+	VLL2.GMABundle
+	VLL2.WSCollection
 }
 
 surface.CreateFont('VLL2.Message', {

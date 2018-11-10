@@ -64,6 +64,29 @@ vll2_workshop = (ply, cmd, args) ->
 	fbundle\Replicate()
 	VLL2.MessagePlayer(ply, 'Loading Workshop Bundle: ' .. bundle)
 
+vll2_wscollection = (ply, cmd, args) ->
+	return VLL2.MessagePlayer(ply, 'Not a super admin!') if disallow()
+	bundle = args[1]
+	return VLL2.MessagePlayer(ply, 'No workshop ID of collection were specified.') if not bundle
+	return VLL2.MessagePlayer(ply, 'Bundle is already loading!') if not VLL2.AbstractBundle\Checkup(bundle\lower())
+	return VLL2.MessagePlayer(ply, 'Invalid ID provided. it must be an integer') if not tonumber(bundle)
+	fbundle = VLL2.WSCollection(tostring(math.floor(tonumber(bundle)))\lower())
+	fbundle\Load()
+	fbundle\Replicate()
+	VLL2.MessagePlayer(ply, 'Loading Workshop collection Bundle: ' .. bundle .. '. Hold on tigh!')
+
+vll2_wscollection_content = (ply, cmd, args) ->
+	return VLL2.MessagePlayer(ply, 'Not a super admin!') if disallow2()
+	bundle = args[1]
+	return VLL2.MessagePlayer(ply, 'No workshop ID of collection were specified.') if not bundle
+	return VLL2.MessagePlayer(ply, 'Bundle is already loading!') if not VLL2.AbstractBundle\Checkup(bundle\lower())
+	return VLL2.MessagePlayer(ply, 'Invalid ID provided. it must be an integer') if not tonumber(bundle)
+	fbundle = VLL2.WSCollection(tostring(math.floor(tonumber(bundle)))\lower())
+	fbundle\DoNotLoadLua()
+	fbundle\Load()
+	fbundle\Replicate()
+	VLL2.MessagePlayer(ply, 'Loading Workshop collection Bundle: ' .. bundle .. ' without mounting Lua. Hold on tigh!')
+
 vll2_workshop_silent = (ply, cmd, args) ->
 	return VLL2.MessagePlayer(ply, 'Not a super admin!') if disallow()
 	bundle = args[1]
@@ -116,7 +139,8 @@ vll2_reload = (ply, cmd, args) ->
 
 concommand.Add 'vll2_load', vll2_load, vll2_mkautocomplete('vll2_load')
 concommand.Add 'vll2_workshop', vll2_workshop
-concommand.Add 'vll2_workshop_content', vll2_workshop_content
+concommand.Add 'vll2_wscollection', vll2_wscollection
+concommand.Add 'vll2_wscollection_content', vll2_wscollection_content
 concommand.Add 'vll2_workshop_silent', vll2_workshop_silent
 concommand.Add 'vll2_workshop_content_silent', vll2_workshop_content_silent
 concommand.Add 'vll2_reload', vll2_reload
@@ -126,6 +150,8 @@ if SERVER
 	concommand.Add 'vll2_load_server', vll2_load, vll2_mkautocomplete('vll2_load_server')
 	concommand.Add 'vll2_load_silent', vll2_load_silent, vll2_mkautocomplete('vll2_load_silent')
 	concommand.Add 'vll2_workshop_server', vll2_workshop
+	concommand.Add 'vll2_wscollection_server', vll2_wscollection
+	concommand.Add 'vll2_wscollection_content_server', vll2_wscollection_content
 	concommand.Add 'vll2_workshop_content_server', vll2_workshop_content
 	concommand.Add 'vll2_workshop_silent_server', vll2_workshop_silent
 	concommand.Add 'vll2_workshop_content_silent_server', vll2_workshop_content_silent

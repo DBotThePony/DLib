@@ -23,6 +23,7 @@ import file, util, error, assert, HTTP from _G
 if SERVER
 	util.AddNetworkString('vll2.replicate_url')
 	util.AddNetworkString('vll2.replicate_workshop')
+	util.AddNetworkString('vll2.replicate_wscollection')
 	util.AddNetworkString('vll2.replicate_all')
 
 file.CreateDir('vll2')
@@ -130,7 +131,7 @@ class VLL2.AbstractBundle
 		table.insert(@errorCallbacks, fcall)
 		return @
 
-	CalllError: (...) => fcall(@, ...) for fcall in *@errorCallbacks
+	CallError: (...) => fcall(@, ...) for fcall in *@errorCallbacks
 	CallFinish: (...) => fcall(@, ...) for fcall in *@finishCallbacks
 	CallLoaded: (...) => fcall(@, ...) for fcall in *@loadCallbacks
 
@@ -236,7 +237,7 @@ class VLL2.URLBundle extends VLL2.AbstractBundle
 			@status = @@STATUS_ERROR
 			@Msg('download of ' .. fpath .. ' failed, reason: ' .. reason)
 			@Msg('URL: ' .. url)
-			@CalllError()
+			@CallError()
 
 		req.success = (code = 400, body = '', headers) ->
 			@cDownloading -= 1
@@ -246,7 +247,7 @@ class VLL2.URLBundle extends VLL2.AbstractBundle
 				@Msg('URL: ' .. url)
 				@status = @@STATUS_ERROR
 				@__DownloadCallback()
-				@CalllError()
+				@CallError()
 				return
 
 			@downloaded += 1
@@ -296,13 +297,13 @@ class VLL2.URLBundle extends VLL2.AbstractBundle
 			@status = @@STATUS_ERROR
 			@errReason = reason
 			@Msg('download of index file failed, reason: ' .. reason)
-			@CalllError()
+			@CallError()
 
 		req.success = (code = 400, body = '', headers) ->
 			if code ~= 200
 				@Msg('download of index file failed, server returned: ' .. code)
 				@status = @@STATUS_ERROR
-				@CalllError()
+				@CallError()
 				return
 
 			@bundleList = string.Explode('\n', body\Trim())
@@ -384,7 +385,7 @@ class VLL2.GMABundle extends VLL2.AbstractBundle
 		if not status
 			@Msg('Unable to mount gma!')
 			@status = @@STATUS_ERROR
-			@CalllError()
+			@CallError()
 			return
 
 		if @loadLua
@@ -398,6 +399,209 @@ class VLL2.GMABundle extends VLL2.AbstractBundle
 		@modelList = [_file for _file in *filelist when string.sub(_file, 1, 6) == 'models' and string.sub(_file, -3) == 'mdl']
 
 		@status = @@STATUS_LOADED
+
+class VLL2.WSCollection extends VLL2.AbstractBundle
+	@COLLECTION_INFO_URL = 'https://api.steampowered.com/ISteamRemoteStorage/GetCollectionDetails/v1/'
+	@INFO_URL = 'https://api.steampowered.com/ISteamRemoteStorage/GetPublishedFileDetails/v1/'
+	@LISTING = {}
+
+	@STATUS_GETTING_INFO = 621
+
+	if CLIENT
+		net.Receive 'vll2.replicate_wscollection', ->
+			graburl = net.ReadUInt(32)
+			return if not @Checkup(graburl)
+			loadLua = net.ReadBool()
+			mountAfterLoad = net.ReadBool()
+			VLL2.MessageBundle('Server requires workshop COLLECTION to be loaded: ' .. graburl)
+			bundle = VLL2.WSCollection(graburl)
+			bundle.loadLua = loadLua
+			bundle.mountAfterLoad = mountAfterLoad
+			bundle\Load()
+
+	Replicate: (ply = player.GetAll()) =>
+		return if CLIENT
+		return if player.GetHumans() == 0
+		net.Start('vll2.replicate_wscollection')
+		net.WriteUInt(@workshopID, 32)
+		net.WriteBool(@loadLua)
+		net.WriteBool(@mountAfterLoad)
+		net.Send(ply)
+
+	new: (name) =>
+		super(name)
+		@workshopID = assert(tonumber(@name), 'Unable to cast workshopid to number')
+		@mountAfterLoad = true
+		@gmaListing = {}
+		@loadLua = true
+
+	@GetMessage = =>
+		return if SERVER
+		msg1 = @GetMessage1()
+		msg2 = @GetMessage2()
+		return if not msg1 and not msg2
+		return msg1 if msg1 and not msg2
+		return msg2 if not msg1 and msg2
+		return {msg1, msg2}
+
+	@GetMessage1 = =>
+		return if SERVER
+		downloading = 0
+		downloading += 1 for _, bundle in pairs(@LISTING) when bundle\IsLoading()
+		return if downloading == 0
+		return 'VLL2 Is downloading ' .. downloading .. ' Workshop COLLECTIONS'
+
+	@GetMessage2 = =>
+		return if SERVER
+		downloading = 0
+		downloading += 1 for _, bundle in pairs(@LISTING) when bundle\IsGettingInfo()
+		return if downloading == 0
+		return 'Getting info of ' .. downloading .. ' workshop COLLECTIONS'
+
+	SetMountAfterLoad: (status = @mountAfterLoad) =>
+		@mountAfterLoad = status
+		return @
+	DoMountAfterLoad: => @SetMountAfterLoad(true)
+	DoNotMountAfterLoad: => @SetMountAfterLoad(false)
+	IsGettingInfo: => @status == @@STATUS_GETTING_INFO
+
+	DoLoadLua: => @SetLoadLua(true)
+	DoNotLoadLua: => @SetLoadLua(false)
+	SetLoadLua: (status = @loadLua) =>
+		@loadLua = status
+		return @
+
+	Mount: =>
+		@Msg('GOING TO MOUNT WORKSHOP COLLECTION RIGHT NOW')
+		fbundle\Mount() for fbundle in *@gmaListing
+		@status = @@STATUS_RUNNING
+		@Msg('Workshop collection initialized!')
+		@CallFinish()
+
+	OnAddonLoads: (...) =>
+		for fbundle in *@gmaListing
+			if not fbundle\IsLoaded()
+				return
+
+		@status = @@STATUS_LOADED
+		@CallLoaded()
+		return if not @mountAfterLoad
+		@Mount()
+
+	OnAddonFails: (fbundle, str, code, ...) =>
+		if code == VLL2.WSBundle.INVALID_WS_DATA
+			for i, fbundle2 in ipairs(@gmaListing)
+				if fbundle == fbundle2
+					table.remove(@gmaListing, i)
+			@OnAddonLoads()
+			return
+
+		@status = @@STATUS_ERROR
+		@Msg('One of collection addons has failed to load! Uh oh!')
+		@CallError(str, code, ...)
+
+	GetCollectionDetails: =>
+		@status = @@STATUS_LOADING
+		@gmaListing = {}
+
+		@status = @@STATUS_GETTING_INFO
+		req = {
+			method: 'POST'
+			url: @@COLLECTION_INFO_URL
+			parameters: {collectioncount: '1', 'publishedfileids[0]': tostring(@workshopID)}
+		}
+
+		req.failed = (reason = 'failure') ->
+			@status = @@STATUS_ERROR
+			@Msg('Failed to grab collection info! Reason: ' .. reason)
+			@CallError()
+
+		req.success = (code = 400, body = '', headers) ->
+			if code ~= 200
+				@status = @@STATUS_ERROR
+				@Msg('Failed to grab collection info! Server returned: ' .. code)
+				@Msg(body)
+				@CallError()
+				return
+
+			resp = util.JSONToTable(body)
+			@steamResponse = resp
+			@steamResponseRaw = body
+
+			@status = @@STATUS_LOADING
+
+			if resp and resp.response and resp.response.result == 1 and resp.response.collectiondetails and resp.response.collectiondetails[1] and resp.response.collectiondetails[1].result == 1 and resp.response.collectiondetails[1].children
+				for item in *resp.response.collectiondetails[1].children
+					fbundle = VLL2.WSBundle(item.publishedfileid)
+					fbundle\DoNotMountAfterLoad()
+					fbundle\DoNotReplicate()
+					fbundle\SetLoadLua(@loadLua)
+					fbundle\Load()
+					fbundle\AddLoadedHook (_, ...) -> @OnAddonLoads(...)
+					fbundle\AddErrorHook (_, ...) -> @OnAddonFails(_, ...)
+					table.insert(@gmaListing, fbundle)
+			else
+				@status = @@STATUS_ERROR
+				@Msg('Failed to grab collection info! Server did not sent valid reply or collection contains no items')
+
+		HTTP(req)
+
+	GetWorkshopDetails: =>
+		@status = @@STATUS_GETTING_INFO
+		req = {
+			method: 'POST'
+			url: @@INFO_URL
+			parameters: {itemcount: '1', 'publishedfileids[0]': tostring(@workshopID)}
+		}
+
+		req.failed = (reason = 'failure') ->
+			@status = @@STATUS_ERROR
+			@Msg('Failed to grab GMA info! Reason: ' .. reason)
+			@CallError()
+
+		req.success = (code = 400, body = '', headers) ->
+			if code ~= 200
+				@status = @@STATUS_ERROR
+				@Msg('Failed to grab GMA info! Server returned: ' .. code)
+				@Msg(body)
+				@CallError()
+				return
+
+			resp = util.JSONToTable(body)
+			@steamResponse = resp
+			@steamResponseRaw = body
+
+			if resp and resp.response and resp.response.publishedfiledetails
+				for item in *resp.response.publishedfiledetails
+					if VLL2.WSBundle.IsAddonMounted(item.publishedfileid) and not @loadLua
+						@status = @@STATUS_LOADED
+						@Msg('Addon ' .. item.title .. ' is already mounted and running')
+					elseif item.hcontent_file and item.title
+						@Msg('GOT FILEINFO DETAILS FOR ' .. @workshopID .. ' (' .. item.title .. ')')
+						@steamworksInfo = item
+						@wsTitle = item.title
+						@name = item.title
+
+						if tobool(item.banned)
+							@Msg('-----------------------------')
+							@Msg('--- This workshop item was BANNED!')
+							@Msg('--- Ban reason: ' .. (item.ban_reason or '<unknown>'))
+							@Msg('--- But the addon will still be mounted though')
+							@Msg('-----------------------------')
+
+						@GetCollectionDetails()
+					else
+						@status = @@STATUS_ERROR
+						@Msg('This workshop item contains no valid data.')
+						@CallError('This workshop item contains no valid data.')
+			else
+				@status = @@STATUS_ERROR
+				@Msg('Failed to grab GMA info! Server did not sent valid reply')
+				@CallError()
+
+		HTTP(req)
+
+	Load: => @GetWorkshopDetails()
 
 class VLL2.WSBundle extends VLL2.GMABundle
 	@INFO_URL = 'https://api.steampowered.com/ISteamRemoteStorage/GetPublishedFileDetails/v1/'
@@ -504,13 +708,13 @@ class VLL2.WSBundle extends VLL2.GMABundle
 		req.failed = (reason = 'failure') ->
 			@status = @@STATUS_ERROR
 			@Msg('Failed to download the GMA! Reason: ' .. reason)
-			@CalllError()
+			@CallError()
 
 		req.success = (code = 400, body = '', headers) ->
 			if code ~= 200
 				@status = @@STATUS_ERROR
 				@Msg('Failed to download the GMA! Server returned: ' .. code)
-				@CalllError()
+				@CallError()
 				return
 
 			@Msg('--- DECOMPRESSING')
@@ -519,7 +723,7 @@ class VLL2.WSBundle extends VLL2.GMABundle
 			if decompress == ''
 				@status = @@STATUS_ERROR
 				@Msg('Failed to decompress the GMA! Did tranfer got interrupted?')
-				@CalllError()
+				@CallError()
 				return
 
 			@Msg(string.format('Decompression took %.2f ms', (SysTime() - stime) * 1000))
@@ -533,6 +737,8 @@ class VLL2.WSBundle extends VLL2.GMABundle
 
 		HTTP(req)
 		@Msg('Downloading ' .. @wsTitle .. '...')
+
+	@INVALID_WS_DATA = 912
 
 	Load: =>
 		@status = @@STATUS_LOADING
@@ -553,24 +759,26 @@ class VLL2.WSBundle extends VLL2.GMABundle
 			req.failed = (reason = 'failure') ->
 				@status = @@STATUS_ERROR
 				@Msg('Failed to grab GMA info! Reason: ' .. reason)
-				@CalllError()
+				@CallError()
 
 			req.success = (code = 400, body = '', headers) ->
 				if code ~= 200
 					@status = @@STATUS_ERROR
 					@Msg('Failed to grab GMA info! Server returned: ' .. code)
 					@Msg(body)
-					@CalllError()
+					@CallError()
 					return
 
 				resp = util.JSONToTable(body)
+				@steamResponse = resp
+				@steamResponseRaw = body
 
 				if resp and resp.response and resp.response.publishedfiledetails
 					for item in *resp.response.publishedfiledetails
 						if VLL2.WSBundle.IsAddonMounted(item.publishedfileid) and not @loadLua
 							@status = @@STATUS_LOADED
 							@Msg('Addon ' .. item.title .. ' is already mounted and running')
-						else
+						elseif item.hcontent_file and item.title
 							@Msg('GOT FILEINFO DETAILS FOR ' .. @workshopID .. ' (' .. item.title .. ')')
 							path = 'cache/workshop/' .. item.hcontent_file .. '.cache'
 							@steamworksInfo = item
@@ -597,9 +805,14 @@ class VLL2.WSBundle extends VLL2.GMABundle
 									@Msg('Downloaded from workshop')
 									@SpecifyPath(path2 or path)
 									@__Mount()
+						else
+							@status = @@STATUS_ERROR
+							@Msg('This workshop item contains no valid data.')
+							@CallError('This workshop item contains no valid data.', @@INVALID_WS_DATA)
 				else
 					@status = @@STATUS_ERROR
 					@Msg('Failed to grab GMA info! Server did not sent valid reply')
+					@CallError()
 
 			HTTP(req)
 		else
@@ -613,24 +826,26 @@ class VLL2.WSBundle extends VLL2.GMABundle
 			req.failed = (reason = 'failure') ->
 				@status = @@STATUS_ERROR
 				@Msg('Failed to grab GMA info! Reason: ' .. reason)
-				@CalllError()
+				@CallError()
 
 			req.success = (code = 400, body = '', headers) ->
 				if code ~= 200
 					@status = @@STATUS_ERROR
 					@Msg('Failed to grab GMA info! Server returned: ' .. code)
 					@Msg(body)
-					@CalllError()
+					@CallError()
 					return
 
 				resp = util.JSONToTable(body)
+				@steamResponse = resp
+				@steamResponseRaw = body
 
 				if resp and resp.response and resp.response.publishedfiledetails
 					for item in *resp.response.publishedfiledetails
 						if VLL2.WSBundle.IsAddonMounted(item.publishedfileid) and not @loadLua
 							@status = @@STATUS_LOADED
 							@Msg('Addon ' .. item.title .. ' is already mounted and running')
-						else
+						elseif item.hcontent_file and item.title
 							@Msg('GOT FILEINFO DETAILS FOR ' .. @workshopID .. ' (' .. item.title .. ')')
 							@steamworksInfo = item
 							@wsTitle = item.title
@@ -644,6 +859,14 @@ class VLL2.WSBundle extends VLL2.GMABundle
 								@Msg('-----------------------------')
 
 							@DownloadGMA(item.file_url, item.filename)
+						else
+							@status = @@STATUS_ERROR
+							@Msg('This workshop item contains no valid data.')
+							@CallError('This workshop item contains no valid data.')
+				else
+					@status = @@STATUS_ERROR
+					@Msg('Failed to grab GMA info! Server did not sent valid reply')
+					@CallError()
 
 			HTTP(req)
 
