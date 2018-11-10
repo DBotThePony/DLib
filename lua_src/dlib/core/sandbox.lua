@@ -35,7 +35,8 @@
 local DLib = DLib
 local CompileFile = CompileFile
 local CompileString = CompileString
-local sandbox = DLib.module('sandbox')
+DLib.sandbox = DLib.sandbox or {}
+local sandbox = DLib.sandbox
 
 function sandbox.include(path, ...)
 	return sandbox.compileFile(path, ...)()
@@ -118,5 +119,3 @@ function sandbox.runString(str, ...)
 
 	return wrap(compiled, ...)()
 end
-
-return sandbox

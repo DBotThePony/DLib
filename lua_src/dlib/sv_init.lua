@@ -18,13 +18,6 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-
-function DLib.registerSV(fil)
-	local result = include('dlib/' .. fil)
-	if not result then return end
-	return result.register()
-end
-
 local MsgC = MsgC
 local SysTime = SysTime
 local timeStart = SysTime()
@@ -41,17 +34,19 @@ DLib.Loader.csModule('dlib/modules/notify/client')
 DLib.Loader.svmodule('notify/sv_dnotify.lua')
 DLib.Loader.csModule('dlib/util/client')
 DLib.Loader.csModule('dlib/modules/client')
-DLib.Loader.loadPureSVTop('dlib/modules/server')
-DLib.Loader.svmodule('dmysql.lua')
+DLib.Loader.svmodule('server/dmysql4.lua')
+DLib.Loader.svmodule('server/dmysql4_bake.lua')
+DLib.Loader.svmodule('server/dmysql.lua')
+DLib.Loader.svmodule('server/friendstatus.lua')
 
 DLib.Loader.loadPureCS('dlib/vgui')
-DLib.registerSV('util/server/chat.lua')
+DLib.simpleInclude('util/server/chat.lua')
 
 MsgC(string.format('%.2f ms\n', (SysTime() - timeStart) * 1000))
 timeStart = SysTime()
 MsgC('[DLib] Running addons ... \n')
 
-if not VLL_CURR_FILE then
+if not VLL_CURR_FILE and not VLL2_FILEDEF then
 	DLib.Loader.loadPureSHTop('dlib/autorun')
 	DLib.Loader.loadPureSVTop('dlib/autorun/server')
 	DLib.Loader.loadPureCSTop('dlib/autorun/client')

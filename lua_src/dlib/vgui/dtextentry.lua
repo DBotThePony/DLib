@@ -84,13 +84,13 @@ local TEXTENTRY = PANEL
 PANEL = {}
 DLib.VGUI.TextEntry_Configurable = PANEL
 
-DLib.util.AccessorFuncJIT(PANEL, 'lengthLimit', 'LengthLimit')
-DLib.util.AccessorFuncJIT(PANEL, 'tooltipTime', 'TooltipTime')
-DLib.util.AccessorFuncJIT(PANEL, 'tooltip', 'TooltipShown')
-DLib.util.AccessorFuncJIT(PANEL, 'whitelistMode', 'IsWhitelistMode')
-DLib.util.AccessorFuncJIT(PANEL, 'disallowed', 'DisallowedHashSet')
-DLib.util.AccessorFuncJIT(PANEL, 'allowed', 'AllowedHashSet')
-DLib.util.AccessorFuncJIT(PANEL, 'defaultReason', 'DefaultReason')
+AccessorFunc(PANEL, 'lengthLimit', 'LengthLimit')
+AccessorFunc(PANEL, 'tooltipTime', 'TooltipTime')
+AccessorFunc(PANEL, 'tooltip', 'TooltipShown')
+AccessorFunc(PANEL, 'whitelistMode', 'IsWhitelistMode')
+AccessorFunc(PANEL, 'disallowed', 'DisallowedHashSet')
+AccessorFunc(PANEL, 'allowed', 'AllowedHashSet')
+AccessorFunc(PANEL, 'defaultReason', 'DefaultReason')
 
 function PANEL:Init()
 	self.allowed = DLib.HashSet()
@@ -239,9 +239,9 @@ vgui.Register('DLib_TextEntry_Configurable', PANEL, 'DLib_TextEntry')
 local TEXTENTRY_CUSTOM = PANEL
 PANEL = {}
 DLib.VGUI.TextEntry_Number = PANEL
-DLib.util.AccessorFuncJIT(PANEL, 'defaultNumber', 'DefaultNumber')
-DLib.util.AccessorFuncJIT(PANEL, 'allowFloats', 'IsFloatAllowed')
-DLib.util.AccessorFuncJIT(PANEL, 'allowNegative', 'IsNegativeValueAllowed')
+AccessorFunc(PANEL, 'defaultNumber', 'DefaultNumber')
+AccessorFunc(PANEL, 'allowFloats', 'IsFloatAllowed')
+AccessorFunc(PANEL, 'allowNegative', 'IsNegativeValueAllowed')
 
 function PANEL:Init()
 	self:SetIsWhitelistMode(true)

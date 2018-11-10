@@ -22,7 +22,7 @@
 local PANEL = {}
 DLib.VGUI.PlayerButton = PANEL
 
-DLib.util.AccessorFuncJIT(PANEL, 'm_DisplayGreen', 'GreenIfOnline')
+AccessorFunc(PANEL, 'm_DisplayGreen', 'GreenIfOnline')
 
 function PANEL:Init()
 	self.isAddingNew = false

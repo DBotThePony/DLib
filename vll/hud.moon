@@ -1,5 +1,5 @@
 
--- Copyright (C) 2016-2018 DBot
+-- Copyright (C) 2018 DBot
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -18,34 +18,41 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
+import VLL2, table, hook, surface, draw, ScrW, ScrH, TEXT_ALIGN_CENTER from _G
 
-local gmod_language, LastLanguage
-local LANG_OVERRIDE = CreateConVar('gmod_language_dlib_cl', '', {FCVAR_ARCHIVE}, 'gmod_language override for DLib based addons')
+bundlelist = {
+	VLL2.URLBundle
+	VLL2.WSBundle
+	VLL2.GMABundle
+	VLL2.WSCollection
+}
 
-function lang.update()
-	gmod_language = gmod_language or GetConVar('gmod_language')
-	if not gmod_language then return end
-	local grablang = LANG_OVERRIDE:GetString():lower():trim()
+surface.CreateFont('VLL2.Message', {
+	font: 'Roboto'
+	size: ScreenScale(14)
+})
 
-	if grablang ~= '' then
-		lang.CURRENT_LANG = grablang
-	else
-		lang.CURRENT_LANG = gmod_language:GetString():lower():trim()
-	end
+WARN_COLOR = Color(188, 15, 20)
 
-	if LastLanguage ~= lang.CURRENT_LANG then
-		hook.Run('DLib.LanguageChanged', LastLanguage, lang.CURRENT_LANG)
-		hook.Run('DLib.LanguageChanged2', LastLanguage, lang.CURRENT_LANG)
-	end
+hook.Add 'HUDPaint', 'VLL2.HUDMessages', ->
+	local messages
 
-	LastLanguage = lang.CURRENT_LANG
+	for bundle in *bundlelist
+		msgs = bundle\GetMessage()
 
-	net.Start('DLib.UpdateLang')
-	net.WriteString(lang.CURRENT_LANG)
-	net.SendToServer()
-end
+		if msgs
+			messages = messages or {}
 
-cvars.AddChangeCallback('gmod_language', lang.update, 'DLib')
-cvars.AddChangeCallback('gmod_language_dlib_cl', lang.update, 'DLib')
-lang.update()
-timer.Simple(0, lang.update)
+			if type(msgs) == 'string'
+				table.insert(messages, msgs)
+			else
+				table.insert(messages, _i) for _i in *msgs
+
+	return if not messages
+
+	x, y = ScrW() / 2, ScrH() * 0.11
+
+	for message in *messages
+		draw.DrawText(message, 'VLL2.Message', x, y, WARN_COLOR, TEXT_ALIGN_CENTER)
+		w, h = surface.GetTextSize(message)
+		y += h * 1.1

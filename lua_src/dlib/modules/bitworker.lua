@@ -18,11 +18,11 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-
+DLib.bitworker = DLib.bitworker or {}
 local table = table
 local DLib = DLib
 local math = math
-local bitworker = DLib.module('bitworker')
+local bitworker = DLib.bitworker
 local type = type
 local ipairs = ipairs
 
@@ -34,45 +34,62 @@ local function table_insert(tabIn, val)
 	tabIn[#tabIn + 1] = val
 end
 
-local function fixedBits(tabIn, amount)
-	local bits = {}
+function bitworker.IntegerToBinary(numberIn, bitsNum)
+	if not isValidNumber(numberIn) then
+		local vr = {}
 
-	for i = 1, amount - #tabIn do
-		table_insert(bits, 0)
+		for i = 1, bitsNum do
+			vr[i] = 0
+		end
+
+		return vr
 	end
 
-	for i = 1, math.min(#tabIn, amount) do
-		table_insert(bits, tabIn[i])
+	local bits = {}
+	local sign = numberIn >= 0 and 0 or 1
+	if sign == 1 then
+		numberIn = -numberIn
+	end
+
+	bits[1] = sign
+
+	for i = 2, bitsNum do
+		bits[i] = 0
+	end
+
+	for i = 2, bitsNum do
+		if numberIn == 0 then break end
+		local div = numberIn % 2
+		numberIn = (numberIn - div) / 2
+		bits[bitsNum - i + 2] = div
 	end
 
 	return bits
 end
 
-function bitworker.IntegerToBinary(numberIn)
-	if not isValidNumber(numberIn) then
-		return {0, 0}
+function bitworker.IntegerToBinary2(numberIn, bitsNum)
+	local max = math.pow(2, bitsNum)
+
+	if numberIn < 0 then
+		numberIn = max + numberIn
+	elseif numberIn > max then
+		numberIn = numberIn - max
 	end
 
 	local bits = {}
-	local sign = numberIn >= 0 and 0 or 1
-	numberIn = math.abs(numberIn)
 
-	repeat
-		local div = numberIn / 2
-		local num = div % 1
+	for i = 1, bitsNum do
+		bits[i] = 0
+	end
 
-		if num ~= 0 then
-			table_insert(bits, 1)
-		else
-			table_insert(bits, 0)
-		end
+	for i = 1, bitsNum do
+		if numberIn == 0 then break end
+		local div = numberIn % 2
+		numberIn = (numberIn - div) / 2
+		bits[bitsNum - i + 1] = div
+	end
 
-		numberIn = numberIn - div - num
-	until numberIn < 1
-
-	table_insert(bits, sign)
-
-	return table.flip(bits)
+	return bits
 end
 
 function bitworker.BinaryToUInteger(inputTable)
@@ -80,7 +97,7 @@ function bitworker.BinaryToUInteger(inputTable)
 	local output = 0
 
 	for i = 1, amount do
-		if inputTable[i] > 0 then
+		if inputTable[i] == 1 then
 			output = output + math.pow(2, amount - i)
 		end
 	end
@@ -94,7 +111,7 @@ function bitworker.BinaryToInteger(inputTable)
 	local output = 0
 
 	for i = 2, amount do
-		if inputTable[i] > 0 then
+		if inputTable[i] == 1 then
 			output = output + math.pow(2, amount - i)
 		end
 	end
@@ -106,99 +123,50 @@ function bitworker.BinaryToInteger(inputTable)
 	end
 end
 
-function bitworker.UIntegerToBinary(numberIn)
-	if not isValidNumber(numberIn) then
-		return {0}
+function bitworker.BinaryToInteger2(bits)
+	local bitsNum = #bits
+	local max = math.pow(2, bitsNum - 1) - 1
+	local output = 0
+
+	for i = 1, bitsNum do
+		if bits[i] == 1 then
+			output = output + math.pow(2, bitsNum - i)
+		end
 	end
 
-	local bits = {}
-	numberIn = math.abs(numberIn)
+	if output > max then
+		output = output - math.pow(2, bitsNum)
+	end
 
-	repeat
-		local div = numberIn / 2
-		local num = div % 1
-
-		if num ~= 0 then
-			table_insert(bits, 1)
-		else
-			table_insert(bits, 0)
-		end
-
-		numberIn = numberIn - div - num
-	until numberIn < 1
-
-	return table.flip(bits)
+	return output
 end
 
-function bitworker.IntegerToBinaryFixed(numberIn, bitsOut)
-	local maximal = math.pow(2, bitsOut)
+function bitworker.UIntegerToBinary(numberIn, bitsNum)
+	if not isValidNumber(numberIn) then
+		local vr = {}
+
+		for i = 1, bitsNum do
+			vr[i] = 0
+		end
+
+		return vr
+	end
 
 	if numberIn < 0 then
-		numberIn = numberIn + maximal
+		numberIn = math.pow(2, bitsNum) + numberIn
 	end
 
-	numberIn = math.min(maximal, numberIn)
-	local output = bitworker.UIntegerToBinary(numberIn)
 	local bits = {}
 
-	for i = 1, bitsOut - #output do
-		table_insert(bits, 0)
+	for i = 1, bitsNum do
+		bits[i] = 0
 	end
 
-	for i = 1, math.min(#output, bitsOut) do
-		table_insert(bits, output[i])
-	end
-
-	return bits
-end
-
-function bitworker.BinaryToIntegerFixed(bitsIn)
-	local bitsOut = #bitsIn
-	local maximalDiv = math.pow(2, bitsOut - 1) - 1
-	local value = bitworker.BinaryToUInteger(bitsIn)
-
-	if value > maximalDiv then
-		value = value - math.pow(2, bitsOut)
-	end
-
-	return value
-end
-
-function bitworker.FloatToBinary(numberIn, precision)
-	if not isValidNumber(numberIn) then
-		local bits = {0, 0}
-
-		for i = 1, precision do
-			table_insert(bits, 0)
-		end
-
-		return bits
-	end
-
-	precision = precision or 6
-	local float = math.abs(numberIn) % 1
-	local bits
-	local dir = numberIn < 0
-
-	if dir then
-		bits = bitworker.IntegerToBinary(numberIn + float)
-	else
-		bits = bitworker.IntegerToBinary(numberIn - float)
-	end
-
-	local lastMult = float
-
-	for i = 1, precision do
-		local mult = lastMult * 2
-
-		if mult >= 1 then
-			table_insert(bits, 1)
-			mult = mult - 1
-		else
-			table_insert(bits, 0)
-		end
-
-		lastMult = mult
+	for i = 1, bitsNum do
+		if numberIn == 0 then break end
+		local div = numberIn % 2
+		numberIn = (numberIn - div) / 2
+		bits[bitsNum - i + 1] = div
 	end
 
 	return bits
@@ -209,40 +177,45 @@ function bitworker.NumberToMantiss(numberIn, bitsAllowed)
 		local bits = {}
 
 		for i = 1, bitsAllowed do
-			table_insert(bits, 0)
+			bits[i] = 0
 		end
 
 		return bits
 	end
 
-	local bits = {}
 	local exp = 0
 	numberIn = math.abs(numberIn)
 	local lastMult = numberIn % 1
-	numberIn = numberIn - lastMult
 
-	while numberIn >= 1 and bitsAllowed > #bits do
-		local div = numberIn / 2
-		local num = div % 1
-
-		if num ~= 0 then
-			table_insert(bits, 1)
-		else
-			table_insert(bits, 0)
+	if numberIn >= 2 then
+		-- try to normalize number to be less than 2
+		-- shift to right
+		while numberIn >= 2 do
+			numberIn = numberIn / 2
+			exp = exp + 1
 		end
-
-		numberIn = numberIn - div - num
-		exp = exp + 1
 	end
 
-	bits = table.flip(bits)
+	-- if our number is less than one, shift to left
+	if exp == 0 and numberIn < 1 then
+		while numberIn < 1 do
+			numberIn = numberIn * 2
+			exp = exp - 1
+		end
+	end
 
-	while bitsAllowed > #bits do
-		lastMult = lastMult * 2
+	-- if number is not a zero, it is known amoung all computers that
+	-- first bit of mantissa is always 1
+	-- so let's assume so
+	numberIn = numberIn - 1
 
-		if lastMult >= 1 then
+	local bits = {}
+	for i = 1, bitsAllowed do
+		numberIn = numberIn * 2
+
+		if numberIn >= 1 then
 			table_insert(bits, 1)
-			lastMult = lastMult - 1
+			numberIn = numberIn - 1
 		else
 			table_insert(bits, 0)
 		end
@@ -251,48 +224,23 @@ function bitworker.NumberToMantiss(numberIn, bitsAllowed)
 	return bits, exp
 end
 
-function bitworker.MantissToNumber(bitsIn, shiftNum)
-	shiftNum = shiftNum or 0
+function bitworker.MantissToNumber(bitsIn, exp)
+	exp = exp or 0
 	local num = 0
 
 	for i = 1, #bitsIn do
-		if bitsIn[i] ~= 0 then
-			num = num + math.pow(2, -i + shiftNum)
+		if bitsIn[i] == 1 then
+			num = num + math.pow(2, -i)
 		end
 	end
 
-	return num
-end
-
-function bitworker.BinaryToFloat(inputTable, precision)
-	local amount = #inputTable
-	precision = precision or 6
-
-	local integerPart = {}
-	for i = 1, amount - precision do
-		table_insert(integerPart, inputTable[i])
-	end
-
-	local integer = bitworker.BinaryToInteger(integerPart)
-	local float = 0
-
-	for i = amount - precision + 1, amount do
-		if inputTable[i] > 0 then
-			float = float + math.pow(2, amount - precision - i)
-		end
-	end
-
-	if integer < 0 then
-		return integer - float
-	else
-		return integer + float
-	end
+	return math.pow(2, exp) * (1 + num)
 end
 
 -- final range is bitsExponent + bitsMantissa + 2
 -- where 2 is two bits which one forwards number sign and one forward exponent sign
 function bitworker.FloatToBinaryIEEE(numberIn, bitsExponent, bitsMantissa)
-	if not isValidNumber(numberIn) then
+	if not isValidNumber(numberIn) or numberIn == 0 then
 		local bits = {}
 
 		for i = 0, bitsExponent + bitsMantissa do
@@ -304,7 +252,7 @@ function bitworker.FloatToBinaryIEEE(numberIn, bitsExponent, bitsMantissa)
 
 	local bits = {numberIn >= 0 and 0 or 1}
 	local mantissa, exp = bitworker.NumberToMantiss(numberIn, bitsMantissa)
-	local expBits = fixedBits(bitworker.UIntegerToBinary(exp + 127), bitsExponent)
+	local expBits = bitworker.UIntegerToBinary(exp + 127, bitsExponent)
 
 	table.append(bits, expBits)
 	table.append(bits, mantissa)
@@ -313,6 +261,17 @@ function bitworker.FloatToBinaryIEEE(numberIn, bitsExponent, bitsMantissa)
 end
 
 function bitworker.BinaryToFloatIEEE(bitsIn, bitsExponent, bitsMantissa)
+	local valid = false
+
+	for i = 1, #bitsIn do
+		if bitsIn[i] ~= 0 then
+			valid = true
+			break
+		end
+	end
+
+	if not valid then return 0 end
+
 	local forward = bitsIn[1]
 	local exponent = table.gcopyRange(bitsIn, 2, 2 + bitsExponent - 1)
 	local exp = bitworker.BinaryToUInteger(exponent)
@@ -327,4 +286,21 @@ function bitworker.BinaryToFloatIEEE(bitsIn, bitsExponent, bitsMantissa)
 	end
 end
 
-return bitworker
+function bitworker.BitsToBytes(bitsIn)
+	assert(#bitsIn % 8 == 0, 'Not full bytes')
+	local output = {}
+
+	for i = 1, #bitsIn / 8 do
+		output[i] =
+			bitsIn[(i - 1) * 8 + 8] +
+			bitsIn[(i - 1) * 8 + 7] * 2 +
+			bitsIn[(i - 1) * 8 + 6] * 4 +
+			bitsIn[(i - 1) * 8 + 5] * 8 +
+			bitsIn[(i - 1) * 8 + 4] * 16 +
+			bitsIn[(i - 1) * 8 + 3] * 32 +
+			bitsIn[(i - 1) * 8 + 2] * 64 +
+			bitsIn[(i - 1) * 8 + 1] * 128
+	end
+
+	return output
+end

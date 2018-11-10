@@ -18,8 +18,8 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-
-local vector = DLib.module('vector')
+DLib.vector = DLib.vector or {}
+local vector = DLib.vector
 local assert = assert
 local error = error
 local math = math

@@ -45,3 +45,7 @@ for k, v in pairs(funcs) do
 end
 
 debug.setmetatable(1, meta)
+
+net.pool = util.AddNetworkString
+net.receive = net.Receive
+file.mkdir = file.CreateDir

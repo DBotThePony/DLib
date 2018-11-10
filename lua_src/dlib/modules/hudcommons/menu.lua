@@ -35,11 +35,23 @@ local function PopulateColors(Panel)
 	for k, v in SortedPairsByMemberValue(HUDCommons.ColorsVars, 'name') do
 		local collapse = vgui.Create('DCollapsibleCategory', Panel)
 		Panel:AddItem(collapse)
+
 		collapse:SetExpanded(false)
 		collapse:SetLabel(v.name .. ' (' .. k .. ')')
 
-		local picker = vgui.Create('DColorMixer', collapse)
-		collapse:SetContents(picker)
+		local canvas = vgui.Create('EditablePanel', collapse)
+		collapse:SetContents(canvas)
+
+		local reset = vgui.Create('DButton', canvas)
+		reset:Dock(TOP)
+		reset:SetText('gui.dlib.hudcommons.reset')
+		reset.DoClick = function()
+			RunConsoleCommand(v.r:GetName(), v.r:GetDefault())
+			RunConsoleCommand(v.g:GetName(), v.g:GetDefault())
+			RunConsoleCommand(v.b:GetName(), v.b:GetDefault())
+		end
+
+		local picker = vgui.Create('DColorMixer', canvas)
 		picker:SetConVarR(v.r:GetName())
 		picker:SetConVarG(v.g:GetName())
 		picker:SetConVarB(v.b:GetName())
@@ -63,11 +75,23 @@ local function PopulateColors2(Panel)
 	for k, v in SortedPairsByMemberValue(HUDCommons.ColorsVarsN, 'name') do
 		local collapse = vgui.Create('DCollapsibleCategory', Panel)
 		Panel:AddItem(collapse)
+
 		collapse:SetExpanded(false)
 		collapse:SetLabel(v.name .. ' (' .. k .. ')')
 
-		local picker = vgui.Create('DColorMixer', collapse)
-		collapse:SetContents(picker)
+		local canvas = vgui.Create('EditablePanel', collapse)
+		collapse:SetContents(canvas)
+
+		local reset = vgui.Create('DButton', canvas)
+		reset:Dock(TOP)
+		reset:SetText('gui.dlib.hudcommons.reset')
+		reset.DoClick = function()
+			RunConsoleCommand(v.r:GetName(), v.r:GetDefault())
+			RunConsoleCommand(v.g:GetName(), v.g:GetDefault())
+			RunConsoleCommand(v.b:GetName(), v.b:GetDefault())
+		end
+
+		local picker = vgui.Create('DColorMixer', canvas)
 		picker:SetConVarR(v.r:GetName())
 		picker:SetConVarG(v.g:GetName())
 		picker:SetConVarB(v.b:GetName())

@@ -39,10 +39,10 @@ DLib.simpleInclude('modules/hudcommons/base/init.lua')
 DLib.Loader.finish()
 
 DLib.Loader.loadPureCS('dlib/vgui')
-DLib.register('util/client/scrsize.lua')
-DLib.register('util/client/chat.lua')
-DLib.register('util/client/buystuff.lua')
-DLib.register('util/client/donate.lua')
+DLib.simpleInclude('util/client/scrsize.lua')
+DLib.simpleInclude('util/client/chat.lua')
+DLib.simpleInclude('util/client/buystuff.lua')
+DLib.simpleInclude('util/client/donate.lua')
 
 DLib.Loader.loadPureCSTop('dlib/modules/client')
 
@@ -50,7 +50,7 @@ MsgC(string.format('%.2f ms\n', (SysTime() - timeStart) * 1000))
 timeStart = SysTime()
 MsgC('[DLib] Running addons ... \n')
 
-if not VLL_CURR_FILE then
+if not VLL_CURR_FILE and not VLL2_FILEDEF then
 	DLib.Loader.loadPureSHTop('dlib/autorun')
 	DLib.Loader.loadPureCSTop('dlib/autorun/client')
 end

@@ -18,8 +18,6 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-
-local lang = DLib.lang
 local i18n = i18n
 local string = string
 
@@ -89,15 +87,15 @@ function i18n.registerPhrase(lang, phrase, unformatted)
 end
 
 function i18n.localize(phrase, ...)
-	return i18n.localizeByLang(phrase, lang.CURRENT_LANG, ...)
+	return i18n.localizeByLang(phrase, i18n.CURRENT_LANG, ...)
 end
 
 function i18n.getRaw(phrase)
-	return i18n.getRawByLang(phrase, lang.CURRENT_LANG)
+	return i18n.getRawByLang(phrase, i18n.CURRENT_LANG)
 end
 
 function i18n.getRaw2(phrase)
-	return i18n.getRawByLang2(phrase, lang.CURRENT_LANG)
+	return i18n.getRawByLang2(phrase, i18n.CURRENT_LANG)
 end
 
 function i18n.getRawByLang(phrase, lang)
@@ -123,7 +121,7 @@ local table = table
 local type = type
 
 function i18n.rebuildTable(args)
-	return i18n.rebuildTableByLang(args, lang.CURRENT_LANG)
+	return i18n.rebuildTableByLang(args, i18n.CURRENT_LANG)
 end
 
 function i18n.rebuildTableByLang(args, lang)

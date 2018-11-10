@@ -18,12 +18,10 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-
 local i18n = i18n
 local DLib = DLib
 local assert = assert
 local type = type
-local lang = DLib.lang
 
 function i18n.tformatByLang(time, lang)
 	assert(type(time) == 'number', 'Invalid time specified')
@@ -67,5 +65,5 @@ function i18n.tformatByLang(time, lang)
 end
 
 function i18n.tformat(time)
-	return i18n.tformatByLang(time, lang.CURRENT_LANG)
+	return i18n.tformatByLang(time, i18n.CURRENT_LANG)
 end

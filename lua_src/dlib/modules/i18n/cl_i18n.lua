@@ -18,7 +18,6 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-
 local i18n = i18n
 local hook = hook
 local unpack = unpack
@@ -200,3 +199,33 @@ end)
 
 hook.Add('VGUIPanelCreated', 'DLib.I18n', vguiPanelCreated)
 chat.AddTextLocalized = i18n.AddChat
+
+local gmod_language, LastLanguage
+local LANG_OVERRIDE = CreateConVar('gmod_language_dlib_cl', '', {FCVAR_ARCHIVE}, 'gmod_language override for DLib based addons')
+
+function i18n.UpdateLang()
+	gmod_language = gmod_language or GetConVar('gmod_language')
+	if not gmod_language then return end
+	local grablang = LANG_OVERRIDE:GetString():lower():trim()
+
+	if grablang ~= '' then
+		i18n.CURRENT_LANG = grablang
+	else
+		i18n.CURRENT_LANG = gmod_language:GetString():lower():trim()
+	end
+
+	if LastLanguage ~= i18n.CURRENT_LANG then
+		hook.Run('DLib.LanguageChanged', LastLanguage, i18n.CURRENT_LANG)
+		hook.Run('DLib.LanguageChanged2', LastLanguage, i18n.CURRENT_LANG)
+	end
+
+	LastLanguage = i18n.CURRENT_LANG
+
+	net.Start('dlib.clientlang')
+	net.WriteString(i18n.CURRENT_LANG)
+	net.SendToServer()
+end
+
+cvars.AddChangeCallback('gmod_language', i18n.UpdateLang, 'DLib')
+cvars.AddChangeCallback('gmod_language_dlib_cl', i18n.UpdateLang, 'DLib')
+timer.Simple(0, i18n.UpdateLang)

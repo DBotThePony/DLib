@@ -1013,3 +1013,5 @@ timer.Simple(0, function()
 		concommand.Add('lua_findhooks', lua_findhooks_sv)
 	end
 end)
+
+hook.Add('Think', 'DLib.PromiseTickHandler', DLib.__PromiseTickHandler)

@@ -24,12 +24,18 @@
 local rawequal = rawequal
 local getmetatable = getmetatable
 local setmetatable = debug.setmetatable
+local pcall = pcall
 local rawget = rawget
 _G.rawtype = _G.rawtype or type
 
 local rawtype = rawtype
+local useFallback = false
 
-local function type(var)
+local function getmeta(meta)
+	return meta.MetaName
+end
+
+local function luatype(var)
 	if rawequal(var, nil) then
 		return 'nil'
 	end
@@ -41,14 +47,19 @@ local function type(var)
 	local meta = getmetatable(var)
 
 	if rawequal(meta, true) or rawequal(meta, false) then
-		return 'table'
+		return rawtype(var)
 	end
 
 	if rawequal(meta, nil) then
+		if useFallback then
+			return rawtype(var)
+		end
+
 		return 'table'
 	end
 
-	local metaname = meta.MetaName
+	local mstatus, metaname = pcall(getmeta, meta)
+	if not mstatus then return rawtype(var) end
 
 	if metaname == nil then
 		local metaname2 = meta.__type
@@ -93,14 +104,15 @@ end
 setmetatable('', strmeta)
 
 ProtectedCall(function()
-	assert(type(1) == 'number', type(1))
-	assert(type('') == 'string', type(''))
-	assert(type(NULL) == 'Entity', type(NULL))
-	assert(type({}) == 'table', type({}))
+	assert(luatype(1) == 'number', luatype(1))
+	assert(luatype('') == 'string', luatype(''))
+	assert(luatype(NULL) == 'Entity', luatype(NULL))
+	assert(luatype({}) == 'table', luatype({}))
 	-- assert(type(coroutine.create(getmetatable)) == 'thread', type(coroutine.create(getmetatable)))
 
-	_G.type = type
+	_G.luatype = luatype
 
+	--[[
 	local overridetypes = {
 		'string',
 		'number',
@@ -113,16 +125,16 @@ ProtectedCall(function()
 	}
 
 	function _G.isbool(var)
-		return type(var) == 'boolean'
+		return luatype(var) == 'boolean'
 	end
 
 	function _G.isboolean(var)
-		return type(var) == 'boolean'
+		return luatype(var) == 'boolean'
 	end
 
 	for i, rawname in ipairs(overridetypes) do
 		local function ischeck(var)
-			return type(var) == rawname
+			return luatype(var) == rawname
 		end
 
 		_G['Is' .. rawname:sub(1, 1) .. rawname:sub(2)] = ischeck
@@ -131,7 +143,7 @@ ProtectedCall(function()
 	end
 
 	function _G.IsEntity(var)
-		local tp = type(var)
+		local tp = luatype(var)
 
 		return tp == 'Entity' or
 			tp == 'NextBot' or
@@ -143,4 +155,5 @@ ProtectedCall(function()
 
 	_G.isEntity = IsEntity
 	_G.isentity = IsEntity
+	]]
 end)

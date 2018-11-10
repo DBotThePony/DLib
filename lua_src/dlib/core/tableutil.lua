@@ -18,8 +18,6 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-
-local tableutil = DLib.module('table')
 local ipairs = ipairs
 local pairs = pairs
 local table = table
@@ -31,6 +29,10 @@ local insert = function(self, val)
 	return newIndex
 end
 
+table.unpack = unpack
+table.pairs = pairs
+table.ipairs = ipairs
+
 --[[
 	@Documentation
 	@Path table.append
@@ -39,7 +41,7 @@ end
 	@Description
 	Appends values from source table to destination table. Works only with nurmerical indexed tables
 ]]
-function tableutil.append(destination, source)
+function table.append(destination, source)
 	if #source == 0 then return destination end
 
 	local i, nextelement = 1, source[1]
@@ -65,7 +67,7 @@ end
 	@Description
 	Iterates over destination and prepends string to all values (assuming array contains only strings)
 ]]
-function tableutil.prependString(destination, prepend)
+function table.prependString(destination, prepend)
 	for i, value in ipairs(destination) do
 		destination[i] = prepend .. value
 	end
@@ -81,7 +83,7 @@ end
 	@Description
 	Iterates over destination and appends string to all values (assuming array contains only strings)
 ]]
-function tableutil.appendString(destination, append)
+function table.appendString(destination, append)
 	for i, value in ipairs(destination) do
 		destination[i] = value .. append
 	end
@@ -102,10 +104,9 @@ end
 	@Returns
 	table: deleted elements
 ]]
-function tableutil.filter(target, filterFunc)
+function table.filter(target, filterFunc)
 	if not filterFunc then error('table.filter - missing filter function') end
 
-	local filtered = {}
 	local toRemove = {}
 
 	for key, value in pairs(target) do
@@ -141,7 +142,7 @@ end
 	@Returns
 	table: deleted elements
 ]]
-function tableutil.qfilter(target, filterFunc)
+function table.qfilter(target, filterFunc)
 	if not filterFunc then error('table.qfilter - missing filter function') end
 	if #target == 0 then return {} end
 
@@ -198,7 +199,7 @@ end
 	@Returns
 	table: passed elements
 ]]
-function tableutil.filterNew(target, filterFunc)
+function table.filterNew(target, filterFunc)
 	if not filterFunc then error('table.filterNew - missing filter function') end
 
 	local filtered = {}
@@ -226,7 +227,7 @@ end
 	@Returns
 	table: passed elements
 ]]
-function tableutil.qfilterNew(target, filterFunc)
+function table.qfilterNew(target, filterFunc)
 	if not filterFunc then error('table.qfilterNew - missing filter function') end
 
 	local filtered = {}
@@ -254,7 +255,7 @@ end
 	@Returns
 	table: into
 ]]
-function tableutil.qmerge(into, inv)
+function table.qmerge(into, inv)
 	for i, val in ipairs(inv) do
 		into[i] = val
 	end
@@ -275,7 +276,7 @@ end
 	@Returns
 	table: copied input
 ]]
-function tableutil.gcopy(input)
+function table.gcopy(input)
 	if #input == 0 then return {} end
 
 	local reply = {}
@@ -296,7 +297,7 @@ function tableutil.gcopy(input)
 	return reply
 end
 
-tableutil.qcopy = tableutil.gcopy
+table.qcopy = table.gcopy
 
 --[[
 	@Documentation
@@ -310,7 +311,7 @@ tableutil.qcopy = tableutil.gcopy
 	@Returns
 	table: copied input
 ]]
-function tableutil.gcopyRange(input, start, endPos)
+function table.gcopyRange(input, start, endPos)
 	if #input < start then return {} end
 	endPos = endPos or #input
 	local endPos2 = endPos + 1
@@ -347,7 +348,7 @@ end
 	@Returns
 	table: input
 ]]
-function tableutil.unshift(tableIn, ...)
+function table.unshift(tableIn, ...)
 	local values = {...}
 	local count = #values
 
@@ -384,7 +385,7 @@ end
 	@Returns
 	table: input or newly created array
 ]]
-function tableutil.construct(input, funcToCall, times, ...)
+function table.construct(input, funcToCall, times, ...)
 	input = input or {}
 
 	for i = 1, times do
@@ -406,9 +407,10 @@ end
 	@Returns
 	any: returned value from array
 ]]
-function tableutil.frandom(tableIn)
+function table.frandom(tableIn)
 	return tableIn[math.random(1, #tableIn)]
 end
+
 
 --[[
 	@Documentation
@@ -422,12 +424,22 @@ end
 	@Returns
 	boolean: whenever value is present in input
 ]]
-function tableutil.qhasValue(findIn, value)
+function table.qhasValue(findIn, value)
 	for i, val in ipairs(findIn) do
 		if val == value then return true end
 	end
 
 	return false
+end
+
+function table.construct2(funcToCall, times, ...)
+	local output = {}
+
+	for i = 1, times do
+		output[#output + 1] = funcToCall(i, ...)
+	end
+
+	return output
 end
 
 --[[
@@ -442,7 +454,7 @@ end
 	@Returns
 	table: flipped hash table
 ]]
-function tableutil.flipIntoHash(tableIn)
+function table.flipIntoHash(tableIn)
 	local output = {}
 
 	for i, value in ipairs(output) do
@@ -464,7 +476,7 @@ end
 	@Returns
 	table: flipped array
 ]]
-function tableutil.flip(tableIn)
+function table.flip(tableIn)
 	local values = {}
 
 	for i = #tableIn, 1, -1 do
@@ -486,7 +498,7 @@ end
 	@Returns
 	any: found value
 ]]
-function tableutil.sortedFind(findIn, findWhat, ifNone)
+function table.sortedFind(findIn, findWhat, ifNone)
 	local hash = table.flipIntoHash(findIN)
 
 	for i, valueFind in ipairs(findWhat) do
@@ -511,7 +523,7 @@ end
 	@Returns
 	table: removed values
 ]]
-function tableutil.removeValues(tableIn, ...)
+function table.removeValues(tableIn, ...)
 	local first = select(1, ...)
 	local args
 
@@ -543,7 +555,7 @@ end
 	@Returns
 	any: removed value. *nil if value is not found*
 ]]
-function tableutil.removeByMember(tableIn, memberID, memberValue)
+function table.removeByMember(tableIn, memberID, memberValue)
 	local removed
 
 	for i = 1, #tableIn do
@@ -571,7 +583,7 @@ end
 	table: passed table
 	table: array contain removed values
 ]]
-function tableutil.deduplicate(tableIn)
+function table.deduplicate(tableIn)
 	local values = {}
 	local toremove = {}
 
@@ -583,7 +595,6 @@ function tableutil.deduplicate(tableIn)
 		end
 	end
 
-	return tableIn, tableutil.removeValues(tableIn, toremove)
+	table.removeValues(tableIn, toremove)
+	return tableIn
 end
-
-return tableutil

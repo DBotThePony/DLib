@@ -1,5 +1,5 @@
 
--- Copyright (C) 2017-2018 DBot
+-- Copyright (C) 2018 DBot
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -18,7 +18,35 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
+import table, type, error, assert from _G
 
-net.pool = util.AddNetworkString
-net.receive = net.Receive
-file.mkdir = file.CreateDir
+-- Simulated
+class DMySQL4.PlainBakedQuery
+	new: (database, plain) =>
+		assert(type(plain) == 'string', 'Raw query is not a string! ' .. type(plain))
+		@database = database
+		@raw = plain
+		@parts = plain\split('?')
+		@length = #@parts - 1
+
+	ExecInPlace: (args) => @database\Query(@Format(args))
+	Execute: (args) => @Format(args)
+	Format: (...) =>
+		return @raw if @length == 0
+
+		@buff = {}
+
+		for i, val in ipairs @parts
+			if i == #@parts
+				table.insert(@buff, val)
+			elseif select(i, ...) == nil
+				table.insert(@buff, val)
+				table.insert(@buff, 'null')
+			elseif type(select(i, ...)) == 'boolean'
+				table.insert(@buff, val)
+				table.insert(@buff, SQLStr(select(i, ...) and '1' or '0'))
+			else
+				table.insert(@buff, val)
+				table.insert(@buff, SQLStr(tostring(select(i, ...))))
+
+		return table.concat(@buff)

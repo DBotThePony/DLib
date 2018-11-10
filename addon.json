@@ -19,6 +19,6 @@
         "LICENSE",
         ".editorconfig",
         "*.md",
-        "vll.lua"
+        "vll/*"
     ]
 }

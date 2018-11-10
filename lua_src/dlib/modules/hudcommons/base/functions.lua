@@ -535,7 +535,9 @@ end
 
 function meta:ScreenSizeChanged(ow, oh, w, h)
 	for fontBase, fontData in pairs(self.fonts) do
-		fontData.size = math.floor(ScreenSize(fontData.osize * 0.8) + 0.5)
-		self:CreateFont(fontBase, fontData)
+		if fontData.osize then
+			fontData.size = math.floor(ScreenSize(fontData.osize * 0.8) + 0.5)
+			self:CreateFont(fontBase, fontData)
+		end
 	end
 end

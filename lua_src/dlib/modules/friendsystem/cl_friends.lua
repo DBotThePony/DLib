@@ -19,9 +19,7 @@
 -- DEALINGS IN THE SOFTWARE.
 
 
-local sql = DLib.sql
-
-sql.Query([[
+sql.EQuery([[
 	CREATE TABLE IF NOT EXISTS dlib_friends (
 		steamid VARCHAR(31) NOT NULL,
 		friendid VARCHAR(63) NOT NULL,
@@ -40,17 +38,17 @@ function friends.FillGaps(statusID)
 	if not friends.typesCache[statusID] then return false end
 
 	local defToInsert = friends.typesCache[statusID].def and '1' or '0'
-	local steamids = sql.Query("SELECT steamid FROM dlib_friends WHERE " .. SQLStr(statusID) .. " NOT IN (SELECT friendid FROM dlib_friends WHERE steamid = steamid) GROUP BY steamid")
+	local steamids = sql.EQuery("SELECT steamid FROM dlib_friends WHERE " .. SQLStr(statusID) .. " NOT IN (SELECT friendid FROM dlib_friends WHERE steamid = steamid) GROUP BY steamid")
 
 	if steamids then
-		sql.Query('BEGIN')
+		sql.EQuery('BEGIN')
 		local sidQ = SQLStr(statusID)
 
 		for i, row in ipairs(steamids) do
-			sql.Query('INSERT INTO dlib_friends (steamid, friendid, status) VALUES (' .. SQLStr(row.steamid) .. ', ' .. sidQ .. ', ' .. defToInsert .. ')')
+			sql.EQuery('INSERT INTO dlib_friends (steamid, friendid, status) VALUES (' .. SQLStr(row.steamid) .. ', ' .. sidQ .. ', ' .. defToInsert .. ')')
 		end
 
-		sql.Query('COMMIT')
+		sql.EQuery('COMMIT')
 	end
 
 	return steamids
@@ -96,7 +94,7 @@ function friends.LoadPlayer(steamid, returnIfNothing, withCreation)
 		return friends.currentStatus[ply]
 	end
 
-	local data = sql.Query('SELECT friendid, status FROM dlib_friends WHERE steamid = ' .. SQLStr(steamid))
+	local data = sql.EQuery('SELECT friendid, status FROM dlib_friends WHERE steamid = ' .. SQLStr(steamid))
 
 	if not data then
 		if returnIfNothing then
@@ -179,22 +177,22 @@ function friends.SaveDataFor(steamid, savedata)
 		return
 	end
 
-	sql.Query('BEGIN')
+	sql.EQuery('BEGIN')
 	steamid = SQLStr(steamid)
 
-	sql.Query('DELETE FROM dlib_friends WHERE steamid = ' .. steamid)
+	sql.EQuery('DELETE FROM dlib_friends WHERE steamid = ' .. steamid)
 
 	for statusID, status in pairs(savedata.status) do
-		sql.Query('INSERT INTO dlib_friends (steamid, friendid, status) VALUES (' .. steamid .. ', ' .. SQLStr(statusID) .. ', ' .. (status and '1' or '0') .. ')')
+		sql.EQuery('INSERT INTO dlib_friends (steamid, friendid, status) VALUES (' .. steamid .. ', ' .. SQLStr(statusID) .. ', ' .. (status and '1' or '0') .. ')')
 	end
 
-	sql.Query('COMMIT')
+	sql.EQuery('COMMIT')
 
 	hook.Run('DLib_FriendSaved', steamid, savedata)
 end
 
 function friends.RemoveFriend(steamid)
-	sql.Query('DELETE FROM dlib_friends WHERE steamid = ' .. SQLStr(steamid))
+	sql.EQuery('DELETE FROM dlib_friends WHERE steamid = ' .. SQLStr(steamid))
 
 	local ply = player.GetBySteamID(steamid)
 
@@ -267,7 +265,7 @@ function friends.Reload()
 	local targetsH = {}
 	local targetsH2 = {}
 
-	sql.Query('BEGIN')
+	sql.EQuery('BEGIN')
 
 	for k, ply in ipairs(player.GetHumans()) do
 		if lply ~= ply then
@@ -290,9 +288,9 @@ function friends.Reload()
 		end
 	end
 
-	sql.Query('COMMIT')
+	sql.EQuery('COMMIT')
 
-	local data = sql.Query('SELECT * FROM dlib_friends WHERE steamid IN (' .. table.concat(targets, ',') .. ')')
+	local data = sql.EQuery('SELECT * FROM dlib_friends WHERE steamid IN (' .. table.concat(targets, ',') .. ')')
 
 	if data then
 		for i, row in ipairs(data) do

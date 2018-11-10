@@ -19,8 +19,7 @@
 -- DEALINGS IN THE SOFTWARE.
 
 
-local fsutil = DLib.module('fs')
-
+local file = file
 local files, dirs = {}, {}
 local endfix = '/*'
 local searchIn = 'LUA'
@@ -39,7 +38,7 @@ local function findRecursive(dirTarget)
 end
 
 local function findRecursiveVisible(dirTarget)
-	local findFiles, findDirs = fsutil.FindVisible(dirTarget, searchIn)
+	local findFiles, findDirs = file.FindVisible(dirTarget, searchIn)
 
 	for i, dir in ipairs(findDirs) do
 		findRecursiveVisible(dirTarget .. '/' .. dir)
@@ -51,21 +50,21 @@ local function findRecursiveVisible(dirTarget)
 	table.append(dirs, findDirs)
 end
 
-function fsutil.FindVisible(dir, searchIn)
+function file.FindVisible(dir, searchIn)
 	local fileFind, dirFind = file.Find(dir .. '/*', searchIn or 'LUA')
 	table.filter(fileFind, function(key, val) return val:sub(1, 1) ~= '.' end)
 	table.filter(dirFind, function(key, val) return val:sub(1, 1) ~= '.' end)
 	return fileFind, dirFind
 end
 
-function fsutil.FindVisiblePrepend(dir, searchIn)
-	local fileFind, dirFind = fsutil.FindVisible(dir, searchIn)
+function file.FindVisiblePrepend(dir, searchIn)
+	local fileFind, dirFind = file.FindVisible(dir, searchIn)
 	table.prependString(fileFind, dir .. '/')
 	table.prependString(dirFind, dir .. '/')
 	return fileFind, dirFind
 end
 
-function fsutil.FindRecursive(dir, endfixTo, searchIn2)
+function file.FindRecursive(dir, endfixTo, searchIn2)
 	endfixTo = endfixTo or '/*'
 	searchIn2 = searchIn2 or 'LUA'
 	endfix = endfixTo
@@ -79,7 +78,7 @@ function fsutil.FindRecursive(dir, endfixTo, searchIn2)
 	return files, dirs
 end
 
-function fsutil.FindRecursiveVisible(dir, searchIn2)
+function file.FindRecursiveVisible(dir, searchIn2)
 	searchIn2 = searchIn2 or 'LUA'
 	searchIn = searchIn2
 	files, dirs = {}, {}
@@ -91,4 +90,4 @@ function fsutil.FindRecursiveVisible(dir, searchIn2)
 	return files, dirs
 end
 
-return fsutil
+return file

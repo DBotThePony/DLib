@@ -33,6 +33,7 @@ local srnd = util.SharedRandom
 
 local colorMeta = FindMetaTable('Color') or {}
 colorMeta.__index = colorMeta
+colorMeta.MetaName = 'Color'
 debug.getregistry().Color = colorMeta
 
 local function Color(r, g, b, a)
@@ -79,16 +80,28 @@ function _G.ColorAlpha(target, newAlpha)
 	end
 end
 
-function IsColor(object)
-	if type(object) ~= 'table' then
-		return false
+do
+	local pcall = pcall
+
+	local function getMeta(object)
+		return type(object.r) == 'number' and
+			type(object.g) == 'number' and
+			type(object.b) == 'number' and
+			type(object.a) == 'number'
 	end
 
-	return getmetatable(object) == colorMeta or
-		type(object.r) == 'number' and
-		type(object.g) == 'number' and
-		type(object.b) == 'number' and
-		type(object.a) == 'number'
+	function IsColor(object)
+		if type(object) ~= 'table' then
+			return false
+		end
+
+		if getmetatable(object) == colorMeta then
+			return true
+		end
+
+		local cstatus, cresult = pcall(getMeta, object)
+		return cstatus and cresult
+	end
 end
 
 _G.iscolor = IsColor

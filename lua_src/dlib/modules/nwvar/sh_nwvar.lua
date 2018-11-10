@@ -18,7 +18,7 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-
+-- TODO: Move all addons to NW2
 local entMeta = FindMetaTable('Entity')
 
 nw.NETWORK_DB = nw.NETWORK_DB or {}
@@ -28,33 +28,18 @@ function entMeta:DLibVar(var, ifNothing)
 	if not self:IsValid() then return ifNothing end
 	var = var:lower()
 	if not nw.NetworkVars[var] then return ifNothing end
-	local uid = self:EntIndex()
 
-	if uid > 0 then
-		local data = nw.NETWORK_DB[uid]
+	local data = nw.GetNetworkDataTable(self)
 
-		if not data or data[var] == nil then
-			if ifNothing ~= nil then
-				return ifNothing
-			else
-				return nw.NetworkVars[var].default()
-			end
+	if data[var] == nil then
+		if ifNothing ~= nil then
+			return ifNothing
+		else
+			return nw.NetworkVars[var].default()
 		end
-
-		return data[var]
-	else
-		self.DLibVars = self.DLibVars or {}
-
-		if self.DLibVars[var] == nil then
-			if ifNothing ~= nil then
-				return ifNothing
-			else
-				return nw.NetworkVars[var].default()
-			end
-		end
-
-		return self.DLibVars[var]
 	end
+
+	return data[var]
 end
 
 entMeta.GetDLibVar = entMeta.DLibVar

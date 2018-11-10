@@ -68,6 +68,44 @@ function PhysObj:EnableCollisions(newStatus)
 	return self:DLibEnableCollisions(newStatus)
 end
 
+function entMeta:SetNW2UInt(name, value)
+	assert(type(value) == 'number', 'Value passed is not a number')
+
+	if value < 0 then
+		error('Value can not be negative')
+	end
+
+	if value > 0x100000000 then
+		error('Integer overflow')
+	end
+
+	if value >= 0x7FFFFFFF then
+		value = value - 0x100000000
+	end
+
+	self:SetNW2Int(name, value)
+end
+
+function entMeta:GetNW2UInt(name, ifNone)
+	if type(ifNone) == 'number' then
+		if ifNone < 0 then
+			error('Value can not be negative')
+		end
+
+		if ifNone > 0x100000000 then
+			error('Integer overflow')
+		end
+	end
+
+	local value = self:GetNW2Int(name, ifNone)
+
+	if grab < 0 then
+		return 0x100000000 + value
+	else
+		return value
+	end
+end
+
 function vectorMeta:Copy()
 	return Vector(self)
 end
@@ -100,11 +138,8 @@ function vectorMeta:ToColor()
 	return Color(self.x * 255, self.y * 255, self.z * 255)
 end
 
-local gsql = sql
-local sql = DLib.module('sql', 'sql')
-
-function sql.Query(...)
-	local data = gsql.Query(...)
+function sql.EQuery(...)
+	local data = sql.Query(...)
 
 	if data == false then
 		DLib.Message('SQL: ', ...)
@@ -113,8 +148,6 @@ function sql.Query(...)
 
 	return data
 end
-
-sql.register()
 
 function math.progression(self, min, max, middle)
 	if self < min then return 0 end
@@ -164,50 +197,8 @@ local type = type
 local table = table
 local unpack = unpack
 
-function math.bezier(t, a, b, ...)
-	-- check arguments
-	assert(type(t) == 'number', 'invalid T variable')
-	assert(t >= 0 and t <= 1, '0 <= t <= 1!')
-	assert(type(a) == 'number', '(a) at least two numbers should be valid')
-	assert(type(b) == 'number', '(b) at least two numbers should be valid')
-
-	-- get amount of points passed
-	local amount = select('#', ...) + 2
-
-	-- linear, 2 points provided
-	if amount == 2 then
-		return a + (b - a) * t
-	-- square, 3 points provided
-	elseif amount == 3 then
-		return (1 - t):pow(2) * a + 2 * t * (1 - t) * b + t:pow(2) * select(1, ...)
-	-- cube, 4 points provided
-	elseif amount == 4 then
-		return (1 - t):pow(3) * a + 3 * t * (1 - t):pow(2) * b + 3 * t:pow(2) * (1 - t) * select(1, ...) + t:pow(3) * select(2, ...)
-	end
-
-	-- instead of implementing matrix, using bare loops and recursion
-	-- collect all passed points
-	local vararg = {a, b, ...}
-
-	-- output points
-	local points = {}
-
-	-- iterate over all points
-	for point = 1, amount do
-		-- gather our current and next point
-		local point1 = vararg[point]
-		local point2 = vararg[point + 1]
-		-- if we did hit the end of point list, break out from list
-		-- so on the output there would be points - 1 from initial amount of points
-		if not point2 then break end
-		-- calculate linear bezier between these two points
-		-- and use it as our new point
-		local newpoint = point1 + (point2 - point1) * t
-		table.insert(points, newpoint)
-	end
-
-	-- calculate points - 1 bezier
-	return math.tbezier(t, points)
+function math.bezier(t, ...)
+	return math.tbezier(t, {...})
 end
 
 -- accepts table

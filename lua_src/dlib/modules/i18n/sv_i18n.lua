@@ -18,6 +18,7 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
+net.pool('dlib.clientlang')
 
 local i18n = i18n
 
@@ -73,6 +74,37 @@ end
 function i18n.RegisterProxy(...)
 	-- do nothing
 end
+
+local LANG_OVERRIDE = CreateConVar('gmod_language_dlib_sv', '', {FCVAR_ARCHIVE}, 'gmod_language override for DLib based addons')
+
+function i18n.UpdateLang()
+	gmod_language = gmod_language or GetConVar('gmod_language')
+	if not gmod_language then return end
+	local grablang = LANG_OVERRIDE:GetString():lower():trim()
+
+	if grablang ~= '' then
+		i18n.CURRENT_LANG = grablang
+	else
+		i18n.CURRENT_LANG = gmod_language:GetString():lower():trim()
+	end
+
+	if LastLanguage ~= i18n.CURRENT_LANG then
+		hook.Call('DLib.LanguageChanged')
+		hook.Call('DLib.LanguageChanged2')
+	end
+
+	LastLanguage = i18n.CURRENT_LANG
+end
+
+cvars.AddChangeCallback('gmod_language', i18n.UpdateLang, 'DLib')
+cvars.AddChangeCallback('gmod_language_dlib_sv', i18n.UpdateLang, 'DLib')
+timer.Simple(0, i18n.UpdateLang)
+
+net.receive('dlib.clientlang', function(len, ply)
+	local old = ply.DLib_Lang
+	ply.DLib_Lang = net.ReadString()
+	hook.Run('DLib.PlayerLanguageChanges', ply, old, ply.DLib_Lang)
+end)
 
 timer.Create('DLib.TickPlayerNames', 0.5, 0, tickPlayers)
 hook.Add('PlayerSpawn', 'DLib.TickPlayerNames', timer.Simple:Wrap(0, tickPlayers))

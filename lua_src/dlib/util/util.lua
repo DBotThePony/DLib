@@ -18,10 +18,10 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-
 jit.on()
 
-local util = DLib.module('util', 'util')
+local util = setmetatable(DLib.util or {}, {__index = util})
+DLib.util = util
 local DLib = DLib
 local vgui = vgui
 local type = type
@@ -62,39 +62,6 @@ function util.composeEnums(input, ...)
 	return num:bor(...)
 end
 
-function util.AccessorFuncJIT(target, variable, name)
-	local set, get = CompileString([==[
-		local variable = [[]==] .. variable .. [==[]]
-
-		local function Set(self, newVar)
-			self.]==] .. variable .. [==[ = newVar
-
-			local callback = self.OnDVariableChange
-
-			if callback then
-				callback(self, variable, newVar)
-			end
-
-			callback = self.On]==] .. name .. [==[Changes
-
-			if callback then
-				callback(self, newVar)
-			end
-
-			return self
-		end
-
-		local function Get(self)
-			return self.]==] .. variable .. [==[
-		end
-
-		return Set, Get
-	]==], 'DLib.util.AccessorFuncJIT')()
-
-	target['Get' .. name] = get
-	target['Set' .. name] = set
-end
-
 function util.ValidateSteamID(input)
 	if not input then return false end
 	return input:match('STEAM_0:[0-1]:[0-9]+$') ~= nil
@@ -116,4 +83,142 @@ function util.CreateSharedConvar(cvarname, cvarvalue, description)
 	end
 end
 
-return util
+-- Replace PrintTable with something better
+
+local rawtype = rawtype
+local table = table
+local MsgC = MsgC
+local error = error
+local pcall = pcall
+local debug = debug
+
+local DEFAULT_TEXT_COLOR = Color(247, 255, 27)
+local BOOLEAN_COLOR = Color(107, 141, 227)
+local NUMBER_COLOR = Color(245, 199, 64)
+local ENTITY_COLOR = Color(180, 232, 180)
+local FUNCTION_COLOR = Color(117, 207, 226)
+local RECURSION_COLOR = Color(195, 222, 69)
+local TOO_DEEP_COLOR = Color(196, 158, 91)
+local EQUALS_COLOR = Color(169, 117, 222)
+local TABLE_TOKEN_COLOR = Color(197, 104, 111)
+local COMMENTARY_COLOR = Color(143, 165, 46)
+
+DLib._OldPrintTable = DLib._OldPrintTable or PrintTable
+
+local wellknown, prints
+
+local function getColorForType(typeIn)
+	if typeIn == 'boolean' then
+		return BOOLEAN_COLOR
+	elseif typeIn == 'number' then
+		return NUMBER_COLOR
+	elseif typeIn == 'function' then
+		return FUNCTION_COLOR
+	elseif typeIn == 'string' then
+		return DEFAULT_TEXT_COLOR
+	elseif typeIn == 'Entity' or typeIn == 'Weapon' or typeIn == 'Vehicle' or typeIn == 'Player' then
+		return ENTITY_COLOR
+	end
+
+	return DEFAULT_TEXT_COLOR
+end
+
+local function getValueString(typeIn, valueIn)
+	if typeIn == 'string' then
+		return '"' .. valueIn:gsub('"', '\\"'):gsub('\t', '\\t'):gsub('\n', '\\n') .. '"'
+	elseif typeIn == 'function' then
+		local info = debug.getinfo(valueIn)
+		return tostring(valueIn), COMMENTARY_COLOR, ' --[[ ' .. info.short_src .. ': ' .. (info.lastlinedefined ~= info.linedefined and (info.linedefined .. '-' .. info.lastlinedefined) or info.lastlinedefined) .. ' ]]'
+	end
+
+	return tostring(valueIn)
+end
+
+local comparableTypes = {}
+
+local function InternalPrintLoop(tableIn, level)
+	if prints > 100000 then
+		error('Probably infinite undetected recursion, or table is too big (?)')
+	end
+
+	if wellknown[tableIn] then
+		MsgC(RECURSION_COLOR, ' [recursion] ')
+		return false
+	end
+
+	if level > 10 then
+		MsgC(TOO_DEEP_COLOR, ' [...too deep...] ')
+		return false
+	end
+
+	local keys = {}
+
+	for k in pairs(tableIn) do
+		table.insert(keys, k)
+	end
+
+	table.sort(keys, function(a, b)
+		local ta, tb = type(a), type(b)
+		local cmp = false
+		local token = ta .. '-' .. tb
+
+		if comparableTypes[token] == nil then
+			comparableTypes[token] = pcall(function()
+				cmp = a < b
+			end)
+		elseif comparableTypes[token] then
+			cmp = a < b
+		end
+
+		return cmp
+	end)
+
+	wellknown[tableIn] = true
+
+	local hitAnything = false
+
+	for i, key in ipairs(keys) do
+		prints = prints + 1
+
+		if not hitAnything then
+			MsgC('\n')
+			hitAnything = true
+		end
+
+		local ktp = type(key)
+		MsgC(string.rep(' ', level * 4), TABLE_TOKEN_COLOR, '[')
+		MsgC(getColorForType(ktp), getValueString(ktp, key))
+		MsgC(TABLE_TOKEN_COLOR, ']', EQUALS_COLOR, ' = ')
+		local value = tableIn[key]
+
+		if type(value) == 'table' then
+			MsgC(TABLE_TOKEN_COLOR, '{')
+			local useSpaces = InternalPrintLoop(value, level + 1)
+
+			if useSpaces then
+				MsgC(TABLE_TOKEN_COLOR, string.rep(' ', level * 4), '},\n')
+			else
+				MsgC(TABLE_TOKEN_COLOR, '},\n')
+			end
+		else
+			local tp = type(value)
+			MsgC(getColorForType(tp), getValueString(tp, value))
+			MsgC(TABLE_TOKEN_COLOR, ',\n')
+		end
+	end
+
+	if not hitAnything then
+		MsgC(COMMENTARY_COLOR, ' --[[ empty ]] ')
+	end
+
+	return hitAnything
+end
+
+function _G.PrintTable(tableIn)
+	assert(rawtype(tableIn) == 'table', 'Input must be a table!')
+	wellknown = {}
+	prints = 0
+	MsgC(TABLE_TOKEN_COLOR, '{')
+	InternalPrintLoop(tableIn, 1)
+	MsgC(TABLE_TOKEN_COLOR, '}\n')
+end

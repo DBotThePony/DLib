@@ -18,9 +18,9 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-
 local Loader = DLib.Loader
 
+--[[
 local function include2(fileIn)
 	local status = {xpcall(Loader.include, function(err) print(debug.traceback('[DLIB STARTUP ERROR] ' .. err)) end, fileIn)}
 	local bool = table.remove(status, 1)
@@ -29,10 +29,15 @@ local function include2(fileIn)
 		return unpack(status)
 	end
 end
+]]
+
+local function include2(fileIn)
+	return Loader.include(fileIn)
+end
 
 function Loader.load(targetDir)
 	local output = {}
-	local files = DLib.fs.FindRecursiveVisible(targetDir)
+	local files = file.FindRecursiveVisible(targetDir)
 
 	local sh, cl, sv = Loader.filter(files)
 
@@ -96,7 +101,7 @@ end
 
 function Loader.loadCS(targetDir)
 	local output = {}
-	local files = DLib.fs.FindRecursiveVisible(targetDir)
+	local files = file.FindRecursiveVisible(targetDir)
 
 	local sh, cl = Loader.filter(files)
 
@@ -123,7 +128,7 @@ end
 
 function Loader.loadPureCS(targetDir)
 	local output = {}
-	local files = DLib.fs.FindRecursiveVisible(targetDir)
+	local files = file.FindRecursiveVisible(targetDir)
 
 	if SERVER then
 		for i, fil in ipairs(files) do
@@ -141,7 +146,7 @@ end
 function Loader.loadPureSV(targetDir)
 	if CLIENT then return end
 	local output = {}
-	local files = DLib.fs.FindRecursiveVisible(targetDir)
+	local files = file.FindRecursiveVisible(targetDir)
 
 	for i, fil in ipairs(files) do
 		table.insert(output, {fil, include2(fil)})
@@ -152,7 +157,7 @@ end
 
 function Loader.loadPureSH(targetDir)
 	local output = {}
-	local files = DLib.fs.FindRecursiveVisible(targetDir)
+	local files = file.FindRecursiveVisible(targetDir)
 
 	if SERVER then
 		for i, fil in ipairs(files) do
@@ -170,7 +175,7 @@ end
 
 function Loader.loadPureCSTop(targetDir)
 	local output = {}
-	local files = DLib.fs.FindVisiblePrepend(targetDir, 'LUA')
+	local files = file.FindVisiblePrepend(targetDir, 'LUA')
 
 	if SERVER then
 		for i, fil in ipairs(files) do
@@ -190,7 +195,7 @@ Loader.loadPureCLTop = Loader.loadPureCSTop
 function Loader.loadPureSVTop(targetDir)
 	if CLIENT then return end
 	local output = {}
-	local files = DLib.fs.FindVisiblePrepend(targetDir, 'LUA')
+	local files = file.FindVisiblePrepend(targetDir, 'LUA')
 
 	for i, fil in ipairs(files) do
 		table.insert(output, {fil, include2(fil)})
@@ -201,7 +206,7 @@ end
 
 function Loader.loadPureSHTop(targetDir)
 	local output = {}
-	local files = DLib.fs.FindVisiblePrepend(targetDir, 'LUA')
+	local files = file.FindVisiblePrepend(targetDir, 'LUA')
 
 	if SERVER then
 		for i, fil in ipairs(files) do
@@ -221,7 +226,7 @@ function Loader.csModule(targetDir)
 	if CLIENT then return {} end
 
 	local output = {}
-	local files = DLib.fs.FindRecursiveVisible(targetDir)
+	local files = file.FindRecursiveVisible(targetDir)
 
 	if #files == 0 then error('Empty module ' .. targetDir) end
 

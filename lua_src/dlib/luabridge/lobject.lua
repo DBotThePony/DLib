@@ -18,7 +18,6 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-
 local DLib = DLib
 local FindMetaTable = FindMetaTable
 local debug = debug

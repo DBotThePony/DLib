@@ -320,29 +320,29 @@ end
 -- Float
 function meta:WriteFloat(valueIn)
 	assertType(valueIn, 'number', 'WriteFloat')
-	local bits = DLib.bitworker2.FloatToBinaryIEEE(valueIn, 8, 23)
-	local bitsInNumber = DLib.bitworker2.BinaryToUInteger(bits)
+	local bits = DLib.bitworker.FloatToBinaryIEEE(valueIn, 8, 23)
+	local bitsInNumber = DLib.bitworker.BinaryToUInteger(bits)
 	return self:WriteUInt32(bitsInNumber)
 end
 
 function meta:ReadFloat()
 	local bitsInNumber = self:ReadUInt32()
-	local bits = DLib.bitworker2.UIntegerToBinary(bitsInNumber, 32)
-	return DLib.bitworker2.BinaryToFloatIEEE(bits, 8, 23)
+	local bits = DLib.bitworker.UIntegerToBinary(bitsInNumber, 32)
+	return DLib.bitworker.BinaryToFloatIEEE(bits, 8, 23)
 end
 
 function meta:WriteDouble(valueIn)
 	assertType(valueIn, 'number', 'WriteDouble')
-	local bits = DLib.bitworker2.FloatToBinaryIEEE(valueIn, 11, 52)
-	local bitsInNumber = DLib.bitworker2.BinaryToUInteger(bits)
+	local bits = DLib.bitworker.FloatToBinaryIEEE(valueIn, 11, 52)
+	local bitsInNumber = DLib.bitworker.BinaryToUInteger(bits)
 	self:WriteUInt64(bitsInNumber)
 	return self
 end
 
 function meta:ReadDouble()
 	local bitsInNumber = self:ReadUInt64()
-	local bits = DLib.bitworker2.UIntegerToBinary(bitsInNumber, 64)
-	return DLib.bitworker2.BinaryToFloatIEEE(bits, 11, 52)
+	local bits = DLib.bitworker.UIntegerToBinary(bitsInNumber, 64)
+	return DLib.bitworker.BinaryToFloatIEEE(bits, 11, 52)
 end
 
 -- String
