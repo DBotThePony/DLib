@@ -389,6 +389,8 @@ class VLL2.GMABundle extends VLL2.AbstractBundle
 			@CallError()
 			return
 
+		@Msg('GMA IS EMPTY???!!!') if #filelist == 0
+
 		if @loadLua
 			for _file in *filelist
 				if string.sub(_file, 1, 3) == 'lua'
@@ -398,6 +400,8 @@ class VLL2.GMABundle extends VLL2.AbstractBundle
 			@Run() if @initAfterLoad
 
 		@modelList = [_file for _file in *filelist when string.sub(_file, 1, 6) == 'models' and string.sub(_file, -3) == 'mdl']
+		@matList = [_file for _file in *filelist when string.sub(_file, 1, 9) == 'materials']
+		@Msg('Total assets: ', #filelist, ' including ', #@modelList, ' models and ', #@matList, ' materials')
 
 		@status = @@STATUS_LOADED
 
