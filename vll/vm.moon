@@ -117,6 +117,25 @@ class VLL2.VM
 
 		VLL2.RecursiveMergeBase(meta) for _meta in *pendingMeta
 
+	LoadEffects: =>
+		files, dirs = @localFS\Find('effects/*.lua')
+
+		for _file in *files
+			_G.EFFECT = {}
+			EFFECT.Folder = 'effects'
+			@RunFile('effects/' .. _file)
+			ename = string.sub(_file, 1, -5)
+			effects.Register(EFFECT, ename)
+			_G.EFFECT = nil
+
+		for _dir in *dirs
+			if @localFS\Exists('effects/' .. _dir .. '/init.lua')
+				_G.EFFECT = {}
+				EFFECT.Folder = 'effects/' .. _dir
+				@RunFile('effects/' .. _dir .. '/init.lua')
+				effects.Register(EFFECT, _dir)
+				_G.EFFECT = nil
+
 	LoadWeapons: =>
 		pendingMeta = {}
 		files, dirs = @localFS\Find('weapons/*.lua')

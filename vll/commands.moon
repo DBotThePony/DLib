@@ -135,7 +135,7 @@ vll2_load_silent = (ply, cmd, args) ->
 vll2_reload = (ply, cmd, args) ->
 	return VLL2.MessagePlayer(ply, 'Not a super admin!') if disallow()
 	VLL2.MessagePlayer(ply, 'Reloading VLL2, this can take some time...')
-	http.Fetch "https://dbotthepony.ru/vll/vll2.lua", (b) -> RunString(b, "VLL2")
+	http.Fetch "https://dbotthepony.ru/vll/vll2.lua", (b) -> _G.RunString(b, "VLL2")
 
 concommand.Add 'vll2_load', vll2_load, vll2_mkautocomplete('vll2_load')
 concommand.Add 'vll2_workshop', vll2_workshop
