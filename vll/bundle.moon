@@ -510,6 +510,10 @@ class VLL2.WSCollection extends VLL2.AbstractBundle
 			method: 'POST'
 			url: @@COLLECTION_INFO_URL
 			parameters: {collectioncount: '1', 'publishedfileids[0]': tostring(@workshopID)}
+			headers: {
+				'User-Agent': 'VLL2'
+				Referer: VLL2.Referer()
+			}
 		}
 
 		req.failed = (reason = 'failure') ->
@@ -553,6 +557,10 @@ class VLL2.WSCollection extends VLL2.AbstractBundle
 			method: 'POST'
 			url: @@INFO_URL
 			parameters: {itemcount: '1', 'publishedfileids[0]': tostring(@workshopID)}
+			headers: {
+				'User-Agent': 'VLL2'
+				Referer: VLL2.Referer()
+			}
 		}
 
 		req.failed = (reason = 'failure') ->
@@ -704,23 +712,13 @@ class VLL2.WSBundle extends VLL2.GMABundle
 			@__Mount()
 			return
 
-		req = {method: 'GET', :url}
+		@gmadownloader = VLL2.LargeFileLoader(url, fpath)
 
-		req.failed = (reason = 'failure') ->
-			@status = @@STATUS_ERROR
-			@Msg('Failed to download the GMA! Reason: ' .. reason)
-			@CallError()
-
-		req.success = (code = 400, body = '', headers) ->
-			if code ~= 200
-				@status = @@STATUS_ERROR
-				@Msg('Failed to download the GMA! Server returned: ' .. code)
-				@CallError()
-				return
-
+		@gmadownloader\AddFinishHook ->
 			@Msg('--- DECOMPRESSING')
 			stime = SysTime()
-			decompress = util.Decompress(body)
+			decompress = util.Decompress(file.Read(fpath, 'DATA'))
+
 			if decompress == ''
 				@status = @@STATUS_ERROR
 				@Msg('Failed to decompress the GMA! Did tranfer got interrupted?')
@@ -736,8 +734,13 @@ class VLL2.WSBundle extends VLL2.GMABundle
 			@SpecifyPath('data/' .. fpath)
 			@__Mount()
 
-		HTTP(req)
+		@gmadownloader\AddErrorHook (reason = 'failure') ->
+			@status = @@STATUS_ERROR
+			@Msg('Failed to download the GMA! Reason: ' .. reason)
+			@CallError()
+
 		@Msg('Downloading ' .. @wsTitle .. '...')
+		@gmadownloader\Load()
 
 	@INVALID_WS_DATA = 912
 
@@ -755,6 +758,10 @@ class VLL2.WSBundle extends VLL2.GMABundle
 				method: 'POST'
 				url: @@INFO_URL
 				parameters: {itemcount: '1', 'publishedfileids[0]': tostring(@workshopID)}
+				headers: {
+					'User-Agent': 'VLL2'
+					Referer: VLL2.Referer()
+				}
 			}
 
 			req.failed = (reason = 'failure') ->
@@ -822,6 +829,10 @@ class VLL2.WSBundle extends VLL2.GMABundle
 				method: 'POST'
 				url: @@INFO_URL
 				parameters: {itemcount: '1', 'publishedfileids[0]': tostring(@workshopID)}
+				headers: {
+					'User-Agent': 'VLL2'
+					Referer: VLL2.Referer()
+				}
 			}
 
 			req.failed = (reason = 'failure') ->
