@@ -50,6 +50,44 @@ VLL2.API = {
 		fbundle\SetReplicate(replicate)
 		return fbundle
 
+	LoadURLContent: (name, url, silent = false, replicate = true) ->
+		assert(type(name) == 'string', 'Bundle name must be a string')
+		assert(type(url) == 'string', 'Bundle url must be a string')
+		fbundle = VLL2.URLGMABundle(name, url)
+		fbundle\Load()
+		fbundle\DoNotLoadLua()
+		fbundle\Replicate() if not silent
+		fbundle\SetReplicate(replicate)
+		return fbundle
+
+	LoadURLGMA: (name, url, silent = false, replicate = true) ->
+		assert(type(name) == 'string', 'Bundle name must be a string')
+		assert(type(url) == 'string', 'Bundle url must be a string')
+		fbundle = VLL2.URLGMABundle(name, url)
+		fbundle\Load()
+		fbundle\Replicate() if not silent
+		fbundle\SetReplicate(replicate)
+		return fbundle
+
+	LoadURLContentZ: (name, url, silent = false, replicate = true) ->
+		assert(type(name) == 'string', 'Bundle name must be a string')
+		assert(type(url) == 'string', 'Bundle url must be a string')
+		fbundle = VLL2.URLGMABundleZ(name, url)
+		fbundle\Load()
+		fbundle\DoNotLoadLua()
+		fbundle\Replicate() if not silent
+		fbundle\SetReplicate(replicate)
+		return fbundle
+
+	LoadURLGMAZ: (name, url, silent = false, replicate = true) ->
+		assert(type(name) == 'string', 'Bundle name must be a string')
+		assert(type(url) == 'string', 'Bundle url must be a string')
+		fbundle = VLL2.URLGMABundleZ(name, url)
+		fbundle\Load()
+		fbundle\Replicate() if not silent
+		fbundle\SetReplicate(replicate)
+		return fbundle
+
 	LoadWorkshopCollection: (wsid, silent = false, replicate = true) ->
 		assert(type(wsid) == 'string', 'Bundle wsid must be a string')
 		wsid = tostring(math.floor(assert(tonumber(wsid), 'Bundle wsid must represent a valid number within string!')))
@@ -213,6 +251,8 @@ class VLL2.LargeFileLoader
 		@Msg('Allocating disk space for ' .. @url .. ', this can take some time...')
 		@fstream\WriteULong(0) for i = 1, (@length - @length % 4) / 4
 		@fstream\WriteByte(0) for i = 1, @length % 4
+
+		@nextParts = [i for i = 0, @parts - 1]
 
 		for i = 0, @parts - 1
 			@DownloadPart(i)

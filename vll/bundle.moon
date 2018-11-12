@@ -29,6 +29,7 @@ if SERVER
 file.CreateDir('vll2')
 file.CreateDir('vll2/lua_cache')
 file.CreateDir('vll2/ws_cache')
+file.CreateDir('vll2/gma_cache')
 
 class VLL2.AbstractBundle
 	@_S = {}
@@ -404,6 +405,74 @@ class VLL2.GMABundle extends VLL2.AbstractBundle
 		@Msg('Total assets: ', #filelist, ' including ', #@modelList, ' models and ', #@matList, ' materials')
 
 		@status = @@STATUS_LOADED
+
+class VLL2.URLGMABundle extends VLL2.GMABundle
+	new: (name, url) =>
+		super(name)
+		@crc = util.CRC(url)
+		@url = url
+		@_datapath = 'vll2/gma_cache/' .. @crc .. '.dat'
+		@_datapath_full = 'data/vll2/gma_cache/' .. @crc .. '.dat'
+
+		@mountAfterLoad = true
+
+	SetMountAfterLoad: (status = @mountAfterLoad) =>
+		@mountAfterLoad = status
+		return @
+	DoMountAfterLoad: => @SetMountAfterLoad(true)
+	DoNotMountAfterLoad: => @SetMountAfterLoad(false)
+
+	__Mount: =>
+		@status = @@STATUS_LOADED
+		@CallLoaded()
+		return if not @mountAfterLoad
+		@MountDelay()
+
+	AfterLoad: =>
+		@SpecifyPath(@_datapath_full)
+		@__Mount()
+
+	Load: =>
+		if file.Exists(@_datapath, 'DATA')
+			@Msg('Found GMA in cache, mounting in-place...')
+			@SpecifyPath(@_datapath_full)
+			@__Mount()
+			return
+
+		@status = @@STATUS_LOADING
+
+		@gmadownloader = VLL2.LargeFileLoader(@url, @_datapath)
+
+		@gmadownloader\AddFinishHook -> @AfterLoad()
+
+		@gmadownloader\AddErrorHook (reason = 'failure') ->
+			@status = @@STATUS_ERROR
+			@Msg('Failed to download the GMA! Reason: ' .. reason)
+			@CallError()
+
+		@Msg('Downloading URL gma...')
+		@gmadownloader\Load()
+
+class VLL2.URLGMABundleZ extends VLL2.URLGMABundle
+	AfterLoad: =>
+		@Msg('--- DECOMPRESSING')
+		stime = SysTime()
+		decompress = util.Decompress(file.Read(@_datapath, 'DATA'))
+
+		if decompress == ''
+			@status = @@STATUS_ERROR
+			@Msg('Failed to decompress the GMA! Did tranfer got interrupted?')
+			@CallError()
+			return
+
+		@Msg(string.format('Decompression took %.2f ms', (SysTime() - stime) * 1000))
+		stime = SysTime()
+		@Msg('--- WRITING')
+		file.Write(@_datapath, decompress)
+		@Msg(string.format('Writing to disk took %.2f ms', (SysTime() - stime) * 1000))
+
+		@SpecifyPath(@_datapath_full)
+		@__Mount()
 
 class VLL2.WSCollection extends VLL2.AbstractBundle
 	@COLLECTION_INFO_URL = 'https://api.steampowered.com/ISteamRemoteStorage/GetCollectionDetails/v1/'
