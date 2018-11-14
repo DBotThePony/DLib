@@ -278,6 +278,10 @@ class VLL2.LargeFileLoader
 		req = {
 			method: 'HEAD'
 			url: @url
+			headers: {
+				'User-Agent': 'VLL2'
+				Referer: VLL2.Referer()
+			}
 		}
 
 		req.failed = (reason = 'failure') ->

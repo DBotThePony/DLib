@@ -445,7 +445,7 @@ class VLL2.URLGMABundle extends VLL2.GMABundle
 
 		@gmadownloader\AddFinishHook -> @AfterLoad()
 
-		@gmadownloader\AddErrorHook (reason = 'failure') ->
+		@gmadownloader\AddErrorHook (_, reason = 'failure') ->
 			@status = @@STATUS_ERROR
 			@Msg('Failed to download the GMA! Reason: ' .. reason)
 			@CallError()
@@ -807,7 +807,7 @@ class VLL2.WSBundle extends VLL2.GMABundle
 			@SpecifyPath('data/' .. fpath)
 			@__Mount()
 
-		@gmadownloader\AddErrorHook (reason = 'failure') ->
+		@gmadownloader\AddErrorHook (_, reason = 'failure') ->
 			@status = @@STATUS_ERROR
 			@Msg('Failed to download the GMA! Reason: ' .. reason)
 			@CallError()
