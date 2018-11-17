@@ -109,33 +109,43 @@ VLL2.FormatMessageInternal = (tabIn) ->
 
 	return output
 
+genPrefix = ->
+	if game.SinglePlayer()
+		return SERVER and '[SV] ' or '[CL] '
+	elseif game.IsDedicated()
+		return ''
+
+	return '' if CLIENT
+	return '[SV] ' if SERVER and game.GetIPAddress() == '0.0.0.0'
+	return ''
+
 VLL2.Message = (...) ->
 	formatted = VLL2.FormatMessageInternal({...})
-	MsgC(PREFIX_COLOR, '[VLL2] ', unpack(formatted))
+	MsgC(PREFIX_COLOR, genPrefix() .. '[VLL2] ', unpack(formatted))
 	MsgC('\n')
 	return formatted
 
 VLL2.MessageVM = (...) ->
 	formatted = VLL2.FormatMessageInternal({...})
-	MsgC(PREFIX_COLOR, '[VLL2:VM] ', unpack(formatted))
+	MsgC(PREFIX_COLOR, genPrefix() .. '[VLL2:VM] ', unpack(formatted))
 	MsgC('\n')
 	return formatted
 
 VLL2.MessageFS = (...) ->
 	formatted = VLL2.FormatMessageInternal({...})
-	MsgC(PREFIX_COLOR, '[VLL2:FS] ', unpack(formatted))
+	MsgC(PREFIX_COLOR, genPrefix() .. '[VLL2:FS] ', unpack(formatted))
 	MsgC('\n')
 	return formatted
 
 VLL2.MessageDL = (...) ->
 	formatted = VLL2.FormatMessageInternal({...})
-	MsgC(PREFIX_COLOR, '[VLL2:DL] ', unpack(formatted))
+	MsgC(PREFIX_COLOR, genPrefix() .. '[VLL2:DL] ', unpack(formatted))
 	MsgC('\n')
 	return formatted
 
 VLL2.MessageBundle = (...) ->
 	formatted = VLL2.FormatMessageInternal({...})
-	MsgC(PREFIX_COLOR, '[VLL2:BNDL] ', unpack(formatted))
+	MsgC(PREFIX_COLOR, genPrefix() .. '[VLL2:BNDL] ', unpack(formatted))
 	MsgC('\n')
 	return formatted
 
