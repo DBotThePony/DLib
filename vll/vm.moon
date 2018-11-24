@@ -204,12 +204,12 @@ class VLL2.VM
 
 	CompileString: (strIn, identifier = 'CompileString', fdef) =>
 		assert(fdef, 'File definition from where CompileString was called must be present')
-		fcall = CompileString(strIn, identifier, false)
+		fcall, ferrMsg = CompileString(strIn, identifier, false)
 
-		if type(fcall) == 'string'
+		if type(fcall) == 'nil'
 			callable = () ->
-				VLL2.MessageVM('Compilation failed for "CompileString" inside ' .. @vmName)
-				string.gsub fcall, ':[0-9]+:', (w) ->
+				VLL2.MessageVM('Compilation failed for "CompileString" inside ' .. @vmName .. ':', ferrMsg)
+				string.gsub ferrMsg, ':[0-9]+:', (w) ->
 					fline = string.sub(w, 2, #w - 1)
 					i = 0
 					for line in string.gmatch(strIn, '\r?\n')
