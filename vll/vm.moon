@@ -206,7 +206,7 @@ class VLL2.VM
 		assert(fdef, 'File definition from where CompileString was called must be present')
 		fcall, ferrMsg = CompileString(strIn, identifier, false)
 
-		if type(fcall) == 'nil'
+		if ferrMsg
 			callable = () ->
 				VLL2.MessageVM('Compilation failed for "CompileString" inside ' .. @vmName .. ':', ferrMsg)
 				string.gsub ferrMsg, ':[0-9]+:', (w) ->
