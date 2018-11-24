@@ -206,10 +206,11 @@ class VLL2.VM
 		assert(fdef, 'File definition from where CompileString was called must be present')
 		fcall, ferrMsg = CompileString(strIn, identifier, false)
 
-		if ferrMsg
+		if type(fcall) == 'string' or ferrMsg
+			emsg = type(fcall) == 'string' and fcall or ferrMsg
 			callable = () ->
-				VLL2.MessageVM('Compilation failed for "CompileString" inside ' .. @vmName .. ':', ferrMsg)
-				string.gsub ferrMsg, ':[0-9]+:', (w) ->
+				VLL2.MessageVM('Compilation failed for "CompileString" inside ' .. @vmName .. ':', emsg)
+				string.gsub emsg, ':[0-9]+:', (w) ->
 					fline = string.sub(w, 2, #w - 1)
 					i = 0
 					for line in string.gmatch(strIn, '\r?\n')
@@ -217,8 +218,9 @@ class VLL2.VM
 						if i == fline
 							VLL2.MessageVM(line)
 							break
+				error(emsg)
 			callable()
-			return callable, false, fcall
+			return callable, false, emsg
 
 		setfenv(fcall, @NewEnv(fdef))
 		return fcall, true
