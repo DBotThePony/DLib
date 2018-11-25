@@ -18,10 +18,21 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-import getfenv, assert, error from _G
+import getfenv, assert, error, rawset, setfenv from _G
 
-getvm = -> getfenv(3).VLL2_VM
-getdef = -> getfenv(3).VLL2_FILEDEF
+getvm = ->
+	fret = getfenv(3).VLL2_VM or getfenv(2).VLL2_VM or getfenv(4).VLL2_VM
+	if not fret
+		VLL2.Message(getfenv(3), ' ', getfenv(2), ' ', getfenv(1))
+		error('INVALID LEVEL OF CALL?!')
+
+	return fret
+getdef = ->
+	fret = getfenv(3).VLL2_FILEDEF or getfenv(4).VLL2_FILEDEF or getfenv(2).VLL2_FILEDEF
+	if not fret
+		VLL2.Message(getfenv(3), ' ', getfenv(2), ' ', getfenv(1))
+		error('INVALID LEVEL OF CALL?!')
+	return fret
 
 VLL2.ENV_TEMPLATE = {
 	AddCSLuaFile: (fpath) ->
@@ -59,6 +70,12 @@ VLL2.ENV_TEMPLATE = {
 
 		setfenv(1, env)
 
+	setfenv: (func, env) ->
+		assert(type(env) == 'table', 'Invalid function environment')
+		rawset(env, 'VLL2_VM', getvm())
+		rawset(env, 'VLL2_FILEDEF', getdef())
+		return setfenv(func, env)
+
 	require: (fpath) ->
 		assert(type(fpath) == 'string', 'Invalid path')
 		vm = getvm()
@@ -73,6 +90,8 @@ VLL2.ENV_TEMPLATE = {
 		assert(type(fpath) == 'string', 'Invalid path')
 		vm = getvm()
 		def = getdef()
+		assert(vm, 'Missing VM. File: ' .. fpath)
+		assert(def, 'Missing file def. File: ' .. fpath)
 		canonize = def\FindRelative(fpath)
 		vm\Msg('Running file ' .. (canonize or fpath))
 		fget, fstatus, ferror = vm\CompileFile(canonize or fpath)
