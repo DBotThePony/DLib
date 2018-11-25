@@ -27,7 +27,6 @@ local render = render
 local table = table
 local assert = assert
 local type = type
-local CRC = util.CRC
 
 function HUDCommons.DrawTriangle(x, y, w, h, rotate)
 	local poly = {
@@ -56,7 +55,7 @@ function HUDCommons.DrawCircle(x, y, radius, segments)
 	if radius <= 1 then return end
 	if segments <= 4 then return end -- ???
 
-	local crc = CRC(x .. y .. radius .. segments)
+	local crc = x .. y .. radius .. segments
 
 	if not DrawCircleCache[crc] then
 		local poly = {}
@@ -99,50 +98,50 @@ function HUDCommons.DrawPolyFrame(polydata)
 end
 
 -- function HUDCommons.DrawArcHollow(x, y, radius, segments, inLength, arc)
--- 	local poly = {}
--- 	local center = radius / 2
--- 	local inRadius = radius - inLength
--- 	local centerIn = inRadius / 2
+--  local poly = {}
+--  local center = radius / 2
+--  local inRadius = radius - inLength
+--  local centerIn = inRadius / 2
 
--- 	-- outer
--- 	for i = 1, segments do
--- 		if i ~= segments then
--- 			local progress = i / segments
--- 			local ang = progress * -arc
+--  -- outer
+--  for i = 1, segments do
+--    if i ~= segments then
+--      local progress = i / segments
+--      local ang = progress * -arc
 
--- 			table.insert(poly, {
--- 				x = center + ang:rad():sin() * center,
--- 				y = center + ang:rad():cos() * center,
--- 			})
--- 		end
--- 	end
+--      table.insert(poly, {
+--        x = center + ang:rad():sin() * center,
+--        y = center + ang:rad():cos() * center,
+--      })
+--    end
+--  end
 
--- 	-- inner
--- 	for i = 1, segments do
--- 		if i ~= segments then
--- 			local progress = 1 - i / segments
--- 			local ang = progress * -arc
+--  -- inner
+--  for i = 1, segments do
+--    if i ~= segments then
+--      local progress = 1 - i / segments
+--      local ang = progress * -arc
 
--- 			table.insert(poly, {
--- 				x = center + ang:rad():sin() * centerIn,
--- 				y = center + ang:rad():cos() * centerIn,
--- 			})
--- 		end
--- 	end
+--      table.insert(poly, {
+--        x = center + ang:rad():sin() * centerIn,
+--        y = center + ang:rad():cos() * centerIn,
+--      })
+--    end
+--  end
 
--- 	table.insert(poly, {
--- 		x = center + (0):sin() * center,
--- 		y = center + (0):cos() * center,
--- 	})
+--  table.insert(poly, {
+--    x = center + (0):sin() * center,
+--    y = center + (0):cos() * center,
+--  })
 
--- 	draw.NoTexture()
--- 	HUDCommons.TranslatePolyMatrix(poly, x, y)
--- 	surface.SetDrawColor(255, 255, 255)
--- 	surface.DrawPoly(poly)
--- 	surface.SetDrawColor(80, 80, 80)
--- 	HUDCommons.DrawPolyFrame(poly)
+--  draw.NoTexture()
+--  HUDCommons.TranslatePolyMatrix(poly, x, y)
+--  surface.SetDrawColor(255, 255, 255)
+--  surface.DrawPoly(poly)
+--  surface.SetDrawColor(80, 80, 80)
+--  HUDCommons.DrawPolyFrame(poly)
 
--- 	return poly
+--  return poly
 -- end
 
 local STENCIL_KEEP = STENCIL_KEEP
@@ -169,7 +168,7 @@ function HUDCommons.DrawArcHollow(x, y, radius, segments, inLength, arc, color)
 	if radius <= 1 then return end
 	if inLength <= 1 then return end
 
-	local crc = CRC(x .. y .. radius .. segments .. inLength .. arc)
+	local crc = x .. y .. radius .. segments .. inLength .. arc
 
 	arc = 360 - arc
 	local center = radius / 2
@@ -287,7 +286,7 @@ function HUDCommons.DrawArcHollow2(x, y, radius, segments, inLength, arc1, arc2,
 	if radius <= 1 then return end
 	if inLength <= 1 then return end
 
-	local crc = CRC(x .. y .. radius .. segments .. inLength .. arc1 .. arc2)
+	local crc = x .. y .. radius .. segments .. inLength .. arc1 .. arc2
 
 	local center = radius / 2
 	local inRadius = radius - inLength * 2
@@ -360,7 +359,7 @@ function HUDCommons.DrawCircleHollow(x, y, radius, segments, inLength, color)
 	if radius <= 1 then return end
 	if inLength <= 1 then return end
 
-	local crc = CRC(x .. y .. radius .. segments .. inLength)
+	local crc = x .. y .. radius .. segments .. inLength
 
 	local center = radius / 2
 	local inRadius = radius - inLength * 2
