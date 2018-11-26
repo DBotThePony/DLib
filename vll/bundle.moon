@@ -206,7 +206,7 @@ class VLL2.URLBundle extends VLL2.AbstractBundle
 		@Run()
 
 	DownloadFile: (fpath, url) =>
-		if @cDownloading >= 16
+		if SERVER and @cDownloading >= 16 or CLIENT and @cDownloading >= 48
 			table.insert(@downloadQueue, {fpath, url})
 			return
 
