@@ -27,6 +27,7 @@ local setmetatable = debug.setmetatable
 local pcall = pcall
 local rawget = rawget
 _G.rawtype = _G.rawtype or type
+_G.type = _G.rawtype
 
 local rawtype = rawtype
 local useFallback = false

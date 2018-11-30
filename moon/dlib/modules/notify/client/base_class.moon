@@ -90,7 +90,7 @@ class NotifyBase
 		@SetStart!
 
 		if @m_console
-			MsgC(Color(0, 255, 0), '[Notify] ', @m_color, unpack(@m_text))
+			MsgC(Color(0, 200, 0), '[DNotify] ', @m_color, unpack(@m_text))
 			MsgC('\n')
 
 		return @

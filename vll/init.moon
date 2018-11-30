@@ -109,27 +109,43 @@ VLL2.FormatMessageInternal = (tabIn) ->
 
 	return output
 
+genPrefix = ->
+	if game.SinglePlayer()
+		return SERVER and '[SV] ' or '[CL] '
+	elseif game.IsDedicated()
+		return ''
+
+	return '' if CLIENT
+	return '[SV] ' if SERVER and game.GetIPAddress() == '0.0.0.0'
+	return ''
+
 VLL2.Message = (...) ->
 	formatted = VLL2.FormatMessageInternal({...})
-	MsgC(PREFIX_COLOR, '[VLL2] ', unpack(formatted))
+	MsgC(PREFIX_COLOR, genPrefix() .. '[VLL2] ', unpack(formatted))
 	MsgC('\n')
 	return formatted
 
 VLL2.MessageVM = (...) ->
 	formatted = VLL2.FormatMessageInternal({...})
-	MsgC(PREFIX_COLOR, '[VLL2:VM] ', unpack(formatted))
+	MsgC(PREFIX_COLOR, genPrefix() .. '[VLL2:VM] ', unpack(formatted))
 	MsgC('\n')
 	return formatted
 
 VLL2.MessageFS = (...) ->
 	formatted = VLL2.FormatMessageInternal({...})
-	MsgC(PREFIX_COLOR, '[VLL2:FS] ', unpack(formatted))
+	MsgC(PREFIX_COLOR, genPrefix() .. '[VLL2:FS] ', unpack(formatted))
+	MsgC('\n')
+	return formatted
+
+VLL2.MessageDL = (...) ->
+	formatted = VLL2.FormatMessageInternal({...})
+	MsgC(PREFIX_COLOR, genPrefix() .. '[VLL2:DL] ', unpack(formatted))
 	MsgC('\n')
 	return formatted
 
 VLL2.MessageBundle = (...) ->
 	formatted = VLL2.FormatMessageInternal({...})
-	MsgC(PREFIX_COLOR, '[VLL2:BNDL] ', unpack(formatted))
+	MsgC(PREFIX_COLOR, genPrefix() .. '[VLL2:BNDL] ', unpack(formatted))
 	MsgC('\n')
 	return formatted
 
@@ -146,7 +162,12 @@ if SERVER
 		hook.Add 'PlayerInitialSpawn', 'VLL2.LoadOnClient', (ply) ->
 			timer.Simple 10, () ->
 				ply\SendLua([[if VLL2 then return end http.Fetch('https://dbotthepony.ru/vll/vll2.lua',function(b)RunString(b,'VLL2')end)]]) if IsValid(ply)
-		ply\SendLua([[if VLL2 then return end http.Fetch('https://dbotthepony.ru/vll/vll2.lua',function(b)RunString(b,'VLL2')end)]]) for ply in *player.GetAll()
+
+		if not VLL2_GOING_TO_RELOAD
+			ply\SendLua([[if VLL2 then return end http.Fetch('https://dbotthepony.ru/vll/vll2.lua',function(b)RunString(b,'VLL2')end)]]) for ply in *player.GetAll()
+		else
+			ply\SendLua([[http.Fetch('https://dbotthepony.ru/vll/vll2.lua',function(b)RunString(b,'VLL2')end)]]) for ply in *player.GetAll()
+			VLL2_GOING_TO_RELOAD = false
 	else
 		AddCSLuaFile()
 		hook.Remove 'PlayerInitialSpawn', 'VLL2.LoadOnClient'

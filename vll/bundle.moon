@@ -29,6 +29,7 @@ if SERVER
 file.CreateDir('vll2')
 file.CreateDir('vll2/lua_cache')
 file.CreateDir('vll2/ws_cache')
+file.CreateDir('vll2/gma_cache')
 
 class VLL2.AbstractBundle
 	@_S = {}
@@ -156,6 +157,7 @@ class VLL2.AbstractBundle
 		vm\LoadAutorun()
 		vm\LoadEntities()
 		vm\LoadWeapons()
+		vm\LoadEffects() if CLIENT
 		vm\LoadTFA()
 		@Msg('Bundle successfully initialized!')
 		@CallFinish()
@@ -204,7 +206,7 @@ class VLL2.URLBundle extends VLL2.AbstractBundle
 		@Run()
 
 	DownloadFile: (fpath, url) =>
-		if @cDownloading >= 16
+		if SERVER and @cDownloading >= 16 or CLIENT and @cDownloading >= 48
 			table.insert(@downloadQueue, {fpath, url})
 			return
 
@@ -388,6 +390,8 @@ class VLL2.GMABundle extends VLL2.AbstractBundle
 			@CallError()
 			return
 
+		@Msg('GMA IS EMPTY???!!!') if #filelist == 0
+
 		if @loadLua
 			for _file in *filelist
 				if string.sub(_file, 1, 3) == 'lua'
@@ -397,8 +401,78 @@ class VLL2.GMABundle extends VLL2.AbstractBundle
 			@Run() if @initAfterLoad
 
 		@modelList = [_file for _file in *filelist when string.sub(_file, 1, 6) == 'models' and string.sub(_file, -3) == 'mdl']
+		@matList = [_file for _file in *filelist when string.sub(_file, 1, 9) == 'materials']
+		@Msg('Total assets: ', #filelist, ' including ', #@modelList, ' models and ', #@matList, ' materials')
 
 		@status = @@STATUS_LOADED
+
+class VLL2.URLGMABundle extends VLL2.GMABundle
+	new: (name, url) =>
+		super(name)
+		@crc = util.CRC(url)
+		@url = url
+		@_datapath = 'vll2/gma_cache/' .. @crc .. '.dat'
+		@_datapath_full = 'data/vll2/gma_cache/' .. @crc .. '.dat'
+
+		@mountAfterLoad = true
+
+	SetMountAfterLoad: (status = @mountAfterLoad) =>
+		@mountAfterLoad = status
+		return @
+	DoMountAfterLoad: => @SetMountAfterLoad(true)
+	DoNotMountAfterLoad: => @SetMountAfterLoad(false)
+
+	__Mount: =>
+		@status = @@STATUS_LOADED
+		@CallLoaded()
+		return if not @mountAfterLoad
+		@MountDelay()
+
+	AfterLoad: =>
+		@SpecifyPath(@_datapath_full)
+		@__Mount()
+
+	Load: =>
+		if file.Exists(@_datapath, 'DATA')
+			@Msg('Found GMA in cache, mounting in-place...')
+			@SpecifyPath(@_datapath_full)
+			@__Mount()
+			return
+
+		@status = @@STATUS_LOADING
+
+		@gmadownloader = VLL2.LargeFileLoader(@url, @_datapath)
+
+		@gmadownloader\AddFinishHook -> @AfterLoad()
+
+		@gmadownloader\AddErrorHook (_, reason = 'failure') ->
+			@status = @@STATUS_ERROR
+			@Msg('Failed to download the GMA! Reason: ' .. reason)
+			@CallError()
+
+		@Msg('Downloading URL gma...')
+		@gmadownloader\Load()
+
+class VLL2.URLGMABundleZ extends VLL2.URLGMABundle
+	AfterLoad: =>
+		@Msg('--- DECOMPRESSING')
+		stime = SysTime()
+		decompress = util.Decompress(file.Read(@_datapath, 'DATA'))
+
+		if decompress == ''
+			@status = @@STATUS_ERROR
+			@Msg('Failed to decompress the GMA! Did tranfer got interrupted?')
+			@CallError()
+			return
+
+		@Msg(string.format('Decompression took %.2f ms', (SysTime() - stime) * 1000))
+		stime = SysTime()
+		@Msg('--- WRITING')
+		file.Write(@_datapath, decompress)
+		@Msg(string.format('Writing to disk took %.2f ms', (SysTime() - stime) * 1000))
+
+		@SpecifyPath(@_datapath_full)
+		@__Mount()
 
 class VLL2.WSCollection extends VLL2.AbstractBundle
 	@COLLECTION_INFO_URL = 'https://api.steampowered.com/ISteamRemoteStorage/GetCollectionDetails/v1/'
@@ -509,6 +583,10 @@ class VLL2.WSCollection extends VLL2.AbstractBundle
 			method: 'POST'
 			url: @@COLLECTION_INFO_URL
 			parameters: {collectioncount: '1', 'publishedfileids[0]': tostring(@workshopID)}
+			headers: {
+				'User-Agent': 'VLL2'
+				Referer: VLL2.Referer()
+			}
 		}
 
 		req.failed = (reason = 'failure') ->
@@ -552,6 +630,10 @@ class VLL2.WSCollection extends VLL2.AbstractBundle
 			method: 'POST'
 			url: @@INFO_URL
 			parameters: {itemcount: '1', 'publishedfileids[0]': tostring(@workshopID)}
+			headers: {
+				'User-Agent': 'VLL2'
+				Referer: VLL2.Referer()
+			}
 		}
 
 		req.failed = (reason = 'failure') ->
@@ -703,23 +785,13 @@ class VLL2.WSBundle extends VLL2.GMABundle
 			@__Mount()
 			return
 
-		req = {method: 'GET', :url}
+		@gmadownloader = VLL2.LargeFileLoader(url, fpath)
 
-		req.failed = (reason = 'failure') ->
-			@status = @@STATUS_ERROR
-			@Msg('Failed to download the GMA! Reason: ' .. reason)
-			@CallError()
-
-		req.success = (code = 400, body = '', headers) ->
-			if code ~= 200
-				@status = @@STATUS_ERROR
-				@Msg('Failed to download the GMA! Server returned: ' .. code)
-				@CallError()
-				return
-
+		@gmadownloader\AddFinishHook ->
 			@Msg('--- DECOMPRESSING')
 			stime = SysTime()
-			decompress = util.Decompress(body)
+			decompress = util.Decompress(file.Read(fpath, 'DATA'))
+
 			if decompress == ''
 				@status = @@STATUS_ERROR
 				@Msg('Failed to decompress the GMA! Did tranfer got interrupted?')
@@ -735,8 +807,13 @@ class VLL2.WSBundle extends VLL2.GMABundle
 			@SpecifyPath('data/' .. fpath)
 			@__Mount()
 
-		HTTP(req)
+		@gmadownloader\AddErrorHook (_, reason = 'failure') ->
+			@status = @@STATUS_ERROR
+			@Msg('Failed to download the GMA! Reason: ' .. reason)
+			@CallError()
+
 		@Msg('Downloading ' .. @wsTitle .. '...')
+		@gmadownloader\Load()
 
 	@INVALID_WS_DATA = 912
 
@@ -754,6 +831,10 @@ class VLL2.WSBundle extends VLL2.GMABundle
 				method: 'POST'
 				url: @@INFO_URL
 				parameters: {itemcount: '1', 'publishedfileids[0]': tostring(@workshopID)}
+				headers: {
+					'User-Agent': 'VLL2'
+					Referer: VLL2.Referer()
+				}
 			}
 
 			req.failed = (reason = 'failure') ->
@@ -821,6 +902,10 @@ class VLL2.WSBundle extends VLL2.GMABundle
 				method: 'POST'
 				url: @@INFO_URL
 				parameters: {itemcount: '1', 'publishedfileids[0]': tostring(@workshopID)}
+				headers: {
+					'User-Agent': 'VLL2'
+					Referer: VLL2.Referer()
+				}
 			}
 
 			req.failed = (reason = 'failure') ->

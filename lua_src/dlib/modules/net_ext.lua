@@ -137,7 +137,8 @@ net.WriteInt8 = net.GWriteInt(8)
 net.WriteInt16 = net.GWriteInt(16)
 net.WriteInt32 = net.GWriteInt(32)
 
-local maxint = math.pow(2, 32) - 1
+local maxint = 0x100000000
+
 function net.WriteBigUInt(val)
 	local first = val % maxint
 	local second = (val - first) / maxint

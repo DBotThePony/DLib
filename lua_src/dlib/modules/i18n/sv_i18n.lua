@@ -59,7 +59,7 @@ local function tickPlayers()
 		local name = GetName(ply)
 
 		if #name < 4 then
-			DLib.Message(ply, ' network name was treated as exploit, changing...')
+			--DLib.Message(ply, ' network name was treated as exploit, changing...')
 			SetName(ply, '_bad_playername_' .. ply:UserID())
 		end
 
