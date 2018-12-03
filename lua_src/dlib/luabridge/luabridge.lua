@@ -22,6 +22,7 @@
 
 if CLIENT then
 	local pixelvis_handle_t = FindMetaTable('pixelvis_handle_t')
+	local util = util
 
 	function pixelvis_handle_t:Visible(pos, rad)
 		return util.PixelVisible(pos, rad, self)
