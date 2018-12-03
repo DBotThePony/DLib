@@ -23,15 +23,15 @@
 if CLIENT then
 	local pixelvis_handle_t = FindMetaTable('pixelvis_handle_t')
 
-	function pixelvis_handle_t:Visible(self, pos, rad)
+	function pixelvis_handle_t:Visible(pos, rad)
 		return util.PixelVisible(pos, rad, self)
 	end
 
-	function pixelvis_handle_t:IsVisible(self, pos, rad)
+	function pixelvis_handle_t:IsVisible(pos, rad)
 		return util.PixelVisible(pos, rad, self)
 	end
 
-	function pixelvis_handle_t:PixelVisible(self, pos, rad)
+	function pixelvis_handle_t:PixelVisible(pos, rad)
 		return util.PixelVisible(pos, rad, self)
 	end
 
@@ -42,31 +42,6 @@ if CLIENT then
 	local vehMeta = FindMetaTable('Vehicle')
 	local NULL = NULL
 	local ipairs = ipairs
-
-	function vehMeta:GetDriver()
-		return self._dlib_vehfix or NULL
-	end
-
-	local function Think()
-		for i, ply in ipairs(player.GetAll()) do
-			local ply2 = GetTable(ply)
-			local veh = GetVehicle(ply)
-
-			if veh ~= ply2._dlib_vehfix then
-				if IsValid(ply2._dlib_vehfix) then
-					ply2._dlib_vehfix._dlib_vehfix = NULL
-				end
-
-				ply2._dlib_vehfix = veh
-
-				if IsValid(veh) then
-					veh._dlib_vehfix = ply
-				end
-			end
-		end
-	end
-
-	hook.Add('Think', 'DLib.GetDriverFix', Think)
 
 	local LocalPlayer = LocalPlayer
 	local GetWeapons = FindMetaTable('Player').GetWeapons

@@ -68,44 +68,6 @@ function PhysObj:EnableCollisions(newStatus)
 	return self:DLibEnableCollisions(newStatus)
 end
 
-function entMeta:SetNW2UInt(name, value)
-	assert(type(value) == 'number', 'Value passed is not a number')
-
-	if value < 0 then
-		error('Value can not be negative')
-	end
-
-	if value > 0x100000000 then
-		error('Integer overflow')
-	end
-
-	if value >= 0x7FFFFFFF then
-		value = value - 0x100000000
-	end
-
-	self:SetNW2Int(name, value)
-end
-
-function entMeta:GetNW2UInt(name, ifNone)
-	if type(ifNone) == 'number' then
-		if ifNone < 0 then
-			error('Value can not be negative')
-		end
-
-		if ifNone > 0x100000000 then
-			error('Integer overflow')
-		end
-	end
-
-	local value = self:GetNW2Int(name, ifNone)
-
-	if grab < 0 then
-		return 0x100000000 + value
-	else
-		return value
-	end
-end
-
 function vectorMeta:Copy()
 	return Vector(self)
 end
@@ -234,19 +196,6 @@ function math.tbezier(t, values)
 	return math.tbezier(t, points)
 end
 
-local VehicleListIterable = {}
-
-local function rebuildVehicleList()
-	for classname, data in pairs(list.GetForEdit('Vehicles')) do
-		if data.Model then
-			VehicleListIterable[data.Model:lower()] = data
-		end
-	end
-end
-
-timer.Create('DLib.RebuildVehicleListNames', 10, 0, rebuildVehicleList)
-rebuildVehicleList()
-
 local CLIENT = CLIENT
 local hook = hook
 local net = net
@@ -283,33 +232,11 @@ if CLIENT then
 	local surface = surface
 	surface._DLibPlaySound = surface._DLibPlaySound or surface.PlaySound
 
-	function surface.PlaySound(path)
+	function surface.PlaySound(path, ...)
 		assert(type(path) == 'string', 'surface.PlaySound - string expected, got ' .. type(path))
-		local can = hook.Run('SurfaceEmitSound', path)
+		local can = hook.Run('SurfaceEmitSound', path, ...)
 		if can == false then return end
-		return surface._DLibPlaySound(path)
-	end
-
-	function vehicleMeta:GetPrintName()
-		if self.__dlibCachedName then
-			return self.__dlibCachedName
-		end
-
-		local getname = self.PrintName or (VehicleListIterable[self:GetModel()] and VehicleListIterable[self:GetModel()].Name)
-
-		if not getname then
-			local classname = self:GetClass()
-			getname = language.GetPhrase(classname)
-		end
-
-		self.__dlibCachedName = getname
-
-		return getname
-	end
-
-	function entMeta:GetPrintNameDLib()
-		if self.GetPrintName then return self:GetPrintName() end
-		return self.PrintName or language.GetPhrase(self:GetClass())
+		return surface._DLibPlaySound(path, ...)
 	end
 
 	-- cache and speedup lookups a bit
@@ -352,45 +279,4 @@ if CLIENT then
 	end
 
 	cvars.AddChangeCallback('dlib_screenscale', dlib_screenscale_chages, 'DLib')
-else
-	entMeta.GetNetworkName = entMeta.GetName
-	entMeta.SetNetworkName = entMeta.SetName
-	entMeta.GetNetworkedName = entMeta.GetName
-	entMeta.SetNetworkedName = entMeta.SetName
-	entMeta.GetTargetName = entMeta.GetName
-	entMeta.SetTargetName = entMeta.SetName
-
-	function vehicleMeta:GetPrintName()
-		if self.__dlibCachedName then
-			return self.__dlibCachedName
-		end
-
-		local getname = self.PrintName
-
-		if not getname then
-			getname = VehicleListIterable[self:GetModel()] or self:GetClass()
-		end
-
-		self.__dlibCachedName = getname
-
-		return getname
-	end
-
-	function entMeta:GetPrintNameDLib()
-		if self.GetPrintName then return self:GetPrintName() end
-		return self.PrintName
-	end
-
-	local nextBot = FindMetaTable('NextBot')
-	local GetTable = entMeta.GetTable
-
-	function nextBot:GetActiveWeapon(...)
-		local tab = GetTable(self)
-
-		if tab.GetActiveWeapon then
-			return tab.GetActiveWeapon(self, ...)
-		end
-
-		return self
-	end
 end
