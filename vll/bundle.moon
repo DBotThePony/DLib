@@ -158,6 +158,7 @@ class VLL2.AbstractBundle
 		vm\LoadEntities()
 		vm\LoadWeapons()
 		vm\LoadEffects() if CLIENT
+		vm\LoadToolguns()
 		vm\LoadTFA()
 		@Msg('Bundle successfully initialized!')
 		@CallFinish()
