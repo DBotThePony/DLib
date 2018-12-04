@@ -22,6 +22,8 @@ local i18n = i18n
 local hook = hook
 local unpack = unpack
 
+i18n.DEBUG_LANG_STRINGS = CreateConVar('gmod_language_dlib_dbg_cl', '0', {FCVAR_ARCHIVE}, 'Debug language strings (do not localize them)')
+
 local DefaultPanelCreated
 
 do
@@ -165,6 +167,14 @@ hook.Add('DLib.LanguageChanged2', 'DLib.i18nPanelsBridge', function(...)
 	hook.Run('DLib.i18n.LangUpdate4', ...)
 	hook.Run('DLib.i18n.LangUpdate5', ...)
 end)
+
+cvars.AddChangeCallback('gmod_language_dlib_dbg_cl', function()
+	hook.Run('DLib.i18n.LangUpdate1')
+	hook.Run('DLib.i18n.LangUpdate2')
+	hook.Run('DLib.i18n.LangUpdate3')
+	hook.Run('DLib.i18n.LangUpdate4')
+	hook.Run('DLib.i18n.LangUpdate5')
+end, 'DLib')
 
 local function vguiPanelCreated(self)
 	local classname = self:GetClassName():lower()
