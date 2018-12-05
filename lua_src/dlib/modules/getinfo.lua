@@ -51,25 +51,25 @@ function getinfo.Replicate(cvarname, valuetype, default)
 	if valuetype == 'boolean' then
 		readFunc = net.ReadBool
 		writeFunc = net.WriteBool
-		nwSet = entMeta.SetNW2Bool
-		nwGet = entMeta.GetNW2Bool
+		nwSet = entMeta.SetNWBool
+		nwGet = entMeta.GetNWBool
 	elseif valuetype == 'integer' or valuetype == 'number' then
 		readFunc = net.GReadInt(val)
 		writeFunc = net.GWriteInt(val)
-		nwSet = entMeta.SetNW2Int
-		nwGet = entMeta.GetNW2Int
+		nwSet = entMeta.SetNWInt
+		nwGet = entMeta.GetNWInt
 	elseif valuetype == 'uinteger' then
 		readFunc = net.GReadUInt(val)
 		writeFunc = net.GWriteUInt(val)
-		nwSet = entMeta.SetNW2UInt
-		nwGet = entMeta.GetNW2UInt
+		nwSet = entMeta.SetNWUInt
+		nwGet = entMeta.GetNWUInt
 	else
 		readFunc = net.ReadString
 		writeFunc = net.WriteString
 		default = tostring(default)
 		valuetype = 'string'
-		nwSet = entMeta.SetNW2String
-		nwGet = entMeta.GetNW2String
+		nwSet = entMeta.SetNWString
+		nwGet = entMeta.GetNWString
 	end
 
 	if not nwSet then
