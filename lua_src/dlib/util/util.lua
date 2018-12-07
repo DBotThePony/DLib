@@ -87,7 +87,6 @@ end
 
 local rawtype = rawtype
 local table = table
-local MsgC = MsgC
 local error = error
 local pcall = pcall
 local debug = debug
