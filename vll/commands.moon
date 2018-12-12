@@ -138,32 +138,34 @@ vll2_reload = (ply, cmd, args) ->
 	VLL2_GOING_TO_RELOAD = true
 	http.Fetch "https://dbotthepony.ru/vll/vll2.lua", (b) -> _G.RunString(b, "VLL2")
 
-concommand.Add 'vll2_load', vll2_load, vll2_mkautocomplete('vll2_load')
-concommand.Add 'vll2_workshop', vll2_workshop
-concommand.Add 'vll2_wscollection', vll2_wscollection
-concommand.Add 'vll2_wscollection_content', vll2_wscollection_content
-concommand.Add 'vll2_workshop_silent', vll2_workshop_silent
-concommand.Add 'vll2_workshop_content_silent', vll2_workshop_content_silent
-concommand.Add 'vll2_reload', vll2_reload
+timer.Simple 0, ->
+	if not game.SinglePlayer() or CLIENT
+		concommand.Add 'vll2_load', vll2_load, vll2_mkautocomplete('vll2_load')
+		concommand.Add 'vll2_workshop', vll2_workshop
+		concommand.Add 'vll2_wscollection', vll2_wscollection
+		concommand.Add 'vll2_wscollection_content', vll2_wscollection_content
+		concommand.Add 'vll2_workshop_silent', vll2_workshop_silent
+		concommand.Add 'vll2_workshop_content_silent', vll2_workshop_content_silent
+		concommand.Add 'vll2_reload', vll2_reload
 
-if SERVER
-	net.Receive 'vll2_cmd_load_server', (_, ply) -> vll2_load(ply, nil, string.Explode(' ', net.ReadString()\Trim()))
-	concommand.Add 'vll2_load_server', vll2_load, vll2_mkautocomplete('vll2_load_server')
-	concommand.Add 'vll2_load_silent', vll2_load_silent, vll2_mkautocomplete('vll2_load_silent')
-	concommand.Add 'vll2_workshop_server', vll2_workshop
-	concommand.Add 'vll2_wscollection_server', vll2_wscollection
-	concommand.Add 'vll2_wscollection_content_server', vll2_wscollection_content
-	concommand.Add 'vll2_workshop_content_server', vll2_workshop_content
-	concommand.Add 'vll2_workshop_silent_server', vll2_workshop_silent
-	concommand.Add 'vll2_workshop_content_silent_server', vll2_workshop_content_silent
-	concommand.Add 'vll2_reload_server', vll2_reload
-else
-	vll2_load_server = (ply, cmd, args) ->
-		net.Start('vll2_cmd_load_server')
-		net.WriteString(args[1])
-		net.SendToServer()
+	if SERVER
+		net.Receive 'vll2_cmd_load_server', (_, ply) -> vll2_load(ply, nil, string.Explode(' ', net.ReadString()\Trim()))
+		concommand.Add 'vll2_load_server', vll2_load, vll2_mkautocomplete('vll2_load_server')
+		concommand.Add 'vll2_load_silent', vll2_load_silent, vll2_mkautocomplete('vll2_load_silent')
+		concommand.Add 'vll2_workshop_server', vll2_workshop
+		concommand.Add 'vll2_wscollection_server', vll2_wscollection
+		concommand.Add 'vll2_wscollection_content_server', vll2_wscollection_content
+		concommand.Add 'vll2_workshop_content_server', vll2_workshop_content
+		concommand.Add 'vll2_workshop_silent_server', vll2_workshop_silent
+		concommand.Add 'vll2_workshop_content_silent_server', vll2_workshop_content_silent
+		concommand.Add 'vll2_reload_server', vll2_reload
+	else
+		vll2_load_server = (ply, cmd, args) ->
+			net.Start('vll2_cmd_load_server')
+			net.WriteString(args[1])
+			net.SendToServer()
 
-	timer.Simple 0, ->
 		timer.Simple 0, ->
-			if not game.SinglePlayer()
-				concommand.Add 'vll2_load_server', vll2_load_server, vll2_mkautocomplete('vll2_load_server')
+			timer.Simple 0, ->
+				if not game.SinglePlayer()
+					concommand.Add 'vll2_load_server', vll2_load_server, vll2_mkautocomplete('vll2_load_server')
