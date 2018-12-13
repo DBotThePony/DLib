@@ -64,6 +64,51 @@ function i18n.tformatByLang(time, lang)
 	return str
 end
 
+function i18n.tformatTableByLang(time, lang)
+	assert(type(time) == 'number', 'Invalid time specified')
+	local str = {}
+
+	local weeks = (time - time % 604800) / 604800
+	time = time - weeks * 604800
+
+	local days = (time - time % 86400) / 86400
+	time = time - days * 86400
+
+	local hours = (time - time % 3600) / 3600
+	time = time - hours * 3600
+
+	local minutes = (time - time % 60) / 60
+	time = time - minutes * 60
+
+	local seconds = math.floor(time)
+
+	if seconds ~= 0 then
+		table.insert(str, seconds .. ' ' .. i18n.localizeByLang('info.dlib.tformat.seconds', lang))
+	end
+
+	if minutes ~= 0 then
+		table.insert(str, minutes .. ' ' .. i18n.localizeByLang('info.dlib.tformat.minutes', lang))
+	end
+
+	if hours ~= 0 then
+		table.insert(str, hours .. ' ' .. i18n.localizeByLang('info.dlib.tformat.hours', lang))
+	end
+
+	if days ~= 0 then
+		table.insert(str, days .. ' ' .. i18n.localizeByLang('info.dlib.tformat.days', lang))
+	end
+
+	if weeks ~= 0 then
+		table.insert(str, weeks .. ' ' .. i18n.localizeByLang('info.dlib.tformat.weeks', lang))
+	end
+
+	return str
+end
+
 function i18n.tformat(time)
 	return i18n.tformatByLang(time, i18n.CURRENT_LANG)
+end
+
+function i18n.tformatTable(time)
+	return i18n.tformatTableByLang(time, i18n.CURRENT_LANG)
 end
