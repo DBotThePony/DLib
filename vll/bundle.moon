@@ -20,11 +20,16 @@
 
 import file, util, error, assert, HTTP, Entity, game from _G
 
+local DO_DOWNLOAD_WORKSHOP
+
 if SERVER
 	util.AddNetworkString('vll2.replicate_url')
 	util.AddNetworkString('vll2.replicate_workshop')
 	util.AddNetworkString('vll2.replicate_wscollection')
 	util.AddNetworkString('vll2.replicate_all')
+else
+	DO_DOWNLOAD_WORKSHOP = CreateConVar('vll2_dl_workshop', '1', {FCVAR_ARCHIVE}, 'Actually download GMA files. Disabling this is VERY experemental, and can cause undesired behaviour of stuff. You were warned.')
+	cvars.AddChangeCallback 'vll2_dl_workshop', (-> RunConsoleCommand('host_writeconfig')), 'VLL2'
 
 file.CreateDir('vll2')
 file.CreateDir('vll2/lua_cache')
@@ -507,6 +512,12 @@ class VLL2.URLGMABundle extends VLL2.GMABundle
 			@Msg('Found GMA in cache, mounting in-place...')
 			@SpecifyPath(@_datapath_full)
 			@__Mount()
+			return
+
+		if CLIENT and not DO_DOWNLOAD_WORKSHOP\GetBool()
+			@Msg('Not downloading workshop GMA file, since we have it disabled')
+			@status = @@STATUS_ERROR
+			@CallError('Restricted by user')
 			return
 
 		@status = @@STATUS_LOADING
@@ -1033,6 +1044,10 @@ class VLL2.WSBundle extends VLL2.GMABundle
 							if file.Exists(path, 'GAME')
 								@SpecifyPath(path)
 								@__Mount()
+							elseif not DO_DOWNLOAD_WORKSHOP\GetBool()
+								@Msg('Not downloading workshop GMA file, since we have it disabled')
+								@status = @@STATUS_ERROR
+								@CallError('Restricted by user')
 							else
 								@Msg('Downloading from workshop')
 								msgid = 'vll2_dl_' .. @workshopID
