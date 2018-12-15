@@ -138,6 +138,11 @@ vll2_reload = (ply, cmd, args) ->
 	VLL2_GOING_TO_RELOAD = true
 	http.Fetch "https://dbotthepony.ru/vll/vll2.lua", (b) -> _G.RunString(b, "VLL2")
 
+vll2_reload_full = (ply, cmd, args) ->
+	return VLL2.MessagePlayer(ply, 'Not a super admin!') if disallow(ply)
+	VLL2.MessagePlayer(ply, 'Flly Reloading VLL2, this can take some time...')
+	http.Fetch "https://dbotthepony.ru/vll/vll2.lua", (b) -> _G.RunString(b, "VLL2")
+
 timer.Simple 0, ->
 	if not game.SinglePlayer() or CLIENT
 		concommand.Add 'vll2_load', vll2_load, vll2_mkautocomplete('vll2_load')
@@ -147,6 +152,7 @@ timer.Simple 0, ->
 		concommand.Add 'vll2_workshop_silent', vll2_workshop_silent
 		concommand.Add 'vll2_workshop_content_silent', vll2_workshop_content_silent
 		concommand.Add 'vll2_reload', vll2_reload
+		concommand.Add 'vll2_reload_full', vll2_reload_full
 
 	if SERVER
 		net.Receive 'vll2_cmd_load_server', (_, ply) -> vll2_load(ply, nil, string.Explode(' ', net.ReadString()\Trim()))
@@ -159,6 +165,7 @@ timer.Simple 0, ->
 		concommand.Add 'vll2_workshop_silent_server', vll2_workshop_silent
 		concommand.Add 'vll2_workshop_content_silent_server', vll2_workshop_content_silent
 		concommand.Add 'vll2_reload_server', vll2_reload
+		concommand.Add 'vll2_reload_full_server', vll2_reload_full
 	else
 		vll2_load_server = (ply, cmd, args) ->
 			net.Start('vll2_cmd_load_server')
