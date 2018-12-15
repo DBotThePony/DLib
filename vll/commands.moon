@@ -141,6 +141,8 @@ vll2_reload = (ply, cmd, args) ->
 vll2_reload_full = (ply, cmd, args) ->
 	return VLL2.MessagePlayer(ply, 'Not a super admin!') if disallow(ply)
 	VLL2.MessagePlayer(ply, 'Flly Reloading VLL2, this can take some time...')
+	VLL2_GOING_TO_RELOAD = true
+	VLL2_FULL_RELOAD = true
 	http.Fetch "https://dbotthepony.ru/vll/vll2.lua", (b) -> _G.RunString(b, "VLL2")
 
 timer.Simple 0, ->
