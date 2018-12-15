@@ -242,20 +242,22 @@ function entMeta:ApplyBoneManipulations()
 	__dlib_BoneManipCache.working = false
 
 	for boneid = 0, self:GetBoneCount() - 1 do
-		if __dlib_BoneManipCache.angles[boneid + 1] then
-			self:ManipulateBoneAngles(boneid, __dlib_BoneManipCache.angles[boneid + 1])
-		end
+		if not __dlib_BoneManipCache.blocked then
+			if __dlib_BoneManipCache.angles[boneid + 1] then
+				self:ManipulateBoneAngles(boneid, __dlib_BoneManipCache.angles[boneid + 1])
+			end
 
-		if __dlib_BoneManipCache.position[boneid + 1] then
-			self:ManipulateBonePosition(boneid, __dlib_BoneManipCache.position[boneid + 1]:ToNative())
+			if __dlib_BoneManipCache.position[boneid + 1] then
+				self:ManipulateBonePosition(boneid, __dlib_BoneManipCache.position[boneid + 1]:ToNative())
+			end
+
+			if __dlib_BoneManipCache.jiggle[boneid + 1] then
+				self:ManipulateBoneJiggle(boneid, __dlib_BoneManipCache.jiggle[boneid + 1])
+			end
 		end
 
 		if __dlib_BoneManipCache.scale[boneid + 1] then
 			self:ManipulateBoneScale(boneid, __dlib_BoneManipCache.scale[boneid + 1]:ToNative())
-		end
-
-		if __dlib_BoneManipCache.jiggle[boneid + 1] then
-			self:ManipulateBoneJiggle(boneid, __dlib_BoneManipCache.jiggle[boneid + 1])
 		end
 	end
 
@@ -270,12 +272,16 @@ function entMeta:ResetBoneManipCache()
 	__dlib_BoneManipCache.position = {}
 	__dlib_BoneManipCache.scale = {}
 	__dlib_BoneManipCache.jiggle = {}
+	__dlib_BoneManipCache.blocked = self:GetClass() == 'prop_ragdoll'
 
 	for boneid = 0, self:GetBoneCount() - 1 do
-		__dlib_BoneManipCache.angles[boneid + 1] = self:GetManipulateBoneAngles(boneid)
-		__dlib_BoneManipCache.position[boneid + 1] = LVector(self:GetManipulateBonePosition(boneid))
+		if not __dlib_BoneManipCache.blocked then
+			__dlib_BoneManipCache.angles[boneid + 1] = self:GetManipulateBoneAngles(boneid)
+			__dlib_BoneManipCache.position[boneid + 1] = LVector(self:GetManipulateBonePosition(boneid))
+			__dlib_BoneManipCache.jiggle[boneid + 1] = self:GetManipulateBoneJiggle(boneid)
+		end
+
 		__dlib_BoneManipCache.scale[boneid + 1] = LVector(self:GetManipulateBoneScale(boneid))
-		__dlib_BoneManipCache.jiggle[boneid + 1] = self:GetManipulateBoneJiggle(boneid)
 	end
 
 	return self
