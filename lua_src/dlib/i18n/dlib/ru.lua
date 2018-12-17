@@ -32,6 +32,10 @@ info.dlib.tformat.hours = 'часов'
 info.dlib.tformat.days = 'дней'
 info.dlib.tformat.weeks = 'недель'
 
+info.dlib.tformat.long = 'Никогда™'
+info.dlib.tformat.now = 'Прямо сейчас'
+info.dlib.tformat.past = 'В прошлом'
+
 gui.dlib.friends.title = 'DLib друзья'
 gui.dlib.friends.open = 'Отрыть меню друзей'
 

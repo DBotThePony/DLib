@@ -32,6 +32,10 @@ info.dlib.tformat.hours = 'hours'
 info.dlib.tformat.days = 'days'
 info.dlib.tformat.weeks = 'weeks'
 
+info.dlib.tformat.long = 'Never™'
+info.dlib.tformat.now = 'Right now'
+info.dlib.tformat.past = 'In the past'
+
 gui.dlib.friends.title = 'DLib Friends'
 gui.dlib.friends.open = 'Open Friends Menu'
 
