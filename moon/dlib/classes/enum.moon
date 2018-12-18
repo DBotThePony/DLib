@@ -28,6 +28,11 @@ class DLib.Enum
 		return indexFail if @enumsInversed[val] == nil
 		return @enumsInversed[val]
 
+	Encode: (...) => @encode(...)
+	Decode: (...) => @decode(...)
+	Write: (...) => @write(...)
+	Read: (...) => @read(...)
+
 	decode: (val, indexFail = 1) =>
 		val = tonumber(val) if type(val) ~= 'number'
 		return @enums[indexFail] if @enums[val] == nil

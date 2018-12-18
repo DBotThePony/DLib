@@ -28,6 +28,14 @@ class DLib.Collector
 		@def = def
 		@rebuild()
 
+	Add: (...) => @add(...)
+	Rebuild: (...) => @rebuild(...)
+	Update: (...) => @update(...)
+	Calculate: (...) => @calculate(...)
+	SetSteps: (...) => @setSteps(...)
+	SetTimeout: (...) => @setTimeout(...)
+	SetDefault: (...) => @setDefault(...)
+
 	add: (val = @def, update = true) =>
 		time = CurTimeL()
 		@values[@nextvalue] = {val, time}
@@ -65,10 +73,13 @@ class DLib.Collector
 		@timeout = timeout
 		@rebuild()
 
-	setTimeout: (timeout = @timeout) =>
-		@timeout = timeout
-		@rebuild()
-
 	setDefault: (def = @def) =>
 		@def = def
 		@rebuild()
+
+class DLib.Average extends DLib.Collector
+	calculate: =>
+		average = 0
+		values = @steps
+		average += val[1] for val in *@values
+		return average / values
