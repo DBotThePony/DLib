@@ -200,7 +200,7 @@ function math.tformat(time)
 	assert(type(time) == 'number', 'Invalid time provided.')
 
 	if time > 0xFFFFFFFFFF then
-		error('wtf')
+		error('Value is too big! Maximum is ' .. 0xFFFFFFFFFF)
 	elseif time <= 1 then
 		return {centuries = 0, years = 0, weeks = 0, days = 0, hours = 0, minutes = 0, seconds = 0, months = 0}
 	end
