@@ -207,7 +207,7 @@ return function(tableTarget, moduleName, moduleColor)
 		Message(...)
 	end
 
-	local function LMessageAll(ply, ...)
+	local function LMessageAll(...)
 		if CLIENT then return LMessage(...) end
 
 		net.Start(nwnameL)
