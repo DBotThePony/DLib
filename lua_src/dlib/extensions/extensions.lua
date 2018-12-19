@@ -213,7 +213,7 @@ function math.tformat(time)
 	output.years = (time - time % 0x01E13380) / 0x01E13380
 	time = time - output.years * 0x01E13380
 
-	output.months = (time - time % 0x00278D00) / 0x00278D00
+	output.months = ((time - time % 0x00278D00) / 0x00278D00):min(11)
 	time = time - output.months * 0x00278D00
 
 	output.weeks = (time - time % 604800) / 604800
