@@ -25,6 +25,15 @@ local type = type
 
 function i18n.tformatByLang(time, lang)
 	assert(type(time) == 'number', 'Invalid time specified')
+
+	if time > 0xFFFFFFFFF then
+		return i18n.localizeByLang('info.dlib.tformat.long', lang)
+	elseif time <= 1 and time >= 0 then
+		return i18n.localizeByLang('info.dlib.tformat.now', lang)
+	elseif time < 0 then
+		return i18n.localizeByLang('info.dlib.tformat.past', lang)
+	end
+
 	local str = ''
 
 	local weeks = (time - time % 604800) / 604800
@@ -68,11 +77,11 @@ function i18n.tformatTableByLang(time, lang)
 	assert(type(time) == 'number', 'Invalid time specified')
 
 	if time > 0xFFFFFFFFF then
-		return i18n.localizeByLang('info.dlib.tformat.long', lang)
+		return {i18n.localizeByLang('info.dlib.tformat.long', lang)}
 	elseif time <= 1 and time >= 0 then
-		return i18n.localizeByLang('info.dlib.tformat.now', lang)
+		return {i18n.localizeByLang('info.dlib.tformat.now', lang)}
 	elseif time < 0 then
-		return i18n.localizeByLang('info.dlib.tformat.past', lang)
+		return {i18n.localizeByLang('info.dlib.tformat.past', lang)}
 	end
 
 	local str = {}
@@ -120,4 +129,12 @@ end
 
 function i18n.tformatTable(time)
 	return i18n.tformatTableByLang(time, i18n.CURRENT_LANG)
+end
+
+function i18n.tformatFor(ply, time)
+	return i18n.tformatByLang(time, assert(type(ply) == 'Player' and ply, 'Invalid player provided').DLib_Lang or i18n.CURRENT_LANG)
+end
+
+function i18n.tformatTableFor(ply, time)
+	return i18n.tformatTableByLang(time, assert(type(ply) == 'Player' and ply, 'Invalid player provided').DLib_Lang or i18n.CURRENT_LANG)
 end
