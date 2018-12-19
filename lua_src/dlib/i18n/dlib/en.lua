@@ -31,6 +31,8 @@ info.dlib.tformat.minutes = 'minutes'
 info.dlib.tformat.hours = 'hours'
 info.dlib.tformat.days = 'days'
 info.dlib.tformat.weeks = 'weeks'
+info.dlib.tformat.years = 'years'
+info.dlib.tformat.centuries = 'centuries'
 
 info.dlib.tformat.long = 'Never™'
 info.dlib.tformat.now = 'Right now'

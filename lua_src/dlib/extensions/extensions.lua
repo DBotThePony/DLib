@@ -196,6 +196,40 @@ function math.tbezier(t, values)
 	return math.tbezier(t, points)
 end
 
+function math.tformat(time)
+	assert(type(time) == 'number', 'Invalid time provided.')
+
+	if time > 0xFFFFFFFFFF then
+		error('wtf')
+	elseif time <= 1 then
+		return {centuries = 0, years = 0, weeks = 0, days = 0, hours = 0, minutes = 0, seconds = 0}
+	end
+
+	local output = {}
+
+	output.centuries = (time - time % 0xBBF81E00) / 0xBBF81E00
+	time = time - output.centuries * 0xBBF81E00
+
+	output.years = (time - time % 0x01E13380) / 0x01E13380
+	time = time - output.years * 0x01E13380
+
+	output.weeks = (time - time % 604800) / 604800
+	time = time - output.weeks * 604800
+
+	output.days = (time - time % 86400) / 86400
+	time = time - output.days * 86400
+
+	output.hours = (time - time % 3600) / 3600
+	time = time - output.hours * 3600
+
+	output.minutes = (time - time % 60) / 60
+	time = time - output.minutes * 60
+
+	output.seconds = math.floor(time)
+
+	return output
+end
+
 local CLIENT = CLIENT
 local hook = hook
 local net = net

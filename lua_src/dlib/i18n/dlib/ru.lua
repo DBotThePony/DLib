@@ -31,6 +31,8 @@ info.dlib.tformat.minutes = 'минут'
 info.dlib.tformat.hours = 'часов'
 info.dlib.tformat.days = 'дней'
 info.dlib.tformat.weeks = 'недель'
+info.dlib.tformat.years = 'лет'
+info.dlib.tformat.centuries = 'веков'
 
 info.dlib.tformat.long = 'Никогда™'
 info.dlib.tformat.now = 'Прямо сейчас'
