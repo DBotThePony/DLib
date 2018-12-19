@@ -100,24 +100,24 @@ function i18n.tformatTableByLang(time, lang)
 
 	local seconds = math.floor(time)
 
-	if seconds ~= 0 then
-		table.insert(str, seconds .. ' ' .. i18n.localizeByLang('info.dlib.tformat.seconds', lang))
-	end
-
-	if minutes ~= 0 then
-		table.insert(str, minutes .. ' ' .. i18n.localizeByLang('info.dlib.tformat.minutes', lang))
-	end
-
-	if hours ~= 0 then
-		table.insert(str, hours .. ' ' .. i18n.localizeByLang('info.dlib.tformat.hours', lang))
+	if weeks ~= 0 then
+		table.insert(str, weeks .. ' ' .. i18n.localizeByLang('info.dlib.tformat.weeks', lang))
 	end
 
 	if days ~= 0 then
 		table.insert(str, days .. ' ' .. i18n.localizeByLang('info.dlib.tformat.days', lang))
 	end
 
-	if weeks ~= 0 then
-		table.insert(str, weeks .. ' ' .. i18n.localizeByLang('info.dlib.tformat.weeks', lang))
+	if hours ~= 0 then
+		table.insert(str, hours .. ' ' .. i18n.localizeByLang('info.dlib.tformat.hours', lang))
+	end
+
+	if minutes ~= 0 then
+		table.insert(str, minutes .. ' ' .. i18n.localizeByLang('info.dlib.tformat.minutes', lang))
+	end
+
+	if seconds ~= 0 then
+		table.insert(str, seconds .. ' ' .. i18n.localizeByLang('info.dlib.tformat.seconds', lang))
 	end
 
 	return str
@@ -150,22 +150,10 @@ function i18n.tformatRawTable(time)
 
 	local seconds = math.floor(time)
 
-	if seconds ~= 0 then
-		table.insert(str, seconds)
+	if weeks ~= 0 then
+		table.insert(str, weeks)
 		table.insert(str, ' ')
-		table.insert(str, 'info.dlib.tformat.seconds')
-	end
-
-	if minutes ~= 0 then
-		table.insert(str, minutes)
-		table.insert(str, ' ')
-		table.insert(str, 'info.dlib.tformat.minutes')
-	end
-
-	if hours ~= 0 then
-		table.insert(str, hours)
-		table.insert(str, ' ')
-		table.insert(str, 'info.dlib.tformat.hours')
+		table.insert(str, 'info.dlib.tformat.weeks')
 	end
 
 	if days ~= 0 then
@@ -174,10 +162,22 @@ function i18n.tformatRawTable(time)
 		table.insert(str, 'info.dlib.tformat.days')
 	end
 
-	if weeks ~= 0 then
-		table.insert(str, weeks)
+	if hours ~= 0 then
+		table.insert(str, hours)
 		table.insert(str, ' ')
-		table.insert(str, 'info.dlib.tformat.weeks')
+		table.insert(str, 'info.dlib.tformat.hours')
+	end
+
+	if minutes ~= 0 then
+		table.insert(str, minutes)
+		table.insert(str, ' ')
+		table.insert(str, 'info.dlib.tformat.minutes')
+	end
+
+	if seconds ~= 0 then
+		table.insert(str, seconds)
+		table.insert(str, ' ')
+		table.insert(str, 'info.dlib.tformat.seconds')
 	end
 
 	return str
