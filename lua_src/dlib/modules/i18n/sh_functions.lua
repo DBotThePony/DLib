@@ -163,48 +163,56 @@ function i18n.tformatRawTable(time)
 	local seconds = tformat.seconds
 
 	if centuries ~= 0 then
+		table.insert(str, ' ')
 		table.insert(str, centuries)
 		table.insert(str, ' ')
 		table.insert(str, 'info.dlib.tformat.centuries')
 	end
 
 	if years ~= 0 then
+		table.insert(str, ' ')
 		table.insert(str, years)
 		table.insert(str, ' ')
 		table.insert(str, 'info.dlib.tformat.years')
 	end
 
 	if months ~= 0 then
+		table.insert(str, ' ')
 		table.insert(str, months)
 		table.insert(str, ' ')
 		table.insert(str, 'info.dlib.tformat.months')
 	end
 
 	if weeks ~= 0 then
+		table.insert(str, ' ')
 		table.insert(str, weeks)
 		table.insert(str, ' ')
 		table.insert(str, 'info.dlib.tformat.weeks')
 	end
 
 	if days ~= 0 then
+		table.insert(str, ' ')
 		table.insert(str, days)
 		table.insert(str, ' ')
 		table.insert(str, 'info.dlib.tformat.days')
 	end
 
 	if hours ~= 0 then
+		table.insert(str, ' ')
 		table.insert(str, hours)
 		table.insert(str, ' ')
 		table.insert(str, 'info.dlib.tformat.hours')
 	end
 
 	if minutes ~= 0 then
+		table.insert(str, ' ')
 		table.insert(str, minutes)
 		table.insert(str, ' ')
 		table.insert(str, 'info.dlib.tformat.minutes')
 	end
 
 	if seconds ~= 0 then
+		table.insert(str, ' ')
 		table.insert(str, seconds)
 		table.insert(str, ' ')
 		table.insert(str, 'info.dlib.tformat.seconds')
