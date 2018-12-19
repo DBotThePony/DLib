@@ -47,6 +47,7 @@ function string.tformat(time)
 	local tformat = math.tformat(time)
 	local centuries = tformat.centuries
 	local years = tformat.years
+	local months = tformat.months
 	local weeks = tformat.weeks
 	local days = tformat.days
 	local hours = tformat.hours
@@ -71,6 +72,10 @@ function string.tformat(time)
 
 	if weeks ~= 0 then
 		str = weeks .. ' weeks ' .. str
+	end
+
+	if months ~= 0 then
+		str = months .. ' months ' .. str
 	end
 
 	if years ~= 0 then

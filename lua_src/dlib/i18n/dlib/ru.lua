@@ -31,6 +31,7 @@ info.dlib.tformat.minutes = 'минут'
 info.dlib.tformat.hours = 'часов'
 info.dlib.tformat.days = 'дней'
 info.dlib.tformat.weeks = 'недель'
+info.dlib.tformat.months = 'месяцев'
 info.dlib.tformat.years = 'лет'
 info.dlib.tformat.centuries = 'веков'
 

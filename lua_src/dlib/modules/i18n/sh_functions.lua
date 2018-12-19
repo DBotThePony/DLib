@@ -39,6 +39,7 @@ function i18n.tformatByLang(time, lang)
 	local tformat = math.tformat(time)
 	local centuries = tformat.centuries
 	local years = tformat.years
+	local months = tformat.months
 	local weeks = tformat.weeks
 	local days = tformat.days
 	local hours = tformat.hours
@@ -63,6 +64,10 @@ function i18n.tformatByLang(time, lang)
 
 	if weeks ~= 0 then
 		str = weeks .. ' ' .. i18n.localizeByLang('info.dlib.tformat.weeks', lang) .. ' ' .. str
+	end
+
+	if months ~= 0 then
+		str = months .. ' ' .. i18n.localizeByLang('info.dlib.tformat.months', lang) .. ' ' .. str
 	end
 
 	if years ~= 0 then
@@ -92,6 +97,7 @@ function i18n.tformatTableByLang(time, lang)
 	local tformat = math.tformat(time)
 	local centuries = tformat.centuries
 	local years = tformat.years
+	local months = tformat.months
 	local weeks = tformat.weeks
 	local days = tformat.days
 	local hours = tformat.hours
@@ -104,6 +110,10 @@ function i18n.tformatTableByLang(time, lang)
 
 	if years ~= 0 then
 		table.insert(str, years .. ' ' .. i18n.localizeByLang('info.dlib.tformat.years', lang))
+	end
+
+	if months ~= 0 then
+		table.insert(str, months .. ' ' .. i18n.localizeByLang('info.dlib.tformat.months', lang))
 	end
 
 	if weeks ~= 0 then
@@ -145,6 +155,7 @@ function i18n.tformatRawTable(time)
 	local tformat = math.tformat(time)
 	local centuries = tformat.centuries
 	local years = tformat.years
+	local months = tformat.months
 	local weeks = tformat.weeks
 	local days = tformat.days
 	local hours = tformat.hours
@@ -161,6 +172,12 @@ function i18n.tformatRawTable(time)
 		table.insert(str, years)
 		table.insert(str, ' ')
 		table.insert(str, 'info.dlib.tformat.years')
+	end
+
+	if months ~= 0 then
+		table.insert(str, months)
+		table.insert(str, ' ')
+		table.insert(str, 'info.dlib.tformat.months')
 	end
 
 	if weeks ~= 0 then
