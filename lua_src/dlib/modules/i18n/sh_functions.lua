@@ -123,6 +123,66 @@ function i18n.tformatTableByLang(time, lang)
 	return str
 end
 
+function i18n.tformatRawTable(time)
+	assert(type(time) == 'number', 'Invalid time specified')
+
+	if time > 0xFFFFFFFFF then
+		return {'info.dlib.tformat.long'}
+	elseif time <= 1 and time >= 0 then
+		return {'info.dlib.tformat.now'}
+	elseif time < 0 then
+		return {'info.dlib.tformat.past'}
+	end
+
+	local str = {}
+
+	local weeks = (time - time % 604800) / 604800
+	time = time - weeks * 604800
+
+	local days = (time - time % 86400) / 86400
+	time = time - days * 86400
+
+	local hours = (time - time % 3600) / 3600
+	time = time - hours * 3600
+
+	local minutes = (time - time % 60) / 60
+	time = time - minutes * 60
+
+	local seconds = math.floor(time)
+
+	if seconds ~= 0 then
+		table.insert(str, seconds)
+		table.insert(str, ' ')
+		table.insert(str, 'info.dlib.tformat.seconds')
+	end
+
+	if minutes ~= 0 then
+		table.insert(str, minutes)
+		table.insert(str, ' ')
+		table.insert(str, 'info.dlib.tformat.minutes')
+	end
+
+	if hours ~= 0 then
+		table.insert(str, hours)
+		table.insert(str, ' ')
+		table.insert(str, 'info.dlib.tformat.hours')
+	end
+
+	if days ~= 0 then
+		table.insert(str, days)
+		table.insert(str, ' ')
+		table.insert(str, 'info.dlib.tformat.days')
+	end
+
+	if weeks ~= 0 then
+		table.insert(str, weeks)
+		table.insert(str, ' ')
+		table.insert(str, 'info.dlib.tformat.weeks')
+	end
+
+	return str
+end
+
 function i18n.tformat(time)
 	return i18n.tformatByLang(time, i18n.CURRENT_LANG)
 end
