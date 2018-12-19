@@ -197,6 +197,26 @@ return function(tableTarget, moduleName, moduleColor)
 		end
 	end
 
+	local function MessageAll(...)
+		if CLIENT then return Message(...) end
+
+		net.Start(nwname)
+		net.WriteArray({...})
+		net.Broadcast()
+
+		Message(...)
+	end
+
+	local function LMessageAll(ply, ...)
+		if CLIENT then return LMessage(...) end
+
+		net.Start(nwnameL)
+		net.WriteArray({...})
+		net.Broadcast()
+
+		LMessage(...)
+	end
+
 	if CLIENT then
 		net.receive(nwname, function()
 			local array = net.ReadArray()
@@ -235,6 +255,9 @@ return function(tableTarget, moduleName, moduleColor)
 			tableTo.LChatPrint = LChat
 			tableTo.LAddChat = LChat
 			tableTo.lchatMessage = LChat
+		else
+			tableTo.MessageAll = MessageAll
+			tableTo.LMessageAll = LMessageAll
 		end
 
 		tableTo.MessagePlayer = MessagePlayer
