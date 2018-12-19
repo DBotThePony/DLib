@@ -233,6 +233,27 @@ function math.tformat(time)
 	return output
 end
 
+function math.untformat(time)
+	assert(type(time) == 'table', 'Invalid time provided. You must provide table in math.tformat output format.')
+	assert(type(time.centuries) == 'number', 'Invalid time provided. You must provide table in math.tformat output format.')
+	assert(type(time.years) == 'number', 'Invalid time provided. You must provide table in math.tformat output format.')
+	assert(type(time.months) == 'number', 'Invalid time provided. You must provide table in math.tformat output format.')
+	assert(type(time.weeks) == 'number', 'Invalid time provided. You must provide table in math.tformat output format.')
+	assert(type(time.days) == 'number', 'Invalid time provided. You must provide table in math.tformat output format.')
+	assert(type(time.hours) == 'number', 'Invalid time provided. You must provide table in math.tformat output format.')
+	assert(type(time.minutes) == 'number', 'Invalid time provided. You must provide table in math.tformat output format.')
+	assert(type(time.seconds) == 'number', 'Invalid time provided. You must provide table in math.tformat output format.')
+
+	return time.centuries * 0xBBF81E00
+		+ time.years * 0x01E13380
+		+ time.months * 0x00278D00
+		+ time.weeks * 604800
+		+ time.days * 86400
+		+ time.hours * 3600
+		+ time.minutes * 60
+		+ time.seconds
+end
+
 local CLIENT = CLIENT
 local hook = hook
 local net = net
