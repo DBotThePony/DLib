@@ -165,14 +165,12 @@ if SERVER
 
 		if not VLL2_GOING_TO_RELOAD
 			ply\SendLua([[if VLL2 then return end http.Fetch('https://dbotthepony.ru/vll/vll2.lua',function(b)RunString(b,'VLL2')end,function(err)print('VLL2',err)end)]]) for ply in *player.GetAll()
-		else
-			ply\SendLua([[http.Fetch('https://dbotthepony.ru/vll/vll2.lua',function(b)RunString(b,'VLL2')end)]]) for ply in *player.GetAll()
 
 		if VLL2_FULL_RELOAD
 			ply\SendLua([[http.Fetch('https://dbotthepony.ru/vll/vll2.lua',function(b)RunString(b,'VLL2')end,function(err)print('VLL2',err)end)]]) for ply in *player.GetAll()
-			VLL2_FULL_RELOAD = false
+			_G.VLL2_FULL_RELOAD = false
 
-		VLL2_GOING_TO_RELOAD = false
+		_G.VLL2_GOING_TO_RELOAD = false
 	else
 		AddCSLuaFile()
 		hook.Remove 'PlayerInitialSpawn', 'VLL2.LoadOnClient'
