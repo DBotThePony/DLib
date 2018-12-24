@@ -32,7 +32,7 @@ class VLL2.FileDef
 		@localFS = @vm.localFS
 		@globalFS = @vm.globalFS
 
-	FileExists: (fpath) => fpath and (@localFS\Exists(fpath) or @globalFS and @globalFS\Exists(fpath)) or file.Exists(fpath, 'LUA')
+	FileExists: (fpath) => fpath and (@localFS\Exists(fpath) or @globalFS and @globalFS\Exists(fpath) or file.Exists(fpath, 'LUA'))
 
 	ReadFile: (fpath) =>
 		return '' if not @FileExists(fpath)
