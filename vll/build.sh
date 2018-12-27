@@ -38,6 +38,8 @@ end)
 if not __cloadStatus then
 	print('UNABLE TO LOAD VLL2 CORE')
 	print('LOAD CAN NOT CONTINUE')
+	print('REASON:')
+	print(_cloadError)
 	return
 end
 
