@@ -39,7 +39,7 @@ class DLib.CAMIWatchdog
 		@tracked = DLib.Set()
 		@trackedReplies = {} if CLIENT
 		@trackedPanels = {} if CLIENT
-		@trackedRepliesPly = {} if SERVER
+		@trackedRepliesPly = {}
 		@Track(...)
 		timer.Create 'DLib.CAMIWatchdog.' .. @idetifier, repeatSpeed, 0, -> @TriggerUpdate()
 		@TriggerUpdate()
