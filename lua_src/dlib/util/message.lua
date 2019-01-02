@@ -266,6 +266,30 @@ return function(tableTarget, moduleName, moduleColor)
 		return FormatMessageError(DLib.i18n.rebuildTable({PREFIX_COLOR, PREFIX, ...}))
 	end
 
+	local function FormatMessageRaw(...)
+		return FormatMessageRegular({...})
+	end
+
+	local function LFormatMessageRaw(...)
+		return FormatMessageRegular(DLib.i18n.rebuildTable({...}))
+	end
+
+	local function FormatMessageWarnRaw(...)
+		return FormatMessageWarning({...})
+	end
+
+	local function LFormatMessageWarnRaw(...)
+		return FormatMessageWarning(DLib.i18n.rebuildTable({...}))
+	end
+
+	local function FormatMessageErrRaw(...)
+		return FormatMessageError({...})
+	end
+
+	local function LFormatMessageErrRaw(...)
+		return FormatMessageError(DLib.i18n.rebuildTable({...}))
+	end
+
 	local function MessagePlayer(ply, ...)
 		if CLIENT and ply == LocalPlayer() then return Message(...) end
 		if CLIENT then return {} end
@@ -438,6 +462,18 @@ return function(tableTarget, moduleName, moduleColor)
 		tableTo.LFormatMessageWarn = LFormatMessageWarn
 		tableTo.LFormatMessageError = LFormatMessageErr
 		tableTo.LFormatMessageErr = LFormatMessageErr
+
+		tableTo.FormatMessageRaw = FormatMessageRaw
+		tableTo.FormatMessageWarningRaw = FormatMessageWarnRaw
+		tableTo.FormatMessageWarnRaw = FormatMessageWarnRaw
+		tableTo.FormatMessageErrorRaw = FormatMessageErrRaw
+		tableTo.FormatMessageErrRaw = FormatMessageErrRaw
+
+		tableTo.LFormatMessageRaw = LFormatMessageRaw
+		tableTo.LFormatMessageWarningRaw = LFormatMessageWarnRaw
+		tableTo.LFormatMessageWarnRaw = LFormatMessageWarnRaw
+		tableTo.LFormatMessageErrorRaw = LFormatMessageErrRaw
+		tableTo.LFormatMessageErrRaw = LFormatMessageErrRaw
 
 		tableTo.lformatMessage = LFormatMessage
 		tableTo.message = Message
