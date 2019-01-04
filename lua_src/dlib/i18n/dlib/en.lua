@@ -56,6 +56,8 @@ gui.dlib.friends.settings.steam = 'Treat steam friends as DLib friends'
 gui.dlib.friends.settings.your = 'Your friends ->'
 gui.dlib.friends.settings.server = 'Server players ->'
 
+gui.dlib.friends.settings.foreign = '[Foreign] '
+
 gui.dlib.donate.top = 'DLib: Make a donation?'
 gui.dlib.donate.button.yes = 'Make a donation!'
 gui.dlib.donate.button.paypal = 'Make a donation, but on PayPal!'

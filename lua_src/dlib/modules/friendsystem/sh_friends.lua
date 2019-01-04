@@ -18,15 +18,21 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
+local DLib = DLib
+local util = util
+local friends = friends
+local net = net
+local error = error
 
 friends.typesCache = friends.typesCache or {}
 friends.typesCacheUID = friends.typesCacheUID or {}
 friends.typesCacheCRC = friends.typesCacheCRC or {}
 
 function friends.Register(statusID, statusName, defaultValue)
-	if not statusID then error('No status ID was passed') end
+	assert(type(statusID) == 'string', 'Invalid status id were provided. typeof ' .. type(statusID))
 
 	statusName = statusName or statusID
+	local localized = DLib.i18n.localize(statusName)
 	statusID = statusID:lower()
 	if defaultValue == nil then defaultValue = true end
 
@@ -50,6 +56,7 @@ function friends.Register(statusID, statusName, defaultValue)
 	end
 
 	data.name = statusName
+	data.localizedName = localized
 	data.def = defaultValue
 end
 
@@ -126,3 +133,9 @@ function plyMeta:GetAllFriends()
 
 	return reply
 end
+
+hook.Add('DLib.LanguageChanged', 'FriendsTableUpdate', function()
+	for k, data in pairs(friends.typesCache) do
+		data.localizedName = DLib.i18n.localize(data.name)
+	end
+end)

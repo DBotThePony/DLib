@@ -56,6 +56,8 @@ gui.dlib.friends.settings.steam = 'Считать Steam друзей как DLib
 gui.dlib.friends.settings.your = 'Ваши друзья ->'
 gui.dlib.friends.settings.server = 'Игроки на сервере ->'
 
+gui.dlib.friends.settings.foreign = '[Внешний] '
+
 gui.dlib.donate.top = 'DLib: Сделаете пожертвование?'
 gui.dlib.donate.button.yes = 'Так и сделать (Яндекс.Деньги)!'
 gui.dlib.donate.button.paypal = 'Так и сделать, только на PayPal!'
