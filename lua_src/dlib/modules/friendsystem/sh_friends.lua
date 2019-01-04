@@ -106,6 +106,7 @@ end
 
 local plyMeta = FindMetaTable('Player')
 
+-- whenever player is just a friend in any way
 function plyMeta:CheckDLibFriend(target)
 	return self:IsFriend(target) or self:IsDLibFriend(target)
 end
@@ -114,11 +115,20 @@ function plyMeta:CheckDLibFriendIn(target, tp)
 	return self:IsFriend(target) or self:IsDLibFriendIn(target, tp)
 end
 
+-- whenever player is just a friend in any way + checking steam friends <-> dlib friends preference.
 function plyMeta:CheckDLibFriend2(target)
 	return self:IsFriend2(target) or self:IsDLibFriend(target)
 end
 
 function plyMeta:CheckDLibFriendIn2(target, tp)
+	return self:IsFriend2(target) or self:IsDLibFriendIn(target, tp)
+end
+
+function plyMeta:CheckDLibFriendOverride(target)
+	return self:IsFriend2(target) or self:IsDLibFriend(target)
+end
+
+function plyMeta:CheckDLibFriendInOverride(target, tp)
 	return self:IsFriend2(target) or self:IsDLibFriendIn(target, tp)
 end
 
