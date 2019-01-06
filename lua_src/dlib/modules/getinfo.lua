@@ -151,11 +151,29 @@ else
 	end)
 end
 
+local cache = {}
+local GetConVar_Internal = GetConVar_Internal
+
 function plyMeta:GetInfoDLib(cvarname)
 	if getinfo.bank[cvarname] then
 		return getinfo.bank[cvarname].nwGet(self, cvarname)
-	else
+	elseif SERVER then
 		return self:GetInfo(cvarname)
+	else
+		if cache[cvarname] == nil then
+			cache[cvarname] = GetConVar_Internal(cvarname)
+			if not cache[cvarname] then
+				cache[cvarname] = false
+			end
+		end
+
+		if not cache[cvarname] then
+			cache[cvarname] = false
+			return -- no value, :GetInfo() can return "no value" in vanilla
+			-- even if gmod wiki stands it (always) return string
+		end
+
+		return cache[cvarname]:GetString()
 	end
 end
 
