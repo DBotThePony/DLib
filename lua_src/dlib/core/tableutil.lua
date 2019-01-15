@@ -34,11 +34,11 @@ table.pairs = pairs
 table.ipairs = ipairs
 
 --[[
-	@Documentation
-	@Path table.append
-	@Arguments table destination, table source
+	@doc
+	@fname table.append
+	@args table destination, table source
 
-	@Description
+	@desc
 	Appends values from source table to destination table. Works only with nurmerical indexed tables
 ]]
 function table.append(destination, source)
@@ -60,11 +60,11 @@ function table.append(destination, source)
 end
 
 --[[
-	@Documentation
-	@Path table.prependString
-	@Arguments table destination, string prepend
+	@doc
+	@fname table.prependString
+	@args table destination, string prepend
 
-	@Description
+	@desc
 	Iterates over destination and prepends string to all values (assuming array contains only strings)
 ]]
 function table.prependString(destination, prepend)
@@ -76,11 +76,11 @@ function table.prependString(destination, prepend)
 end
 
 --[[
-	@Documentation
-	@Path table.appendString
-	@Arguments table destination, string append
+	@doc
+	@fname table.appendString
+	@args table destination, string append
 
-	@Description
+	@desc
 	Iterates over destination and appends string to all values (assuming array contains only strings)
 ]]
 function table.appendString(destination, append)
@@ -92,16 +92,16 @@ function table.appendString(destination, append)
 end
 
 --[[
-	@Documentation
-	@Path table.filter
-	@Arguments table target, function filterFunc
+	@doc
+	@fname table.filter
+	@args table target, function filterFunc
 
-	@Description
+	@desc
 	Filters table passed
 	Second argument is a function(key, value, target)
-	@EndDescription
+	@enddesc
 
-	@Returns
+	@returns
 	table: deleted elements
 ]]
 function table.filter(target, filterFunc)
@@ -130,16 +130,16 @@ function table.filter(target, filterFunc)
 end
 
 --[[
-	@Documentation
-	@Path table.qfilter
-	@Arguments table target, function filterFunc
+	@doc
+	@fname table.qfilter
+	@args table target, function filterFunc
 
-	@Description
+	@desc
 	Filters table passed using goto
 	Second argument is a function(key, value, target)
-	@EndDescription
+	@enddesc
 
-	@Returns
+	@returns
 	table: deleted elements
 ]]
 function table.qfilter(target, filterFunc)
@@ -187,16 +187,16 @@ function table.qfilter(target, filterFunc)
 end
 
 --[[
-	@Documentation
-	@Path table.filterNew
-	@Arguments table target, function filterFunc
+	@doc
+	@fname table.filterNew
+	@args table target, function filterFunc
 
-	@Description
+	@desc
 	Filters table passed
 	Second argument is a function(key, value, target) which should return boolean whenever element pass check
-	@EndDescription
+	@enddesc
 
-	@Returns
+	@returns
 	table: passed elements
 ]]
 function table.filterNew(target, filterFunc)
@@ -215,16 +215,16 @@ function table.filterNew(target, filterFunc)
 end
 
 --[[
-	@Documentation
-	@Path table.qfilterNew
-	@Arguments table target, function filterFunc
+	@doc
+	@fname table.qfilterNew
+	@args table target, function filterFunc
 
-	@Description
+	@desc
 	Filters table passed using ipairs
 	Second argument is a function(key, value, target) which should return boolean whenever element pass check
-	@EndDescription
+	@enddesc
 
-	@Returns
+	@returns
 	table: passed elements
 ]]
 function table.qfilterNew(target, filterFunc)
@@ -243,16 +243,16 @@ function table.qfilterNew(target, filterFunc)
 end
 
 --[[
-	@Documentation
-	@Path table.qmerge
-	@Arguments table into, table from
+	@doc
+	@fname table.qmerge
+	@args table into, table from
 
-	@Description
+	@desc
 	Filters table passed using ipairs
 	Second argument is a function(key, value, target) which should return boolean whenever element pass check
-	@EndDescription
+	@enddesc
 
-	@Returns
+	@returns
 	table: into
 ]]
 function table.qmerge(into, inv)
@@ -264,16 +264,16 @@ function table.qmerge(into, inv)
 end
 
 --[[
-	@Documentation
-	@Path table.gcopy
-	@Arguments table input
+	@doc
+	@fname table.gcopy
+	@args table input
 	@Alias table.qcopy
 
-	@Description
+	@desc
 	Fastly copies a table assuming it is numeric indexed array
-	@EndDescription
+	@enddesc
 
-	@Returns
+	@returns
 	table: copied input
 ]]
 function table.gcopy(input)
@@ -300,15 +300,15 @@ end
 table.qcopy = table.gcopy
 
 --[[
-	@Documentation
-	@Path table.gcopyRange
-	@Arguments table input, number start, number endPos
+	@doc
+	@fname table.gcopyRange
+	@args table input, number start, number endPos
 
-	@Description
+	@desc
 	Copies array in specified range
-	@EndDescription
+	@enddesc
 
-	@Returns
+	@returns
 	table: copied input
 ]]
 function table.gcopyRange(input, start, endPos)
@@ -337,15 +337,15 @@ function table.gcopyRange(input, start, endPos)
 end
 
 --[[
-	@Documentation
-	@Path table.unshift
-	@Arguments table input, vararg values
+	@doc
+	@fname table.unshift
+	@args table input, vararg values
 
-	@Description
+	@desc
 	Inserts values in the start of an array
-	@EndDescription
+	@enddesc
 
-	@Returns
+	@returns
 	table: input
 ]]
 function table.unshift(tableIn, ...)
@@ -374,15 +374,15 @@ function table.unshift(tableIn, ...)
 end
 
 --[[
-	@Documentation
-	@Path table.construct
-	@Arguments table input, function callback, number times, vararg prependArgs
+	@doc
+	@fname table.construct
+	@args table input, function callback, number times, vararg prependArgs
 
-	@Description
+	@desc
 	Calls callback with prependArgs specified times to construct a new array or append values to existing array
-	@EndDescription
+	@enddesc
 
-	@Returns
+	@returns
 	table: input or newly created array
 ]]
 function table.construct(input, funcToCall, times, ...)
@@ -396,15 +396,15 @@ function table.construct(input, funcToCall, times, ...)
 end
 
 --[[
-	@Documentation
-	@Path table.frandom
-	@Arguments table input
+	@doc
+	@fname table.frandom
+	@args table input
 
-	@Description
+	@desc
 	Returns random value from passed array
-	@EndDescription
+	@enddesc
 
-	@Returns
+	@returns
 	any: returned value from array
 ]]
 function table.frandom(tableIn)
@@ -413,15 +413,15 @@ end
 
 
 --[[
-	@Documentation
-	@Path table.qhasValue
-	@Arguments table input, any value
+	@doc
+	@fname table.qhasValue
+	@args table input, any value
 
-	@Description
+	@desc
 	Checks for value present in specified array quickly using ipairs
-	@EndDescription
+	@enddesc
 
-	@Returns
+	@returns
 	boolean: whenever value is present in input
 ]]
 function table.qhasValue(findIn, value)
@@ -443,15 +443,15 @@ function table.construct2(funcToCall, times, ...)
 end
 
 --[[
-	@Documentation
-	@Path table.flipIntoHash
-	@Arguments table input
+	@doc
+	@fname table.flipIntoHash
+	@args table input
 
-	@Description
+	@desc
 	Iterates array over and creates new table {[value] = index}
-	@EndDescription
+	@enddesc
 
-	@Returns
+	@returns
 	table: flipped hash table
 ]]
 function table.flipIntoHash(tableIn)
@@ -465,15 +465,15 @@ function table.flipIntoHash(tableIn)
 end
 
 --[[
-	@Documentation
-	@Path table.flip
-	@Arguments table input
+	@doc
+	@fname table.flip
+	@args table input
 
-	@Description
+	@desc
 	Returns new flipped array
-	@EndDescription
+	@enddesc
 
-	@Returns
+	@returns
 	table: flipped array
 ]]
 function table.flip(tableIn)
@@ -487,15 +487,15 @@ function table.flip(tableIn)
 end
 
 --[[
-	@Documentation
-	@Path table.sortedFind
-	@Arguments table findIn, table findWhat, any ifNone
+	@doc
+	@fname table.sortedFind
+	@args table findIn, table findWhat, any ifNone
 
-	@Description
+	@desc
 	Gets hash table (flipIntoHash) of passed table and attempts to search for ANY value specified in findWhat
-	@EndDescription
+	@enddesc
 
-	@Returns
+	@returns
 	any: found value
 ]]
 function table.sortedFind(findIn, findWhat, ifNone)
@@ -511,16 +511,16 @@ function table.sortedFind(findIn, findWhat, ifNone)
 end
 
 --[[
-	@Documentation
-	@Path table.removeValues
-	@Arguments table findIn, vargarg values
+	@doc
+	@fname table.removeValues
+	@args table findIn, vargarg values
 
-	@Description
+	@desc
 	Removes values at specified indexes. **INDEX LIST MUST BE SORTED!** (from the smallest index to biggest).
 	Can also accept array of values as second argument.
-	@EndDescription
+	@enddesc
 
-	@Returns
+	@returns
 	table: removed values
 ]]
 function table.removeValues(tableIn, ...)
@@ -544,15 +544,15 @@ function table.removeValues(tableIn, ...)
 end
 
 --[[
-	@Documentation
-	@Path table.removeByMember
-	@Arguments table findIn, any memberID, any memberValue
+	@doc
+	@fname table.removeByMember
+	@args table findIn, any memberID, any memberValue
 
-	@Description
+	@desc
 	Iterates over array and looks for tables with memberID index present and removes it when it is equal to memberValue
-	@EndDescription
+	@enddesc
 
-	@Returns
+	@returns
 	any: removed value. *nil if value is not found*
 ]]
 function table.removeByMember(tableIn, memberID, memberValue)
@@ -571,15 +571,15 @@ function table.removeByMember(tableIn, memberID, memberValue)
 end
 
 --[[
-	@Documentation
-	@Path table.deduplicate
-	@Arguments table tableIn
+	@doc
+	@fname table.deduplicate
+	@args table tableIn
 
-	@Description
+	@desc
 	Iterates over array and removed duplicated values
-	@EndDescription
+	@enddesc
 
-	@Returns
+	@returns
 	table: passed table
 	table: array contain removed values
 ]]

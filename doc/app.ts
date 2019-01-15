@@ -56,12 +56,12 @@ for (const file of filesToParse) {
 			const lines = commentary.split(/\r?\n/)
 
 			for (const line of lines) {
-				if (line.trim().match(/[a-z]/i) && line.trim().toLowerCase() != '@documentation') {
+				if (line.trim().match(/[a-z]/i) && line.trim().toLowerCase() != '@doc') {
 					bad = true
 					break
 				}
 
-				if (line.trim().toLowerCase() == '@documentation') {
+				if (line.trim().toLowerCase() == '@doc') {
 					break
 				}
 			}
@@ -77,7 +77,7 @@ for (const file of filesToParse) {
 }
 
 if (annotations.length == 0) {
-	console.log('No annotations with @Documentation found!')
+	console.log('No annotations with @doc found!')
 	process.exit(0)
 }
 

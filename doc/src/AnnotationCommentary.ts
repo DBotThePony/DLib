@@ -50,7 +50,7 @@ class AnnotationCommentary {
 			const trim = line.trim()
 			const lower = trim.toLowerCase()
 
-			if (lower == '@enddescription' && description) {
+			if (lower == '@enddesc' && description) {
 				description = false
 				continue
 			}
@@ -74,7 +74,13 @@ class AnnotationCommentary {
 				continue
 			}
 
-			if (lower == '@documentation') {
+			if (lower == '@doc') {
+				continue
+			}
+
+			if (lower.startsWith('@fname')) {
+				this.isFunction = true
+				this.path = trim.substr(7).trim()
 				continue
 			}
 
@@ -84,19 +90,25 @@ class AnnotationCommentary {
 				continue
 			}
 
+			if (lower.startsWith('@funcname')) {
+				this.isFunction = true
+				this.path = trim.substr(10).trim()
+				continue
+			}
+
 			if (lower.startsWith('@alias')) {
 				this.isFunction = true
 				this.aliases.push(trim.substr(8).trim())
 				continue
 			}
 
-			if (lower.startsWith('@arguments')) {
+			if (lower.startsWith('@args')) {
 				this.isFunction = true
-				this.arguments = trim.substr(11).trim()
+				this.arguments = trim.substr(6).trim()
 				continue
 			}
 
-			if (lower == '@description') {
+			if (lower == '@desc') {
 				description = true
 				continue
 			}
@@ -128,7 +140,9 @@ class AnnotationCommentary {
 					})
 				} else {
 					console.error('Malformed argument string: ' + this.arguments)
+					console.error('(missing argument name/type!)')
 					console.warn('...in ' + source)
+					console.warn()
 				}
 			}
 		}
