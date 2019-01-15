@@ -16,6 +16,7 @@
 interface CommentaryArgument {
 	type: string
 	name: string
+	default?: string
 }
 
 interface CommentaryReturn {
@@ -134,10 +135,20 @@ class AnnotationCommentary {
 				const divide = trim.split(' ')
 
 				if (divide[0] && divide[1]) {
-					this.argumentsParsed.push({
-						type: divide[0],
-						name: divide[1]
-					})
+					const matchDefault = trim.match(/\S\s*\=\s*(\S+)$/)
+
+					if (!matchDefault) {
+						this.argumentsParsed.push({
+							type: divide[0],
+							name: divide[1]
+						})
+					} else {
+						this.argumentsParsed.push({
+							type: divide[0],
+							name: divide[1],
+							default: matchDefault[1]
+						})
+					}
 				} else {
 					console.error('Malformed argument string: ' + this.arguments)
 					console.error('(missing argument name/type!)')

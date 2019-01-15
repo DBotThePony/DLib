@@ -50,6 +50,15 @@ local function findRecursiveVisible(dirTarget)
 	table.append(dirs, findDirs)
 end
 
+--[[
+	@doc
+	@fname file.FindVisible
+	@args string dirIn, string datapatchIn = 'LUA'
+
+	@returns
+	table: found files
+	table: found dirs
+]]
 function file.FindVisible(dir, searchIn)
 	local fileFind, dirFind = file.Find(dir .. '/*', searchIn or 'LUA')
 	table.filter(fileFind, function(key, val) return val:sub(1, 1) ~= '.' end)

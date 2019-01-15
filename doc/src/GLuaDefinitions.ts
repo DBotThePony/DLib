@@ -16,7 +16,7 @@
 class LuaArgument {
 	num: number | null = null
 
-	constructor(public type: string, public name?: string, public description?: string) {
+	constructor(public type: string, public name?: string, public description?: string, public defaultValue?: string) {
 
 	}
 
@@ -71,11 +71,17 @@ class LuaArgument {
 	}
 
 	build() {
-		return `${this.type} ${this.name}`
+		if (!this.defaultValue)
+			return `${this.type} ${this.name}`
+
+		return `${this.type} ${this.name} = \`${this.defaultValue}\``
 	}
 
 	buildMarkdown() {
-		return `[${this.type}](${this.getLink()}) ${this.name}`
+		if (!this.defaultValue)
+			return `[${this.type}](${this.getLink()}) ${this.name}`
+
+		return `[${this.type}](${this.getLink()}) ${this.name} = \`${this.defaultValue}\``
 	}
 
 	buildReturns() {

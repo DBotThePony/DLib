@@ -87,7 +87,7 @@ ${globals.join('  \n')}`
 			const func = new GLuaFunction(annotation.funcname!, annotation.funcname!, annotation.description)
 
 			for (const arg of annotation.argumentsParsed) {
-				func.args.push(new LuaArgument(arg.type, arg.name))
+				func.args.push(new LuaArgument(arg.type, arg.name, undefined, arg.default))
 			}
 
 			let argnum = 0
