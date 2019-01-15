@@ -248,9 +248,10 @@ class VLL2.LargeFileLoader
 		@fstream = file.Open(@outputPath, 'wb', 'DATA')
 		@status = @@STATUS_DOWNLOADING
 
-		@Msg('Allocating disk space for ' .. @url .. ', this can take some time...')
-		@fstream\WriteULong(0) for i = 1, (@length - @length % 4) / 4
-		@fstream\WriteByte(0) for i = 1, @length % 4
+		@Msg('Allocating disk space for ' .. @url .. '...')
+		@fstream\Seek(@length - 1)
+		@fstream\WriteByte(0)
+		@fstream\Seek(0)
 
 		@nextParts = [i for i = 0, @parts - 1]
 

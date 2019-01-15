@@ -31,6 +31,13 @@ info.dlib.tformat.minutes = 'minutes'
 info.dlib.tformat.hours = 'hours'
 info.dlib.tformat.days = 'days'
 info.dlib.tformat.weeks = 'weeks'
+info.dlib.tformat.months = 'months'
+info.dlib.tformat.years = 'years'
+info.dlib.tformat.centuries = 'centuries'
+
+info.dlib.tformat.long = 'Never™'
+info.dlib.tformat.now = 'Right now'
+info.dlib.tformat.past = 'In the past'
 
 gui.dlib.friends.title = 'DLib Friends'
 gui.dlib.friends.open = 'Open Friends Menu'
@@ -48,6 +55,8 @@ gui.dlib.friends.invalid.desc = '%q doesnt look like valid steamid!'
 gui.dlib.friends.settings.steam = 'Treat steam friends as DLib friends'
 gui.dlib.friends.settings.your = 'Your friends ->'
 gui.dlib.friends.settings.server = 'Server players ->'
+
+gui.dlib.friends.settings.foreign = '[Foreign] '
 
 gui.dlib.donate.top = 'DLib: Make a donation?'
 gui.dlib.donate.button.yes = 'Make a donation!'

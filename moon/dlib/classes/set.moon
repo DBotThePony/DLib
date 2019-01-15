@@ -32,6 +32,17 @@ class DLib.Set
 
 		return table.insert(@values, object)
 
+	Add: (...) => @add(...)
+	AddArray: (...) => @addArray(...)
+	Has: (...) => @has(...)
+	Includes: (...) => @has(...)
+	Contains: (...) => @has(...)
+	Remove: (...) => @remove(...)
+	Delete: (...) => @remove(...)
+	RM: (...) => @remove(...)
+	UnSet: (...) => @remove(...)
+	GetValues: (...) => @getValues(...)
+
 	addArray: (objects) => @add(object) for object in *objects
 
 	has: (object) =>

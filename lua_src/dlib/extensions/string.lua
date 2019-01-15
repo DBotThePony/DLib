@@ -44,25 +44,15 @@ function string.tformat(time)
 
 	local str = ''
 
-	local centuries = (time - time % 0xBBF81E00) / 0xBBF81E00
-	time = time - centuries * 0xBBF81E00
-
-	local years = (time - time % 0x01E13380) / 0x01E13380
-	time = time - years * 0x01E13380
-
-	local weeks = (time - time % 604800) / 604800
-	time = time - weeks * 604800
-
-	local days = (time - time % 86400) / 86400
-	time = time - days * 86400
-
-	local hours = (time - time % 3600) / 3600
-	time = time - hours * 3600
-
-	local minutes = (time - time % 60) / 60
-	time = time - minutes * 60
-
-	local seconds = math.floor(time)
+	local tformat = math.tformat(time)
+	local centuries = tformat.centuries
+	local years = tformat.years
+	local months = tformat.months
+	local weeks = tformat.weeks
+	local days = tformat.days
+	local hours = tformat.hours
+	local minutes = tformat.minutes
+	local seconds = tformat.seconds
 
 	if seconds ~= 0 then
 		str = seconds .. ' seconds'
@@ -82,6 +72,10 @@ function string.tformat(time)
 
 	if weeks ~= 0 then
 		str = weeks .. ' weeks ' .. str
+	end
+
+	if months ~= 0 then
+		str = months .. ' months ' .. str
 	end
 
 	if years ~= 0 then

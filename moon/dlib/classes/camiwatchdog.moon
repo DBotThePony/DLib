@@ -39,7 +39,7 @@ class DLib.CAMIWatchdog
 		@tracked = DLib.Set()
 		@trackedReplies = {} if CLIENT
 		@trackedPanels = {} if CLIENT
-		@trackedRepliesPly = {} if SERVER
+		@trackedRepliesPly = {}
 		@Track(...)
 		timer.Create 'DLib.CAMIWatchdog.' .. @idetifier, repeatSpeed, 0, -> @TriggerUpdate()
 		@TriggerUpdate()
@@ -49,7 +49,7 @@ class DLib.CAMIWatchdog
 		return @
 
 	HasPermission: (ply, perm) =>
-		if CLIENT
+		if CLIENT and type(ply) == 'string'
 			perm = ply
 			return @trackedReplies[perm]
 		else
@@ -63,7 +63,7 @@ class DLib.CAMIWatchdog
 
 	TriggerUpdate: =>
 		@TriggerUpdateClient() if CLIENT
-		@TriggerUpdateServer() if SERVER
+		@TriggerUpdateRegular()
 
 	TriggerUpdateClient: =>
 		ply = LocalPlayer()
@@ -82,7 +82,7 @@ class DLib.CAMIWatchdog
 							table.insert(cleanup, k)
 					table.removeValues(@trackedPanels[perm], cleanup)
 
-	TriggerUpdateServer: =>
+	TriggerUpdateRegular: =>
 		@trackedRepliesPly = {ply, data for ply, data in pairs @trackedRepliesPly when ply\IsValid()}
 
 		for ply in *player.GetAll()

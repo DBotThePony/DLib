@@ -43,7 +43,10 @@ function friends.OpenGUIForPlayer(steamid)
 	local boxes = {}
 
 	for stringID, status in pairs(getData.status) do
-		local name = friends.typesCache[stringID] and friends.typesCache[stringID].name or ('(foreign) ' .. stringID)
+		local name = friends.typesCache[stringID] and
+			friends.typesCache[stringID].localizedName or
+			(DLib.i18n.localize('gui.dlib.friends.settings.foreign') .. stringID)
+
 		local box = vgui.Create('DCheckBoxLabel', canvas)
 		box:Dock(TOP)
 		box:DockMargin(4, 4, 4, 4)

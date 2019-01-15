@@ -37,10 +37,16 @@ local gxpcall = xpcall
 local ITERATING = false
 local IS_DIRTY = false
 local IS_DIRTY_ID
+local SysTime = SysTime
 
 DLib.hook = DLib.hook or {}
 local ghook = _G.hook
 local hook = DLib.hook
+
+hook.PROFILING = false
+hook.PROFILING_RESULTS_EXISTS = false
+hook.PROFILE_STARTED = 0
+hook.PROFILE_ENDS = 0
 
 hook.__tableOptimized = hook.__tableOptimized or {}
 hook.__table = hook.__table or {}
@@ -540,6 +546,27 @@ function hook.ReconstructPostModifiers(eventToReconstruct)
 	return __tableModifiersPostOptimized, ordered
 end
 
+function hook.ListAllHooks(includeDisabled)
+	if includeDisabled == nil then includeDisabled = true end
+	local output = {}
+
+	for event, priorityTable in pairs(__table) do
+		for priority = maximalPriority, minimalPriority do
+			local hookList = priorityTable[priority]
+
+			if hookList then
+				for stringID, hookData in pairs(hookList) do
+					if not hookData.disabled or includeDisabled then
+						table.insert(output, hookData)
+					end
+				end
+			end
+		end
+	end
+
+	return output
+end
+
 function hook.Reconstruct(eventToReconstruct)
 	if not eventToReconstruct then
 		for event, data in pairs(__table) do
@@ -585,20 +612,47 @@ function hook.Reconstruct(eventToReconstruct)
 		local target = __tableOptimized[eventToReconstruct]
 
 		for i = 1, cnt do
-			if type(ordered[i].id) == 'string' then
-				table.insert(target, ordered[i].funcToCall)
+			local callable
+			local hookData = ordered[i]
+
+			if type(hookData.id) == 'string' then
+				callable = hookData.funcToCall
 			else
-				local self = ordered[i].id
-				local upvalueFunc = ordered[i].funcToCall
-				table.insert(target, function(...)
+				local self = hookData.id
+				local upfuncCallableSelf = hookData.funcToCall
+
+				callable = function(...)
 					if not self:IsValid() then
-						hook.Remove(ordered[i].event, self)
+						hook.Remove(hookData.event, self)
 						return
 					end
 
-					return upvalueFunc(self, ...)
-				end)
+					return upfuncCallableSelf(self, ...)
+				end
 			end
+
+			if hook.PROFILING then
+				local THIS_RUNTIME = 0
+				local THIS_CALLS = 0
+				local upfuncProfiled = callable
+
+				callable = function(...)
+					THIS_CALLS = THIS_CALLS + 1
+					local t = SysTime()
+					local Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M = upfuncProfiled(...)
+					local t2 = SysTime()
+
+					THIS_RUNTIME = THIS_RUNTIME + (t2 - t)
+					return Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M
+				end
+
+				hookData.profileEnds = function()
+					hookData.THIS_RUNTIME = THIS_RUNTIME
+					hookData.THIS_CALLS = THIS_CALLS
+				end
+			end
+
+			table.insert(target, callable)
 		end
 	end
 
@@ -725,12 +779,12 @@ function hook.Call2(event, hookTable, ...)
 			return gamemodeFunction(hookTable, ...)
 		end
 
-		local Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M, M = gamemodeFunction(hookTable, ...)
+		local Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M = gamemodeFunction(hookTable, ...)
 		local i = 1
 		local nextevent = post[i]
 
 		::post_mloop1::
-		Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M, M = nextevent(Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M, M)
+		Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M = nextevent(Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M)
 
 		i = i + 1
 		nextevent = post[i]
@@ -739,25 +793,25 @@ function hook.Call2(event, hookTable, ...)
 			goto post_mloop1
 		end
 
-		return Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M, M
+		return Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M
 	end
 
 	local i = 1
 	local nextevent = events[i]
 
 	::loop::
-	local Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M, M = nextevent(...)
+	local Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M = nextevent(...)
 
 	if Q ~= nil then
 		if post == nil then
-			return Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M, M
+			return Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M
 		end
 
 		local i = 1
 		local nextevent = post[i]
 
 		::post_mloop2::
-		Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M, M = nextevent(Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M, M)
+		Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M = nextevent(Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M)
 
 		i = i + 1
 		nextevent = post[i]
@@ -766,7 +820,7 @@ function hook.Call2(event, hookTable, ...)
 			goto post_mloop2
 		end
 
-		return Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M, M
+		return Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M
 	end
 
 	i = i + 1
@@ -790,12 +844,12 @@ function hook.Call2(event, hookTable, ...)
 		return gamemodeFunction(hookTable, ...)
 	end
 
-	local Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M, M = gamemodeFunction(hookTable, ...)
+	local Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M = gamemodeFunction(hookTable, ...)
 	local i = 1
 	local nextevent = post[i]
 
 	::post_mloop3::
-	Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M, M = nextevent(Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M, M)
+	Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M = nextevent(Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M)
 
 	i = i + 1
 	nextevent = post[i]
@@ -804,7 +858,7 @@ function hook.Call2(event, hookTable, ...)
 		goto post_mloop3
 	end
 
-	return Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M, M
+	return Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M
 end
 
 if gmod then
@@ -1015,3 +1069,153 @@ timer.Simple(0, function()
 end)
 
 hook.Add('Think', 'DLib.PromiseTickHandler', DLib.__PromiseTickHandler)
+
+local function printProfilingResults(ply)
+	local deftable = {}
+
+	local totalRuntime = 0
+
+	for i, hookData in ipairs(hook.ListAllHooks(false)) do
+		deftable[hookData.event] = deftable[hookData.event] or {runtime = 0, calls = 0, list = {}, name = hookData.event}
+
+		table.insert(deftable[hookData.event].list, hookData)
+		deftable[hookData.event].runtime = deftable[hookData.event].runtime + hookData.THIS_RUNTIME
+		totalRuntime = totalRuntime + hookData.THIS_RUNTIME
+		deftable[hookData.event].calls = deftable[hookData.event].calls + hookData.THIS_CALLS
+	end
+
+	local sortedtable = {}
+
+	for event, eventTable in pairs(deftable) do
+		table.sort(eventTable.list, function(a, b)
+			return a.THIS_RUNTIME > b.THIS_RUNTIME
+		end)
+
+		table.insert(sortedtable, eventTable)
+	end
+
+	table.sort(sortedtable, function(a, b)
+		return a.runtime > b.runtime
+	end)
+
+	DLib.MessagePlayer(ply, '-----------------------------------')
+	DLib.MessagePlayer(ply, '------ HOOK PROFILING REPORT ------')
+	DLib.MessagePlayer(ply, '-----------------------------------')
+
+	local time = hook.PROFILE_ENDS - hook.PROFILE_STARTED
+
+	for pos, eventTable in ipairs(sortedtable) do
+		if pos > 10 then
+			DLib.MessagePlayer(ply, '... tail of events ... (', #sortedtable - 10, ' are not shown)')
+			break
+		end
+
+		DLib.MessagePlayer(ply, '/// ' .. eventTable.name .. ': Runtime position: ', pos, string.format(' (%.2f%% of game runtime); - Total hook calls: ', (eventTable.runtime / time) * 100), eventTable.calls,
+			string.format('; Total runtime: %.2f milliseconds (~%.2f microseconds per hook call on average)', eventTable.runtime * 1000, (eventTable.runtime * 1000000) / eventTable.calls))
+
+		for pos2, hookData in ipairs(eventTable.list) do
+			if hookData.THIS_RUNTIME <= 0.001 then
+				DLib.MessagePlayer(ply, '(', #eventTable.list - pos2 + 1, ' are not shown)')
+				break
+			end
+
+			DLib.MessagePlayer(ply, 'Hook ID: ', hookData.id)
+			DLib.MessagePlayer(ply, string.format('\t - Runtime: %.2f milliseconds; %i calls; ~%.2f microseconds per call on average',
+				hookData.THIS_RUNTIME * 1000, hookData.THIS_CALLS, (hookData.THIS_RUNTIME * 1000000) / hookData.THIS_CALLS))
+		end
+	end
+
+	DLib.MessagePlayer(ply, '--')
+	DLib.MessagePlayer(ply, 'In total, regular hooks took around ', math.floor((totalRuntime / time) * 10000) / 100, '% of game runtime.')
+	DLib.MessagePlayer(ply, '--')
+
+	DLib.MessagePlayer(ply, '-----------------------------------')
+	DLib.MessagePlayer(ply, '--- END OF HOOK PROFILING REPORT --')
+	DLib.MessagePlayer(ply, '-----------------------------------')
+end
+
+if CLIENT then
+	concommand.Add('dlib_profile_hooks_cl', function(ply, cmd, args)
+		if hook.PROFILING then
+			hook.PROFILE_ENDS = SysTime()
+			hook.PROFILING = false
+			hook.PROFILING_RESULTS_EXISTS = true
+			hook.Reconstruct()
+
+			for i, hookData in ipairs(hook.ListAllHooks(false)) do
+				hookData.profileEnds()
+			end
+
+			printProfilingResults(LocalPlayer())
+			return
+		end
+
+		hook.PROFILE_STARTED = SysTime()
+		hook.PROFILING = true
+
+		DLib.Message('Hook profiling were started')
+		DLib.Message('When you are ready you can type dlib_profile_hooks_cl again')
+		DLib.Message('/// NOTE THAT RESULTS BECOME MORE ACCURATE AS PROFILING GOES!')
+		DLib.Message('/// Disabling it too early will produce false results')
+		hook.Reconstruct()
+	end)
+
+	concommand.Add('dlib_profile_hooks_last_cl', function(ply, cmd, args)
+		if not hook.PROFILING_RESULTS_EXISTS then
+			DLib.Message('No profiling results exists!')
+			DLib.Message('Start a new one by typing dlib_profile_hooks_cl')
+			return
+		end
+
+		printProfilingResults(LocalPlayer())
+	end)
+else
+	concommand.Add('dlib_profile_hooks_last_sv', function(ply, cmd, args)
+		if IsValid(ply) and not ply:IsSuperAdmin() then
+			DLib.MessagePlayer(ply, 'Not a super admin!')
+			return
+		end
+
+		if not hook.PROFILING_RESULTS_EXISTS then
+			DLib.MessagePlayer(ply, 'No profiling results exists!')
+			DLib.MessagePlayer(ply, 'Start a new one by typing dlib_profile_hooks_cl')
+			return
+		end
+
+		DLib.Message(IsValid(ply) and ply or 'Console', ' requested hook profiling results')
+		printProfilingResults(ply)
+	end)
+
+	concommand.Add('dlib_profile_hooks_sv', function(ply, cmd, args)
+		if IsValid(ply) and not ply:IsSuperAdmin() then
+			DLib.MessagePlayer(ply, 'Not a super admin!')
+			return
+		end
+
+		if hook.PROFILING then
+			DLib.Message(IsValid(ply) and ply or 'Console', ' stopped hook profiling')
+			hook.PROFILE_ENDS = SysTime()
+			hook.PROFILING = false
+			hook.PROFILING_RESULTS_EXISTS = true
+			hook.Reconstruct()
+
+			for i, hookData in ipairs(hook.ListAllHooks(false)) do
+				hookData.profileEnds()
+			end
+
+			printProfilingResults(ply)
+			return
+		end
+
+		DLib.Message(IsValid(ply) and ply or 'Console', ' started hook profiling')
+
+		hook.PROFILE_STARTED = SysTime()
+		hook.PROFILING = true
+
+		DLib.MessagePlayer(ply, 'Hook profiling were started')
+		DLib.MessagePlayer(ply, 'When you are ready you can type dlib_profile_hooks_cl again')
+		DLib.MessagePlayer(ply, '/// NOTE THAT RESULTS BECOME MORE ACCURATE AS PROFILING GOES!')
+		DLib.MessagePlayer(ply, '/// Disabling it too early will produce false results')
+		hook.Reconstruct()
+	end)
+end

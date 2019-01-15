@@ -138,6 +138,7 @@ function friends.ModifyFriend(steamid, savedata)
 	if ply then
 		friends.currentStatus[ply] = savedata
 		hook.Run('DLib_FriendModified', ply, savedata)
+		friends.SendToServer()
 	end
 
 	friends.SaveDataFor(steamid, savedata)

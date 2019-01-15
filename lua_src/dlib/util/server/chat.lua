@@ -105,6 +105,11 @@ function chat.generateWithMessages(targetTable, name, ...)
 	return targetTable
 end
 
+chat.registerWithMessages = chat.generateWithMessages
+chat.RegisterWithMessages = chat.generateWithMessages
+DLib.CMessageChat = chat.generateWithMessages
+chat.RegisterChat = chat.generate
+
 chat.generate('default', chat)
 
 chat.player = chat.chatPlayer

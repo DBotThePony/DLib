@@ -18,13 +18,18 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-import file, util, error, assert, HTTP from _G
+import file, util, error, assert, HTTP, Entity, game from _G
+
+local DO_DOWNLOAD_WORKSHOP
 
 if SERVER
 	util.AddNetworkString('vll2.replicate_url')
 	util.AddNetworkString('vll2.replicate_workshop')
 	util.AddNetworkString('vll2.replicate_wscollection')
 	util.AddNetworkString('vll2.replicate_all')
+else
+	DO_DOWNLOAD_WORKSHOP = CreateConVar('vll2_dl_workshop', '1', {FCVAR_ARCHIVE}, 'Actually download GMA files. Disabling this is VERY experemental, and can cause undesired behaviour of stuff. You were warned.')
+	cvars.AddChangeCallback 'vll2_dl_workshop', (-> RunConsoleCommand('host_writeconfig')), 'VLL2'
 
 file.CreateDir('vll2')
 file.CreateDir('vll2/lua_cache')
@@ -158,6 +163,7 @@ class VLL2.AbstractBundle
 		vm\LoadEntities()
 		vm\LoadWeapons()
 		vm\LoadEffects() if CLIENT
+		vm\LoadToolguns()
 		vm\LoadTFA()
 		@Msg('Bundle successfully initialized!')
 		@CallFinish()
@@ -429,14 +435,89 @@ class VLL2.URLGMABundle extends VLL2.GMABundle
 		@MountDelay()
 
 	AfterLoad: =>
+		if CLIENT and @shouldNotifyServerside
+			net.Start('vll2.gma_notify_url')
+			net.WriteString(@url)
+			net.WriteBool(true)
+			net.SendToServer()
 		@SpecifyPath(@_datapath_full)
 		@__Mount()
 
+	if SERVER
+		util.AddNetworkString('vll2.gma_notify_url')
+		net.Receive 'vll2.gma_notify_url', (len = 0, ply = NULL) ->
+			return if not ply\IsValid()
+			return if game.IsDedicated()
+			return if ply\EntIndex() ~= 1
+
+			url = net.ReadString()
+			status = net.ReadBool()
+
+			for name, self in pairs(@LISTING)
+				if @url == url
+					@SpecifyPath(@_datapath_full)
+					@AfterLoad(true) if status
+					if not status
+						@status = @@STATUS_ERROR
+						@Msg('Failed to download the GMA! Reason: ' .. reason)
+						@CallError()
+					return
+
+			VLL2.Message('Received URL bundle path from clientside, but no associated bundle found.')
+			VLL2.Message('W.T.F? URL is ' .. url)
+	else
+		net.Receive 'vll2.gma_notify_url', (len = 0) ->
+			url = net.ReadString()
+			_datapath = net.ReadString()
+
+			for name, bundle in pairs(@LISTING)
+				if bundle.url == url
+					if bundle.finished
+						net.Start('vll2.gma_notify_url')
+						net.WriteString(url)
+						net.WriteBool(true)
+						net.SendToServer()
+					else
+						bundle.shouldNotifyServerside = true
+
+					return
+
+			gmadownloader = VLL2.LargeFileLoader(url, _datapath)
+
+			gmadownloader\AddFinishHook ->
+				net.Start('vll2.gma_notify_url')
+				net.WriteString(url)
+				net.WriteBool(true)
+				net.SendToServer()
+
+			gmadownloader\AddErrorHook (_, reason = 'failure') ->
+				net.Start('vll2.gma_notify_url')
+				net.WriteString(url)
+				net.WriteBool(false)
+				net.SendToServer()
+				VLL2.Message('Failed to download the GMA for server! Reason: ' .. reason)
+
+			gmadownloader\Load()
+
 	Load: =>
+		if SERVER and not game.IsDedicated()
+			timer.Simple 1, ->
+				net.Start('vll2.gma_notify_url')
+				net.WriteString(@url)
+				net.WriteString(@_datapath)
+				net.Send(Entity(1))
+			return
+
 		if file.Exists(@_datapath, 'DATA')
 			@Msg('Found GMA in cache, mounting in-place...')
 			@SpecifyPath(@_datapath_full)
 			@__Mount()
+			return
+
+		if CLIENT and not DO_DOWNLOAD_WORKSHOP\GetBool()
+			@Msg('Not downloading workshop GMA file, since we have it disabled')
+			@status = @@STATUS_ERROR
+			@CallError('Restricted by user')
 			return
 
 		@status = @@STATUS_LOADING
@@ -446,6 +527,11 @@ class VLL2.URLGMABundle extends VLL2.GMABundle
 		@gmadownloader\AddFinishHook -> @AfterLoad()
 
 		@gmadownloader\AddErrorHook (_, reason = 'failure') ->
+			if CLIENT and @shouldNotifyServerside
+				net.Start('vll2.gma_notify_url')
+				net.WriteString(@url)
+				net.WriteBool(false)
+				net.SendToServer()
 			@status = @@STATUS_ERROR
 			@Msg('Failed to download the GMA! Reason: ' .. reason)
 			@CallError()
@@ -454,12 +540,17 @@ class VLL2.URLGMABundle extends VLL2.GMABundle
 		@gmadownloader\Load()
 
 class VLL2.URLGMABundleZ extends VLL2.URLGMABundle
-	AfterLoad: =>
+	AfterLoad: (clientload) =>
 		@Msg('--- DECOMPRESSING')
 		stime = SysTime()
 		decompress = util.Decompress(file.Read(@_datapath, 'DATA'))
 
-		if decompress == ''
+		if decompress == '' or not decompress
+			if SERVER and not game.IsDedicated() and clientload
+				@SpecifyPath(@_datapath_full)
+				@__Mount()
+				return
+
 			@status = @@STATUS_ERROR
 			@Msg('Failed to decompress the GMA! Did tranfer got interrupted?')
 			@CallError()
@@ -737,9 +828,28 @@ class VLL2.WSBundle extends VLL2.GMABundle
 	__Mount: =>
 		@status = @@STATUS_LOADED
 		@CallLoaded()
+
+		if @shouldNotifyServerside
+			net.Start('vll2.gma_notify')
+			net.WriteUInt(@workshopID, 32)
+			net.WriteString(@path)
+			net.SendToServer()
+			@Msg('Notifying server realm that we downloaded GMA.')
+			@shouldNotifyServerside = false
+
 		return if not @mountAfterLoad
 		@MountDelay()
 
+	Mount: (...) =>
+		if @shouldNotifyServerside
+			net.Start('vll2.gma_notify')
+			net.WriteUInt(@workshopID, 32)
+			net.WriteString(@path)
+			net.SendToServer()
+			@Msg('Notifying server realm that we downloaded GMA.')
+			@shouldNotifyServerside = false
+
+		return super(...)
 	if CLIENT
 		net.Receive 'vll2.replicate_workshop', ->
 			graburl = net.ReadUInt(32)
@@ -760,6 +870,54 @@ class VLL2.WSBundle extends VLL2.GMABundle
 		net.WriteBool(@loadLua)
 		net.WriteBool(@addToSpawnMenu)
 		net.Send(ply)
+
+	if SERVER
+		util.AddNetworkString('vll2.gma_notify')
+		net.Receive 'vll2.gma_notify', (len = 0, ply = NULL) ->
+			return if not ply\IsValid()
+			return if game.IsDedicated()
+			return if ply\EntIndex() ~= 1
+
+			wsid = net.ReadUInt(32)
+			path = net.ReadString()
+
+			for name, bundle in pairs(@LISTING)
+				if bundle.workshopID == wsid
+					bundle\SpecifyPath(path)
+					bundle\__Mount()
+					return
+
+			VLL2.Message('Received bundle path from clientside, but no associated bundle found.')
+			VLL2.Message('W.T.F? Workshop id is ' .. wsid)
+	else
+		net.Receive 'vll2.gma_notify', (len = 0) ->
+			wsid = net.ReadUInt(32)
+			hcontent_file = net.ReadString()
+
+			for name, bundle in pairs(@LISTING)
+				if bundle.workshopID == wsid
+					if bundle.wscontentPath
+						net.Start('vll2.gma_notify')
+						net.WriteUInt(wsid, 32)
+						net.WriteString(bundle.wscontentPath)
+						net.SendToServer()
+						bundle\Msg('Notifying server realm that we already got GMA')
+					else
+						bundle.shouldNotifyServerside = true
+						bundle\Msg('We are still downloading bundle. Will notify server realm when we are done.')
+
+					return
+
+			msgid = 'vll2_dl_' .. wsid
+			notification.AddProgress(msgid, 'Downloading ' .. wsid .. ' from workshop (SERVER)')
+			VLL2.Message('Downloading addon for server realm: ' .. wsid)
+
+			steamworks.Download hcontent_file, true, (path) ->
+				notification.Kill(msgid)
+				net.Start('vll2.gma_notify')
+				net.WriteUInt(wsid, 32)
+				net.WriteString(path)
+				net.SendToServer()
 
 	DownloadGMA: (url, filename = util.CRC(url)) =>
 		if CLIENT
@@ -783,6 +941,15 @@ class VLL2.WSBundle extends VLL2.GMABundle
 			@Msg('Found GMA in cache, mounting in-place...')
 			@SpecifyPath('data/' .. fpath)
 			@__Mount()
+			return
+
+		if not game.IsDedicated()
+			@Msg('Singleplayer detected, waiting for client realm to download...')
+			timer.Simple 1, ->
+				net.Start('vll2.gma_notify')
+				net.WriteUInt(@workshopID, 32)
+				net.WriteString(@hcontent_file)
+				net.Send(Entity(1))
 			return
 
 		@gmadownloader = VLL2.LargeFileLoader(url, fpath)
@@ -865,6 +1032,7 @@ class VLL2.WSBundle extends VLL2.GMABundle
 							@steamworksInfo = item
 							@wsTitle = item.title
 							@name = item.title
+							@hcontent_file = item.hcontent_file
 
 							if tobool(item.banned)
 								@Msg('-----------------------------')
@@ -876,6 +1044,10 @@ class VLL2.WSBundle extends VLL2.GMABundle
 							if file.Exists(path, 'GAME')
 								@SpecifyPath(path)
 								@__Mount()
+							elseif not DO_DOWNLOAD_WORKSHOP\GetBool()
+								@Msg('Not downloading workshop GMA file, since we have it disabled')
+								@status = @@STATUS_ERROR
+								@CallError('Restricted by user')
 							else
 								@Msg('Downloading from workshop')
 								msgid = 'vll2_dl_' .. @workshopID
@@ -885,6 +1057,16 @@ class VLL2.WSBundle extends VLL2.GMABundle
 									notification.Kill(msgid)
 									@Msg('Downloaded from workshop')
 									@SpecifyPath(path2 or path)
+									@wscontentPath = path2 or path
+
+									if @shouldNotifyServerside
+										net.Start('vll2.gma_notify')
+										net.WriteUInt(@workshopID, 32)
+										net.WriteString(path2 or path)
+										net.SendToServer()
+										@Msg('Notifying server realm that we downloaded GMA.')
+										@shouldNotifyServerside = false
+
 									@__Mount()
 						else
 							@status = @@STATUS_ERROR
@@ -935,6 +1117,7 @@ class VLL2.WSBundle extends VLL2.GMABundle
 							@steamworksInfo = item
 							@wsTitle = item.title
 							@name = item.title
+							@hcontent_file = item.hcontent_file
 
 							if tobool(item.banned)
 								@Msg('-----------------------------')

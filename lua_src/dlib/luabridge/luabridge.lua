@@ -22,16 +22,17 @@
 
 if CLIENT then
 	local pixelvis_handle_t = FindMetaTable('pixelvis_handle_t')
+	local util = util
 
-	function pixelvis_handle_t:Visible(self, pos, rad)
+	function pixelvis_handle_t:Visible(pos, rad)
 		return util.PixelVisible(pos, rad, self)
 	end
 
-	function pixelvis_handle_t:IsVisible(self, pos, rad)
+	function pixelvis_handle_t:IsVisible(pos, rad)
 		return util.PixelVisible(pos, rad, self)
 	end
 
-	function pixelvis_handle_t:PixelVisible(self, pos, rad)
+	function pixelvis_handle_t:PixelVisible(pos, rad)
 		return util.PixelVisible(pos, rad, self)
 	end
 
@@ -42,31 +43,6 @@ if CLIENT then
 	local vehMeta = FindMetaTable('Vehicle')
 	local NULL = NULL
 	local ipairs = ipairs
-
-	function vehMeta:GetDriver()
-		return self._dlib_vehfix or NULL
-	end
-
-	local function Think()
-		for i, ply in ipairs(player.GetAll()) do
-			local ply2 = GetTable(ply)
-			local veh = GetVehicle(ply)
-
-			if veh ~= ply2._dlib_vehfix then
-				if IsValid(ply2._dlib_vehfix) then
-					ply2._dlib_vehfix._dlib_vehfix = NULL
-				end
-
-				ply2._dlib_vehfix = veh
-
-				if IsValid(veh) then
-					veh._dlib_vehfix = ply
-				end
-			end
-		end
-	end
-
-	hook.Add('Think', 'DLib.GetDriverFix', Think)
 
 	local LocalPlayer = LocalPlayer
 	local GetWeapons = FindMetaTable('Player').GetWeapons
@@ -266,20 +242,22 @@ function entMeta:ApplyBoneManipulations()
 	__dlib_BoneManipCache.working = false
 
 	for boneid = 0, self:GetBoneCount() - 1 do
-		if __dlib_BoneManipCache.angles[boneid + 1] then
-			self:ManipulateBoneAngles(boneid, __dlib_BoneManipCache.angles[boneid + 1])
-		end
+		if not __dlib_BoneManipCache.blocked then
+			if __dlib_BoneManipCache.angles[boneid + 1] then
+				self:ManipulateBoneAngles(boneid, __dlib_BoneManipCache.angles[boneid + 1])
+			end
 
-		if __dlib_BoneManipCache.position[boneid + 1] then
-			self:ManipulateBonePosition(boneid, __dlib_BoneManipCache.position[boneid + 1]:ToNative())
+			if __dlib_BoneManipCache.position[boneid + 1] then
+				self:ManipulateBonePosition(boneid, __dlib_BoneManipCache.position[boneid + 1]:ToNative())
+			end
+
+			if __dlib_BoneManipCache.jiggle[boneid + 1] then
+				self:ManipulateBoneJiggle(boneid, __dlib_BoneManipCache.jiggle[boneid + 1])
+			end
 		end
 
 		if __dlib_BoneManipCache.scale[boneid + 1] then
 			self:ManipulateBoneScale(boneid, __dlib_BoneManipCache.scale[boneid + 1]:ToNative())
-		end
-
-		if __dlib_BoneManipCache.jiggle[boneid + 1] then
-			self:ManipulateBoneJiggle(boneid, __dlib_BoneManipCache.jiggle[boneid + 1])
 		end
 	end
 
@@ -294,12 +272,16 @@ function entMeta:ResetBoneManipCache()
 	__dlib_BoneManipCache.position = {}
 	__dlib_BoneManipCache.scale = {}
 	__dlib_BoneManipCache.jiggle = {}
+	__dlib_BoneManipCache.blocked = self:GetClass() == 'prop_ragdoll'
 
 	for boneid = 0, self:GetBoneCount() - 1 do
-		__dlib_BoneManipCache.angles[boneid + 1] = self:GetManipulateBoneAngles(boneid)
-		__dlib_BoneManipCache.position[boneid + 1] = LVector(self:GetManipulateBonePosition(boneid))
+		if not __dlib_BoneManipCache.blocked then
+			__dlib_BoneManipCache.angles[boneid + 1] = self:GetManipulateBoneAngles(boneid)
+			__dlib_BoneManipCache.position[boneid + 1] = LVector(self:GetManipulateBonePosition(boneid))
+			__dlib_BoneManipCache.jiggle[boneid + 1] = self:GetManipulateBoneJiggle(boneid)
+		end
+
 		__dlib_BoneManipCache.scale[boneid + 1] = LVector(self:GetManipulateBoneScale(boneid))
-		__dlib_BoneManipCache.jiggle[boneid + 1] = self:GetManipulateBoneJiggle(boneid)
 	end
 
 	return self

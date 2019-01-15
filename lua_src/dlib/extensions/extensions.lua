@@ -68,44 +68,6 @@ function PhysObj:EnableCollisions(newStatus)
 	return self:DLibEnableCollisions(newStatus)
 end
 
-function entMeta:SetNW2UInt(name, value)
-	assert(type(value) == 'number', 'Value passed is not a number')
-
-	if value < 0 then
-		error('Value can not be negative')
-	end
-
-	if value > 0x100000000 then
-		error('Integer overflow')
-	end
-
-	if value >= 0x7FFFFFFF then
-		value = value - 0x100000000
-	end
-
-	self:SetNW2Int(name, value)
-end
-
-function entMeta:GetNW2UInt(name, ifNone)
-	if type(ifNone) == 'number' then
-		if ifNone < 0 then
-			error('Value can not be negative')
-		end
-
-		if ifNone > 0x100000000 then
-			error('Integer overflow')
-		end
-	end
-
-	local value = self:GetNW2Int(name, ifNone)
-
-	if grab < 0 then
-		return 0x100000000 + value
-	else
-		return value
-	end
-end
-
 function vectorMeta:Copy()
 	return Vector(self)
 end
@@ -234,18 +196,63 @@ function math.tbezier(t, values)
 	return math.tbezier(t, points)
 end
 
-local VehicleListIterable = {}
+function math.tformat(time)
+	assert(type(time) == 'number', 'Invalid time provided.')
 
-local function rebuildVehicleList()
-	for classname, data in pairs(list.GetForEdit('Vehicles')) do
-		if data.Model then
-			VehicleListIterable[data.Model:lower()] = data
-		end
+	if time > 0xFFFFFFFFFF then
+		error('Value is too big! Maximum is ' .. 0xFFFFFFFFFF)
+	elseif time <= 1 then
+		return {centuries = 0, years = 0, weeks = 0, days = 0, hours = 0, minutes = 0, seconds = 0, months = 0}
 	end
+
+	local output = {}
+
+	output.centuries = (time - time % 0xBBF81E00) / 0xBBF81E00
+	time = time - output.centuries * 0xBBF81E00
+
+	output.years = (time - time % 0x01E13380) / 0x01E13380
+	time = time - output.years * 0x01E13380
+
+	output.months = ((time - time % 0x00278D00) / 0x00278D00):min(11)
+	time = time - output.months * 0x00278D00
+
+	output.weeks = (time - time % 604800) / 604800
+	time = time - output.weeks * 604800
+
+	output.days = (time - time % 86400) / 86400
+	time = time - output.days * 86400
+
+	output.hours = (time - time % 3600) / 3600
+	time = time - output.hours * 3600
+
+	output.minutes = (time - time % 60) / 60
+	time = time - output.minutes * 60
+
+	output.seconds = math.floor(time)
+
+	return output
 end
 
-timer.Create('DLib.RebuildVehicleListNames', 10, 0, rebuildVehicleList)
-rebuildVehicleList()
+function math.untformat(time)
+	assert(type(time) == 'table', 'Invalid time provided. You must provide table in math.tformat output format.')
+	assert(type(time.centuries) == 'number', 'Invalid time provided. You must provide table in math.tformat output format.')
+	assert(type(time.years) == 'number', 'Invalid time provided. You must provide table in math.tformat output format.')
+	assert(type(time.months) == 'number', 'Invalid time provided. You must provide table in math.tformat output format.')
+	assert(type(time.weeks) == 'number', 'Invalid time provided. You must provide table in math.tformat output format.')
+	assert(type(time.days) == 'number', 'Invalid time provided. You must provide table in math.tformat output format.')
+	assert(type(time.hours) == 'number', 'Invalid time provided. You must provide table in math.tformat output format.')
+	assert(type(time.minutes) == 'number', 'Invalid time provided. You must provide table in math.tformat output format.')
+	assert(type(time.seconds) == 'number', 'Invalid time provided. You must provide table in math.tformat output format.')
+
+	return time.centuries * 0xBBF81E00
+		+ time.years * 0x01E13380
+		+ time.months * 0x00278D00
+		+ time.weeks * 604800
+		+ time.days * 86400
+		+ time.hours * 3600
+		+ time.minutes * 60
+		+ time.seconds
+end
 
 local CLIENT = CLIENT
 local hook = hook
@@ -283,33 +290,11 @@ if CLIENT then
 	local surface = surface
 	surface._DLibPlaySound = surface._DLibPlaySound or surface.PlaySound
 
-	function surface.PlaySound(path)
+	function surface.PlaySound(path, ...)
 		assert(type(path) == 'string', 'surface.PlaySound - string expected, got ' .. type(path))
-		local can = hook.Run('SurfaceEmitSound', path)
+		local can = hook.Run('SurfaceEmitSound', path, ...)
 		if can == false then return end
-		return surface._DLibPlaySound(path)
-	end
-
-	function vehicleMeta:GetPrintName()
-		if self.__dlibCachedName then
-			return self.__dlibCachedName
-		end
-
-		local getname = self.PrintName or (VehicleListIterable[self:GetModel()] and VehicleListIterable[self:GetModel()].Name)
-
-		if not getname then
-			local classname = self:GetClass()
-			getname = language.GetPhrase(classname)
-		end
-
-		self.__dlibCachedName = getname
-
-		return getname
-	end
-
-	function entMeta:GetPrintNameDLib()
-		if self.GetPrintName then return self:GetPrintName() end
-		return self.PrintName or language.GetPhrase(self:GetClass())
+		return surface._DLibPlaySound(path, ...)
 	end
 
 	-- cache and speedup lookups a bit
@@ -352,45 +337,4 @@ if CLIENT then
 	end
 
 	cvars.AddChangeCallback('dlib_screenscale', dlib_screenscale_chages, 'DLib')
-else
-	entMeta.GetNetworkName = entMeta.GetName
-	entMeta.SetNetworkName = entMeta.SetName
-	entMeta.GetNetworkedName = entMeta.GetName
-	entMeta.SetNetworkedName = entMeta.SetName
-	entMeta.GetTargetName = entMeta.GetName
-	entMeta.SetTargetName = entMeta.SetName
-
-	function vehicleMeta:GetPrintName()
-		if self.__dlibCachedName then
-			return self.__dlibCachedName
-		end
-
-		local getname = self.PrintName
-
-		if not getname then
-			getname = VehicleListIterable[self:GetModel()] or self:GetClass()
-		end
-
-		self.__dlibCachedName = getname
-
-		return getname
-	end
-
-	function entMeta:GetPrintNameDLib()
-		if self.GetPrintName then return self:GetPrintName() end
-		return self.PrintName
-	end
-
-	local nextBot = FindMetaTable('NextBot')
-	local GetTable = entMeta.GetTable
-
-	function nextBot:GetActiveWeapon(...)
-		local tab = GetTable(self)
-
-		if tab.GetActiveWeapon then
-			return tab.GetActiveWeapon(self, ...)
-		end
-
-		return self
-	end
 end

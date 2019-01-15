@@ -67,7 +67,7 @@ function meta:__newindex(key, value)
 end
 
 local function LVector(x, y, z)
-	if type(x) == 'Vector' or type(x) == 'LVector' then
+	if type(x) == 'Vector' or luatype(x) == 'LVector' then
 		y = x.y
 		z = x.z
 		x = x.x

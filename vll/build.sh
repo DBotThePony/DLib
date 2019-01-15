@@ -22,10 +22,10 @@ echo "
 -- DEALINGS IN THE SOFTWARE.
 
 -- To Load VLL2 you can use any of these commands:
--- lua_run http.Fetch(\"https://dbotthepony.ru/vll/vll2.lua\",function(b)RunString(b,\"VLL2\")end)
--- rcon lua_run \"http.Fetch([[https:]]..string.char(47)..[[/dbotthepony.ru/vll/vll2.lua]],function(b)RunString(b,[[VLL2]])end)\"
--- http.Fetch('https://dbotthepony.ru/vll/vll2.lua',function(b)RunString(b,'VLL2')end)
--- ulx luarun \"http.Fetch('https://dbotthepony.ru/vll/vll2.lua',function(b)RunString(b,'VLL2')end)\"
+-- lua_run http.Fetch(\"https://dbotthepony.ru/vll/vll2.lua\",function(b)RunString(b,\"VLL2\")end,function(err)print(\"VLL2\",err)end)
+-- rcon lua_run \"http.Fetch([[https:]]..string.char(47)..[[/dbotthepony.ru/vll/vll2.lua]],function(b)RunString(b,[[VLL2]])end,function(err)print([[VLL2]],err)end)\"
+-- http.Fetch('https://dbotthepony.ru/vll/vll2.lua',function(b)RunString(b,'VLL2')end,function(err)print('VLL2',err)end)
+-- ulx luarun \"http.Fetch('https://dbotthepony.ru/vll/vll2.lua',function(b)RunString(b,'VLL2')end,function(err)print('VLL2',err)end)\"
 
 local __cloadStatus, _cloadError = pcall(function()
 " > vll2.lua
@@ -38,6 +38,8 @@ end)
 if not __cloadStatus then
 	print('UNABLE TO LOAD VLL2 CORE')
 	print('LOAD CAN NOT CONTINUE')
+	print('REASON:')
+	print(_cloadError)
 	return
 end
 

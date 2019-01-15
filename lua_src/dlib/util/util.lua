@@ -87,10 +87,10 @@ end
 
 local rawtype = rawtype
 local table = table
-local MsgC = MsgC
 local error = error
 local pcall = pcall
 local debug = debug
+local strict = false
 
 local DEFAULT_TEXT_COLOR = Color(247, 255, 27)
 local BOOLEAN_COLOR = Color(107, 141, 227)
@@ -136,18 +136,30 @@ end
 
 local comparableTypes = {}
 
-local function InternalPrintLoop(tableIn, level)
+local function InternalPrintLoop(tableIn, level, recursionCheck)
 	if prints > 100000 then
-		error('Probably infinite undetected recursion, or table is too big (?)')
+		error('I dont want to print more. Probably hit a recursion.')
 	end
 
-	if wellknown[tableIn] then
-		MsgC(RECURSION_COLOR, ' [recursion] ')
-		return false
+	if strict then
+		if wellknown[tableIn] then
+			MsgC(RECURSION_COLOR, ' [well known/recursion] ')
+			return false
+		end
+	else
+		if wellknown[tableIn] and wellknown[tableIn] > 6 then
+			MsgC(RECURSION_COLOR, ' [well known] ')
+			return false
+		end
+
+		if recursionCheck and recursionCheck[tableIn] then
+			MsgC(RECURSION_COLOR, ' [recursion] ')
+			return false
+		end
 	end
 
 	if level > 10 then
-		MsgC(TOO_DEEP_COLOR, ' [...too deep...] ')
+		MsgC(TOO_DEEP_COLOR, ' [too deep] ')
 		return false
 	end
 
@@ -173,7 +185,7 @@ local function InternalPrintLoop(tableIn, level)
 		return cmp
 	end)
 
-	wellknown[tableIn] = true
+	wellknown[tableIn] = (wellknown[tableIn] or 0) + 1
 
 	local hitAnything = false
 
@@ -193,7 +205,7 @@ local function InternalPrintLoop(tableIn, level)
 
 		if type(value) == 'table' then
 			MsgC(TABLE_TOKEN_COLOR, '{')
-			local useSpaces = InternalPrintLoop(value, level + 1)
+			local useSpaces = InternalPrintLoop(value, level + 1, strict and '' or recursionCheck or {})
 
 			if useSpaces then
 				MsgC(TABLE_TOKEN_COLOR, string.rep(' ', level * 4), '},\n')
@@ -218,6 +230,17 @@ function _G.PrintTable(tableIn)
 	assert(rawtype(tableIn) == 'table', 'Input must be a table!')
 	wellknown = {}
 	prints = 0
+	strict = false
+	MsgC(TABLE_TOKEN_COLOR, '{')
+	InternalPrintLoop(tableIn, 1)
+	MsgC(TABLE_TOKEN_COLOR, '}\n')
+end
+
+function _G.PrintTableStrict(tableIn)
+	assert(rawtype(tableIn) == 'table', 'Input must be a table!')
+	wellknown = {}
+	prints = 0
+	strict = true
 	MsgC(TABLE_TOKEN_COLOR, '{')
 	InternalPrintLoop(tableIn, 1)
 	MsgC(TABLE_TOKEN_COLOR, '}\n')

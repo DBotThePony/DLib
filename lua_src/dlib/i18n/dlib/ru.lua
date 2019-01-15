@@ -31,6 +31,13 @@ info.dlib.tformat.minutes = 'минут'
 info.dlib.tformat.hours = 'часов'
 info.dlib.tformat.days = 'дней'
 info.dlib.tformat.weeks = 'недель'
+info.dlib.tformat.months = 'месяцев'
+info.dlib.tformat.years = 'лет'
+info.dlib.tformat.centuries = 'веков'
+
+info.dlib.tformat.long = 'Никогда™'
+info.dlib.tformat.now = 'Прямо сейчас'
+info.dlib.tformat.past = 'В прошлом'
 
 gui.dlib.friends.title = 'DLib друзья'
 gui.dlib.friends.open = 'Отрыть меню друзей'
@@ -48,6 +55,8 @@ gui.dlib.friends.invalid.desc = '%q не выглядит как SteamID!'
 gui.dlib.friends.settings.steam = 'Считать Steam друзей как DLib друзей'
 gui.dlib.friends.settings.your = 'Ваши друзья ->'
 gui.dlib.friends.settings.server = 'Игроки на сервере ->'
+
+gui.dlib.friends.settings.foreign = '[Внешний] '
 
 gui.dlib.donate.top = 'DLib: Сделаете пожертвование?'
 gui.dlib.donate.button.yes = 'Так и сделать (Яндекс.Деньги)!'

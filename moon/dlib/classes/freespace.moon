@@ -130,6 +130,12 @@ class DLib.Freespace
 
 		return false
 
+	SearchOptimal: =>
+		validPositions = @SearchAll()
+		return false if #validPositions == 0
+		table.sort validPositions, (a, b) -> a\DistToSqr(@pos) < b\DistToSqr(@pos)
+		return validPositions[1]
+
 	SearchAll: =>
 		output = {}
 		table.insert(output, @pos) if @check(@pos)

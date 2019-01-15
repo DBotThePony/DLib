@@ -32,7 +32,8 @@ class VLL2.FileDef
 		@localFS = @vm.localFS
 		@globalFS = @vm.globalFS
 
-	FileExists: (fpath) => fpath and (@localFS\Exists(fpath) or @globalFS and @globalFS\Exists(fpath))
+	FileExists: (fpath) => fpath and (@localFS\Exists(fpath) or @globalFS and @globalFS\Exists(fpath) or file.Exists(fpath, 'LUA'))
+
 	ReadFile: (fpath) =>
 		return '' if not @FileExists(fpath)
 		return @localFS\Read(fpath) if @localFS\Exists(fpath)
@@ -51,8 +52,11 @@ class VLL2.FileDef
 		files, dirs = @localFS\Find(fpath)
 		return files, dirs if not @globalFS
 		files2, dirs2 = @globalFS\Find(fpath)
+		files3, dirs3 = file.Find(fpath, 'LUA')
 		table.insert(files, _file) for _file in *files2 when not includes(files, _file)
 		table.insert(dirs, _dir) for _dir in *dirs2 when not includes(dirs, _dir)
+		table.insert(files, _file) for _file in *files3 when not includes(files, _file)
+		table.insert(dirs, _dir) for _dir in *dirs3 when not includes(dirs, _dir)
 		table.sort(files)
 		table.sort(dirs)
 		return files, dirs
@@ -135,6 +139,23 @@ class VLL2.VM
 				@RunFile('effects/' .. _dir .. '/init.lua')
 				effects.Register(EFFECT, _dir)
 				_G.EFFECT = nil
+
+	LoadToolguns: =>
+		files, dirs = @localFS\Find('weapons/gmod_tool/stools/*.lua')
+		return if #files == 0
+		return if not weapons.Get('gmod_tool')
+
+		_G.SWEP = {}
+		SWEP.Folder = 'weapons/gmod_tool'
+		SWEP.Primary = {}
+		SWEP.Secondary = {}
+
+		@RunFile('weapons/gmod_tool/init.lua') if SERVER
+		@RunFile('weapons/gmod_tool/cl_init.lua') if CLIENT
+
+		weapons.Register(SWEP, 'gmod_tool')
+		baseclass.Set('gmod_tool', SWEP)
+		_G.SWEP = nil
 
 	LoadWeapons: =>
 		pendingMeta = {}

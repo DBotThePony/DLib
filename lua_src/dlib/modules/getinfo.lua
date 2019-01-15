@@ -51,25 +51,25 @@ function getinfo.Replicate(cvarname, valuetype, default)
 	if valuetype == 'boolean' then
 		readFunc = net.ReadBool
 		writeFunc = net.WriteBool
-		nwSet = entMeta.SetNW2Bool
-		nwGet = entMeta.GetNW2Bool
+		nwSet = entMeta.SetNWBool
+		nwGet = entMeta.GetNWBool
 	elseif valuetype == 'integer' or valuetype == 'number' then
 		readFunc = net.GReadInt(val)
 		writeFunc = net.GWriteInt(val)
-		nwSet = entMeta.SetNW2Int
-		nwGet = entMeta.GetNW2Int
+		nwSet = entMeta.SetNWInt
+		nwGet = entMeta.GetNWInt
 	elseif valuetype == 'uinteger' then
 		readFunc = net.GReadUInt(val)
 		writeFunc = net.GWriteUInt(val)
-		nwSet = entMeta.SetNW2UInt
-		nwGet = entMeta.GetNW2UInt
+		nwSet = entMeta.SetNWUInt
+		nwGet = entMeta.GetNWUInt
 	else
 		readFunc = net.ReadString
 		writeFunc = net.WriteString
 		default = tostring(default)
 		valuetype = 'string'
-		nwSet = entMeta.SetNW2String
-		nwGet = entMeta.GetNW2String
+		nwSet = entMeta.SetNWString
+		nwGet = entMeta.GetNWString
 	end
 
 	if not nwSet then
@@ -151,11 +151,29 @@ else
 	end)
 end
 
+local cache = {}
+local GetConVar_Internal = GetConVar_Internal
+
 function plyMeta:GetInfoDLib(cvarname)
 	if getinfo.bank[cvarname] then
 		return getinfo.bank[cvarname].nwGet(self, cvarname)
-	else
+	elseif SERVER then
 		return self:GetInfo(cvarname)
+	else
+		if cache[cvarname] == nil then
+			cache[cvarname] = GetConVar_Internal(cvarname)
+			if not cache[cvarname] then
+				cache[cvarname] = false
+			end
+		end
+
+		if not cache[cvarname] then
+			cache[cvarname] = false
+			return -- no value, :GetInfo() can return "no value" in vanilla
+			-- even if gmod wiki stands it (always) return string
+		end
+
+		return cache[cvarname]:GetString()
 	end
 end
 

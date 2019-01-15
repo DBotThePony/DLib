@@ -72,4 +72,8 @@ function chat.registerWithMessages(target, vname, ...)
 	return target
 end
 
+chat.RegisterWithMessages = chat.registerWithMessages
+DLib.CMessageChat = chat.registerWithMessages
+chat.RegisterChat = chat.registerChat
+
 chat.registerChat('default')
