@@ -85,7 +85,7 @@ class LuaArgument {
 	}
 
 	buildReturns() {
-		const description = this.description || '*No description of variable avaliable*'
+		const description = this.description || '*No description of variable is avaliable*'
 
 		if (this.name) {
 			return `${this.num || ''} [${this.type}](${this.getLink()}): ${this.name}\x20\x20

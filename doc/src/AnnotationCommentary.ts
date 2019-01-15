@@ -36,7 +36,7 @@ class AnnotationCommentary {
 	returns: string[] = []
 	returnsParsed: CommentaryReturn[] = []
 	descriptionLines: string[] = []
-	description = 'No description prodivded'
+	description = '*Tumbleweed rolls*'
 
 	library: string | string[] | null = null
 	funcname: string | null = null
