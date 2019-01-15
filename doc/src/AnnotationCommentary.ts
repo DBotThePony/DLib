@@ -29,6 +29,7 @@ class AnnotationCommentary {
 	isFunction = false
 	isEnum = false
 	isType = false
+	isDeprecated = false
 
 	path: string | null = null
 	aliases: string[] = []
@@ -76,6 +77,11 @@ class AnnotationCommentary {
 			}
 
 			if (lower == '@doc') {
+				continue
+			}
+
+			if (lower == '@deprecated') {
+				this.isDeprecated = true
 				continue
 			}
 

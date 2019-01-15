@@ -21,7 +21,7 @@ class GLuaFunction extends GLuaEntryBase {
 	returns = new LuaArguments()
 
 	generatePage() {
-		const deprecated = this.deprecated && '\n**DEPRECATED: This funciton is either deprecated in DLib or GMod itself (if acceptable). Do not use (really)**' || ''
+		const deprecated = this.deprecated && '\n**DEPRECATED: This funciton is either deprecated in DLib or GMod itself (if acceptable). Please avoid usage of this.**' || ''
 		let levels = ''
 
 		if (this.library) {
@@ -38,7 +38,7 @@ class GLuaFunction extends GLuaEntryBase {
 
 ### Description
 
-${this.description.replace(/^/, '\u200B\xA0\xA0\xA0\xA0\xA0\xA0\xA0\xA0')}
+${this.description.replace(/^/, '\u200B\xA0\xA0\xA0\xA0\xA0\xA0\xA0\xA0').replace(/\n/g, '\n\u200B\xA0\xA0\xA0\xA0\xA0\xA0\xA0\xA0')}
 
 ${deprecated}
 

@@ -100,6 +100,18 @@ function vectorMeta:ToColor()
 	return Color(self.x * 255, self.y * 255, self.z * 255)
 end
 
+--[[
+	@doc
+	@fname sql.EQuery
+	@args string query
+
+	@desc
+	Same as gmod's sql.Query except it prints errors in console when one occures
+	@enddesc
+
+	@returns
+	any: returned value from database
+]]
 function sql.EQuery(...)
 	local data = sql.Query(...)
 
@@ -111,6 +123,14 @@ function sql.EQuery(...)
 	return data
 end
 
+--[[
+	@doc
+	@fname math.progression
+	@args number self, number min, number max, number middle = nil
+
+	@returns
+	number: position of self between min and max in 0-1 range, or 0-1-0 is middle is not nil
+]]
 function math.progression(self, min, max, middle)
 	if self < min then return 0 end
 
@@ -129,6 +149,14 @@ function math.progression(self, min, max, middle)
 	return math.min((self - min) / (max - min), 1)
 end
 
+--[[
+	@doc
+	@fname math.equal
+	@args vararg numbers
+
+	@returns
+	boolean
+]]
 function math.equal(...)
 	local amount = select('#', ...)
 	assert(amount > 1, 'At least two numbers are required!')
@@ -143,6 +171,14 @@ function math.equal(...)
 	return true
 end
 
+--[[
+	@doc
+	@fname math.average
+	@args vararg numbers
+
+	@returns
+	number: the average
+]]
 function math.average(...)
 	local amount = select('#', ...)
 	assert(amount > 1, 'At least two numbers are required!')
@@ -159,10 +195,26 @@ local type = type
 local table = table
 local unpack = unpack
 
+--[[
+	@doc
+	@fname math.bezier
+	@args number t, vararg numbers
+
+	@returns
+	number
+]]
 function math.bezier(t, ...)
 	return math.tbezier(t, {...})
 end
 
+--[[
+	@doc
+	@fname math.tbezier
+	@args number t, table numbers
+
+	@returns
+	number
+]]
 -- accepts table
 function math.tbezier(t, values)
 	assert(type(t) == 'number', 'invalid T variable')
@@ -196,6 +248,14 @@ function math.tbezier(t, values)
 	return math.tbezier(t, points)
 end
 
+--[[
+	@doc
+	@fname math.tformat
+	@args number time
+
+	@returns
+	table: formatted table
+]]
 function math.tformat(time)
 	assert(type(time) == 'number', 'Invalid time provided.')
 
@@ -233,6 +293,19 @@ function math.tformat(time)
 	return output
 end
 
+
+--[[
+	@doc
+	@fname math.untformat
+	@args table time
+
+	@desc
+	reverse of table format of number
+	@enddesc
+
+	@returns
+	number
+]]
 function math.untformat(time)
 	assert(type(time) == 'table', 'Invalid time provided. You must provide table in math.tformat output format.')
 	assert(type(time.centuries) == 'number', 'Invalid time provided. You must provide table in math.tformat output format.')
@@ -318,6 +391,19 @@ if CLIENT then
 		end
 	end
 
+	--[[
+		@doc
+		@fname ScreenSize
+		@args number modify
+
+		@desc
+		same as ScreenScale but use screen height (by default)
+		behvaior can be changed by user
+		@enddesc
+
+		@returns
+		number
+	]]
 	function _G.ScreenSize(modify)
 		return screenfunc(modify)
 	end

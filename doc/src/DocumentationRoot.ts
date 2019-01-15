@@ -85,6 +85,7 @@ ${globals.join('  \n')}`
 	add(annotation: AnnotationCommentary) {
 		if (annotation.isFunction) {
 			const func = new GLuaFunction(annotation.funcname!, annotation.funcname!, annotation.description)
+			func.deprecated = annotation.isDeprecated
 
 			for (const arg of annotation.argumentsParsed) {
 				func.args.push(new LuaArgument(arg.type, arg.name, undefined, arg.default))
