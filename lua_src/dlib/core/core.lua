@@ -36,6 +36,13 @@ function meta:__index(key)
 	return meta[key] or math[key] or bit[key]
 end
 
+--[[
+	@doc
+	@fname number:IsValid
+
+	@returns
+	boolean: false
+]]
 function meta:IsValid()
 	return false
 end
@@ -54,6 +61,32 @@ end
 
 debug.setmetatable(1, meta)
 
+--[[
+	@doc
+	@fname net.pool
+
+	@desc
+	alias of !g:util.AddNetworkString
+	@enddesc
+]]
 net.pool = util.AddNetworkString
+
+--[[
+	@doc
+	@fname net.receive
+
+	@desc
+	alias of !g:net.Receive
+	@enddesc
+]]
 net.receive = net.Receive
+
+--[[
+	@doc
+	@fname file.mkdir
+
+	@desc
+	alias of !g:file.CreateDir
+	@enddesc
+]]
 file.mkdir = file.CreateDir

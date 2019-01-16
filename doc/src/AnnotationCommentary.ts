@@ -193,7 +193,9 @@ class AnnotationCommentary {
 		}
 
 		if (this.descriptionLines.length != 0) {
-			this.description = this.descriptionLines.join('  \n')
+			this.description = this.descriptionLines.join('  \n').replace(/\!g:(\S+)/, (substr, arg) => {
+				return `[${arg}](http://wiki.garrysmod.com/page/${arg.replace(/\.|:/g, '/')})`
+			})
 		}
 
 		if (this.path) {
