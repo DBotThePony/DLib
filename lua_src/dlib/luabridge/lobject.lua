@@ -28,6 +28,14 @@ local rawget = rawget
 
 DLib.METADATA = DLib.METADATA or {}
 
+--[[
+	@doc
+	@fname DLib.CreateLuaObject
+	@args string objectName, boolean registerGlobalMeta
+
+	@returns
+	table: meta
+]]
 function DLib.CreateLuaObject(objectName, registerMetadata)
 	local meta
 
@@ -92,10 +100,26 @@ function DLib.CreateLuaObject(objectName, registerMetadata)
 	return meta
 end
 
+--[[
+	@doc
+	@fname DLib.FindMetaTable
+	@args string classIn
+
+	@returns
+	table: meta or nil
+]]
 function DLib.FindMetaTable(classIn)
 	return DLib.METADATA[classIn] or FindMetaTable(classIn) or nil
 end
 
+--[[
+	@doc
+	@fname DLib.ConsturctClass
+	@args string classIn, vararg constructorArgs
+
+	@returns
+	table: object
+]]
 function DLib.ConsturctClass(classIn, ...)
 	local classGet = DLib.FindMetaTable(classIn)
 	if not classGet then return false end

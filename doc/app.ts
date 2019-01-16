@@ -47,7 +47,6 @@ const annotations = []
 for (const file of filesToParse) {
 	const read = fs.readFileSync(file, {encoding: 'utf8'})
 	const match = read.match(findCommentaries)
-	console.log(file, match != null)
 
 	if (match) {
 		//console.log(match)
@@ -55,14 +54,50 @@ for (const file of filesToParse) {
 		for (const commentary of match) {
 			let bad = false
 			const lines = commentary.split(/\r?\n/)
+			let pos = 0
 
 			for (const line of lines) {
-				if (line.trim().match(/[a-z]/i) && line.trim().toLowerCase() != '@doc') {
+				pos++
+				const trim = line.trim()
+
+				if (trim.match(/[a-z]/i) && trim.toLowerCase() != '@doc' && trim.toLowerCase() != '@docpreprocess') {
 					bad = true
 					break
 				}
 
-				if (line.trim().toLowerCase() == '@doc') {
+				if (trim.toLowerCase() == '@docpreprocess') {
+					bad = true
+					const linesEval = []
+
+					for (let i = pos; i < lines.length - 1; i++) {
+						linesEval.push(lines[i])
+					}
+
+					try {
+						const text = eval('(function() {' + linesEval.join('\n') + '})()')
+
+						if (typeof text != 'object') {
+							throw new TypeError('Function must return 2 dimensioned array of strings! (got ' + (typeof text) + ')')
+						}
+
+						for (const str of (<string[][]> text)) {
+							if (typeof str != 'object') {
+								throw new TypeError('Function must return 2 dimensioned array of strings! (got ' + (typeof str) + ' in subarray!)')
+							}
+
+							annotations.push(new AnnotationCommentary(file, str))
+						}
+					} catch(err) {
+						console.error('Error running documentation preprocessor:')
+						console.error(linesEval.join('\n'))
+						console.error('In file ' + file)
+						console.error(err)
+					}
+
+					break
+				}
+
+				if (trim.toLowerCase() == '@doc') {
 					break
 				}
 			}

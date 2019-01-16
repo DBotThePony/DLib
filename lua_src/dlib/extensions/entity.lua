@@ -25,9 +25,22 @@ local wepMeta = FindMetaTable('Weapon')
 local vehMeta = FindMetaTable('Vehicle')
 local npcMeta = FindMetaTable('NPC')
 
+--[[
+	@doc
+	@fname Entity:IsClientsideEntity
+
+	@returns
+	boolean
+]]
 function entMeta:IsClientsideEntity()
 	return false
 end
+
+--[[
+	@doc
+	@fname Entity:SetNWUInt
+	@args string name, number value
+]]
 
 function entMeta:SetNWUInt(name, value)
 	assert(type(value) == 'number', 'Value passed is not a number')
@@ -46,6 +59,15 @@ function entMeta:SetNWUInt(name, value)
 
 	self:SetNWInt(name, value)
 end
+
+--[[
+	@doc
+	@fname Entity:GetNWUInt
+	@args string name, number ifNone
+
+	@returns
+	number
+]]
 
 function entMeta:GetNWUInt(name, ifNone)
 	if type(ifNone) == 'number' then
@@ -67,6 +89,11 @@ function entMeta:GetNWUInt(name, ifNone)
 	end
 end
 
+--[[
+	@doc
+	@fname Entity:SetNW2UInt
+	@args string name, number value
+]]
 function entMeta:SetNW2UInt(name, value)
 	assert(type(value) == 'number', 'Value passed is not a number')
 
@@ -85,6 +112,14 @@ function entMeta:SetNW2UInt(name, value)
 	self:SetNW2Int(name, value)
 end
 
+--[[
+	@doc
+	@fname Entity:GetNW2UInt
+	@args string name, number ifNone
+
+	@returns
+	number
+]]
 function entMeta:GetNW2UInt(name, ifNone)
 	if type(ifNone) == 'number' then
 		if ifNone < 0 then
@@ -105,6 +140,13 @@ function entMeta:GetNW2UInt(name, ifNone)
 	end
 end
 
+--[[
+	@doc
+	@fname Player:GetActiveWeaponClass
+
+	@returns
+	any: string or nil
+]]
 function plyMeta:GetActiveWeaponClass()
 	local weapon = self:GetActiveWeapon()
 	if not weapon:IsValid() then return nil end
@@ -136,43 +178,132 @@ if CLIENT then
 		return self:RemoveDLib()
 	end
 else
+	--[[
+		@doc
+		@fname Entity:BuddhaEnable
+	]]
+
 	function entMeta:BuddhaEnable()
 		self:SetSaveValue('m_takedamage', DAMAGE_MODE_BUDDHA)
 	end
 
+	--[[
+		@doc
+		@fname Entity:BuddhaDisable
+	]]
 	function entMeta:BuddhaDisable()
 		self:SetSaveValue('m_takedamage', DAMAGE_MODE_ENABLED)
 	end
 
+	--[[
+		@doc
+		@fname Entity:IsBuddhaEnabled
+
+		@returns
+		boolean
+	]]
 	function entMeta:IsBuddhaEnabled()
 		return self:GetSaveTable().m_takedamage == DAMAGE_MODE_BUDDHA
 	end
 end
 
-function plyMeta:GetHealth()
+--[[
+	@doc
+	@fname Entity:GetHealth
+
+	@desc
+	alias of !g:Entity:Health
+	@enddesc
+
+	@returns
+	number
+]]
+function entMeta:GetHealth()
 	return self:Health()
 end
 
+--[[
+	@doc
+	@fname Player:GetArmor
+
+	@desc
+	alias of !g:Player:Armor
+	@enddesc
+
+	@returns
+	number
+]]
 function plyMeta:GetArmor()
 	return self:Armor()
 end
 
+--[[
+	@doc
+	@fname Player:IsAlive
+
+	@desc
+	alias of !g:Player:Alive
+	@enddesc
+
+	@returns
+	boolean
+]]
 function plyMeta:IsAlive()
 	return self:Alive()
 end
 
+--[[
+	@doc
+	@fname Player:GetIsAlive
+
+	@desc
+	alias of !g:Player:Alive
+	@enddesc
+
+	@returns
+	boolean
+]]
 function plyMeta:GetIsAlive()
 	return self:Alive()
 end
 
+--[[
+	@doc
+	@fname Weapon:GetClip1
+
+	@desc
+	alias of !g:Weapon:Clip1
+	@enddesc
+
+	@returns
+	number
+]]
 function wepMeta:GetClip1()
 	return self:Clip1()
 end
 
+--[[
+	@doc
+	@fname Weapon:GetClip2
+
+	@desc
+	alias of !g:Weapon:Clip2
+	@enddesc
+
+	@returns
+	number
+]]
 function wepMeta:GetClip2()
 	return self:Clip2()
 end
 
+--[[
+	@doc
+	@fname Player:GetMaxArmor
+
+	@returns
+	number
+]]
 -- placeholder for now
 function plyMeta:GetMaxArmor()
 	return 100
@@ -199,6 +330,18 @@ if CLIENT then
 	local NULL = NULL
 	local ipairs = ipairs
 
+	--[[
+		@doc
+		@fname Vehicle:GetDriver
+
+		@desc
+		Same as !g:Vehicle:GetDriver
+		but this function is now Shared
+		@enddesc
+
+		@returns
+		Entity: or NULL
+	]]
 	function vehMeta:GetDriver()
 		return self._dlib_vehfix or NULL
 	end
@@ -224,6 +367,13 @@ if CLIENT then
 
 	hook.Add('Think', 'DLib.GetDriverFix', Think)
 
+	--[[
+		@doc
+		@fname Vehicle:GetPrintName
+
+		@returns
+		string
+	]]
 	function vehMeta:GetPrintName()
 		if self.__dlibCachedName then
 			return self.__dlibCachedName
@@ -241,6 +391,13 @@ if CLIENT then
 		return getname
 	end
 
+	--[[
+		@doc
+		@fname Vehicle:GetPrintNameDLib
+
+		@returns
+		string
+	]]
 	function entMeta:GetPrintNameDLib()
 		if self.GetPrintName then return self:GetPrintName() end
 		return self.PrintName or language.GetPhrase(self:GetClass())
@@ -277,6 +434,13 @@ else
 	local nextBot = FindMetaTable('NextBot')
 	local GetTable = entMeta.GetTable
 
+	--[[
+		@doc
+		@fname NextBot:GetActiveWeapon
+
+		@returns
+		Weapon: or self (NextBot)
+	]]
 	function nextBot:GetActiveWeapon(...)
 		local tab = GetTable(self)
 

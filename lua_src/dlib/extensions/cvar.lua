@@ -21,6 +21,18 @@
 
 local GetConVar = GetConVar
 
+--[[
+	@doc
+	@fname ConVar
+	@args vararg arguments
+
+	@desc
+	alias of !g:GetConVar
+	@enddesc
+
+	@returns
+	ConVar: returned object
+]]
 function _G.ConVar(...)
 	return GetConVar(...)
 end
@@ -30,6 +42,30 @@ local math = math
 local error = error
 local RunConsoleCommand = RunConsoleCommand
 
+--[[
+	@doc
+	@fname ConVar:GetByType
+	@args type string, vargarg arguments
+
+	@desc
+	valid types are:
+
+	`'string'`
+	`'int'`
+	`'integer'`
+	`'number'`
+	`'uint'`
+	`'uinteger'`
+	`'unumber'`
+	`'float'`
+	`'bool'`
+	`'boolean'`
+
+	@enddesc
+
+	@returns
+	any: returned value
+]]
 function ConVar:GetByType(typeIn, ...)
 	if typeIn == 'string' then
 		return self:GetString(...)

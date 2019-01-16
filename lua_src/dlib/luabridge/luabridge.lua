@@ -24,6 +24,22 @@ if CLIENT then
 	local pixelvis_handle_t = FindMetaTable('pixelvis_handle_t')
 	local util = util
 
+	--[[
+		@doc
+		@fname pixelvis_handle_t:Visible
+		@alias pixelvis_handle_t:IsVisible
+		@alias pixelvis_handle_t:PixelVisible
+		@args Vector pos, number radius
+
+		@client
+
+		@desc
+		!g:util.PixelVisible
+		@enddesc
+
+		@returns
+		number: visibility
+	]]
 	function pixelvis_handle_t:Visible(pos, rad)
 		return util.PixelVisible(pos, rad, self)
 	end
@@ -204,10 +220,21 @@ end
 
 local CSoundPatch = FindMetaTable('CSoundPatch')
 
+--[[
+	@doc
+	@fname CSoundPatch:IsValid
+
+	@returns
+	boolean: IsPlaying()
+]]
 function CSoundPatch:IsValid()
 	return self:IsPlaying()
 end
 
+--[[
+	@doc
+	@fname CSoundPatch:Remove
+]]
 function CSoundPatch:Remove()
 	return self:Stop()
 end
@@ -224,6 +251,69 @@ end
 
 debug.setmetatable(function() end, meta)
 
+--[[
+	@doc
+	@fname string.tonumber
+
+	@returns
+	number
+]]
+
+--[[
+	@doc
+	@fname string:tonumber
+
+	@returns
+	number
+]]
+
+--[[
+	@doc
+	@fname math.tonumber
+
+	@returns
+	number
+]]
+
+--[[
+	@doc
+	@fname number:tonumber
+
+	@returns
+	number
+]]
+
+--[[
+	@doc
+	@fname string.tostring
+
+	@returns
+	string
+]]
+
+--[[
+	@doc
+	@fname string:tostring
+
+	@returns
+	string
+]]
+
+--[[
+	@doc
+	@fname math.tostring
+
+	@returns
+	string
+]]
+
+--[[
+	@doc
+	@fname number:tostring
+
+	@returns
+	string
+]]
 string.tonumber = meta.tonumber
 string.tostring = meta.tostring
 
@@ -236,6 +326,10 @@ local entMeta = FindMetaTable('Entity')
 local Vector, Angle = Vector, Angle
 local LVector = LVector
 
+--[[
+	@doc
+	@fname Entity:ApplyBoneManipulations
+]]
 function entMeta:ApplyBoneManipulations()
 	self.__dlib_BoneManipCache = self.__dlib_BoneManipCache or {}
 	local __dlib_BoneManipCache = self.__dlib_BoneManipCache
@@ -264,6 +358,10 @@ function entMeta:ApplyBoneManipulations()
 	return self
 end
 
+--[[
+	@doc
+	@fname Entity:ResetBoneManipCache
+]]
 function entMeta:ResetBoneManipCache()
 	self.__dlib_BoneManipCache = self.__dlib_BoneManipCache or {}
 	local __dlib_BoneManipCache = self.__dlib_BoneManipCache
@@ -290,6 +388,33 @@ end
 local type = luatype
 local assert = assert
 
+--[[
+	@doc
+	@fname Entity:GetManipulateBoneAngles2
+	@args number bone
+
+	@deprecated
+	@desc
+	this might be fully moved to PPM/2
+	@enddesc
+
+	@returns
+	Angle
+]]
+
+--[[
+	@doc
+	@fname Entity:GetManipulateBoneAngles2Safe
+	@args number bone
+
+	@deprecated
+	@desc
+	this might be fully moved to PPM/2
+	@enddesc
+
+	@returns
+	Angle
+]]
 function entMeta:GetManipulateBoneAngles2(boneid)
 	assert(type(boneid) == 'number' and boneid >= 0, 'invalid boneid')
 	local __dlib_BoneManipCache = assert(self.__dlib_BoneManipCache, 'second tables must be initialized first')
@@ -297,6 +422,33 @@ function entMeta:GetManipulateBoneAngles2(boneid)
 	return __dlib_BoneManipCache.angles[boneid + 1]
 end
 
+--[[
+	@doc
+	@fname Entity:GetManipulateBoneJiggle2
+	@args number bone
+
+	@deprecated
+	@desc
+	this might be fully moved to PPM/2
+	@enddesc
+
+	@returns
+	number
+]]
+
+--[[
+	@doc
+	@fname Entity:GetManipulateBoneJiggle2Safe
+	@args number bone
+
+	@deprecated
+	@desc
+	this might be fully moved to PPM/2
+	@enddesc
+
+	@returns
+	number
+]]
 function entMeta:GetManipulateBoneJiggle2(boneid)
 	assert(type(boneid) == 'number' and boneid >= 0, 'invalid boneid')
 	local __dlib_BoneManipCache = assert(self.__dlib_BoneManipCache, 'second tables must be initialized first')
@@ -304,6 +456,34 @@ function entMeta:GetManipulateBoneJiggle2(boneid)
 	return __dlib_BoneManipCache.jiggle[boneid + 1]
 end
 
+
+--[[
+	@doc
+	@fname Entity:GetManipulateBonePosition2
+	@args number bone
+
+	@deprecated
+	@desc
+	this might be fully moved to PPM/2
+	@enddesc
+
+	@returns
+	LVector
+]]
+
+--[[
+	@doc
+	@fname Entity:GetManipulateBonePosition2Safe
+	@args number bone
+
+	@deprecated
+	@desc
+	this might be fully moved to PPM/2
+	@enddesc
+
+	@returns
+	LVector
+]]
 function entMeta:GetManipulateBonePosition2(boneid)
 	assert(type(boneid) == 'number' and boneid >= 0, 'invalid boneid')
 	local __dlib_BoneManipCache = assert(self.__dlib_BoneManipCache, 'second tables must be initialized first')
@@ -311,6 +491,33 @@ function entMeta:GetManipulateBonePosition2(boneid)
 	return __dlib_BoneManipCache.scale[boneid + 1]
 end
 
+--[[
+	@doc
+	@fname Entity:GetManipulateBoneScale2
+	@args number bone
+
+	@deprecated
+	@desc
+	this might be fully moved to PPM/2
+	@enddesc
+
+	@returns
+	LVector
+]]
+
+--[[
+	@doc
+	@fname Entity:GetManipulateBoneScale2Safe
+	@args number bone
+
+	@deprecated
+	@desc
+	this might be fully moved to PPM/2
+	@enddesc
+
+	@returns
+	LVector
+]]
 function entMeta:GetManipulateBoneScale2(boneid)
 	assert(type(boneid) == 'number' and boneid >= 0, 'invalid boneid')
 	local __dlib_BoneManipCache = assert(self.__dlib_BoneManipCache, 'second tables must be initialized first')
@@ -318,6 +525,34 @@ function entMeta:GetManipulateBoneScale2(boneid)
 	return __dlib_BoneManipCache.scale[boneid + 1]
 end
 
+
+--[[
+	@doc
+	@fname Entity:ManipulateBoneAngles2
+	@args number bone, Angle value
+
+	@deprecated
+	@desc
+	this might be fully moved to PPM/2
+	@enddesc
+
+	@returns
+	Entity: self
+]]
+
+--[[
+	@doc
+	@fname Entity:ManipulateBoneAngles2Safe
+	@args number bone, Angle value
+
+	@deprecated
+	@desc
+	this might be fully moved to PPM/2
+	@enddesc
+
+	@returns
+	Entity: self
+]]
 function entMeta:ManipulateBoneAngles2(boneid, value)
 	assert(type(boneid) == 'number' and boneid >= 0, 'invalid boneid')
 	assert(type(value) == 'Angle', 'invalid angles')
@@ -325,6 +560,33 @@ function entMeta:ManipulateBoneAngles2(boneid, value)
 	return self
 end
 
+--[[
+	@doc
+	@fname Entity:ManipulateBoneJiggle2
+	@args number bone, number value
+
+	@deprecated
+	@desc
+	this might be fully moved to PPM/2
+	@enddesc
+
+	@returns
+	Entity: self
+]]
+
+--[[
+	@doc
+	@fname Entity:ManipulateBoneJiggle2Safe
+	@args number bone, number value
+
+	@deprecated
+	@desc
+	this might be fully moved to PPM/2
+	@enddesc
+
+	@returns
+	Entity: self
+]]
 function entMeta:ManipulateBoneJiggle2(boneid, value)
 	assert(type(boneid) == 'number' and boneid >= 0, 'invalid boneid')
 	assert(type(value) == 'number', 'invalid angles')
@@ -332,6 +594,33 @@ function entMeta:ManipulateBoneJiggle2(boneid, value)
 	return self
 end
 
+--[[
+	@doc
+	@fname Entity:ManipulateBonePosition2
+	@args number bone, LVector value
+
+	@deprecated
+	@desc
+	this might be fully moved to PPM/2
+	@enddesc
+
+	@returns
+	Entity: self
+]]
+
+--[[
+	@doc
+	@fname Entity:ManipulateBonePosition2Safe
+	@args number bone, LVector value
+
+	@deprecated
+	@desc
+	this might be fully moved to PPM/2
+	@enddesc
+
+	@returns
+	Entity: self
+]]
 function entMeta:ManipulateBonePosition2(boneid, value)
 	assert(type(boneid) == 'number' and boneid >= 0, 'invalid boneid')
 	assert(type(value) == 'Vector' or type(value) == 'LVector', 'invalid position')
@@ -339,6 +628,33 @@ function entMeta:ManipulateBonePosition2(boneid, value)
 	return self
 end
 
+--[[
+	@doc
+	@fname Entity:ManipulateBoneScale2
+	@args number bone, LVector value
+
+	@deprecated
+	@desc
+	this might be fully moved to PPM/2
+	@enddesc
+
+	@returns
+	Entity: self
+]]
+
+--[[
+	@doc
+	@fname Entity:ManipulateBoneScale2Safe
+	@args number bone, LVector value
+
+	@deprecated
+	@desc
+	this might be fully moved to PPM/2
+	@enddesc
+
+	@returns
+	Entity: self
+]]
 function entMeta:ManipulateBoneScale2(boneid, value)
 	assert(type(boneid) == 'number' and boneid >= 0, 'invalid boneid')
 	assert(type(value) == 'Vector' or type(value) == 'LVector', 'invalid scale')

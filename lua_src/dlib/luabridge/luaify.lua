@@ -27,6 +27,33 @@ if SERVER then
 	return
 end
 
+--[[
+	@docpreprocess
+
+	const vars = [
+		'FrameNumber',
+		'RealTime',
+		'CurTime',
+		'ScrW',
+		'ScrH',
+	]
+
+	const output = []
+
+	for (const str of vars) {
+		const output2 = []
+		output2.push(`@fname ${str}L`)
+		output2.push(`@desc`)
+		output2.push(`alias of !g:${str} but JIT compilable`)
+		output2.push(`@enddesc`)
+		output2.push(`@returns`)
+		output2.push(`number`)
+		output.push(output2)
+	}
+
+	return output
+]]
+
 local DLib = DLib
 _G.FrameNumberC = FrameNumberC or FrameNumber
 _G.RealTimeC = RealTimeC or RealTime

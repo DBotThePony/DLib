@@ -27,14 +27,52 @@ local select = select
 local math = math
 local table = table
 
+--[[
+	@doc
+	@fname string.formatname
+	@args string self
+
+	@desc
+	first character is uppecased
+	@enddesc
+
+	@returns
+	string
+]]
 function gstring.formatname(self)
 	return self:sub(1, 1):upper() .. self:sub(2)
 end
 
+--[[
+	@doc
+	@fname string.formatname2
+	@args string self
+
+	@desc
+	first character is uppecased, `_` are replaced with spaces
+	@enddesc
+
+	@returns
+	string
+]]
 function gstring.formatname2(self)
 	return self:sub(1, 1):upper() .. self:sub(2):replace('_', ' ')
 end
 
+--[[
+	@doc
+	@fname DLib.string.tformat
+	@args number time
+
+	@deprecated
+
+	@desc
+	use DLib.i18n.tformat
+	@enddesc
+
+	@returns
+	string: formatted time
+]]
 function string.tformat(time)
 	if time > 0xFFFFFFFFF then
 		return 'Way too long'
@@ -89,6 +127,14 @@ function string.tformat(time)
 	return str
 end
 
+--[[
+	@doc
+	@fname DLib.string.qdate
+	@args number time
+
+	@returns
+	string: quick formatted os.date (European format)
+]]
 function string.qdate(time)
 	return os.date('%H:%M:%S - %d/%m/%Y', time)
 end
@@ -96,6 +142,14 @@ end
 string.HU_IN_M = 40
 string.HU_IN_CM = string.HU_IN_M / 100
 
+--[[
+	@doc
+	@fname DLib.string.ddistance
+	@args number z, boolean newline, number fromZ
+
+	@returns
+	string: unlocalized Z difference
+]]
 function string.ddistance(z, newline, from)
 	if newline == nil then
 		newline = true
@@ -128,10 +182,26 @@ function string.ddistance(z, newline, from)
 	return ''
 end
 
+--[[
+	@doc
+	@fname DLib.string.fdistance
+	@args number distanceInHammerUnits
+
+	@returns
+	string: formatted metres
+]]
 function string.fdistance(m)
 	return string.format('%.1fm', m / string.HU_IN_M)
 end
 
+--[[
+	@doc
+	@fname DLib.string.niceName
+	@args Entity ent
+
+	@returns
+	string
+]]
 function string.niceName(ent)
 	if not IsValid(ent) then return '' end
 	if ent.Nick then return ent:Nick() end
@@ -140,18 +210,56 @@ function string.niceName(ent)
 	return ent:GetClass()
 end
 
+--[[
+	@doc
+	@fname string.split
+	@args string self, string separator, vararg arguments
+
+	@desc
+	flip of !g:string.Explode
+	@enddesc
+
+	@returns
+	table: of strings
+]]
 function string.split(stringIn, explodeIn, ...)
 	return string.Explode(explodeIn, stringIn, ...)
 end
 
 -- fuck https://github.com/Facepunch/garrysmod/pull/1176
 string.StartsWith = string.StartWith
+
+
+--[[
+	@doc
+	@fname string.StartsWith
+	@args string self, string check
+
+	@desc
+	[alias](https://github.com/Facepunch/garrysmod/pull/1176) of !g:string.StartWith
+	@enddesc
+
+	@returns
+	boolean
+]]
 gstring.StartsWith = gstring.StartWith
 
 for k, v in pairs(gstring) do
 	gstring[k:sub(1, 1):lower() .. k:sub(2)] = v
 end
 
+--[[
+	@doc
+	@fname DLib.string.bchar
+	@args vararg bytes
+
+	@desc
+	allows to bypass bytes limit of bytes-per-call of !g:string.char transparently
+	@enddesc
+
+	@returns
+	string
+]]
 function string.bchar(...)
 	local bytes = select('#', ...)
 
@@ -175,6 +283,18 @@ function string.bchar(...)
 	return output
 end
 
+--[[
+	@doc
+	@fname DLib.string.bcharTable
+	@args table bytes
+
+	@desc
+	allows to bypass bytes limit of bytes-per-call of !g:string.char transparently
+	@enddesc
+
+	@returns
+	string
+]]
 function string.bcharTable(input)
 	local bytes = #input
 	if bytes == 0 then return '' end
@@ -208,6 +328,18 @@ function string.bcharTable(input)
 	return output
 end
 
+--[[
+	@doc
+	@fname DLib.string.bbyte
+	@args string self, number sliceAt, number sliceEnd
+
+	@desc
+	allows to bypass bytes limit of bytes-per-call of !g:string.byte transparently
+	@enddesc
+
+	@returns
+	table: of bytes
+]]
 function string.bbyte(strIn, sliceStart, sliceEnd)
 	local strLen = #strIn
 	local delta = sliceEnd - sliceStart

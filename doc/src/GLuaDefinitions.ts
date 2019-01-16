@@ -85,7 +85,7 @@ class LuaArgument {
 	}
 
 	buildReturns() {
-		const description = this.description || '*No description of variable is avaliable*'
+		const description = this.description || '*-snip-*'
 
 		if (this.name) {
 			return `${this.num || ''} [${this.type}](${this.getLink()}): ${this.name}\x20\x20
@@ -137,7 +137,7 @@ class LuaArguments {
 
 	buildReturns() {
 		if (this.args.length == 0) {
-			return `*void*`
+			return `\u200B\xA0\xA0\xA0\xA0\xA0\xA0\xA0\xA0*void*`
 		}
 
 		const list = []

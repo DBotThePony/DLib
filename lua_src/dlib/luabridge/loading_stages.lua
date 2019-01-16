@@ -25,10 +25,24 @@ local CurTime = CurTime
 local init_post_entity = CurTime() > 60
 local initialize = CurTime() > 60
 
+--[[
+	@doc
+	@fname AreEntitiesAvaliable
+
+	@returns
+	boolean
+]]
 function _G.AreEntitiesAvaliable()
 	return init_post_entity
 end
 
+--[[
+	@doc
+	@fname IsGamemodeAvaliable
+
+	@returns
+	boolean
+]]
 function _G.IsGamemodeAvaliable()
 	return initialize
 end

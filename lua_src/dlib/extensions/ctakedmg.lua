@@ -60,6 +60,13 @@ for i, dmg in ipairs(damageTypes) do
 	end
 end
 
+--[[
+	@doc
+	@fname CTakeDamageInfo:TypesArray
+
+	@returns
+	table: array of DMG_ numbers
+]]
 function meta:TypesArray()
 	local output = {}
 	local types = self:GetDamageType()
@@ -73,6 +80,21 @@ function meta:TypesArray()
 	return output
 end
 
+--[[
+	@doc
+	@fname CTakeDamageInfo:Copy
+	@args CTakeDamageInfo copyFrom
+
+	@deprecated
+
+	@desc
+	This has no positive effects due to how gmod work
+	also it can accept a table that implements CTakeDamageInfo methods
+	@enddesc
+
+	@returns
+	CTakeDamageInfo: Most likely the same object
+]]
 function meta:Copy(copyDataInto)
 	local a = self:GetAttacker()
 	local b = self:GetInflictor()
@@ -93,6 +115,21 @@ function meta:Copy(copyDataInto)
 	return copyDataInto
 end
 
+--[[
+	@doc
+	@fname CTakeDamageInfo:Receive
+	@args CTakeDamageInfo from
+
+	@deprecated
+
+	@desc
+	This has no positive effects due to how gmod work
+	also it can accept a table that implements CTakeDamageInfo methods
+	@enddesc
+
+	@returns
+	CTakeDamageInfo: self
+]]
 function meta:Receive(from)
 	self:SetAttacker(from:GetAttacker())
 	self:SetInflictor(from:GetInflictor())

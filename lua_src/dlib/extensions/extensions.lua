@@ -68,34 +68,89 @@ function PhysObj:EnableCollisions(newStatus)
 	return self:DLibEnableCollisions(newStatus)
 end
 
+--[[
+	@doc
+	@fname Vector:Copy
+
+	@desc
+	Same as doing `Vector(self)`
+	@enddesc
+
+	@returns
+	Vector
+]]
 function vectorMeta:Copy()
 	return Vector(self)
 end
 
+--[[
+	@doc
+	@fname Vector:__call
+
+	@returns
+	Vector: copy
+]]
 function vectorMeta:__call()
 	return Vector(self)
 end
 
+--[[
+	@doc
+	@fname Vector:ToNative
+
+	@returns
+	Vector: self
+]]
 function vectorMeta:ToNative()
 	return self
 end
 
+--[[
+	@doc
+	@fname Vector:IsNormalized
+
+	@returns
+	boolean
+]]
 function vectorMeta:IsNormalized()
 	return self.x <= 1 and self.y <= 1 and self.z <= 1 and self.x >= -1 and self.y >= -1 and self.z >= -1
 end
 
+--[[
+	@doc
+	@fname Vector:Receive
+	@args Vector from
+
+	@returns
+	Vector: self
+]]
 function vectorMeta:Receive(target)
 	local x, y, z = target.x, target.y, target.z
 	self.x, self.y, self.z = x, y, z
 	return self
 end
 
+--[[
+	@doc
+	@fname Vector:RotateAroundAxis
+	@args Vector axis, number rotation
+
+	@returns
+	Vector: self
+]]
 function vectorMeta:RotateAroundAxis(axis, rotation)
 	local ang = self:Angle()
 	ang:RotateAroundAxis(axis, rotation)
 	return self:Receive(ang:Forward() * self:Length())
 end
 
+--[[
+	@doc
+	@fname Vector:ToColor
+
+	@returns
+	Color
+]]
 function vectorMeta:ToColor()
 	return Color(self.x * 255, self.y * 255, self.z * 255)
 end
@@ -337,6 +392,16 @@ end
 
 local plyMeta = FindMetaTable('Player')
 
+--[[
+	@doc
+	@fname Player:LimitHit
+
+	@desc
+	This function no longer produce limit hit message when called clientside
+	this function is internal and is used by gmod itself
+	but the override allows you to put !g:Player:CheckLimit in shared code of toolguns
+	@enddesc
+]]
 function plyMeta:LimitHit(limit)
 	-- we call CheckLimit() on client just for prediction
 	-- so when we actually hit limit - it can produce two messages because client will also try to

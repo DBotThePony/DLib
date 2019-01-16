@@ -30,6 +30,15 @@ local debug = debug
 -- nope, nu stack object, because util.Stack() sux
 local stack = {}
 
+--[[
+	@doc
+	@fname render.PushScissorRect
+	@args number x, number y, number xEnd, number yEnd
+
+	@desc
+	stack based version of !g:render.SetScissorRect
+	@enddesc
+]]
 function render.PushScissorRect(x, y, xEnd, yEnd)
 	x = assert(type(x) == 'number' and x, 'x must be a number!')
 	y = assert(type(y) == 'number' and y, 'y must be a number!')
@@ -53,6 +62,14 @@ function render.PushScissorRect(x, y, xEnd, yEnd)
 	render.SetScissorRect(x, y, xEnd, yEnd, true)
 end
 
+--[[
+	@doc
+	@fname render.PopScissorRect
+
+	@desc
+	stack based version of !g:render.SetScissorRect
+	@enddesc
+]]
 function render.PopScissorRect()
 	if #stack == 0 then
 		render.SetScissorRect(0, 0, 0, 0, false)

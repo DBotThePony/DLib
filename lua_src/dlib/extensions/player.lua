@@ -76,12 +76,29 @@ end
 
 local plyMeta = FindMetaTable('Player')
 
+
+--[[
+	@doc
+	@fname Player:GetInfoInt
+	@args string convar, number ifNone
+
+	@returns
+	number
+]]
 function plyMeta:GetInfoInt(convar, ifNone)
 	ifNone = ifNone or 0
 	local info = self:GetInfoDLib(convar)
 	return math.floor(tonumber(info or ifNone) or ifNone)
 end
 
+--[[
+	@doc
+	@fname Player:GetInfoFloat
+	@args string convar, number ifNone
+
+	@returns
+	number
+]]
 function plyMeta:GetInfoFloat(convar, ifNone)
 	ifNone = ifNone or 0
 	local info = self:GetInfoDLib(convar)
@@ -91,6 +108,13 @@ end
 local LocalPlayer = LocalPlayer
 local SERVER = SERVER
 
+--[[
+	@doc
+	@fname Player:EyeAnglesFixed
+
+	@returns
+	Angle: fixed eye angles
+]]
 function plyMeta:EyeAnglesFixed()
 	if SERVER or self ~= LocalPlayer() then
 		return self:EyeAngles()
@@ -103,6 +127,14 @@ function plyMeta:EyeAnglesFixed()
 	return self:GetVehicle():GetAngles() + self:EyeAngles()
 end
 
+--[[
+	@doc
+	@fname Player:GetInfoBool
+	@args string convar, boolean ifNone
+
+	@returns
+	boolean
+]]
 function plyMeta:GetInfoBool(convar, ifNone)
 	if ifNone == nil then ifNone = false end
 	local info = self:GetInfoDLib(convar)
@@ -127,6 +159,14 @@ function plyMeta:GetInfoBool(convar, ifNone)
 	return num ~= 0
 end
 
+--[[
+	@doc
+	@fname Player:GetInfoString
+	@args string convar, string ifNone
+
+	@returns
+	string
+]]
 -- differents from GetInfo only by 100% returning string
 function plyMeta:GetInfoString(convar, ifNone)
 	ifNone = ifNone or ''
