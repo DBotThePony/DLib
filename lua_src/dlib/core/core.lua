@@ -24,6 +24,14 @@ local meta = debug.getmetatable(1) or {}
 local math = math
 meta.MetaName = 'number'
 
+--[[
+	@doc
+	@fname number:__index
+	@args any key
+
+	@returns
+	function: associated function in math or bit table
+]]
 function meta:__index(key)
 	return meta[key] or math[key] or bit[key]
 end

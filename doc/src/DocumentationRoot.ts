@@ -21,9 +21,11 @@ import { LuaArgument } from './GLuaDefinitions';
 
 import fs = require('fs')
 import {mkdir} from './Util'
+import { GLuaClassExtension } from './GLuaClassExt';
 
 class DocumentationRoot {
 	libraries = new Map<string, GLuaLibrary>()
+	classes = new Map<string, GLuaClassExtension>()
 	globals = new Map<string, GLuaEntryBase>()
 
 	constructor() {
@@ -34,12 +36,17 @@ class DocumentationRoot {
 		const index = this.generateIndex()
 		mkdir(outputDir)
 		mkdir(outputDir + '/sub')
+		mkdir(outputDir + '/classes')
 		mkdir(outputDir + '/functions')
 
 		fs.writeFileSync(outputDir + '/index.md', index, {encoding: 'utf8'})
 
 		for (const [name, library] of this.libraries) {
 			library.generateFiles(outputDir + '/sub/' + name)
+		}
+
+		for (const [name, classext] of this.classes) {
+			classext.generateFiles(outputDir + '/classes/' + name)
 		}
 
 		for (const [name, globalvar] of this.globals) {
@@ -51,10 +58,15 @@ class DocumentationRoot {
 
 	generateIndex() {
 		const libs = []
+		const classes = []
 		const globals = []
 
 		for (const [name, library] of this.libraries) {
 			libs.push(`* [${library.name}](./sub/${name}/index.md)`)
+		}
+
+		for (const [name, classext] of this.classes) {
+			classes.push(`* [${classext.name}](./classes/${name}/index.md)`)
 		}
 
 		for (const [name, globalvar] of this.globals) {
@@ -70,6 +82,8 @@ You can find many things outta here.
 ----------------------------
 ## Libraries
 ${libs.join('  \n')}
+## Class extensions
+${classes.join('  \n')}
 ## Global Functions
 ${globals.join('  \n')}`
 	}
@@ -80,6 +94,14 @@ ${globals.join('  \n')}`
 		}
 
 		return this.libraries.get(name)!
+	}
+
+	getClassExt(name: string) {
+		if (!this.classes.has(name)) {
+			this.classes.set(name, new GLuaClassExtension(name))
+		}
+
+		return this.classes.get(name)!
 	}
 
 	add(annotation: AnnotationCommentary) {
@@ -98,7 +120,9 @@ ${globals.join('  \n')}`
 				func.returns.push((new LuaArgument(arg.type, arg.name, arg.description)).setNumber(argnum))
 			}
 
-			if (annotation.library == null) {
+			if (annotation.namespace != null) {
+				this.getClassExt(annotation.namespace).add(func)
+			} if (annotation.library == null) {
 				this.globals.set(annotation.funcname!, func)
 			} else if (typeof annotation.library == 'string') {
 				this.getLibrary(annotation.library).add(func)

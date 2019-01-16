@@ -15,9 +15,10 @@
 
 import { GLuaLibrary } from "./GLuaLibrary";
 import fs = require('fs')
+import { GLuaClassExtension } from "./GLuaClassExt";
 
 class GLuaEntryBase {
-	library: GLuaLibrary | null = null
+	library: GLuaLibrary | GLuaClassExtension | null = null
 	notes: string[] = []
 	warnings: string[] = []
 	disclaimers: string[] = []

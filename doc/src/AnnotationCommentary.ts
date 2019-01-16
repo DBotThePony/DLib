@@ -30,6 +30,7 @@ class AnnotationCommentary {
 	isEnum = false
 	isType = false
 	isDeprecated = false
+	isInNameSpace = false
 
 	path: string | null = null
 	aliases: string[] = []
@@ -40,6 +41,7 @@ class AnnotationCommentary {
 	description = '*Tumbleweed rolls*'
 
 	library: string | string[] | null = null
+	namespace: string | null = null
 	funcname: string | null = null
 
 	argumentsParsed: CommentaryArgument[] = []
@@ -164,31 +166,29 @@ class AnnotationCommentary {
 			}
 		}
 
-		{
-			for (const line of this.returns) {
-				const trim = line.trim()
-				const divide = trim.split(':')
+		for (const line of this.returns) {
+			const trim = line.trim()
+			const divide = trim.split(':')
 
-				if (divide[0] && divide[1]) {
-					const name = divide[0].match(/\[([^]])+$\]/)
+			if (divide[0] && divide[1]) {
+				const name = divide[0].match(/\[([^]])+$\]/)
 
-					if (name) {
-						this.returnsParsed.push({
-							'type': divide[0],
-							'description': divide[1],
-							'name': name[1]
-						})
-					} else {
-						this.returnsParsed.push({
-							'type': divide[0],
-							'description': divide[1]
-						})
-					}
+				if (name) {
+					this.returnsParsed.push({
+						'type': divide[0],
+						'description': divide[1],
+						'name': name[1]
+					})
 				} else {
 					this.returnsParsed.push({
-						type: divide[0]
+						'type': divide[0],
+						'description': divide[1]
 					})
 				}
+			} else {
+				this.returnsParsed.push({
+					type: divide[0]
+				})
 			}
 		}
 
@@ -200,7 +200,22 @@ class AnnotationCommentary {
 			const split = this.path.split('.')
 
 			if (split.length == 1) {
-				this.funcname = this.path
+				const split = this.path.split(':')
+
+				if (split.length == 1) {
+					this.funcname = this.path
+				} else {
+					if (split.length != 2) {
+						console.error('Malformed function name: ' + this.path)
+						console.error('(invalid amount of dots!)')
+						console.warn('...in ' + source)
+						console.warn()
+					} else {
+						this.isInNameSpace = true
+						this.namespace = split[0]
+						this.funcname = split[1]
+					}
+				}
 			} else if (split.length == 2) {
 				this.library = split[0]
 				this.funcname = split[1]
