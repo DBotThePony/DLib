@@ -34,6 +34,20 @@ meta.__index = meta
 
 local promises = {}
 
+--[[
+	@doc
+	@fname DLib.Promise
+	@args function handler
+
+	@desc
+	Same as [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) but:
+	use `Promise:Catch(function)` and
+	`Promise:Then(function)`
+	@enddesc
+
+	@returns
+	Promise: created promise
+]]
 local function constructor(handler)
 	if type(handler) ~= 'function' then
 		error('Promise handler were not provided; got ' .. type(handler))

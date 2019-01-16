@@ -29,6 +29,25 @@ local meta = debug.getmetatable(function() end) or {}
 
 meta.MetaName = 'function'
 
+--[[
+	@doc
+	@fname function:__index
+	@args any key
+
+	@returns
+	any: associated value (probably a function) in funclib
+]]
+
+--[[
+	@doc
+	@fname nil:__index
+	@args any key
+
+	@desc
+	function throws an error at all times upon call
+	nil seems to have the same metatable as function
+	@enddesc
+]]
 function meta:__index(key)
 	if rawequal(self, nil) then
 		local i = 1
@@ -106,6 +125,13 @@ meta.__concat = genError('attempt to concat a %s value')
 meta.__lt = genError('attempt to compare (<) a %s value(s)')
 meta.__le = genError('attempt to compare (<=) a %s value(s)')
 
+--[[
+	@doc
+	@fname function:IsValid
+
+	@returns
+	boolean: false
+]]
 function meta:IsValid()
 	return false
 end
@@ -118,6 +144,18 @@ local table = table
 -- Falco's FN Lib implementation
 -- in a greater™ way
 
+--[[
+	@doc
+	@fname function:SingleWrap
+	@args vararg prepend
+
+	@desc
+	makes a function which on call calls `self` with `prepend` arguments unpacked
+	@enddesc
+
+	@returns
+	function: a function to call
+]]
 function fnlib:SingleWrap(...)
 	local args = {...}
 
@@ -126,6 +164,21 @@ function fnlib:SingleWrap(...)
 	end
 end
 
+--[[
+	@doc
+	@fname function:Wrap
+	@args vararg prepend
+	@alias function:fp
+	@alias function:Partial
+
+	@desc
+	makes a function which on call calls `self` with `prepend` arguments unpacked,
+	and passing extra arguments passed to packer on call
+	@enddesc
+
+	@returns
+	function: a function to call
+]]
 function fnlib:Wrap(...)
 	local args = {...}
 
@@ -140,6 +193,18 @@ end
 fnlib.fp = fnlib.Wrap
 fnlib.Partial = fnlib.Wrap
 
+--[[
+	@doc
+	@fname function:FlipFull
+	@args vararg prepend
+
+	@desc
+	packs `self` and on call of returned function flips order of passed arguments
+	@enddesc
+
+	@returns
+	function: a function to call
+]]
 function fnlib:FlipFull(...)
 	local args = {...}
 
@@ -150,12 +215,32 @@ function fnlib:FlipFull(...)
 	end
 end
 
+--[[
+	@doc
+	@fname function:Flip
+
+	@desc
+	packs a function and flips it's first two arguments (further are untouched)
+	@enddesc
+
+	@returns
+	function: a function to call
+]]
 function fnlib:Flip()
 	return function(a, b, ...)
 		return self(b, a, ...)
 	end
 end
 
+--[[
+	@doc
+	@fname function:Id
+	@args vararg arguments
+
+	@returns
+	function: self
+	vararg: arguments
+]]
 function fnlib:Id(...)
 	return self, ...
 end
@@ -176,6 +261,20 @@ local function Compose(currentFunc, nextFunc, ...)
 	end
 end
 
+
+--[[
+	@doc
+	@fname function:Compose
+	@args function tableOfOrList
+	@alias function:fc
+
+	@desc
+	packs all functions to be called in chain. `func1:Compose(func2, func3, func4) -> func1(func2(func3(func4(arguments passed))))`
+	@enddesc
+
+	@returns
+	function: a function to call
+]]
 function fnlib:Compose(funcList, ...)
 	if type(funcList) == 'table' then
 		return Compose(self, unpack(funcList))
@@ -186,10 +285,27 @@ end
 
 fnlib.fc = fnlib.Compose
 
+
+--[[
+	@doc
+	@fname function:ReverseArgs
+	@args vararg arguments
+
+	@returns
+	vararg: flipped arguments list. same as `unpack(table.flip({...}))`
+]]
 function fnlib:ReverseArgs(...)
 	return unpack(table.flip({...}))
 end
 
+--[[
+	@doc
+	@fname function:Apply
+	@args vararg arguments
+
+	@returns
+	function: a function to call
+]]
 function fnlib:Apply(...)
 	return self(...)
 end

@@ -36,6 +36,18 @@ local function getmeta(meta)
 	return meta.MetaName
 end
 
+--[[
+	@doc
+	@fname luatype
+	@args any value
+
+	@desc
+	same as !g:type but returns proper types for custom defined types using `.MetaName` property in metatable
+	@enddesc
+
+	@returns
+	string: type
+]]
 local function luatype(var)
 	if rawequal(var, nil) then
 		return 'nil'
@@ -98,6 +110,21 @@ function strmeta:IsValid()
 	return false
 end
 
+--[[
+	@doc
+	@fname string.IsValid
+
+	@returns
+	boolean: false
+]]
+
+--[[
+	@doc
+	@fname string:IsValid
+
+	@returns
+	boolean: false
+]]
 function string:IsValid()
 	return false
 end

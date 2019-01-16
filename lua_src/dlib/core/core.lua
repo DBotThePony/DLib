@@ -64,16 +64,21 @@ debug.setmetatable(1, meta)
 --[[
 	@doc
 	@fname net.pool
+	@args string netname
 
 	@desc
 	alias of !g:util.AddNetworkString
 	@enddesc
+
+	@returns
+	number: created net ID
 ]]
 net.pool = util.AddNetworkString
 
 --[[
 	@doc
 	@fname net.receive
+	@args string netname, function handler
 
 	@desc
 	alias of !g:net.Receive
@@ -84,6 +89,7 @@ net.receive = net.Receive
 --[[
 	@doc
 	@fname file.mkdir
+	@args string dirname
 
 	@desc
 	alias of !g:file.CreateDir

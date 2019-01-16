@@ -57,7 +57,7 @@ class GLuaClassExtension {
 
 		return `# DLib documentation
 ## ${this.name}
-[../index.md](Go up)
+[Go up](../index.md)
 ### Methods
 ${funcs.join('  \n')}`
 	}

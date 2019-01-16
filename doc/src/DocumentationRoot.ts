@@ -122,7 +122,7 @@ ${globals.join('  \n')}`
 
 			if (annotation.namespace != null) {
 				this.getClassExt(annotation.namespace).add(func)
-			} if (annotation.library == null) {
+			} else if (annotation.library == null) {
 				this.globals.set(annotation.funcname!, func)
 			} else if (typeof annotation.library == 'string') {
 				this.getLibrary(annotation.library).add(func)

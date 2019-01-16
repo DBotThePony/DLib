@@ -41,12 +41,13 @@ if (filesToParse.length == 0) {
 	process.exit(0)
 }
 
-const findCommentaries = /--\[\[[^\]]*\]{2}/gm
+const findCommentaries = /--\[\[([\s\S]+?)\]\]/gm
 const annotations = []
 
 for (const file of filesToParse) {
 	const read = fs.readFileSync(file, {encoding: 'utf8'})
 	const match = read.match(findCommentaries)
+	console.log(file, match != null)
 
 	if (match) {
 		//console.log(match)

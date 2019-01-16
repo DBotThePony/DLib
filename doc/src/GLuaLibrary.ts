@@ -80,7 +80,7 @@ class GLuaLibrary {
 
 		return `# DLib documentation
 ## ${this.name}
-[../index.md](Go up)
+[Go up](../../index.md)
 ### Sub-libraries
 ${sublibs.join('  \n')}
 ### Functions/Methods
