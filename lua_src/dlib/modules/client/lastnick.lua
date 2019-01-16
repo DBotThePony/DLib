@@ -32,6 +32,16 @@ sql.Query([[
 	)
 ]])
 
+--[[
+	@doc
+	@fname DLib.LastNick
+	@args string steamid
+
+	@client
+
+	@returns
+	any: string or boolean (if not exists)
+]]
 function DLib.LastNick(steamid)
 	local ply = player.GetBySteamID(steamid)
 
@@ -45,6 +55,16 @@ function DLib.LastNick(steamid)
 	return data[1].lastnick, data[1].lastname
 end
 
+--[[
+	@doc
+	@fname DLib.LastNickFormatted
+	@args string steamid
+
+	@client
+
+	@returns
+	string
+]]
 function DLib.LastNickFormatted(steamid)
 	local nick, name = DLib.LastNick(steamid)
 	if not nick then return 'Unknown Pone #' .. util.CRC(steamid):sub(1, 4) end
@@ -56,6 +76,22 @@ function DLib.LastNickFormatted(steamid)
 	end
 end
 
+--[[
+	@doc
+	@fname DLib.UpdateLastNick
+	@args string steamid, string nick, string lastname
+
+	@desc
+	lastname is SteamName, nick is nickname in general
+	they are the same if current gamemode does not separate those conceptions
+	(DarkRP do separate for example)
+	@enddesc
+
+	@internal
+
+	@returns
+	string
+]]
 function DLib.UpdateLastNick(steamid, nick, lastname)
 	lastname = lastname or nick
 	steamid = SQLStr(steamid)
@@ -69,6 +105,12 @@ function DLib.UpdateLastNick(steamid, nick, lastname)
 	end
 end
 
+--[[
+	@doc
+	@fname DLib.UpdateLastNicks
+
+	@internal
+]]
 function DLib.UpdateLastNicks()
 	sql.Query('BEGIN')
 

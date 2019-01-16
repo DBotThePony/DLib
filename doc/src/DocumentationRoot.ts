@@ -14,7 +14,7 @@
 // limitations under the License.
 
 import {GLuaLibrary} from './GLuaLibrary'
-import {GLuaEntryBase} from './GLuaEntryBase'
+import {GLuaEntryBase, GLuaRealm} from './GLuaEntryBase'
 import { AnnotationCommentary } from './AnnotationCommentary';
 import { GLuaFunction } from './GLuaFunction';
 import { LuaArgument } from './GLuaDefinitions';
@@ -108,6 +108,8 @@ ${globals.join('  \n')}`
 		if (annotation.isFunction) {
 			const func = new GLuaFunction(annotation.funcname!, annotation.funcname!, annotation.description)
 			func.deprecated = annotation.isDeprecated
+			func.internal = annotation.isInternal
+			func.realm = annotation.isShared ? GLuaRealm.SHARED : annotation.isClientside ? GLuaRealm.CLIENT : GLuaRealm.SERVER
 
 			for (const arg of annotation.argumentsParsed) {
 				func.args.push(new LuaArgument(arg.type, arg.name, undefined, arg.default))

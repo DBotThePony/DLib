@@ -17,13 +17,21 @@ import { GLuaLibrary } from "./GLuaLibrary";
 import fs = require('fs')
 import { GLuaClassExtension } from "./GLuaClassExt";
 
+enum GLuaRealm {
+	CLIENT, SERVER, SHARED
+}
+
+export {GLuaRealm}
+
 class GLuaEntryBase {
 	library: GLuaLibrary | GLuaClassExtension | null = null
 	notes: string[] = []
 	warnings: string[] = []
 	disclaimers: string[] = []
+	realm = GLuaRealm.SHARED
 
 	deprecated = false
+	internal = false
 	avoid = false
 	override = false
 	buggy = false
@@ -72,6 +80,26 @@ class GLuaEntryBase {
 		}
 
 		return lines.join('  \n')
+	}
+
+	generateDeprecated() {
+		return this.deprecated && '\n**DEPRECATED: This funciton is either deprecated in DLib or GMod itself (if acceptable). Please avoid usage of this.**' || ''
+	}
+
+	generateInternal() {
+		return this.internal && '\n**INTERNAL: This function/method/property exists\nYou may be able call or use it.\nBut you don\'t have to!\nno, really.**' || ''
+	}
+
+	generateRealm() {
+		if (this.realm == GLuaRealm.SHARED) {
+			return ''
+		}
+
+		if (this.realm == GLuaRealm.CLIENT) {
+			return '\nThis function/method/property is available only on **CLIENT** realm!\n'
+		}
+
+		return '\nThis function/method/property is available only on **SERVER** realm!\n'
 	}
 
 	addNote(note: string) {

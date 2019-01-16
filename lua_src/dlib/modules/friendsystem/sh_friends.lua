@@ -28,6 +28,19 @@ friends.typesCache = friends.typesCache or {}
 friends.typesCacheUID = friends.typesCacheUID or {}
 friends.typesCacheCRC = friends.typesCacheCRC or {}
 
+--[[
+	@doc
+	@fname DLib.friends.Register
+	@args string statusID, string statusName, boolean defaultValue = true
+
+	@desc
+	statusID is internal ID you would use
+	statusName is friendly name that player would use
+	(it can be a DLib i18n string)
+	defaultValue is status of this friend relationship for newly created friends
+	or for steam friends
+	@enddesc
+]]
 function friends.Register(statusID, statusName, defaultValue)
 	assert(type(statusID) == 'string', 'Invalid status id were provided. typeof ' .. type(statusID))
 
@@ -60,10 +73,29 @@ function friends.Register(statusID, statusName, defaultValue)
 	data.def = defaultValue
 end
 
+--[[
+	@doc
+	@fname DLib.friends.IsRegistered
+	@args string statusID
+
+	@returns
+	boolean
+]]
 function friends.IsRegistered(statusID)
 	return friends.typesCache[statusID] ~= nil or friends.typesCacheUID[statusID] ~= nil or friends.typesCacheCRC[statusID] ~= nil
 end
 
+--[[
+	@doc
+	@fname DLib.friends.Serealize
+	@args table savedata
+
+	@desc
+	for current network message
+	@enddesc
+
+	@internal
+]]
 function friends.Serealize(status)
 	net.WriteBool(status.isFriend)
 
@@ -79,6 +111,20 @@ function friends.Serealize(status)
 	net.WriteUInt(0, 32)
 end
 
+--[[
+	@doc
+	@fname DLib.friends.Read
+
+	@desc
+	from current network message
+	@enddesc
+
+	@internal
+
+	@returns
+	Player: read player
+	table: savedata
+]]
 function friends.Read()
 	local rply = net.ReadPlayer()
 
@@ -132,6 +178,13 @@ function plyMeta:CheckDLibFriendInOverride(target, tp)
 	return self:IsFriend2(target) or self:IsDLibFriendIn(target, tp)
 end
 
+--[[
+	@doc
+	@fname Player:GetAllFriends
+
+	@returns
+	table: of Players
+]]
 function plyMeta:GetAllFriends()
 	local reply = {}
 

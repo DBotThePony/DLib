@@ -19,6 +19,13 @@
 -- DEALINGS IN THE SOFTWARE.
 
 
+--[[
+	@doc
+	@fname DLib.friends.OpenGUIForPlayer
+	@args string steamid
+
+	@client
+]]
 function friends.OpenGUIForPlayer(steamid)
 	local nick = DLib.LastNickFormatted(steamid)
 	local getData = friends.LoadPlayer(steamid)
@@ -113,6 +120,12 @@ surface.CreateFont('DLib.FriendsTooltip', {
 	weight = 600
 })
 
+--[[
+	@doc
+	@fname DLib.friends.OpenGUI
+
+	@client
+]]
 function friends.OpenGUI()
 	local frame = vgui.Create('DLib_Window')
 	frame:SetTitle('gui.dlib.friends.title')

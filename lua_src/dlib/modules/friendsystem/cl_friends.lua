@@ -34,6 +34,21 @@ local IsValid = FindMetaTable('Entity').IsValid
 friends.currentStatus = {}
 friends.currentCount = 0
 
+
+--[[
+	@doc
+	@fname DLib.friends.FillGaps
+	@args string statusID
+
+	@client
+
+	@desc
+	fills missing entries in friends table with specified friend string ID
+	@enddesc
+
+	@returns
+	table: of steamids which was affected
+]]
 function friends.FillGaps(statusID)
 	if not friends.typesCache[statusID] then return false end
 
@@ -54,6 +69,14 @@ function friends.FillGaps(statusID)
 	return steamids
 end
 
+--[[
+	@doc
+	@fname Player:IsDLibFriend
+	@args Player target
+
+	@returns
+	boolean
+]]
 function plyMeta:IsDLibFriend(target)
 	if not IsValid(target) then return false end
 
@@ -69,6 +92,14 @@ function plyMeta:IsDLibFriend(target)
 	end
 end
 
+--[[
+	@doc
+	@fname Player:IsDLibFriendType
+	@args Player target, string statusID
+
+	@returns
+	boolean
+]]
 function plyMeta:IsDLibFriendType(target, tp)
 	if not IsValid(target) then return false end
 	if not tp then return false end
@@ -132,6 +163,20 @@ function friends.LoadPlayer(steamid, returnIfNothing, withCreation)
 	}
 end
 
+--[[
+	@doc
+	@fname DLib.friends.ModifyFriend
+	@args string steamid, table savedata
+
+	@desc
+	not gonna explain what this does and how to use this
+	just gonna say this function exists and if you hit a big boulder and want to use this function - you can do
+	just make sure you know what you are doing
+	@enddesc
+
+	@internal
+	@client
+]]
 function friends.ModifyFriend(steamid, savedata)
 	local ply = player.GetBySteamID(steamid)
 
@@ -146,6 +191,20 @@ end
 
 local steamidsCache = {}
 
+--[[
+	@doc
+	@fname DLib.friends.UpdateFriendType
+	@args string steamid, string statusID, boolean newstatus
+
+	@desc
+	sets friend status of `steamid` in `statusID` relationhip to `newstatus`
+	@enddesc
+
+	@client
+
+	@returns
+	table: new savedata (you don't have to save it manually)
+]]
 function friends.UpdateFriendType(steamid, ftype, fnew)
 	steamidsCache[steamid] = steamidsCache[steamid] or friends.LoadPlayer(steamid, true, true)
 	steamidsCache[steamid].status[ftype] = fnew
@@ -164,6 +223,17 @@ function friends.UpdateFriendType(steamid, ftype, fnew)
 	return steamidsCache[steamid]
 end
 
+--[[
+	@doc
+	@fname DLib.friends.Flush
+	@args string steamid, string statusID, boolean newstatus
+
+	@desc
+	save everything
+	@enddesc
+
+	@client
+]]
 function friends.Flush()
 	for steamid, data in pairs(steamidsCache) do
 		friends.SaveDataFor(steamid, data)
@@ -172,6 +242,14 @@ function friends.Flush()
 	steamidsCache = {}
 end
 
+--[[
+	@doc
+	@fname DLib.friends.SaveDataFor
+	@args string steamid, table savedata
+
+	@client
+	@internal
+]]
 function friends.SaveDataFor(steamid, savedata)
 	if not savedata.isFriend then
 		friends.RemoveFriend(steamid)
@@ -192,6 +270,20 @@ function friends.SaveDataFor(steamid, savedata)
 	hook.Run('DLib_FriendSaved', steamid, savedata)
 end
 
+--[[
+	@doc
+	@fname DLib.friends.RemoveFriend
+	@args string steamid
+
+	@client
+
+	@desc
+	removes a friend completely
+	@enddesc
+
+	@returns
+	boolean: was operation successful or not
+]]
 function friends.RemoveFriend(steamid)
 	sql.EQuery('DELETE FROM dlib_friends WHERE steamid = ' .. SQLStr(steamid))
 
@@ -221,6 +313,23 @@ function friends.RemoveFriend(steamid)
 	return false
 end
 
+--[[
+	@doc
+	@fname DLib.friends.CreateFriend
+	@args string steamid, boolean doSave = false
+
+	@client
+
+	@desc
+	creates a new friend
+
+	THIS DOES NOT CHECK WHENEVER FRIEND ALREADY EXISTS
+	CHECK BY YOURSELVE
+	@enddesc
+
+	@returns
+	table: new savedata
+]]
 function friends.CreateFriend(steamid, doSave)
 	local ply = player.GetBySteamID(steamid)
 	local build = {}
@@ -247,6 +356,15 @@ function friends.CreateFriend(steamid, doSave)
 	return data
 end
 
+--[[
+	@doc
+	@fname DLib.friends.GetIDsString
+
+	@client
+
+	@returns
+	table: sql strings of statusIDs
+]]
 function friends.GetIDsString()
 	local keys = table.GetKeys(friends.typesCache)
 
@@ -257,6 +375,12 @@ function friends.GetIDsString()
 	return table.concat(keys, ',')
 end
 
+--[[
+	@doc
+	@fname DLib.friends.Reload
+
+	@client
+]]
 function friends.Reload()
 	friends.currentStatus = {}
 	friends.currentCount = player.GetCount()
@@ -315,6 +439,12 @@ function friends.Reload()
 	return friends.currentStatus
 end
 
+--[[
+	@doc
+	@fname DLib.friends.SendToServer
+
+	@client
+]]
 function friends.SendToServer()
 	net.Start('DLib.friendsystem')
 

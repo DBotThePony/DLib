@@ -57,6 +57,8 @@ net.receive('DLib.friendsystem', function(len, ply)
 		if IsValid(rply) then
 			target[rply] = status
 			namount = namount + 1
+		else
+			break
 		end
 	end
 

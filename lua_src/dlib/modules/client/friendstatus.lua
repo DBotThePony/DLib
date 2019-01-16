@@ -28,6 +28,19 @@ DLib.getinfo.Replicate('cl_dlib_steamfriends')
 
 plyMeta.GetFriendStatusDLib = plyMeta.GetFriendStatusDLib or plyMeta.GetFriendStatus
 
+--[[
+	@doc
+	@fname Player:GetFriendStatus
+	@args Player targetPly
+
+	@desc
+	without player argument is same as described in !g:Player:GetFriendStatus
+	otherwise returns value based on whenever `self` player is a friend towards `targetPly`
+	@enddesc
+
+	@returns
+	string
+]]
 function plyMeta:GetFriendStatus(targetPly)
 	if not targetPly then
 		return self:GetFriendStatusDLib()
@@ -45,6 +58,14 @@ function plyMeta:GetFriendStatus(targetPly)
 	return status and status[targetPly] or 'none'
 end
 
+--[[
+	@doc
+	@fname Player:IsFriend
+	@args Player targetPly
+
+	@returns
+	boolean
+]]
 function plyMeta:IsFriend(target)
 	local f = self:GetFriendStatus(target)
 	return f == 'friend'
@@ -60,6 +81,18 @@ local function checkFriendDisable(self)
 	return true
 end
 
+--[[
+	@doc
+	@fname Player:IsFriend2
+	@args Player targetPly
+
+	@desc
+	behavior can be changed by either of involved players
+	@enddesc
+
+	@returns
+	boolean
+]]
 function plyMeta:IsFriend2(target)
 	if not checkFriendDisable(self) then return false end
 	if not checkFriendDisable(target) then return false end
@@ -68,11 +101,32 @@ function plyMeta:IsFriend2(target)
 	return f == 'friend'
 end
 
+--[[
+	@doc
+	@fname Player:IsSteamFriend
+	@args Player targetPly
+
+	@returns
+	boolean
+]]
+
 function plyMeta:IsSteamFriend(target)
 	local f = self:GetFriendStatus(target)
 	return f == 'friend'
 end
 
+--[[
+	@doc
+	@fname Player:IsSteamFriend2
+	@args Player targetPly
+
+	@desc
+	behavior can be changed by either of involved players
+	@enddesc
+
+	@returns
+	boolean
+]]
 function plyMeta:IsSteamFriend2(target)
 	if not checkFriendDisable(self) then return false end
 	if not checkFriendDisable(target) then return false end
@@ -81,6 +135,14 @@ function plyMeta:IsSteamFriend2(target)
 	return f == 'friend'
 end
 
+--[[
+	@doc
+	@fname Player:IsSteamBlocked
+	@args Player targetPly
+
+	@returns
+	boolean
+]]
 function plyMeta:IsSteamBlocked(target)
 	local f = self:GetFriendStatus(target)
 	return f == 'blocked'

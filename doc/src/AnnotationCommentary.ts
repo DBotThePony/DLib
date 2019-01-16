@@ -30,7 +30,12 @@ class AnnotationCommentary {
 	isEnum = false
 	isType = false
 	isDeprecated = false
+	isInternal = false
 	isInNameSpace = false
+
+	isShared = true
+	isClientside = false
+	isServerside = false
 
 	path: string | null = null
 	aliases: string[] = []
@@ -84,6 +89,43 @@ class AnnotationCommentary {
 
 			if (lower == '@deprecated') {
 				this.isDeprecated = true
+				continue
+			}
+
+			if (lower == '@internal') {
+				this.isInternal = true
+				continue
+			}
+
+			if (lower == '@client') {
+				if (this.isServerside) {
+					console.error('@client overlaps @server!')
+					console.error('...in ' + source)
+				}
+
+				if (this.isClientside) {
+					console.warn('Duplicated @client entry')
+					console.warn('...in ' + source)
+				}
+
+				this.isClientside = true
+				this.isShared = false
+				continue
+			}
+
+			if (lower == '@server') {
+				if (this.isClientside) {
+					console.error('@server overlaps @client!')
+					console.error('...in ' + source)
+				}
+
+				if (this.isServerside) {
+					console.warn('Duplicated @server entry')
+					console.warn('...in ' + source)
+				}
+
+				this.isServerside = true
+				this.isShared = false
 				continue
 			}
 
