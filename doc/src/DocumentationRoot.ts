@@ -22,14 +22,62 @@ import { LuaArgument } from './GLuaDefinitions';
 import fs = require('fs')
 import {mkdir} from './Util'
 import { GLuaClassExtension } from './GLuaClassExt';
+import { GLuaPanel } from './GLuaPanel';
+import { GLuaHook } from './GLuaHook';
+
+interface IGLuaList {
+	generateFunctionList(linkprefix?: string): string[]
+	getDocLevel(): number
+	pathToRoot(): string
+	generateFiles(outputDir: string): void
+	buildLevels(): string
+	root: DocumentationRoot
+}
+
+export {IGLuaList}
 
 class DocumentationRoot {
 	libraries = new Map<string, GLuaLibrary>()
+	panels = new Map<string, GLuaPanel>()
 	classes = new Map<string, GLuaClassExtension>()
 	globals = new Map<string, GLuaEntryBase>()
+	hooks = new Map<string, GLuaHook>()
 
-	constructor() {
+	getPanelLink(panelID: string, linkPrefix = '') {
+		if (this.panels.has(panelID)) {
+			return `[${panelID}](${linkPrefix}./panels/${panelID}.md)`
+		} else {
+			return `[${panelID}](http://wiki.garrysmod.com/page/Category:${panelID})`
+		}
+	}
 
+	getClassLink(classname: string, linkPrefix = '') {
+		if (this.classes.has(classname)) {
+			return `[${classname}](${linkPrefix}./classes/${classname}.md)`
+		} else {
+			return `[${classname}](http://wiki.garrysmod.com/page/Category:${classname})`
+		}
+	}
+
+	processLinks(description?: string, linkPrefix = '') {
+		if (!description) {
+			return description
+		}
+
+		return description.replace(/\!(g|p|c|s):(\S+)/, (substr, arg1, arg2) => {
+			switch (arg1) {
+				case 'g':
+					return `[${arg2}](http://wiki.garrysmod.com/page/${arg2.replace(/\.|:/g, '/')})`
+				case 's':
+					return `[${arg2}](http://wiki.garrysmod.com/Structures/${arg2.replace(/\.|:/g, '/')})`
+				case 'p':
+					return this.getPanelLink(arg2, linkPrefix)
+				case 'c':
+					return this.getClassLink(arg2, linkPrefix)
+			}
+
+			return substr
+		})
 	}
 
 	generateFiles(outputDir: string) {
@@ -38,6 +86,8 @@ class DocumentationRoot {
 		mkdir(outputDir + '/sub')
 		mkdir(outputDir + '/classes')
 		mkdir(outputDir + '/functions')
+		mkdir(outputDir + '/hooks')
+		mkdir(outputDir + '/panels')
 
 		fs.writeFileSync(outputDir + '/index.md', index, {encoding: 'utf8'})
 
@@ -47,6 +97,14 @@ class DocumentationRoot {
 
 		for (const [name, classext] of this.classes) {
 			classext.generateFiles(outputDir + '/classes/' + name)
+		}
+
+		for (const [name, hook] of this.hooks) {
+			hook.generateFile(outputDir + '/hooks/' + name + '.md')
+		}
+
+		for (const [name, panel] of this.panels) {
+			panel.generateFile(outputDir + '/panels/' + name + '.md')
 		}
 
 		for (const [name, globalvar] of this.globals) {
@@ -90,7 +148,7 @@ ${globals.join('  \n')}`
 
 	getLibrary(name: string) {
 		if (!this.libraries.has(name)) {
-			this.libraries.set(name, new GLuaLibrary(name))
+			this.libraries.set(name, new GLuaLibrary(this, name))
 		}
 
 		return this.libraries.get(name)!
@@ -98,7 +156,7 @@ ${globals.join('  \n')}`
 
 	getClassExt(name: string) {
 		if (!this.classes.has(name)) {
-			this.classes.set(name, new GLuaClassExtension(name))
+			this.classes.set(name, new GLuaClassExtension(this, name))
 		}
 
 		return this.classes.get(name)!
@@ -106,21 +164,8 @@ ${globals.join('  \n')}`
 
 	add(annotation: AnnotationCommentary) {
 		if (annotation.isFunction) {
-			const func = new GLuaFunction(annotation.funcname!, annotation.funcname!, annotation.description)
-			func.deprecated = annotation.isDeprecated
-			func.internal = annotation.isInternal
-			func.realm = annotation.isShared ? GLuaRealm.SHARED : annotation.isClientside ? GLuaRealm.CLIENT : GLuaRealm.SERVER
-
-			for (const arg of annotation.argumentsParsed) {
-				func.args.push(new LuaArgument(arg.type, arg.name, undefined, arg.default))
-			}
-
-			let argnum = 0
-
-			for (const arg of annotation.returnsParsed) {
-				argnum++
-				func.returns.push((new LuaArgument(arg.type, arg.name, arg.description)).setNumber(argnum))
-			}
+			const func = new GLuaFunction(this, annotation.funcname!, annotation.funcname!, annotation.description)
+			func.importFrom(annotation)
 
 			if (annotation.namespace != null) {
 				this.getClassExt(annotation.namespace).add(func)
@@ -141,6 +186,16 @@ ${globals.join('  \n')}`
 
 				library!.add(func)
 			}
+		} else if (annotation.isPanel) {
+			const panel = new GLuaPanel(this, annotation.path!, annotation.path!, annotation.description)
+			panel.importFrom(annotation)
+
+			this.panels.set(panel.id, panel)
+		} else if (annotation.isHook) {
+			const hook = new GLuaHook(this, annotation.path!, annotation.path!, annotation.description)
+			hook.importFrom(annotation)
+
+			this.hooks.set(hook.id, hook)
 		}
 	}
 }

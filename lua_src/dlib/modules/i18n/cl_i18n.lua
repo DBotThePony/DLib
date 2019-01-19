@@ -187,6 +187,14 @@ local function vguiPanelCreated(self)
 	NamedPanelCreated(self)
 end
 
+
+--[[
+	@doc
+	@fname DLib.i18n.AddChat
+	@args vararg arguments
+
+	@client
+]]
 function i18n.AddChat(...)
 	local rebuild = i18n.rebuildTable({...})
 	return chat.AddText(unpack(rebuild))
@@ -194,6 +202,18 @@ end
 
 i18n.WatchLegacyPhrases = i18n.WatchLegacyPhrases or {}
 
+--[[
+	@doc
+	@fname DLib.i18n.RegisterProxy
+	@args string legacyName, string newName
+
+	@client
+	@deprecated
+
+	@desc
+	allows you to do language.Add(legacyName, localized newName) easily
+	@enddesc
+]]
 function i18n.RegisterProxy(legacyName, newName)
 	newName = newName or legacyName
 
@@ -213,6 +233,12 @@ chat.AddTextLocalized = i18n.AddChat
 local gmod_language, LastLanguage
 local LANG_OVERRIDE = CreateConVar('gmod_language_dlib_cl', '', {FCVAR_ARCHIVE}, 'gmod_language override for DLib based addons')
 
+--[[
+	@doc
+	@fname DLib.i18n.UpdateLang
+
+	@internal
+]]
 function i18n.UpdateLang()
 	gmod_language = gmod_language or GetConVar('gmod_language')
 	if not gmod_language then return end

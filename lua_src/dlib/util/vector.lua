@@ -33,6 +33,14 @@ function vector.FindCenter2D(min, max)
 	return max - (max - min) * 0.5
 end
 
+--[[
+	@doc
+	@fname DLib.vector.FindPlaneCentre
+	@args Vector mins, Vector maxs
+
+	@returns
+	Vector: centre
+]]
 -- It differs from vector.Centre by checking whenever surface is the surface
 function vector.FindPlaneCentre(mins, maxs)
 	if mins.y == maxs.y then
@@ -61,6 +69,14 @@ function vector.FindPlaneCentre(mins, maxs)
 	error('One or both of arguments is not a 2D plane!')
 end
 
+--[[
+	@doc
+	@fname DLib.vector.LFindPlaneCentre
+	@args LVector mins, LVector maxs
+
+	@returns
+	LVector: centre
+]]
 function vector.LFindPlaneCentre(mins, maxs)
 	if mins.y == maxs.y then
 		local x1 = mins.x
@@ -100,6 +116,23 @@ end
 	}
 ]]
 
+--[[
+	@doc
+	@fname DLib.vector.ExtractFaces
+	@args Vector mins, Vector maxs
+
+	@returns
+	table: {{vertex1, vertex2, vertex3, vertex4, normal}, {vertex1, ...}}
+]]
+
+--[[
+	@doc
+	@fname DLib.vector.LExtractFaces
+	@args LVector mins, LVector maxs
+
+	@returns
+	table: {{vertex1, vertex2, vertex3, vertex4, normal}, {vertex1, ...}}
+]]
 function vector.ExtractFaces(mins, maxs)
 	return {
 		{
@@ -207,7 +240,14 @@ end
 	}
 ]]
 
+--[[
+	@doc
+	@fname DLib.vector.ExtractFacesAndCentre
+	@args Vector mins, Vector maxs
 
+	@returns
+	table: {{vertex1, vertex2, vertex3, vertex4, normal, centre}, {vertex1, ...}}
+]]
 function vector.ExtractFacesAndCentre(mins, maxs)
 	local find = vector.ExtractFaces(mins, maxs)
 
@@ -218,6 +258,14 @@ function vector.ExtractFacesAndCentre(mins, maxs)
 	return find
 end
 
+--[[
+	@doc
+	@fname DLib.vector.FindQuadSize
+	@args Vector V1, Vector V2, Vector V3, Vector V4
+
+	@returns
+	number
+]]
 function vector.FindQuadSize(V1, V2, V3, V4)
 	if math.equal(V1.x, V2.x, V3.x, V4.x) then
 		local minX = math.min(V1.y, V2.y, V3.y, V4.y)
@@ -245,6 +293,23 @@ function vector.FindQuadSize(V1, V2, V3, V4)
 	error('No proper flat surface detected!')
 end
 
+--[[
+	@doc
+	@fname DLib.vector.Centre
+	@args Vector mins, Vector maxs
+
+	@returns
+	Vector
+]]
+
+--[[
+	@doc
+	@fname DLib.vector.LCentre
+	@args LVector mins, LVector maxs
+
+	@returns
+	LVector
+]]
 function vector.Centre(mins, maxs)
 	local deltax = maxs.x - mins.x
 	local deltay = maxs.y - mins.y
@@ -260,15 +325,21 @@ function vector.LCentre(mins, maxs)
 end
 
 --[[
+	@doc
+	@fname DLib.vector.CalculateSurfaceFromTwoPoints
+	@args Vector mins, Vector maxs, Vector zero
+
+	@desc
 	Give two vectors (e.g. mins and maxs) and origin position
 	origin position is Vector(0, 0, 0) if mins and maxs are WORLDSPACE vectors
 	if mins and maxs are local vectors, origin is probably position of entity
 	which these vectors are belong to
-	This function will return a table with
-		{A, B, C, D} values that represent
-		Ax + By + Cz + D = 0
-]]
+	This function will return a table that represent `Ax + By + Cz + D = 0`
+	@enddesc
 
+	@returns
+	table: `{A, B, C, D}`
+]]
 function vector.CalculateSurfaceFromTwoPoints(mins, maxs, zero)
 	zero = zero or LVector(0, 0, 0)
 
@@ -324,6 +395,18 @@ function vector.CalculateSurfaceFromTwoPoints(mins, maxs, zero)
 	return {X, Y, Z, D}
 end
 
+--[[
+	@doc
+	@fname DLib.vector.DistanceFromPointToSurface
+	@args Vector point, table surface
+
+	@desc
+	surface is `{A, B, C, D}`
+	@enddesc
+
+	@returns
+	number
+]]
 function vector.DistanceFromPointToSurface(point, surfaceTable)
 	local A, B, C, D = surfaceTable[1], surfaceTable[2], surfaceTable[3], surfaceTable[4]
 	local Mx, My, Mz = point.x, point.y, point.z
@@ -332,10 +415,36 @@ function vector.DistanceFromPointToSurface(point, surfaceTable)
 	return toDivide / square
 end
 
+--[[
+	@doc
+	@fname DLib.vector.DistanceFromPointToPlane
+	@args Vector point, Vector mins, Vector maxs
+
+	@desc
+	minimal possible distance from point to plane
+	@enddesc
+
+	@returns
+	number
+]]
 function vector.DistanceFromPointToPlane(point, mins, maxs)
 	return vector.DistanceFromPointToSurface(point, vector.CalculateSurfaceFromTwoPoints(mins, maxs))
 end
 
+--[[
+	@doc
+	@fname DLib.vector.IsPositionInsideBox
+	@args Vector point, Vector mins, Vector maxs
+
+	@deprecated
+
+	@desc
+	use `Vector:WithinAABox` and `LVector:WithinAABox`
+	@enddesc
+
+	@returns
+	boolean
+]]
 function vector.IsPositionInsideBox(pos, mins, maxs)
 	return pos.x >= mins.x and pos.x <= maxs.x and
 		pos.y >= mins.y and pos.y <= maxs.y and

@@ -18,14 +18,15 @@ import {mkdir} from './Util'
 
 import fs = require('fs')
 import { GLuaFunction } from './GLuaFunction';
+import { DocumentationRoot, IGLuaList } from './DocumentationRoot';
 
-class GLuaLibrary {
+class GLuaLibrary implements IGLuaList {
 	entries = new Map<string, GLuaEntryBase>()
 	libraries = new Map<string, GLuaLibrary>()
 	parent: GLuaLibrary | null = null
 	description = '*No description avaliable*'
 
-	constructor(public id: string, public name = id) {
+	constructor(public root: DocumentationRoot, public id: string, public name = id) {
 
 	}
 
@@ -37,9 +38,21 @@ class GLuaLibrary {
 		return this.parent.buildLevels(level + 1) + `[${this.id}](${'../'.repeat(level)}/index.md).`
 	}
 
+	getDocLevel(): number {
+		if (this.parent == null) {
+			return 1
+		}
+
+		return this.parent.getDocLevel() + 1
+	}
+
+	pathToRoot() {
+		return '../'.repeat(this.getDocLevel())
+	}
+
 	getSubLibrary(name: string) {
 		if (!this.libraries.has(name)) {
-			this.libraries.set(name, new GLuaLibrary(name))
+			this.libraries.set(name, new GLuaLibrary(this.root, name))
 		}
 
 		return this.libraries.get(name)!
@@ -64,15 +77,23 @@ class GLuaLibrary {
 		}
 	}
 
-	generateIndex() {
-		const funcs = []
-		const sublibs = []
+	generateFunctionList(prefix = '') {
+		const output = []
 
 		for (const [name, entry] of this.entries) {
 			if (entry instanceof GLuaFunction) {
-				funcs.push(`* [${entry.name}](./functions/${name}.md)(${entry.args.buildMarkdown()})`)
+				output.push(`* [${entry.name}](${prefix}./functions/${name}.md)(${entry.args.buildMarkdown()})`)
 			}
 		}
+
+		output.sort()
+
+		return output
+	}
+
+	generateIndex() {
+		const funcs = this.generateFunctionList()
+		const sublibs = []
 
 		for (const [name, library] of this.libraries) {
 			sublibs.push(`* [${library.name}](./sub/${name}/index.md)`)

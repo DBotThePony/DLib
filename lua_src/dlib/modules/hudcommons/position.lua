@@ -38,6 +38,18 @@ HUDCommons.Positions_funcs = HUDCommons.Positions_funcs or {}
 
 HUDCommons.Multipler = 1
 
+--[[
+	@doc
+	@fname DLib.HUDCommons.DefinePosition
+	@alias DLib.HUDCommons.CreatePosition
+	@args string name, number x, number y, function shouldShiftPredicate
+
+	@client
+	@deprecated
+
+	@returns
+	funcion: returns `x, y`
+]]
 function HUDCommons.DefinePosition(name, x, y, shouldShift)
 	if shouldShift ~= nil then
 		if type(shouldShift) ~= 'function' then
@@ -83,6 +95,18 @@ end
 
 HUDCommons.CreatePosition = HUDCommons.DefinePosition
 
+--[[
+	@doc
+	@fname DLib.HUDCommons.GetPos
+	@args string name
+
+	@client
+	@deprecated
+
+	@returns
+	number: x
+	number: y
+]]
 function HUDCommons.GetPos(elem)
 	if not HUDCommons.Positions_funcs[elem] or HUDCommons.Positions_funcs[elem]() then
 		return HUDCommons.XPositions_modified[elem] or 0, HUDCommons.YPositions_modified[elem] or 0

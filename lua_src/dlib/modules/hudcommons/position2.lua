@@ -66,6 +66,27 @@ Pos2.XPositions_original = Pos2.XPositions_original or {}
 Pos2.YPositions_original = Pos2.YPositions_original or {}
 Pos2.Positions_funcs = Pos2.Positions_funcs or {}
 
+--[[
+	@doc
+	@fname DLib.HUDCommons.Position2.DefinePosition
+	@args string name, number x, number y, function shouldShiftPredicate = nil
+
+	@client
+
+	@desc
+	`x` and `y` must be a float in 0 to 1 range inclusive (element position will be based on screen resolution)
+	`shouldShiftPredicate` is a function which should return boolean
+	if `shouldShiftPredicate` is omitted, predicate check is always successful
+
+	Use `HUDCommonsBase:DefinePosition` instead of this if you are making a HUD on HUDCommonsBase!
+	@enddesc
+
+	@returns
+	funcion: returns `x, y` of element
+	ConVar: x position defined by user (float)
+	ConVar: y position defined by user (float)
+	function: returns screen side of element (`"LEFT"`, `"RIGHT"` or `"CENTER"`)
+]]
 function Pos2.DefinePosition(name, x, y, shouldShift)
 	if shouldShift ~= nil then
 		if type(shouldShift) ~= 'function' then
@@ -131,6 +152,16 @@ function Pos2.DefinePosition(name, x, y, shouldShift)
 	end
 end
 
+--[[
+	@doc
+	@fname DLib.HUDCommons.Position2.GetSide
+	@args string name
+
+	@client
+
+	@returns
+	string: `"LEFT"`, `"RIGHT"` or `"CENTER"`
+]]
 function Pos2.GetSide(name)
 	if Pos2.XPositions_original[name] < 0.33 then
 		return 'LEFT'
@@ -141,6 +172,16 @@ function Pos2.GetSide(name)
 	end
 end
 
+--[[
+	@doc
+	@fname DLib.HUDCommons.Position2.GetSideStrict
+	@args string name
+
+	@client
+
+	@returns
+	string: `"LEFT"` or `"RIGHT"`
+]]
 function Pos2.GetSideStrict(name)
 	if Pos2.XPositions_original[name] < 0.5 then
 		return 'LEFT'
@@ -151,6 +192,17 @@ end
 
 Pos2.CreatePosition = Pos2.DefinePosition
 
+--[[
+	@doc
+	@fname DLib.HUDCommons.Position2.GetPos
+	@args string name
+
+	@client
+
+	@returns
+	number: x
+	number: y
+]]
 function Pos2.GetPos(elem)
 	if not Pos2.Positions_funcs[elem] or Pos2.Positions_funcs[elem]() then
 		return Pos2.XPositions_modified[elem] or 0, Pos2.YPositions_modified[elem] or 0

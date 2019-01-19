@@ -18,10 +18,68 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
+--[[
+	@doc
+	@panel DLib_ButtonLayout
+	@parent DScrollPanel
 
+	@desc
+	A grid of panels which must expose `:Populate(parent)` method
+	Can be useful with !p:DLib_PlayerButton
+	@enddesc
+]]
 local PANEL = {}
 DLib.VGUI.ButtonLayout = PANEL
 
+local function AccessorFunc(PANEL, varName, getset)
+	PANEL['Get' .. getset] = function(self)
+		return self[varName]
+	end
+
+	PANEL['Set' .. getset] = function(self, newVal)
+		local old = self[varName]
+		self[varName] = newVal
+		self['On' .. getset .. 'Changes'](self, old, newVal)
+	end
+end
+
+--[[
+	@docpreprocess
+	const names = [
+		'SpacingX',
+		'SpacingY',
+		'LayoutSizeX',
+		'LayoutSizeY'
+	]
+
+	const reply = []
+
+	for (const name of names) {
+		let output = []
+
+		output.push(`@fname DLib_ButtonLayout:Get${name}`)
+		output.push(`@returns`)
+		output.push(`number`)
+
+		reply.push(output)
+
+		output = []
+
+		output.push(`@fname DLib_ButtonLayout:Set${name}`)
+		output.push(`@args number value`)
+
+		reply.push(output)
+
+		output = []
+
+		output.push(`@fname DLib_ButtonLayout:On${name}Changes`)
+		output.push(`@args number oldvalue, number newvalue`)
+
+		reply.push(output)
+	}
+
+	return reply
+]]
 AccessorFunc(PANEL, 'spacingX', 'SpacingX')
 AccessorFunc(PANEL, 'spacingY', 'SpacingY')
 AccessorFunc(PANEL, 'layoutSizeX', 'LayoutSizeX')
@@ -58,6 +116,11 @@ function PANEL:OnLayoutSizeYChanges()
 	self:InvalidateLayout()
 end
 
+--[[
+	@doc
+	@fname DLib_ButtonLayout:AddButton
+	@args Panel button
+]]
 function PANEL:AddButton(button)
 	table.insert(self.buttons, button)
 	button:SetParent(self:GetCanvas())
@@ -66,11 +129,24 @@ function PANEL:AddButton(button)
 	self:InvalidateLayout()
 end
 
+--[[
+	@doc
+	@fname DLib_ButtonLayout:GetVisibleArea
+	@returns
+	number: top y
+	number: bottom y
+]]
 function PANEL:GetVisibleArea()
 	local scroll = self:GetVBar():GetScroll()
 	return scroll - self.layoutSizeY, scroll + self:GetTall()
 end
 
+--[[
+	@doc
+	@fname DLib_ButtonLayout:GetVisibleButtons
+	@returns
+	table: array of Panels
+]]
 function PANEL:GetVisibleButtons()
 	local topx, bottomx = self:GetVisibleArea()
 	local reply = {}
@@ -86,6 +162,14 @@ function PANEL:GetVisibleButtons()
 	return reply
 end
 
+--[[
+	@doc
+	@fname DLib_ButtonLayout:Clear
+
+	@desc
+	removes all buttons
+	@enddesc
+]]
 function PANEL:Clear()
 	for i, button in ipairs(self.buttons) do
 		button:Remove()
@@ -96,6 +180,12 @@ function PANEL:Clear()
 	self:InvalidateLayout()
 end
 
+--[[
+	@doc
+	@fname DLib_ButtonLayout:RebuildButtonsPositions
+	@args number width, number height
+	@internal
+]]
 function PANEL:RebuildButtonsPositions(w, h)
 	if not w or not h then return end
 	self.buttonsPositions = {}

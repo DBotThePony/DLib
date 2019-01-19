@@ -26,6 +26,14 @@ local function Lerp(t, a, b)
 	return a + (b - a) * t
 end
 
+--[[
+	@doc
+	@fname LerpQuintic
+	@args T t, T from, T to
+
+	@returns
+	T: lerped value
+]]
 function _G.LerpQuintic(t, a, b)
 	if t < 0 then return a end
 	if t >= 1 then return b end
@@ -33,10 +41,26 @@ function _G.LerpQuintic(t, a, b)
 	return Lerp(value, a, b)
 end
 
+--[[
+	@doc
+	@fname Quintic
+	@args T t
+
+	@returns
+	T
+]]
 function _G.Quintic(t)
 	return t * t * t * (t * (t * 6 - 15) + 10)
 end
 
+--[[
+	@doc
+	@fname LerpCosine
+	@args T t, T from, T to
+
+	@returns
+	T: lerped value
+]]
 function _G.LerpCosine(t, a, b)
 	if t < 0 then return a end
 	if t >= 1 then return b end
@@ -44,10 +68,26 @@ function _G.LerpCosine(t, a, b)
 	return Lerp(value, a, b)
 end
 
+--[[
+	@doc
+	@fname Cosine
+	@args T t
+
+	@returns
+	T
+]]
 function _G.Cosine(t)
 	return (1 - math.cos(t * math.pi)) / 2
 end
 
+--[[
+	@doc
+	@fname LerpSinusine
+	@args T t, T from, T to
+
+	@returns
+	T: lerped value
+]]
 function _G.LerpSinusine(t, a, b)
 	if t < 0 then return a end
 	if t >= 1 then return b end
@@ -55,10 +95,26 @@ function _G.LerpSinusine(t, a, b)
 	return Lerp(value, a, b)
 end
 
+--[[
+	@doc
+	@fname Sinusine
+	@args T t
+
+	@returns
+	T
+]]
 function _G.Sinusine(t)
 	return (1 - math.sin(t * math.pi)) / 2
 end
 
+--[[
+	@doc
+	@fname LerpCubic
+	@args T t, T from, T to
+
+	@returns
+	T: lerped value
+]]
 function _G.LerpCubic(t, a, b)
 	if t < 0 then return a end
 	if t >= 1 then return b end
@@ -66,6 +122,14 @@ function _G.LerpCubic(t, a, b)
 	return Lerp(value, a, b)
 end
 
+--[[
+	@doc
+	@fname Cubic
+	@args T t
+
+	@returns
+	T
+]]
 function _G.Cubic(t)
 	return -2 * t * t * t + 3 * t * t
 end

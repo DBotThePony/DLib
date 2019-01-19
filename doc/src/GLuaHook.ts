@@ -13,29 +13,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { GLuaEntryBase } from "./GLuaEntryBase";
-import { LuaArguments, LuaArgument } from "./GLuaDefinitions";
-import { AnnotationCommentary } from "./AnnotationCommentary";
+import { GLuaFunction } from "./GLuaFunction";
 
-class GLuaFunction extends GLuaEntryBase {
-	args = new LuaArguments()
-	returns = new LuaArguments()
-
-	importFrom(annotation: AnnotationCommentary) {
-		super.importFrom(annotation)
-
-		for (const arg of annotation.argumentsParsed) {
-			this.args.push(new LuaArgument(arg.type, arg.name, undefined, arg.default))
-		}
-
-		let argnum = 0
-
-		for (const arg of annotation.returnsParsed) {
-			argnum++
-			this.returns.push((new LuaArgument(arg.type, arg.name, arg.description)).setNumber(argnum))
-		}
-	}
-
+class GLuaHook extends GLuaFunction {
 	generatePage() {
 		let levels = ''
 
@@ -45,24 +25,24 @@ class GLuaFunction extends GLuaEntryBase {
 
 		return `# DLib documentation
 
-## ${levels}${this.name}
+## ${this.name} hook
 
-### Usage:
+### Hook defintion:
 
-\u200B\xA0\xA0\xA0\xA0\xA0\xA0${levels}${this.id}(${this.args.buildMarkdown()})
+\u200B\xA0\xA0\xA0\xA0\xA0\xA0\`${this.id}\`(${this.args.buildMarkdown()})
 
 ${this.generateRealm()}
 
 ### Description
 
-${this.generateDescription(this.library && this.library.pathToRoot() || '../')}
+${this.generateDescription('../')}
 
 ${this.generateDeprecated()}
 ${this.generateInternal()}
 
 ---------------------
 
-### Returns
+### This hook returns (if any)
 
 ${this.returns.buildReturns(this.root)}
 
@@ -78,4 +58,4 @@ ${this.generateDisclaimers()}
 	}
 }
 
-export {GLuaFunction}
+export {GLuaHook}

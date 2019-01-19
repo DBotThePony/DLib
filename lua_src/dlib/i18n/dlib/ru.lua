@@ -24,6 +24,9 @@ gui.misc.cancel = 'Отмена'
 gui.misc.yes = 'Да'
 gui.misc.no = 'Нет'
 
+gui.entry.invalidsymbol = 'Символ не разрешён.'
+gui.entry.limit = 'Превышена максимальная длинна значения.'
+
 gui.dlib.hudcommons.reset = 'Сбросить'
 
 info.dlib.tformat.seconds = 'секунд'

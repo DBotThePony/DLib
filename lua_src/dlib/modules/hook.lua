@@ -77,26 +77,69 @@ local function GetTable()
 	return __tableGmod
 end
 
+--[[
+	@doc
+	@fname hook.GetDLibOptimizedTable
+	@returns
+	table: of `eventName -> array of functions`
+]]
 function hook.GetDLibOptimizedTable()
 	return __tableOptimized
 end
 
+--[[
+	@doc
+	@fname hook.GetDLibModifiers
+	@returns
+	table
+]]
 function hook.GetDLibModifiers()
 	return __tableModifiersPost
 end
 
+--[[
+	@doc
+	@fname hook.GetDLibSortedTable
+	@returns
+	table
+]]
 function hook.GetDLibSortedTable()
 	return __tableOptimized
 end
 
+--[[
+	@doc
+	@fname hook.GetULibTable
+
+	@desc
+	For mods like DarkRP
+	Althrough, DarkRP can use DLib's Post Modifiers instead for things that
+	DarkRP currently do with table provided by `GetULibTable`
+	@enddesc
+
+	@returns
+	table
+]]
 function hook.GetULibTable()
 	return __table
 end
 
+--[[
+	@doc
+	@fname hook.GetDLibTable
+	@returns
+	table
+]]
 function hook.GetDLibTable()
 	return __table
 end
 
+--[[
+	@doc
+	@fname hook.GetDisabledHooks
+	@returns
+	table
+]]
 function hook.GetDisabledHooks()
 	return __disabled
 end
@@ -145,6 +188,10 @@ local function transformStringID(stringID, event)
 		stringID = tostring(stringID)
 	end
 
+	if type(stringID) == 'boolean' then
+		error('booleans are not allowed as hookID value', 3)
+	end
+
 	if type(stringID) ~= 'string' then
 		local success = pcall(function()
 			stringID.IsValid(stringID)
@@ -152,7 +199,8 @@ local function transformStringID(stringID, event)
 
 		if not success then
 			--if DLib.DEBUG_MODE:GetBool() then
-				DLib.Message(traceback('hook.Add - hook ID is not a string and not a valid object! Using tostring() instead. ' .. type(stringID)))
+				--DLib.Message(traceback('hook.Add - hook ID is not a string and not a valid object! Using tostring() instead. ' .. type(stringID)))
+				error('hook.Add - hook ID is not a string and not a valid object! ' .. type(stringID), 3)
 			--end
 			stringID = tostring(stringID)
 		end
@@ -161,6 +209,14 @@ local function transformStringID(stringID, event)
 	return stringID
 end
 
+--[[
+	@doc
+	@fname hook.DisableHook
+	@args string event, any hookID
+
+	@returns
+	boolean
+]]
 function hook.DisableHook(event, stringID)
 	assert(type(event) == 'string', 'hook.DisableHook - event is not a string! ' .. type(event))
 
@@ -188,6 +244,14 @@ function hook.DisableHook(event, stringID)
 	end
 end
 
+--[[
+	@doc
+	@fname hook.DisableAllHooksExcept
+	@args string event, any hookID
+
+	@returns
+	boolean
+]]
 function hook.DisableAllHooksExcept(event, stringID)
 	assert(type(event) == 'string', 'hook.DisableAllHooksExcept - event is not a string! ' .. type(event))
 	assert(type(stringID) ~= 'nil', 'hook.DisableAllHooksExcept - ID is not a valid value! ' .. type(stringID))
@@ -209,6 +273,20 @@ function hook.DisableAllHooksExcept(event, stringID)
 	return true
 end
 
+--[[
+	@doc
+	@fname hook.DisableHooksByPredicate
+	@args string event, function predicate
+
+	@desc
+	Predicate should return true to disable hook
+	and return false to enable hook
+	Arguments passed to predicate are `event, id, priority, dlibHookData`
+	@enddesc
+
+	@returns
+	boolean
+]]
 function hook.DisableHooksByPredicate(event, predicate)
 	assert(type(event) == 'string', 'hook.DisableAllHooksByPredicate - event is not a string! ' .. type(event))
 	assert(type(predicate) == 'function', 'hook.DisableAllHooksByPredicate - invalid predicate function! ' .. type(predicate))
@@ -231,6 +309,19 @@ function hook.DisableHooksByPredicate(event, predicate)
 	return true
 end
 
+--[[
+	@doc
+	@fname hook.DisableAllHooksByPredicate
+	@args function predicate
+
+	@desc
+	same as `hook.DisableHooksByPredicate`, except it is ran for all events
+	pass `function() return true end` as predicate to disable **EVERYTHING**
+	@enddesc
+
+	@returns
+	boolean
+]]
 function hook.DisableAllHooksByPredicate(predicate)
 	assert(type(predicate) == 'function', 'hook.DisableAllHooksByPredicate - invalid predicate function! ' .. type(predicate))
 
@@ -253,6 +344,18 @@ function hook.DisableAllHooksByPredicate(predicate)
 	return true
 end
 
+--[[
+	@doc
+	@fname hook.EnableHooksByPredicate
+	@args string event, function predicate
+
+	@desc
+	counterpart of `hook.DisableHooksByPredicate`
+	@enddesc
+
+	@returns
+	boolean
+]]
 function hook.EnableHooksByPredicate(event, predicate)
 	assert(type(event) == 'string', 'hook.DisableAllHooksByPredicate - event is not a string! ' .. type(event))
 	assert(type(predicate) == 'function', 'hook.DisableAllHooksByPredicate - invalid predicate function! ' .. type(predicate))
@@ -275,6 +378,18 @@ function hook.EnableHooksByPredicate(event, predicate)
 	return true
 end
 
+--[[
+	@doc
+	@fname hook.EnableAllHooksByPredicate
+	@args function predicate
+
+	@desc
+	counterpart of `hook.DisableAllHooksByPredicate`
+	@enddesc
+
+	@returns
+	boolean
+]]
 function hook.EnableAllHooksByPredicate(predicate)
 	assert(type(predicate) == 'function', 'hook.DisableAllHooksByPredicate - invalid predicate function! ' .. type(predicate))
 
@@ -297,6 +412,13 @@ function hook.EnableAllHooksByPredicate(predicate)
 	return true
 end
 
+--[[
+	@doc
+	@fname hook.EnableAllHooks
+
+	@returns
+	table: enabled hooks (copy of __disabled)
+]]
 function hook.EnableAllHooks()
 	local toenable = {}
 
@@ -323,6 +445,14 @@ function hook.EnableAllHooks()
 	return toenable
 end
 
+--[[
+	@doc
+	@fname hook.EnableHook
+	@args string event, any hookID
+
+	@returns
+	boolean
+]]
 function hook.EnableHook(event, stringID)
 	assert(type(event) == 'string', 'hook.EnableHook - event is not a string! ' .. type(event))
 
@@ -333,23 +463,40 @@ function hook.EnableHook(event, stringID)
 
 		__disabled[event] = nil
 		return true
-	else
-		if not __table[event] then return false end
-		stringID = transformStringID(stringID, event)
-
-		for priority = -10, 10 do
-			if __table[event][priority] and __table[event][priority][stringID] then
-				local wasDisabled = __table[event][priority][stringID].disabled
-				__table[event][priority][stringID].disabled = false
-				hook.Reconstruct(event)
-				return wasDisabled
-			end
-		end
-
-		return false
 	end
+
+	if not __table[event] then return false end
+	stringID = transformStringID(stringID, event)
+
+	for priority = -10, 10 do
+		if __table[event][priority] and __table[event][priority][stringID] then
+			local wasDisabled = __table[event][priority][stringID].disabled
+			__table[event][priority][stringID].disabled = false
+			hook.Reconstruct(event)
+			return wasDisabled
+		end
+	end
+
+	return false
 end
 
+--[[
+	@doc
+	@fname hook.Add
+	@args string event, any hookID, function callback, number priority = 0
+
+	@desc
+	Refer to !g:hook.Add for main information
+	`priority` can be a number within range of -10 to 10 inclusive
+	`hookID` **can** be a number, unlike default gmod behavior, but can not be a boolean
+	prints tracebacks when some of arguments are invalid instead of silent fail, unlike original hook
+	throws an error when something goes horribly wrong instead of silent fail, unlike original hook
+	if priority argument is omitted, then it uses `0` as priority (if hook was not defined before)
+	and use previous priority if hook already exists (assuming we want to overwrite old hook definition) unlike ULib's hook
+	this can be useful with software which can provide hook benchmarking by re-defining every single hook using hook.Add
+	and it doesn't know about hook priorities
+	@enddesc
+]]
 function hook.Add(event, stringID, funcToCall, priority)
 	if type(event) ~= 'string' then
 		--if DLib.DEBUG_MODE:GetBool() then
@@ -410,6 +557,11 @@ function hook.Add(event, stringID, funcToCall, priority)
 	return
 end
 
+--[[
+	@doc
+	@fname hook.Remove
+	@args string event, any hookID
+]]
 function hook.Remove(event, stringID)
 	if type(event) ~= 'string' then
 		--if DLib.DEBUG_MODE:GetBool() then
@@ -454,6 +606,30 @@ function hook.Remove(event, stringID)
 	end
 end
 
+--[[
+	@doc
+	@fname hook.AddPostModifier
+	@args string event, any hookID, function callback
+
+	@desc
+	Unique feature of DLib hook
+	This allows you to define "post-hooks"
+	hooks which transform data returned by previous hook
+	Hooks bound to event will receive values returned by upvalue hook.
+	**This is meant for advanced users only. Use with care and don't try anything stupid!**
+	If you somehow don't want to mess with passed arguments, **you must return them back**
+	otherwise engine/hook.Run caller/other post modifiers will receive empty values, like none of hooks returned values
+	this can be useful for doing "final fixes" to data
+	like custom final logic for PlayerSay (local chat/roleyplay for example) or fixes to CalcView
+	using this will not affect admin/fun mods (they will use hook (e.g. PlayerSay) as usual)
+	and final fixes will always work too despite type of hook
+	*Limitation of this hook is that it can not see original arguments passed to* `hook.Run`
+	@enddesc
+
+	@returns
+	boolean
+	table: hookData
+]]
 function hook.AddPostModifier(event, stringID, funcToCall)
 	__tableModifiersPost[event] = __tableModifiersPost[event] or {}
 
@@ -489,6 +665,15 @@ function hook.AddPostModifier(event, stringID, funcToCall)
 	return true, hookData
 end
 
+--[[
+	@doc
+	@fname hook.RemovePostModifier
+	@args string event, any hookID
+
+	@returns
+	boolean
+	table: hookData
+]]
 function hook.RemovePostModifier(event, stringID)
 	if not __tableModifiersPost[event] then return false end
 
@@ -503,6 +688,21 @@ function hook.RemovePostModifier(event, stringID)
 	return false
 end
 
+--[[
+	@doc
+	@fname hook.ReconstructPostModifiers
+	@args string event
+
+	@internal
+
+	@desc
+	builds optimized hook table
+	@enddesc
+
+	@returns
+	table: sorted array of functions
+	table: sorted array of hookData
+]]
 function hook.ReconstructPostModifiers(eventToReconstruct)
 	if not eventToReconstruct then
 		for event, tab in pairs(__tableModifiersPost) do
@@ -546,6 +746,14 @@ function hook.ReconstructPostModifiers(eventToReconstruct)
 	return __tableModifiersPostOptimized, ordered
 end
 
+--[[
+	@doc
+	@fname hook.ListAllHooks
+	@args boolean includeDisabled = true
+
+	@returns
+	table: sorted array of hookData
+]]
 function hook.ListAllHooks(includeDisabled)
 	if includeDisabled == nil then includeDisabled = true end
 	local output = {}
@@ -567,6 +775,21 @@ function hook.ListAllHooks(includeDisabled)
 	return output
 end
 
+--[[
+	@doc
+	@fname hook.Reconstruct
+	@args string event
+
+	@internal
+
+	@desc
+	builds optimized hook table
+	@enddesc
+
+	@returns
+	table: sorted array of functions
+	table: sorted array of hookData
+]]
 function hook.Reconstruct(eventToReconstruct)
 	if not eventToReconstruct then
 		for event, data in pairs(__table) do
@@ -696,10 +919,32 @@ end
 -- these hooks can't return any values
 hook.StaticHooks = __breakage
 
+--[[
+	@doc
+	@fname hook.HasHooks
+	@args string event
+
+	@returns
+	boolean
+]]
 function hook.HasHooks(event)
 	return __tableOptimized[event] ~= nil and #__tableOptimized[event] ~= 0
 end
 
+--[[
+	@doc
+	@fname hook.CallStatic
+	@args string event, table hookTable, vararg arguments
+
+	@desc
+	functions called can not interrupt call loop by returning arguments
+	can not return arguments
+	internall used to call some of most popular hooks
+	which will break the game if at least one function in hook list will return value
+	@enddesc
+
+	@internal
+]]
 function hook.CallStatic(event, hookTable, ...)
 	local post = __tableModifiersPostOptimized[event]
 	local events = __tableOptimized[event]
@@ -743,6 +988,14 @@ function hook.CallStatic(event, hookTable, ...)
 	return gamemodeFunction(hookTable, ...)
 end
 
+--[[
+	@doc
+	@fname hook.Call
+	@args string event, table hookTable, vararg arguments
+
+	@returns
+	vararg: values
+]]
 function hook.Call2(event, hookTable, ...)
 	if IS_DIRTY then
 		hook.Reconstruct(IS_DIRTY_ID)
@@ -861,6 +1114,24 @@ function hook.Call2(event, hookTable, ...)
 	return Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M
 end
 
+
+--[[
+	@doc
+	@fname hook.Run
+	@args string event, vararg arguments
+
+	@returns
+	vararg: values
+]]
+
+--[[
+	@doc
+	@fname gamemode.Call
+	@args string event, vararg arguments
+
+	@returns
+	vararg: values
+]]
 if gmod then
 	local GetGamemode = gmod.GetGamemode
 
@@ -990,6 +1261,15 @@ local function lua_findhooks(eventName, ply)
 	DLib.MessagePlayer(ply, '----------------------------------')
 end
 
+--[[
+	@doc
+	@fname hook.GetDumpStr
+
+	@internal
+
+	@returns
+	string
+]]
 function hook.GetDumpStr()
 	local lines = {}
 

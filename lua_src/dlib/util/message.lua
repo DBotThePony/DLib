@@ -144,6 +144,347 @@ end
 
 local LocalPlayer = LocalPlayer
 
+--[[
+	@doc
+	@fname DLib.CMessage
+	@args table target, string addonName, Color prefixColor = Color(0, 200, 0)
+
+	@desc
+	Defines messaging function
+	function list it provide (defines) in `target` table is available
+	under `CMessage` library (pseudo library, it doesn't actually exist on runtime)
+	@enddesc
+
+	@returns
+	table: target
+]]
+
+--[[
+	@doc
+	@fname CMessage.Message
+	@args vargarg values
+
+	@desc
+	formats and prints a console message
+	@enddesc
+
+	@returns
+	table: formatted table of arguments printed to console
+]]
+
+--[[
+	@doc
+	@fname CMessage.MessageWarning
+	@args vargarg values
+
+	@desc
+	differs from `CMessage.Message` only by default text color (yellow)
+	@enddesc
+
+	@returns
+	table: formatted table of arguments printed to console
+]]
+
+--[[
+	@doc
+	@fname CMessage.MessageError
+	@args vargarg values
+
+	@desc
+	differs from `CMessage.Message` only by default text color (red)
+	@enddesc
+
+	@returns
+	table: formatted table of arguments printed to console
+]]
+
+--[[
+	@doc
+	@fname CMessage.LMessage
+	@args vargarg values
+
+	@desc
+	formats and prints a console message
+	differs from `Message` by formatting string values with i18n library
+	`LocalizedMessage`
+	@enddesc
+
+	@returns
+	table: formatted table of arguments printed to console
+]]
+
+--[[
+	@doc
+	@fname CMessage.LMessageWarning
+	@args vargarg values
+
+	@desc
+	differs from `CMessage.LMessage` only by default text color (yellow)
+	@enddesc
+
+	@returns
+	table: formatted table of arguments printed to console
+]]
+
+--[[
+	@doc
+	@fname CMessage.LMessageError
+	@args vargarg values
+
+	@desc
+	differs from `CMessage.LMessage` only by default text color (red)
+	@enddesc
+
+	@returns
+	table: formatted table of arguments printed to console
+]]
+
+--[[
+	@doc
+	@fname CMessage.MessagePlayer
+	@args Player ply, vargarg values
+
+	@desc
+	same as it's corresponding part but sends message to player's console.
+	player can be a NULL entity. if so, prints to server console.
+	calling clientside always prints to local console.
+	@enddesc
+
+	@returns
+	table: formatted table of arguments printed to console
+]]
+
+--[[
+	@doc
+	@fname CMessage.MessageWarningPlayer
+	@args vargarg values
+
+	@desc
+	same as it's corresponding part but sends message to player's console.
+	player can be a NULL entity. if so, prints to server console.
+	calling clientside always prints to local console.
+	@enddesc
+
+	@returns
+	table: formatted table of arguments printed to console
+]]
+
+--[[
+	@doc
+	@fname CMessage.MessageErrorPlayer
+	@args vargarg values
+
+	@desc
+	same as it's corresponding part but sends message to player's console.
+	player can be a NULL entity. if so, prints to server console.
+	calling clientside always prints to local console.
+	@enddesc
+
+
+	@returns
+	table: formatted table of arguments printed to console
+]]
+
+--[[
+	@doc
+	@fname CMessage.LMessagePlayer
+	@args vargarg values
+
+	@desc
+	same as it's corresponding part but sends message to player's console.
+	player can be a NULL entity. if so, prints to server console.
+	calling clientside always prints to local console.
+	@enddesc
+
+	@returns
+	table: formatted table of arguments printed to console
+]]
+
+--[[
+	@doc
+	@fname CMessage.LMessageWarningPlayer
+	@args vargarg values
+
+	@desc
+	same as it's corresponding part but sends message to player's console.
+	player can be a NULL entity. if so, prints to server console.
+	calling clientside always prints to local console.
+	@enddesc
+
+	@returns
+	table: formatted table of arguments printed to console
+]]
+
+--[[
+	@doc
+	@fname CMessage.LMessageErrorPlayer
+	@args vargarg values
+
+	@desc
+	same as it's corresponding part but sends message to player's console.
+	player can be a NULL entity. if so, prints to server console.
+	calling clientside always prints to local console.
+	@enddesc
+
+	@returns
+	table: formatted table of arguments printed to console
+]]
+
+--[[
+	@doc
+	@fname CMessage.MessageAll
+	@args vargarg values
+
+	@server
+
+	@returns
+	table: formatted table of arguments printed to console
+]]
+
+--[[
+	@doc
+	@fname CMessage.MessageWarningAll
+	@args vargarg values
+
+	@server
+
+	@returns
+	table: formatted table of arguments printed to console
+]]
+
+--[[
+	@doc
+	@fname CMessage.MessageErrorAll
+	@args vargarg values
+
+	@server
+
+	@returns
+	table: formatted table of arguments printed to console
+]]
+
+--[[
+	@doc
+	@fname CMessage.LMessageAll
+	@args vargarg values
+
+	@server
+
+	@returns
+	table: formatted table of arguments printed to console
+]]
+
+--[[
+	@doc
+	@fname CMessage.LMessageWarningAll
+	@args vargarg values
+
+	@server
+
+	@returns
+	table: formatted table of arguments printed to console
+]]
+
+--[[
+	@doc
+	@fname CMessage.LMessageErrorAll
+	@args vargarg values
+
+	@server
+
+	@returns
+	table: formatted table of arguments printed to console
+]]
+
+--[[
+	@doc
+	@fname CMessage.Chat
+	@args vargarg values
+
+	@client
+
+	@desc
+	same as it's `Message` counterpart but for printing in chat
+	@enddesc
+
+	@returns
+	table: formatted table of arguments printed to chat
+]]
+
+--[[
+	@doc
+	@fname CMessage.ChatWarning
+	@args vargarg values
+
+	@client
+
+	@desc
+	same as it's `MessageWarning` counterpart but for printing in chat
+	@enddesc
+
+	@returns
+	table: formatted table of arguments printed to chat
+]]
+
+--[[
+	@doc
+	@fname CMessage.ChatError
+	@args vargarg values
+
+	@client
+
+	@desc
+	same as it's `MessageError` counterpart but for printing in chat
+	@enddesc
+
+	@returns
+	table: formatted table of arguments printed to chat
+]]
+
+--[[
+	@doc
+	@fname CMessage.LChat
+	@args vargarg values
+
+	@client
+
+	@desc
+	same as it's `LMessage` counterpart but for printing in chat
+	@enddesc
+
+	@returns
+	table: formatted table of arguments printed to chat
+]]
+
+--[[
+	@doc
+	@fname CMessage.LChatWarning
+	@args vargarg values
+
+	@client
+
+	@desc
+	same as it's `LMessageWarning` counterpart but for printing in chat
+	@enddesc
+
+	@returns
+	table: formatted table of arguments printed to chat
+]]
+
+--[[
+	@doc
+	@fname CMessage.LChatError
+	@args vargarg values
+
+	@client
+
+	@desc
+	same as it's `LMessageError` counterpart but for printing in chat
+	@enddesc
+
+	@returns
+	table: formatted table of arguments printed to chat
+]]
 return function(tableTarget, moduleName, moduleColor)
 	local nwname = 'DLib.Message.' .. util.CRC(moduleName)
 	local nwnameL = 'DLib.Message.' .. util.CRC(moduleName) .. '.L'
@@ -445,6 +786,8 @@ return function(tableTarget, moduleName, moduleColor)
 		tableTo.LMessage = LMessage
 		tableTo.Warning = Warning
 		tableTo.LWarning = LWarning
+		tableTo.MessageWarning = Warning
+		tableTo.LMessageWarning = LWarning
 		tableTo.PrintError = PrintError
 		tableTo.LPrintError = LPrintError
 		tableTo.MessageError = PrintError
@@ -505,16 +848,23 @@ return function(tableTarget, moduleName, moduleColor)
 			tableTo.lchatMessage = LChat
 		else
 			tableTo.MessageAll = MessageAll
+			tableTo.MessageErrorAll = PrintErrorAll
+			tableTo.LMessageErrorAll = LPrintErrorAll
 			tableTo.PrintErrorAll = PrintErrorAll
 			tableTo.LPrintErrorAll = LPrintErrorAll
+			tableTo.MessageWarningAll = WarningAll
 			tableTo.WarningAll = WarningAll
+			tableTo.MessageWarningAll = WarningAll
 			tableTo.LWarningAll = LWarningAll
+			tableTo.LMessageWarningAll = LWarningAll
 			tableTo.LMessageAll = LMessageAll
 		end
 
 		tableTo.MessagePlayer = MessagePlayer
+		tableTo.MessageErrorPlayer = PrintErrorPlayer
 		tableTo.PrintErrorPlayer = PrintErrorPlayer
 		tableTo.WarningPlayer = WarningPlayer
+		tableTo.MessageWarningPlayer = WarningPlayer
 
 		tableTo.messagePlayer = MessagePlayer
 		tableTo.messageP = MessagePlayer
@@ -522,6 +872,9 @@ return function(tableTarget, moduleName, moduleColor)
 		tableTo.LMessagePlayer = LMessagePlayer
 		tableTo.LPrintErrorPlayer = LPrintErrorPlayer
 		tableTo.LWarningPlayer = LWarningPlayer
+
+		tableTo.LMessageErrorPlayer = LPrintErrorPlayer
+		tableTo.LMessageWarningPlayer = LWarningPlayer
 
 		tableTo.lmessagePlayer = LMessagePlayer
 		tableTo.lmessageP = LMessagePlayer

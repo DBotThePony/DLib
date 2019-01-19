@@ -19,8 +19,14 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-
 --[[
+	@doc
+	@fname DLib.HUDCommons.VerticalStripped
+	@args table drawdata
+
+	@client
+
+	@desc
 	{
 		spacing = 2,
 		spacingColor = Color(0, 0, 0, 0),
@@ -33,8 +39,8 @@
 		y = 0,
 		mult = 0.5
 	}
+	@enddesc
 ]]
-
 function HUDCommons.VerticalStripped(drawData)
 	local spacing = drawData.spacing or 2
 	local spacingColor = drawData.spacingColor or Color(0, 0, 0, 0)

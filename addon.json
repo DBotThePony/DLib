@@ -20,6 +20,7 @@
         ".editorconfig",
         "*.md",
         "vll/*",
+        "doc/*",
         "scripts/*"
     ]
 }

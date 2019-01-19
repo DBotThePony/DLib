@@ -27,6 +27,14 @@ local table = table
 local spawnmenu = spawnmenu
 local ipairs = ipairs
 
+--[[
+	@doc
+	@fname HUDCommonsBase:PopulateDefaultSettings
+	@args Panel DFrame
+
+	@client
+	@internal
+]]
 function meta:PopulateDefaultSettings(panel)
 	if not IsValid(panel) then return end
 
@@ -35,6 +43,14 @@ function meta:PopulateDefaultSettings(panel)
 	end
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:PopulatePositionSettings
+	@args Panel DFrame
+
+	@client
+	@internal
+]]
 function meta:PopulatePositionSettings(panel)
 	if not IsValid(panel) then return end
 
@@ -66,6 +82,13 @@ function meta:PopulatePositionSettings(panel)
 	end
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:PopulateToolMenuDefault
+
+	@client
+	@internal
+]]
 function meta:PopulateToolMenuDefault()
 	spawnmenu.AddToolMenuOption('Utilities', 'User', self:GetID() .. '_menus', self:GetName(), '', '', function(panel)
 		self:PopulateDefaultSettings(panel)

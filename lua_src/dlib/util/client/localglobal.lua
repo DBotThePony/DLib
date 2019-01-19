@@ -23,6 +23,15 @@ local LocalPlayer = LocalPlayer
 local IsValid = FindMetaTable('Entity').IsValid
 local NULL = NULL
 
+--[[
+	@doc
+	@fname LocalWeapon
+	@alias ActiveWeapon
+	@alias GetActiveWeapon
+
+	@returns
+	Weapon: which player currently hold in hands or NULL
+]]
 local function LocalWeapon()
 	local ply = LocalPlayer()
 	if not IsValid(ply) then return NULL end
@@ -31,42 +40,91 @@ local function LocalWeapon()
 	return weapon
 end
 
+--[[
+	@doc
+	@fname LocalViewModel
+
+	@returns
+	Entity
+]]
 function _G.LocalViewModel(...)
 	local ply = LocalPlayer()
 	if not IsValid(ply) then return NULL end
 	return ply:GetViewModel(...)
 end
 
+--[[
+	@doc
+	@fname LocalClip1
+
+	@returns
+	number
+]]
 function _G.LocalClip1()
 	local weapon = LocalWeapon()
 	if not IsValid(weapon) then return -1 end
 	return weapon:Clip1()
 end
 
+--[[
+	@doc
+	@fname LocalClip2
+
+	@returns
+	number
+]]
 function _G.LocalClip2()
 	local weapon = LocalWeapon()
 	if not IsValid(weapon) then return -1 end
 	return weapon:Clip2()
 end
 
+--[[
+	@doc
+	@fname LocalMaxClip1
+
+	@returns
+	number
+]]
 function _G.LocalMaxClip1()
 	local weapon = LocalWeapon()
 	if not IsValid(weapon) then return -1 end
 	return weapon:GetMaxClip1()
 end
 
+--[[
+	@doc
+	@fname LocalMaxClip2
+
+	@returns
+	number
+]]
 function _G.LocalMaxClip2()
 	local weapon = LocalWeapon()
 	if not IsValid(weapon) then return -1 end
 	return weapon:GetMaxClip2()
 end
 
+--[[
+	@doc
+	@fname LocalAmmoType1
+
+	@returns
+	number
+]]
 function _G.LocalAmmoType1()
 	local weapon = LocalWeapon()
 	if not IsValid(weapon) then return -1 end
 	return weapon:GetPrimaryAmmoType()
 end
 
+--[[
+	@doc
+	@fname LocalAmmoType2
+
+	@returns
+	number
+]]
 function _G.LocalAmmoType2()
 	local weapon = LocalWeapon()
 	if not IsValid(weapon) then return -1 end
@@ -77,17 +135,33 @@ _G.ActiveWeapon = LocalWeapon
 _G.GetActiveWeapon = LocalWeapon
 _G.LocalWeapon = LocalWeapon
 
+--[[
+	@doc
+	@fname LocalPos
+	@alias LocalPosition
+
+	@returns
+	Vector
+]]
 function _G.LocalPos()
 	local ply = LocalPlayer()
-	if not IsValid(ply) then return NULL end
+	if not IsValid(ply) then return Vector() end
 	return ply:GetPos()
 end
 
 _G.LocalPosition = LocalPos
 
+--[[
+	@doc
+	@fname LocalAngles
+	@alias LocalAng
+
+	@returns
+	Vector
+]]
 function _G.LocalAngles()
 	local ply = LocalPlayer()
-	if not IsValid(ply) then return NULL end
+	if not IsValid(ply) then return Angle() end
 	return ply:GetAngles()
 end
 

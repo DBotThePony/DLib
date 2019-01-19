@@ -26,6 +26,16 @@ local table = table
 DLib.combat = DLib.combat or {}
 local combat = DLib.combat
 
+--[[
+	@doc
+	@fname DLib.combat.findWeapon
+	@args CTakeDamageInfo dmginfo
+
+	@returns
+	Weapon
+	Entity: attacker
+	Entity: inflictor
+]]
 function combat.findWeapon(dmginfo)
 	local attacker, inflictor = dmginfo:GetAttacker(), dmginfo:GetInflictor()
 	if not IsValid(attacker) or not IsValid(inflictor) then return NULL, attacker, inflictor end
@@ -38,6 +48,19 @@ local function interval(val, min, max)
 	return val > min and val <= max
 end
 
+--[[
+	@doc
+	@fname DLib.combat.inPVS
+	@args Entity pointFrom, Entity pointTo, Angle eyes = pointFrom:EyeAnglesFixed(), number yawLimit = 60, number pitchLimit = 60
+
+	@desc
+	Despite function's name, this only checks whenever pointFrom can see on screen pointTo
+	using eye angles check assuming they have direct line of sight to each other
+	@enddesc
+
+	@returns
+	boolean
+]]
 function combat.inPVS(point1, point2, eyes, yawLimit, pitchLimit)
 	if type(point1) ~= 'Vector' then
 		if point1.EyeAnglesFixed then
@@ -63,6 +86,15 @@ function combat.inPVS(point1, point2, eyes, yawLimit, pitchLimit)
 	return interval(diffYaw, -yawLimit, yawLimit) and interval(diffPith, -pitchLimit, pitchLimit)
 end
 
+--[[
+	@doc
+	@fname DLib.combat.turnAngle
+	@args Entity pointFrom, Entity pointTo, Angle eyes = pointFrom:EyeAnglesFixed()
+
+	@returns
+	number: pitch delta
+	number: yaw delta
+]]
 function combat.turnAngle(point1, point2, eyes)
 	if type(point1) ~= 'Vector' then
 		if point1.EyeAnglesFixed then
@@ -82,6 +114,16 @@ function combat.turnAngle(point1, point2, eyes)
 	return ang.p:AngleDifference(eyes.p), ang.y:AngleDifference(eyes.y)
 end
 
+--[[
+	@doc
+	@fname DLib.combat.findWeaponAlt
+	@args CTakeDamageInfo dmginfo
+
+	@returns
+	Weapon
+	Entity: attacker
+	Entity: inflictor
+]]
 function combat.findWeaponAlt(dmginfo)
 	local attacker, inflictor = dmginfo:GetAttacker(), dmginfo:GetInflictor()
 	local weapon = inflictor
@@ -103,6 +145,16 @@ function combat.findWeaponAlt(dmginfo)
 	return weapon, attacker, inflictor
 end
 
+--[[
+	@doc
+	@fname DLib.combat.detect
+	@args CTakeDamageInfo dmginfo
+
+	@returns
+	Entity: attacker
+	Entity: weapon or inflictor
+	Entity: inflictor
+]]
 function combat.detect(dmginfo)
 	local weapon, attacker, inflictor = combat.findWeapon(dmginfo)
 
@@ -113,6 +165,19 @@ function combat.detect(dmginfo)
 	return attacker, weapon, inflictor
 end
 
+--[[
+	@doc
+	@fname DLib.combat.findPlayers
+	@args Entity self
+
+	@desc
+	Attempts to find all players involved within certain entity. This can be a vehicle from another mod for example
+	(SCars or Simfphys or even Neurotec)
+	@enddesc
+
+	@returns
+	table: of players found or false, if self is NULL
+]]
 function combat.findPlayers(self)
 	if not IsValid(self) then
 		return false

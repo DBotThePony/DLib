@@ -155,6 +155,37 @@ function vectorMeta:ToColor()
 	return Color(self.x * 255, self.y * 255, self.z * 255)
 end
 
+local type = luatype
+
+--[[
+	@doc
+	@fname Vector:WithinAABox
+	@args Vector mins, Vector maxs
+
+	@desc
+	can also accept `LVector`
+	@enddesc
+
+	@returns
+	boolean
+]]
+function vectorMeta:WithinAABox(mins, maxs)
+	if type(mins) ~= 'Vector' and type(mins) ~= 'LVector' then
+		error('Vector:WithinAABox(' .. type(mins) .. ', ' .. type(maxs) .. ') - invalid call')
+	end
+
+	if type(maxs) ~= 'Vector' and type(maxs) ~= 'LVector' then
+		error('Vector:WithinAABox(' .. type(mins) .. ', ' .. type(maxs) .. ') - invalid call')
+	end
+
+	return self.x >= mins.x
+		and self.y >= mins.y
+		and self.z >= mins.z
+		and self.x <= maxs.x
+		and self.y <= maxs.y
+		and self.z <= maxs.z
+end
+
 --[[
 	@doc
 	@fname sql.EQuery

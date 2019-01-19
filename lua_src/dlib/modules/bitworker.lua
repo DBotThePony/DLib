@@ -34,6 +34,19 @@ local function table_insert(tabIn, val)
 	tabIn[#tabIn + 1] = val
 end
 
+--[[
+	@doc
+	@fname DLib.bitworker.IntegerToBinary
+	@args number value, number bitsAmount
+
+	@desc
+	function is a bit slow (for intensive use)
+	this uses forwarding bit for negative values (the one used in networking (not in Sorse Engine networking wtf!)/etc/etc)
+	@enddesc
+
+	@returns
+	table: bits
+]]
 function bitworker.IntegerToBinary(numberIn, bitsNum)
 	if not isValidNumber(numberIn) then
 		local vr = {}
@@ -67,6 +80,19 @@ function bitworker.IntegerToBinary(numberIn, bitsNum)
 	return bits
 end
 
+--[[
+	@doc
+	@fname DLib.bitworker.IntegerToBinary2
+	@args number value, number bitsAmount
+
+	@desc
+	function is a bit slow (for intensive use)
+	this uses overflow for negative values (the one used by Sorse Engine)
+	@enddesc
+
+	@returns
+	table: bits
+]]
 function bitworker.IntegerToBinary2(numberIn, bitsNum)
 	local max = math.pow(2, bitsNum)
 
@@ -92,6 +118,18 @@ function bitworker.IntegerToBinary2(numberIn, bitsNum)
 	return bits
 end
 
+--[[
+	@doc
+	@fname DLib.bitworker.BinaryToUInteger
+	@args table bits
+
+	@desc
+	reversal of UIntegerToBinary
+	@enddesc
+
+	@returns
+	number
+]]
 function bitworker.BinaryToUInteger(inputTable)
 	local amount = #inputTable
 	local output = 0
@@ -105,6 +143,18 @@ function bitworker.BinaryToUInteger(inputTable)
 	return output
 end
 
+--[[
+	@doc
+	@fname DLib.bitworker.BinaryToInteger
+	@args table bits
+
+	@desc
+	reversal of IntegerToBinary
+	@enddesc
+
+	@returns
+	number
+]]
 function bitworker.BinaryToInteger(inputTable)
 	local direction = inputTable[1]
 	local amount = #inputTable
@@ -123,6 +173,18 @@ function bitworker.BinaryToInteger(inputTable)
 	end
 end
 
+--[[
+	@doc
+	@fname DLib.bitworker.BinaryToInteger2
+	@args table bits
+
+	@desc
+	reversal of IntegerToBinary2
+	@enddesc
+
+	@returns
+	number
+]]
 function bitworker.BinaryToInteger2(bits)
 	local bitsNum = #bits
 	local max = math.pow(2, bitsNum - 1) - 1
@@ -141,6 +203,19 @@ function bitworker.BinaryToInteger2(bits)
 	return output
 end
 
+--[[
+	@doc
+	@fname DLib.bitworker.UIntegerToBinary
+	@args number value, number bitsAmount
+
+	@desc
+	negative values are handled by overflow
+	so please don't pass negative values ok?
+	@enddesc
+
+	@returns
+	table: bits
+]]
 function bitworker.UIntegerToBinary(numberIn, bitsNum)
 	if not isValidNumber(numberIn) then
 		local vr = {}
@@ -172,6 +247,15 @@ function bitworker.UIntegerToBinary(numberIn, bitsNum)
 	return bits
 end
 
+--[[
+	@doc
+	@fname DLib.bitworker.NumberToMantiss
+	@args number value, number bitsAllowed
+
+	@returns
+	table: bits
+	number: exponent
+]]
 function bitworker.NumberToMantiss(numberIn, bitsAllowed)
 	if not isValidNumber(numberIn) then
 		local bits = {}
@@ -224,6 +308,14 @@ function bitworker.NumberToMantiss(numberIn, bitsAllowed)
 	return bits, exp
 end
 
+--[[
+	@doc
+	@fname DLib.bitworker.MantissToNumber
+	@args table bits, number exponent
+
+	@returns
+	number
+]]
 function bitworker.MantissToNumber(bitsIn, exp)
 	exp = exp or 0
 	local num = 0
@@ -237,6 +329,14 @@ function bitworker.MantissToNumber(bitsIn, exp)
 	return math.pow(2, exp) * (1 + num)
 end
 
+--[[
+	@doc
+	@fname DLib.bitworker.FloatToBinaryIEEE
+	@args number value, number bitsForExponent, number bitsForMantissa
+
+	@returns
+	table: bits
+]]
 -- final range is bitsExponent + bitsMantissa + 2
 -- where 2 is two bits which one forwards number sign and one forward exponent sign
 function bitworker.FloatToBinaryIEEE(numberIn, bitsExponent, bitsMantissa)
@@ -260,6 +360,14 @@ function bitworker.FloatToBinaryIEEE(numberIn, bitsExponent, bitsMantissa)
 	return bits
 end
 
+--[[
+	@doc
+	@fname DLib.bitworker.BinaryToFloatIEEE
+	@args table bits, number bitsExponent, number bitsMantissa
+
+	@returns
+	number
+]]
 function bitworker.BinaryToFloatIEEE(bitsIn, bitsExponent, bitsMantissa)
 	local valid = false
 
@@ -286,6 +394,19 @@ function bitworker.BinaryToFloatIEEE(bitsIn, bitsExponent, bitsMantissa)
 	end
 end
 
+--[[
+	@doc
+	@fname DLib.bitworker.BitsToBytes
+	@args table bits
+
+	@desc
+	a table consist of `{1, 1, 1, 0, 0, 0, 1, 0}` turns into `{226}` for example
+	`{1, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 1}` turns into `{226, 225}`
+	@descdesc
+
+	@returns
+	table: bytes
+]]
 function bitworker.BitsToBytes(bitsIn)
 	assert(#bitsIn % 8 == 0, 'Not full bytes')
 	local output = {}

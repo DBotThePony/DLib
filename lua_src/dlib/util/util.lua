@@ -24,10 +24,25 @@ local util = setmetatable(DLib.util or {}, {__index = util})
 DLib.util = util
 local DLib = DLib
 local vgui = vgui
-local type = type
+local type = luatype
 local ipairs = ipairs
 local IsValid = IsValid
+local LVector = LVector
+local Vector = Vector
+local Angle = Angle
 
+--[[
+	@doc
+	@fname DLib.VCreate
+	@args string panelName, Panel parent
+
+	@desc
+	!g:vgui.Create but does not create panel when parent is not present
+	@enddesc
+
+	@returns
+	Panel: created panel
+]]
 function DLib.VCreate(pnlName, pnlParent)
 	if not IsValid(pnlParent) then
 		DLib.Message(debug.traceback('Attempt to create ' .. pnlName .. ' without valid parent!', 2))
@@ -37,17 +52,78 @@ function DLib.VCreate(pnlName, pnlParent)
 	return vgui.Create(pnlName, pnlParent)
 end
 
+--[[
+	@doc
+	@fname DLib.util.Clone
+	@args any variable
+
+	@desc
+	creates better copy of variable.
+	can clone tables better than !g:table.Copy
+	**NOT RECURSION SAFE**
+	**will attempt to throw an error when encounters a recursion**
+	@enddesc
+
+	@returns
+	any: clone
+]]
 function util.copy(var)
-	if type(var) == 'table' then return table.Copy(var) end
+	if type(var) == 'table' then
+		local output = {}
+
+		for k, v in pairs(var) do
+			if k == var or v == var then
+				error('Confused by recursion')
+			end
+
+			output[util.Copy(k)] = util.Copy(v)
+		end
+
+		return output
+	end
+
 	if type(var) == 'Angle' then return Angle(var.p, var.y, var.r) end
 	if type(var) == 'Vector' then return Vector(var) end
+	if type(var) == 'LVector' then return LVector(var) end
 	return var
 end
 
+util.clone = util.copy
+util.Clone = util.copy
+util.Copy = util.copy
+
+--[[
+	@doc
+	@fname DLib.util.VectorRand
+	@alias DLib.util.RandomVector
+	@args number x, number y, number z
+
+	@desc
+	calls math.Rand(-component, component) for each component
+	@enddesc
+
+	@returns
+	Vector
+]]
 function util.randomVector(mx, my, mz)
 	return Vector(math.Rand(-mx, mx), math.Rand(-my, my), math.Rand(-mz, mz))
 end
 
+util.RandomVector = util.randomVector
+util.VectorRand = util.randomVector
+
+--[[
+	@doc
+	@fname DLib.util.ComposeEnums
+	@args table input, vararg ...numbers
+
+	@desc
+	:bor()'s numbers in `input` and :bor()'s numbers in vararg towards newly created value
+	@enddesc
+
+	@returns
+	number
+]]
 function util.composeEnums(input, ...)
 	local num = 0
 
@@ -62,11 +138,33 @@ function util.composeEnums(input, ...)
 	return num:bor(...)
 end
 
+util.ComposeEnums = util.composeEnums
+
+--[[
+	@doc
+	@fname DLib.util.ValidateSteamID
+	@args string steamid
+
+	@returns
+	boolean: whenever string provided is regular steamid (STEAM_0)
+]]
 function util.ValidateSteamID(input)
 	if not input then return false end
 	return input:match('STEAM_0:[0-1]:[0-9]+$') ~= nil
 end
 
+--[[
+	@doc
+	@fname DLib.util.SteamLink
+	@args string steamid
+
+	@desc
+	accepts steamid and steamid64
+	@enddesc
+
+	@returns
+	string
+]]
 function util.SteamLink(steamid)
 	if util.ValidateSteamID(steamid) then
 		return 'https://steamcommunity.com/profiles/' .. util.SteamIDTo64(steamid) .. '/'
@@ -75,6 +173,19 @@ function util.SteamLink(steamid)
 	end
 end
 
+--[[
+	@doc
+	@fname DLib.util.CreateSharedConvar
+	@args string cvarname, string cvardef, string description
+
+	@desc
+	quick way to workaround [this](https://github.com/Facepunch/garrysmod-issues/issues/3323)
+	adds `FCVAR_REPLICATED, FCVAR_ARCHIVE, FCVAR_NOTIFY` flags serverside and only `FCVAR_REPLICATED` clientside
+	@enddesc
+
+	@returns
+	ConVar
+]]
 function util.CreateSharedConvar(cvarname, cvarvalue, description)
 	if CLIENT then
 		return CreateConVar(cvarname, cvarvalue, {FCVAR_REPLICATED}, description)
@@ -226,6 +337,16 @@ local function InternalPrintLoop(tableIn, level, recursionCheck)
 	return hitAnything
 end
 
+--[[
+	@doc
+	@fname PrintTable
+	@args table value
+
+	@desc
+	pretty prints a table.
+	attempts to avoid recursion.
+	@enddesc
+]]
 function _G.PrintTable(tableIn)
 	assert(rawtype(tableIn) == 'table', 'Input must be a table!')
 	wellknown = {}
@@ -236,6 +357,16 @@ function _G.PrintTable(tableIn)
 	MsgC(TABLE_TOKEN_COLOR, '}\n')
 end
 
+--[[
+	@doc
+	@fname PrintTableStrict
+	@args table value
+
+	@desc
+	pretty prints a table.
+	strictly avoids any meaning of recursion.
+	@enddesc
+]]
 function _G.PrintTableStrict(tableIn)
 	assert(rawtype(tableIn) == 'table', 'Input must be a table!')
 	wellknown = {}

@@ -26,6 +26,14 @@ i18n.hashedNoArgs = i18n.hashedNoArgs or {}
 i18n.hashedLang = i18n.hashedLang or {}
 i18n.hashedNoArgsLang = i18n.hashedNoArgsLang or {}
 
+--[[
+	@doc
+	@fname DLib.i18n.localizeByLang
+	@args string phrase, string lang, vararg format
+
+	@returns
+	string: formatted
+]]
 function i18n.localizeByLang(phrase, lang, ...)
 	if not i18n.hashed[phrase] or i18n.DEBUG_LANG_STRINGS:GetBool() then
 		return phrase
@@ -48,6 +56,14 @@ function i18n.localizeByLang(phrase, lang, ...)
 	end
 end
 
+--[[
+	@doc
+	@fname DLib.i18n.countExpressions
+	@args string str
+
+	@returns
+	number
+]]
 function i18n.countExpressions(str)
 	local i = 0
 
@@ -58,6 +74,17 @@ function i18n.countExpressions(str)
 	return i
 end
 
+--[[
+	@doc
+	@fname DLib.i18n.registerPhrase
+	@args string lang, string phrase, string unformatted
+
+	@deprecated
+	@internal
+
+	@returns
+	boolean: true
+]]
 function i18n.registerPhrase(lang, phrase, unformatted)
 	if lang == 'en' then
 		i18n.hashed[phrase] = unformatted
@@ -86,30 +113,89 @@ function i18n.registerPhrase(lang, phrase, unformatted)
 	return true
 end
 
+--[[
+	@doc
+	@fname DLib.i18n.localize
+	@args string phrase, vararg format
+
+	@returns
+	string: formatted
+]]
 function i18n.localize(phrase, ...)
 	return i18n.localizeByLang(phrase, i18n.CURRENT_LANG, ...)
 end
 
+--[[
+	@doc
+	@fname DLib.i18n.getRaw
+	@args string phrase
+
+	@returns
+	string: or nil
+]]
 function i18n.getRaw(phrase)
 	return i18n.getRawByLang(phrase, i18n.CURRENT_LANG)
 end
 
+--[[
+	@doc
+	@fname DLib.i18n.getRaw2
+	@args string phrase
+
+	@returns
+	string: or nil
+]]
 function i18n.getRaw2(phrase)
 	return i18n.getRawByLang2(phrase, i18n.CURRENT_LANG)
 end
 
+
+--[[
+	@doc
+	@fname DLib.i18n.getRawByLang
+	@args string phrase, string lang
+
+	@returns
+	string: or nil
+]]
 function i18n.getRawByLang(phrase, lang)
 	return i18n.hashedLang[lang] and i18n.hashedLang[lang][phrase] or i18n.hashed[phrase]
 end
 
+--[[
+	@doc
+	@fname DLib.i18n.getRawByLang2
+	@args string phrase, string lang
+
+	@returns
+	string: or nil
+]]
 function i18n.getRawByLang2(phrase, lang)
 	return i18n.hashedLang[lang] and i18n.hashedLang[lang][phrase] or i18n.hashedLang[phrase] and i18n.hashedLang[phrase][lang] or i18n.hashed[phrase]
 end
 
+--[[
+	@doc
+	@fname DLib.i18n.phrasePresent
+	@alias DLib.i18n.exists
+	@alias DLib.i18n.phraseExists
+	@args string phrase
+
+	@returns
+	boolean
+]]
 function i18n.phrasePresent(phrase)
 	return i18n.hashed[phrase] ~= nil
 end
 
+--[[
+	@doc
+	@fname DLib.i18n.safePhrase
+	@args string phrase
+
+	@returns
+	boolean
+]]
 function i18n.safePhrase(phrase)
 	return i18n.hashedNoArgs[phrase] ~= nil
 end
@@ -120,10 +206,26 @@ i18n.phraseExists = i18n.phrasePresent
 local table = table
 local type = type
 
+--[[
+	@doc
+	@fname DLib.i18n.rebuildTable
+	@args table args
+
+	@returns
+	table: a table with localized strings. other types are untouched. does not modify original table
+]]
 function i18n.rebuildTable(args)
 	return i18n.rebuildTableByLang(args, i18n.CURRENT_LANG)
 end
 
+--[[
+	@doc
+	@fname DLib.i18n.rebuildTableByLang
+	@args table args, string lang
+
+	@returns
+	table: a table with localized strings. other types are untouched. does not modify original table
+]]
 function i18n.rebuildTableByLang(args, lang)
 	local rebuild = {}
 	local i = 1

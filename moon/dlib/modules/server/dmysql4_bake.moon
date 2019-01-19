@@ -29,8 +29,8 @@ class DMySQL4.PlainBakedQuery
 		@parts = plain\split('?')
 		@length = #@parts - 1
 
-	ExecInPlace: (args) => @database\Query(@Format(args))
-	Execute: (args) => @Format(args)
+	ExecInPlace: (...) => @database\Query(@Format(...))
+	Execute: (...) => @Format(...)
 	Format: (...) =>
 		return @raw if @length == 0
 

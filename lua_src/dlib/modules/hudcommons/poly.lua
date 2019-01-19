@@ -28,6 +28,16 @@ local table = table
 local assert = assert
 local type = type
 
+--[[
+	@doc
+	@fname DLib.HUDCommons.DrawTriangle
+	@args number x, number y, number w, number h, number rotate = 0
+
+	@client
+
+	@returns
+	table: !s:PolygonVertex
+]]
 function HUDCommons.DrawTriangle(x, y, w, h, rotate)
 	local poly = {
 		{x = w / 2, y = 0},
@@ -45,12 +55,29 @@ function HUDCommons.DrawTriangle(x, y, w, h, rotate)
 	return poly
 end
 
+--[[
+	@doc
+	@fname DLib.HUDCommons.DrawCircle
+	@args number x, number y, number radius, number segments = radius / 8
+
+	@client
+
+	@desc
+	Draws a circle positioned in center of `x` and `y`
+	This function is *caching* it's !s:PolygonVertex calculation results
+	and thus more performance and GC friendly.
+	@enddesc
+
+	@returns
+	table: !s:PolygonVertex
+]]
 local DrawCircleCache = {}
 function HUDCommons.DrawCircle(x, y, radius, segments)
 	x = assert(type(x) == 'number' and x, 'Invalid X'):floor()
 	y = assert(type(y) == 'number' and y, 'Invalid Y'):floor()
 	radius = assert(type(radius) == 'number' and radius, 'Invalid Radius'):floor()
-	segments = assert(type(segments) == 'number' and segments, 'Invalid amount of segments'):floor()
+	segments = segments or radius / 8
+	segments = assert(type(segments) == 'number' and segments, 'Invalid amount of segments'):floor():max(8)
 
 	if radius <= 1 then return end
 	if segments <= 4 then return end -- ???
@@ -80,6 +107,17 @@ function HUDCommons.DrawCircle(x, y, radius, segments)
 	return DrawCircleCache[crc]
 end
 
+--[[
+	@doc
+	@fname DLib.HUDCommons.DrawPolyFrame
+	@args table PolygonVertex
+
+	@client
+
+	@desc
+	useful for debugging shapes of !s:PolygonVertex when it doesn't draw or something
+	@enddesc
+]]
 function HUDCommons.DrawPolyFrame(polydata)
 	local x, y
 
@@ -155,13 +193,33 @@ local stencilMat = CreateMaterial('dlib_arc_white', 'UnlitGeneric', {
 	['$translucent'] = '1',
 })
 
+--[[
+	@doc
+	@fname DLib.HUDCommons.DrawArcHollow
+	@args number x, number y, number radius, number segments = radius / 8, number inLength, number arcAngle, Color color
+
+	@client
+
+	@desc
+	Draws hollow circle with line width of `inLength` and angle of `arcAngle`
+
+	Will not work if called inside other stencil operations
+
+	This function is *caching* it's !s:PolygonVertex calculation results
+	and thus more performance and GC friendly.
+	@enddesc
+
+	@returns
+	table: !s:PolygonVertex
+]]
 local DrawArcHollowCache_1 = {}
 local DrawArcHollowCache_2 = {}
 function HUDCommons.DrawArcHollow(x, y, radius, segments, inLength, arc, color)
 	x = assert(type(x) == 'number' and x, 'Invalid X'):floor()
 	y = assert(type(y) == 'number' and y, 'Invalid Y'):floor()
 	radius = assert(type(radius) == 'number' and radius, 'Invalid Radius'):floor()
-	segments = assert(type(segments) == 'number' and segments, 'Invalid amount of segments'):floor()
+	segments = segments or radius / 8
+	segments = assert(type(segments) == 'number' and segments, 'Invalid amount of segments'):floor():max(8)
 	inLength = assert(type(inLength) == 'number' and inLength, 'Invalid length inside'):floor()
 	arc = assert(type(arc) == 'number' and arc, 'Invalid arc degree'):floor()
 
@@ -273,12 +331,30 @@ function HUDCommons.DrawArcHollow(x, y, radius, segments, inLength, arc, color)
 	return poly
 end
 
+--[[
+	@doc
+	@fname DLib.HUDCommons.DrawArcHollow2
+	@args number x, number y, number radius, number segments = radius / 8, number inLength, number arcAngleStart, number arcAngleEnd, Color color
+
+	@client
+
+	@desc
+	Same as `DLib.HUDCommons.DrawArcHollow` but allows to specify start and end angles of arc
+
+	This function is *caching* it's !s:PolygonVertex calculation results
+	and thus more performance and GC friendly.
+	@enddesc
+
+	@returns
+	table: !s:PolygonVertex
+]]
 local DrawArcHollow2Cache = {}
 function HUDCommons.DrawArcHollow2(x, y, radius, segments, inLength, arc1, arc2, color)
 	x = assert(type(x) == 'number' and x, 'Invalid X'):floor()
 	y = assert(type(y) == 'number' and y, 'Invalid Y'):floor()
 	radius = assert(type(radius) == 'number' and radius, 'Invalid Radius'):floor()
-	segments = assert(type(segments) == 'number' and segments, 'Invalid amount of segments'):floor()
+	segments = segments or radius / 8
+	segments = assert(type(segments) == 'number' and segments, 'Invalid amount of segments'):floor():max(8)
 	inLength = assert(type(inLength) == 'number' and inLength, 'Invalid length inside'):floor()
 	arc1 = assert(type(arc1) == 'number' and arc1, 'Invalid arc1 degree'):floor()
 	arc2 = assert(type(arc2) == 'number' and arc2, 'Invalid arc2 degree'):floor()
@@ -349,21 +425,37 @@ function HUDCommons.DrawArcHollow2(x, y, radius, segments, inLength, arc1, arc2,
 	return DrawArcHollow2Cache[crc]
 end
 
+--[[
+	@doc
+	@fname DLib.HUDCommons.DrawCircleHollow
+	@args number x, number y, number radius, number segments = radius / 8, number inLength, Color color
+
+	@client
+
+	@desc
+	Draws a hollow circle with line width of `inLength`
+	Circle is positioned in center of `x` and `y`
+
+	This function is *caching* it's !s:PolygonVertex calculation results
+	and thus more performance and GC friendly.
+	@enddesc
+
+	@returns
+	table: !s:PolygonVertex
+	table: !s:PolygonVertex
+]]
 function HUDCommons.DrawCircleHollow(x, y, radius, segments, inLength, color)
 	x = assert(type(x) == 'number' and x, 'Invalid X'):floor()
 	y = assert(type(y) == 'number' and y, 'Invalid Y'):floor()
 	radius = assert(type(radius) == 'number' and radius, 'Invalid Radius'):floor()
-	segments = assert(type(segments) == 'number' and segments, 'Invalid amount of segments'):floor()
+	segments = segments or radius / 8
+	segments = assert(type(segments) == 'number' and segments, 'Invalid amount of segments'):floor():max(8)
 	inLength = assert(type(inLength) == 'number' and inLength, 'Invalid length inside'):floor()
 
 	if radius <= 1 then return end
 	if inLength <= 1 then return end
 
 	local crc = x .. y .. radius .. segments .. inLength
-
-	local center = radius / 2
-	local inRadius = radius - inLength * 2
-	local centerIn = inRadius / 2
 
 	render.SetStencilEnable(true)
 
@@ -381,17 +473,17 @@ function HUDCommons.DrawCircleHollow(x, y, radius, segments, inLength, color)
 
 	surface.SetMaterial(stencilMat)
 	surface.SetDrawColor(0, 0, 0, 255)
-	HUDCommons.DrawCircle(x + inLength / 2, y + inLength / 2, radius - inLength, segments)
+	local poly2 = HUDCommons.DrawCircle(x + inLength / 2, y + inLength / 2, radius - inLength, segments)
 	render.SetStencilCompareFunction(STENCIL_NOTEQUAL)
 
 	draw.NoTexture()
 	surface.SetDrawColor(color)
-	poly = HUDCommons.DrawCircle(x, y, radius, segments)
+	local poly = HUDCommons.DrawCircle(x, y, radius, segments)
 
 	render.ClearStencil()
 	render.SetStencilEnable(false)
 
-	return poly
+	return poly, poly2
 end
 
 local function cleanup()

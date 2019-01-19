@@ -46,6 +46,63 @@ do
 	end
 end
 
+--[[
+	@doc
+	@panel DLib_NumberInput
+
+	@desc
+	!p:DLib_TextEntry_Number wrapped in with apply button and `:OnEnter(value)` callback
+	this expose almost all methods of DLib_NumberInput
+	however, it does not inherit it!
+	@enddesc
+]]
+
+--[[
+	@doc
+	@panel DLib_NumberInputLabeled
+
+	@desc
+	!p:DLib_NumberInput with label which can be accessed using `.label` property
+	and text can be set using `:SetLabel(string)`
+	@enddesc
+]]
+
+--[[
+	@doc
+	@panel DLib_NumberInputLabeledBare
+
+	@desc
+	!p:DLib_NumberInput with label which can be accessed using `.label` property
+	@enddesc
+]]
+
+--[[
+	@doc
+	@panel DLib_TextInput
+
+	@desc
+	!p:DLib_TextEntry wrapped in with apply button and `:OnEnter(value)` callback
+	@enddesc
+]]
+
+--[[
+	@doc
+	@panel DLib_TextInputLabeled
+
+	@desc
+	!p:DLib_TextInput with label which can be accessed using `.label` property
+	and text can be set using `:SetLabel(string)`
+	@enddesc
+]]
+
+--[[
+	@doc
+	@panel DLib_TextInputLabeledBare
+
+	@desc
+	!p:DLib_TextInput with label which can be accessed using `.label` property
+	@enddesc
+]]
 local panels = {
 	{'DLib_TextEntry_Number', 'Number', numberEntry},
 	{'DLib_TextEntry', 'Text'},

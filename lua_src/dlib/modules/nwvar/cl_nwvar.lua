@@ -21,6 +21,9 @@
 
 local entMeta = FindMetaTable('Entity')
 
+-- not even gonna document it
+-- full candidate to remove
+
 function entMeta:SetDLibVar(var, val)
 	var = var:lower()
 	local data = nw.GetNetworkDataTable(self)

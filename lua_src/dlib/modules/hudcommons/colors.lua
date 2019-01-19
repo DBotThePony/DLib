@@ -35,6 +35,25 @@ HUDCommons.ColorsVars = HUDCommons.ColorsVars or {}
 HUDCommons.ColorsVarsN = HUDCommons.ColorsVarsN or {}
 HUDCommons.ColorsVarsN_Proxies = HUDCommons.ColorsVarsN_Proxies or {}
 
+--[[
+	@doc
+	@fname DLib.HUDCommons.CreateColor
+	@args string classname, string name, number r, number g, number b, number a
+
+	@client
+
+	@desc
+	Allows you to define user-configured colors
+	classname should be something unique that is short and predictable,
+	like `ffgs_hud_ammobg`
+	and `name` should be something that user will recognize easily
+	like `FFGS HUD Ammo Counter background`
+	i18n support is planned
+	@enddesc
+
+	@returns
+	function: returns color. DO NOT MODIFY IT! (e.g. change alpha). Use cloning methods as described on !c:Color
+]]
 function HUDCommons.CreateColor(class, name, r, g, b, a)
 	if type(r) == 'table' then
 		g = r.g
@@ -90,6 +109,20 @@ function HUDCommons.CreateColor(class, name, r, g, b, a)
 	end
 end
 
+--[[
+	@doc
+	@fname DLib.HUDCommons.CreateColorN
+	@args string classname, string name, number r, number g, number b, number a
+
+	@client
+
+	@desc
+	same as `DLib.HUDCommons.CreateColor` but disallows user to edit alpha channel
+	@enddesc
+
+	@returns
+	function: returns color. Passing a number as first argument will modify the alpha of color and still return the color.
+]]
 function HUDCommons.CreateColorN(class, name, r, g, b, a)
 	if type(r) == 'table' then
 		g = r.g
@@ -158,6 +191,20 @@ function HUDCommons.CreateColorN(class, name, r, g, b, a)
 	end
 end
 
+--[[
+	@doc
+	@fname DLib.HUDCommons.CreateColorN2
+	@args string classname, string name, number r, number g, number b, number a
+
+	@client
+
+	@desc
+	same as `DLib.HUDCommons.CreateColorN` but returns color which is always valid
+	@enddesc
+
+	@returns
+	Color: this color is being updated by the base internally, so you don't have to call function. You *are* allowed to edit alpha channel of this color.
+]]
 function HUDCommons.CreateColorN2(class, ...)
 	local colorProxy = Color()
 	local color = HUDCommons.CreateColorN(class, ...)

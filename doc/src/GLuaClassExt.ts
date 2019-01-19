@@ -18,17 +18,26 @@ import {mkdir} from './Util'
 
 import fs = require('fs')
 import { GLuaFunction } from './GLuaFunction';
+import { IGLuaList, DocumentationRoot } from './DocumentationRoot';
 
-class GLuaClassExtension {
+class GLuaClassExtension implements IGLuaList {
 	entries = new Map<string, GLuaEntryBase>()
 	description = '*No description avaliable*'
 
-	constructor(public id: string, public name = id) {
+	constructor(public root: DocumentationRoot, public id: string, public name = id) {
 
 	}
 
 	buildLevels(level = 1): string {
 		return `[${this.id}](../index.md):`
+	}
+
+	getDocLevel(): number {
+		return 1
+	}
+
+	pathToRoot() {
+		return '../'
 	}
 
 	generateFiles(outputDir: string) {
@@ -46,17 +55,31 @@ class GLuaClassExtension {
 		}
 	}
 
-	generateIndex() {
-		const funcs = []
+	generateFunctionList(prefix = '') {
+		const output = []
 
 		for (const [name, entry] of this.entries) {
 			if (entry instanceof GLuaFunction) {
-				funcs.push(`* [${entry.name}](./functions/${name}.md)(${entry.args.buildMarkdown()})`)
+				output.push(`* [${entry.name}](${prefix}./functions/${name}.md)(${entry.args.buildMarkdown()})`)
 			}
 		}
 
+		output.sort()
+
+		return output
+	}
+
+	generateIndex() {
+		const funcs = this.generateFunctionList()
+
+		let prettyName = this.name
+
+		if (this.root.panels.has(this.id)) {
+			prettyName = `Panel: [${this.name}](../../panels/${this.id}.md)`
+		}
+
 		return `# DLib documentation
-## ${this.name}
+## ${prettyName}
 [Go up](../index.md)
 ### Methods
 ${funcs.join('  \n')}`

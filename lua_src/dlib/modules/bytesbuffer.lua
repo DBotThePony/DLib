@@ -36,6 +36,20 @@ local string = string
 
 meta.__index = meta
 
+--[[
+	@doc
+	@fname DLib.BytesBuffer
+	@args string binary = ''
+
+	@desc
+	entry point of BytesBuffer creation
+	you can pass a string to it to construct bytes array from it
+	**BUFFER ONLY WORK WITH BIG ENDIAN BYTES**
+	@descdesc
+
+	@returns
+	BytesBuffer: newly created object
+]]
 function DLib.BytesBuffer(stringIn)
 	local obj = setmetatable({}, meta)
 	obj.bytes = {}
@@ -51,6 +65,14 @@ function DLib.BytesBuffer(stringIn)
 	return obj
 end
 
+--[[
+	@doc
+	@fname BytesBuffer:Seek
+	@args number position
+
+	@returns
+	BytesBuffer: self
+]]
 -- Operations
 function meta:Seek(moveTo)
 	assert(moveTo >= 0 and moveTo <= self.length, 'Seek - invalid position')
@@ -58,22 +80,62 @@ function meta:Seek(moveTo)
 	return self
 end
 
+--[[
+	@doc
+	@fname BytesBuffer:Move
+	@alias BytesBuffer:Walk
+	@args number delta
+
+	@returns
+	BytesBuffer: self
+]]
 function meta:Move(moveBy)
 	return self:Seek(self.pointer + moveBy)
 end
 
 meta.Walk = meta.Move
 
+--[[
+	@doc
+	@fname BytesBuffer:Reset
+
+	@desc
+	alias of BytesBuffer:Seek(0)
+	@enddesc
+
+	@returns
+	BytesBuffer: self
+]]
 function meta:Reset()
 	return self:Seek(0)
 end
 
+--[[
+	@doc
+	@fname BytesBuffer:Release
+
+	@desc
+	sets pointer to 0 and removes internal bytes array
+	@enddesc
+
+	@returns
+	BytesBuffer: self
+]]
 function meta:Release()
 	self.pointer = 0
 	self.bytes = {}
 	return self
 end
 
+--[[
+	@doc
+	@fname BytesBuffer:GetBytes
+
+	@internal
+
+	@returns
+	table: of integers (for optimization purpose). editing this array will affect the object! be careful
+]]
 function meta:GetBytes()
 	return self.bytes
 end
@@ -104,10 +166,26 @@ local function assertRange(valueIn, min, max, funcName)
 	error(funcName .. ' - size overflow (' .. min .. ' -> ' .. max .. ' vs ' .. valueIn .. ')', 3)
 end
 
+
+--[[
+	@doc
+	@fname BytesBuffer:EndOfStream
+
+	@returns
+	boolean
+]]
 function meta:EndOfStream()
 	return self.pointer >= self.length
 end
 
+--[[
+	@doc
+	@fname BytesBuffer:WriteUByte
+	@args number value
+
+	@returns
+	BytesBuffer: self
+]]
 function meta:WriteUByte(valueIn)
 	if valueIn == 0 then
 		local internal = math.floor(self.pointer / 4) + 1
@@ -142,6 +220,40 @@ function meta:WriteUByte(valueIn)
 	return self
 end
 
+--[[
+	@doc
+	@fname BytesBuffer:WriteByte_2
+	@args number value
+
+	@desc
+	with value shift
+	@enddesc
+
+	@returns
+	BytesBuffer: self
+]]
+
+--[[
+	@doc
+	@fname BytesBuffer:WriteByte
+	@args number value
+
+	@desc
+	with negative number overflow
+	@enddesc
+
+	@returns
+	BytesBuffer: self
+]]
+
+--[[
+	@doc
+	@fname BytesBuffer:WriteCHar
+	@args string char
+
+	@returns
+	BytesBuffer: self
+]]
 -- Primitive read/write
 -- wrap overflow
 function meta:WriteByte_2(valueIn)
@@ -167,6 +279,40 @@ function meta:WriteChar(char)
 	return self
 end
 
+--[[
+	@doc
+	@fname BytesBuffer:WriteInt16_2
+	@args number value
+
+	@desc
+	with value shift
+	@enddesc
+
+	@returns
+	BytesBuffer: self
+]]
+
+--[[
+	@doc
+	@fname BytesBuffer:WriteInt16
+	@args number value
+
+	@desc
+	with negative number overflow
+	@enddesc
+
+	@returns
+	BytesBuffer: self
+]]
+
+--[[
+	@doc
+	@fname BytesBuffer:WriteUInt16
+	@args number value
+
+	@returns
+	BytesBuffer: self
+]]
 function meta:WriteInt16_2(valueIn)
 	assertType(valueIn, 'number', 'WriteInt16')
 	assertRange(valueIn, -0x8000, 0x7FFF, 'WriteInt16')
@@ -188,6 +334,40 @@ function meta:WriteUInt16(valueIn)
 	return self
 end
 
+--[[
+	@doc
+	@fname BytesBuffer:WriteInt32_2
+	@args number value
+
+	@desc
+	with value shift
+	@enddesc
+
+	@returns
+	BytesBuffer: self
+]]
+
+--[[
+	@doc
+	@fname BytesBuffer:WriteInt32
+	@args number value
+
+	@desc
+	with negative number overflow
+	@enddesc
+
+	@returns
+	BytesBuffer: self
+]]
+
+--[[
+	@doc
+	@fname BytesBuffer:WriteUInt32
+	@args number value
+
+	@returns
+	BytesBuffer: self
+]]
 function meta:WriteInt32_2(valueIn)
 	assertType(valueIn, 'number', 'WriteInt32')
 	assertRange(valueIn, -0x80000000, 0x7FFFFFFF, 'WriteInt32')
@@ -221,6 +401,46 @@ function meta:WriteUInt32(valueIn)
 	return self
 end
 
+--[[
+	@doc
+	@fname BytesBuffer:WriteInt64_2
+	@args number value
+
+	@desc
+	with value shift
+	due to precision errors, this not actually accurate operation
+	@enddesc
+
+	@returns
+	BytesBuffer: self
+]]
+
+--[[
+	@doc
+	@fname BytesBuffer:WriteInt64
+	@args number value
+
+	@desc
+	with negative number overflow
+	due to precision errors, this not actually accurate operation
+	@enddesc
+
+	@returns
+	BytesBuffer: self
+]]
+
+--[[
+	@doc
+	@fname BytesBuffer:WriteUInt64
+	@args number value
+
+	@desc
+	due to precision errors, this not actually accurate operation
+	@enddesc
+
+	@returns
+	BytesBuffer: self
+]]
 function meta:WriteInt64_2(valueIn)
 	self:WriteUInt64(valueIn + 0x100000000)
 	return self
@@ -244,6 +464,37 @@ function meta:CheckOverflow(name, moveBy)
 	end
 end
 
+--[[
+	@doc
+	@fname BytesBuffer:ReadByte_2
+
+	@desc
+	with value shift
+	@enddesc
+
+	@returns
+	number
+]]
+
+--[[
+	@doc
+	@fname BytesBuffer:ReadByte
+
+	@desc
+	with negative number overflow
+	@enddesc
+
+	@returns
+	number
+]]
+
+--[[
+	@doc
+	@fname BytesBuffer:ReadChar
+
+	@returns
+	string
+]]
 function meta:ReadByte_2()
 	return self:ReadUByte() - 0x80
 end
@@ -265,6 +516,37 @@ end
 meta.ReadInt8 = meta.ReadByte
 meta.ReadUInt8 = meta.ReadUByte
 
+--[[
+	@doc
+	@fname BytesBuffer:ReadInt16_2
+
+	@desc
+	with value shift
+	@enddesc
+
+	@returns
+	number
+]]
+
+--[[
+	@doc
+	@fname BytesBuffer:ReadInt16
+
+	@desc
+	with negative number overflow
+	@enddesc
+
+	@returns
+	number
+]]
+
+--[[
+	@doc
+	@fname BytesBuffer:ReadUInt16
+
+	@returns
+	number
+]]
 function meta:ReadInt16_2()
 	return self:ReadUInt16() - 0x8000
 end
@@ -278,6 +560,37 @@ function meta:ReadUInt16()
 	return self:ReadUByte() * 256 + self:ReadUByte()
 end
 
+--[[
+	@doc
+	@fname BytesBuffer:ReadInt32_2
+
+	@desc
+	with value shift
+	@enddesc
+
+	@returns
+	number
+]]
+
+--[[
+	@doc
+	@fname BytesBuffer:ReadInt32
+
+	@desc
+	with negative number overflow
+	@enddesc
+
+	@returns
+	number
+]]
+
+--[[
+	@doc
+	@fname BytesBuffer:ReadUInt32
+
+	@returns
+	number
+]]
 function meta:ReadInt32_2()
 	return self:ReadUInt32() - 0x80000000
 end
@@ -295,6 +608,43 @@ function meta:ReadUInt32()
 		self:ReadUByte()
 end
 
+--[[
+	@doc
+	@fname BytesBuffer:ReadInt64_2
+
+	@desc
+	with value shift
+	due to precision errors, this not actually accurate operation
+	@enddesc
+
+	@returns
+	number
+]]
+
+--[[
+	@doc
+	@fname BytesBuffer:ReadInt64
+
+	@desc
+	with negative number overflow
+	due to precision errors, this not actually accurate operation
+	@enddesc
+
+	@returns
+	number
+]]
+
+--[[
+	@doc
+	@fname BytesBuffer:ReadUInt64
+
+	@desc
+	due to precision errors, this not actually accurate operation
+	@enddesc
+
+	@returns
+	number
+]]
 function meta:ReadInt64_2()
 	return self:ReadUInt64() - 0x100000000
 end
@@ -317,6 +667,18 @@ function meta:ReadUInt64()
 		self:ReadUByte()
 end
 
+--[[
+	@doc
+	@fname BytesBuffer:WriteFloat
+	@args number float
+
+	@desc
+	due to precision errors, this is a slightly inaccurate operation
+	@enddesc
+
+	@returns
+	BytesBuffer: self
+]]
 -- Float
 function meta:WriteFloat(valueIn)
 	assertType(valueIn, 'number', 'WriteFloat')
@@ -325,12 +687,35 @@ function meta:WriteFloat(valueIn)
 	return self:WriteUInt32(bitsInNumber)
 end
 
+--[[
+	@doc
+	@fname BytesBuffer:ReadFloat
+
+	@desc
+	due to precision errors, this is a slightly inaccurate operation
+	@enddesc
+
+	@returns
+	number
+]]
 function meta:ReadFloat()
 	local bitsInNumber = self:ReadUInt32()
 	local bits = DLib.bitworker.UIntegerToBinary(bitsInNumber, 32)
 	return DLib.bitworker.BinaryToFloatIEEE(bits, 8, 23)
 end
 
+--[[
+	@doc
+	@fname BytesBuffer:WriteDouble
+	@args number double
+
+	@desc
+	due to precision errors, this is a inaccurate operation
+	@enddesc
+
+	@returns
+	BytesBuffer: self
+]]
 function meta:WriteDouble(valueIn)
 	assertType(valueIn, 'number', 'WriteDouble')
 	local bits = DLib.bitworker.FloatToBinaryIEEE(valueIn, 11, 52)
@@ -339,12 +724,37 @@ function meta:WriteDouble(valueIn)
 	return self
 end
 
+--[[
+	@doc
+	@fname BytesBuffer:ReadDouble
+
+	@desc
+	due to precision errors, this is a slightly inaccurate operation
+	@enddesc
+
+	@returns
+	number
+]]
 function meta:ReadDouble()
 	local bitsInNumber = self:ReadUInt64()
 	local bits = DLib.bitworker.UIntegerToBinary(bitsInNumber, 64)
 	return DLib.bitworker.BinaryToFloatIEEE(bits, 11, 52)
 end
 
+
+--[[
+	@doc
+	@fname BytesBuffer:WriteString
+	@args string data
+
+	@desc
+	writes NUL terminated string to buffer
+	errors if NUL is present in string
+	@enddesc
+
+	@returns
+	BytesBuffer: self
+]]
 -- String
 function meta:WriteString(stringIn)
 	assertType(stringIn, 'string', 'WriteString')
@@ -371,6 +781,19 @@ function meta:WriteString(stringIn)
 	return self
 end
 
+--[[
+	@doc
+	@fname BytesBuffer:ReadString
+	@args string data
+
+	@desc
+	reads buffer until it hits NUL symbol
+	errors if buffer depleted before NUL is found
+	@enddesc
+
+	@returns
+	string
+]]
 function meta:ReadString()
 	self:CheckOverflow('ReadString', 1)
 	local readNext = self:ReadUByte()
@@ -383,7 +806,7 @@ function meta:ReadString()
 	table.insert(output, readNext)
 
 	if self:EndOfStream() then
-		error('No NULL terminator was found, buffer overflow!')
+		error('No NUL terminator was found, buffer overflow!')
 	end
 
 	readNext = self:ReadUByte()
@@ -397,6 +820,15 @@ end
 
 -- Binary Data
 
+--[[
+	@doc
+	@fname BytesBuffer:WriteBinary
+	@alias BytesBuffer:WriteData
+	@args string binary
+
+	@returns
+	BytesBuffer: self
+]]
 function meta:WriteBinary(binaryString)
 	assertType(binaryString, 'string', 'WriteBinary')
 	if #binaryString == 0 then return self end
@@ -408,6 +840,15 @@ function meta:WriteBinary(binaryString)
 	return self
 end
 
+--[[
+	@doc
+	@fname BytesBuffer:ReadBinary
+	@alias BytesBuffer:ReadData
+	@args number bytesToRead
+
+	@returns
+	string
+]]
 function meta:ReadBinary(readAmount)
 	assert(readAmount >= 0, 'Read amount must be positive')
 	if readAmount == 0 then return '' end
@@ -436,10 +877,31 @@ function meta:ReadChar()
 	return string.char(self:ReadUByte())
 end
 
+--[[
+	@doc
+	@fname BytesBuffer:ToString
+
+	@deprecated
+
+	@returns
+	string
+]]
 function meta:ToString()
-	return DLib.string.bcharTable(self.bytes)
+	local pointer = self.pointer
+	self:Seek(0)
+	local str = self:ReadBinary(self.length)
+	self:Seek(pointer)
+	return str
 end
 
+--[[
+	@doc
+	@fname BytesBuffer:ToFileStream
+	@args File stream
+
+	@returns
+	File
+]]
 function meta:ToFileStream(fileStream)
 	local bytes = #self.bytes
 	if bytes == 0 then return fileStream end

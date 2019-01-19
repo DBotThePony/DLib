@@ -1,3 +1,4 @@
+import { DocumentationRoot } from "./DocumentationRoot";
 
 // Copyright (C) 2017-2018 DBot
 
@@ -28,14 +29,18 @@ interface CommentaryReturn {
 class AnnotationCommentary {
 	isFunction = false
 	isEnum = false
-	isType = false
 	isDeprecated = false
 	isInternal = false
 	isInNameSpace = false
+	isHook = false
+	isPanel = false
 
 	isShared = true
 	isClientside = false
 	isServerside = false
+
+	parent = 'EditablePanel'
+	protected currentLine: string | null = null
 
 	path: string | null = null
 	aliases: string[] = []
@@ -51,11 +56,52 @@ class AnnotationCommentary {
 
 	argumentsParsed: CommentaryArgument[] = []
 
+	get strType() {
+		return this.isFunction && 'function'
+			|| this.isEnum && 'enum'
+			|| this.isPanel && 'panel'
+			|| this.isHook && 'hook'
+			|| 'undefined'
+	}
+
+	protected typeToFunction() {
+		if (this.isHook || this.isEnum || this.isPanel) {
+			this.reportError('Switching from one type to another in single context.', 'This is not how it works.', this.strType)
+		}
+
+		this.isFunction = true
+	}
+
+	protected typeToEnum() {
+		if (this.isHook || this.isFunction || this.isPanel) {
+			this.reportError('Switching from one type to another in single context.', 'This is not how it works.', this.strType)
+		}
+
+		this.isEnum = true
+	}
+
+	protected typeToHook() {
+		if (this.isFunction || this.isEnum || this.isPanel) {
+			this.reportError('Switching from one type to another in single context.', 'This is not how it works.', this.strType)
+		}
+
+		this.isHook = true
+	}
+
+	protected typeToPanel() {
+		if (this.isHook || this.isEnum || this.isFunction) {
+			this.reportError('Switching from one type to another in single context.', 'This is not how it works.', this.strType)
+		}
+
+		this.isPanel = true
+	}
+
 	constructor(public source: string, public text: string[]) {
 		let description = false
 		let returns = false
 
 		for (const line of text) {
+			this.currentLine = line
 			const trim = line.trim()
 			const lower = trim.toLowerCase()
 
@@ -70,7 +116,7 @@ class AnnotationCommentary {
 			}
 
 			if (description) {
-				this.descriptionLines.push(trim)
+				this.descriptionLines.push(line.replace(/^\s/, ''))
 				continue
 			}
 
@@ -130,31 +176,60 @@ class AnnotationCommentary {
 			}
 
 			if (lower.startsWith('@fname')) {
-				this.isFunction = true
+				this.typeToFunction()
 				this.path = trim.substr(7).trim()
 				continue
 			}
 
+			if (lower.startsWith('@func')) {
+				this.typeToFunction()
+				this.path = trim.substr(6).trim()
+				continue
+			}
+
 			if (lower.startsWith('@path')) {
-				this.isFunction = true
+				this.typeToFunction()
+				this.path = trim.substr(6).trim()
+				continue
+			}
+
+			if (lower.startsWith('@panel')) {
+				this.typeToPanel()
+				this.path = trim.substr(7).trim()
+				continue
+			}
+
+			if (lower.startsWith('@parent')) {
+				this.typeToPanel()
+				this.parent = trim.substr(8).trim()
+				continue
+			}
+
+			if (lower.startsWith('@hook')) {
+				this.typeToHook()
 				this.path = trim.substr(6).trim()
 				continue
 			}
 
 			if (lower.startsWith('@funcname')) {
-				this.isFunction = true
+				this.typeToFunction()
 				this.path = trim.substr(10).trim()
 				continue
 			}
 
 			if (lower.startsWith('@alias')) {
-				this.isFunction = true
+				//this.typeToFunction()
 				this.aliases.push(trim.substr(8).trim())
 				continue
 			}
 
 			if (lower.startsWith('@args')) {
-				this.isFunction = true
+				//this.typeToFunction()
+
+				if (this.isPanel) {
+					this.reportError('Panel can not have arguments defined')
+				}
+
 				this.arguments = trim.substr(6).trim()
 				continue
 			}
@@ -172,39 +247,60 @@ class AnnotationCommentary {
 				continue
 			}
 
-			console.warn('Undefined line type:')
-			console.warn(line)
-			console.warn('...in ' + source)
+			this.reportError('Undefined line type: ')
 		}
+
+		this.currentLine = null
 
 		if (this.arguments) {
 			const split = this.arguments.split(',')
+			let openParenthesis = 0
+			let currentString = ''
 
 			for (const line of split) {
-				const trim = line.trim()
-				const divide = trim.split(' ')
-
-				if (divide[0] && divide[1]) {
-					const matchDefault = trim.match(/\S\s*\=\s*(\S+)$/)
-
-					if (!matchDefault) {
-						this.argumentsParsed.push({
-							type: divide[0],
-							name: divide[1]
-						})
-					} else {
-						this.argumentsParsed.push({
-							type: divide[0],
-							name: divide[1],
-							default: matchDefault[1]
-						})
+				for (let i = 0; i < line.length; i++) {
+					if (line[i] == '(') {
+						openParenthesis++
 					}
-				} else {
-					console.error('Malformed argument string: ' + this.arguments)
-					console.error('(missing argument name/type!)')
-					console.warn('...in ' + source)
-					console.warn()
+
+					if (line[i] == ')') {
+						openParenthesis--
+					}
 				}
+
+				if (currentString == '') {
+					currentString = line
+				} else {
+					currentString += ',' + line
+				}
+
+				if (openParenthesis != 0) {
+					continue
+				}
+
+				const trim = currentString.trim()
+				currentString = ''
+				const divide = trim.match(/(\S+)\s+(\S+)$/)
+				const matchDefault = trim.match(/(\S+)\s+(\S+)\s*\=\s*([\s\S]+)$/)
+
+				if (matchDefault) {
+					this.argumentsParsed.push({
+						type: matchDefault[1],
+						name: matchDefault[2],
+						default: matchDefault[3]
+					})
+				} else if (divide) {
+					this.argumentsParsed.push({
+						type: divide[1],
+						name: divide[2]
+					})
+				} else {
+					this.reportError('Malformed argument string: ' + this.arguments, '(missing argument name/type!)')
+				}
+			}
+
+			if (openParenthesis != 0) {
+				this.reportError('Expected clsoed parethesis', this.arguments, 'Argument string is malformed!')
 			}
 		}
 
@@ -235,9 +331,7 @@ class AnnotationCommentary {
 		}
 
 		if (this.descriptionLines.length != 0) {
-			this.description = this.descriptionLines.join('  \n').replace(/\!g:(\S+)/, (substr, arg) => {
-				return `[${arg}](http://wiki.garrysmod.com/page/${arg.replace(/\.|:/g, '/')})`
-			})
+			this.description = this.descriptionLines.join('  \n')
 		}
 
 		if (this.path) {
@@ -250,10 +344,7 @@ class AnnotationCommentary {
 					this.funcname = this.path
 				} else {
 					if (split.length != 2) {
-						console.error('Malformed function name: ' + this.path)
-						console.error('(invalid amount of dots!)')
-						console.warn('...in ' + source)
-						console.warn()
+						this.reportError('Malformed function name: ' + this.path, '(invalid amount of dots!)')
 					} else {
 						this.isInNameSpace = true
 						this.namespace = split[0]
@@ -268,6 +359,19 @@ class AnnotationCommentary {
 				this.library = split
 			}
 		}
+	}
+
+	protected reportError(...lines: string[]) {
+		for (const line of lines) {
+			console.error(line)
+		}
+
+		if (this.currentLine) {
+			console.error(this.currentLine)
+		}
+
+		console.error('...in ' + this.source)
+		console.error()
 	}
 }
 

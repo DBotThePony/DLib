@@ -31,6 +31,15 @@ local math = math
 local ScreenSize = ScreenSize
 local RealTimeL = RealTimeL
 
+--[[
+	@doc
+	@fname HUDCommonsBase:GetWeapon
+
+	@client
+
+	@returns
+	Weapon: or NULL
+]]
 function meta:GetWeapon()
 	local ply = self:SelectPlayer()
 
@@ -41,6 +50,24 @@ function meta:GetWeapon()
 	return ply:GetActiveWeapon() or NULL
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:PredictSelectWeapon
+
+	@client
+
+	@desc
+	HUD's method `self:LookupSelectWeapon()` must be present
+	Provides builtin method of tracking last selected weapon in menu
+	(not the one that was clicked!)
+	Useless without `LookupSelectWeapon()` method defined by you in your HUD
+	(and thus making functions which reliable on this useless too)
+	Refer to 4HUD's/FFGSHUD code for example.
+	@enddesc
+
+	@returns
+	Weapon: or NULL
+]]
 function meta:PredictSelectWeapon()
 	if self.LookupSelectWeapon then
 		local weapon, state = self:LookupSelectWeapon()
@@ -77,18 +104,55 @@ function meta:PredictSelectWeapon()
 	return self.tryToSelectWeapon
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:HasPredictedWeapon
+
+	@client
+
+	@returns
+	boolean
+]]
 function meta:HasPredictedWeapon()
 	return IsValid(self:PredictSelectWeapon()) and self:PredictSelectWeapon() ~= self:GetWeapon()
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:HasWeapon
+
+	@client
+
+	@returns
+	boolean
+]]
 function meta:HasWeapon()
 	return IsValid(self:GetWeapon())
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:GetPreviousWeapon
+
+	@client
+
+	@returns
+	Weapon: or NULL
+]]
 function meta:GetPreviousWeapon()
 	return IsValid(self.prevWeapon) and self.prevWeapon or self:GetWeapon()
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:SafeWeaponCall
+	@args string funcname, any ifNone, vararg arguments
+
+	@client
+
+	@returns
+	any
+]]
 function meta:SafeWeaponCall(func, ifNone, ...)
 	local wep = self:GetWeapon()
 
@@ -99,6 +163,20 @@ function meta:SafeWeaponCall(func, ifNone, ...)
 	return wep[func](wep, ...)
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:SafeWeaponCall2
+	@args string funcname, any ifNone, vararg arguments
+
+	@client
+
+	@desc
+	calls `self:PredictSelectWeapon()` instead of `self:GetWeapon()`
+	@enddesc
+
+	@returns
+	any
+]]
 function meta:SafeWeaponCall2(func, ifNone, ...)
 	local wep = self:PredictSelectWeapon()
 
@@ -109,26 +187,88 @@ function meta:SafeWeaponCall2(func, ifNone, ...)
 	return wep[func](wep, ...)
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:ShouldDisplayWeaponStats
+
+	@client
+
+	@returns
+	boolean
+]]
 function meta:ShouldDisplayWeaponStats()
 	return self:HasWeapon()
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:ShouldDisplayAmmo
+
+	@client
+
+	@returns
+	boolean
+]]
 function meta:ShouldDisplayAmmo()
 	return self:HasWeapon() and self:GetWeapon().DrawAmmo ~= false and (self:GetVarClipMax1() > 0 or self:GetVarClipMax2() > 0 or self:GetVarAmmoType1() ~= -1 or self:GetVarAmmoType2() ~= -1)
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:ShouldDisplaySecondaryAmmo
+
+	@client
+
+	@returns
+	boolean
+]]
 function meta:ShouldDisplaySecondaryAmmo()
 	return self:HasWeapon() and self:GetWeapon().DrawAmmo ~= false and (self:GetVarClipMax2() > 0 or self:GetVarClip2() > 0 or self:GetVarAmmoType2() ~= -1)
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:ShouldDisplayAmmo2
+
+	@client
+
+	@desc
+	Based on `self:PredictSelectWeapon()` instead of `self:GetWeapon()`
+	@enddesc
+
+	@returns
+	boolean
+]]
 function meta:ShouldDisplayAmmo2()
 	return self:HasPredictedWeapon() and self:PredictSelectWeapon().DrawAmmo ~= false and (self:GetVarClipMax1_Select() > 0 or self:GetVarClipMax2_Select() > 0 or self:GetVarAmmoType1_Select() ~= -1 or self:GetVarAmmoType2_Select() ~= -1)
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:ShouldDisplaySecondaryAmmo2
+
+	@client
+
+	@desc
+	Based on `self:PredictSelectWeapon()` instead of `self:GetWeapon()`
+	@enddesc
+
+	@returns
+	boolean
+]]
 function meta:ShouldDisplaySecondaryAmmo2()
 	return self:HasPredictedWeapon() and self:PredictSelectWeapon().DrawAmmo ~= false and (self:GetVarClipMax2_Select() > 0 or self:GetVarClip2_Select() > 0 or self:GetVarAmmoType2_Select() ~= -1)
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:SelectSecondaryAmmoReady
+
+	@client
+
+	@returns
+	number
+]]
 function meta:SelectSecondaryAmmoReady()
 	if self:GetVarClipMax2() == 0 then
 		return 0
@@ -137,6 +277,19 @@ function meta:SelectSecondaryAmmoReady()
 	return self:GetVarClip2()
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:SelectSecondaryAmmoReady2
+
+	@client
+
+	@desc
+	Based on `self:PredictSelectWeapon()` instead of `self:GetWeapon()`
+	@enddesc
+
+	@returns
+	number
+]]
 function meta:SelectSecondaryAmmoReady2()
 	if self:GetVarClipMax2_Select() == 0 then
 		return 0
@@ -145,6 +298,15 @@ function meta:SelectSecondaryAmmoReady2()
 	return self:GetVarClip2_Select()
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:SelectSecondaryAmmoStored
+
+	@client
+
+	@returns
+	number
+]]
 function meta:SelectSecondaryAmmoStored()
 	if self:GetVarAmmoType2() == -1 then
 		return -1
@@ -153,6 +315,19 @@ function meta:SelectSecondaryAmmoStored()
 	return self:GetVarAmmo2()
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:SelectSecondaryAmmoStored2
+
+	@client
+
+	@desc
+	Based on `self:PredictSelectWeapon()` instead of `self:GetWeapon()`
+	@enddesc
+
+	@returns
+	number
+]]
 function meta:SelectSecondaryAmmoStored2()
 	if self:GetVarAmmoType2_Select() == -1 then
 		return -1
@@ -161,22 +336,75 @@ function meta:SelectSecondaryAmmoStored2()
 	return self:GetVarAmmo2_Select()
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:IsValidAmmoType1
+
+	@client
+
+	@returns
+	boolean
+]]
 function meta:IsValidAmmoType1()
 	return self:GetVarAmmoType1() ~= -1
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:IsValidAmmoType2
+
+	@client
+
+	@returns
+	boolean
+]]
 function meta:IsValidAmmoType2()
 	return self:GetVarAmmoType2() ~= -1
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:IsValidAmmoType1_Select
+
+	@client
+
+	@desc
+	Based on `self:PredictSelectWeapon()` instead of `self:GetWeapon()`
+	@enddesc
+
+	@returns
+	number
+]]
 function meta:IsValidAmmoType1_Select()
 	return self:GetVarAmmoType1_Select() ~= -1
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:IsValidAmmoType2_Select
+
+	@client
+
+	@desc
+	Based on `self:PredictSelectWeapon()` instead of `self:GetWeapon()`
+	@enddesc
+
+	@returns
+	number
+]]
 function meta:IsValidAmmoType2_Select()
 	return self:GetVarAmmoType2_Select() ~= -1
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:ShouldDisplayAmmoStored
+
+	@client
+
+	@returns
+	boolean
+]]
 function meta:ShouldDisplayAmmoStored()
 	return self:HasWeapon() and
 		(self:GetVarClipMax1() > 0 or self:GetVarClipMax2() > 0) and
@@ -184,6 +412,19 @@ function meta:ShouldDisplayAmmoStored()
 		(self:IsValidAmmoType1() or self:IsValidAmmoType2())
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:ShouldDisplayAmmoStored2
+
+	@client
+
+	@desc
+	Based on `self:PredictSelectWeapon()` instead of `self:GetWeapon()`
+	@enddesc
+
+	@returns
+	boolean
+]]
 function meta:ShouldDisplayAmmoStored2()
 	return self:HasPredictedWeapon() and
 		(self:GetVarClipMax1_Select() > 0 or self:GetVarClipMax2_Select() > 0) and
@@ -191,14 +432,50 @@ function meta:ShouldDisplayAmmoStored2()
 		(self:IsValidAmmoType1_Select() or self:IsValidAmmoType2_Select())
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:ShouldDisplayAmmoReady
+
+	@client
+
+	@returns
+	boolean
+]]
 function meta:ShouldDisplayAmmoReady()
 	return self:HasWeapon() and (self:GetVarClipMax1() > 0 or self:GetVarClipMax2() > 0)
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:ShouldDisplayAmmoReady2
+
+	@client
+
+	@desc
+	Based on `self:PredictSelectWeapon()` instead of `self:GetWeapon()`
+	@enddesc
+
+	@returns
+	boolean
+]]
 function meta:ShouldDisplayAmmoReady2()
 	return self:HasPredictedWeapon() and (self:GetVarClipMax1_Select() > 0 or self:GetVarClipMax2_Select() > 0)
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:DefinePosition
+
+	@client
+
+	@desc
+	You should call this instead of `DLib.HUDCommons.Position2.DefinePosition` when making a HUD on `HUDCommonsBase`
+	@enddesc
+
+	@returns
+	function: returns `x, y`
+	function: returns screen side of element (`"LEFT"`, `"RIGHT"` or `"CENTER"`)
+]]
 function meta:DefinePosition(name, ...)
 	local callable, cvarX, cvarY, callable2 = DLib.HUDCommons.Position2.DefinePosition(self:GetID() .. '_' .. name, ...)
 
@@ -212,6 +489,20 @@ function meta:DefinePosition(name, ...)
 	return callable, callable2
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:RegisterRegularVariable
+
+	@client
+
+	@desc
+	You should call this instead of `DLib.HUDCommons.Position2.DefinePosition` when making a HUD on `HUDCommonsBase`
+	@enddesc
+
+	@returns
+	function: returns `x, y`
+	function: returns screen side of element (`"LEFT"`, `"RIGHT"` or `"CENTER"`)
+]]
 function meta:RegisterRegularVariable(var, funcName, default)
 	local newSelf = self:RegisterVariable(var, default)
 
@@ -238,6 +529,19 @@ function meta:GetAmmoFillage2()
 	return self:GetVarClip2() / self:GetVarClipMax2()
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:GetAmmoFillage1_Select
+
+	@client
+
+	@desc
+	Based on `self:PredictSelectWeapon()` instead of `self:GetWeapon()`
+	@enddesc
+
+	@returns
+	number: float in range of 0 to 1 inclusive
+]]
 function meta:GetAmmoFillage1_Select()
 	if not self:ShouldDisplayAmmo2() then return 1 end
 	if self:GetVarClipMax1_Select() <= 0 then return 1 end
@@ -246,6 +550,19 @@ function meta:GetAmmoFillage1_Select()
 	return self:GetVarClip1_Select() / self:GetVarClipMax1_Select()
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:GetAmmoFillage2_Select
+
+	@client
+
+	@desc
+	Based on `self:PredictSelectWeapon()` instead of `self:GetWeapon()`
+	@enddesc
+
+	@returns
+	number: float in range of 0 to 1 inclusive
+]]
 function meta:GetAmmoFillage2_Select()
 	if not self:ShouldDisplaySecondaryAmmo2() then return 1 end
 	if self:GetVarClipMax2_Select() <= 0 then return 1 end

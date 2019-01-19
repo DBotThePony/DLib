@@ -24,6 +24,9 @@ gui.misc.cancel = 'Cancel'
 gui.misc.yes = 'Yes'
 gui.misc.no = 'No'
 
+gui.entry.invalidsymbol = 'Symbol is not allowed.'
+gui.entry.limit = 'Field limit exceeded.'
+
 gui.dlib.hudcommons.reset = 'Reset'
 
 info.dlib.tformat.seconds = 'seconds'

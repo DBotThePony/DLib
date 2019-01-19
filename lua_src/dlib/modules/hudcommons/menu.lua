@@ -114,8 +114,8 @@ local function PopulatePositions(Panel)
 
 	Panel:Button('Reset all').DoClick = function()
 		for name, v in pairs(HUDCommons.Position2.XPositions_CVars) do
-			HUDCommons.Position2.XPositions_CVars[name]:Reset()
-			HUDCommons.Position2.YPositions_CVars[name]:Reset()
+			v:Reset()
+			v:Reset()
 		end
 	end
 
@@ -154,6 +154,22 @@ local gui = gui
 local ScreenSize = ScreenSize
 local ScrWL, ScrHL = ScrWL, ScrHL
 
+--[[
+	@doc
+	@panel DLib.EditHUDPosition
+
+	@client
+	@internal
+]]
+
+--[[
+	@doc
+	@fname DLib.HUDCommons.IsInEditMode
+
+	@client
+	@returns
+	boolean
+]]
 function HUDCommons.IsInEditMode()
 	return IN_EDIT_MODE
 end
@@ -330,6 +346,20 @@ local input = input
 local KEY_ESCAPE = KEY_ESCAPE
 local EDIT_OVERLAY = Color(0, 0, 0, 80)
 
+--[[
+	@doc
+	@fname DLib.HUDCommons.EnterPositionEditMode
+	@args table filter
+
+	@desc
+	`filter` is array containing `elemID` of elements from `Position2` submodule
+	which are objects to edit
+	if `filter` is omitted, everything will be added to filter instead
+	if `filter` is empty, this function does nothing
+	@enddesc
+
+	@client
+]]
 function HUDCommons.EnterPositionEditMode(filter)
 	if IN_EDIT_MODE then return end
 
@@ -373,6 +403,30 @@ function HUDCommons.EnterPositionEditMode(filter)
 	hook.Run('HUDCommons_EnterEditMode', filter)
 end
 
+--[[
+	@doc
+	@hook HUDCommons_EnterEditMode
+	@args table filter
+
+	@desc
+	Called right after call of `DLib.HUDCommons.EnterPositionEditMode`
+	`DLib.HUDCommons.IsInEditMode` returns `true` in this hook
+	@enddesc
+
+	@client
+]]
+
+--[[
+	@doc
+	@hook HUDCommons_ExitEditMode
+	@args table filter
+
+	@desc
+	`DLib.HUDCommons.IsInEditMode` returns `false` in this hook
+	@enddesc
+
+	@client
+]]
 hook.Add('PopulateToolMenu', 'HUDCommons.PopulateMenus', function()
 	spawnmenu.AddToolMenuOption('Utilities', 'User', 'HUDCommons.Populate', 'HUDCommons Colors', '', '', PopulateColors)
 	spawnmenu.AddToolMenuOption('Utilities', 'User', 'HUDCommons.Populate2', 'HUDCommons Colors 2', '', '', PopulateColors2)

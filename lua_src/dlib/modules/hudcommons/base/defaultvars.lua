@@ -113,14 +113,41 @@ function meta:__InitVaribles()
 	self:RegisterVehicleVariable('vehicleMHP5', 'GetVehicleMaxHealth', 0)
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:GetVarVehicleHealth
+
+	@client
+
+	@returns
+	number
+]]
 function meta:GetVarVehicleHealth()
 	return math.max(self:GetVarVehicleHP(), self:GetVarVehicleHP2(), self:GetVarVehicleHP3(), self:GetVarVehicleHP4(), self:GetVarVehicleHP5()):floor()
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:GetVarVehicleMaxHealth
+
+	@client
+
+	@returns
+	number: assume 0 as invalid vehicle
+]]
 function meta:GetVarVehicleMaxHealth()
 	return math.max(self:GetVarVehicleMHP(), self:GetVarVehicleMHP2(), self:GetVarVehicleMHP3(), self:GetVarVehicleMHP4(), self:GetVarVehicleMHP5()):floor()
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:GetVehicleHealthFillage
+
+	@client
+
+	@returns
+	number: float in range of 0 to 1 inclusive
+]]
 function meta:GetVehicleHealthFillage()
 	if self:GetVarVehicleMaxHealth() <= 0 then return 1 end
 	if self:GetVarVehicleMaxHealth() <= self:GetVarVehicleHealth() then return 1 end

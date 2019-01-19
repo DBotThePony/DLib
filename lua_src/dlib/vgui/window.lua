@@ -24,6 +24,17 @@ local gui = gui
 local vgui = vgui
 local input = input
 
+--[[
+	@doc
+	@panel DLib_ResizeTap
+
+	@internal
+
+	@desc
+	internally used by !p:DLib_Window
+	can be actually put on any panel. just set DLib_ResizeTap's property `.target` to required panel.
+	@enddesc
+]]
 local PANEL = {}
 
 function PANEL:Init()
@@ -96,6 +107,16 @@ end
 
 vgui.Register('DLib_ResizeTap', PANEL, 'EditablePanel')
 
+--[[
+	@doc
+	@panel DLib_Window
+	@parent DFrame
+
+	@desc
+	!g:DFrame but with DLib's VGUI skin and resize control parented to it
+	and some spice like always `:MakePopup()`
+	@enddesc
+]]
 PANEL = {}
 DLib.VGUI.Window = PANEL
 
@@ -120,11 +141,24 @@ function PANEL:Init()
 	tap:SetTarget(self)
 end
 
+--[[
+	@doc
+	@fname DLib_Window:UpdateSize
+	@args number width, number height
+]]
 function PANEL:UpdateSize(w, h)
 	self:SetSize(w, h)
 	self:Center()
 end
 
+--[[
+	@doc
+	@fname DLib_Window:RemoveResize
+
+	@desc
+	Removes the, wait, can't we just use !g:DFrame ?
+	@enddesc
+]]
 function PANEL:RemoveResize()
 	if IsValid(self.bottomBar) then
 		self.bottomBar:Remove()
@@ -135,6 +169,11 @@ function PANEL:SetLabel(str)
 	return self:SetTitle(str)
 end
 
+--[[
+	@doc
+	@fname DLib_Window:AddPanel
+	@args Panel panel, number dockMode
+]]
 function PANEL:AddPanel(panel, dock)
 	if type(panel) == 'string' then
 		panel = vgui.Create(panel, self)
@@ -144,6 +183,14 @@ function PANEL:AddPanel(panel, dock)
 	return panel
 end
 
+--[[
+	@doc
+	@fname DLib_Window:Label
+	@args string text
+
+	@returns
+	Panel: DLabel
+]]
 function PANEL:Label(text)
 	local panel = vgui.Create('DLabel', self)
 	self:AddPanel(panel)
@@ -159,6 +206,21 @@ end
 
 vgui.Register('DLib_Window', PANEL, 'DFrame')
 
+--[[
+	@doc
+	@panel DLib_WindowScroll
+	@parent DLib_Window
+
+	@desc
+	!p:DLib_Window with parented scroll panel to it
+	@enddesc
+]]
+
+--[[
+	@doc
+	@fname DLib_WindowScroll:AddPanel
+	@args Panel panel, number dockMode
+]]
 PANEL = {}
 DLib.VGUI.WindowScroll = PANEL
 
@@ -168,26 +230,64 @@ function PANEL:Init()
 	scroll:Dock(FILL)
 end
 
+--[[
+	@doc
+	@fname DLib_WindowScroll:GetCanvas
+
+	@returns
+	Panel
+]]
 function PANEL:GetCanvas()
 	return self.scroll:GetCanvas()
 end
 
+--[[
+	@doc
+	@fname DLib_WindowScroll:ParentToCanvas
+	@args Panel child
+]]
 function PANEL:ParentToCanvas(child)
 	return child:SetParent(self:GetCanvas())
 end
 
+--[[
+	@doc
+	@fname DLib_WindowScroll:GetPadding
+
+	@returns
+	number
+]]
 function PANEL:GetPadding()
 	return self.scroll:GetPadding()
 end
 
+--[[
+	@doc
+	@fname DLib_WindowScroll:GetVBar
+
+	@returns
+	Panel
+]]
 function PANEL:GetVBar()
 	return self.scroll:GetVBar()
 end
 
+--[[
+	@doc
+	@fname DLib_WindowScroll:GetScrollPanel
+
+	@returns
+	Panel
+]]
 function PANEL:GetScrollPanel()
 	return self.scroll
 end
 
+--[[
+	@doc
+	@fname DLib_WindowScroll:ScrollToChild
+	@args Panel child
+]]
 function PANEL:ScrollToChild(child)
 	return self.scroll:ScrollToChild(child)
 end

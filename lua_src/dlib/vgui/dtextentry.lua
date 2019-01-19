@@ -31,6 +31,15 @@ local tonumber = tonumber
 local surface = surface
 local draw = draw
 
+--[[
+	@doc
+	@panel DLib_TextEntry
+	@parent DTextEntry
+
+	@desc
+	DTextEntry with `:OnEnter(value)` callback (which means it will be called after user press Enter)
+	@enddesc
+]]
 local PANEL = {}
 DLib.VGUI.TextEntry = PANEL
 
@@ -81,9 +90,119 @@ end
 vgui.Register('DLib_TextEntry', PANEL, 'DTextEntry')
 local TEXTENTRY = PANEL
 
+--[[
+	@doc
+	@panel DLib_TextEntry_Configurable
+	@parent DTextEntry
+
+	@desc
+	base panel for creating configuration based text entries
+	@enddesc
+]]
 PANEL = {}
 DLib.VGUI.TextEntry_Configurable = PANEL
 
+--[[
+	@doc
+	@fname DLib_TextEntry_Configurable:GetLengthLimit
+
+	@returns
+	number
+]]
+
+--[[
+	@doc
+	@fname DLib_TextEntry_Configurable:SetLengthLimit
+	@args number value
+]]
+
+--[[
+	@doc
+	@fname DLib_TextEntry_Configurable:GetTooltipTime
+
+	@returns
+	number
+]]
+
+--[[
+	@doc
+	@fname DLib_TextEntry_Configurable:SetTooltipTime
+	@args number value
+]]
+
+--[[
+	@doc
+	@fname DLib_TextEntry_Configurable:GetTooltipShown
+
+	@returns
+	boolean
+]]
+
+--[[
+	@doc
+	@fname DLib_TextEntry_Configurable:SetTooltipShown
+	@internal
+	@args boolean value
+]]
+
+--[[
+	@doc
+	@fname DLib_TextEntry_Configurable:GetIsWhitelistMode
+
+	@returns
+	boolean
+]]
+
+--[[
+	@doc
+	@fname DLib_TextEntry_Configurable:SetIsWhitelistMode
+	@args boolean value
+]]
+
+--[[
+	@doc
+	@fname DLib_TextEntry_Configurable:GetDisallowedHashSet
+
+	@returns
+	DLib.HashSet: or nil
+]]
+
+--[[
+	@doc
+	@fname DLib_TextEntry_Configurable:SetDisallowedHashSet
+	@internal
+	@args table hashset
+]]
+
+--[[
+	@doc
+	@fname DLib_TextEntry_Configurable:GetAllowedHashSet
+
+	@returns
+	DLib.HashSet: or nil
+]]
+
+--[[
+	@doc
+	@fname DLib_TextEntry_Configurable:SetAllowedHashSet
+	@internal
+	@args table hashset
+]]
+
+--[[
+	@doc
+	@fname DLib_TextEntry_Configurable:GetDefaultReason
+
+	@returns
+	string
+]]
+
+--[[
+	@doc
+	@fname DLib_TextEntry_Configurable:SetDefaultReason
+	@internal
+	@args string value
+]]
 AccessorFunc(PANEL, 'lengthLimit', 'LengthLimit')
 AccessorFunc(PANEL, 'tooltipTime', 'TooltipTime')
 AccessorFunc(PANEL, 'tooltip', 'TooltipShown')
@@ -94,17 +213,26 @@ AccessorFunc(PANEL, 'defaultReason', 'DefaultReason')
 
 function PANEL:Init()
 	self.allowed = DLib.HashSet()
-	self.disallowedMap = DLib.HashSet()
+	self.disallowed = DLib.HashSet()
 	self.whitelistMode = false
 	self.tooltipTime = 0
 	self.tooltip = false
 	self.lengthLimit = 0
-	self.tooltipReason = 'Not allowed symbol.'
-	self.defaultReason = 'Not allowed symbol.'
+	self.tooltipReason = 'gui.entry.invalidsymbol'
+	self.defaultReason = 'gui.entry.invalidsymbol'
 
 	hook.Add('PostRenderVGUI', self, self.PostRenderVGUI)
 end
 
+--[[
+	@doc
+	@fname DLib_TextEntry_Configurable:PredictValueChange
+	@args string keycode
+
+	@internal
+	@returns
+	string
+]]
 function PANEL:PredictValueChange(key)
 	local value1 = self:GetValueBeforeCaret()
 	local value2 = self:GetValueAfterCaret()
@@ -156,40 +284,75 @@ function PANEL:OnKeyCodeTyped(key)
 	end
 
 	if self.lengthLimit > 0 and #(self:GetValue() or '') + 1 > self.lengthLimit then
-		self:Ding('Field limit exceeded')
+		self:Ding('gui.entry.limit')
 		--return true
 	end
 
 	return false
 end
 
+--[[
+	@doc
+	@fname DLib_TextEntry_Configurable:AddToBlacklist
+	@args string keycode
+]]
 function PANEL:AddToBlacklist(value)
 	return self.disallowed:add(value)
 end
 
+--[[
+	@doc
+	@fname DLib_TextEntry_Configurable:AddToWhitelist
+	@args string keycode
+]]
 function PANEL:AddToWhitelist(value)
 	return self.allowed:add(value)
 end
 
+--[[
+	@doc
+	@fname DLib_TextEntry_Configurable:RemoveFromBlacklist
+	@args string keycode
+]]
 function PANEL:RemoveFromBlacklist(value)
 	return self.disallowed:remove(value)
 end
 
+--[[
+	@doc
+	@fname DLib_TextEntry_Configurable:RemoveFromWhitelist
+	@args string keycode
+]]
 function PANEL:RemoveFromWhitelist(value)
 	return self.allowed:remove(value)
 end
 
+--[[
+	@doc
+	@fname DLib_TextEntry_Configurable:InBlacklist
+	@args string keycode
+]]
 function PANEL:InBlacklist(value)
 	return self.disallowed:has(value)
 end
 
+--[[
+	@doc
+	@fname DLib_TextEntry_Configurable:InWhitelist
+	@args string keycode
+]]
 function PANEL:InWhitelist(value)
 	return self.allowed:add(value)
 end
 
+--[[
+	@doc
+	@fname DLib_TextEntry_Configurable:Ding
+	@args string reason
+]]
 function PANEL:Ding(reason)
 	reason = reason or self.defaultReason
-	self.tooltipReason = reason
+	self.tooltipReason = DLib.i18n.localize(reason)
 
 	if self.tooltipTime - 1.95 > RealTimeL() then
 		self.tooltipTime = RealTimeL() + 1
@@ -208,6 +371,11 @@ surface.CreateFont('DLib_TextEntry_Warning', {
 	weight = 500
 })
 
+--[[
+	@doc
+	@fname DLib_TextEntry_Configurable:PostRenderVGUI
+	@internal
+]]
 function PANEL:PostRenderVGUI()
 	if not IsValid(self) then return end
 	if not self.tooltip then return end
@@ -236,9 +404,60 @@ end
 
 vgui.Register('DLib_TextEntry_Configurable', PANEL, 'DLib_TextEntry')
 
+--[[
+	@doc
+	@panel DLib_TextEntry_Number
+	@parent DLib_TextEntry_Configurable
+
+	@desc
+	!p:DLib_TextEntry_Configurable which accept only numbers
+	@enddesc
+]]
 local TEXTENTRY_CUSTOM = PANEL
 PANEL = {}
 DLib.VGUI.TextEntry_Number = PANEL
+
+--[[
+	@doc
+	@fname DLib_TextEntry_Number:GetDefaultNumber
+
+	@returns
+	number
+]]
+
+--[[
+	@doc
+	@fname DLib_TextEntry_Number:SetDefaultNumber
+	@args number value
+]]
+
+--[[
+	@doc
+	@fname DLib_TextEntry_Number:GetIsFloatAllowed
+
+	@returns
+	boolean
+]]
+
+--[[
+	@doc
+	@fname DLib_TextEntry_Number:SetIsFloatAllowed
+	@args boolean value
+]]
+
+--[[
+	@doc
+	@fname DLib_TextEntry_Number:GetIsNegativeValueAllowed
+
+	@returns
+	boolean
+]]
+
+--[[
+	@doc
+	@fname DLib_TextEntry_Number:SetIsNegativeValueAllowed
+	@args boolean value
+]]
 AccessorFunc(PANEL, 'defaultNumber', 'DefaultNumber')
 AccessorFunc(PANEL, 'allowFloats', 'IsFloatAllowed')
 AccessorFunc(PANEL, 'allowNegative', 'IsNegativeValueAllowed')
@@ -255,6 +474,13 @@ function PANEL:Init()
 	end
 end
 
+--[[
+	@doc
+	@fname DLib_TextEntry_Number:GetNumber
+
+	@returns
+	number
+]]
 function PANEL:GetNumber()
 	return tonumber(self:GetValue() or '') or self.defaultNumber
 end

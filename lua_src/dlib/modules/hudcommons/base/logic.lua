@@ -31,6 +31,17 @@ local CurTimeL = CurTimeL
 local math = math
 local IsValid = FindMetaTable('Entity').IsValid
 
+--[[
+	@doc
+	@fname HUDCommonsBase:MimicPlayer
+	@args Player targetOrNil
+
+	@client
+
+	@desc
+	Makes `HUDCommonsBase:SelectPlayer()` return different player
+	@enddesc
+]]
 function meta:MimicPlayer(playerTarget)
 	if not playerTarget then
 		if IsValid(self.mimic) then
@@ -49,14 +60,44 @@ function meta:MimicPlayer(playerTarget)
 	self:MimicStart(IsValid(self.mimic) and self.mimic or LocalPlayer(), playerTarget)
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:MimicStart
+	@args Player oldPlayer, Player newPlayer
+
+	@client
+
+	@desc
+	that's a hook! override it if you want to.
+	@enddesc
+]]
 function meta:MimicStart(oldPlayer, newPlayer)
 
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:MimicEnd
+	@args Player oldPlayer, Player newPlayer
+
+	@client
+
+	@desc
+	that's a hook! override it if you want to.
+	@enddesc
+]]
 function meta:MimicEnd(oldPlayer, newPlayer)
 
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:SelectPlayer
+
+	@client
+	@returns
+	Player
+]]
 function meta:SelectPlayer()
 	if IsValid(self.mimic) then
 		return self.mimic
@@ -68,6 +109,14 @@ end
 meta.LocalPlayer = meta.SelectPlayer
 meta.GetPlayer = meta.SelectPlayer
 
+--[[
+	@doc
+	@fname HUDCommonsBase:TickLogic
+	@args Player ply
+
+	@client
+	@internal
+]]
 function meta:TickLogic(lPly)
 	local wep = self:GetWeapon()
 
@@ -79,6 +128,14 @@ function meta:TickLogic(lPly)
 	end
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:ThinkLogic
+	@args Player ply
+
+	@client
+	@internal
+]]
 function meta:ThinkLogic(lPly)
 	if self.glitching then
 		local timeLeft = self:GlitchTimeRemaining()
@@ -99,16 +156,47 @@ function meta:ThinkLogic(lPly)
 	end
 end
 
--- override
+--[[
+	@doc
+	@fname HUDCommonsBase:OnGlitchStart
+	@args number timeLong
+
+	@client
+
+	@desc
+	that's a hook! override it if you want to.
+	@enddesc
+]]
 function meta:OnGlitchStart(timeLong)
 
 end
 
--- override
+--[[
+	@doc
+	@fname HUDCommonsBase:OnGlitchEnd
+
+	@client
+
+	@desc
+	that's a hook! override it if you want to.
+	@enddesc
+]]
 function meta:OnGlitchEnd()
 
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:TriggerGlitch
+	@args number timeLong
+
+	@client
+
+	@desc
+	forces a HUD to glitch.
+	does nothing if HUD does not support glitching.
+	@enddesc
+]]
 function meta:TriggerGlitch(timeLong)
 	local old = self.glitchEnd
 	self.glitchEnd = math.max(self.glitchEnd, CurTimeL() + timeLong)
@@ -123,6 +211,18 @@ function meta:TriggerGlitch(timeLong)
 	return old ~= self.glitchEnd
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:ExtendGlitch
+	@args number timeLong
+
+	@client
+
+	@desc
+	extends current glitch or starts a new one if not glitching.
+	does nothing if HUD does not support glitching.
+	@enddesc
+]]
 function meta:ExtendGlitch(timeLong)
 	self.glitchEnd = math.max(self.glitchEnd + timeLong, CurTimeL() + timeLong)
 
@@ -136,33 +236,94 @@ function meta:ExtendGlitch(timeLong)
 	return true
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:ClampGlitchTime
+	@args number maximal
+
+	@client
+
+	@desc
+	clamps current glitch time to given amount of seconds starting from now
+	@enddesc
+]]
 function meta:ClampGlitchTime(maximal)
 	local old = self.glitchEnd
 	self.glitchEnd = self.glitchEnd:min(CurTimeL() + maximal)
 	return self.glitchEnd ~= old
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:GlitchTimeRemaining
+	@client
+
+	@returns
+	number
+]]
 function meta:GlitchTimeRemaining()
 	return math.max(0, self.glitchEnd - CurTimeL())
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:GlitchingSince
+	@client
+
+	@returns
+	number
+]]
 function meta:GlitchingSince()
 	return self.glitchingSince
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:GlitchingFor
+	@client
+
+	@returns
+	number
+]]
 function meta:GlitchingFor()
 	return CurTimeL() - self.glitchingSince
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:IsGlitching
+	@client
+
+	@returns
+	boolean
+]]
 function meta:IsGlitching()
 	return self.glitching
 end
 
--- override
+--[[
+	@doc
+	@fname HUDCommonsBase:OnWeaponChanged
+	@args Weapon old, Weapon new
+
+	@client
+
+	@desc
+	that's a hook! override it if you want to.
+	@enddesc
+]]
 function meta:OnWeaponChanged(old, new)
 
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:DrawWeaponSelection
+	@args Weapon wep
+
+	@client
+	@internal
+]]
 function meta:DrawWeaponSelection(wep)
 	self.tryToSelectWeapon = wep
 

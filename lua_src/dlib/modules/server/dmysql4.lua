@@ -49,6 +49,26 @@ meta.__index = meta
 DMySQL4.STYLE_TMYSQL = 0
 DMySQL4.STYLE_MYSQLOO = 1
 
+--[[
+	@doc
+	@fname DMySQL4.Create
+	@args string configName
+
+	@server
+
+	@desc
+	entry point of DMySQL4 for your addon
+	yes, this is fourth generation of DMySQL
+	this addon is like MySQLoo by Falco (FPtje), but
+	 * fully OOP based
+	 * uses DLib.Promise object instead of callbacks
+	 * multiple connections are allowed
+	 * end user configures connections using JSON files
+	@enddesc
+
+	@returns
+	table: a newly created/existant object (DMySQL4Connection)
+]]
 function DMySQL4.Create(name)
 	if type(name) ~= 'string' then
 		error('Configuration name must be a string! For default configuration, use "default"', 2)
@@ -103,14 +123,45 @@ end
 
 local tmysql4, mysqloo = file.Exists('bin/gmsv_tmysql4_*', 'LUA'), file.Exists('bin/gmsv_mysqloo_*', 'LUA')
 
+--[[
+	@doc
+	@fname DMySQL4Connection:IsMySQL
+
+	@server
+
+	@returns
+	boolean
+]]
 function meta:IsMySQL()
 	return self.config.driver == 'mysql'
 end
 
+--[[
+	@doc
+	@fname DMySQL4Connection:IsSQLite
+
+	@server
+
+	@returns
+	boolean
+]]
 function meta:IsSQLite()
 	return not self:IsMySQL()
 end
 
+--[[
+	@doc
+	@fname DMySQL4Connection:Connect
+
+	@server
+
+	@desc
+	throws an error if is already connected
+	@enddesc
+
+	@returns
+	boolean: whenever connection was successful or not
+]]
 function meta:Connect()
 	if self.connected then
 		error('Already connected. To reconnect use :Reconnect()')
@@ -119,18 +170,18 @@ function meta:Connect()
 	if self:IsSQLite() then
 		self.connected = true
 		DMySQL4.Message(self.configName .. ': Connected using SQLite')
-		return self
+		return true
 	end
 
 	if not tmysql4 and not mysqloo then
 		self.connected = false
 		DMySQL4.Message(self.configName .. ': Trying to use MySQL but none MySQL native drivers found! Aborting.')
 		DMySQL4.Message(self.configName .. ': All queries will be rejected!')
-		return self
+		return true
 	end
 
 	if tmysql4 then
-		xpcall(function()
+		local status, returned = xpcall(function()
 			require('tmysql4')
 
 			DMySQL4.Message(self.configName .. ': Trying to connect to ' .. self.config.host .. ' using native driver TMySQL4')
@@ -141,22 +192,27 @@ function meta:Connect()
 				DMySQL4.Message(self.configName .. ': Connection failed: ' .. err)
 				DMySQL4.Message(self.configName .. ': All queries will be rejected!')
 				self.connected = false
-			else
-				DMySQL4.Message(self.configName .. ': Connected using TMySQL4')
-				self.connection = connection
-				self.style = DMySQL4.STYLE_TMYSQL
-				self.connected = true
+				return false
 			end
+
+			DMySQL4.Message(self.configName .. ': Connected using TMySQL4')
+			self.connection = connection
+			self.style = DMySQL4.STYLE_TMYSQL
+			self.connected = true
+
+			return true
 		end, function(err)
 			DMySQL4.Message(self.configName .. ': Could not initialize native driver TMySQL4')
 			DMySQL4.Message(err)
 			DMySQL4.Message(self.configName .. ': All queries will be rejected!')
 			self.connected = false
 		end)
+
+		return status and returned
 	elseif mysqloo then
 		DMySQL4.Message('It is reccomended that you use TMySQL4 instead of MySQLoo')
 
-		xpcall(function()
+		local status, returned = xpcall(function()
 			require('mysqloo')
 
 			DMySQL4.Message(self.configName .. ': Trying to connect to ' .. self.config.host .. ' using native driver MySQLoo')
@@ -173,24 +229,44 @@ function meta:Connect()
 				DMySQL4.Message(connection:hostInfo())
 				DMySQL4.Message(self.configName .. ': All queries will be rejected!')
 				self.connected = false
-			else
-				DMySQL4.Message(self.configName .. ': Connected using MySQLoo')
-				self.connection = connection
-				self.style = DMySQL4.STYLE_MYSQLOO
-				self.connected = true
+				return false
 			end
+
+			DMySQL4.Message(self.configName .. ': Connected using MySQLoo')
+			self.connection = connection
+			self.style = DMySQL4.STYLE_MYSQLOO
+			self.connected = true
+			return true
 		end, function(err)
 			DMySQL4.Message(self.configName .. ': Could not initialize native driver MySQLoo')
 			DMySQL4.Message(err)
 			DMySQL4.Message(self.configName .. ': All queries will be rejected!')
 			self.connected = false
 		end)
+
+		return status and returned
 	end
+
+	return false
 end
 
 local Promise = Promise
 local sql = sql
 
+--[[
+	@doc
+	@fname DMySQL4Connection:Disconnect
+
+	@server
+
+	@desc
+	throws an error if is already not connected
+	this does (almost) nothing if end user has MySQLoo installed (unlike TMySQL4)
+	@enddesc
+
+	@returns
+	boolean: whenever disconnection was successful or not
+]]
 function meta:Disconnect()
 	if not self.connected then
 		error('Already not connected!')
@@ -201,10 +277,21 @@ function meta:Disconnect()
 	self.connected = false
 
 	if self.style == DMySQL4.STYLE_TMYSQL then
-		self.connection:Disconnect()
+		return self.connection:Disconnect()
 	end
+
+	return true
 end
 
+--[[
+	@doc
+	@fname DMySQL4Connection:Reconnect
+
+	@server
+
+	@returns
+	boolean: whenever connection was successful or not
+]]
 function meta:Reconnect()
 	if not self.connected then
 		return self:Connect()
@@ -214,6 +301,16 @@ function meta:Reconnect()
 	return self:Connect()
 end
 
+--[[
+	@doc
+	@fname DMySQL4Connection:Query
+	@args string sqlQuery
+
+	@server
+
+	@returns
+	Promise: Resolves with a table (even if no rows were returned by the query), rejects with string error
+]]
 function meta:Query(query)
 	return Promise(function(resolve, reject)
 		if not self.connected then
@@ -267,8 +364,20 @@ function meta:Query(query)
 	end)
 end
 
--- This is not the same as BEGIN in DMySQL3
--- Since it will rollback all changes done if one of queries fail
+--[[
+	@doc
+	@fname DMySQL4Connection:Transaction
+	@args table queryStrings
+
+	@server
+
+	@desc
+	unlike Falco's MySQLoo's transaction blocks, this rollbacks all queries on failure.
+	@enddesc
+
+	@returns
+	Promise: Resolves when all queries are finished, rejects when at least one query fails with string error messages
+]]
 function meta:Transaction(queries)
 	if type(queries) ~= 'table' then
 		error('You must provide a table of queries')
@@ -288,7 +397,7 @@ function meta:Transaction(queries)
 				local query = queries[i]
 
 				if not query then
-					return resolve()
+					return self:Query('COMMIT'):Then(resolve):Catch(reject)
 				end
 
 				self:Query(query):Then(next):Catch(fuckup)
@@ -303,11 +412,77 @@ function meta:Transaction(queries)
 	end)
 end
 
+--[[
+	@doc
+	@fname DMySQL4Connection:Bake
+	@args table queryTemplate
+
+	@server
+
+	@desc
+	Currently, they only simulate baked queries behavior
+	placeholders are marked as `?` symbol (e.g. `INSERT INTO "mytable" VALUES (?, ?, ?)`)
+	@enddesc
+
+	@returns
+	PlainBakedQuery
+]]
+
+--[[
+	@doc
+	@fname PlainBakedQuery:ExecInPlace
+	@args vararg arguments
+
+	@server
+
+	@returns
+	Promise
+]]
+
+--[[
+	@doc
+	@fname PlainBakedQuery:Execute
+	@args vararg arguments
+
+	@server
+
+	@desc
+	can confuse: this **DOES NOT** perform a query on database.
+	it just return query string it want to execute
+	@enddesc
+
+	@returns
+	string
+]]
 -- Currently only simulation is supported
 function meta:Bake(raw)
 	return DMySQL4.PlainBakedQuery(self, raw)
 end
 
+--[[
+	@doc
+	@fname DMySQL4Connection:TableColumns
+	@args string tableToCheck
+
+	@server
+
+	@desc
+	{
+		field = row.Field,
+		type = {
+			type = valueType,
+			length = valueLength,
+			isUnsigned = unsigned,
+		},
+		isNull = row.Null == 'YES',
+		default = row.Default,
+		unrecognized = row.Extra
+	}
+	@enddesc
+
+	@returns
+	table
+]]
 -- This seems to be useful, so i ported from DMySQL3
 function meta:TableColumns(tableIn)
 	assert(type(tableIn) == 'string', 'Input is not a string! typeof ' .. type(tableIn))

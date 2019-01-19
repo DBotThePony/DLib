@@ -79,29 +79,154 @@ local stuff = {
 	m = {'Physcannon', 'PhysgunCannon'},
 }
 
-surface.CreateFont('WeaponIconsSmall', {
-	font = 'HalfLife2',
-	size = 48,
-	weight = 500
-})
+--[[
+	@docpreprocess
 
-surface.CreateFont('WeaponIconsVerySmall', {
-	font = 'HalfLife2',
-	size = 28,
-	weight = 500
-})
+	const stuff = {
+		q: ['357Round', '357Bullet'],
+		p: '9MM',
+		w: 'CrossbowBolt',
+		e: '357',
+		r: 'SMGRound',
+		t: 'SMGGrenade',
+		u: 'PulseRound',
+		i: 'RPG',
+		o: 'SLAM',
+		a: ['SMG', 'SMG1', 'MP7'],
+		s: ['Buckshot', 'ShotgunRound'],
+		d: 'Pistol',
+		f: 'DoubleBarrel',
+		q: 'Crossbow',
+		h: ['TauGun', 'Tau', 'TauCannon'],
+		j: 'Bugbait',
+		k: 'Grenade',
+		l: ['PulseRifle', 'AR2', 'OSIPR'],
+		z: ['PulseEnergy', 'PulseBall', 'CombineBall'],
+		x: 'RPGRound',
+		c: 'Crowbar',
+		v: 'GrenadeRound',
+		b: 'Shotgun',
+		n: 'Stunstick',
+		m: ['Physcannon', 'PhysgunCannon'],
+	}
 
-surface.CreateFont('WeaponIconsTiny', {
-	font = 'HalfLife2',
-	size = 16,
-	weight = 500
-})
+	const sizes = [
+		'',
+		'Tiny',
+		'Small',
+		'VerySmall',
+		'Big'
+	]
 
-surface.CreateFont('WeaponIconsBig', {
-	font = 'HalfLife2',
-	size = 96,
-	weight = 500
-})
+	const reply = []
+
+	for (const size of sizes) {
+		let output = []
+
+		output.push(`@func DLib.HUDCommons.GetWeaponAmmoIcon${size}`)
+		output.push(`@client`)
+		output.push(`@args Weapon weapon`)
+		output.push(`@returns`)
+		output.push(`function: or nil`)
+
+		output = []
+
+		output.push(`@func DLib.HUDCommons.GetWeaponSecondaryAmmoIcon${size}`)
+		output.push(`@client`)
+		output.push(`@args Weapon weapon`)
+		output.push(`@returns`)
+		output.push(`function: or nil`)
+
+		reply.push(output)
+		output = []
+
+		output.push(`@func DLib.HUDCommons.DrawWeaponAmmoIcon${size}`)
+		output.push(`@client`)
+		output.push(`@args Weapon weapon, number x, number y, Color r = nil, number g = nil, number b = nil, number a = nil`)
+		output.push(`@desc`)
+		output.push(`\`r\` argument can be either Color or a number`)
+		output.push(`or color arguments can be fully omitted`)
+		output.push(`x, y positions can be omitted, this will cause icons to draw at last`)
+		output.push(`position defined by !g:surface.SetTextPos`)
+		output.push(`@enddesc`)
+		output.push(`@returns`)
+		output.push(`function: or nil`)
+
+		reply.push(output)
+		output = []
+
+		output.push(`@func DLib.HUDCommons.DrawWeaponSecondaryAmmoIcon${size}`)
+		output.push(`@client`)
+		output.push(`@args Weapon weapon, number x, number y, Color r = nil, number g = nil, number b = nil, number a = nil`)
+		output.push(`@desc`)
+		output.push(`\`r\` argument can be either Color or a number`)
+		output.push(`or color arguments can be fully omitted`)
+		output.push(`x, y positions can be omitted, this will cause icons to draw at last`)
+		output.push(`position defined by !g:surface.SetTextPos`)
+		output.push(`@enddesc`)
+		output.push(`@returns`)
+		output.push(`function: or nil`)
+
+		reply.push(output)
+
+		for (const key in stuff) {
+			let value = stuff[key]
+
+			if (typeof value == 'string') {
+				value = [value]
+			}
+
+			for (const name of value) {
+				const output = []
+
+				output.push(`@func DLib.HUDCommons.Draw${name}${size}`)
+				output.push(`@args number x, number y, Color r = nil, number g = nil, number b = nil, number a = nil`)
+				output.push(`@client`)
+				output.push(`@desc`)
+				output.push(`Draws corresponding image`)
+				output.push(`\`r\` argument can be either Color or a number`)
+				output.push(`or color arguments can be fully omitted`)
+				output.push(`x, y positions can be omitted, this will cause icons to draw at last`)
+				output.push(`position defined by !g:surface.SetTextPos`)
+				output.push(`@enddesc`)
+
+				reply.push(output)
+			}
+		}
+	}
+
+	return reply
+]]
+
+local function registerFonts()
+	surface.CreateFont('WeaponIconsSmall', {
+		font = 'HalfLife2',
+		size = ScreenSize(24),
+		weight = 500
+	})
+
+	surface.CreateFont('WeaponIconsVerySmall', {
+		font = 'HalfLife2',
+		size = ScreenSize(14),
+		weight = 500
+	})
+
+	surface.CreateFont('WeaponIconsTiny', {
+		font = 'HalfLife2',
+		size = ScreenSize(8),
+		weight = 500
+	})
+
+	surface.CreateFont('WeaponIconsBig', {
+		font = 'HalfLife2',
+		size = ScreenSize(43),
+		weight = 500
+	})
+end
+
+registerFonts()
+
+hook.Add('ScreenResolutionChanged', 'DLib.hl2icons', registerFonts)
 
 local sizes = {
 	'',
@@ -119,7 +244,7 @@ for char, names in pairs(stuff) do
 			HUDCommons['Draw' .. name .. size] = function(x, y, color, g, b, a)
 				surface.SetFont(fontName)
 
-				if x then
+				if x and y then
 					surface.SetTextPos(x, y)
 				end
 

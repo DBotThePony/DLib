@@ -24,6 +24,24 @@ local i18n = i18n
 
 i18n.DEBUG_LANG_STRINGS = CreateConVar('gmod_language_dlib_dbg', '0', {FCVAR_ARCHIVE}, 'Debug language strings (do not localize them)')
 
+--[[
+	@doc
+	@fname DLib.i18n.getPlayer
+	@alias DLib.i18n.getByPlayer
+	@alias DLib.i18n.localizePlayer
+	@alias DLib.i18n.localizebyPlayer
+	@alias DLib.i18n.byPlayer
+	@alias Player:LocalizePhrase
+	@alias Player:DLibPhrase
+	@alias Player:DLibLocalize
+	@alias Player:GetDLibPhrase
+
+	@args Player ply, string phrase, vararg formatArguments
+	@server
+
+	@returns
+	string: localized
+]]
 function i18n.getPlayer(ply, phrase, ...)
 	return i18n.localizeByLang(phrase, ply.DLib_Lang or 'en', ...)
 end
@@ -35,6 +53,19 @@ i18n.byPlayer = i18n.getPlayer
 
 local plyMeta = FindMetaTable('Player')
 
+--[[
+	@doc
+	@fname Player:LocalizePhrase
+	@alias Player:DLibPhrase
+	@alias Player:DLibLocalize
+	@alias Player:GetDLibPhrase
+
+	@args string phrase, vararg formatArguments
+	@server
+
+	@returns
+	string: localized
+]]
 function plyMeta:LocalizePhrase(phrase, ...)
 	return i18n.localizeByLang(phrase, self.DLib_Lang or 'en', ...)
 end
@@ -79,6 +110,12 @@ end
 
 local LANG_OVERRIDE = CreateConVar('gmod_language_dlib_sv', '', {FCVAR_ARCHIVE}, 'gmod_language override for DLib based addons')
 
+
+--[[
+	@doc
+	@hook DLib.LanguageChanged
+]]
+
 function i18n.UpdateLang()
 	gmod_language = gmod_language or GetConVar('gmod_language')
 	if not gmod_language then return end
@@ -101,6 +138,12 @@ end
 cvars.AddChangeCallback('gmod_language', i18n.UpdateLang, 'DLib')
 cvars.AddChangeCallback('gmod_language_dlib_sv', i18n.UpdateLang, 'DLib')
 timer.Simple(0, i18n.UpdateLang)
+
+--[[
+	@doc
+	@hook DLib.PlayerLanguageChanges
+	@args Player ply, string oldOrNil, string new
+]]
 
 net.receive('dlib.clientlang', function(len, ply)
 	local old = ply.DLib_Lang

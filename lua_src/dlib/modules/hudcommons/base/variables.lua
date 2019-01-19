@@ -26,6 +26,34 @@ local assert = assert
 local type = type
 local error = error
 
+--[[
+	@doc
+	@fname HUDCommonsBase:RegisterVariable
+	@args string var, function defaultValue
+
+	@client
+
+	@desc
+	Defines a new variable for HUD
+	It has various hooks but by default these hooks do nothing.
+	Calling this function when variable already exists will refresh variable's table
+	`default` is a function which should return default value.
+	Look for other functions in !c:HUDCommonsBase to see how to manipulate hooks of variables!
+
+	Also, defining a variable will define getter for it over your HUD
+	To access carible, call `self:GetVar[your variable name here]`
+
+	**Keep in mind that:**
+	names should be generic
+	should not contain spaces (altrough it is not restricted, but you won't be able to call getter easily)
+	variable name is being pretty formatted. It means that if you pass for example `'myVar'` it will turn into `GetVarMyVar()` on getter and so on.
+
+	*Also checkout `HUDCommonsBase:RegisterRegularVariable` method!*
+	@enddesc
+
+	@returns
+	table: variable data
+]]
 function meta:RegisterVariable(var, default)
 	self.varMeta = nil
 
@@ -51,6 +79,7 @@ function meta:RegisterVariable(var, default)
 		ldata = {
 			var = var,
 			fname = var:formatname(),
+			self = {},
 			func = 'GetVar' .. var:formatname()
 		}
 
@@ -63,7 +92,6 @@ function meta:RegisterVariable(var, default)
 	end
 
 	ldata.default = default
-	ldata.self = ldata.self or {}
 	ldata.tick = ldata.tick or function(self, hudSelf, localPlayer, currentValue, lastTick) return currentValue end
 	ldata.onChange = ldata.onChange or function(self, hudSelf, localPlayer, oldVariable, newVariable) end
 
@@ -99,13 +127,110 @@ local hooks = {
 	'ammoTypeChanges',
 }
 
+
+--[[
+	@docpreprocess
+
+	const hooks = [
+		'Tick',
+		'OnChange',
+		'OnGlitch',
+		'OnDeath',
+		'OnRespawn',
+		'OnWeaponChanged',
+		'OnDisabled',
+		'OnEnabled',
+		'OnGlitchStart',
+		'OnGlitchEnd',
+		'AmmoTypeChanges',
+	]
+
+	const reply = []
+
+	for (const hName of hooks) {
+		let output = []
+
+		output.push(`@fname HUDCommonsBase:Set${hName}Hook`)
+		output.push(`@args string var, function newFunction`)
+		output.push(`@client`)
+		output.push(`@desc`)
+		output.push(`Sets \`${hName}\` hook function for variable names \`var\``)
+		output.push(`Keep in mind that different hook functions will receive different arguments`)
+		output.push(`Refer to \`defaultvars.lua\` in DLib and to 4HUD/FFGSHUD code`)
+		output.push(`Some hooks are supposed to return values`)
+		output.push(`But arguments of any hook will always start with:`)
+		output.push(`variable's private self table`)
+		output.push(`HUD's self table`)
+		output.push(`current player`)
+		output.push(`@enddesc`)
+		output.push(`@returns`)
+		output.push(`table: variable data`)
+
+		reply.push(output)
+
+		output = []
+
+		output.push(`@fname HUDCommonsBase:Patch${hName}Hook`)
+		output.push(`@args string var, function newFunction`)
+		output.push(`@client`)
+		output.push(`@desc`)
+		output.push(`Wraps \`${hName}\`'s' hook function (if exists) or replaces it (if not exists)`)
+		output.push(`Works pretty much the same as \`HUDCommonsBase:Set${hName}Hook\` except old function is still called`)
+		output.push(`@enddesc`)
+		output.push(`@returns`)
+		output.push(`table: variable data`)
+
+		reply.push(output)
+
+		output = []
+
+		output.push(`@fname HUDCommonsBase:SoftPatch${hName}Hook`)
+		output.push(`@args string var, function newFunction`)
+		output.push(`@client`)
+		output.push(`@desc`)
+		output.push(`Works pretty much the same as \`HUDCommonsBase:Patch${hName}Hook\` exceptd`)
+		output.push(`old's function return values are being passed to new function provided (function composition)`)
+		output.push(`@enddesc`)
+		output.push(`@returns`)
+		output.push(`table: variable data`)
+
+		reply.push(output)
+
+		output = []
+
+		output.push(`@fname HUDCommonsBase:Call${hName}`)
+		output.push(`@args vararg arguments`)
+		output.push(`@internal`)
+		output.push(`@client`)
+
+		reply.push(output)
+	}
+
+	return reply
+]]
+
+--[[
+	@doc
+	@fname HUDCommonsBase:GetVariable
+	@args string var
+
+	@client
+
+	@desc
+	This is the same as calling `self:GetVar[varname]()`
+	but slower
+	@enddesc
+
+	@returns
+	any: value of that variable
+]]
 function meta:GetVariable(var)
 	assert(type(var) == 'string', 'ID is not a string!')
 	return assert(self.variablesHash[var], 'No such variable: ' .. var).value
 end
 
-for i, hookType in ipairs(hooks) do
-	local hName = hookType:formatname()
+for i, hName2 in ipairs(hooks) do
+	local hName = hName2:formatname()
 
 	meta['Set' .. hName .. 'Hook'] = function(self, var, newFunction)
 		assert(type(var) == 'string', 'ID is not a string!')
@@ -147,6 +272,10 @@ for i, hookType in ipairs(hooks) do
 
 		local old = ldata[hookType]
 
+		if not old then
+			return meta['Set' .. hName .. 'Hook'](self, var, newFunction)
+		end
+
 		ldata[hookType] = function(...)
 			old(...)
 			return newFunction(...)
@@ -173,6 +302,10 @@ for i, hookType in ipairs(hooks) do
 		end
 
 		local old = ldata[hookType]
+
+		if not old then
+			return meta['Set' .. hName .. 'Hook'](self, var, newFunction)
+		end
 
 		ldata[hookType] = function(self1, self2, localPlayer, ...)
 			return newFunction(self1, self2, localPlayer, old(self1, self2, localPlayer, ...))
@@ -219,11 +352,18 @@ for i, hookType in ipairs(hooks) do
 	end
 end
 
--- override
-function meta:InitVaribles()
+--[[
+	@doc
+	@fname HUDCommonsBase:TickVariables
+	@args Player ply
 
-end
+	@client
+	@internal
 
+	@desc
+	calls `tick` hook on all variables
+	@enddesc
+]]
 function meta:TickVariables(lPly)
 	local vars = self.variables
 
@@ -238,6 +378,13 @@ function meta:TickVariables(lPly)
 	end
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:BuildVariableMeta
+
+	@client
+	@internal
+]]
 function meta:BuildVariableMeta()
 	self.varMeta = {}
 
@@ -250,6 +397,15 @@ end
 
 local setmetatable = setmetatable
 
+--[[
+	@doc
+	@fname HUDCommonsBase:RecordVariableState
+
+	@client
+
+	@returns
+	table
+]]
 function meta:RecordVariableState()
 	if not self.varMeta then
 		self:BuildVariableMeta()

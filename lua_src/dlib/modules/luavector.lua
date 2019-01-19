@@ -36,6 +36,14 @@ local Lerp = Lerp
 
 meta.MetaName = 'LVector'
 
+--[[
+	@doc
+	@fname LVector:__index
+	@args any key
+
+	@returns
+	any: associated value or function or nil
+]]
 function meta:__index(key)
 	if key == 1 then
 		return self.x
@@ -54,6 +62,13 @@ function meta:__index(key)
 	return rawget(self, key)
 end
 
+--[[
+	@doc
+	@fname LVector:__newindex
+	@args any key, any value
+
+	@internal
+]]
 function meta:__newindex(key, value)
 	if key == 1 then
 		key = 'x'
@@ -66,6 +81,26 @@ function meta:__newindex(key, value)
 	rawset(self, key, value)
 end
 
+--[[
+	@doc
+	@fname LVector
+	@args any x = 0, number y = 0, number z = 0
+
+	@desc
+	Creates a new Lua based Vector object
+	this Vector object **can not** be passed to C defined methods!
+	but can be used in Lua based methods however (which either don't call C methods
+	or know that they can get `LVector` instead of `Vector`)
+	If `x` provided is a `LVector` or `Vector`, it will be copied.
+	Main advantage over C based `Vector` of this that this class is JIT friendly,
+	and if used wisely can noticeably increase performance of hot loops
+
+	This custom class implements the most frequent used methods of vectors
+	@enddesc
+
+	@returns
+	LVector: newly created object
+]]
 local function LVector(x, y, z)
 	if type(x) == 'Vector' or luatype(x) == 'LVector' then
 		y = x.y
@@ -97,26 +132,68 @@ end
 _G.LVector = LVector
 _G.LuaVector = LVector
 
+--[[
+	@doc
+	@fname LVector:ToNative
+
+	@returns
+	Vector
+]]
 function meta:ToNative()
 	return Vector(self.x, self.y, self.z)
 end
 
+--[[
+	@doc
+	@fname LVector:ToLua
+
+	@returns
+	LVector: copy
+]]
 function meta:ToLua()
 	return LVector(self)
 end
 
+--[[
+	@doc
+	@fname LVector:Copy
+
+	@returns
+	LVector: copy
+]]
 function meta:Copy()
 	return LVector(self)
 end
 
+--[[
+	@doc
+	@fname LVector:ToVector
+
+	@returns
+	LVector: copy
+]]
 function meta:ToVector()
 	return LVector(self)
 end
 
+--[[
+	@doc
+	@fname LVector:__tostring
+
+	@returns
+	string
+]]
 function meta:__tostring()
 	return string.format('LuaVector [%.6f %.6f %.6f]', self.x, self.y, self.z)
 end
 
+--[[
+	@doc
+	@fname LVector:__call
+
+	@returns
+	LVector: copy
+]]
 function meta:__call()
 	return LVector(self)
 end
@@ -125,18 +202,46 @@ end
 
 local math = math
 
+--[[
+	@doc
+	@fname LVector:Length
+
+	@returns
+	number
+]]
 function meta:Length()
 	return math.sqrt(self.x:pow(2) + self.y:pow(2) + self.z:pow(2))
 end
 
+--[[
+	@doc
+	@fname LVector:LengthSqr
+
+	@returns
+	number
+]]
 function meta:LengthSqr()
 	return self.x:pow(2) + self.y:pow(2) + self.z:pow(2)
 end
 
+--[[
+	@doc
+	@fname LVector:Length2D
+
+	@returns
+	number
+]]
 function meta:Length2D()
 	return math.sqrt(self.x:pow(2) + self.y:pow(2))
 end
 
+--[[
+	@doc
+	@fname LVector:Length2DSqr
+
+	@returns
+	number
+]]
 function meta:Length2DSqr()
 	return self.x:pow(2) + self.y:pow(2)
 end
@@ -147,11 +252,25 @@ function meta:Normalize()
 	return self
 end
 
+--[[
+	@doc
+	@fname LVector:GerNormalized
+
+	@returns
+	LVector: normalized copy of vector
+]]
 function meta:GetNormalized()
 	local len = self:Length()
 	return LVector(self.x / len, self.y / len, self.z / len)
 end
 
+--[[
+	@doc
+	@fname LVector:IsNormalized
+
+	@returns
+	boolean
+]]
 function meta:IsNormalized()
 	return self.x <= 1 and self.y <= 1 and self.z <= 1 and self.x >= -1 and self.y >= -1 and self.z >= -1
 end
@@ -160,6 +279,18 @@ local UP = LVector(0, 0, 1)
 local FORWARD = LVector(1, 0, 0)
 local LEFT = LVector(0, 1, 0)
 
+--[[
+	@doc
+	@fname LVector:Dot
+	@args LVector another
+
+	@desc
+	See !g:Vector:Dot
+	@enddesc
+
+	@returns
+	number
+]]
 function meta:Dot(another)
 	if type(another) ~= 'Vector' and type(another) ~= 'LVector' then
 		error('LVector:Dot(' .. type(another) .. ') - invalid call')
@@ -177,10 +308,26 @@ function meta:Dot(another)
 	return scalar / len
 end
 
+
+--[[
+	@doc
+	@fname LVector:IsZero
+
+	@returns
+	boolean
+]]
 function meta:IsZero()
 	return self.x == 0 and self.y == 0 and self.z == 0
 end
 
+--[[
+	@doc
+	@fname LVector:Lerp
+	@args number lerpValue, LVector lerpTo
+
+	@returns
+	LVector: copy
+]]
 function meta:Lerp(lerpValue, lerpTo)
 	if type(lerpTo) ~= 'Vector' and type(lerpTo) ~= 'LVector' then
 		error('LVector:Lerp(' .. type(lerpValue) .. ', ' .. type(lerpTo) .. ') - invalid call')
@@ -198,6 +345,19 @@ meta.DegreeBetween = meta.Dot
 
 -- Various vanilla things
 
+--[[
+	@doc
+	@fname LVector:Add
+	@args LVector another
+
+	@desc
+	Adds another vector
+	This method **modifies** original LVector
+	@enddesc
+
+	@returns
+	LVector: self
+]]
 function meta:Add(another)
 	if type(another) ~= 'Vector' and type(another) ~= 'LVector' then
 		error('LVector:Add(' .. type(another) .. ') - invalid call')
@@ -210,6 +370,19 @@ function meta:Add(another)
 	return self
 end
 
+--[[
+	@doc
+	@fname LVector:Sub
+	@args LVector another
+
+	@desc
+	Substrates another vector
+	This method **modifies** original LVector
+	@enddesc
+
+	@returns
+	LVector: self
+]]
 function meta:Sub(another)
 	if type(another) ~= 'Vector' and type(another) ~= 'LVector' then
 		error('LVector:Sub(' .. type(another) .. ') - invalid call')
@@ -222,6 +395,19 @@ function meta:Sub(another)
 	return self
 end
 
+--[[
+	@doc
+	@fname LVector:Set
+	@args LVector another
+
+	@desc
+	This method **modifies** original LVector
+	This method sets `x`, `y`, and `z` to their corresponding values from `another`
+	@enddesc
+
+	@returns
+	LVector: self
+]]
 function meta:Set(another)
 	if type(another) ~= 'Vector' and type(another) ~= 'LVector' then
 		error('LVector:Set(' .. type(another) .. ') - invalid call')
@@ -234,6 +420,19 @@ function meta:Set(another)
 	return self
 end
 
+--[[
+	@doc
+	@fname LVector:Zero
+	@args LVector another
+
+	@desc
+	This method **modifies** original LVector
+	sets `x`, `y` and `z` to 0
+	@enddesc
+
+	@returns
+	LVector: self
+]]
 function meta:Zero()
 	self.x = 0
 	self.y = 0
@@ -242,6 +441,14 @@ function meta:Zero()
 	return self
 end
 
+--[[
+	@doc
+	@fname LVector:WithinAABox
+	@args LVector mins, LVector maxs
+
+	@returns
+	boolean
+]]
 function meta:WithinAABox(mins, maxs)
 	if type(mins) ~= 'Vector' and type(mins) ~= 'LVector' then
 		error('LVector:WithinAABox(' .. type(mins) .. ', ' .. type(maxs) .. ') - invalid call')
@@ -259,6 +466,14 @@ function meta:WithinAABox(mins, maxs)
 		and self.z <= maxs.z
 end
 
+--[[
+	@doc
+	@fname LVector:Distance
+	@args LVector another
+
+	@returns
+	number: length in hammer units
+]]
 function meta:Distance(another)
 	if type(another) ~= 'Vector' and type(another) ~= 'LVector' then
 		error('LVector:Distance(' .. type(another) .. ') - invalid call')
@@ -267,6 +482,14 @@ function meta:Distance(another)
 	return math.sqrt((self.x - another.x):pow(2) + (self.y - another.y):pow(2) + (self.z - another.z):pow(2))
 end
 
+--[[
+	@doc
+	@fname LVector:DistToSqr
+	@args LVector another
+
+	@returns
+	number: length in hammer units without square rooting
+]]
 function meta:DistToSqr(another)
 	if type(another) ~= 'Vector' and type(another) ~= 'LVector' then
 		error('LVector:DistToSqr(' .. type(another) .. ') - invalid call')
@@ -275,6 +498,19 @@ function meta:DistToSqr(another)
 	return (self.x - another.x):pow(2) + (self.y - another.y):pow(2) + (self.z - another.z):pow(2)
 end
 
+--[[
+	@doc
+	@fname LVector:Mul
+	@args LVector another
+
+	@desc
+	Multiplies this vector by another
+	This method **modifies** original LVector
+	@enddesc
+
+	@returns
+	LVector: self
+]]
 function meta:Mul(number)
 	if type(number) ~= 'number' then
 		error('LVector:Mul(' .. type(number) .. ') - invalid call')
@@ -287,6 +523,19 @@ function meta:Mul(number)
 	return self
 end
 
+--[[
+	@doc
+	@fname LVector:Div
+	@args LVector another
+
+	@desc
+	Divides this vector by another
+	This method **modifies** original LVector
+	@enddesc
+
+	@returns
+	LVector: self
+]]
 function meta:Div(number)
 	if type(number) ~= 'number' then
 		error('LVector:Div(' .. type(number) .. ') - invalid call')
@@ -299,10 +548,24 @@ function meta:Div(number)
 	return self
 end
 
+--[[
+	@doc
+	@fname LVector:ToColor
+
+	@returns
+	Color
+]]
 function meta:ToColor()
 	return Color(self.x / 255, self.y / 255, self.z / 255)
 end
 
+--[[
+	@doc
+	@fname LVector:Angle
+
+	@returns
+	Angle
+]]
 function meta:Angle()
 	local normal = self:GetNormalized()
 
@@ -325,10 +588,30 @@ end
 
 -- Extended
 
+--[[
+	@doc
+	@fname LVector:Invert
+	@args LVector another
+
+	@desc
+	Inverts sign of coordinates
+	This method **modifies** original LVector
+	@enddesc
+
+	@returns
+	LVector: self
+]]
 function meta:Invert()
 	return LVector(-self.x, -self.y, -self.z)
 end
 
+--[[
+	@doc
+	@fname LVector:IsValid
+
+	@returns
+	boolean: whenever vector contains valid coordinates
+]]
 function meta:IsValid()
 	return
 		self.x == self.x
@@ -344,10 +627,34 @@ end
 
 -- Lua metamethods
 
+--[[
+	@doc
+	@fname LVector:__unm
+
+	@desc
+	-var1
+	returns inverted vector
+	@enddesc
+
+	@returns
+	LVector: copy
+]]
 function meta:__unm()
-	return self:Invert()
+	return LVector(self):Invert()
 end
 
+--[[
+	@doc
+	@fname LVector:__eq
+	@args LVector another
+
+	@desc
+	var1 == var2
+	@enddesc
+
+	@returns
+	LVector: copy
+]]
 function meta:__eq(another)
 	if type(another) ~= 'Vector' and type(another) ~= 'LVector' then
 		error('LVector:__eq(' .. type(another) .. ') - invalid call')
@@ -356,6 +663,18 @@ function meta:__eq(another)
 	return self.x == another.x and self.y == another.y and self.z == another.z
 end
 
+--[[
+	@doc
+	@fname LVector:__add
+	@args LVector another
+
+	@desc
+	var1 + var2
+	@enddesc
+
+	@returns
+	LVector: copy
+]]
 function meta:__add(another)
 	--[[if type(self) == 'number' then
 		return LVector(another.x + self, another.y + self, another.z + self)
@@ -376,6 +695,18 @@ function meta:__add(another)
 	return LVector(another.x + self.x, another.y + self.y, another.z + self.z)
 end
 
+--[[
+	@doc
+	@fname LVector:__sub
+	@args LVector another
+
+	@desc
+	var1 - var2
+	@enddesc
+
+	@returns
+	LVector: copy
+]]
 function meta:__sub(another)
 	--[[if type(self) == 'number' then
 		return LVector(another.x - self, another.y - self, another.z - self)
@@ -396,6 +727,18 @@ function meta:__sub(another)
 	return LVector(self.x - another.x, self.y - another.x, self.z - another.x)
 end
 
+--[[
+	@doc
+	@fname LVector:__mul
+	@args LVector another
+
+	@desc
+	var1 * var2
+	@enddesc
+
+	@returns
+	LVector: copy
+]]
 function meta:__mul(another)
 	if type(self) == 'number' then
 		return LVector(another.x * self, another.y * self, another.z * self)
@@ -416,6 +759,18 @@ function meta:__mul(another)
 	return LVector(self.x * another.x, self.y * another.x, self.z * another.x)
 end
 
+--[[
+	@doc
+	@fname LVector:__div
+	@args LVector another
+
+	@desc
+	var1 / var2
+	@enddesc
+
+	@returns
+	LVector: copy
+]]
 function meta:__div(another)
 	if type(self) == 'number' then
 		return LVector(another.x / self, another.y / self, another.z / self)
@@ -436,6 +791,19 @@ function meta:__div(another)
 	return LVector(self.x / another.x, self.y / another.x, self.z / another.x)
 end
 
+--[[
+	@doc
+	@fname LVector:__mod
+	@args any another
+
+	@desc
+	var1 % var2
+	this function accept `Vector`, `LVector` and `number` arguments
+	@enddesc
+
+	@returns
+	LVector: copy
+]]
 function meta:__mod(another)
 	if type(self) == 'number' then
 		return LVector(another.x % self, another.y % self, another.z % self)
@@ -456,6 +824,19 @@ function meta:__mod(another)
 	return LVector(self.x % another.x, self.y % another.x, self.z % another.x)
 end
 
+--[[
+	@doc
+	@fname LVector:__lt
+	@args any another
+
+	@desc
+	var1 < var2
+	this function accept `Vector`, `LVector` and `number` arguments
+	@enddesc
+
+	@returns
+	boolean
+]]
 function meta:__lt(another)
 	if type(self) == 'number' then
 		return another:Length() < self
@@ -476,6 +857,19 @@ function meta:__lt(another)
 	return self:Length() < another:Length()
 end
 
+--[[
+	@doc
+	@fname LVector:__le
+	@args any another
+
+	@desc
+	var1 <= var2
+	this function accept `Vector`, `LVector` and `number` arguments
+	@enddesc
+
+	@returns
+	boolean
+]]
 function meta:__le(another)
 	if type(self) == 'number' then
 		return another:Length() <= self
@@ -496,6 +890,18 @@ function meta:__le(another)
 	return self:Length() <= another:Length()
 end
 
+--[[
+	@doc
+	@fname LVector:__concat
+	@args any another
+
+	@desc
+	var1 .. var2
+	@enddesc
+
+	@returns
+	string
+]]
 function meta:__concat(another)
 	if type(self) == 'LVector' then
 		return string.format('Vector [%.2f %.2f %.2f]', self.x, self.y, self.z) .. another

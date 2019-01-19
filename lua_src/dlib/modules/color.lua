@@ -36,6 +36,20 @@ colorMeta.__index = colorMeta
 colorMeta.MetaName = 'Color'
 debug.getregistry().Color = colorMeta
 
+
+--[[
+	@doc
+	@fname Color
+	@args any r = 255, number g = 255, number b = 255, number a = 255
+
+	@desc
+	First argument can be either table with `r, g, b, a` properties defined, or be a number
+	if it is number, then if it is bigger than 255, it is considered to be a big endian color number.
+	@enddesc
+
+	@returns
+	Color: newly created object
+]]
 local function Color(r, g, b, a)
 	if type(r) == 'table' then
 		g = r.g
@@ -61,13 +75,42 @@ local function Color(r, g, b, a)
 	return setmetatable(newObj, colorMeta)
 end
 
+--[[
+	@doc
+	@fname ColorFromSeed
+	@args string seed
+
+	@returns
+	Color: newly created object
+]]
 function _G.ColorFromSeed(seedIn)
 	return Color(srnd(seedIn, 0, 255, 0), srnd(seedIn, 0, 255, 1), srnd(seedIn, 0, 255, 2))
 end
 
+--[[
+	@doc
+	@fname IsColor
+	@args any value
+
+	@desc
+	unlike !g:IsColor
+	this can duck type the value
+	@enddesc
+
+	@returns
+	boolean
+]]
 _G.Color = Color
 local IsColor
 
+--[[
+	@doc
+	@fname ColorAlpha
+	@args Color target, number newAlpha
+
+	@returns
+	Color: copied color with modified alpha
+]]
 function _G.ColorAlpha(target, newAlpha)
 	if not IsColor(target) then
 		error('Input is not a color! typeof ' .. type(target))
@@ -107,14 +150,42 @@ end
 _G.iscolor = IsColor
 _G.IsColor = IsColor
 
+--[[
+	@doc
+	@fname Color:__tostring
+
+	@returns
+	string
+]]
 function colorMeta:__tostring()
 	return string.format('Color[%i %i %i %i]', self.r, self.g, self.b, self.a)
 end
 
+--[[
+	@doc
+	@fname Color:ToHex
+
+	@returns
+	string
+]]
 function colorMeta:ToHex()
 	return string.format('0x%02x%02x%02x', self.r, self.g, self.b)
 end
 
+--[[
+	@doc
+	@fname Color:ToNumberLittle
+	@alias Color:ToNumberLittlEndian
+	@alias Color:ToNumberLE
+	@args boolean writeAlpha
+
+	@desc
+	turns color into little endian integer
+	@enddesc
+
+	@returns
+	number
+]]
 function colorMeta:ToNumberLittle(writeAlpha)
 	if writeAlpha then
 		return self.r:band(255) + self.g:band(255):lshift(8) + self.b:band(255):lshift(16) + self.a:band(255):lshift(24)
@@ -123,6 +194,21 @@ function colorMeta:ToNumberLittle(writeAlpha)
 	end
 end
 
+--[[
+	@doc
+	@fname Color:ToNumber
+	@alias Color:ToNumberBig
+	@alias Color:ToNumberBigEndian
+	@alias Color:ToNumberBE
+	@args boolean writeAlpha
+
+	@desc
+	turns color into big endian integer
+	@enddesc
+
+	@returns
+	number
+]]
 function colorMeta:ToNumber(writeAlpha)
 	if writeAlpha then
 		return self.r:band(255):lshift(24) + self.g:band(255):lshift(16) + self.b:band(255):lshift(8) + self.a:band(255)
@@ -137,6 +223,22 @@ colorMeta.ToNumberBE = colorMeta.ToNumber
 colorMeta.ToNumberLittlEndian = colorMeta.ToNumberLittle
 colorMeta.ToNumberLE = colorMeta.ToNumberLittle
 
+--[[
+	@doc
+	@fname ColorFromNumberLittle
+	@alias ColorFromNumberLittleEndian
+	@alias ColorFromNumberLE
+	@alias ColorLE
+
+	@args number value, boolean hasAlpha
+
+	@desc
+	turns little endian integer into color
+	@enddesc
+
+	@returns
+	Color
+]]
 function _G.ColorFromNumberLittle(numIn, hasAlpha)
 	assert(type(numIn) == 'number', 'Must be a number!')
 	if hasAlpha then
@@ -157,6 +259,23 @@ function _G.ColorFromNumberLittle(numIn, hasAlpha)
 	return Color(r, g, b)
 end
 
+--[[
+	@doc
+	@fname ColorFromNumber
+	@alias ColorFromNumberBig
+	@alias ColorFromNumberBigEndian
+	@alias ColorFromNumberBE
+	@alias ColorBE
+
+	@args number value, boolean hasAlpha
+
+	@desc
+	turns big endian integer into color
+	@enddesc
+
+	@returns
+	Color
+]]
 function _G.ColorFromNumber(numIn, hasAlpha)
 	assert(type(numIn) == 'number', 'Must be a number!')
 	if hasAlpha then
@@ -179,6 +298,20 @@ end
 
 local ColorFromNumber = ColorFromNumber
 
+--[[
+	@doc
+	@fname ColorFromHex
+	@alias ColorHex
+	@alias ColorHEX
+	@alias ColorFromHEX
+	@alias Color16
+	@alias ColorFrom16
+
+	@args string value, boolean hasAlpha
+
+	@returns
+	Color
+]]
 function _G.ColorFromHex(hex, hasAlpha)
 	return ColorFromNumber(tonumber(hex, 16), hasAlpha)
 end
@@ -196,8 +329,34 @@ _G.ColorFromNumberBigEndian = _G.ColorFromNumber
 _G.ColorFromNumberBE = _G.ColorFromNumber
 _G.ColorBE = _G.ColorFromNumber
 
+--[[
+	@doc
+	@fname HSVToColorC
+	@args number hue, number saturation, number value
+
+	@desc
+	the old (gmod's) !g:HSVToColor
+	@enddesc
+
+	@returns
+	table
+]]
 _G.HSVToColorC = HSVToColorC or HSVToColor
 
+--[[
+	@doc
+	@fname HSVToColor
+	@args number hue, number saturation, number value
+
+	@desc
+	the new !g:HSVToColor
+	unlike GMod's, this one throws an error on any invalid value
+	and metatable of color is properly set up
+	@enddesc
+
+	@returns
+	Color
+]]
 function _G.HSVToColor(hue, saturation, value)
 	assert(type(hue) == 'number' and hue >= 0 and hue <= 360, 'Invalid hue value. It must be a number and be in 0-360 range')
 	assert(type(saturation) == 'number' and saturation >= 0 and saturation <= 1, 'Invalid saturation value. It must be a number and be in 0-1 (float) range')
@@ -224,6 +383,18 @@ function _G.HSVToColor(hue, saturation, value)
 	return Color(value * 255, valueMin * 255, valueDec * 255)
 end
 
+--[[
+	@doc
+	@fname Color:__eq
+	@args any other
+
+	@desc
+	var1 == var2
+	@enddesc
+
+	@returns
+	boolean
+]]
 function colorMeta:__eq(target)
 	if not IsColor(target) then
 		return false
@@ -232,6 +403,21 @@ function colorMeta:__eq(target)
 	return target.r == self.r and target.g == self.g and target.b == self.b and target.a == self.a
 end
 
+--[[
+	@doc
+	@fname Color:__add
+	@args any other
+
+	@desc
+	var1 + var2
+	accepts `number`, `Vector` and `Color`
+	throws an error if one of arguments is not in list above
+	operation is performed on each channel separately if other operand is not a number
+	@enddesc
+
+	@returns
+	Color: copy
+]]
 function colorMeta:__add(target)
 	if not IsColor(self) and IsColor(target) then
 		local s1, s2 = self, target
@@ -252,6 +438,21 @@ function colorMeta:__add(target)
 	end
 end
 
+--[[
+	@doc
+	@fname Color:__sub
+	@args any other
+
+	@desc
+	var1 - var2
+	accepts `number`, `Vector` and `Color`
+	throws an error if one of arguments is not in list above
+	operation is performed on each channel separately if other operand is not a number
+	@enddesc
+
+	@returns
+	Color: copy
+]]
 function colorMeta:__sub(target)
 	if not IsColor(self) and IsColor(target) then
 		local s1, s2 = self, target
@@ -272,6 +473,21 @@ function colorMeta:__sub(target)
 	end
 end
 
+--[[
+	@doc
+	@fname Color:__mul
+	@args any other
+
+	@desc
+	var1 * var2
+	accepts `number`, `Vector` and `Color`
+	throws an error if one of arguments is not in list above
+	operation is performed on each channel separately if other operand is not a number
+	@enddesc
+
+	@returns
+	Color: copy
+]]
 function colorMeta:__mul(target)
 	if not IsColor(self) and IsColor(target) then
 		local s1, s2 = self, target
@@ -292,6 +508,21 @@ function colorMeta:__mul(target)
 	end
 end
 
+--[[
+	@doc
+	@fname Color:__div
+	@args any other
+
+	@desc
+	var1 / var2
+	accepts `number`, `Vector` and `Color`
+	throws an error if one of arguments is not in list above
+	operation is performed on each channel separately if other operand is not a number
+	@enddesc
+
+	@returns
+	Color: copy
+]]
 function colorMeta:__div(target)
 	if not IsColor(self) and IsColor(target) then
 		local s1, s2 = self, target
@@ -312,6 +543,21 @@ function colorMeta:__div(target)
 	end
 end
 
+--[[
+	@doc
+	@fname Color:__mod
+	@args any other
+
+	@desc
+	var1 % var2
+	accepts `number`, `Vector` and `Color`
+	throws an error if one of arguments is not in list above
+	operation is performed on each channel separately if other operand is not a number
+	@enddesc
+
+	@returns
+	Color: copy
+]]
 function colorMeta:__mod(target)
 	if not IsColor(self) and IsColor(target) then
 		local s1, s2 = self, target
@@ -332,6 +578,21 @@ function colorMeta:__mod(target)
 	end
 end
 
+--[[
+	@doc
+	@fname Color:__pow
+	@args any other
+
+	@desc
+	var1 ^ var2
+	accepts `number`, `Vector` and `Color`
+	throws an error if one of arguments is not in list above
+	operation is performed on each channel separately if other operand is not a number
+	@enddesc
+
+	@returns
+	Color: copy
+]]
 function colorMeta:__pow(target)
 	if not IsColor(self) and IsColor(target) then
 		local s1, s2 = self, target
@@ -352,6 +613,21 @@ function colorMeta:__pow(target)
 	end
 end
 
+--[[
+	@doc
+	@fname Color:__concat
+	@args any other
+
+	@desc
+	var1 .. var2
+	accepts `number`, `Vector` and `Color`
+	throws an error if one of arguments is not in list above
+	operation is performed on each channel separately if other operand is not a number
+	@enddesc
+
+	@returns
+	string
+]]
 function colorMeta:__concat(target)
 	if IsColor(self) then
 		return string.format('%i %i %i %i', self.r, self.g, self.b, self.a) .. target
@@ -360,6 +636,21 @@ function colorMeta:__concat(target)
 	end
 end
 
+--[[
+	@doc
+	@fname Color:__lt
+	@args any other
+
+	@desc
+	var1 < var2
+	accepts `number`, `Vector` and `Color`
+	throws an error if one of arguments is not in list above
+	operation is performed on `Length` of Color, which is red + green + blue
+	@enddesc
+
+	@returns
+	boolean
+]]
 function colorMeta:__lt(target)
 	if not IsColor(self) and IsColor(target) then
 		local s1, s2 = self, target
@@ -380,6 +671,21 @@ function colorMeta:__lt(target)
 	end
 end
 
+--[[
+	@doc
+	@fname Color:__le
+	@args any other
+
+	@desc
+	var1 <= var2
+	accepts `number`, `Vector` and `Color`
+	throws an error if one of arguments is not in list above
+	operation is performed on `Length` of Color, which is red + green + blue
+	@enddesc
+
+	@returns
+	boolean
+]]
 function colorMeta:__le(target)
 	if not IsColor(self) and IsColor(target) then
 		local s1, s2 = self, target
@@ -400,30 +706,96 @@ function colorMeta:__le(target)
 	end
 end
 
+--[[
+	@doc
+	@fname Color:__unm
+
+	@desc
+	-var1
+	alias for Color:Invert
+	@enddesc
+
+	@returns
+	Color: copy
+]]
 function colorMeta:__unm()
 	return self:Invert()
 end
 
+--[[
+	@doc
+	@fname Color:Copy
+
+	@returns
+	Color: copy
+]]
 function colorMeta:Copy()
 	return Color(self.r, self.g, self.b, self.a)
 end
 
+--[[
+	@doc
+	@fname Color:Length
+
+	@returns
+	number: r + g + b
+]]
 function colorMeta:Length()
 	return self.r + self.g + self.b
 end
 
+--[[
+	@doc
+	@fname Color:Invert
+	@args any other
+
+	@desc
+	Inverts color channels
+	@enddesc
+
+	@returns
+	Color: copy
+]]
 function colorMeta:Invert()
 	return Color(255 - self.r, 255 - self.g, 255 - self.b, self.a)
 end
 
+--[[
+	@doc
+	@fname Color:ToHSV
+
+	@returns
+	number: hue
+	number: saturation
+	number: value
+]]
 function colorMeta:ToHSV()
 	return ColorToHSV(self)
 end
 
+--[[
+	@doc
+	@fname Color:ToVector
+
+	@returns
+	Vector: normalized vector
+]]
 function colorMeta:ToVector()
 	return Vector(self.r / 255, self.g / 255, self.b / 255)
 end
 
+--[[
+	@doc
+	@fname Color:Lerp
+	@args number t, Color lerpTo
+
+	@desc
+	You can also use regular !g:Lerp function for this.
+	@enddesc
+
+	@returns
+	Color: copy
+]]
 function colorMeta:Lerp(lerpValue, lerpTo)
 	if not IsColor(lerpTo) then
 		error('Color:Lerp - second argument is not a color!')
@@ -436,6 +808,61 @@ function colorMeta:Lerp(lerpValue, lerpTo)
 	return Color(r, g, b, self.a)
 end
 
+--[[
+	@docpreprocess
+
+	const methods = [
+		'Red',
+		'Green',
+		'Blue',
+		'Alpha',
+	]
+
+	const output = []
+
+	for (const method of methods) {
+		const output2 = []
+
+		output2.push(`@fname Color:Set${method}`)
+		output2.push(`@args number newValue`)
+
+		output2.push(`@desc`)
+		output2.push(`Sets \`${method}\` channel of color`)
+		output2.push(`This **modifies** the original color.`)
+		output2.push(`@enddesc`)
+
+		output2.push(`@returns`)
+		output2.push(`Color: self`)
+
+		output.push(output2)
+
+		const output3 = []
+
+		output3.push(`@fname Color:Modify${method}`)
+		output3.push(`@args number newValue`)
+
+		output3.push(`@desc`)
+		output3.push(`Sets \`${method}\` channel of color`)
+		output3.push(`This **creates a copy** of the original color.`)
+		output3.push(`@enddesc`)
+
+		output3.push(`@returns`)
+		output3.push(`Color: copy`)
+
+		output.push(output3)
+
+		const output4 = []
+
+		output4.push(`@fname Color:Get${method}`)
+
+		output4.push(`@returns`)
+		output4.push(`number: the \`${method}\` channel of color`)
+
+		output.push(output4)
+	}
+
+	return output
+]]
 do
 	local methods = {
 		r = 'Red',

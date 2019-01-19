@@ -21,6 +21,18 @@
 local chat = setmetatable(DLib.chat or {}, {__index = chat})
 DLib.chat = chat
 
+--[[
+	@doc
+	@fname DLib.CMessageChat
+	@args table target, string addonName
+
+	@desc
+	calls `DLib.CMessage` and then adds networked chat messaging functions
+	@enddesc
+
+	@returns
+	table: target
+]]
 function chat.registerChat(vname, ...)
 	local nw = 'DLib.AddChatText.' .. vname
 	local nwL = 'DLib.AddChatTextL.' .. vname

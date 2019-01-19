@@ -27,6 +27,21 @@ local ipairs = ipairs
 local select = select
 local unpack = unpack
 
+--[[
+	@doc
+	@fname DLib.QueuedFunction
+	@args function funcIn, vargarg values
+
+	@desc
+	Adds function to internal run queue.
+	If queue is empty, function provided will be ran on next frame.
+	If not, function will run after all previous function will be executed over game frames.
+	Can be used for queueing functions which can be called ina burst on a single game frame
+	and are not timing critical, like broadcasting log messages.
+	In example above it will avoid net channel overflow and avoid data discard when using
+	`reliable = false` in net.Start
+	@enddesc
+]]
 function DLib.QueuedFunction(funcIn, ...)
 	table.insert(QUQUED_CALLS, {
 		nextevent = funcIn,
@@ -35,17 +50,23 @@ function DLib.QueuedFunction(funcIn, ...)
 	})
 end
 
+--[[
+	@doc
+	@fname DLib.WrappedQueueFunction
+	@args function upvalue
+
+	@desc
+	same purpose as DLib.QueuedFunction, but instead returns function
+	which on call will create queue entry
+	@enddesc
+
+	@returns
+	function: a function to call. can accept vararg arguments which will be passed to upvalue function
+]]
 function DLib.WrappedQueueFunction(funcIn)
-	local p = ('%p'):format(funcIn)
-
 	return function(...)
-		for i, funcData in ipairs(QUQUED_CALLS_WRAPPED) do
-			if funcData.p == p then return end
-		end
-
 		table.insert(QUQUED_CALLS_WRAPPED, {
 			nextevent = funcIn,
-			p = p,
 			args = {...},
 			argsNum = select('#', ...)
 		})

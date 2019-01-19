@@ -107,7 +107,6 @@ DLib.ConstructMessage = DLib.MessageMaker
 
 DLib.simpleInclude('util/combathelper.lua')
 DLib.simpleInclude('util/util.lua')
-DLib.simpleInclude('util/constraint.lua')
 DLib.simpleInclude('util/vector.lua')
 
 DLib.node = DLib.simpleInclude('util/node.lua')

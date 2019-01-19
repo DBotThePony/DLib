@@ -1,3 +1,4 @@
+import { DocumentationRoot } from "./DocumentationRoot";
 
 // Copyright (C) 2017-2018 DBot
 
@@ -20,6 +21,10 @@ class LuaArgument {
 
 	}
 
+	get isGeneric() {
+		return this.type == 'T'
+	}
+
 	get isBuiltIn() {
 		return this.type == 'string'
 			|| this.type == 'number'
@@ -39,27 +44,26 @@ class LuaArgument {
 	isDlibBased = false
 
 	getLink() {
-		if (this.isBuiltIn) {
-			switch (this.type) {
-				case 'boolean':
-					return 'http://www.lua.org/pil/2.2.html'
-				case 'number':
-					return 'http://www.lua.org/pil/2.3.html'
-				case 'string':
-					return 'http://www.lua.org/pil/2.4.html'
-				case 'table':
-					return 'http://www.lua.org/pil/2.5.html'
-				case 'function':
-					return 'http://www.lua.org/pil/2.6.html'
-				case 'vararg':
-					return 'http://www.lua.org/pil/5.2.html'
-				default:
-					return 'http://www.lua.org/pil/2.7.html'
-			}
-		}
-
-		if (this.type == 'any') {
-			return 'http://wiki.garrysmod.com/page/Category:any'
+		switch (this.type) {
+			case 'boolean':
+				return 'http://www.lua.org/pil/2.2.html'
+			case 'number':
+				return 'http://www.lua.org/pil/2.3.html'
+			case 'string':
+				return 'http://www.lua.org/pil/2.4.html'
+			case 'table':
+				return 'http://www.lua.org/pil/2.5.html'
+			case 'function':
+				return 'http://www.lua.org/pil/2.6.html'
+			case 'vararg':
+				return 'http://www.lua.org/pil/5.2.html'
+			case 'thread':
+			case 'userdata':
+				return 'http://www.lua.org/pil/2.7.html'
+			case 'any':
+				return 'http://wiki.garrysmod.com/page/Category:any'
+			case 'T':
+				return ''
 		}
 
 		if (this.isDlibBased) {
@@ -78,21 +82,28 @@ class LuaArgument {
 	}
 
 	buildMarkdown() {
+		if (this.isGeneric) {
+			if (!this.defaultValue)
+				return `T<?> (generic) ${this.name}`
+
+			return `T<?> (generic) ${this.name} = \`${this.defaultValue}\``
+		}
+
 		if (!this.defaultValue)
 			return `[${this.type}](${this.getLink()}) ${this.name}`
 
 		return `[${this.type}](${this.getLink()}) ${this.name} = \`${this.defaultValue}\``
 	}
 
-	buildReturns() {
+	buildReturns(root: DocumentationRoot) {
 		const description = this.description || '*-snip-*'
 
 		if (this.name) {
 			return `${this.num || ''} [${this.type}](${this.getLink()}): ${this.name}\x20\x20
-${description.replace(/^/, '\u200B\xA0\xA0\xA0\xA0\xA0\xA0\xA0\xA0')}`
+${root.processLinks(description.replace(/^/, '\u200B\xA0\xA0\xA0\xA0\xA0\xA0\xA0\xA0'))}`
 		} else {
 			return `${this.num || ''} [${this.type}](${this.getLink()})\x20\x20
-${description.replace(/^/, '\u200B\xA0\xA0\xA0\xA0\xA0\xA0\xA0\xA0')}`
+${root.processLinks(description.replace(/^/, '\u200B\xA0\xA0\xA0\xA0\xA0\xA0\xA0\xA0'))}`
 		}
 	}
 }
@@ -135,7 +146,7 @@ class LuaArguments {
 		return list.join(', ')
 	}
 
-	buildReturns() {
+	buildReturns(root: DocumentationRoot) {
 		if (this.args.length == 0) {
 			return `\u200B\xA0\xA0\xA0\xA0\xA0\xA0\xA0\xA0*void*`
 		}
@@ -143,7 +154,7 @@ class LuaArguments {
 		const list = []
 
 		for (const arg of this.args) {
-			list.push(arg.buildReturns())
+			list.push(arg.buildReturns(root))
 		}
 
 		return list.join('\n\n')

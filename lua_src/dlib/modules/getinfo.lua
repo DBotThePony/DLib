@@ -43,6 +43,21 @@ getinfo.bank = getinfo.bank or {}
 getinfo.bankCRC = getinfo.bankCRC or {}
 getinfo.bankOptimized = {}
 
+--[[
+	@doc
+	@fname DLib.getinfo.Replicate
+	@args string cvarname, string valueType = 'string', any default
+
+	@desc
+	Marks a console variable for replication after it's creation (e.g. when you can specify FCVAR_USERINFO flag on a cvar)
+	valueType can be either:
+	`'boolean'`
+	`'number'` or `'integer'`
+	`'uinteger'`
+	`'float'`
+	`'string'` (by default, if type is invalid or missing)
+	@enddesc
+]]
 function getinfo.Replicate(cvarname, valuetype, default)
 	valuetype = valuetype or 'boolean'
 	local crc = util.CRC(cvarname)
@@ -54,15 +69,20 @@ function getinfo.Replicate(cvarname, valuetype, default)
 		nwSet = entMeta.SetNWBool
 		nwGet = entMeta.GetNWBool
 	elseif valuetype == 'integer' or valuetype == 'number' then
-		readFunc = net.GReadInt(val)
-		writeFunc = net.GWriteInt(val)
+		readFunc = net.ReadInt32
+		writeFunc = net.WriteInt32
 		nwSet = entMeta.SetNWInt
 		nwGet = entMeta.GetNWInt
 	elseif valuetype == 'uinteger' then
-		readFunc = net.GReadUInt(val)
-		writeFunc = net.GWriteUInt(val)
+		readFunc = net.ReadUInt32
+		writeFunc = net.WriteUInt32
 		nwSet = entMeta.SetNWUInt
 		nwGet = entMeta.GetNWUInt
+	elseif valuetype == 'float' then
+		readFunc = net.ReadFloat
+		writeFunc = net.WriteFloat
+		nwSet = entMeta.SetNWFloat
+		nwGet = entMeta.GetNWFloat
 	else
 		readFunc = net.ReadString
 		writeFunc = net.WriteString
@@ -99,6 +119,15 @@ end
 
 getinfo.Register = getinfo.Replicate
 
+--[[
+	@doc
+	@fname DLib.getinfo.Rebuild
+
+	@internal
+
+	@returns
+	table: optimized list for ipairs iteration
+]]
 function getinfo.Rebuild()
 	getinfo.bankOptimized = {}
 
@@ -154,6 +183,15 @@ end
 local cache = {}
 local GetConVar_Internal = GetConVar_Internal
 
+--[[
+	@doc
+	@fname Player:GetInfoDLib
+
+	@args string cvarname
+
+	@returns
+	string: or nil
+]]
 function plyMeta:GetInfoDLib(cvarname)
 	if getinfo.bank[cvarname] then
 		return getinfo.bank[cvarname].nwGet(self, cvarname)

@@ -30,6 +30,27 @@ local assert = assert
 local type = type
 local RealTimeL = RealTimeL
 
+--[[
+	@doc
+	@fname HUDCommonsBase:__construct
+
+	@client
+	@internal
+
+	@desc
+	This is constructor. Do not call it directly!
+	**To create a new HUD:**
+	Call `DLib.ConsturctClass('HUDCommonsBase', hudid, hudname)`
+	Example:
+	`DLib.ConsturctClass('HUDCommonsBase', 'ffgs_hud', 'FFGS HUD')`
+	Then, use returned table as instead of `HUDCommonsBase`!
+	you can define new methods over it (e.g. `function myObj:Method1()`)
+	and call methods over it (e.g. `local ply = myObj:SelectPlayer()`)
+	@enddesc
+
+	@returns
+	table: Newly created HUD.
+]]
 function meta:__construct(hudID, hudName)
 	DLib.CMessage(self, hudName)
 	self.id = hudID
@@ -85,10 +106,6 @@ function meta:__construct(hudID, hudName)
 	self:AddHookCustomPersistent('PopulateToolMenu', 'PopulateToolMenuDefault')
 
 	self:__InitVaribles()
-	self:InitVaribles()
-
-	self:InitHooks()
-	self:InitHUD()
 
 	self:Concommand('set_all_font', function(args)
 		if #args == 0 then
@@ -144,26 +161,59 @@ function meta:__construct(hudID, hudName)
 	end)
 end
 
-function meta:InitHUD()
+--[[
+	@doc
+	@fname HUDCommonsBase:GetName
 
-end
+	@client
 
-function meta:InitHooks()
-
-end
-
+	@returns
+	string
+]]
 function meta:GetName()
 	return self.name
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:IsEnabled
+
+	@client
+
+	@returns
+	boolean
+]]
 function meta:IsEnabled()
 	return self.enabled:GetBool()
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:GetID
+
+	@client
+
+	@returns
+	string
+]]
 function meta:GetID()
 	return self.id
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:CreateConVar
+	@args string cvar, string default, string description, boolean nomenu = false
+
+	@desc
+	You don't need to prefix anything to `cvar` name!
+	@enddesc
+
+	@client
+
+	@returns
+	ConVar
+]]
 function meta:CreateConVar(cvar, default, desc, nomenu)
 	local convar = CreateConVar(self:GetID() .. '_' .. cvar, default or '1', {FCVAR_ARCHIVE}, desc or '')
 
@@ -174,6 +224,13 @@ function meta:CreateConVar(cvar, default, desc, nomenu)
 	return convar
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:TrackConVar
+	@args string cvar, function callback, id = self:GetID()
+
+	@client
+]]
 function meta:TrackConVar(cvar, func, id)
 	if type(func) == 'string' then
 		local a, b = func, id
@@ -184,12 +241,31 @@ function meta:TrackConVar(cvar, func, id)
 	cvars.AddChangeCallback(self:GetID() .. '_' .. cvar, func, id or self:GetID())
 end
 
-function meta:Concommand(name, callback)
+--[[
+	@doc
+	@fname HUDCommonsBase:Concommand
+	@args string name, function callback, vararg arguments
+
+	@client
+]]
+function meta:Concommand(name, callback, ...)
 	return concommand.Add(self:GetID() .. '_' .. name, function(ply, cmd, args)
 		return callback(args)
-	end)
+	end, ...)
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:AddHook
+	@args string event, function callback, number priority = 3
+
+	@client
+
+	@desc
+	Adds a new, auto self-removing, hook with first argument being the HUD itself
+	callback can be a string, if so, it will grab value from HUD's table
+	@enddesc
+]]
 function meta:AddHook(event, funcIfAny, priority)
 	priority = priority or 3
 	funcIfAny = funcIfAny or self[event]
@@ -209,6 +285,19 @@ function meta:AddHook(event, funcIfAny, priority)
 	return self:GetID() .. '_' .. event
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:AddHookCustom
+	@args string event, string id, function callback, number priority = 3
+
+	@client
+
+	@desc
+	Adds a new, auto self-removing, hook with first argument being the HUD itself
+	if ID is the same as function name in HUD's table, callback can be omitted
+	differs from `AddHook` by ability to define unique hook IDs
+	@enddesc
+]]
 function meta:AddHookCustom(event, id, funcIfAny, priority)
 	priority = priority or 3
 	funcIfAny = funcIfAny or self[id] or self[event]
@@ -232,6 +321,14 @@ function meta:AddHookCustom(event, id, funcIfAny, priority)
 	return id
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:AddHookCustomPersistent
+	@args string event, string id, function callback, number priority = 3
+
+	@client
+	@deprecated
+]]
 function meta:AddHookCustomPersistent(event, id, funcIfAny, priority)
 	priority = priority or 3
 	funcIfAny = funcIfAny or self[id] or self[event]
@@ -245,36 +342,107 @@ function meta:AddHookCustomPersistent(event, id, funcIfAny, priority)
 	return id
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:RemoveHook
+	@args string event
+
+	@client
+]]
 function meta:RemoveHook(event)
 	self.hooks[event] = nil
 	hook.Remove(event, self:GetID() .. '_' .. event)
 	return self:GetID() .. '_' .. event
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:RemoveCustomHook
+	@args string event, string id
+
+	@client
+]]
 function meta:RemoveCustomHook(event, id)
 	self.chooks[id] = nil
 	hook.Remove(event, self:GetID() .. '_' .. id)
 	return id
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:RemoveCustomHookPersistent
+	@args string event, string id
+
+	@client
+	@deprecated
+]]
 function meta:RemoveCustomHookPersistent(event, id)
 	self.phooks[id] = nil
 	hook.Remove(event, self:GetID() .. '_' .. id)
 	return id
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:CreateColor
+	@args string classname, string name, number r, number g, number b, number a
+
+	@client
+
+	@desc
+	Proper way to call `HUDCommons.CreateColor` if you build your HUD on `HUDCommonsBase`
+	@enddesc
+
+	@returns
+	function
+]]
 function meta:CreateColor(class, name, r, g, b, a)
 	return HUDCommons.CreateColor(self:GetID() .. '_' .. class, self:GetName() .. ' ' .. name, r, g, b, a)
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:CreateColorN
+	@args string classname, string name, number r, number g, number b, number a
+
+	@client
+
+	@desc
+	Proper way to call `HUDCommons.CreateColorN` if you build your HUD on `HUDCommonsBase`
+	@enddesc
+
+	@returns
+	function
+]]
 function meta:CreateColorN(class, name, r, g, b, a)
 	return HUDCommons.CreateColorN(self:GetID() .. '_' .. class, self:GetName() .. ' ' .. name, r, g, b, a)
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:CreateColorN2
+	@args string classname, string name, number r, number g, number b, number a
+
+	@client
+
+	@desc
+	Proper way to call `HUDCommons.CreateColorN2` if you build your HUD on `HUDCommonsBase`
+	@enddesc
+
+	@returns
+	Color
+]]
 function meta:CreateColorN2(class, name, r, g, b, a)
 	return HUDCommons.CreateColorN2(self:GetID() .. '_' .. class, self:GetName() .. ' ' .. name, r, g, b, a)
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:Enable
+
+	@client
+	@internal
+]]
 function meta:Enable()
 	--if self:IsEnabled() then return end
 
@@ -297,6 +465,13 @@ function meta:Enable()
 	self:CallOnEnabled()
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:Disable
+
+	@client
+	@internal
+]]
 function meta:Disable()
 	--if not self:IsEnabled() then return end
 
@@ -311,6 +486,14 @@ function meta:Disable()
 	self:CallOnDisabled()
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:EnableSwitch
+	@args string old, string new
+
+	@client
+	@internal
+]]
 function meta:EnableSwitch(old, new)
 	if old == new then return end
 
@@ -321,6 +504,18 @@ function meta:EnableSwitch(old, new)
 	end
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:AddPaintHook
+	@args string id, function callback
+
+	@client
+
+	@desc
+	Proper way to add HUDPaint hooks to your HUD
+	callback can be omitted if id points to function in your HUD table
+	@enddesc
+]]
 function meta:AddPaintHook(id, funcToCall)
 	funcToCall = funcToCall or self[id]
 	assert(type(funcToCall) == 'function', 'Input is not a function!')
@@ -332,6 +527,17 @@ function meta:AddPaintHook(id, funcToCall)
 	end
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:AddPostPaintHook
+	@args string id, function callback
+
+	@client
+
+	@desc
+	callback can be omitted if id points to function in your HUD table
+	@enddesc
+]]
 function meta:AddPostPaintHook(id, funcToCall)
 	funcToCall = funcToCall or self[id]
 	assert(type(funcToCall) == 'function', 'Input is not a function!')
@@ -343,6 +549,17 @@ function meta:AddPostPaintHook(id, funcToCall)
 	end
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:AddOverlayPaintHook
+	@args string id, function callback
+
+	@client
+
+	@desc
+	callback can be omitted if id points to function in your HUD table
+	@enddesc
+]]
 function meta:AddOverlayPaintHook(id, funcToCall)
 	funcToCall = funcToCall or self[id]
 	assert(type(funcToCall) == 'function', 'Input is not a function!')
@@ -354,6 +571,18 @@ function meta:AddOverlayPaintHook(id, funcToCall)
 	end
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:AddThinkHook
+	@args string id, function callback
+
+	@client
+
+	@desc
+	Proper way to add `Think` hook to your HUD
+	callback can be omitted if id points to function in your HUD table
+	@enddesc
+]]
 function meta:AddThinkHook(id, funcToCall)
 	funcToCall = funcToCall or self[id]
 	assert(type(funcToCall) == 'function', 'Input is not a function!')
@@ -365,6 +594,18 @@ function meta:AddThinkHook(id, funcToCall)
 	end
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:AddTickHook
+	@args string id, function callback
+
+	@client
+
+	@desc
+	Proper way to add `Tick` hook to your HUD
+	callback can be omitted if id points to function in your HUD table
+	@enddesc
+]]
 function meta:AddTickHook(id, funcToCall)
 	funcToCall = funcToCall or self[id]
 	assert(type(funcToCall) == 'function', 'Input is not a function!')
@@ -376,6 +617,13 @@ function meta:AddTickHook(id, funcToCall)
 	end
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:Tick
+
+	@client
+	@internal
+]]
 function meta:Tick()
 	local lPly = self:SelectPlayer()
 	if not IsValid(lPly) then return end
@@ -403,6 +651,13 @@ function meta:Tick()
 	end
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:HUDPaint
+
+	@client
+	@internal
+]]
 function meta:HUDPaint()
 	local paint = self.paint
 	if #paint == 0 then return end
@@ -423,6 +678,13 @@ end
 
 local cam = cam
 
+--[[
+	@doc
+	@fname HUDCommonsBase:PostDrawHUD
+
+	@client
+	@internal
+]]
 function meta:PostDrawHUD()
 	local paint = self.paintPost
 	if #paint == 0 then return end
@@ -443,6 +705,13 @@ function meta:PostDrawHUD()
 	cam.End2D()
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:DrawOverlay
+
+	@client
+	@internal
+]]
 function meta:DrawOverlay()
 	local paint = self.paintOverlay
 	if #paint == 0 then return end
@@ -463,6 +732,13 @@ function meta:DrawOverlay()
 	cam.End2D()
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:Think
+
+	@client
+	@internal
+]]
 function meta:Think()
 	local lPly = self:SelectPlayer()
 	if not IsValid(lPly) then return end

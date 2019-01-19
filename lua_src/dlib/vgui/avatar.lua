@@ -20,6 +20,15 @@
 -- DEALINGS IN THE SOFTWARE.
 
 
+--[[
+	@doc
+	@panel DLib_Avatar
+
+	@desc
+	!g:AvatarImage that doesn't suck
+	use this panel as described on !g:AvatarImage
+	@enddesc
+]]
 local PANEL = {}
 DLib.VGUI.Avatar = PANEL
 
@@ -114,7 +123,14 @@ function PANEL:SetPlayer(ply, size)
 end
 
 function PANEL:SetSteamID(steamid, size)
-	local steamid64 = util.SteamIDTo64(steamid)
+	local steamid64
+
+	if DLib.util.ValidateSteamID(steamid) then
+		steamid64 = util.SteamIDTo64(steamid)
+	else
+		steamid64 = steamid
+	end
+
 	self.steamid = steamid
 	self.steamid64 = steamid64
 

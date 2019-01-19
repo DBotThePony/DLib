@@ -39,6 +39,18 @@ local function check(w, h)
 	lastW, lastH = w, h
 end
 
+--[[
+	@doc
+	@hook ScreenResolutionChanged
+	@alias ScreenSizeChanged
+	@alias OnScreenSizeChanged
+	@alias OnScreenResolutionUpdated
+	@args number lastWidth, number lastHeight, number width, number height
+
+	@desc
+	use this hook for recalculating logic based on sizes of screen resolution
+	@enddesc
+]]
 function DLib.TriggerScreenSizeUpdate(...)
 	hook.Run('ScreenResolutionChanged', ...)
 	hook.Run('ScreenSizeChanged', ...)

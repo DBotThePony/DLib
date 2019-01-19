@@ -23,6 +23,14 @@ local DLib = DLib
 local assert = assert
 local type = type
 
+--[[
+	@doc
+	@fname DLib.i18n.tformatByLang
+	@args number time, string lang
+
+	@returns
+	string: formatted time in selected locale
+]]
 function i18n.tformatByLang(time, lang)
 	assert(type(time) == 'number', 'Invalid time specified')
 
@@ -81,6 +89,14 @@ function i18n.tformatByLang(time, lang)
 	return str
 end
 
+--[[
+	@doc
+	@fname DLib.i18n.tformatTableByLang
+	@args number time, string lang
+
+	@returns
+	table: array of formatted time in selected locale
+]]
 function i18n.tformatTableByLang(time, lang)
 	assert(type(time) == 'number', 'Invalid time specified')
 
@@ -139,6 +155,14 @@ function i18n.tformatTableByLang(time, lang)
 	return str
 end
 
+--[[
+	@doc
+	@fname DLib.i18n.tformatRawTable
+	@args number time
+
+	@returns
+	table: for use in functions like DLib.LMessage/AddonSpace.LMessage/i18n.AddChat
+]]
 function i18n.tformatRawTable(time)
 	assert(type(time) == 'number', 'Invalid time specified')
 
@@ -221,18 +245,50 @@ function i18n.tformatRawTable(time)
 	return str
 end
 
+--[[
+	@doc
+	@fname DLib.i18n.tformat
+	@args number time
+
+	@returns
+	string: formatted time
+]]
 function i18n.tformat(time)
 	return i18n.tformatByLang(time, i18n.CURRENT_LANG)
 end
 
+--[[
+	@doc
+	@fname DLib.i18n.tformatTable
+	@args number time
+
+	@returns
+	table: formatted time
+]]
 function i18n.tformatTable(time)
 	return i18n.tformatTableByLang(time, i18n.CURRENT_LANG)
 end
 
+--[[
+	@doc
+	@fname DLib.i18n.tformatFor
+	@args Player ply, number time
+
+	@returns
+	string: formatted time in player's locale
+]]
 function i18n.tformatFor(ply, time)
 	return i18n.tformatByLang(time, assert(type(ply) == 'Player' and ply, 'Invalid player provided').DLib_Lang or i18n.CURRENT_LANG)
 end
 
+--[[
+	@doc
+	@fname DLib.i18n.tformatTableFor
+	@args Player ply, number time
+
+	@returns
+	table: formatted time in player's locale
+]]
 function i18n.tformatTableFor(ply, time)
 	return i18n.tformatTableByLang(time, assert(type(ply) == 'Player' and ply, 'Invalid player provided').DLib_Lang or i18n.CURRENT_LANG)
 end

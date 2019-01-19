@@ -28,6 +28,13 @@ local table = table
 local ProtectedCall = ProtectedCall
 local getfenv = getfenv
 
+--[[
+	@doc
+	@fname DLib.i18n.refreshFileList
+	@internal
+	@returns
+	table
+]]
 function i18n.refreshFileList()
 	filesLoad = {}
 
@@ -46,6 +53,11 @@ function i18n.refreshFileList()
 	return filesLoad
 end
 
+--[[
+	@doc
+	@fname DLib.i18n.loadFileList
+	@internal
+]]
 function i18n.loadFileList()
 	for i, data in ipairs(filesLoad) do
 		AddCSLuaFile(data[2])
@@ -53,6 +65,14 @@ function i18n.loadFileList()
 	end
 end
 
+--[[
+	@doc
+	@fname DLib.i18n.executeFile
+	@args string langSpace, string filePath
+	@internal
+	@returns
+	boolean
+]]
 function i18n.executeFile(langSpace, fileToRun)
 	return i18n.executeFunction(langSpace, CompileFile(fileToRun))
 end
@@ -181,6 +201,15 @@ local function protectedFunc(langSpace, funcToRun)
 	end
 end
 
+--[[
+	@doc
+	@fname DLib.i18n.executeFunction
+	@args string langSpace, function toRun
+	@internal
+
+	@returns
+	boolean
+]]
 function i18n.executeFunction(langSpace, funcToRun)
 	i18n.LANG_SPACE = langSpace
 	local status = ProtectedCall(protectedFunc:Wrap(langSpace, funcToRun))

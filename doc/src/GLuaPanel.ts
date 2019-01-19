@@ -14,57 +14,46 @@
 // limitations under the License.
 
 import { GLuaEntryBase } from "./GLuaEntryBase";
-import { LuaArguments, LuaArgument } from "./GLuaDefinitions";
 import { AnnotationCommentary } from "./AnnotationCommentary";
 
-class GLuaFunction extends GLuaEntryBase {
-	args = new LuaArguments()
-	returns = new LuaArguments()
+class GLuaPanel extends GLuaEntryBase {
+	parent = 'EditablePanel'
 
 	importFrom(annotation: AnnotationCommentary) {
 		super.importFrom(annotation)
 
-		for (const arg of annotation.argumentsParsed) {
-			this.args.push(new LuaArgument(arg.type, arg.name, undefined, arg.default))
-		}
-
-		let argnum = 0
-
-		for (const arg of annotation.returnsParsed) {
-			argnum++
-			this.returns.push((new LuaArgument(arg.type, arg.name, arg.description)).setNumber(argnum))
-		}
+		this.parent = annotation.parent
 	}
 
 	generatePage() {
-		let levels = ''
+		let funcList = '*none*'
 
-		if (this.library) {
-			levels = this.library.buildLevels()
+		if (this.root.classes.has(this.id)) {
+			const classdef = this.root.classes.get(this.id)!
+			funcList = classdef.generateFunctionList('../classes/' + this.id! + '/').join('\n')
+
+			if (funcList == '') {
+				funcList = '*none*'
+			}
 		}
 
 		return `# DLib documentation
 
-## ${levels}${this.name}
-
-### Usage:
-
-\u200B\xA0\xA0\xA0\xA0\xA0\xA0${levels}${this.id}(${this.args.buildMarkdown()})
-
-${this.generateRealm()}
+## Panel: ${this.name}
+Parent: ${this.root.getPanelLink(this.parent)}
 
 ### Description
 
-${this.generateDescription(this.library && this.library.pathToRoot() || '../')}
+${this.generateDescription('../')}
 
 ${this.generateDeprecated()}
 ${this.generateInternal()}
 
 ---------------------
 
-### Returns
+### Methods
 
-${this.returns.buildReturns(this.root)}
+${funcList}
 
 ---------------------
 
@@ -78,4 +67,4 @@ ${this.generateDisclaimers()}
 	}
 }
 
-export {GLuaFunction}
+export {GLuaPanel}

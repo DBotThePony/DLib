@@ -16,6 +16,8 @@
 import { GLuaLibrary } from "./GLuaLibrary";
 import fs = require('fs')
 import { GLuaClassExtension } from "./GLuaClassExt";
+import { AnnotationCommentary } from "./AnnotationCommentary";
+import { DocumentationRoot, IGLuaList } from "./DocumentationRoot";
 
 enum GLuaRealm {
 	CLIENT, SERVER, SHARED
@@ -24,7 +26,7 @@ enum GLuaRealm {
 export {GLuaRealm}
 
 class GLuaEntryBase {
-	library: GLuaLibrary | GLuaClassExtension | null = null
+	library: IGLuaList | null = null
 	notes: string[] = []
 	warnings: string[] = []
 	disclaimers: string[] = []
@@ -38,8 +40,20 @@ class GLuaEntryBase {
 
 	get isGlobal() { return this.library == null }
 
-	constructor(public name: string, public id: string, public description = 'No description avaliable') {
+	constructor(public root: DocumentationRoot, public name: string, public id: string, public description = 'No description avaliable') {
 
+	}
+
+	generateDescription(prefix = '') {
+		return this.root.processLinks(this.description, prefix)!
+			.replace(/^/, '\u200B\xA0\xA0\xA0\xA0\xA0\xA0\xA0\xA0')
+			.replace(/\n/g, '\n\u200B\xA0\xA0\xA0\xA0\xA0\xA0\xA0\xA0')
+	}
+
+	importFrom(annotation: AnnotationCommentary) {
+		this.deprecated = annotation.isDeprecated
+		this.internal = annotation.isInternal
+		this.realm = annotation.isShared ? GLuaRealm.SHARED : annotation.isClientside ? GLuaRealm.CLIENT : GLuaRealm.SERVER
 	}
 
 	generateFile(outputFile: string) {

@@ -25,6 +25,19 @@ local HUDCommons = HUDCommons
 local IsValid = IsValid
 local math = math
 
+--[[
+	@doc
+	@fname DLib.HUDCommons.SelectPlayer
+
+	@client
+
+	@desc
+	use this instead of !g:LocalPlayer in HUDs
+	@enddesc
+
+	@returns
+	Player: the player from which eyes we are currently looking
+]]
 function HUDCommons.SelectPlayer()
 	local ply = LocalPlayer()
 	if not IsValid(ply) then return ply end
@@ -37,6 +50,20 @@ function HUDCommons.SelectPlayer()
 	end
 end
 
+--[[
+	@doc
+	@fname DLib.HUDCommons.TranslatePolyMatrix
+	@args table matrix, number x, number y
+
+	@client
+
+	@desc
+	moves x and y coordinates of !s:PolygonVertex
+	@enddesc
+
+	@returns
+	table: matrix
+]]
 function HUDCommons.TranslatePolyMatrix(data, x, y)
 	for i, vertex in ipairs(data) do
 		vertex.x, vertex.y = vertex.x + x, vertex.y + y
@@ -45,11 +72,26 @@ function HUDCommons.TranslatePolyMatrix(data, x, y)
 	return data
 end
 
+--[[
+	@doc
+	@fname DLib.HUDCommons.RotatePolyMatrix
+	@args table matrix, number rotateBy
+
+	@client
+
+	@desc
+	rotates all x and y points of !s:PolygonVertex relative 0, 0
+	`rotateBy` is a degree number, not radian
+	@enddesc
+
+	@returns
+	table: matrix
+]]
 function HUDCommons.RotatePolyMatrix(data, rotateBy)
 	if rotateBy == 0 then return data end
 
-	local deg = math.rad(rotateBy)
-	local sin, cos = math.sin(deg), math.cos(deg)
+	local deg = rotateBy:rad()
+	local sin, cos = deg:sin(), deg:cos()
 
 	for i, vertex in ipairs(data) do
 		local x, y = vertex.x, vertex.y

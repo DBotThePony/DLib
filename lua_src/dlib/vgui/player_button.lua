@@ -24,6 +24,19 @@ DLib.VGUI.PlayerButton = PANEL
 
 AccessorFunc(PANEL, 'm_DisplayGreen', 'GreenIfOnline')
 
+--[[
+	@doc
+	@panel DLib_PlayerButton
+	@parent DButton
+
+	@desc
+	Creates a new panel which display user's `DLib_Avatar`
+	and some controls for end user.
+
+	behaves like regular button.
+	to set which player to display, use `:SetSteamID(steamid)`
+	@enddesc
+]]
 function PANEL:Init()
 	self.isAddingNew = false
 	self:SetMouseInputEnabled(true)
@@ -74,6 +87,15 @@ function PANEL:PerformLayout(w, h)
 	end
 end
 
+--[[
+	@doc
+	@fname DLib_PlayerButton:SetSteamID
+	@args string steamid
+
+	@desc
+	regular steamid, not steamid64
+	@enddesc
+]]
 function PANEL:SetSteamID(steamid)
 	self.steamid = steamid
 	self.ply = player.GetBySteamID(steamid)
@@ -85,6 +107,18 @@ function PANEL:SetSteamID(steamid)
 	self.label:SetText(self.nickname .. '\n' .. steamid)
 end
 
+--[[
+	@doc
+	@fname DLib_PlayerButton:Populate
+
+	@desc
+	Actually populates the panel.
+	**You must call this function after you did everything**
+	This function is present due to speed of avatar panel.
+	This can be useful when you got scrolling panel and created a lot
+	of `DLib_PlayerButton`s
+	@enddesc
+]]
 function PANEL:Populate()
 	self.avatar = vgui.Create('DLib_Avatar', self)
 	local avatar = self.avatar
