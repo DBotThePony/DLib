@@ -96,7 +96,7 @@ class GLuaLibrary implements IGLuaList {
 
 		for (const [name, entry] of this.entries) {
 			if (entry instanceof GLuaFunction) {
-				output.push(`* [${entry.name}](${prefix}./functions/${name})(${entry.args.buildMarkdown()})`)
+				output.push(`* [${entry.name}](${prefix}./${this.id}/functions/${name})(${entry.args.buildMarkdown()})`)
 			}
 		}
 
@@ -110,7 +110,7 @@ class GLuaLibrary implements IGLuaList {
 		const sublibs = []
 
 		for (const [name, library] of this.libraries) {
-			sublibs.push(`* [${library.name}](./sub/${name})`)
+			sublibs.push(`* [${library.name}](./${this.id}/sub/${name})`)
 		}
 
 		return `# DLib documentation
