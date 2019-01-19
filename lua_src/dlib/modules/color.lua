@@ -471,29 +471,7 @@ function colorMeta:__sub(target)
 			error('Color - ' .. type(target) .. ' => Not a function!')
 		end
 
-		local newRed = self.r - target.r
-		local newGreen = self.g - target.g
-		local newBlue = self.b - target.b
-
-		if newRed < 0 then
-			newGreen = newGreen - newRed
-			newBlue = newBlue - newRed
-			newRed = 0
-		end
-
-		if newGreen < 0 then
-			newRed = newRed - newGreen
-			newBlue = newBlue - newGreen
-			newGreen = 0
-		end
-
-		if newBlue < 0 then
-			newRed = newRed - newBlue
-			newGreen = newGreen - newBlue
-			newBlue = 0
-		end
-
-		return Color(newRed, newGreen, newBlue, self.a)
+		return Color(self.r - target.r, self.g - target.g, self.b - target.b, self.a)
 	end
 end
 
