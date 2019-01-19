@@ -33,7 +33,7 @@ class GLuaClassExtension implements IGLuaList {
 	}
 
 	buildLevels(level = 1): string {
-		return `[${this.id}](../${this.id}):`
+		return `[${this.id}](../../${this.id}):`
 	}
 
 	getDocLevel(): number {
