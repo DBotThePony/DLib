@@ -113,8 +113,7 @@ class GLuaLibrary implements IGLuaList {
 			sublibs.push(`* [${library.name}](./${this.id}/sub/${name})`)
 		}
 
-		return `# DLib documentation
-## ${this.name}
+		return `## ${this.name}
 [Go up](${this.getParentLink()})
 ### Sub-libraries
 ${sublibs.join('  \n')}

@@ -43,9 +43,7 @@ class GLuaFunction extends GLuaEntryBase {
 			levels = this.library.buildLevels(2)
 		}
 
-		return `# DLib documentation
-
-## ${levels}${this.name}
+		return `## ${levels}${this.name}
 
 ### Usage:
 

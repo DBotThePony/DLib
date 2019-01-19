@@ -23,9 +23,7 @@ class GLuaHook extends GLuaFunction {
 			levels = this.library.buildLevels()
 		}
 
-		return `# DLib documentation
-
-## ${this.name} hook
+		return `## ${this.name} hook
 
 ### Hook defintion:
 

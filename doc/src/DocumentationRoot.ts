@@ -30,7 +30,7 @@ interface IGLuaList {
 	getDocLevel(): number
 	pathToRoot(): string
 	generateFiles(outputDir: string): void
-	buildLevels(level: number): string
+	buildLevels(level?: number): string
 	getUpLink(): string
 	root: DocumentationRoot
 }
@@ -134,8 +134,7 @@ class DocumentationRoot {
 			}
 		}
 
-		return `# DLib documentation
-This small documentation fastly describes features (lol no, just points) of DLib library for GMod.
+		return `This small documentation fastly describes features (lol no, just points) of DLib library for GMod.
 
 You can find many things outta here.
 ----------------------------

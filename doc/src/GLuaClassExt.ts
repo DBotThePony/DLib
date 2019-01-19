@@ -82,8 +82,7 @@ class GLuaClassExtension implements IGLuaList {
 			prettyName = `Panel: [${this.name}](../../panels/${this.id})`
 		}
 
-		return `# DLib documentation
-## ${prettyName}
+		return `## ${prettyName}
 [Go up](../home)
 ### Methods
 ${funcs.join('  \n')}`

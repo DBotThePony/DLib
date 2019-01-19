@@ -37,9 +37,7 @@ class GLuaPanel extends GLuaEntryBase {
 			}
 		}
 
-		return `# DLib documentation
-
-## Panel: ${this.name}
+		return `## Panel: ${this.name}
 Parent: ${this.root.getPanelLink(this.parent)}
 
 ### Description
