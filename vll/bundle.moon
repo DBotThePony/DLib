@@ -32,7 +32,6 @@ else
 	cvars.AddChangeCallback 'vll2_dl_workshop', (-> RunConsoleCommand('host_writeconfig')), 'VLL2'
 
 file.CreateDir('vll2')
-file.CreateDir('vll2/lua_cache')
 file.CreateDir('vll2/ws_cache')
 file.CreateDir('vll2/gma_cache')
 
