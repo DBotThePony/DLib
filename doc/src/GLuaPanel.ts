@@ -63,7 +63,7 @@ ${this.generateWarnings()}
 
 ${this.generateDisclaimers()}
 
-### [Go to upper level](../index.md)`
+### [Go to upper level](../home.md)`
 	}
 }
 

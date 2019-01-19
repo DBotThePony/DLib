@@ -30,7 +30,8 @@ interface IGLuaList {
 	getDocLevel(): number
 	pathToRoot(): string
 	generateFiles(outputDir: string): void
-	buildLevels(): string
+	buildLevels(level: number): string
+	getUpLink(): string
 	root: DocumentationRoot
 }
 
@@ -89,7 +90,7 @@ class DocumentationRoot {
 		mkdir(outputDir + '/hooks')
 		mkdir(outputDir + '/panels')
 
-		fs.writeFileSync(outputDir + '/index.md', index, {encoding: 'utf8'})
+		fs.writeFileSync(outputDir + '/home.md', index, {encoding: 'utf8'})
 
 		for (const [name, library] of this.libraries) {
 			library.generateFiles(outputDir + '/sub/' + name)
@@ -120,16 +121,16 @@ class DocumentationRoot {
 		const globals = []
 
 		for (const [name, library] of this.libraries) {
-			libs.push(`* [${library.name}](./sub/${name}/index.md)`)
+			libs.push(`* [${library.name}](./sub/${name})`)
 		}
 
 		for (const [name, classext] of this.classes) {
-			classes.push(`* [${classext.name}](./classes/${name}/index.md)`)
+			classes.push(`* [${classext.name}](./classes/${name})`)
 		}
 
 		for (const [name, globalvar] of this.globals) {
 			if (globalvar instanceof GLuaFunction) {
-				globals.push(`* Function: [${globalvar.name}](./functions/${name}.md)(${globalvar.args.buildMarkdown()})`)
+				globals.push(`* Function: [${globalvar.name}](./functions/${name})(${globalvar.args.buildMarkdown()})`)
 			}
 		}
 

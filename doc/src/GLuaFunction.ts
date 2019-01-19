@@ -40,7 +40,7 @@ class GLuaFunction extends GLuaEntryBase {
 		let levels = ''
 
 		if (this.library) {
-			levels = this.library.buildLevels()
+			levels = this.library.buildLevels(2)
 		}
 
 		return `# DLib documentation
@@ -74,7 +74,7 @@ ${this.generateWarnings()}
 
 ${this.generateDisclaimers()}
 
-### [Go to upper level](../index.md)`
+### [Go to upper level](${this.getUpLink()})`
 	}
 }
 

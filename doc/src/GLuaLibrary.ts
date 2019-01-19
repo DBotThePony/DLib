@@ -30,12 +30,24 @@ class GLuaLibrary implements IGLuaList {
 
 	}
 
-	buildLevels(level = 1): string {
+	getUpLink() {
+		return `../${this.id}`
+	}
+
+	getParentLink() {
 		if (this.parent == null) {
-			return `[${this.id}](../index.md).`
+			return `../home`
 		}
 
-		return this.parent.buildLevels(level + 1) + `[${this.id}](${'../'.repeat(level)}/index.md).`
+		return `../../${this.parent.id}`
+	}
+
+	buildLevels(level = 1): string {
+		if (this.parent == null) {
+			return `[${this.id}](${'../'.repeat(level)}${level == 0 ? '/' : ''}${this.name}).`
+		}
+
+		return this.parent.buildLevels(level + 2) + `[${this.id}](${'../'.repeat(level)}${level == 0 ? '/' : ''}${this.name}).`
 	}
 
 	getDocLevel(): number {
@@ -52,7 +64,9 @@ class GLuaLibrary implements IGLuaList {
 
 	getSubLibrary(name: string) {
 		if (!this.libraries.has(name)) {
-			this.libraries.set(name, new GLuaLibrary(this.root, name))
+			const lib = new GLuaLibrary(this.root, name)
+			this.libraries.set(name, lib)
+			lib.parent = this
 		}
 
 		return this.libraries.get(name)!
@@ -64,7 +78,7 @@ class GLuaLibrary implements IGLuaList {
 		mkdir(outputDir + '/functions')
 		mkdir(outputDir + '/sub')
 
-		fs.writeFileSync(outputDir + '/index.md', index, {encoding: 'utf8'})
+		fs.writeFileSync(outputDir + '.md', index, {encoding: 'utf8'})
 
 		for (const [name, library] of this.libraries) {
 			library.generateFiles(outputDir + '/sub/' + name)
@@ -82,7 +96,7 @@ class GLuaLibrary implements IGLuaList {
 
 		for (const [name, entry] of this.entries) {
 			if (entry instanceof GLuaFunction) {
-				output.push(`* [${entry.name}](${prefix}./functions/${name}.md)(${entry.args.buildMarkdown()})`)
+				output.push(`* [${entry.name}](${prefix}./functions/${name})(${entry.args.buildMarkdown()})`)
 			}
 		}
 
@@ -96,12 +110,12 @@ class GLuaLibrary implements IGLuaList {
 		const sublibs = []
 
 		for (const [name, library] of this.libraries) {
-			sublibs.push(`* [${library.name}](./sub/${name}/index.md)`)
+			sublibs.push(`* [${library.name}](./sub/${name})`)
 		}
 
 		return `# DLib documentation
 ## ${this.name}
-[Go up](../../index.md)
+[Go up](${this.getParentLink()})
 ### Sub-libraries
 ${sublibs.join('  \n')}
 ### Functions/Methods

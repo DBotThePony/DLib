@@ -44,6 +44,14 @@ class GLuaEntryBase {
 
 	}
 
+	protected getUpLink() {
+		if (!this.library) {
+			return `../home`
+		}
+
+		return this.library.getUpLink()
+	}
+
 	generateDescription(prefix = '') {
 		return this.root.processLinks(this.description, prefix)!
 			.replace(/^/, '\u200B\xA0\xA0\xA0\xA0\xA0\xA0\xA0\xA0')
