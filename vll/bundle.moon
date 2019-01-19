@@ -36,6 +36,8 @@ file.CreateDir('vll2/lua_cache')
 file.CreateDir('vll2/ws_cache')
 file.CreateDir('vll2/gma_cache')
 
+sql.Query('CREATE TABLE IF NOT EXISTS vll2_lua_cache (fpath VARCHAR(400) PRIMARY KEY, tstamp BIGINT NOT NULL DEFAULT 0, contents BLOB NOT NULL)')
+
 class VLL2.AbstractBundle
 	@_S = {}
 	@LISTING = {}
@@ -45,47 +47,23 @@ class VLL2.AbstractBundle
 	@STATUS_RUNNING = 3
 	@STATUS_ERROR = 4
 
-	@DISK_CACHE = {fil\sub(1, -5)\Trim(), file.Time('vll2/lua_cache/' .. fil, 'DATA') for fil in *file.Find('vll2/lua_cache/*', 'DATA')}
-	@DISK_CACHE_READ = {}
-
 	@Checkup = (bname) =>
 		return true if not @_S[bname]
 		return not @_S[bname]\IsLoading()
 
-	@__FromCache = (hash) =>
-		return @DISK_CACHE_READ[hash] if @DISK_CACHE_READ[hash]
-		@DISK_CACHE_READ[hash] = file.Read('vll2/lua_cache/' .. hash .. '.dat', 'DATA')
-		decompress = util.Decompress(@DISK_CACHE_READ[hash] or '')
-
-		if decompress == ''
-			@DISK_CACHE_READ[hash] = nil
-			@DISK_CACHE[hash] = nil
-			file.Delete('vll2/lua_cache/' .. hash .. '.dat')
-			return nil
-		else
-			@DISK_CACHE_READ[hash] = decompress
-			return decompress
-
 	@FromCache = (fname, fstamp) =>
-		hash = util.CRC(fname)
-		return if not @DISK_CACHE[hash]
+		if not fstamp
+			data = sql.Query('SELECT contents FROM vll2_lua_cache WHERE fpath = ' .. SQLStr(fname))
+			return if not data
+			return data[1].contents
 
-		if fstamp
-			if @DISK_CACHE[hash] >= fstamp
-				return @__FromCache(hash)
-			else
-				@DISK_CACHE_READ[hash] = nil
-				@DISK_CACHE[hash] = nil
-				file.Delete('vll2/lua_cache/' .. hash .. '.dat')
-				return
-		else
-			return @__FromCache(hash)
+		data = sql.Query('SELECT contents FROM vll2_lua_cache WHERE tstamp >= ' .. fstamp .. ' AND fpath = ' .. SQLStr(fname))
+		return if not data
+		return data[1].contents
 
-	@WriteCache = (fname, contents) =>
-		hash = util.CRC(fname)
-		@DISK_CACHE[hash] = os.time()
-		@DISK_CACHE_READ[fname] = contents
-		file.Write('vll2/lua_cache/' .. hash .. '.dat', util.Compress(contents))
+	@WriteCache = (fname, contents, fstamp = os.time()) =>
+		sql.Query('DELETE FROM vll2_lua_cache WHERE fpath = ' .. SQLStr(fname))
+		sql.Query('INSERT INTO vll2_lua_cache (fpath, tstamp, contents) VALUES (' .. SQLStr(fname) .. ', ' .. SQLStr(fstamp) .. ', ' .. SQLStr(contents) .. ')')
 
 	new: (name) =>
 		@name = name
