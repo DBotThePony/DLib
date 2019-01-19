@@ -145,6 +145,11 @@ vll2_reload_full = (ply, cmd, args) ->
 	_G.VLL2_FULL_RELOAD = true
 	http.Fetch "https://dbotthepony.ru/vll/vll2.lua", (b) -> _G.RunString(b, "VLL2")
 
+vll2_clear_lua_cache = (ply, cmd, args) ->
+	return VLL2.MessagePlayer(ply, 'Not a super admin!') if disallow(ply)
+	sql.Query('DELETE FROM vll2_lua_cache')
+	VLL2.MessagePlayer(ply, 'Lua cache has been cleared.')
+
 timer.Simple 0, ->
 	if not game.SinglePlayer() or CLIENT
 		concommand.Add 'vll2_load', vll2_load, vll2_mkautocomplete('vll2_load')
@@ -155,6 +160,7 @@ timer.Simple 0, ->
 		concommand.Add 'vll2_workshop_content_silent', vll2_workshop_content_silent
 		concommand.Add 'vll2_reload', vll2_reload
 		concommand.Add 'vll2_reload_full', vll2_reload_full
+		concommand.Add 'vll2_clear_lua_cache', vll2_clear_lua_cache
 
 	if SERVER
 		net.Receive 'vll2_cmd_load_server', (_, ply) -> vll2_load(ply, nil, string.Explode(' ', net.ReadString()\Trim()))
@@ -168,6 +174,7 @@ timer.Simple 0, ->
 		concommand.Add 'vll2_workshop_content_silent_server', vll2_workshop_content_silent
 		concommand.Add 'vll2_reload_server', vll2_reload
 		concommand.Add 'vll2_reload_full_server', vll2_reload_full
+		concommand.Add 'vll2_clear_lua_cache_server', vll2_clear_lua_cache
 	else
 		vll2_load_server = (ply, cmd, args) ->
 			net.Start('vll2_cmd_load_server')
