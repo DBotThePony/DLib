@@ -358,7 +358,9 @@ _G.HSVToColorC = HSVToColorC or HSVToColor
 	Color
 ]]
 function _G.HSVToColor(hue, saturation, value)
-	assert(type(hue) == 'number' and hue >= 0 and hue <= 360, 'Invalid hue value. It must be a number and be in 0-360 range')
+	assert(type(hue) == 'number', 'Hue must be a number')
+	hue = (hue % 360):floor()
+	if hue < 0 then hue = 360 + hue end
 	assert(type(saturation) == 'number' and saturation >= 0 and saturation <= 1, 'Invalid saturation value. It must be a number and be in 0-1 (float) range')
 	assert(type(value) == 'number' and value >= 0 and value <= 1, 'Invalid color value (brightness). It must be a number and be in 0-1 (float) range')
 
