@@ -229,8 +229,8 @@ function meta:GetVariable(var)
 	return assert(self.variablesHash[var], 'No such variable: ' .. var).value
 end
 
-for i, hName2 in ipairs(hooks) do
-	local hName = hName2:formatname()
+for i, hookType in ipairs(hooks) do
+	local hName = hookType:formatname()
 
 	meta['Set' .. hName .. 'Hook'] = function(self, var, newFunction)
 		assert(type(var) == 'string', 'ID is not a string!')
