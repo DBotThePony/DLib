@@ -112,6 +112,16 @@ for (const file of filesToParse) {
 	}
 }
 
+function addFile(file: string) {
+	const list = eval('(function() {' + fs.readFileSync(file, {encoding: 'utf8'}) + '})()')
+
+	for (const lines of list) {
+		annotations.push(new AnnotationCommentary(file, lines.trim().split(/\r?\n/)))
+	}
+}
+
+addFile('./docs/nbt.js')
+
 if (annotations.length == 0) {
 	console.log('No annotations with @doc found!')
 	process.exit(0)

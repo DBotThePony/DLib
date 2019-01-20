@@ -24,6 +24,9 @@ import assert, error, DLib, table, type from _G
 jit.on()
 DLib.NBT = {}
 
+-- names are deprecated
+-- (the @name variable)
+
 class DLib.NBT.Base
 	new: (name, value) =>
 		if value == nil and name ~= nil
@@ -34,6 +37,7 @@ class DLib.NBT.Base
 			value = @GetDefault()
 		@length = 0 if not @length
 		@value = value
+		@CheckValue(value) if value ~= nil
 		@name = name
 
 	GetDefault: => 0
@@ -174,9 +178,11 @@ class DLib.NBT.TagDouble extends DLib.NBT.Base
 	MetaName: 'NBTDouble'
 
 class DLib.NBT.TagString extends DLib.NBT.Base
+	CheckValue: (value) => super(value) and assert(#value < 65536, 'String is too long!')
 	Serialize: (bytesbuffer) =>
 		bytesbuffer\WriteUInt16(#@value)
 		bytesbuffer\WriteBinary(@value)
+
 	Deserialize: (bytesbuffer) =>
 		@length = bytesbuffer\ReadUInt16()
 		@value = bytesbuffer\ReadBinary(@length)
@@ -277,11 +283,16 @@ class DLib.NBT.TagList extends DLib.NBT.TagArrayBased
 	@FIELD_LENGTH = -1
 	@RANGE = 4
 
-	new: (name = 'array', tagID = 1) =>
+	new: (name = 'array', tagID = 1, values) =>
+		if type(name) == 'number'
+			tagID = name
+			name = 'array'
+
 		@tagID = tagID
 		@tagClass = DLib.NBT.GetTyped(tagID)
 		error('Invalid tag ID specified as array type - ' .. tagID) if not @tagClass
 		super(name)
+		@AddValue(val) for val in ipairs(values) if values
 
 	Serialize: (bytesbuffer) =>
 		bytesbuffer\WriteUByte(@tagID)
@@ -320,15 +331,23 @@ class DLib.NBT.TagList extends DLib.NBT.TagArrayBased
 
 class DLib.NBT.TagCompound extends DLib.NBT.Base
 	new: (name = 'data', values) =>
-		super(name, -1)
 		@table = {}
-		if values
-			@AddTypedValue(key, value) for key, value in pairs values
+
+		if type(name) == 'string'
+			super(name, -1)
+			if values
+				@AddTypedValue(key, value) for key, value in pairs values
+		elseif type(name) == 'table'
+			super('data', -1)
+			@AddTypedValue(key, value) for key, value in pairs name
+		else
+			error('Invalid construction arguments')
 
 	ReadFile: (bytesbuffer) =>
 		status = ProtectedCall -> @ReadFileProtected(bytesbuffer)
 		if not status
 			Error('Error reading a NBT file from Bytes Buffer! Is file/buffer a valid NBT file and is not corrupted?\n')
+		return status
 
 	ReadFileProtected: (bytesbuffer) =>
 		assert(bytesbuffer\ReadUByte() == 10, 'invalid header')
@@ -411,6 +430,8 @@ class DLib.NBT.TagCompound extends DLib.NBT.Base
 				@AddString(key, value)
 			when 'table'
 				@AddTagCompound(key, vaue)
+			else
+				error('Unable to tetermine tag type for value - ' .. type(value))
 
 	GetLength: => table.Count(@table)
 	@NAME = 'TAG_Compound'
