@@ -549,62 +549,62 @@ return function(tableTarget, moduleName, moduleColor)
 
 	local function Chat(...)
 		local formatted = FormatMessageRegular({...})
-		chat.AddText(PREFIX_COLOR, PREFIX, unpack(formatted))
+		chat.AddText(PREFIX_COLOR, PREFIX, DEFAULT_TEXT_COLOR, unpack(formatted))
 		return formatted
 	end
 
 	local function LChat(...)
 		local formatted = FormatMessageRegular(DLib.i18n.rebuildTable({...}))
-		chat.AddText(PREFIX_COLOR, PREFIX, unpack(formatted))
+		chat.AddText(PREFIX_COLOR, PREFIX, DEFAULT_TEXT_COLOR, unpack(formatted))
 		return formatted
 	end
 
 	local function ChatError(...)
 		local formatted = FormatMessageError({...})
-		chat.AddText(PREFIX_COLOR, PREFIX, unpack(formatted))
+		chat.AddText(PREFIX_COLOR, PREFIX, ERROR_COLOR, unpack(formatted))
 		return formatted
 	end
 
 	local function LChatError(...)
 		local formatted = FormatMessageError(DLib.i18n.rebuildTable({...}))
-		chat.AddText(PREFIX_COLOR, PREFIX, unpack(formatted))
+		chat.AddText(PREFIX_COLOR, PREFIX, ERROR_COLOR, unpack(formatted))
 		return formatted
 	end
 
 	local function ChatWarn(...)
 		local formatted = FormatMessageWarning({...})
-		chat.AddText(PREFIX_COLOR, PREFIX, unpack(formatted))
+		chat.AddText(PREFIX_COLOR, PREFIX, WARNING_COLOR, unpack(formatted))
 		return formatted
 	end
 
 	local function LChatWarn(...)
 		local formatted = FormatMessageWarning(DLib.i18n.rebuildTable({...}))
-		chat.AddText(PREFIX_COLOR, PREFIX, unpack(formatted))
+		chat.AddText(PREFIX_COLOR, PREFIX, WARNING_COLOR, unpack(formatted))
 		return formatted
 	end
 
 	local function FormatMessage(...)
-		return FormatMessageRegular({PREFIX_COLOR, PREFIX, ...})
+		return FormatMessageRegular({PREFIX_COLOR, PREFIX, DEFAULT_TEXT_COLOR, ...})
 	end
 
 	local function LFormatMessage(...)
-		return FormatMessageRegular(DLib.i18n.rebuildTable({PREFIX_COLOR, PREFIX, ...}))
+		return FormatMessageRegular(DLib.i18n.rebuildTable({PREFIX_COLOR, PREFIX, DEFAULT_TEXT_COLOR, ...}))
 	end
 
 	local function FormatMessageWarn(...)
-		return FormatMessageWarning({PREFIX_COLOR, PREFIX, ...})
+		return FormatMessageWarning({PREFIX_COLOR, PREFIX, WARNING_COLOR, ...})
 	end
 
 	local function LFormatMessageWarn(...)
-		return FormatMessageWarning(DLib.i18n.rebuildTable({PREFIX_COLOR, PREFIX, ...}))
+		return FormatMessageWarning(DLib.i18n.rebuildTable({PREFIX_COLOR, PREFIX, WARNING_COLOR, ...}))
 	end
 
 	local function FormatMessageErr(...)
-		return FormatMessageError({PREFIX_COLOR, PREFIX, ...})
+		return FormatMessageError({PREFIX_COLOR, PREFIX, ERROR_COLOR, ...})
 	end
 
 	local function LFormatMessageErr(...)
-		return FormatMessageError(DLib.i18n.rebuildTable({PREFIX_COLOR, PREFIX, ...}))
+		return FormatMessageError(DLib.i18n.rebuildTable({PREFIX_COLOR, PREFIX, ERROR_COLOR, ...}))
 	end
 
 	local function FormatMessageRaw(...)
