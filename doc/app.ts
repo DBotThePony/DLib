@@ -121,6 +121,7 @@ function addFile(file: string) {
 }
 
 addFile('./docs/nbt.js')
+addFile('./docs/camiwatchdog.js')
 
 if (annotations.length == 0) {
 	console.log('No annotations with @doc found!')
