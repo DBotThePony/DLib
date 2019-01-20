@@ -292,7 +292,8 @@ class DLib.NBT.TagList extends DLib.NBT.TagArrayBased
 		@tagClass = DLib.NBT.GetTyped(tagID)
 		error('Invalid tag ID specified as array type - ' .. tagID) if not @tagClass
 		super(name)
-		@AddValue(val) for val in ipairs(values) if values
+		if values
+			@AddValue(val) for val in ipairs(values)
 
 	Serialize: (bytesbuffer) =>
 		bytesbuffer\WriteUByte(@tagID)
