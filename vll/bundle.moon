@@ -60,6 +60,14 @@ class VLL2.AbstractBundle
 		return if not data
 		return data[1].contents
 
+	@FromCacheMultiple = (fnames, fstamp) =>
+		format = '(' .. table.concat([SQLStr(name) for name in *fnames], ',') .. ')'
+
+		if not fstamp
+			return sql.Query('SELECT fpath, contents FROM vll2_lua_cache WHERE fpath IN  ' .. format) or {}
+
+		return sql.Query('SELECT fpath, contents FROM vll2_lua_cache WHERE tstamp >= ' .. fstamp .. ' AND fpath IN ' .. format) or {}
+
 	@WriteCache = (fname, contents, fstamp = os.time()) =>
 		sql.Query('DELETE FROM vll2_lua_cache WHERE fpath = ' .. SQLStr(fname))
 		sql.Query('INSERT INTO vll2_lua_cache (fpath, tstamp, contents) VALUES (' .. SQLStr(fname) .. ', ' .. SQLStr(fstamp) .. ', ' .. SQLStr(contents) .. ')')
@@ -248,22 +256,38 @@ class VLL2.URLBundle extends VLL2.AbstractBundle
 		@toDownload = #@bundleList
 		@downloaded = 0
 
-		for line in *@bundleList
-			if line ~= ''
-				{fpath, url, fstamp} = string.Explode(';', line)
-				if not url
-					VLL2.MessageBundle(line)
-					error('wtf')
+		checkCache = {}
+		lines = [string.Explode(';', line) for line in *@bundleList when line ~= '']
 
-				cached = @@FromCache(fpath, tonumber(fstamp))
+		for {fpath, url, fstamp} in *lines
+			if not url
+				VLL2.MessageBundle(fpath, url, fstamp)
+				error('wtf')
 
-				if cached
-					@fs\Write(fpath, cached)
-					@globalFS\Write(fpath, cached)
-					@downloaded += 1
-				else
-					@DownloadFile(fpath, url)
+			hit = false
 
+			for {stamp, listing} in *checkCache
+				if stamp == fstamp
+					hit = true
+					table.insert(listing, fpath)
+
+			if not hit
+				table.insert(checkCache, {fstamp, {fpath}})
+
+		toload = [{fpath, url} for {fpath, url} in *lines]
+
+		for {stamp, listing} in *checkCache
+			for {:fpath, :contents} in *@@FromCacheMultiple(listing, stamp)
+				@fs\Write(fpath, contents)
+				@globalFS\Write(fpath, contents)
+				@downloaded += 1
+
+				for i, entry in ipairs(toload)
+					if entry[1] == fpath
+						table.remove(toload, i)
+						break
+
+		@DownloadFile(fpath, url) for {fpath, url} in *toload
 		@CheckIfRunnable()
 
 	Load: =>

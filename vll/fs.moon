@@ -20,6 +20,8 @@
 
 import string, table, VLL2 from _G
 
+type = luatype or type
+
 class VLL2.FSDirectory
 	new: (name, parent) =>
 		@name = name\lower()
@@ -27,29 +29,31 @@ class VLL2.FSDirectory
 		@subdirs = {}
 		@files = {}
 
-	Open: (directory) =>
+	Open: (directory, lowered) =>
 		return @ if directory == '' or directory == '/' or directory\Trim() == ''
-		if string.find(directory, '/', 1, true)
-			startpos = string.find(directory, '/', 1, true)
-			namedir = string.sub(directory, 1, startpos - 1)\lower()
-			nextdir = string.sub(directory, startpos + 1)\lower()
+		directory = directory\lower() if not lowered
+
+		if startpos = string.find(directory, '/', 1, true)
+			namedir = string.sub(directory, 1, startpos - 1)
+			nextdir = string.sub(directory, startpos + 1)
 			return @subdirs[namedir]\Open(nextdir) if @subdirs[namedir]
 			dir = VLL2.FSDirectory(namedir, @)
 			@subdirs[namedir] = dir
-			return dir\Open(nextdir)
+			return dir\Open(nextdir, true)
 		else
 			return @subdirs[directory] if @subdirs[directory]
 			dir = VLL2.FSDirectory(directory, @)
 			@subdirs[directory] = dir
 			return dir
 
-	OpenRaw: (directory) =>
+	OpenRaw: (directory, lowered) =>
 		return @ if directory == '' or directory == '/' or directory\Trim() == ''
-		if string.find(directory, '/', 1, true)
-			startpos = string.find(directory, '/', 1, true)
-			namedir = string.sub(directory, 1, startpos - 1)\lower()
-			nextdir = string.sub(directory, startpos + 1)\lower()
-			return @subdirs[namedir]\OpenRaw(nextdir) if @subdirs[namedir]
+		directory = directory\lower() if not lowered
+
+		if startpos = string.find(directory, '/', 1, true)
+			namedir = string.sub(directory, 1, startpos - 1)
+			nextdir = string.sub(directory, startpos + 1)
+			return @subdirs[namedir]\OpenRaw(nextdir, true) if @subdirs[namedir]
 			return false
 		else
 			return @subdirs[directory] if @subdirs[directory]
@@ -137,7 +141,7 @@ class VLL2.FileSystem
 		assert(type(contents) == 'string', 'Contents must be a string - ' .. type(contents))
 		assert(not string.find(path, '..', 1, true), 'Path must be absolute')
 		dname, fname = VLL2.FileSystem.StripFileName(path\lower())
-		dir = @root\Open(dname)
+		dir = @root\Open(dname, true)
 		dir\Write(fname, contents)
 		return @
 
@@ -145,20 +149,20 @@ class VLL2.FileSystem
 		assert(type(path) == 'string', 'Invalid path to write - ' .. type(path))
 		assert(not string.find(path, '..', 1, true), 'Path must be absolute')
 		dname, fname = VLL2.FileSystem.StripFileName(path\lower())
-		dir = @root\Open(dname)
+		dir = @root\Open(dname, true)
 		return dir\Read(fname)
 
 	Exists: (path) =>
 		assert(type(path) == 'string', 'Invalid path to write - ' .. type(path))
 		assert(not string.find(path, '..', 1, true), 'Path must be absolute')
 		dname, fname = VLL2.FileSystem.StripFileName(path\lower())
-		return @root\Open(dname)\Exists(fname)
+		return @root\Open(dname, true)\Exists(fname)
 
 	Find: (pattern) =>
 		assert(type(pattern) == 'string', 'Invalid pattern type provided: ' .. type(pattern))
 		assert(not string.find(pattern, '..', 1, true), 'Path must be absolute')
 		dname, fname = VLL2.FileSystem.StripFileName(pattern\lower())
-		dir = @root\Open(dname)
+		dir = @root\Open(dname, true)
 		return dir\ListFiles(), dir\ListDirs() if fname == '*'
 		fpattern = VLL2.FileSystem.ToPattern(fname)
 		result = [fil for fil in *dir\ListFiles() when string.find(fil, fpattern)]
