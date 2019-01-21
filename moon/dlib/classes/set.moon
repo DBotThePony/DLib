@@ -19,6 +19,8 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
+string_format = string.format
+import type, pairs from _G
 
 class DLib.Set
 	new: =>
@@ -70,3 +72,58 @@ class DLib.Set
 	unset: (...) => @remove(...)
 
 	getValues: => @values
+
+class DLib.HashSet extends DLib.Set
+	_hash: (object) =>
+		tp = type(object)
+		if tp == 'string' or tp == 'number'
+			return object
+		else
+			return string_format('%p', object)
+
+	add: (object) =>
+		return false if object == nil
+		p = @_hash(object)
+		return false if @values[p] ~= nil
+		@values[p] = object
+		return true, p
+
+	has: (object) =>
+		return false if object == nil
+		p = @_hash(object)
+		return @values[p] ~= nil
+
+	remove: (object) =>
+		return false if object == nil
+		p = @_hash(object)
+		return false if @values[p] == nil
+		@values[p] = nil
+		return true, p
+
+	getValues: => [val for i, val in pairs @values]
+	copyHash: => {val, val for i, val in pairs @values}
+
+class DLib.Enum
+	new: (...) =>
+		@enums = {...}
+		@enumsInversed = {v, i for i, v in ipairs @enums}
+
+	encode: (val, indexFail = 1) =>
+		return indexFail if @enumsInversed[val] == nil
+		return @enumsInversed[val]
+
+	Encode: (...) => @encode(...)
+	Decode: (...) => @decode(...)
+	Write: (...) => @write(...)
+	Read: (...) => @read(...)
+
+	decode: (val, indexFail = 1) =>
+		val = tonumber(val) if type(val) ~= 'number'
+		return @enums[indexFail] if @enums[val] == nil
+		return @enums[val]
+
+	write: (val, ifNone) =>
+		net.WriteUInt(@encode(val, ifNone), net.ChooseOptimalBits(#@enums))
+
+	read: (ifNone) =>
+		@decode(net.ReadUInt(net.ChooseOptimalBits(#@enums)), ifNone)
