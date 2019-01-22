@@ -417,7 +417,7 @@ local function normalizeComponent(channel1, channel2, channel3)
 end
 
 local function NormalizeColor(r, g, b)
-	if r > 0 and r < 256 and g > 0 and g < 256 and b > 0 and b < 256 then
+	if r >= 0 and r < 256 and g >= 0 and g < 256 and b >= 0 and b < 256 then
 		return r, g, b
 	end
 
@@ -426,7 +426,7 @@ local function NormalizeColor(r, g, b)
 		g, r, b = normalizeComponent(g, r, b)
 		b, r, g = normalizeComponent(b, r, g)
 
-		if r > 0 and r < 256 and g > 0 and g < 256 and b > 0 and b < 256 then
+		if r >= 0 and r < 256 and g >= 0 and g < 256 and b >= 0 and b < 256 then
 			return r, g, b
 		end
 	end
