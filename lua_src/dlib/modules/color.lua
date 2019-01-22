@@ -405,33 +405,37 @@ function colorMeta:__eq(target)
 	return target.r == self.r and target.g == self.g and target.b == self.b and target.a == self.a
 end
 
-local function normalizeComponent(channel1, channel2, channel3)
-	if channel1 < 0 then
-		return 0, channel2 - channel1, channel3 - channel1
-	elseif channel1 > 255 then
-		local delta = 255 - channel1
-		return 255, channel2 - delta, channel3 - delta
-	end
-
-	return channel1, channel2, channel3
-end
-
 local function NormalizeColor(r, g, b)
 	if r >= 0 and r < 256 and g >= 0 and g < 256 and b >= 0 and b < 256 then
 		return r, g, b
 	end
 
-	for i = 1, 10 do
-		r, g, b = normalizeComponent(r, g, b)
-		g, r, b = normalizeComponent(g, r, b)
-		b, r, g = normalizeComponent(b, r, g)
-
-		if r >= 0 and r < 256 and g >= 0 and g < 256 and b >= 0 and b < 256 then
-			return r, g, b
-		end
+	if r < 0 then
+		g, b = g - r, b - r
+		r = 0
 	end
 
-	error('Unable to normalize color!')
+	if g < 0 then
+		r, b = r - g, b - g
+		g = 0
+	end
+
+	if b < 0 then
+		r, g = r - b, g - b
+		b = 0
+	end
+
+	if r >= 0 and r < 256 and g >= 0 and g < 256 and b >= 0 and b < 256 then
+		return r, g, b
+	end
+
+	local len = (r:pow(2) + g:pow(2) + b:pow(2)):sqrt() / 255
+
+	r = (r / len):round()
+	g = (g / len):round()
+	b = (b / len):round()
+
+	return r, g, b
 end
 
 --[[
@@ -440,8 +444,7 @@ end
 	@args number r, number g, number b
 
 	@desc
-	attempts to normalize negative and overflown channels
-	throws an error if no solution found
+	normalizes negative and overflown channels
 	@enddesc
 
 	@returns
@@ -479,7 +482,7 @@ function colorMeta:__add(target)
 		g, r, b = mathLogic(g, target, r, b)
 		b, r, g = mathLogic(b, target, r, g)
 
-		return Color(NormalizeColor(self.r + target, self.g + target, self.b + target), self.a)
+		return Color(NormalizeColor(self.r + target, self.g + target, self.b + target)):SetAlpha(self.a)
 	elseif type(target) == 'Vector' then
 		return self + target:ToColor()
 	else
@@ -487,7 +490,7 @@ function colorMeta:__add(target)
 			error('Color + ' .. type(target) .. ' => Not a function!')
 		end
 
-		return Color(NormalizeColor(self.r + target.r, self.g + target.g, self.b + target.b), self.a)
+		return Color(NormalizeColor(self.r + target.r, self.g + target.g, self.b + target.b)):SetAlpha(self.a)
 	end
 end
 
@@ -515,7 +518,7 @@ function colorMeta:__sub(target)
 	end
 
 	if type(target) == 'number' then
-		return Color(NormalizeColor(self.r - target, self.g - target, self.b - target), self.a)
+		return Color(NormalizeColor(self.r - target, self.g - target, self.b - target)):SetAlpha(self.a)
 	elseif type(target) == 'Vector' then
 		return self - target:ToColor()
 	else
@@ -523,7 +526,7 @@ function colorMeta:__sub(target)
 			error('Color - ' .. type(target) .. ' => Not a function!')
 		end
 
-		return Color(NormalizeColor(self.r - target.r, self.g - target.g, self.b - target.b), self.a)
+		return Color(NormalizeColor(self.r - target.r, self.g - target.g, self.b - target.b)):SetAlpha(self.a)
 	end
 end
 
@@ -551,7 +554,7 @@ function colorMeta:__mul(target)
 	end
 
 	if type(target) == 'number' then
-		return Color(NormalizeColor(self.r * (target / 255), self.g * (target / 255), self.b * (target / 255)), self.a)
+		return Color(NormalizeColor(self.r * (target / 255), self.g * (target / 255), self.b * (target / 255))):SetAlpha(self.a)
 	elseif type(target) == 'Vector' then
 		return self * target:ToColor()
 	else
@@ -559,7 +562,7 @@ function colorMeta:__mul(target)
 			error('Color * ' .. type(target) .. ' => Not a function!')
 		end
 
-		return Color(NormalizeColor(self.r * (target.r / 255), self.g * (target.g / 255), self.b * (target.b / 255)), self.a)
+		return Color(NormalizeColor(self.r * (target.r / 255), self.g * (target.g / 255), self.b * (target.b / 255))):SetAlpha(self.a)
 	end
 end
 
@@ -587,7 +590,7 @@ function colorMeta:__div(target)
 	end
 
 	if type(target) == 'number' then
-		return Color(NormalizeColor(self.r / target, self.g / target, self.b / target), self.a)
+		return Color(NormalizeColor(self.r / target, self.g / target, self.b / target)):SetAlpha(self.a)
 	elseif type(target) == 'Vector' then
 		return self / target:ToColor()
 	else
@@ -595,7 +598,7 @@ function colorMeta:__div(target)
 			error('Color / ' .. type(target) .. ' => Not a function!')
 		end
 
-		return Color(NormalizeColor(self.r / target.r, self.g / target.g, self.b / target.b), self.a)
+		return Color(NormalizeColor(self.r / target.r, self.g / target.g, self.b / target.b)):SetAlpha(self.a)
 	end
 end
 
@@ -622,7 +625,7 @@ function colorMeta:__mod(target)
 	end
 
 	if type(target) == 'number' then
-		return Color(NormalizeColor(self.r % target, self.g % target, self.b % target), self.a)
+		return Color(NormalizeColor(self.r % target, self.g % target, self.b % target)):SetAlpha(self.a)
 	elseif type(target) == 'Vector' then
 		return self % target:ToColor()
 	else
@@ -630,7 +633,7 @@ function colorMeta:__mod(target)
 			error('Color % ' .. type(target) .. ' => Not a function!')
 		end
 
-		return Color(NormalizeColor(self.r % target.r, self.g % target.g, self.b % target.b), self.a)
+		return Color(NormalizeColor(self.r % target.r, self.g % target.g, self.b % target.b)):SetAlpha(self.a)
 	end
 end
 
@@ -657,7 +660,7 @@ function colorMeta:__pow(target)
 	end
 
 	if type(target) == 'number' then
-		return Color(NormalizeColor(self.r:pow(target), self.g:pow(target), self.b:pow(target)), self.a)
+		return Color(NormalizeColor(self.r:pow(target), self.g:pow(target), self.b:pow(target))):SetAlpha(self.a)
 	elseif type(target) == 'Vector' then
 		return self ^ target:ToColor()
 	else
@@ -665,7 +668,7 @@ function colorMeta:__pow(target)
 			error('Color ^ ' .. type(target) .. ' => Not a function!')
 		end
 
-		return Color(NormalizeColor(self.r:pow(target.r), self.g:pow(target.g), self.b:pow(target.b)), self.a)
+		return Color(NormalizeColor(self.r:pow(target.r), self.g:pow(target.g), self.b:pow(target.b))):SetAlpha(self.a)
 	end
 end
 
@@ -929,13 +932,13 @@ do
 
 	for key, method in pairs(methods) do
 		colorMeta['Set' .. method] = function(self, newValue)
-			self[key] = math.Clamp(tonumber(newValue) or 255, 0, 255)
+			self[key] = (tonumber(newValue) or 255):clamp(0, 255):floor()
 			return self
 		end
 
 		colorMeta['Modify' .. method] = function(self, newValue)
 			local new = Color(self)
-			new[key] = newValue
+			new[key] = (tonumber(newValue) or 255):clamp(0, 255):floor()
 			return new
 		end
 
