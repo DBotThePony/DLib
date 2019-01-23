@@ -32,7 +32,8 @@ class DLib.Set
 			if val == object
 				return false
 
-		return table.insert(@values, object)
+		table.insert(@values, object)
+		return true
 
 	Add: (...) => @add(...)
 	AddArray: (...) => @addArray(...)
@@ -41,9 +42,9 @@ class DLib.Set
 	Contains: (...) => @has(...)
 	Remove: (...) => @remove(...)
 	Delete: (...) => @remove(...)
-	RM: (...) => @remove(...)
 	UnSet: (...) => @remove(...)
-	GetValues: (...) => @getValues(...)
+	GetValues: (...) => @values
+	CopyValues: (...) => [val for val in ipairs(@values)]
 
 	addArray: (objects) => @add(object) for object in *objects
 
@@ -63,7 +64,7 @@ class DLib.Set
 		for i, val in ipairs @values
 			if val == object
 				table.remove(@values, i)
-				return i
+				return true
 
 		return false
 
@@ -101,7 +102,9 @@ class DLib.HashSet extends DLib.Set
 		return true, p
 
 	getValues: => [val for i, val in pairs @values]
+	CopyValues: => @getValues()
 	copyHash: => {val, val for i, val in pairs @values}
+	CopyHashTable: => {val, val for i, val in pairs @values}
 
 class DLib.Enum
 	new: (...) =>
