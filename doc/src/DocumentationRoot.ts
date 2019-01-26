@@ -65,7 +65,7 @@ class DocumentationRoot {
 			return description
 		}
 
-		return description.replace(/\!(g|p|c|s):(\S+)/, (substr, arg1, arg2) => {
+		return description.replace(/\!(g|p|c|s):(\S+)/g, (substr, arg1, arg2) => {
 			switch (arg1) {
 				case 'g':
 					return `[${arg2}](http://wiki.garrysmod.com/page/${arg2.replace(/\.|:/g, '/')})`
