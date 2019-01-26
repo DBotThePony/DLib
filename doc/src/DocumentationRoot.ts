@@ -119,6 +119,7 @@ class DocumentationRoot {
 		const libs = []
 		const classes = []
 		const globals = []
+		const panels = []
 
 		for (const [name, library] of this.libraries) {
 			libs.push(`* [${library.name}](./sub/${name})`)
@@ -126,6 +127,10 @@ class DocumentationRoot {
 
 		for (const [name, classext] of this.classes) {
 			classes.push(`* [${classext.name}](./classes/${name})`)
+		}
+
+		for (const [name, panel] of this.panels) {
+			panels.push(`* [${panel.name}](./panels/${name})`)
 		}
 
 		for (const [name, globalvar] of this.globals) {
@@ -143,7 +148,10 @@ ${libs.join('  \n')}
 ## Class extensions
 ${classes.join('  \n')}
 ## Global Functions
-${globals.join('  \n')}`
+${globals.join('  \n')}
+## Panels
+${panels.join('  \n')}
+`
 	}
 
 	getLibrary(name: string) {
