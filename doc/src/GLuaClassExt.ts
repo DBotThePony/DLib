@@ -59,12 +59,12 @@ class GLuaClassExtension implements IGLuaList {
 		}
 	}
 
-	generateFunctionList(prefix = '') {
+	generateFunctionList(prefix = '', namePrefix = '') {
 		const output = []
 
 		for (const [name, entry] of this.entries) {
 			if (entry instanceof GLuaFunction) {
-				output.push(`* [${entry.name}](${prefix}./${this.id}/functions/${name})(${entry.args.buildMarkdown()})`)
+				output.push(`* [${namePrefix}${entry.name}](${prefix}./${this.id}/functions/${name})(${entry.args.buildMarkdown()})`)
 			}
 		}
 

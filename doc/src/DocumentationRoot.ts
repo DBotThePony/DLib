@@ -82,7 +82,6 @@ class DocumentationRoot {
 	}
 
 	generateFiles(outputDir: string) {
-		const index = this.generateIndex()
 		mkdir(outputDir)
 		mkdir(outputDir + '/sub')
 		mkdir(outputDir + '/classes')
@@ -90,7 +89,8 @@ class DocumentationRoot {
 		mkdir(outputDir + '/hooks')
 		mkdir(outputDir + '/panels')
 
-		fs.writeFileSync(outputDir + '/home.md', index, {encoding: 'utf8'})
+		fs.writeFileSync(outputDir + '/home.md', this.generateIndex(), {encoding: 'utf8'})
+		fs.writeFileSync(outputDir + '/functions.md', this.generateFunctionsIndex(), {encoding: 'utf8'})
 
 		for (const [name, library] of this.libraries) {
 			library.generateFiles(outputDir + '/sub/' + name)
@@ -113,6 +113,30 @@ class DocumentationRoot {
 				globalvar.generateFile(outputDir + '/functions/' + name + '.md')
 			}
 		}
+	}
+
+	generateFunctionsIndex() {
+		const output = []
+
+		for (const [name, globalvar] of this.globals) {
+			if (globalvar instanceof GLuaFunction) {
+				output.push(`* [${globalvar.name}](./functions/${name})(${globalvar.args.buildMarkdown()})`)
+			}
+		}
+
+		for (const lib of this.libraries.values()) {
+			output.push(...lib.generateFunctionListRecursive(undefined, `${lib.name}.`))
+		}
+
+		for (const eclass of this.classes.values()) {
+			output.push(...eclass.generateFunctionList(`./classes/`, `${eclass.name}:`))
+		}
+
+		output.sort()
+
+		return `# Full function list
+${output.join('  \n')}
+`
 	}
 
 	generateIndex() {
@@ -143,6 +167,7 @@ class DocumentationRoot {
 
 You can find many things outta here.
 ----------------------------
+[List of every function present inside libraries](./functions)
 ## Libraries
 ${libs.join('  \n')}
 ## Class extensions
