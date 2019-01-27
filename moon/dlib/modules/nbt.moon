@@ -19,7 +19,8 @@
 -- DEALINGS IN THE SOFTWARE.
 
 
-import assert, error, DLib, table, type from _G
+import assert, error, DLib, table from _G
+type = luatype
 
 jit.on()
 DLib.NBT = {}
@@ -27,18 +28,29 @@ DLib.NBT = {}
 -- names are deprecated
 -- (the @name variable)
 
+Typed = {}
+TypedByID = {}
+TypeID = {
+	TAG_End: 0
+	TAG_Byte: 1
+	TAG_Short: 2
+	TAG_Int: 3
+	TAG_Long: 4
+	TAG_Float: 5
+	TAG_Double: 6
+	TAG_Byte_Array: 7
+	TAG_String: 8
+	TAG_List: 9
+	TAG_Compound: 10
+	TAG_Int_Array: 11
+	TAG_Long_Array: 12
+}
+
 class DLib.NBT.Base
-	new: (name, value) =>
-		if value == nil and name ~= nil
-			value = name
-			name = 'tag'
-		elseif name == nil and value == nil
-			name = 'tag'
-			value = @GetDefault()
+	new: (value = @GetDefault()) =>
 		@length = 0 if not @length
 		@value = value
 		@CheckValue(value) if value ~= nil
-		@name = name
 
 	GetDefault: => 0
 	GetLength: => @length
@@ -54,10 +66,7 @@ class DLib.NBT.Base
 	Deserialize: (bytesbuffer) =>
 		error('Method not implemented')
 
-	GetTagName: => @name
 	GetTagID: => @@TAG_ID
-	TagName: => @GetTagName()
-	SetTagName: (name = @name) => @name = name
 	GetPayload: => @GetLength()
 	PayloadLength: => @GetPayload()
 	Varies: => false
@@ -87,14 +96,13 @@ class DLib.NBT.Base
 	IsIntArray: => @Name() == 'TAG_Int_Array'
 	IsLongArray: => @Name() == 'TAG_Long_Array'
 
-	__tostring: => @Name() .. '[' .. @GetTagName() .. '][' .. tostring(@value) .. ']'
+	__tostring: => @Name() .. '[' .. @@NAME .. '][' .. tostring(@value) .. ']'
 
 class DLib.NBT.TagEnd extends DLib.NBT.Base
 	Serialize: (bytesbuffer) => @
 	Deserialize: (bytesbuffer) => @
 	GetPayload: => 0
 	FixedPayloadLength: => 0
-	GetTagName: => ''
 	@NAME = 'TAG_End'
 	MetaName: 'NBTTagEnd'
 	GetType: => 'end'
@@ -102,6 +110,7 @@ class DLib.NBT.TagEnd extends DLib.NBT.Base
 class DLib.NBT.TagByte extends DLib.NBT.Base
 	CheckValue: (value) =>
 		super(value)
+		error('Value must be a number! ' .. type(value) .. ' given.') if type(value) ~= 'number'
 		assert(value >= -0x80 and value < 0x80, 'value overflow')
 	Serialize: (bytesbuffer) => bytesbuffer\WriteByte(@value)
 	Deserialize: (bytesbuffer) =>
@@ -116,6 +125,7 @@ class DLib.NBT.TagByte extends DLib.NBT.Base
 class DLib.NBT.TagShort extends DLib.NBT.Base
 	CheckValue: (value) =>
 		super(value)
+		error('Value must be a number! ' .. type(value) .. ' given.') if type(value) ~= 'number'
 		assert(value >= -0x8000 and value < 0x8000, 'value overflow')
 	Serialize: (bytesbuffer) => bytesbuffer\WriteInt16(@value)
 	Deserialize: (bytesbuffer) =>
@@ -130,6 +140,7 @@ class DLib.NBT.TagShort extends DLib.NBT.Base
 class DLib.NBT.TagInt extends DLib.NBT.Base
 	CheckValue: (value) =>
 		super(value)
+		error('Value must be a number! ' .. type(value) .. ' given.') if type(value) ~= 'number'
 		assert(value >= -0x40000000 and value < 0x40000000, 'value overflow')
 	Serialize: (bytesbuffer) => bytesbuffer\WriteInt32(@value)
 	Deserialize: (bytesbuffer) =>
@@ -144,6 +155,7 @@ class DLib.NBT.TagInt extends DLib.NBT.Base
 class DLib.NBT.TagLong extends DLib.NBT.Base
 	CheckValue: (value) =>
 		super(value)
+		error('Value must be a number! ' .. type(value) .. ' given.') if type(value) ~= 'number'
 		assert(value >= -9223372036854775808 and value < 9223372036854775808, 'value overflow')
 	Serialize: (bytesbuffer) => bytesbuffer\WriteInt64(@value)
 	Deserialize: (bytesbuffer) =>
@@ -156,6 +168,9 @@ class DLib.NBT.TagLong extends DLib.NBT.Base
 	MetaName: 'NBTLong'
 
 class DLib.NBT.TagFloat extends DLib.NBT.Base
+	CheckValue: (value) =>
+		super(value)
+		error('Value must be a number! ' .. type(value) .. ' given.') if type(value) ~= 'number'
 	Serialize: (bytesbuffer) => bytesbuffer\WriteFloat(@value)
 	Deserialize: (bytesbuffer) =>
 		@value = bytesbuffer\ReadFloat()
@@ -167,6 +182,9 @@ class DLib.NBT.TagFloat extends DLib.NBT.Base
 	MetaName: 'NBTFloat'
 
 class DLib.NBT.TagDouble extends DLib.NBT.Base
+	CheckValue: (value) =>
+		super(value)
+		error('Value must be a number! ' .. type(value) .. ' given.') if type(value) ~= 'number'
 	Serialize: (bytesbuffer) => bytesbuffer\WriteDouble(@value)
 	Deserialize: (bytesbuffer) =>
 		@value = bytesbuffer\ReadDouble()
@@ -199,16 +217,11 @@ class DLib.NBT.TagArrayBased extends DLib.NBT.Base
 	@FIELD_LENGTH = 1
 	@RANGE = 4
 
-	new: (name, values) =>
-		if values == nil and name ~= nil
-			values = name
-			name = 'array'
-		elseif name == nil and values == nil
-			name = 'array'
-			values = {}
-		super(name, -1)
+	new: (values) =>
+		super('array', -1)
 		@array = {}
-		@AddValue(value) for value in *values
+		if values
+			@AddValue(value) for value in *values
 
 	GetArray: => @array
 	ExtractValue: (index = 1) => @array[index]
@@ -238,7 +251,7 @@ class DLib.NBT.TagArrayBased extends DLib.NBT.Base
 	GetType: => 'array_undefined'
 	MetaName: 'NBTArray'
 
-	__tostring: => @Name() .. '[' .. @GetTagName() .. '][' .. @length .. ']{' .. tostring(@array) .. '}'
+	__tostring: => @Name() .. '[' .. @@NAME .. '][' .. @length .. ']{' .. tostring(@array) .. '}'
 
 class DLib.NBT.TagByteArray extends DLib.NBT.TagArrayBased
 	@FIELD_LENGTH = 1
@@ -246,9 +259,9 @@ class DLib.NBT.TagByteArray extends DLib.NBT.TagArrayBased
 
 	AddValue: (value) =>
 		@length += 1
-		table.insert(@GetArray(), DLib.NBT.TagByte('byte', value))
+		table.insert(@GetArray(), DLib.NBT.TagByte(value))
 		return @
-	ReadTag: (bytesbuffer) => DLib.NBT.TagByte('byte')\Deserialize(bytesbuffer)
+	ReadTag: (bytesbuffer) => DLib.NBT.TagByte()\Deserialize(bytesbuffer)
 	@NAME = 'TAG_Byte_Array'
 	GetType: => 'array_bytes'
 	MetaName: 'NBTArrayBytes'
@@ -259,9 +272,9 @@ class DLib.NBT.TagIntArray extends DLib.NBT.TagArrayBased
 
 	AddValue: (value) =>
 		@length += 1
-		table.insert(@GetArray(), DLib.NBT.TagInt('int', value))
+		table.insert(@GetArray(), DLib.NBT.TagInt(value))
 		return @
-	ReadTag: (bytesbuffer) => DLib.NBT.TagInt('int')\Deserialize(bytesbuffer)
+	ReadTag: (bytesbuffer) => DLib.NBT.TagInt()\Deserialize(bytesbuffer)
 	@NAME = 'TAG_Int_Array'
 	GetType: => 'array_ints'
 	MetaName: 'NBTArrayInt'
@@ -272,9 +285,9 @@ class DLib.NBT.TagLongArray extends DLib.NBT.TagArrayBased
 
 	AddValue: (value) =>
 		@length += 1
-		table.insert(@GetArray(), DLib.NBT.TagLong('long', value))
+		table.insert(@GetArray(), DLib.NBT.TagLong(value))
 		return @
-	ReadTag: (bytesbuffer) => DLib.NBT.TagLong('long')\Deserialize(bytesbuffer)
+	ReadTag: (bytesbuffer) => DLib.NBT.TagLong()\Deserialize(bytesbuffer)
 	@NAME = 'TAG_Long_Array'
 	GetType: => 'array_longs'
 	MetaName: 'NBTArrayLong'
@@ -283,11 +296,7 @@ class DLib.NBT.TagList extends DLib.NBT.TagArrayBased
 	@FIELD_LENGTH = -1
 	@RANGE = 4
 
-	new: (name = 'array', tagID = 1, values) =>
-		if type(name) == 'number'
-			tagID = name
-			name = 'array'
-
+	new: (tagID = 1, values) =>
 		@tagID = tagID
 		@tagClass = DLib.NBT.GetTyped(tagID)
 		error('Invalid tag ID specified as array type - ' .. tagID) if not @tagClass
@@ -318,7 +327,7 @@ class DLib.NBT.TagList extends DLib.NBT.TagArrayBased
 
 	ReadTag: (bytesbuffer) =>
 		classIn = @tagClass
-		return classIn('value')\Deserialize(bytesbuffer)
+		return classIn()\Deserialize(bytesbuffer)
 
 	GetPayload: =>
 		output = 5
@@ -328,21 +337,21 @@ class DLib.NBT.TagList extends DLib.NBT.TagArrayBased
 	@NAME = 'TAG_List'
 	GetType: => 'array'
 	MetaName: 'NBTList'
-	__tostring: => @Name() .. '[' .. @GetTagName() .. '][' .. (DLib.NBT.TYPEID_F[@tagClass.TAG_ID] or 'ERROR') .. '][' .. @length .. ']{' .. tostring(@array) .. '}'
+	__tostring: => @Name() .. '[' .. @@NAME .. '][' .. (DLib.NBT.TYPEID_F[@tagClass.TAG_ID] or 'ERROR') .. '][' .. @length .. ']{' .. tostring(@array) .. '}'
 
 class DLib.NBT.TagCompound extends DLib.NBT.Base
 	new: (name = 'data', values) =>
+		@name = name
 		@table = {}
 
-		if type(name) == 'string'
-			super(name, -1)
-			if values
-				@AddTypedValue(key, value) for key, value in pairs values
-		elseif type(name) == 'table'
-			super('data', -1)
-			@AddTypedValue(key, value) for key, value in pairs name
-		else
-			error('Invalid construction arguments')
+		super()
+
+		if values
+			@AddTypedValue(key, value) for key, value in pairs values
+
+	GetTagName: => @name
+	TagName: => @GetTagName()
+	SetTagName: (name = @name) => @name = name
 
 	ReadFile: (bytesbuffer) =>
 		status = ProtectedCall -> @ReadFileProtected(bytesbuffer)
@@ -382,14 +391,21 @@ class DLib.NBT.TagCompound extends DLib.NBT.Base
 			classIn = DLib.NBT.GetTyped(readTagID)
 			readIDLen = bytesbuffer\ReadUInt16()
 			readID = bytesbuffer\ReadBinary(readIDLen)
-			readTag = classIn(readID)
+			local readTag
+
+			if readTagID == TypeID.TAG_Compound
+				readTag = classIn(readID)
+			else
+				readTag = classIn()
+
 			readTag\Deserialize(bytesbuffer)
 			@AddTag(readID, readTag)
+
 		return @
 
 	AddTag: (key = '', value) =>
 		@table[tostring(key)] = value
-		value\SetTagName(key)
+		value\SetTagName(key) if value.SetTagName
 		return @
 
 	SetTag: (...) => @AddTag(...)
@@ -411,17 +427,17 @@ class DLib.NBT.TagCompound extends DLib.NBT.Base
 	HasTag: (key = '') => @table[tostring(key)] ~= nil
 	GetTag: (key = '') => @table[tostring(key)]
 	GetTagValue: (key = '') => @table[tostring(key)]\GetValue()
-	AddByte: (key = '', value) => @AddTag(key, DLib.NBT.TagByte(key, value))
-	AddShort: (key = '', value) => @AddTag(key, DLib.NBT.TagShort(key, value))
-	AddInt: (key = '', value) => @AddTag(key, DLib.NBT.TagInt(key, value))
-	AddFloat: (key = '', value) => @AddTag(key, DLib.NBT.TagFloat(key, value))
-	AddDouble: (key = '', value) => @AddTag(key, DLib.NBT.TagDouble(key, value))
-	AddLong: (key = '', value) => @AddTag(key, DLib.NBT.TagLong(key, value))
-	AddString: (key = '', value) => @AddTag(key, DLib.NBT.TagString(key, value))
-	AddByteArray: (key = '', values) => @AddTag2(key, DLib.NBT.TagByteArray(key, values))
-	AddIntArray: (key = '', values) => @AddTag2(key, DLib.NBT.TagIntArray(key, values))
-	AddLongArray: (key = '', values) => @AddTag2(key, DLib.NBT.TagLongArray(key, values))
-	AddTagList: (key = '', tagID, values) => @AddTag2(key, DLib.NBT.TagList(key, tagID, value))
+	AddByte: (key = '', value) => @AddTag(key, DLib.NBT.TagByte(value))
+	AddShort: (key = '', value) => @AddTag(key, DLib.NBT.TagShort(value))
+	AddInt: (key = '', value) => @AddTag(key, DLib.NBT.TagInt(value))
+	AddFloat: (key = '', value) => @AddTag(key, DLib.NBT.TagFloat(value))
+	AddDouble: (key = '', value) => @AddTag(key, DLib.NBT.TagDouble(value))
+	AddLong: (key = '', value) => @AddTag(key, DLib.NBT.TagLong(value))
+	AddString: (key = '', value) => @AddTag(key, DLib.NBT.TagString(value))
+	AddByteArray: (key = '', values) => @AddTag2(key, DLib.NBT.TagByteArray(values))
+	AddIntArray: (key = '', values) => @AddTag2(key, DLib.NBT.TagIntArray(values))
+	AddLongArray: (key = '', values) => @AddTag2(key, DLib.NBT.TagLongArray(values))
+	AddTagList: (key = '', tagID, values) => @AddTag2(key, DLib.NBT.TagList(tagID, value))
 	AddTagCompound: (key = '', values) => @AddTag2(key, DLib.NBT.TagCompound(key, value))
 	AddTypedValue: (key = '', value) =>
 		switch type(value)
@@ -438,24 +454,6 @@ class DLib.NBT.TagCompound extends DLib.NBT.Base
 	@NAME = 'TAG_Compound'
 	GetType: => 'table'
 	MetaName: 'NBTCompound'
-
-Typed = {}
-TypedByID = {}
-TypeID = {
-	TAG_End: 0
-	TAG_Byte: 1
-	TAG_Short: 2
-	TAG_Int: 3
-	TAG_Long: 4
-	TAG_Float: 5
-	TAG_Double: 6
-	TAG_Byte_Array: 7
-	TAG_String: 8
-	TAG_List: 9
-	TAG_Compound: 10
-	TAG_Int_Array: 11
-	TAG_Long_Array: 12
-}
 
 Typed[TypeID[classname.NAME]] = classname for k, classname in pairs DLib.NBT when TypeID[classname.NAME]
 TypedByID[classname.NAME] = classname for k, classname in pairs DLib.NBT
