@@ -59,22 +59,22 @@ local function __Format(tabIn, prevColor, output)
 		local valType = type(val)
 
 		if valType == 'number' then
-			table.insert(output, NUMBER_COLOR)
+			table.insert(output, NUMBER_COLOR:Copy())
 			table.insert(output, tostring(val))
-			table.insert(output, prevColor)
+			table.insert(output, prevColor:Copy())
 		elseif valType == 'string' then
 			if val:find('^https?://') then
-				table.insert(output, URL_COLOR)
+				table.insert(output, URL_COLOR:Copy())
 				table.insert(output, val)
-				table.insert(output, prevColor)
+				table.insert(output, prevColor:Copy())
 			else
 				table.insert(output, val)
 			end
 		elseif valType == 'Player' then
 			if team then
-				table.insert(output, team.GetColor(val:Team()) or ENTITY_COLOR)
+				table.insert(output, team.GetColor(val:Team()) or ENTITY_COLOR:Copy())
 			else
-				table.insert(output, ENTITY_COLOR)
+				table.insert(output, ENTITY_COLOR:Copy())
 			end
 
 			table.insert(output, val:Nick())
@@ -83,32 +83,32 @@ local function __Format(tabIn, prevColor, output)
 				table.insert(output, ' (' .. val:SteamName() .. ')')
 			end
 
-			table.insert(output, STEAMID_COLOR)
+			table.insert(output, STEAMID_COLOR:Copy())
 			table.insert(output, '<')
 			table.insert(output, val:SteamID())
 			table.insert(output, '>')
-			table.insert(output, prevColor)
+			table.insert(output, prevColor:Copy())
 		elseif valType == 'Entity' or valType == 'NPC' or valType == 'Vehicle' then
-			table.insert(output, ENTITY_COLOR)
+			table.insert(output, ENTITY_COLOR:Copy())
 			table.insert(output, tostring(val))
-			table.insert(output, prevColor)
+			table.insert(output, prevColor:Copy())
 		elseif valType == 'table' then
 			if val.r and val.g and val.b then
 				table.insert(output, val)
 				prevColor = val
 			else
-				table.insert(output, TABLE_COLOR)
+				table.insert(output, TABLE_COLOR:Copy())
 				table.insert(output, tostring(val))
-				table.insert(output, prevColor)
+				table.insert(output, prevColor:Copy())
 			end
 		elseif valType == 'function' then
-			table.insert(output, FUNCTION_COLOR)
+			table.insert(output, FUNCTION_COLOR:Copy())
 			table.insert(output, string.format('function - %p', val))
-			table.insert(output, prevColor)
+			table.insert(output, prevColor:Copy())
 		elseif valType == 'boolean' then
-			table.insert(output, BOOLEAN_COLOR)
+			table.insert(output, BOOLEAN_COLOR:Copy())
 			table.insert(output, tostring(val))
-			table.insert(output, prevColor)
+			table.insert(output, prevColor:Copy())
 		else
 			table.insert(output, tostring(val))
 		end
@@ -792,6 +792,11 @@ return function(tableTarget, moduleName, moduleColor)
 		tableTo.LPrintError = LPrintError
 		tableTo.MessageError = PrintError
 		tableTo.LMessageError = LPrintError
+
+		tableTo.textcolor = Color(DEFAULT_TEXT_COLOR)
+		tableTo.textcolorWarn = Color(WARNING_COLOR)
+		tableTo.textcolorErr = Color(ERROR_COLOR)
+		tableTo.textcolorError = Color(ERROR_COLOR)
 
 		tableTo.RepackMessage = RepackMessage
 		tableTo.FormatMessage = FormatMessage
