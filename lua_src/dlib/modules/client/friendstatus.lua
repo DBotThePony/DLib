@@ -22,7 +22,7 @@
 local LocalPlayer = LocalPlayer
 local net = net
 local plyMeta = FindMetaTable('Player')
-local cl_dlib_steamfriends = CreateClientConVar('cl_dlib_steamfriends', '1', true, true, 'Treat Steam friends as ANY DLib buddy')
+local cl_dlib_steamfriends = CreateClientConVar('cl_dlib_steamfriends', '1', true, true, 'Consider Steam friends as DLib friends')
 
 DLib.getinfo.Replicate('cl_dlib_steamfriends')
 

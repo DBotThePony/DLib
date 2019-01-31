@@ -55,7 +55,7 @@ gui.dlib.friends.invalid.title = 'Invalid SteamID'
 gui.dlib.friends.invalid.ok = 'Okay :('
 gui.dlib.friends.invalid.desc = '%q doesnt look like valid steamid!'
 
-gui.dlib.friends.settings.steam = 'Treat steam friends as DLib friends'
+gui.dlib.friends.settings.steam = 'Consider Steam friends as DLib friends'
 gui.dlib.friends.settings.your = 'Your friends ->'
 gui.dlib.friends.settings.server = 'Server players ->'
 
