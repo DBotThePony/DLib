@@ -73,6 +73,13 @@ _G.HOOK_MONITOR_LOW = 2
 local maximalPriority = -10
 local minimalPriority = 10
 
+--[[
+	@doc
+	@fname hook.GetTable
+	@replaces
+	@returns
+	table: `table<string, table<string, function>>`
+]]
 local function GetTable()
 	return __tableGmod
 end
