@@ -332,6 +332,7 @@ if CLIENT then
 
 	--[[
 		@doc
+		@replaces
 		@fname Vehicle:GetDriver
 
 		@desc

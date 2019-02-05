@@ -43,6 +43,7 @@ class DocumentationRoot {
 	classes = new Map<string, GLuaClassExtension>()
 	globals = new Map<string, GLuaEntryBase>()
 	hooks = new Map<string, GLuaHook>()
+	replaces = new Map<string, GLuaEntryBase>()
 
 	getPanelLink(panelID: string, linkPrefix = '') {
 		if (this.panels.has(panelID)) {
@@ -91,6 +92,7 @@ class DocumentationRoot {
 
 		fs.writeFileSync(outputDir + '/home.md', this.generateIndex(), {encoding: 'utf8'})
 		fs.writeFileSync(outputDir + '/functions.md', this.generateFunctionsIndex(), {encoding: 'utf8'})
+		fs.writeFileSync(outputDir + '/replaces.md', this.generateReplacementsIndex(), {encoding: 'utf8'})
 
 		for (const [name, library] of this.libraries) {
 			library.generateFiles(outputDir + '/sub/' + name)
@@ -139,6 +141,24 @@ ${output.join('  \n')}
 `
 	}
 
+	generateReplacementsIndex() {
+		const output = []
+
+		for (const [name, globalvar] of this.replaces) {
+			if (globalvar instanceof GLuaFunction) {
+				output.push(`* ${globalvar.generateFullLink()}(${globalvar.args.buildMarkdown()})`)
+			}
+		}
+
+		output.sort()
+
+		return `# Full list of functions which replace default ones
+**This list does not include any implicit replacements caused by these replacements.**
+
+${output.join('  \n')}
+`
+	}
+
 	generateIndex() {
 		const libs = []
 		const classes = []
@@ -168,6 +188,8 @@ ${output.join('  \n')}
 You can find many things outta here.
 ----------------------------
 [List of every function present inside libraries](./functions)
+
+[List of functions which replace vanilla ones](./replaces)
 ## Libraries
 ${libs.join('  \n')}
 ## Class extensions
@@ -199,6 +221,10 @@ ${panels.join('  \n')}
 		if (annotation.isFunction) {
 			const func = new GLuaFunction(this, annotation.funcname!, annotation.funcname!, annotation.description)
 			func.importFrom(annotation)
+
+			if (func.replacesDefault) {
+				this.replaces.set(annotation.funcname!, func)
+			}
 
 			if (annotation.namespace != null) {
 				this.getClassExt(annotation.namespace).add(func)

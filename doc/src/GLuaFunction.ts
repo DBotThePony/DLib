@@ -36,6 +36,16 @@ class GLuaFunction extends GLuaEntryBase {
 		}
 	}
 
+	generateFullLink() {
+		let levels = ''
+
+		if (this.library) {
+			levels = this.library.buildLevels(2)
+		}
+
+		return `${levels}[${this.name}](./functions/${this.name})`
+	}
+
 	generatePage() {
 		let levels = ''
 
@@ -57,6 +67,7 @@ ${this.generateDescription(this.library && this.library.pathToRoot() || '../')}
 
 ${this.generateDeprecated()}
 ${this.generateInternal()}
+${this.generateReplaces()}
 
 ---------------------
 

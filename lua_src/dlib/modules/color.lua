@@ -40,6 +40,7 @@ debug.getregistry().Color = colorMeta
 --[[
 	@doc
 	@fname Color
+	@replaces
 	@args any r = 255, number g = 255, number b = 255, number a = 255
 
 	@desc
@@ -90,6 +91,7 @@ end
 --[[
 	@doc
 	@fname IsColor
+	@replaces
 	@args any value
 
 	@desc
@@ -106,6 +108,7 @@ local IsColor
 --[[
 	@doc
 	@fname ColorAlpha
+	@replaces
 	@args Color target, number newAlpha
 
 	@returns
@@ -351,7 +354,9 @@ local HSVToColorC = HSVToColorC
 
 	@desc
 	JIT compilable !g:HSVToColor
-	**THIS FUNCTION REPLICATES NUMBER BITWISE LEFT SHIFT OVERFLOW FROM ORIGINAL FUNCTION**
+	**THIS FUNCTION REPLICATES NUMBER BITWISE LEFT SHIFT OVERFLOW BUG FROM ORIGINAL FUNCTION**
+	**THIS FUNCTION REPLICATES COLOR VALUE CLAMP BY `%` DIVISION BUG FROM ORIGINAL FUNCTION**
+	**this function allows overflown hue value like original function**
 	@enddesc
 
 	@returns
@@ -394,6 +399,7 @@ end
 --[[
 	@doc
 	@fname HSVToColor
+	@replaces
 	@args number hue, number saturation, number value
 
 	@desc

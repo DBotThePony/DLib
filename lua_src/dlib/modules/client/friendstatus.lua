@@ -30,6 +30,7 @@ plyMeta.GetFriendStatusDLib = plyMeta.GetFriendStatusDLib or plyMeta.GetFriendSt
 
 --[[
 	@doc
+	@replaces
 	@fname Player:GetFriendStatus
 	@args Player targetPly
 

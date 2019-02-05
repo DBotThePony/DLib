@@ -28,9 +28,15 @@ local tostring = tostring
 local table = table
 local type = type
 
-player.all = player.GetAll
-player.getAll = player.GetAll
+--[[
+	@doc
+	@replaces
+	@fname player.InRange
+	@args Vector position, number range
 
+	@returns
+	table: of players
+]]
 function player.InRange(position, range)
 	range = range ^ 2
 
@@ -45,7 +51,19 @@ function player.InRange(position, range)
 	return output
 end
 
--- Fix performance a bit
+--[[
+	@doc
+	@replaces
+	@fname player.GetBySteamID
+	@args string steamid
+
+	@desc
+	!g:player.GetBySteamID but with ipairs (sligtly better performance on heavy servers)
+	@enddesc
+
+	@returns
+	Player: or false if player is not found
+]]
 function player.GetBySteamID(steamid)
 	steamid = steamid:upper()
 
@@ -56,6 +74,19 @@ function player.GetBySteamID(steamid)
 	return false
 end
 
+--[[
+	@doc
+	@replaces
+	@fname player.GetBySteamID64
+	@args string steamid64
+
+	@desc
+	!g:player.GetBySteamID64 but with ipairs (sligtly better performance on heavy servers)
+	@enddesc
+
+	@returns
+	Player: or false if player is not found
+]]
 function player.GetBySteamID64(steamid)
 	steamid = tostring(steamid)
 
@@ -66,6 +97,19 @@ function player.GetBySteamID64(steamid)
 	return false
 end
 
+--[[
+	@doc
+	@replaces
+	@fname player.GetByUniqueID
+	@args string uid
+
+	@desc
+	!g:player.GetByUniqueID but with ipairs (sligtly better performance on heavy servers)
+	@enddesc
+
+	@returns
+	Player: or false if player is not found
+]]
 function player.GetByUniqueID(id)
 	for i, ply in ipairs(player.GetAll()) do
 		if id == ply:UniqueID() then return ply end
@@ -75,7 +119,6 @@ function player.GetByUniqueID(id)
 end
 
 local plyMeta = FindMetaTable('Player')
-
 
 --[[
 	@doc

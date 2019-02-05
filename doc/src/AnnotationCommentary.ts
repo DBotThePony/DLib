@@ -38,6 +38,7 @@ class AnnotationCommentary {
 	isShared = true
 	isClientside = false
 	isServerside = false
+	replacesDefault = false
 
 	parent = 'EditablePanel'
 	protected currentLine: string | null = null
@@ -135,6 +136,11 @@ class AnnotationCommentary {
 
 			if (lower == '@deprecated') {
 				this.isDeprecated = true
+				continue
+			}
+
+			if (lower == '@replaces') {
+				this.replacesDefault = true
 				continue
 			}
 

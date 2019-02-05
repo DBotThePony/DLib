@@ -470,11 +470,6 @@ if CLIENT then
 	local use_type = CreateConVar('dlib_screenscale', '1', {FCVAR_ARCHIVE}, 'Use screen height as screen scale parameter instead of screen width')
 	local ScrWL = ScrWL
 	local ScrHL = ScrHL
-
-	function _G.ScreenScale(modify)
-		return ScrWL() / 640 * modify
-	end
-
 	local screenfunc
 
 	if use_type:GetBool() then

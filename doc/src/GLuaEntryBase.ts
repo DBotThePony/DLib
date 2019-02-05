@@ -37,6 +37,7 @@ class GLuaEntryBase {
 	avoid = false
 	override = false
 	buggy = false
+	replacesDefault = false
 
 	get isGlobal() { return this.library == null }
 
@@ -62,6 +63,7 @@ class GLuaEntryBase {
 		this.deprecated = annotation.isDeprecated
 		this.internal = annotation.isInternal
 		this.realm = annotation.isShared ? GLuaRealm.SHARED : annotation.isClientside ? GLuaRealm.CLIENT : GLuaRealm.SERVER
+		this.replacesDefault = annotation.replacesDefault
 	}
 
 	generateFile(outputFile: string) {
@@ -105,7 +107,11 @@ class GLuaEntryBase {
 	}
 
 	generateDeprecated() {
-		return this.deprecated && '\n**DEPRECATED: This funciton is either deprecated in DLib or GMod itself (if acceptable). Please avoid usage of this.**' || ''
+		return this.deprecated && '\n**DEPRECATED: This funciton is either deprecated in DLib or GMod itself (if acceptable). Please avoid usage of this.**\n' || ''
+	}
+
+	generateReplaces() {
+		return this.replacesDefault && '\n**This function replaces default one. Replicating buggy vanilla behavior is not guranteed (if function is not meant to fix specific bug)**\n' || ''
 	}
 
 	generateInternal() {

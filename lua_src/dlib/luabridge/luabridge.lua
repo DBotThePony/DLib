@@ -87,6 +87,52 @@ if CLIENT then
 	timer.Create('DLib.DrawWeaponSelection', 10, 0, updateWeaponFix)
 	updateWeaponFix()
 
+	--[[
+		@doc
+		@fname vgui.Create
+		@replaces
+		@args string tableName, Panel parent, vararg any
+
+		@desc
+		Patched !g:vgui.Create which
+		throws an (no call aborting) error with stack trace when attempting to create non existant panel
+		and with hooks `VGUIPanelConstructed`, `VGUIPanelInitialized` and `VGUIPanelCreated` being called inside it
+		if other mod already overrides this function, override is aborted and i18n will be rendered useless for panels
+		@enddesc
+
+		@returns
+		Panel: the created panel or nil if panel doesn't exist (with an error sent to error handler)
+	]]
+
+	--[[
+		@doc
+		@hook VGUIPanelConstructed
+		@args Panel self, Panel parent, vararg any
+
+		@desc
+		Called **before** `Panel:Init()` called
+		@enddesc
+	]]
+
+	--[[
+		@doc
+		@hook VGUIPanelInitialized
+		@args Panel self, Panel parent, vararg any
+
+		@desc
+		Called **before** `Panel:Prepare()` called
+		@enddesc
+	]]
+
+	--[[
+		@doc
+		@hook VGUIPanelCreated
+		@args Panel self, Panel parent, vararg any
+
+		@desc
+		Called **after** everything.
+		@enddesc
+	]]
 	if not DLib._PanelDefinitions then
 		local patched = false
 

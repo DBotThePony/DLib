@@ -109,6 +109,7 @@ end
 
 --[[
 	@doc
+	@replaces
 	@fname hook.GetULibTable
 
 	@desc
@@ -483,6 +484,7 @@ end
 --[[
 	@doc
 	@fname hook.Add
+	@replaces
 	@args string event, any hookID, function callback, number priority = 0
 
 	@desc
@@ -560,6 +562,7 @@ end
 --[[
 	@doc
 	@fname hook.Remove
+	@replaces
 	@args string event, any hookID
 ]]
 function hook.Remove(event, stringID)
@@ -991,6 +994,7 @@ end
 --[[
 	@doc
 	@fname hook.Call
+	@replaces
 	@args string event, table hookTable, vararg arguments
 
 	@returns
@@ -1118,6 +1122,7 @@ end
 --[[
 	@doc
 	@fname hook.Run
+	@replaces
 	@args string event, vararg arguments
 
 	@returns
@@ -1127,6 +1132,7 @@ end
 --[[
 	@doc
 	@fname gamemode.Call
+	@replaces
 	@args string event, vararg arguments
 
 	@returns
