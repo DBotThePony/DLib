@@ -115,7 +115,7 @@ class VLL2.FileSystem
 	@ToPattern = (fexp) -> fexp\gsub('%.', '%%.')\gsub('%*', '.*')
 
 	@Canonize = (fpath) ->
-		return fpath if not string.find(fpath, '..', 1, true)
+		return fpath if not string.find(fpath, '..', 1, true) and not string.find(fpath, '/./', 1, true)
 		starts = string.find(fpath, '..', 1, true)
 		return if starts == 1
 		split = [str for str in string.gmatch(fpath, '/')]
@@ -131,6 +131,10 @@ class VLL2.FileSystem
 				else
 					splice(split, i - 1, 2)
 					i -= 2
+			elseif value == '.'
+				splice(split, i - 1, 1)
+				i -= 1
+
 		return table.concat(split, '/')
 
 	new: =>
