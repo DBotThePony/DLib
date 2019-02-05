@@ -342,6 +342,54 @@ _G.ColorBE = _G.ColorFromNumber
 	table
 ]]
 _G.HSVToColorC = HSVToColorC or HSVToColor
+local HSVToColorC = HSVToColorC
+
+--[[
+	@doc
+	@fname HSVToColorLua
+	@args number hue, number saturation, number value
+
+	@desc
+	JIT compilable !g:HSVToColor
+	**THIS FUNCTION REPLICATES NUMBER BITWISE LEFT SHIFT OVERFLOW FROM ORIGINAL FUNCTION**
+	@enddesc
+
+	@returns
+	Color
+]]
+function _G.HSVToColorLua(hue, saturation, value)
+	assert(type(hue) == 'number', 'Hue expected to be a number, ' .. type(hue) .. ' given')
+	assert(type(saturation) == 'number', 'Saturation expected to be a number, ' .. type(hue) .. ' given')
+	assert(type(value) == 'number', 'Value (brightness) expected to be a number, ' .. type(hue) .. ' given')
+
+	hue = (hue % 360):floor()
+	if hue < 0 then hue = 360 + hue end
+	--saturation = saturation:clamp(0, 1)
+	value = value % 1
+
+	local huei = (hue / 60):floor() % 6
+	local valueMin = (1 - saturation) * value
+	local delta = (value - valueMin) * (hue % 60) / 60
+	local valueInc = valueMin + delta
+	local valueDec = value - delta
+	local colorValue = 0
+
+	if huei == 0 then
+		colorValue = (value * 255):lshift(16) + (valueInc * 255):lshift(8) + valueMin * 255
+	elseif huei == 1 then
+		colorValue = (valueDec * 255):lshift(16) + (value * 255):lshift(8) + valueMin * 255
+	elseif huei == 2 then
+		colorValue = (valueMin * 255):lshift(16) + (value * 255):lshift(8) + valueInc * 255
+	elseif huei == 3 then
+		colorValue = (valueMin * 255):lshift(16) + (valueDec * 255):lshift(8) + value * 255
+	elseif huei == 4 then
+		colorValue = (valueInc * 255):lshift(16) + (valueMin * 255):lshift(8) + value * 255
+	else
+		colorValue = (value * 255):lshift(16) + (valueMin * 255):lshift(8) + valueDec * 255
+	end
+
+	return ColorFromNumber(colorValue)
+end
 
 --[[
 	@doc
@@ -349,43 +397,14 @@ _G.HSVToColorC = HSVToColorC or HSVToColor
 	@args number hue, number saturation, number value
 
 	@desc
-	the new !g:HSVToColor
-	unlike GMod's, this one throws an error on any invalid value
-	and metatable of color is properly set up
+	!g:HSVToColor with metatable fixed
 	@enddesc
 
 	@returns
 	Color
 ]]
 function _G.HSVToColor(hue, saturation, value)
-	assert(type(hue) == 'number', 'Hue expected to be a number, ' .. type(hue) .. ' given')
-	assert(type(saturation) == 'number', 'Saturation expected to be a number, ' .. type(hue) .. ' given')
-	assert(type(value) == 'number', 'Value (brightness) expected to be a number, ' .. type(hue) .. ' given')
-
-	hue = (hue % 360):floor()
-	if hue < 0 then hue = 360 + hue end
-	saturation = saturation:clamp(0, 1)
-	value = value:clamp(0, 1)
-
-	local huei = (hue / 60):floor() % 6
-	local valueMin = (1 - saturation) * value
-	local delta = (value - valueMin) * (hue % 60) / 60
-	local valueInc = valueMin + delta
-	local valueDec = value - delta
-
-	if huei == 0 then
-		return Color(value * 255, valueInc * 255, valueMin * 255)
-	elseif huei == 1 then
-		return Color(valueDec * 255, value * 255, valueMin * 255)
-	elseif huei == 2 then
-		return Color(valueMin * 255, value * 255, valueInc * 255)
-	elseif huei == 3 then
-		return Color(valueMin * 255, valueDec * 255, value * 255)
-	elseif huei == 4 then
-		return Color(valueInc * 255, valueMin * 255, value * 255)
-	end
-
-	return Color(value * 255, valueMin * 255, valueDec * 255)
+	return setmetatable(HSVToColorC(hue, saturation, value), colorMeta)
 end
 
 --[[
