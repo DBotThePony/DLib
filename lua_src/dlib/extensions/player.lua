@@ -30,7 +30,6 @@ local type = type
 
 --[[
 	@doc
-	@replaces
 	@fname player.InRange
 	@args Vector position, number range
 
