@@ -126,7 +126,7 @@ class DocumentationRoot {
 		}
 
 		for (const lib of this.libraries.values()) {
-			output.push(...lib.generateFunctionListRecursive(undefined, `${lib.name}.`))
+			output.push(...lib.generateFunctionListRecursive('./sub/', `${lib.name}.`))
 		}
 
 		for (const eclass of this.classes.values()) {
@@ -150,7 +150,7 @@ ${output.join('  \n')}
 		}
 
 		for (const lib of this.libraries.values()) {
-			output.push(...lib.generateReplacesFunctionListRecursive(undefined, `${lib.name}.`))
+			output.push(...lib.generateReplacesFunctionListRecursive('./sub/', `${lib.name}.`))
 		}
 
 		output.sort()
