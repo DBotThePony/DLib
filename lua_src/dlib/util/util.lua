@@ -340,6 +340,7 @@ end
 --[[
 	@doc
 	@fname PrintTable
+	@replaces
 	@args table value
 
 	@desc
