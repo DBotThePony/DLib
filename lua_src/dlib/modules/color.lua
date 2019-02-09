@@ -354,9 +354,9 @@ local HSVToColorC = HSVToColorC
 
 	@desc
 	JIT compilable !g:HSVToColor
-	**THIS FUNCTION REPLICATES NUMBER BITWISE LEFT SHIFT OVERFLOW BUG FROM ORIGINAL FUNCTION**
-	**THIS FUNCTION REPLICATES COLOR VALUE CLAMP BY `%` DIVISION BUG FROM ORIGINAL FUNCTION**
-	**this function allows overflown hue value like original function**
+	**This function has metatable of color fixed**
+	**This function has left birwise shift overflow fixed**
+	**This function clamp saturation and value (unlike original function), and modulo divide hue (like original function)**
 	@enddesc
 
 	@returns
@@ -369,31 +369,28 @@ function _G.HSVToColorLua(hue, saturation, value)
 
 	hue = (hue % 360):floor()
 	if hue < 0 then hue = 360 + hue end
-	--saturation = saturation:clamp(0, 1)
-	value = value % 1
+	saturation = saturation:clamp(0, 1)
+	value = value:clamp(0, 1)
 
 	local huei = (hue / 60):floor() % 6
 	local valueMin = (1 - saturation) * value
 	local delta = (value - valueMin) * (hue % 60) / 60
 	local valueInc = valueMin + delta
 	local valueDec = value - delta
-	local colorValue = 0
 
 	if huei == 0 then
-		colorValue = (value * 255):lshift(16) + (valueInc * 255):lshift(8) + valueMin * 255
+		return Color(value * 255, valueInc * 255, valueMin * 255)
 	elseif huei == 1 then
-		colorValue = (valueDec * 255):lshift(16) + (value * 255):lshift(8) + valueMin * 255
+		return Color(valueDec * 255, value * 255, valueMin * 255)
 	elseif huei == 2 then
-		colorValue = (valueMin * 255):lshift(16) + (value * 255):lshift(8) + valueInc * 255
+		return Color(valueMin * 255, value * 255, valueInc * 255)
 	elseif huei == 3 then
-		colorValue = (valueMin * 255):lshift(16) + (valueDec * 255):lshift(8) + value * 255
+		return Color(valueMin * 255, valueDec * 255, value * 255)
 	elseif huei == 4 then
-		colorValue = (valueInc * 255):lshift(16) + (valueMin * 255):lshift(8) + value * 255
-	else
-		colorValue = (value * 255):lshift(16) + (valueMin * 255):lshift(8) + valueDec * 255
+		return Color(valueInc * 255, valueMin * 255, value * 255)
 	end
 
-	return ColorFromNumber(colorValue)
+	return Color(value * 255, valueMin * 255, valueDec * 255)
 end
 
 --[[
