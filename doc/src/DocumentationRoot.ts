@@ -43,7 +43,6 @@ class DocumentationRoot {
 	classes = new Map<string, GLuaClassExtension>()
 	globals = new Map<string, GLuaEntryBase>()
 	hooks = new Map<string, GLuaHook>()
-	replaces = new Map<string, GLuaEntryBase>()
 
 	getPanelLink(panelID: string, linkPrefix = '') {
 		if (this.panels.has(panelID)) {
@@ -144,10 +143,14 @@ ${output.join('  \n')}
 	generateReplacementsIndex() {
 		const output = []
 
-		for (const [name, globalvar] of this.replaces) {
-			if (globalvar instanceof GLuaFunction) {
+		for (const [name, globalvar] of this.globals) {
+			if (globalvar instanceof GLuaFunction && globalvar.replacesDefault) {
 				output.push(`* ${globalvar.generateFullLink()}(${globalvar.args.buildMarkdown()})`)
 			}
+		}
+
+		for (const lib of this.libraries.values()) {
+			output.push(...lib.generateReplacesFunctionListRecursive(undefined, `${lib.name}.`))
 		}
 
 		output.sort()
@@ -221,10 +224,6 @@ ${panels.join('  \n')}
 		if (annotation.isFunction) {
 			const func = new GLuaFunction(this, annotation.funcname!, annotation.funcname!, annotation.description)
 			func.importFrom(annotation)
-
-			if (func.replacesDefault) {
-				this.replaces.set(annotation.funcname!, func)
-			}
 
 			if (annotation.namespace != null) {
 				this.getClassExt(annotation.namespace).add(func)

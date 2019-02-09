@@ -105,11 +105,35 @@ class GLuaLibrary implements IGLuaList {
 		return output
 	}
 
+	generateFunctionListReplaces(prefix = '', prefixName = '') {
+		const output = []
+
+		for (const [name, entry] of this.entries) {
+			if (entry instanceof GLuaFunction && entry.replacesDefault) {
+				output.push(`* [${prefixName}${entry.name}](${prefix}./${this.id}/functions/${name})(${entry.args.buildMarkdown()})`)
+			}
+		}
+
+		output.sort()
+
+		return output
+	}
+
 	generateFunctionListRecursive(prefix = '', prefixName = '') {
 		const output = this.generateFunctionList(prefix, prefixName)
 
 		for (const lib of this.libraries.values()) {
 			output.push(...lib.generateFunctionList(`${prefix}./${this.id}/sub/`, `${prefixName}${lib.name}.`))
+		}
+
+		return output
+	}
+
+	generateReplacesFunctionListRecursive(prefix = '', prefixName = '') {
+		const output = this.generateFunctionListReplaces(prefix, prefixName)
+
+		for (const lib of this.libraries.values()) {
+			output.push(...lib.generateReplacesFunctionListRecursive(`${prefix}./${this.id}/sub/`, `${prefixName}${lib.name}.`))
 		}
 
 		return output
