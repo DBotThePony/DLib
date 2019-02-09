@@ -111,7 +111,7 @@ class GLuaEntryBase {
 	}
 
 	generateReplaces() {
-		return this.replacesDefault && '\n**This function replaces default one. Replicating buggy vanilla behavior is not guranteed (if function is not meant to fix specific bug)**\n' || ''
+		return this.replacesDefault && '\n**This function replaces default one. Replicating buggy (where applicable) vanilla behavior is not guranteed (if function is not meant to fix specific bug)**\n' || ''
 	}
 
 	generateInternal() {
