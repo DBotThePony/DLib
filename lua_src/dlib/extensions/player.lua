@@ -129,6 +129,7 @@ local plyMeta = FindMetaTable('Player')
 ]]
 function plyMeta:GetInfoInt(convar, ifNone)
 	ifNone = ifNone or 0
+	if self:IsBot() then return ifNone end
 	local info = self:GetInfoDLib(convar)
 	return math.floor(tonumber(info or ifNone) or ifNone)
 end
@@ -143,6 +144,7 @@ end
 ]]
 function plyMeta:GetInfoFloat(convar, ifNone)
 	ifNone = ifNone or 0
+	if self:IsBot() then return ifNone end
 	local info = self:GetInfoDLib(convar)
 	return tonumber(info or ifNone) or ifNone
 end
@@ -179,6 +181,8 @@ end
 ]]
 function plyMeta:GetInfoBool(convar, ifNone)
 	if ifNone == nil then ifNone = false end
+	if self:IsBot() then return ifNone end
+
 	local info = self:GetInfoDLib(convar)
 
 	if type(info) == 'nil' or type(info) == 'no value' then
@@ -212,6 +216,7 @@ end
 -- differents from GetInfo only by 100% returning string
 function plyMeta:GetInfoString(convar, ifNone)
 	ifNone = ifNone or ''
+	if self:IsBot() then return ifNone end
 
 	local info = self:GetInfoDLib(convar)
 
