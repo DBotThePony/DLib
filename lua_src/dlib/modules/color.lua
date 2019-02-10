@@ -57,8 +57,10 @@ local function Color(r, g, b, a)
 		b = r.b
 		a = r.a
 		r = r.r
-	elseif type(r) == 'number' and r > 255 and not g and not b and not a then
+	elseif type(r) == 'number' and not g and not b and not a then
 		return ColorBE(r)
+	elseif type(r) == 'nil' and type(g) ~= 'nil' then
+		error('I think this is not something you want to do. Red is nil, Green is ' .. type(g) .. ', Blue is ' .. type(b))
 	end
 
 	r = (tonumber(r) or 255):clamp(0, 255):floor()
