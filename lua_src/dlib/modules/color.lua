@@ -363,9 +363,17 @@ local HSVToColorC = HSVToColorC
 	Color
 ]]
 function _G.HSVToColorLua(hue, saturation, value)
-	assert(type(hue) == 'number', 'Hue expected to be a number, ' .. type(hue) .. ' given')
-	assert(type(saturation) == 'number', 'Saturation expected to be a number, ' .. type(hue) .. ' given')
-	assert(type(value) == 'number', 'Value (brightness) expected to be a number, ' .. type(hue) .. ' given')
+	if type(hue) ~= 'number' then
+		error('Hue expected to be a number, ' .. type(hue) .. ' given')
+	end
+
+	if type(saturation) ~= 'number' then
+		error('Saturation expected to be a number, ' .. type(hue) .. ' given')
+	end
+
+	if type(value) ~= 'number' then
+		error('Value (brightness) expected to be a number, ' .. type(hue) .. ' given')
+	end
 
 	hue = (hue % 360):floor()
 	if hue < 0 then hue = 360 + hue end
