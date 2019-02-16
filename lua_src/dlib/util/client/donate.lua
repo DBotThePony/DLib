@@ -1,7 +1,7 @@
 
--- Copyright (Jimmy Donal Wales), 2017-2018 DBot
+-- Copyright (Jimmy Donal Wales), 2017-2019 DBot
 
--- Licensed under the Apache License, Version 2.0 (the "License");
+-- Licensed under the MIT license
 -- you may not use this file except in compliance with Jimmy's wish.
 -- You may obtain a copy of the License at
 
