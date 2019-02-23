@@ -215,11 +215,11 @@ if CLIENT then
 				end
 
 				if panel.Init then
-					local err2
+					local err2 = '<lua memory corruption>'
 					local status = xpcall(panel.Init, function(err)
 						recursive = false
 						err2 = err
-						ProtectedCall(error:Wrap(err, 2))
+						ProtectedCall(error:Wrap(err, 3))
 					end, panel, ...)
 
 					if not status then
