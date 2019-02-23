@@ -91,8 +91,6 @@ end
 function player.GetBySteamID64(steamid)
 	if type(steamid) ~= 'string' then return false end
 
-	steamid = tostring(steamid)
-
 	for i, ply in ipairs(player.GetAll()) do
 		if steamid == ply:SteamID64() then return ply end
 	end
