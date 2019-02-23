@@ -64,6 +64,8 @@ end
 	Player: or false if player is not found
 ]]
 function player.GetBySteamID(steamid)
+	if type(steamid) ~= 'string' then return false end
+
 	steamid = steamid:upper()
 
 	for i, ply in ipairs(player.GetAll()) do
@@ -87,6 +89,8 @@ end
 	Player: or false if player is not found
 ]]
 function player.GetBySteamID64(steamid)
+	if type(steamid) ~= 'string' then return false end
+
 	steamid = tostring(steamid)
 
 	for i, ply in ipairs(player.GetAll()) do
@@ -110,6 +114,12 @@ end
 	Player: or false if player is not found
 ]]
 function player.GetByUniqueID(id)
+	if type(id) == 'number' then
+		id = id:tostring()
+	end
+
+	if type(id) ~= 'string' then return false end
+
 	for i, ply in ipairs(player.GetAll()) do
 		if id == ply:UniqueID() then return ply end
 	end
