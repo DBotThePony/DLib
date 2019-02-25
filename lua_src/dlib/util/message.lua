@@ -92,15 +92,13 @@ local function __Format(tabIn, prevColor, output)
 			table.insert(output, ENTITY_COLOR:Copy())
 			table.insert(output, tostring(val))
 			table.insert(output, prevColor:Copy())
+		elseif IsColor(val) then
+			table.insert(output, val)
+			prevColor = val
 		elseif valType == 'table' then
-			if val.r and val.g and val.b then
-				table.insert(output, val)
-				prevColor = val
-			else
-				table.insert(output, TABLE_COLOR:Copy())
-				table.insert(output, tostring(val))
-				table.insert(output, prevColor:Copy())
-			end
+			table.insert(output, TABLE_COLOR:Copy())
+			table.insert(output, tostring(val))
+			table.insert(output, prevColor:Copy())
 		elseif valType == 'function' then
 			table.insert(output, FUNCTION_COLOR:Copy())
 			table.insert(output, string.format('function - %p', val))
