@@ -52,7 +52,7 @@ debug.getregistry().Color = colorMeta
 	Color: newly created object
 ]]
 local function Color(r, g, b, a)
-	if type(r) == 'table' then
+	if IsColor(r) then
 		g = r.g
 		b = r.b
 		a = r.a
