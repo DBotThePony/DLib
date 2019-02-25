@@ -139,7 +139,7 @@ do
 	end
 
 	function IsColor(object)
-		if type(object) ~= 'table' then
+		if type(object) ~= 'table' and type(object) ~= 'Color' then
 			return false
 		end
 
