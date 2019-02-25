@@ -139,10 +139,6 @@ do
 	end
 
 	function IsColor(object)
-		if type(object) ~= 'table' and type(object) ~= 'Color' then
-			return false
-		end
-
 		if getmetatable(object) == colorMeta then
 			return true
 		end
