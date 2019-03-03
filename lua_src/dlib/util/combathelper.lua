@@ -173,6 +173,7 @@ end
 	@desc
 	Attempts to find all players involved within certain entity. This can be a vehicle from another mod for example
 	(SCars or Simfphys or even Neurotec)
+	**This also include players who are spectating this entity**
 	@enddesc
 
 	@returns
@@ -183,23 +184,32 @@ function combat.findPlayers(self)
 		return false
 	end
 
+	local specs = {}
+
+	for i, ply in ipairs(player.GetAll()) do
+		if ply ~= self and ply:GetObserverTarget() == self then
+			table.insert(specs, ply)
+		end
+	end
+
 	if type(self) == 'Player' then
-		return {self}
+		table.insert(specs, self)
+		return specs
 	end
 
 	if type(self) == 'Vehicle' then
 		local driver = self:GetDriver()
 
 		if not IsValid(driver) then
-			return false
+			return #specs ~= 0 and specs
 		end
 
-		return {driver}
+		table.insert(specs, driver)
+		return specs
 	end
 
 	local MEM = {}
 	local iterate = {self}
-	local list = {}
 
 	while #iterate > 0 do
 		local ent = table.remove(iterate)
@@ -212,12 +222,12 @@ function combat.findPlayers(self)
 
 		for i, ent2 in ipairs(self:GetChildren()) do
 			if type(ent2) == 'Player' then
-				table.insert(list, ent2)
+				table.insert(specs, ent2)
 			elseif type(ent2) == 'Vehicle' then
 				local driver = ent2:GetDriver()
 
 				if IsValid(driver) then
-					table.insert(list, driver)
+					table.insert(specs, driver)
 				end
 			else
 				table.insert(iterate, ent2)
@@ -227,5 +237,5 @@ function combat.findPlayers(self)
 		::CONTINUE::
 	end
 
-	return #list ~= 0 and table.deduplicate(list) or false
+	return #specs ~= 0 and table.deduplicate(specs) or false
 end
