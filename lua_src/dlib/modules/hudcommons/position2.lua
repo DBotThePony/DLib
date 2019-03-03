@@ -31,6 +31,8 @@ local SHIFTING_CLAMP_WEP = CreateConVar('dlib_hud_shift_wepclamp', '1', {FCVAR_A
 local SHIFTING_MULT_DEF = CreateConVar('dlib_hud_shift_mult', '1', {FCVAR_ARCHIVE}, 'Multiplier of cam move affect for hud')
 local SHIFTING_MULT_WEP = CreateConVar('dlib_hud_shift_wepmult', '1', {FCVAR_ARCHIVE}, 'Multiplier of weapon move affect for hud')
 
+local SHIFTING_AIR = CreateConVar('dlib_hud_shift_midair', '1', {FCVAR_ARCHIVE}, 'Shift hud while in midair')
+
 local HUDCommons = HUDCommons
 local table = table
 local RealTimeL = RealTimeL
@@ -269,7 +271,7 @@ local function UpdateShift(delta)
 		end
 	end
 
-	if not ground and LastOnGroundIdle < RealTimeL() then
+	if not ground and LastOnGroundIdle < RealTimeL() and SHIFTING_AIR:GetBool() then
 		local anim = (RealTimeL() % math.pi) * (1 + RealTimeL():progression(LastOnGroundIdle, LastOnGroundIdle + 4)) * 5
 		Pos2.ShiftX_Ground = anim:sin() * (RealTimeL() - LastOnGroundIdle + 1):min(8) * ScreenSize(8)
 		Pos2.ShiftY_Ground = Pos2.ShiftY_Ground + M1 * delta * 5
