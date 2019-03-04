@@ -112,6 +112,31 @@ function meta:__InitVaribles()
 	self:RegisterVehicleVariable('vehicleMHP3', 'GetMaxVehicleHealth', 0)
 	self:RegisterVehicleVariable('vehicleMHP4', 'GetVehicleHealthMax', 0)
 	self:RegisterVehicleVariable('vehicleMHP5', 'GetVehicleMaxHealth', 0)
+
+	self:RegisterVariable('vehicleAmmoType', -1)
+	self:RegisterVariable('vehicleAmmoClip', -1)
+	self:RegisterVariable('vehicleAmmoMax', -1)
+
+	local lastClip, lastMax, lastType
+
+	self:SetTickHook('vehicleAmmoType', function(self, hudSelf, localPlayer, current)
+		local veh = hudSelf:GetEntityVehicle()
+
+		if IsValid(veh) and veh[funcName] then
+			lastClip, lastMax, lastType = veh:GetAmmo()
+			return lastType
+		else
+			return -1
+		end
+	end)
+
+	self:SetTickHook('vehicleAmmoClip', function(self, hudSelf, localPlayer, current)
+		return lastClip or -1
+	end)
+
+	self:SetTickHook('vehicleAmmoMax', function(self, hudSelf, localPlayer, current)
+		return lastMax or -1
+	end)
 end
 
 --[[
