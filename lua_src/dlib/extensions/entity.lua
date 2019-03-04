@@ -322,6 +322,39 @@ end
 timer.Create('DLib.RebuildVehicleListNames', 10, 0, rebuildVehicleList)
 rebuildVehicleList()
 
+--[[
+	@doc
+	@fname Vehicle:GetAmmoType
+
+	@returns
+	number
+]]
+function vehMeta:GetAmmoType()
+	return select(1, self:GetAmmo())
+end
+
+--[[
+	@doc
+	@fname Vehicle:GetAmmoClip
+
+	@returns
+	number
+]]
+function vehMeta:GetAmmoClip()
+	return select(2, self:GetAmmo())
+end
+
+--[[
+	@doc
+	@fname Vehicle:GetAmmoCount
+
+	@returns
+	number
+]]
+function vehMeta:GetAmmoCount()
+	return select(3, self:GetAmmo())
+end
+
 if CLIENT then
 	local player = player
 	local IsValid = FindMetaTable('Entity').IsValid
