@@ -34,8 +34,9 @@ else
 file.CreateDir('vll2')
 file.CreateDir('vll2/ws_cache')
 file.CreateDir('vll2/gma_cache')
+file.CreateDir('vll2/luapacks')
 
-sql.Query('CREATE TABLE IF NOT EXISTS vll2_lua_cache (fpath VARCHAR(400) PRIMARY KEY, tstamp BIGINT NOT NULL DEFAULT 0, contents BLOB NOT NULL)')
+sql.Query('DROP TABLE vll2_lua_cache')
 
 class VLL2.AbstractBundle
 	@_S = {}
@@ -50,28 +51,6 @@ class VLL2.AbstractBundle
 		return true if not @_S[bname]
 		return not @_S[bname]\IsLoading()
 
-	@FromCache = (fname, fstamp) =>
-		if not fstamp
-			data = sql.Query('SELECT contents FROM vll2_lua_cache WHERE fpath = ' .. SQLStr(fname))
-			return if not data
-			return data[1].contents
-
-		data = sql.Query('SELECT contents FROM vll2_lua_cache WHERE tstamp >= ' .. fstamp .. ' AND fpath = ' .. SQLStr(fname))
-		return if not data
-		return data[1].contents
-
-	@FromCacheMultiple = (fnames, fstamp) =>
-		format = '(' .. table.concat([SQLStr(name) for name in *fnames], ',') .. ')'
-
-		if not fstamp
-			return sql.Query('SELECT fpath, contents FROM vll2_lua_cache WHERE fpath IN  ' .. format) or {}
-
-		return sql.Query('SELECT fpath, contents FROM vll2_lua_cache WHERE tstamp >= ' .. fstamp .. ' AND fpath IN ' .. format) or {}
-
-	@WriteCache = (fname, contents, fstamp = os.time()) =>
-		sql.Query('DELETE FROM vll2_lua_cache WHERE fpath = ' .. SQLStr(fname))
-		sql.Query('INSERT INTO vll2_lua_cache (fpath, tstamp, contents) VALUES (' .. SQLStr(fname) .. ', ' .. SQLStr(fstamp) .. ', ' .. SQLStr(contents) .. ')')
-
 	new: (name) =>
 		@name = name
 		@@_S[name] = @
@@ -81,9 +60,55 @@ class VLL2.AbstractBundle
 		@globalFS = VLL2.FileSystem.INSTANCE
 		@initAfterLoad = true
 		@replicated = true
+		@dirtyCache = false
 		@errorCallbacks = {}
 		@finishCallbacks = {}
 		@loadCallbacks = {}
+
+		@cache = {}
+
+		if @cacheExists = file.Exists(@GetCachePath(), 'DATA')
+			with fStream = file.Open(@GetCachePath(), 'rb', 'DATA')
+				fsize = \Size()
+
+				while \Tell() < fsize
+					pathLen = \ReadUShort()
+					path = \Read(pathLen)
+					fstamp = \ReadULong()
+					bodyLen = \ReadULong()
+					body = \Read(bodyLen)
+					@cache[path] = {:fstamp, :body}
+
+				\Close()
+
+	GetCachePath: => 'vll2/luapacks/' .. util.CRC(@name) .. '.dat'
+	SaveCache: =>
+		return if not @dirtyCache
+
+		file.Delete(@GetCachePath()) if @cacheExists
+
+		with fStream = file.Open(@GetCachePath(), 'wb', 'DATA')
+			error('Failed to open ' .. @GetCachePath() .. ' for writing cache. Is disk full?') if not fStream
+
+			for path, {:fstamp, :body} in pairs(@cache)
+				\WriteUShort(#path)
+				\Write(path)
+				\WriteULong(fstamp)
+				\WriteULong(#body)
+				\Write(body)
+
+			\Close()
+
+		@dirtyCache = false
+
+	GetFromCache: (path, fstamp) =>
+		return if not @cache[path] or @cache[path].fstamp < fstamp
+		return @cache[path].body
+
+	WriteToCache: (path, fstamp, body) =>
+		@cache[path] = {:fstamp, :body}
+		@dirtyCache = true
+		return @
 
 	Msg: (...) => VLL2.MessageBundle(@name .. ': ', ...)
 
@@ -192,24 +217,25 @@ class VLL2.URLBundle extends VLL2.AbstractBundle
 		return if @toDownload > @downloaded
 		@status = @@STATUS_LOADED
 		@Msg('Bundle got downloaded')
+		@SaveCache()
 		@CallLoaded()
 		return if not @initAfterLoad
 		@Run()
 
-	DownloadFile: (fpath, url) =>
+	DownloadFile: (fpath, url, fstamp) =>
 		if SERVER and @cDownloading >= 16 or CLIENT and @cDownloading >= 48
-			table.insert(@downloadQueue, {fpath, url})
+			table.insert(@downloadQueue, {fpath, url, fstamp})
 			return
 
-		@DownloadNextFile(fpath, url)
+		@DownloadNextFile(fpath, url, fstamp)
 		return @
 
 	__DownloadCallback: =>
 		return if #@downloadQueue == 0
-		{fpath, url} = table.remove(@downloadQueue)
-		@DownloadNextFile(fpath, url)
+		{fpath, url, fstamp} = table.remove(@downloadQueue)
+		@DownloadNextFile(fpath, url, fstamp)
 
-	DownloadNextFile: (fpath, url) =>
+	DownloadNextFile: (fpath, url, fstamp) =>
 		assert(fpath)
 		assert(url)
 
@@ -230,6 +256,7 @@ class VLL2.URLBundle extends VLL2.AbstractBundle
 			@status = @@STATUS_ERROR
 			@Msg('download of ' .. fpath .. ' failed, reason: ' .. reason)
 			@Msg('URL: ' .. url)
+			@SaveCache()
 			@CallError()
 
 		req.success = (code = 400, body = '', headers) ->
@@ -247,7 +274,7 @@ class VLL2.URLBundle extends VLL2.AbstractBundle
 			@__DownloadCallback()
 			@fs\Write(fpath, body)
 			@globalFS\Write(fpath, body)
-			@@WriteCache(fpath, body)
+			@WriteToCache(fpath, fstamp, body)
 			@CheckIfRunnable()
 
 		HTTP(req)
@@ -256,38 +283,24 @@ class VLL2.URLBundle extends VLL2.AbstractBundle
 		@toDownload = #@bundleList
 		@downloaded = 0
 
-		checkCache = {}
 		lines = [string.Explode(';', line) for line in *@bundleList when line ~= '']
 
 		for {fpath, url, fstamp} in *lines
+			fstamp = tonumber(fstamp)
 			if not url
 				VLL2.MessageBundle(fpath, url, fstamp)
 				error('wtf')
 
-			hit = false
+			fromCache = @GetFromCache(fpath, fstamp)
 
-			for {stamp, listing} in *checkCache
-				if stamp == fstamp
-					hit = true
-					table.insert(listing, fpath)
-
-			if not hit
-				table.insert(checkCache, {fstamp, {fpath}})
-
-		toload = [{fpath, url} for {fpath, url} in *lines]
-
-		for {stamp, listing} in *checkCache
-			for {:fpath, :contents} in *@@FromCacheMultiple(listing, stamp)
-				@fs\Write(fpath, contents)
-				@globalFS\Write(fpath, contents)
+			if fromCache
+				@fs\Write(fpath, fromCache)
+				@globalFS\Write(fpath, fromCache)
 				@downloaded += 1
+			else
+				@DownloadFile(fpath, url, fstamp)
 
-				for i, entry in ipairs(toload)
-					if entry[1] == fpath
-						table.remove(toload, i)
-						break
-
-		@DownloadFile(fpath, url) for {fpath, url} in *toload
+		@Msg(@downloaded .. ' files are present in cache and are fresh')
 		@CheckIfRunnable()
 
 	Load: =>
