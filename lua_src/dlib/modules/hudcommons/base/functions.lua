@@ -546,6 +546,20 @@ end
 
 --[[
 	@doc
+	@fname HUDCommonsBase:GetAmmoFillage2
+
+	@client
+	@returns
+	number: between 0 and 1
+]]
+function meta:GetAmmoFillageVehicle()
+	if self:GetVarVehicleAmmoType() < 0 then return 1 end
+	if self:GetVarVehicleAmmoMax() < 0 then return 1 end
+	return self:GetVarVehicleAmmoClip() / self:GetVarVehicleAmmoMax()
+end
+
+--[[
+	@doc
 	@fname HUDCommonsBase:GetAmmoFillage1_Select
 
 	@client
