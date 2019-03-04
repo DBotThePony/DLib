@@ -492,16 +492,15 @@ end
 --[[
 	@doc
 	@fname HUDCommonsBase:RegisterRegularVariable
-
+	@args string var, string funcName, any default
 	@client
 
 	@desc
-	You should call this instead of `DLib.HUDCommons.Position2.DefinePosition` when making a HUD on `HUDCommonsBase`
+	Quickest way to define a direct variable of local player using direct getter
 	@enddesc
 
 	@returns
-	function: returns `x, y`
-	function: returns screen side of element (`"LEFT"`, `"RIGHT"` or `"CENTER"`)
+	table: variable's `self` table
 ]]
 function meta:RegisterRegularVariable(var, funcName, default)
 	local newSelf = self:RegisterVariable(var, default)
@@ -513,6 +512,14 @@ function meta:RegisterRegularVariable(var, funcName, default)
 	return newSelf
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:GetAmmoFillage1
+
+	@client
+	@returns
+	number: between 0 and 1
+]]
 function meta:GetAmmoFillage1()
 	if not self:ShouldDisplayAmmo() then return 1 end
 	if self:GetVarClipMax1() <= 0 then return 1 end
@@ -521,6 +528,14 @@ function meta:GetAmmoFillage1()
 	return self:GetVarClip1() / self:GetVarClipMax1()
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:GetAmmoFillage2
+
+	@client
+	@returns
+	number: between 0 and 1
+]]
 function meta:GetAmmoFillage2()
 	if not self:ShouldDisplaySecondaryAmmo() then return 1 end
 	if self:GetVarClipMax2() <= 0 then return 1 end
@@ -571,6 +586,19 @@ function meta:GetAmmoFillage2_Select()
 	return self:GetVarClip2_Select() / self:GetVarClipMax2_Select()
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:RegisterRegularWeaponVariable
+	@args string var, string funcName, any default
+	@client
+
+	@desc
+	Quickest way to define a direct variable of local weapon using direct getter
+	@enddesc
+
+	@returns
+	table: variable's `self` table
+]]
 function meta:RegisterRegularWeaponVariable(var, funcName, default)
 	local newSelf = self:RegisterVariable(var, default)
 	local newSelf2 = self:RegisterVariable(var .. '_Select', default)
@@ -598,9 +626,23 @@ function meta:RegisterRegularWeaponVariable(var, funcName, default)
 	return newSelf, newSelf2
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:GetEntityVehicle
+	@client
+
+	@desc
+	Attempts to find local vehicle more preciosly. Despite it's name, **this does not return the "vehicle" entity type**, but the entity
+	that you can assume that being a vehicle. This can be a tank entity from Neurotec, car's body from Simfphys vehicles (the "Comedy Effect")
+	and so on
+	@enddesc
+
+	@returns
+	Entity: the found vehicle or NULL if none found
+]]
 function meta:GetEntityVehicle()
 	local ply = self:SelectPlayer()
-	if not IsValid(ply) then return end
+	if not IsValid(ply) then return NULL end
 
 	local vehicle, lastVehicle = ply:GetVehicle(), NULL
 	local MEM = {}
@@ -615,6 +657,73 @@ function meta:GetEntityVehicle()
 	return lastVehicle
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:GetVehicleRecursive
+	@client
+
+	@desc
+	same as `GetEntityVehicle`, except it always return `Vehicle` type or `NULL`
+	Use this if you need to find a vehicle, and vehicle should be Source Engine based
+	@enddesc
+
+	@returns
+	Vehicle: the found vehicle or NULL if none found
+]]
+function meta:GetVehicleRecursive()
+	local ply = self:SelectPlayer()
+	if not IsValid(ply) then return NULL end
+
+	local vehicle, lastVehicle, lastValidVehicle = ply:GetVehicle(), NULL, NULL
+	local MEM = {}
+
+	while IsValid2(vehicle) and (vehicle:IsVehicle() or not vehicle:GetClass():startsWith('prop_')) do
+		if MEM[vehicle] then break end
+		lastVehicle = vehicle
+
+		if vehicle:IsVehicle() then
+			lastValidVehicle = vehicle
+		end
+
+		MEM[vehicle] = true
+		vehicle = vehicle:GetParent()
+	end
+
+	return lastValidVehicle
+end
+
+--[[
+	@doc
+	@fname HUDCommonsBase:GetVehicle
+	@client
+
+	@desc
+	simply returns a vehicle if local player is driving a one
+	this should be used instead of direct `LocalPlayer():GetVehicle()`
+	@enddesc
+
+	@returns
+	Vehicle: the found vehicle or NULL if none found
+]]
+function meta:GetVehicle()
+	local ply = self:SelectPlayer()
+	if not IsValid(ply) then return NULL end
+	return ply:GetVehicle() or NULL
+end
+
+--[[
+	@doc
+	@fname HUDCommonsBase:RegisterVehicleVariable
+	@args string var, string funcName, any default
+	@client
+
+	@desc
+	Quickest way to define a direct variable of local `GetEntityVehicle()` using direct getter
+	@enddesc
+
+	@returns
+	table: variable's `self` table
+]]
 function meta:RegisterVehicleVariable(var, funcName, default)
 	local newSelf = self:RegisterVariable(var, default)
 
@@ -631,24 +740,81 @@ function meta:RegisterVehicleVariable(var, funcName, default)
 	return newSelf
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:RegisterStrictVehicleVariable
+	@args string var, string funcName, any default
+	@client
+
+	@desc
+	Quickest way to define a direct variable of local vehicle using direct getter
+	@enddesc
+
+	@returns
+	table: variable's `self` table
+]]
+function meta:RegisterStrictVehicleVariable(var, funcName, default)
+	local newSelf = self:RegisterVariable(var, default)
+
+	self:SetTickHook(var, function(self, hudSelf, localPlayer)
+		local veh = hudSelf:GetVehicleRecursive()
+
+		if IsValid(veh) and veh[funcName] then
+			return veh[funcName](veh)
+		else
+			return newSelf.default()
+		end
+	end)
+
+	return newSelf
+end
+
+--[[
+	@doc
+	@fname HUDCommonsBase:SetAllFontsTo
+	@args string fontTarget
+	@client
+]]
 function meta:SetAllFontsTo(fontTarget)
 	for i, cvar in ipairs(self.fontCVars.font) do
 		cvar:SetString(fontTarget)
 	end
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:SetAllWeightTo
+	@args number fontWeight
+	@client
+]]
 function meta:SetAllWeightTo(weightTarget)
 	for i, cvar in ipairs(self.fontCVars.weight) do
 		cvar:SetInt(weightTarget)
 	end
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:SetAllSizeTo
+	@args number fontSize
+	@client
+]]
 function meta:SetAllSizeTo(sizeTarget)
 	for i, cvar in ipairs(self.fontCVars.size) do
 		cvar:SetFloat(sizeTarget)
 	end
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:ResetFonts
+	@client
+
+	@desc
+	Force a factory reset of fonts
+	this **SHOULD NOT** be used without notification of end user!
+	@enddesc
+]]
 function meta:ResetFonts()
 	for i, cvar in ipairs(self.fontCVars.font) do
 		cvar:Reset()
@@ -663,30 +829,91 @@ function meta:ResetFonts()
 	end
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:ResetFontsSize
+	@client
+
+	@desc
+	Force a factory reset of fonts sizes
+	this **SHOULD NOT** be used without notification of end user!
+	@enddesc
+]]
 function meta:ResetFontsSize()
 	for i, cvar in ipairs(self.fontCVars.size) do
 		cvar:Reset()
 	end
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:ResetFontsBare
+	@client
+
+	@desc
+	Force a factory reset of fonts strings
+	this **SHOULD NOT** be used without notification of end user!
+	@enddesc
+]]
 function meta:ResetFontsBare()
 	for i, cvar in ipairs(self.fontCVars.font) do
 		cvar:Reset()
 	end
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:ResetFontsWeight
+	@client
+
+	@desc
+	Force a factory reset of fonts weights
+	this **SHOULD NOT** be used without notification of end user!
+	@enddesc
+]]
 function meta:ResetFontsWeight()
 	for i, cvar in ipairs(self.fontCVars.weight) do
 		cvar:Reset()
 	end
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:CreateScalableFont
+	@args string fontBase, table fontData
+	@client
+
+	@desc
+	This should be used to define custom fonts
+	`fontData` is a regular font data structure
+	`size` property is multiplied by `ScreenSize` function
+	Returns a table that you should use with `surface.SetFont`
+	@enddesc
+
+	@returns
+	table: table of `"REGULAR"/"ITALIC"/"STRIKE"/...` -> `"font name"`
+]]
 function meta:CreateScalableFont(fontBase, fontData)
 	fontData.osize = fontData.size
 	fontData.size = math.floor(ScreenSize(fontData.size * 0.8) + 0.5)
 	return self:CreateFont(fontBase, fontData)
 end
 
+--[[
+	@doc
+	@fname HUDCommonsBase:CreateFont
+	@args string fontBase, table fontData
+	@client
+	@internal
+
+	@desc
+	Called internally from `CreateScalableFont` to define font convars and stuff
+	Returns a table that you should use with `surface.SetFont`
+	@enddesc
+
+	@returns
+	table: table of `"REGULAR"/"ITALIC"/"STRIKE"/...` -> `"font name"`
+]]
 function meta:CreateFont(fontBase, fontData)
 	self.fonts[fontBase] = fontData
 	local font = self:GetID() .. fontBase

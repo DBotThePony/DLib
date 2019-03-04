@@ -120,7 +120,7 @@ function meta:__InitVaribles()
 	local lastClip, lastMax, lastType
 
 	self:SetTickHook('vehicleAmmoType', function(self, hudSelf, localPlayer, current)
-		local veh = hudSelf:GetEntityVehicle()
+		local veh = hudSelf:GetVehicleRecursive()
 
 		if IsValid(veh) and veh[funcName] then
 			lastClip, lastMax, lastType = veh:GetAmmo()
