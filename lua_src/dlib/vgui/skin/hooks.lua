@@ -49,24 +49,44 @@ function DLib.skin:PaintExpandButton(panel, w, h)
 
 end
 
+local DefaultSkin
+
+local function access(key)
+	if DefaultSkin ~= nil then
+		return DefaultSkin[key]
+	end
+
+	DefaultSkin = derma.GetSkinTable().Default
+	return DefaultSkin[key]
+end
+
 --[[---------------------------------------------------------
 	TextEntry
 -----------------------------------------------------------]]
 function DLib.skin:PaintTextEntry(panel, w, h)
-	if panel.m_bBackground then
-		if panel:GetDisabled() then
-			self.tex.TextBox_Disabled(0, 0, w, h)
-		elseif panel:HasFocus() then
-			self.tex.TextBox_Focus(0, 0, w, h)
-		else
-			self.tex.TextBox(0, 0, w, h)
-		end
-	end
+	-- https://github.com/Facepunch/garrysmod/blob/master/garrysmod/lua/skins/default.lua#L442
+	-- this is stupid
+	local super = access('PaintTextEntry')
 
-	panel:DrawTextEntryText(panel.m_colText, panel.m_colHighlight, panel.m_colCursor)
+	if super then
+		return super(self, panel, w, h)
+	else
+		if panel.m_bBackground then
+			if panel:GetDisabled() then
+				self.tex.TextBox_Disabled(0, 0, w, h)
+			elseif panel:HasFocus() then
+				self.tex.TextBox_Focus(0, 0, w, h)
+			else
+				self.tex.TextBox(0, 0, w, h)
+			end
+		end
+
+		panel:DrawTextEntryText(panel:GetTextColor(), panel:GetHighlightColor(), panel:GetCursorColor())
+	end
 end
 
 function DLib.skin:SchemeTextEntry(panel) ---------------------- TODO
+	if access('PaintTextEntry') then return end
 	panel:SetTextColor(self.colTextEntryText)
 	panel:SetHighlightColor(self.colTextEntryTextHighlight)
 	panel:SetCursorColor(self.colTextEntryTextCursor)
@@ -425,7 +445,7 @@ function DLib.skin:PaintSelection(panel, w, h)
 end
 
 function DLib.skin:PaintSliderKnob(panel, w, h)
-	if panel:GetDisabled()  then	return self.tex.Input.Slider.H.Disabled(0, 0, w, h) end
+	if panel:GetDisabled()  then    return self.tex.Input.Slider.H.Disabled(0, 0, w, h) end
 
 	if panel.Depressed then
 		return self.tex.Input.Slider.H.Down(0, 0, w, h)

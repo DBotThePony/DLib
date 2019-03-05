@@ -83,10 +83,10 @@ DLib.skin.panel_transback = Color(255, 255, 255, 50)
 DLib.skin.tooltip = Color(255, 245, 175, 255)
 
 DLib.skin.colPropertySheet  = Color(170, 170, 170, 255)
-DLib.skin.colTab			  = DLib.skin.colPropertySheet
+DLib.skin.colTab              = DLib.skin.colPropertySheet
 DLib.skin.colTabInactive = Color(140, 140, 140, 255)
 DLib.skin.colTabShadow = Color(0, 0, 0, 170)
-DLib.skin.colTabText		  = Color(255, 255, 255, 255)
+DLib.skin.colTabText          = Color(255, 255, 255, 255)
 DLib.skin.colTabTextInactive = Color(0, 0, 0, 200)
 
 DLib.skin.colCollapsibleCategory = Color(255, 255, 255, 20)
@@ -100,6 +100,8 @@ DLib.skin.colTextEntryBorder = Color(140, 140, 140, 255)
 DLib.skin.colTextEntryText = Color(25, 25, 25, 255)
 DLib.skin.colTextEntryTextHighlight = Color(255, 255, 255, 255)
 DLib.skin.colTextEntryTextCursor = Color(0, 0, 100, 255)
+
+DLib.skin.colTextEntryTextPlaceholder = Color(100, 100, 100)
 
 DLib.skin.colMenuBG = Color(255, 255, 255, 200)
 DLib.skin.colMenuBorder = Color(0, 0, 0, 200)
