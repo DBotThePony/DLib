@@ -554,6 +554,7 @@ end
 ]]
 function meta:GetAmmoFillageVehicle()
 	if self:GetVarVehicleAmmoType() < 0 then return 1 end
+	if self:GetVarVehicleAmmoClip() == 0 then return 0 end
 	if self:GetVarVehicleAmmoMax() < 0 then return 1 end
 	return self:GetVarVehicleAmmoClip() / self:GetVarVehicleAmmoMax()
 end
