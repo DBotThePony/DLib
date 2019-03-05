@@ -70,7 +70,7 @@ class DLib.CAMIWatchdog
 		return if not ply\IsValid() or not ply.UniqueID
 
 		for perm in *@tracked.values
-			status = ProtectedCall = ->
+			status = ProtectedCall () ->
 				CAMI.PlayerHasAccess ply, perm, (has = false, reason = '') ->
 					old = @trackedReplies[perm]
 					@trackedReplies[perm] = has
