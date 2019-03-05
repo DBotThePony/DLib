@@ -518,14 +518,14 @@ end
 
 	@client
 	@returns
-	number: between 0 and 1
+	number: between 0 and 1 inclusive
 ]]
 function meta:GetAmmoFillage1()
 	if not self:ShouldDisplayAmmo() then return 1 end
 	if self:GetVarClipMax1() <= 0 then return 1 end
 	if self:GetVarClip1() <= 0 then return 0 end
 	if self:GetVarClipMax1() <= self:GetVarClip1() then return 1 end
-	return self:GetVarClip1() / self:GetVarClipMax1()
+	return (self:GetVarClip1() / self:GetVarClipMax1()):clamp(0, 1)
 end
 
 --[[
@@ -534,14 +534,14 @@ end
 
 	@client
 	@returns
-	number: between 0 and 1
+	number: between 0 and 1 inclusive
 ]]
 function meta:GetAmmoFillage2()
 	if not self:ShouldDisplaySecondaryAmmo() then return 1 end
 	if self:GetVarClipMax2() <= 0 then return 1 end
 	if self:GetVarClip2() <= 0 then return 0 end
 	if self:GetVarClipMax2() <= self:GetVarClip2() then return 1 end
-	return self:GetVarClip2() / self:GetVarClipMax2()
+	return (self:GetVarClip2() / self:GetVarClipMax2()):clamp(0, 1)
 end
 
 --[[
@@ -550,13 +550,13 @@ end
 
 	@client
 	@returns
-	number: between 0 and 1
+	number: between 0 and 1 inclusive
 ]]
 function meta:GetAmmoFillageVehicle()
 	if self:GetVarVehicleAmmoType() < 0 then return 1 end
 	if self:GetVarVehicleAmmoClip() == 0 then return 0 end
 	if self:GetVarVehicleAmmoMax() < 0 then return 1 end
-	return self:GetVarVehicleAmmoClip() / self:GetVarVehicleAmmoMax()
+	return (self:GetVarVehicleAmmoClip() / self:GetVarVehicleAmmoMax()):clamp(0, 1)
 end
 
 --[[
@@ -570,14 +570,14 @@ end
 	@enddesc
 
 	@returns
-	number: float in range of 0 to 1 inclusive
+	number: between 0 and 1 inclusive
 ]]
 function meta:GetAmmoFillage1_Select()
 	if not self:ShouldDisplayAmmo2() then return 1 end
 	if self:GetVarClipMax1_Select() <= 0 then return 1 end
 	if self:GetVarClip1_Select() <= 0 then return 0 end
 	if self:GetVarClipMax1_Select() <= self:GetVarClip1_Select() then return 1 end
-	return self:GetVarClip1_Select() / self:GetVarClipMax1_Select()
+	return (self:GetVarClip1_Select() / self:GetVarClipMax1_Select()):clamp(0, 1)
 end
 
 --[[
@@ -591,14 +591,14 @@ end
 	@enddesc
 
 	@returns
-	number: float in range of 0 to 1 inclusive
+	number: between 0 and 1 inclusive
 ]]
 function meta:GetAmmoFillage2_Select()
 	if not self:ShouldDisplaySecondaryAmmo2() then return 1 end
 	if self:GetVarClipMax2_Select() <= 0 then return 1 end
 	if self:GetVarClip2_Select() <= 0 then return 0 end
 	if self:GetVarClipMax2_Select() <= self:GetVarClip2_Select() then return 1 end
-	return self:GetVarClip2_Select() / self:GetVarClipMax2_Select()
+	return (self:GetVarClip2_Select() / self:GetVarClipMax2_Select()):clamp(0, 1)
 end
 
 --[[
