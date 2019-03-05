@@ -70,17 +70,22 @@ class DLib.CAMIWatchdog
 		return if not ply\IsValid() or not ply.UniqueID
 
 		for perm in *@tracked.values
-			CAMI.PlayerHasAccess ply, perm, (has = false, reason = '') ->
-				old = @trackedReplies[perm]
-				@trackedReplies[perm] = has
-				if old ~= has and @trackedPanels[perm]
-					cleanup = {}
-					for k, v in ipairs @trackedPanels[perm]
-						if IsValid(v)
-							v\SetEnabled(has)
-						else
-							table.insert(cleanup, k)
-					table.removeValues(@trackedPanels[perm], cleanup)
+			status = ProtectedCall = ->
+				CAMI.PlayerHasAccess ply, perm, (has = false, reason = '') ->
+					old = @trackedReplies[perm]
+					@trackedReplies[perm] = has
+					if old ~= has and @trackedPanels[perm]
+						cleanup = {}
+						for k, v in ipairs @trackedPanels[perm]
+							if IsValid(v)
+								v\SetEnabled(has)
+							else
+								table.insert(cleanup, k)
+						table.removeValues(@trackedPanels[perm], cleanup)
+
+			if not status
+				DLib.Message('Error while getting permissions for ' .. @idetifier .. '! Tell Admin mod (if problem is on its side)/Author of addon which use CAMIWatchdog')
+				DLib.Message('Permission in question: ' .. perm)
 
 	TriggerUpdateRegular: =>
 		@trackedRepliesPly = {ply, data for ply, data in pairs @trackedRepliesPly when ply\IsValid()}
