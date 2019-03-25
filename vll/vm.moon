@@ -229,6 +229,8 @@ class VLL2.VM
 
 		if type(fcall) == 'string' or ferrMsg
 			emsg = type(fcall) == 'string' and fcall or ferrMsg
+			once = false
+
 			callable = () ->
 				VLL2.MessageVM('Compilation failed for "CompileString" inside ' .. @vmName .. ':', emsg)
 				string.gsub emsg, ':[0-9]+:', (w) ->
@@ -239,8 +241,13 @@ class VLL2.VM
 						if i == fline
 							VLL2.MessageVM(line)
 							break
-				error(emsg)
+				if not once
+					once = true
+				else
+					error(emsg)
+
 			callable()
+
 			return callable, false, emsg
 
 		setfenv(fcall, @NewEnv(fdef))
