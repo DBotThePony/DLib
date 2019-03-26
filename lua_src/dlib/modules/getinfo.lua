@@ -111,6 +111,10 @@ function getinfo.Replicate(cvarname, valuetype, default)
 		nwSet = nwSet,
 	}
 
+	if CLIENT then
+		cvars.AddChangeCallback(cvarname, getinfo.ReplicateNow, 'DLib.getinfo')
+	end
+
 	getinfo.bankCRC[crc] = getinfo.bank[cvarname]
 	getinfo.bankCRC[getinfo.bank[cvarname].uid] = getinfo.bank[cvarname]
 
@@ -142,6 +146,10 @@ getinfo.Rebuild()
 
 if CLIENT then
 	timer.Create('DLib.getinfo.replication', 10, 0, function()
+		getinfo.ReplicateNow()
+	end)
+
+	function getinfo.ReplicateNow()
 		local ply = LocalPlayer()
 		if not IsValid(ply) then return end
 
@@ -163,7 +171,7 @@ if CLIENT then
 		net.WriteUInt(0, 32)
 
 		net.SendToServer()
-	end)
+	end
 else
 	net.receive('DLib.getinfo.replicate', function(len, ply)
 		if not IsValid(ply) then return end
