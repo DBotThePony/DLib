@@ -464,24 +464,4 @@ else
 		if self.GetPrintName then return self:GetPrintName() end
 		return self.PrintName
 	end
-
-	local nextBot = FindMetaTable('NextBot')
-	local GetTable = entMeta.GetTable
-
-	--[[
-		@doc
-		@fname NextBot:GetActiveWeapon
-
-		@returns
-		Weapon: or self (NextBot)
-	]]
-	function nextBot:GetActiveWeapon(...)
-		local tab = GetTable(self)
-
-		if tab.GetActiveWeapon then
-			return tab.GetActiveWeapon(self, ...)
-		end
-
-		return self
-	end
 end
