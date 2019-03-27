@@ -662,7 +662,7 @@ function meta:GetEntityVehicle()
 	local vehicle, lastVehicle = ply:GetVehicle(), NULL
 	local MEM = {}
 
-	while IsValid2(vehicle) and (vehicle:IsVehicle() or not vehicle:GetClass():startsWith('prop_')) do
+	while IsValid2(vehicle) and (type(vehicle) == 'Vehicle' or not vehicle:GetClass():startsWith('prop_')) do
 		if MEM[vehicle] then break end
 		lastVehicle = vehicle
 		MEM[vehicle] = true
@@ -692,7 +692,7 @@ function meta:GetVehicleRecursive()
 	local vehicle, lastVehicle, lastValidVehicle = ply:GetVehicle(), NULL, NULL
 	local MEM = {}
 
-	while IsValid2(vehicle) and (vehicle:IsVehicle() or not vehicle:GetClass():startsWith('prop_')) do
+	while IsValid2(vehicle) and (type(vehicle) == 'Vehicle' or not vehicle:GetClass():startsWith('prop_')) do
 		if MEM[vehicle] then break end
 		lastVehicle = vehicle
 
