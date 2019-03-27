@@ -696,7 +696,7 @@ function meta:GetVehicleRecursive()
 		if MEM[vehicle] then break end
 		lastVehicle = vehicle
 
-		if vehicle:IsVehicle() then
+		if type(vehicle) == 'Vehicle' then
 			lastValidVehicle = vehicle
 		end
 
