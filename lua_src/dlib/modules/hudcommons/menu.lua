@@ -134,8 +134,8 @@ local function PopulatePositions(Panel)
 		local parent = vgui.Create('EditablePanel', Panel)
 		collapse:SetContents(parent)
 
-		parent:Add(Panel:NumSlider('X', cvarX:GetName(), 0, 1, 2))
-		parent:Add(Panel:NumSlider('Y', cvarY:GetName(), 0, 1, 2))
+		parent:Add(Panel:NumSlider('X', cvarX:GetName(), 0, 1, 3))
+		parent:Add(Panel:NumSlider('Y', cvarY:GetName(), 0, 1, 3))
 		local reset = Panel:Button('Reset')
 
 		parent:Add(reset)

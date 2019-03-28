@@ -73,8 +73,8 @@ function meta:PopulatePositionSettings(panel)
 
 	for i, convar in SortedPairsByMemberValue(self.positionsConVars, 'name') do
 		panel:Help(convar.name)
-		panel:NumSlider('X', convar.cvarX:GetName(), 0, 1, 2)
-		panel:NumSlider('Y', convar.cvarY:GetName(), 0, 1, 2)
+		panel:NumSlider('X', convar.cvarX:GetName(), 0, 1, 3)
+		panel:NumSlider('Y', convar.cvarY:GetName(), 0, 1, 3)
 		panel:Button('Reset').DoClick = function()
 			convar.cvarX:Reset()
 			convar.cvarY:Reset()
