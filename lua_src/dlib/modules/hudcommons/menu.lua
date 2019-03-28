@@ -115,7 +115,7 @@ local function PopulatePositions(Panel)
 	Panel:Button('Reset all').DoClick = function()
 		for name, v in pairs(HUDCommons.Position2.XPositions_CVars) do
 			v:Reset()
-			v:Reset()
+			HUDCommons.Position2.YPositions_CVars[name]:Reset()
 		end
 	end
 
