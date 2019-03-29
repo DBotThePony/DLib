@@ -31,6 +31,12 @@ local LVector = LVector
 local Vector = Vector
 local Angle = Angle
 
+if CLIENT then
+	concommand.Add('dlib_gui_openurl', function(_, _, args)
+		return gui.OpenURL(table.concat(args, '%20'))
+	end)
+end
+
 --[[
 	@doc
 	@fname DLib.VCreate
