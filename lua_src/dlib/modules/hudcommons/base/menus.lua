@@ -29,6 +29,34 @@ local ipairs = ipairs
 
 --[[
 	@doc
+	@fname HUDCommonsBase:PopulateDefaultSettingsOe
+	@args Panel DFrame
+
+	@client
+	@desc
+	Getting called from PopulateDefaultSettings at END of that function
+	@enddesc
+]]
+function meta:PopulateDefaultSettingsOe(panel)
+
+end
+
+--[[
+	@doc
+	@fname HUDCommonsBase:PopulateDefaultSettingsOs
+	@args Panel DFrame
+
+	@client
+	@desc
+	Getting called from PopulateDefaultSettings at START of that function
+	@enddesc
+]]
+function meta:PopulateDefaultSettingsOs(panel)
+
+end
+
+--[[
+	@doc
 	@fname HUDCommonsBase:PopulateDefaultSettings
 	@args Panel DFrame
 
@@ -38,21 +66,47 @@ local ipairs = ipairs
 function meta:PopulateDefaultSettings(panel)
 	if not IsValid(panel) then return end
 
+	self:PopulateDefaultSettingsOs(panel)
+
 	for i, convar in ipairs(self.convars) do
 		panel:CheckBox(convar:GetHelpText(), convar:GetName()):SetTooltip(convar:GetHelpText())
 	end
+
+	self:PopulateDefaultSettingsOv(panel)
 end
 
 --[[
 	@doc
-	@fname HUDCommonsBase:PopulatePositionSettings
+	@fname HUDCommonsBase:PopulatePositionSettingsOe
 	@args Panel DFrame
 
 	@client
-	@internal
+	@desc
+	Getting called from PopulatePositionSettings on END of that function
+	@enddesc
 ]]
+function meta:PopulatePositionSettingsOe(panel)
+
+end
+
+--[[
+	@doc
+	@fname HUDCommonsBase:PopulatePositionSettingsOs
+	@args Panel DFrame
+
+	@client
+	@desc
+	Getting called from PopulatePositionSettings on START of that function
+	@enddesc
+]]
+function meta:PopulatePositionSettingsOs(panel)
+
+end
+
 function meta:PopulatePositionSettings(panel)
 	if not IsValid(panel) then return end
+
+	self:PopulatePositionSettingsOs(panel)
 
 	panel:Button('Reset all').DoClick = function()
 		for i, convar in pairs(self.positionsConVars) do
@@ -80,6 +134,8 @@ function meta:PopulatePositionSettings(panel)
 			convar.cvarY:Reset()
 		end
 	end
+
+	self:PopulatePositionSettingsOe(panel)
 end
 
 --[[
