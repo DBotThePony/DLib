@@ -200,6 +200,16 @@ function meta:GetID()
 	return self.id
 end
 
+function meta:__InsertConvarIntoTable(tab, convar)
+	for i, convar2 in ipairs(tab) do
+		if convar:GetName() == convar2:GetName() then
+			return
+		end
+	end
+
+	table.insert(tab, convar)
+end
+
 --[[
 	@doc
 	@fname HUDCommonsBase:CreateConVar
@@ -218,7 +228,7 @@ function meta:CreateConVar(cvar, default, desc, nomenu)
 	local convar = CreateConVar(self:GetID() .. '_' .. cvar, default or '1', {FCVAR_ARCHIVE}, desc or '')
 
 	if not nomenu then
-		table.insert(self.convars, convar)
+		self:__InsertConvarIntoTable(self.convars, convar)
 	end
 
 	return convar

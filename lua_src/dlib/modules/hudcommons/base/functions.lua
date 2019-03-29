@@ -479,12 +479,21 @@ end
 function meta:DefinePosition(name, ...)
 	local callable, cvarX, cvarY, callable2 = DLib.HUDCommons.Position2.DefinePosition(self:GetID() .. '_' .. name, ...)
 
-	table.insert(self.positionsConVars, {
+	local fdata = {
 		name = name:formatname2(),
 		oname = name,
 		cvarX = cvarX,
 		cvarY = cvarY
-	})
+	}
+
+	for i, data in ipairs(self.positionsConVars) do
+		if data.oname == name then
+			self.positionsConVars[i] = fdata
+			return callable, callable2
+		end
+	end
+
+	table.insert(self.positionsConVars, fdata)
 
 	return callable, callable2
 end
@@ -938,9 +947,9 @@ function meta:CreateFont(fontBase, fontData)
 	local weightVar = self:CreateConVar('fontw_' .. fontBase:lower(), fontData.weight, 'Font weight for ' .. fontBase .. ' stuff', true)
 	local sizeVar = self:CreateConVar('fonts_' .. fontBase:lower(), fontData.osize or fontData.size, 'Font size for ' .. fontBase .. ' stuff', true)
 
-	table.insert(self.fontCVars.font, cvarFont)
-	table.insert(self.fontCVars.weight, weightVar)
-	table.insert(self.fontCVars.size, sizeVar)
+	self:__InsertConvarIntoTable(self.fontCVars.font, cvarFont)
+	self:__InsertConvarIntoTable(self.fontCVars.weight, weightVar)
+	self:__InsertConvarIntoTable(self.fontCVars.size, sizeVar)
 
 	local fontNames = self.fontsNames[fontBase] or {}
 	self.fontsNames[fontBase] = fontNames
