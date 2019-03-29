@@ -72,7 +72,7 @@ function meta:PopulateDefaultSettings(panel)
 		panel:CheckBox(convar:GetHelpText(), convar:GetName()):SetTooltip(convar:GetHelpText())
 	end
 
-	self:PopulateDefaultSettingsOv(panel)
+	self:PopulateDefaultSettingsOe(panel)
 end
 
 --[[
