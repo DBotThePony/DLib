@@ -210,6 +210,10 @@ end
 	boolean
 ]]
 function meta:ShouldDisplayAmmo()
+	if self:GetVarWeaponClass() == 'weapon_slam' then
+		return true
+	end
+
 	local cache = self:GetVarCustomAmmoDisplayCache()
 
 	if cache then
@@ -229,6 +233,10 @@ end
 	boolean
 ]]
 function meta:ShouldDisplaySecondaryAmmo()
+	if self:GetVarWeaponClass() == 'weapon_slam' then
+		return false
+	end
+
 	local cache = self:GetVarCustomAmmoDisplayCache()
 
 	if cache then
@@ -252,6 +260,10 @@ end
 	boolean
 ]]
 function meta:ShouldDisplayAmmo2()
+	if self:GetVarWeaponClass_Select() == 'weapon_slam' then
+		return true
+	end
+
 	local cache = self:GetVarCustomAmmoDisplayCache_Select()
 
 	if cache then
@@ -275,6 +287,10 @@ end
 	boolean
 ]]
 function meta:ShouldDisplaySecondaryAmmo2()
+	if self:GetVarWeaponClass_Select() == 'weapon_slam' then
+		return false
+	end
+
 	local cache = self:GetVarCustomAmmoDisplayCache_Select()
 
 	if cache then
@@ -294,6 +310,10 @@ end
 	number
 ]]
 function meta:SelectSecondaryAmmoReady()
+	if self:GetVarWeaponClass() == 'weapon_slam' then
+		return -1
+	end
+
 	local cache = self:GetVarCustomAmmoDisplayCache()
 
 	if cache and cache.SecondaryAmmo then
@@ -321,6 +341,10 @@ end
 	number
 ]]
 function meta:SelectSecondaryAmmoReady2()
+	if self:GetVarWeaponClass_Select() == 'weapon_slam' then
+		return -1
+	end
+
 	local cache = self:GetVarCustomAmmoDisplayCache_Select()
 
 	if cache and cache.SecondaryAmmo then
@@ -344,6 +368,10 @@ end
 	number
 ]]
 function meta:SelectSecondaryAmmoStored()
+	if self:GetVarWeaponClass() == 'weapon_slam' then
+		return -1
+	end
+
 	local cache = self:GetVarCustomAmmoDisplayCache()
 
 	if cache and cache.SecondaryAmmo then
@@ -371,6 +399,10 @@ end
 	number
 ]]
 function meta:SelectSecondaryAmmoStored2()
+	if self:GetVarWeaponClass_Select() == 'weapon_slam' then
+		return -1
+	end
+
 	local cache = self:GetVarCustomAmmoDisplayCache_Select()
 
 	if cache and cache.SecondaryAmmo then
@@ -394,6 +426,10 @@ end
 	boolean
 ]]
 function meta:IsValidAmmoType1()
+	if self:GetVarWeaponClass() == 'weapon_slam' then
+		return true
+	end
+
 	--[[local cache = self:GetVarCustomAmmoDisplayCache_Select()
 
 	if cache then
@@ -413,6 +449,10 @@ end
 	boolean
 ]]
 function meta:IsValidAmmoType2()
+	if self:GetVarWeaponClass() == 'weapon_slam' then
+		return false
+	end
+
 	--[[local cache = self:GetVarCustomAmmoDisplayCache_Select()
 
 	if cache then
@@ -436,6 +476,10 @@ end
 	number
 ]]
 function meta:IsValidAmmoType1_Select()
+	if self:GetVarWeaponClass_Select() == 'weapon_slam' then
+		return true
+	end
+
 	return self:GetVarAmmoType1_Select() ~= -1
 end
 
@@ -453,6 +497,10 @@ end
 	number
 ]]
 function meta:IsValidAmmoType2_Select()
+	if self:GetVarWeaponClass_Select() == 'weapon_slam' then
+		return false
+	end
+
 	return self:GetVarAmmoType2_Select() ~= -1
 end
 
@@ -466,6 +514,10 @@ end
 	boolean
 ]]
 function meta:ShouldDisplayAmmoStored()
+	if self:GetVarWeaponClass() == 'weapon_slam' then
+		return false
+	end
+
 	local cache = self:GetVarCustomAmmoDisplayCache()
 
 	if cache then
@@ -492,6 +544,10 @@ end
 	boolean
 ]]
 function meta:ShouldDisplayAmmoStored2()
+	if self:GetVarWeaponClass_Select() == 'weapon_slam' then
+		return false
+	end
+
 	local cache = self:GetVarCustomAmmoDisplayCache_Select()
 
 	if cache then
@@ -514,6 +570,10 @@ end
 	boolean
 ]]
 function meta:ShouldDisplayAmmoReady()
+	if self:GetVarWeaponClass() == 'weapon_slam' then
+		return true
+	end
+
 	local cache = self:GetVarCustomAmmoDisplayCache()
 
 	if cache then
@@ -537,6 +597,10 @@ end
 	boolean
 ]]
 function meta:ShouldDisplayAmmoReady2()
+	if self:GetVarWeaponClass_Select() == 'weapon_slam' then
+		return true
+	end
+
 	local cache = self:GetVarCustomAmmoDisplayCache_Select()
 
 	if cache then
@@ -561,6 +625,10 @@ end
 	number: or -1 if no solution for ammo count is found
 ]]
 function meta:GetDisplayClip1()
+	if self:GetVarWeaponClass() == 'weapon_slam' then
+		return self:GetVarClip1()
+	end
+
 	local cache = self:GetVarCustomAmmoDisplayCache()
 
 	if cache then
@@ -597,6 +665,10 @@ end
 	number: or -1 if no solution for ammo count is found
 ]]
 function meta:GetDisplayMaxClip1()
+	if self:GetVarWeaponClass() == 'weapon_slam' then
+		return self:GetVarClip1()
+	end
+
 	return self:GetVarMaxClip1()
 end
 
@@ -615,6 +687,10 @@ end
 	number: or -1 if no solution for ammo count is found
 ]]
 function meta:GetDisplayClip2()
+	if self:GetVarWeaponClass() == 'weapon_slam' then
+		return -1
+	end
+
 	local cache = self:GetVarCustomAmmoDisplayCache()
 
 	if cache then
@@ -646,6 +722,10 @@ end
 	number: or -1 if no solution for ammo count is found
 ]]
 function meta:GetDisplayMaxClip2()
+	if self:GetVarWeaponClass() == 'weapon_slam' then
+		return -1
+	end
+
 	local cache = self:GetVarCustomAmmoDisplayCache()
 
 	if cache then
@@ -678,6 +758,10 @@ end
 	number: or -1 if no solution for ammo count is found
 ]]
 function meta:GetDisplayClip1_Select()
+	if self:GetVarWeaponClass_Select() == 'weapon_slam' then
+		return self:GetVarClip1_Select()
+	end
+
 	local cache = self:GetVarCustomAmmoDisplayCache_Select()
 
 	if cache then
@@ -696,7 +780,7 @@ function meta:GetDisplayClip1_Select()
 		return cache.PrimaryClip or -1
 	end
 
-	return self:GetVarClip1()
+	return self:GetVarClip1_Select()
 end
 
 --[[
@@ -714,6 +798,10 @@ end
 	number: or -1 if no solution for ammo count is found
 ]]
 function meta:GetDisplayMaxClip1_Select()
+	if self:GetVarWeaponClass_Select() == 'weapon_slam' then
+		return self:GetVarClip1_Select()
+	end
+
 	return self:GetVarMaxClip1_Select()
 end
 
@@ -732,6 +820,10 @@ end
 	number: or -1 if no solution for ammo count is found
 ]]
 function meta:GetDisplayClip2_Select()
+	if self:GetVarWeaponClass_Select() == 'weapon_slam' then
+		return -1
+	end
+
 	local cache = self:GetVarCustomAmmoDisplayCache_Select()
 
 	if cache then
@@ -763,6 +855,10 @@ end
 	number: or -1 if no solution for ammo count is found
 ]]
 function meta:GetDisplayMaxClip2_Select()
+	if self:GetVarWeaponClass_Select() == 'weapon_slam' then
+		return -1
+	end
+
 	local cache = self:GetVarCustomAmmoDisplayCache_Select()
 
 	if cache then
