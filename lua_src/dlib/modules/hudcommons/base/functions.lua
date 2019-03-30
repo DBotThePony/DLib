@@ -206,6 +206,17 @@ end
 
 	@client
 
+	@desc
+	Three functions exist: `ShouldDisplayAmmo`, `ShouldDisplayAmmoReady` and `ShouldDisplayAmmoStored`, along with their X2 and `Secondary` counterparts.
+	To understand how these work, there would be a table which describes what should you do in each ase
+	Depending on your HUD logic you can get next cases (assuming they go as `ShouldDisplayAmmo`, `ShouldDisplayAmmoReady`, `ShouldDisplayAmmoStored`):
+	`false`, N/A, N/A - Don't show anything
+	`true`, `false`, `false` - Use and show directly GetDisplayAmmo
+	`true`, `true`, `false` - Weapon got a clip, but got no reserve ammo. This is a very rare case (and a bit odd to be used by SWEP makers)
+	`true`, `false`, `true` - Odd case/Doesn't make sense, handle as you wish. Maybe handle as `true`, `false`, `false`
+	`true`, `true`, `true` - Display everything
+	@enddesc
+
 	@returns
 	boolean
 ]]
@@ -228,6 +239,17 @@ end
 	@fname HUDCommonsBase:ShouldDisplaySecondaryAmmo
 
 	@client
+
+	@desc
+	Three functions exist: `ShouldDisplayAmmo`, `ShouldDisplayAmmoReady` and `ShouldDisplayAmmoStored`, along with their X2 and `Secondary` counterparts.
+	To understand how these work, there would be a table which describes what should you do in each ase
+	Depending on your HUD logic you can get next cases (assuming they go as `ShouldDisplayAmmo`, `ShouldDisplayAmmoReady`, `ShouldDisplayAmmoStored`):
+	`false`, N/A, N/A - Don't show anything
+	`true`, `false`, `false` - Use and show directly GetDisplayAmmo
+	`true`, `true`, `false` - Weapon got a clip, but got no reserve ammo. This is a very rare case (and a bit odd to be used by SWEP makers)
+	`true`, `false`, `true` - Odd case/Doesn't make sense, handle as you wish. Maybe handle as `true`, `false`, `false`
+	`true`, `true`, `true` - Display everything
+	@enddesc
 
 	@returns
 	boolean
@@ -254,6 +276,16 @@ end
 
 	@desc
 	Based on `self:PredictSelectWeapon()` instead of `self:GetWeapon()`
+
+	Three functions exist: `ShouldDisplayAmmo`, `ShouldDisplayAmmoReady` and `ShouldDisplayAmmoStored`, along with their X2 and `Secondary` counterparts.
+	To understand how these work, there would be a table which describes what should you do in each ase
+	Depending on your HUD logic you can get next cases (assuming they go as `ShouldDisplayAmmo`, `ShouldDisplayAmmoReady`, `ShouldDisplayAmmoStored`):
+	`false`, N/A, N/A - Don't show anything
+	`true`, `false`, `false` - Use and show directly GetDisplayAmmo
+	`true`, `true`, `false` - Weapon got a clip, but got no reserve ammo. This is a very rare case (and a bit odd to be used by SWEP makers)
+	`true`, `false`, `true` - Odd case/Doesn't make sense, handle as you wish. Maybe handle as `true`, `false`, `false`
+	`true`, `true`, `true` - Display everything
+
 	@enddesc
 
 	@returns
@@ -281,6 +313,15 @@ end
 
 	@desc
 	Based on `self:PredictSelectWeapon()` instead of `self:GetWeapon()`
+
+	Three functions exist: `ShouldDisplayAmmo`, `ShouldDisplayAmmoReady` and `ShouldDisplayAmmoStored`, along with their X2 and `Secondary` counterparts.
+	To understand how these work, there would be a table which describes what should you do in each ase
+	Depending on your HUD logic you can get next cases (assuming they go as `ShouldDisplayAmmo`, `ShouldDisplayAmmoReady`, `ShouldDisplayAmmoStored`):
+	`false`, N/A, N/A - Don't show anything
+	`true`, `false`, `false` - Use and show directly GetDisplayAmmo
+	`true`, `true`, `false` - Weapon got a clip, but got no reserve ammo. This is a very rare case (and a bit odd to be used by SWEP makers)
+	`true`, `false`, `true` - Odd case/Doesn't make sense, handle as you wish. Maybe handle as `true`, `false`, `false`
+	`true`, `true`, `true` - Display everything
 	@enddesc
 
 	@returns
@@ -510,6 +551,17 @@ end
 
 	@client
 
+	@desc
+	Three functions exist: `ShouldDisplayAmmo`, `ShouldDisplayAmmoReady` and `ShouldDisplayAmmoStored`, along with their X2 and `Secondary` counterparts.
+	To understand how these work, there would be a table which describes what should you do in each ase
+	Depending on your HUD logic you can get next cases (assuming they go as `ShouldDisplayAmmo`, `ShouldDisplayAmmoReady`, `ShouldDisplayAmmoStored`):
+	`false`, N/A, N/A - Don't show anything
+	`true`, `false`, `false` - Use and show directly GetDisplayAmmo
+	`true`, `true`, `false` - Weapon got a clip, but got no reserve ammo. This is a very rare case (and a bit odd to be used by SWEP makers)
+	`true`, `false`, `true` - Odd case/Doesn't make sense, handle as you wish. Maybe handle as `true`, `false`, `false`
+	`true`, `true`, `true` - Display everything
+	@enddesc
+
 	@returns
 	boolean
 ]]
@@ -538,6 +590,15 @@ end
 
 	@desc
 	Based on `self:PredictSelectWeapon()` instead of `self:GetWeapon()`
+
+	Three functions exist: `ShouldDisplayAmmo`, `ShouldDisplayAmmoReady` and `ShouldDisplayAmmoStored`, along with their X2 and `Secondary` counterparts.
+	To understand how these work, there would be a table which describes what should you do in each ase
+	Depending on your HUD logic you can get next cases (assuming they go as `ShouldDisplayAmmo`, `ShouldDisplayAmmoReady`, `ShouldDisplayAmmoStored`):
+	`false`, N/A, N/A - Don't show anything
+	`true`, `false`, `false` - Use and show directly GetDisplayAmmo
+	`true`, `true`, `false` - Weapon got a clip, but got no reserve ammo. This is a very rare case (and a bit odd to be used by SWEP makers)
+	`true`, `false`, `true` - Odd case/Doesn't make sense, handle as you wish. Maybe handle as `true`, `false`, `false`
+	`true`, `true`, `true` - Display everything
 	@enddesc
 
 	@returns
@@ -690,6 +751,17 @@ end
 
 	@client
 
+	@desc
+	Three functions exist: `ShouldDisplayAmmo`, `ShouldDisplayAmmoReady` and `ShouldDisplayAmmoStored`, along with their X2 and `Secondary` counterparts.
+	To understand how these work, there would be a table which describes what should you do in each ase
+	Depending on your HUD logic you can get next cases (assuming they go as `ShouldDisplayAmmo`, `ShouldDisplayAmmoReady`, `ShouldDisplayAmmoStored`):
+	`false`, N/A, N/A - Don't show anything
+	`true`, `false`, `false` - Use and show directly GetDisplayAmmo
+	`true`, `true`, `false` - Weapon got a clip, but got no reserve ammo. This is a very rare case (and a bit odd to be used by SWEP makers)
+	`true`, `false`, `true` - Odd case/Doesn't make sense, handle as you wish. Maybe handle as `true`, `false`, `false`
+	`true`, `true`, `true` - Display everything
+	@enddesc
+
 	@returns
 	boolean
 ]]
@@ -715,6 +787,16 @@ end
 
 	@desc
 	Based on `self:PredictSelectWeapon()` instead of `self:GetWeapon()`
+
+	Three functions exist: `ShouldDisplayAmmo`, `ShouldDisplayAmmoReady` and `ShouldDisplayAmmoStored`, along with their X2 and `Secondary` counterparts.
+	To understand how these work, there would be a table which describes what should you do in each ase
+	Depending on your HUD logic you can get next cases (assuming they go as `ShouldDisplayAmmo`, `ShouldDisplayAmmoReady`, `ShouldDisplayAmmoStored`):
+	`false`, N/A, N/A - Don't show anything
+	`true`, `false`, `false` - Use and show directly GetDisplayAmmo
+	`true`, `true`, `false` - Weapon got a clip, but got no reserve ammo. This is a very rare case (and a bit odd to be used by SWEP makers)
+	`true`, `false`, `true` - Odd case/Doesn't make sense, handle as you wish. Maybe handle as `true`, `false`, `false`
+	`true`, `true`, `true` - Display everything
+
 	@enddesc
 
 	@returns
