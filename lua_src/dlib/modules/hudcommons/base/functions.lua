@@ -955,7 +955,7 @@ end
 
 --[[
 	@doc
-	@fname HUDCommonsBase:ShouldDisplaySecondaryAmmoReady2
+	@fname HUDCommonsBase:ShouldDisplaySecondaryAmmoReady_Select
 
 	@client
 
@@ -976,7 +976,7 @@ end
 	@returns
 	boolean
 ]]
-function meta:ShouldDisplaySecondaryAmmoReady2()
+function meta:ShouldDisplaySecondaryAmmoReady_Select()
 	if self:GetVarWeaponClass_Select() == 'weapon_slam' then
 		return false
 	end
