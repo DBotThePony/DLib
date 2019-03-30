@@ -231,7 +231,10 @@ function meta:ShouldDisplayAmmo()
 		return cache.Draw and (cache.PrimaryAmmo ~= nil or cache.PrimaryClip ~= nil)
 	end
 
-	return self:HasWeapon() and self:GetWeapon().DrawAmmo ~= false and (self:GetVarClipMax1() > 0 or self:GetVarClipMax2() > 0 or self:GetVarAmmoType1() ~= -1 or self:GetVarAmmoType2() ~= -1)
+	return self:HasWeapon()
+		and self:GetWeapon().DrawAmmo ~= false
+		and (self:GetVarClipMax1() > 0 or
+			self:GetVarAmmoType1() ~= -1)
 end
 
 --[[
@@ -265,7 +268,11 @@ function meta:ShouldDisplaySecondaryAmmo()
 		return cache.Draw and cache.SecondaryAmmo ~= nil
 	end
 
-	return self:HasWeapon() and self:GetWeapon().DrawAmmo ~= false and (self:GetVarClipMax2() > 0 or self:GetVarClip2() > 0 or self:GetVarAmmoType2() ~= -1)
+	return self:HasWeapon()
+		and self:GetWeapon().DrawAmmo ~= false
+		and (self:GetVarClipMax2() > 0 or
+			self:GetVarClip2() > 0 or
+			self:GetVarAmmoType2() ~= -1)
 end
 
 --[[
@@ -577,9 +584,46 @@ function meta:ShouldDisplayAmmoStored()
 	end
 
 	return self:HasWeapon() and
-		(self:GetVarClipMax1() > 0 or self:GetVarClipMax2() > 0) and
-		(self:GetVarAmmo1() >= 0 or self:GetVarAmmo2() >= 0) and
-		(self:IsValidAmmoType1() or self:IsValidAmmoType2())
+		self:GetVarClipMax1() > 0 and
+		self:GetVarAmmo1() >= 0 and
+		self:IsValidAmmoType1()
+end
+
+--[[
+	@doc
+	@fname HUDCommonsBase:ShouldDisplaySecondaryAmmoStored
+
+	@client
+
+	@desc
+	Three functions exist: `ShouldDisplayAmmo`, `ShouldDisplayAmmoReady` and `ShouldDisplayAmmoStored`, along with their X2 and `Secondary` counterparts.
+	To understand how these work, there would be a table which describes what should you do in each ase
+	Depending on your HUD logic you can get next cases (assuming they go as `ShouldDisplayAmmo`, `ShouldDisplayAmmoReady`, `ShouldDisplayAmmoStored`):
+	`false`, N/A, N/A - Don't show anything
+	`true`, `false`, `false` - Use and show directly GetDisplayAmmo
+	`true`, `true`, `false` - Weapon got a clip, but got no reserve ammo. This is a very rare case (and a bit odd to be used by SWEP makers)
+	`true`, `false`, `true` - Odd case/Doesn't make sense, handle as you wish. Maybe handle as `true`, `false`, `false`
+	`true`, `true`, `true` - Display everything
+	@enddesc
+
+	@returns
+	boolean
+]]
+function meta:ShouldDisplaySecondaryAmmoStored()
+	if self:GetVarWeaponClass() == 'weapon_slam' then
+		return false
+	end
+
+	local cache = self:GetVarCustomAmmoDisplayCache()
+
+	if cache then
+		return cache.Draw and cache.SecondaryAmmo ~= nil
+	end
+
+	return self:HasWeapon() and
+		self:GetVarClipMax2() > 0 and
+		self:GetVarAmmo2() >= 0 and
+		self:IsValidAmmoType2()
 end
 
 --[[
@@ -619,6 +663,45 @@ function meta:ShouldDisplayAmmoStored2()
 		(self:GetVarClipMax1_Select() > 0 or self:GetVarClipMax2_Select() > 0) and
 		(self:GetVarAmmo1_Select() >= 0 or self:GetVarAmmo2_Select() >= 0) and
 		(self:IsValidAmmoType1_Select() or self:IsValidAmmoType2_Select())
+end
+
+--[[
+	@doc
+	@fname HUDCommonsBase:ShouldDisplaySecondaryAmmoStored2
+
+	@client
+
+	@desc
+	Based on `self:PredictSelectWeapon()` instead of `self:GetWeapon()`
+
+	Three functions exist: `ShouldDisplayAmmo`, `ShouldDisplayAmmoReady` and `ShouldDisplayAmmoStored`, along with their X2 and `Secondary` counterparts.
+	To understand how these work, there would be a table which describes what should you do in each ase
+	Depending on your HUD logic you can get next cases (assuming they go as `ShouldDisplayAmmo`, `ShouldDisplayAmmoReady`, `ShouldDisplayAmmoStored`):
+	`false`, N/A, N/A - Don't show anything
+	`true`, `false`, `false` - Use and show directly GetDisplayAmmo
+	`true`, `true`, `false` - Weapon got a clip, but got no reserve ammo. This is a very rare case (and a bit odd to be used by SWEP makers)
+	`true`, `false`, `true` - Odd case/Doesn't make sense, handle as you wish. Maybe handle as `true`, `false`, `false`
+	`true`, `true`, `true` - Display everything
+	@enddesc
+
+	@returns
+	boolean
+]]
+function meta:ShouldDisplaySecondaryAmmoStored2()
+	if self:GetVarWeaponClass_Select() == 'weapon_slam' then
+		return false
+	end
+
+	local cache = self:GetVarCustomAmmoDisplayCache_Select()
+
+	if cache then
+		return cache.Draw and cache.PrimaryAmmo ~= nil
+	end
+
+	return self:HasPredictedWeapon() and
+		self:GetVarClipMax2_Select() > 0 and
+		self:GetVarAmmo2_Select() >= 0 and
+		self:IsValidAmmoType2_Select()
 end
 
 --[[
@@ -773,10 +856,44 @@ function meta:ShouldDisplayAmmoReady()
 	local cache = self:GetVarCustomAmmoDisplayCache()
 
 	if cache then
-		return cache.Draw and (cache.PrimaryAmmo ~= nil or cache.PrimaryClip ~= nil or cache.SecondaryAmmo ~= nil)
+		return cache.Draw and cache.PrimaryAmmo ~= nil or cache.PrimaryClip ~= nil
 	end
 
-	return self:HasWeapon() and (self:GetVarClipMax1() > 0 or self:GetVarClipMax2() > 0)
+	return self:HasWeapon() and self:GetVarClipMax1() > 0
+end
+
+--[[
+	@doc
+	@fname HUDCommonsBase:ShouldDisplaySecondaryAmmoReady
+
+	@client
+
+	@desc
+	Three functions exist: `ShouldDisplayAmmo`, `ShouldDisplayAmmoReady` and `ShouldDisplayAmmoStored`, along with their X2 and `Secondary` counterparts.
+	To understand how these work, there would be a table which describes what should you do in each ase
+	Depending on your HUD logic you can get next cases (assuming they go as `ShouldDisplayAmmo`, `ShouldDisplayAmmoReady`, `ShouldDisplayAmmoStored`):
+	`false`, N/A, N/A - Don't show anything
+	`true`, `false`, `false` - Use and show directly GetDisplayAmmo
+	`true`, `true`, `false` - Weapon got a clip, but got no reserve ammo. This is a very rare case (and a bit odd to be used by SWEP makers)
+	`true`, `false`, `true` - Odd case/Doesn't make sense, handle as you wish. Maybe handle as `true`, `false`, `false`
+	`true`, `true`, `true` - Display everything
+	@enddesc
+
+	@returns
+	boolean
+]]
+function meta:ShouldDisplaySecondaryAmmoReady()
+	if self:GetVarWeaponClass() == 'weapon_slam' then
+		return false
+	end
+
+	local cache = self:GetVarCustomAmmoDisplayCache()
+
+	if cache then
+		return false
+	end
+
+	return self:HasWeapon() and self:GetVarClipMax2() > 0
 end
 
 --[[
@@ -814,6 +931,43 @@ function meta:ShouldDisplayAmmoReady2()
 	end
 
 	return self:HasPredictedWeapon() and (self:GetVarClipMax1_Select() > 0 or self:GetVarClipMax2_Select() > 0)
+end
+
+--[[
+	@doc
+	@fname HUDCommonsBase:ShouldDisplaySecondaryAmmoReady2
+
+	@client
+
+	@desc
+	Based on `self:PredictSelectWeapon()` instead of `self:GetWeapon()`
+
+	Three functions exist: `ShouldDisplayAmmo`, `ShouldDisplayAmmoReady` and `ShouldDisplayAmmoStored`, along with their X2 and `Secondary` counterparts.
+	To understand how these work, there would be a table which describes what should you do in each ase
+	Depending on your HUD logic you can get next cases (assuming they go as `ShouldDisplayAmmo`, `ShouldDisplayAmmoReady`, `ShouldDisplayAmmoStored`):
+	`false`, N/A, N/A - Don't show anything
+	`true`, `false`, `false` - Use and show directly GetDisplayAmmo
+	`true`, `true`, `false` - Weapon got a clip, but got no reserve ammo. This is a very rare case (and a bit odd to be used by SWEP makers)
+	`true`, `false`, `true` - Odd case/Doesn't make sense, handle as you wish. Maybe handle as `true`, `false`, `false`
+	`true`, `true`, `true` - Display everything
+
+	@enddesc
+
+	@returns
+	boolean
+]]
+function meta:ShouldDisplaySecondaryAmmoReady2()
+	if self:GetVarWeaponClass_Select() == 'weapon_slam' then
+		return false
+	end
+
+	local cache = self:GetVarCustomAmmoDisplayCache_Select()
+
+	if cache then
+		return false
+	end
+
+	return self:HasPredictedWeapon() and self:GetVarClipMax2_Select() > 0
 end
 
 --[[

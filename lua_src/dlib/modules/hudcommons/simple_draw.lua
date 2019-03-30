@@ -65,6 +65,8 @@ function HUDCommons.SimpleText(text, font, x, y, col)
 
 	surface.SetTextPos(x, y)
 	surface.DrawText(text)
+
+	return surface.GetTextSize(x, y)
 end
 
 --[[
