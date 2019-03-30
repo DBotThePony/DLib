@@ -1325,6 +1325,7 @@ end
 ]]
 function meta:GetAmmoFillage1()
 	if not self:ShouldDisplayAmmo() then return 1 end
+	if not self:ShouldDisplayAmmoReady() then return self:GetDisplayAmmo1() ~= 0 and 1 or 0 end
 	if self:GetDisplayMaxClip1() <= 0 then return 1 end
 	if self:GetDisplayClip1() <= 0 then return 0 end
 	if self:GetDisplayMaxClip1() <= self:GetDisplayClip1() then return 1 end
@@ -1341,6 +1342,7 @@ end
 ]]
 function meta:GetAmmoFillage2()
 	if not self:ShouldDisplaySecondaryAmmo() then return 1 end
+	if not self:ShouldDisplaySecondaryAmmoReady() then return self:GetDisplayAmmo2() ~= 0 and 1 or 0 end
 	if self:GetDisplayMaxClip2() <= 0 then return 1 end
 	if self:GetDisplayClip2() <= 0 then return 0 end
 	if self:GetDisplayMaxClip2() <= self:GetDisplayClip2() then return 1 end
@@ -1377,6 +1379,7 @@ end
 ]]
 function meta:GetAmmoFillage1_Select()
 	if not self:ShouldDisplayAmmo_Select() then return 1 end
+	if not self:ShouldDisplayAmmoReady_Select() then return self:GetDisplayAmmo1_Select() ~= 0 and 1 or 0 end
 	if self:GetVarClipMax1_Select() <= 0 then return 1 end
 	if self:GetVarClip1_Select() <= 0 then return 0 end
 	if self:GetVarClipMax1_Select() <= self:GetVarClip1_Select() then return 1 end
@@ -1398,6 +1401,7 @@ end
 ]]
 function meta:GetAmmoFillage2_Select()
 	if not self:ShouldDisplaySecondaryAmmo_Select() then return 1 end
+	if not self:ShouldDisplaySecondaryAmmoReady_Select() then return self:GetDisplayAmmo2_Select() ~= 0 and 1 or 0 end
 	if self:GetVarClipMax2_Select() <= 0 then return 1 end
 	if self:GetVarClip2_Select() <= 0 then return 0 end
 	if self:GetVarClipMax2_Select() <= self:GetVarClip2_Select() then return 1 end
