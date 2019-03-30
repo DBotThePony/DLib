@@ -304,14 +304,36 @@ function PANEL:PostRenderVGUI()
 		drawPosY = self.calculatedY - ScreenSize(2) - h
 	end
 
-	surface.SetTextColor(40, 40, 40, 255 * (1 - self.fade))
+	local matrix = Matrix()
+
+	if self.direction == 'RIGHT' then
+		matrix:Translate(Vector(drawPosX + ScreenSize(14), drawPosY + self.tw * 0.47))
+		matrix:Rotate(Angle(0, -30, 0))
+	elseif self.direction == 'LEFT' then
+		matrix:Translate(Vector(drawPosX - ScreenSize(12), drawPosY - ScreenSize(12)))
+		matrix:Rotate(Angle(0, -30, 0))
+	else
+		matrix:Translate(Vector(drawPosX, drawPosY + ScreenSize(4)))
+	end
+
+	cam.PushModelMatrix(matrix)
+
+	render.PushFilterMag(TEXFILTER.ANISOTROPIC)
+	render.PushFilterMin(TEXFILTER.ANISOTROPIC)
+
+	surface.SetTextColor(0, 0, 0, 255 * (1 - self.fade))
 	local shift = ScreenSize(1)
-	surface.SetTextPos(drawPosX + shift, drawPosY + shift / 2)
+	surface.SetTextPos(shift, shift / 2)
 	surface.DrawText(self.name)
 
 	surface.SetTextColor(255, 255, 255,  255 * (1 - self.fade))
-	surface.SetTextPos(drawPosX, drawPosY)
+	surface.SetTextPos(0, 0)
 	surface.DrawText(self.name)
+
+	render.PopFilterMag()
+	render.PopFilterMin()
+
+	cam.PopModelMatrix()
 end
 
 local function DrawRect(x, y, w, h)
