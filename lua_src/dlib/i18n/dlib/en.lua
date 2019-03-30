@@ -69,6 +69,8 @@ gui.dlib.donate.button.never = 'Never ask again'
 gui.dlib.donate.button.learnabout = 'Read about "Donationware"...'
 gui.dlib.donate.button.learnabout_url = 'https://en.wikipedia.org/wiki/Donationware'
 
+message.dlib.hudcommons.edit.notice = 'Press ESC to close the editor'
+
 gui.dlib.donate.text = [[Hello there! I see you were AFK for a long time (if you slept all these time, good morning... or whatever),
 but so, if you are awake, i want to ask you: Can you please make a dontation?
 DLib and all official addons on top of it are Donationware!

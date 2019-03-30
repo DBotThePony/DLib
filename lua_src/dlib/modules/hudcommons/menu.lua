@@ -395,6 +395,8 @@ function HUDCommons.EnterPositionEditMode(filter)
 
 	if #filter == 0 then return end
 
+	notification.AddLegacy(DLib.i18n.localize('message.dlib.hudcommons.edit.notice'), NOTIFY_GENERIC, 6)
+
 	IN_EDIT_MODE = true
 	local toppanel
 
