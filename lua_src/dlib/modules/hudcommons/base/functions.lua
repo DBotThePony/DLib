@@ -657,8 +657,8 @@ end
 	@client
 
 	@desc
-	You should use this for draw operations instead of `self:GetVarMaxClip1()`
-	currently directly proxy to `self:GetVarMaxClip1()` due to limitation in !g:WEAPON:CustomAmmoDisplay method
+	You should use this for draw operations instead of `self:GetVarClipMax1()`
+	currently directly proxy to `self:GetVarClipMax1()` due to limitation in !g:WEAPON:CustomAmmoDisplay method
 	@enddesc
 
 	@returns
@@ -669,7 +669,7 @@ function meta:GetDisplayMaxClip1()
 		return self:GetVarClip1()
 	end
 
-	return self:GetVarMaxClip1()
+	return self:GetVarClipMax1()
 end
 
 --[[
@@ -715,7 +715,7 @@ end
 	@client
 
 	@desc
-	You should use this for draw operations instead of `self:GetVarMaxClip2()`
+	You should use this for draw operations instead of `self:GetVarClipMax2()`
 	@enddesc
 
 	@returns
@@ -740,7 +740,7 @@ function meta:GetDisplayMaxClip2()
 		return -1
 	end
 
-	return self:GetVarMaxClip2()
+	return self:GetVarClipMax2()
 end
 
 --[[
@@ -790,8 +790,8 @@ end
 	@client
 
 	@desc
-	You should use this for draw operations instead of `self:GetVarMaxClip1_Select()`
-	currently directly proxy to `self:GetVarMaxClip1()` due to limitation in !g:WEAPON:CustomAmmoDisplay method
+	You should use this for draw operations instead of `self:GetVarClipMax1_Select()`
+	currently directly proxy to `self:GetVarClipMax1()` due to limitation in !g:WEAPON:CustomAmmoDisplay method
 	@enddesc
 
 	@returns
@@ -802,7 +802,7 @@ function meta:GetDisplayMaxClip1_Select()
 		return self:GetVarClip1_Select()
 	end
 
-	return self:GetVarMaxClip1_Select()
+	return self:GetVarClipMax1_Select()
 end
 
 --[[
@@ -848,7 +848,7 @@ end
 	@client
 
 	@desc
-	You should use this for draw operations instead of `self:GetVarMaxClip2_Select()`
+	You should use this for draw operations instead of `self:GetVarClipMax2_Select()`
 	@enddesc
 
 	@returns
@@ -873,7 +873,7 @@ function meta:GetDisplayMaxClip2_Select()
 		return -1
 	end
 
-	return self:GetVarMaxClip2_Select()
+	return self:GetVarClipMax2_Select()
 end
 
 --[[
