@@ -849,10 +849,10 @@ end
 ]]
 function meta:GetAmmoFillage1()
 	if not self:ShouldDisplayAmmo() then return 1 end
-	if self:GetVarClipMax1() <= 0 then return 1 end
-	if self:GetVarClip1() <= 0 then return 0 end
-	if self:GetVarClipMax1() <= self:GetVarClip1() then return 1 end
-	return (self:GetVarClip1() / self:GetVarClipMax1()):clamp(0, 1)
+	if self:GetDisplayMaxClip1() <= 0 then return 1 end
+	if self:GetDisplayClip1() <= 0 then return 0 end
+	if self:GetDisplayMaxClip1() <= self:GetDisplayClip1() then return 1 end
+	return (self:GetDisplayClip1() / self:GetDisplayMaxClip1()):clamp(0, 1)
 end
 
 --[[
@@ -865,10 +865,10 @@ end
 ]]
 function meta:GetAmmoFillage2()
 	if not self:ShouldDisplaySecondaryAmmo() then return 1 end
-	if self:GetVarClipMax2() <= 0 then return 1 end
-	if self:GetVarClip2() <= 0 then return 0 end
-	if self:GetVarClipMax2() <= self:GetVarClip2() then return 1 end
-	return (self:GetVarClip2() / self:GetVarClipMax2()):clamp(0, 1)
+	if self:GetDisplayMaxClip2() <= 0 then return 1 end
+	if self:GetDisplayClip2() <= 0 then return 0 end
+	if self:GetDisplayMaxClip2() <= self:GetDisplayClip2() then return 1 end
+	return (self:GetDisplayClip2() / self:GetDisplayMaxClip2()):clamp(0, 1)
 end
 
 --[[
