@@ -277,7 +277,7 @@ end
 
 --[[
 	@doc
-	@fname HUDCommonsBase:ShouldDisplayAmmo2
+	@fname HUDCommonsBase:ShouldDisplayAmmo_Select
 
 	@client
 
@@ -298,7 +298,7 @@ end
 	@returns
 	boolean
 ]]
-function meta:ShouldDisplayAmmo2()
+function meta:ShouldDisplayAmmo_Select()
 	if self:GetVarWeaponClass_Select() == 'weapon_slam' then
 		return true
 	end
@@ -314,7 +314,7 @@ end
 
 --[[
 	@doc
-	@fname HUDCommonsBase:ShouldDisplaySecondaryAmmo2
+	@fname HUDCommonsBase:ShouldDisplaySecondaryAmmo_Select
 
 	@client
 
@@ -334,7 +334,7 @@ end
 	@returns
 	boolean
 ]]
-function meta:ShouldDisplaySecondaryAmmo2()
+function meta:ShouldDisplaySecondaryAmmo_Select()
 	if self:GetVarWeaponClass_Select() == 'weapon_slam' then
 		return false
 	end
@@ -377,7 +377,7 @@ end
 
 --[[
 	@doc
-	@fname HUDCommonsBase:SelectSecondaryAmmoReady2
+	@fname HUDCommonsBase:SelectSecondaryAmmoReady_Select
 
 	@client
 
@@ -388,7 +388,7 @@ end
 	@returns
 	number
 ]]
-function meta:SelectSecondaryAmmoReady2()
+function meta:SelectSecondaryAmmoReady_Select()
 	if self:GetVarWeaponClass_Select() == 'weapon_slam' then
 		return -1
 	end
@@ -435,7 +435,7 @@ end
 
 --[[
 	@doc
-	@fname HUDCommonsBase:SelectSecondaryAmmoStored2
+	@fname HUDCommonsBase:SelectSecondaryAmmoStored_Select
 
 	@client
 
@@ -446,7 +446,7 @@ end
 	@returns
 	number
 ]]
-function meta:SelectSecondaryAmmoStored2()
+function meta:SelectSecondaryAmmoStored_Select()
 	if self:GetVarWeaponClass_Select() == 'weapon_slam' then
 		return -1
 	end
@@ -628,7 +628,7 @@ end
 
 --[[
 	@doc
-	@fname HUDCommonsBase:ShouldDisplayAmmoStored2
+	@fname HUDCommonsBase:ShouldDisplayAmmoStored_Select
 
 	@client
 
@@ -648,7 +648,7 @@ end
 	@returns
 	boolean
 ]]
-function meta:ShouldDisplayAmmoStored2()
+function meta:ShouldDisplayAmmoStored_Select()
 	if self:GetVarWeaponClass_Select() == 'weapon_slam' then
 		return false
 	end
@@ -667,7 +667,7 @@ end
 
 --[[
 	@doc
-	@fname HUDCommonsBase:ShouldDisplaySecondaryAmmoStored2
+	@fname HUDCommonsBase:ShouldDisplaySecondaryAmmoStored_Select
 
 	@client
 
@@ -687,7 +687,7 @@ end
 	@returns
 	boolean
 ]]
-function meta:ShouldDisplaySecondaryAmmoStored2()
+function meta:ShouldDisplaySecondaryAmmoStored_Select()
 	if self:GetVarWeaponClass_Select() == 'weapon_slam' then
 		return false
 	end
@@ -898,7 +898,7 @@ end
 
 --[[
 	@doc
-	@fname HUDCommonsBase:ShouldDisplayAmmoReady2
+	@fname HUDCommonsBase:ShouldDisplayAmmoReady_Select
 
 	@client
 
@@ -919,7 +919,7 @@ end
 	@returns
 	boolean
 ]]
-function meta:ShouldDisplayAmmoReady2()
+function meta:ShouldDisplayAmmoReady_Select()
 	if self:GetVarWeaponClass_Select() == 'weapon_slam' then
 		return false
 	end
@@ -1356,7 +1356,7 @@ end
 	number: between 0 and 1 inclusive
 ]]
 function meta:GetAmmoFillage1_Select()
-	if not self:ShouldDisplayAmmo2() then return 1 end
+	if not self:ShouldDisplayAmmo_Select() then return 1 end
 	if self:GetVarClipMax1_Select() <= 0 then return 1 end
 	if self:GetVarClip1_Select() <= 0 then return 0 end
 	if self:GetVarClipMax1_Select() <= self:GetVarClip1_Select() then return 1 end
@@ -1377,7 +1377,7 @@ end
 	number: between 0 and 1 inclusive
 ]]
 function meta:GetAmmoFillage2_Select()
-	if not self:ShouldDisplaySecondaryAmmo2() then return 1 end
+	if not self:ShouldDisplaySecondaryAmmo_Select() then return 1 end
 	if self:GetVarClipMax2_Select() <= 0 then return 1 end
 	if self:GetVarClip2_Select() <= 0 then return 0 end
 	if self:GetVarClipMax2_Select() <= self:GetVarClip2_Select() then return 1 end
