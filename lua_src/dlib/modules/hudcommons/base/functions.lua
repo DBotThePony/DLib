@@ -632,9 +632,9 @@ function meta:ShouldDisplaySecondaryAmmoStored()
 	end
 
 	return self:HasWeapon() and
-		self:GetVarClipMax2() > 0 and
-		self:GetVarAmmo2() >= 0 and
-		self:IsValidAmmoType2()
+		(self:GetVarClipMax2() > 0 or
+		self:GetVarAmmo2() >= 0 or
+		self:IsValidAmmoType2())
 end
 
 meta.ShouldDisplayAmmo2Stored = meta.ShouldDisplaySecondaryAmmoStored
