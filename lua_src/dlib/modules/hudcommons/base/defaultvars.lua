@@ -54,6 +54,7 @@ function meta:__InitVaribles()
 	self:RegisterRegularWeaponVariable('ammoType1', 'GetPrimaryAmmoType', -1)
 	self:RegisterRegularWeaponVariable('ammoType2', 'GetSecondaryAmmoType', -1)
 	self:RegisterRegularWeaponVariable('weaponName', 'GetPrintName', '')
+	self:RegisterRegularWeaponVariable('customAmmoDisplayCache', 'CustomAmmoDisplay', 'NULLABLE')
 
 	self:RegisterVariable('ammo1', 0)
 	self:RegisterVariable('ammo1_Select', 0)

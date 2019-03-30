@@ -38,6 +38,7 @@ local error = error
 	It has various hooks but by default these hooks do nothing.
 	Calling this function when variable already exists will refresh variable's table
 	`default` is a function which should return default value.
+	`default` can be a special string: `'NULLABLE'`, which when used, tells that default value is `nil`
 	Look for other functions in !c:HUDCommonsBase to see how to manipulate hooks of variables!
 
 	Also, defining a variable will define getter for it over your HUD
@@ -59,6 +60,8 @@ function meta:RegisterVariable(var, default)
 
 	if default == nil then
 		default = function() return 0 end
+	elseif default == 'NULLABLE' then
+		default = function() end
 	end
 
 	if type(default) ~= 'function' then
