@@ -237,6 +237,8 @@ function meta:ShouldDisplayAmmo()
 			self:GetVarAmmoType1() ~= -1)
 end
 
+meta.ShouldDisplayAmmo1 = meta.ShouldDisplayAmmo
+
 --[[
 	@doc
 	@fname HUDCommonsBase:ShouldDisplaySecondaryAmmo
@@ -275,6 +277,8 @@ function meta:ShouldDisplaySecondaryAmmo()
 			self:GetVarAmmoType2() ~= -1)
 end
 
+meta.ShouldDisplayAmmo2 = meta.ShouldDisplaySecondaryAmmo
+
 --[[
 	@doc
 	@fname HUDCommonsBase:ShouldDisplayAmmo_Select
@@ -312,6 +316,8 @@ function meta:ShouldDisplayAmmo_Select()
 	return self:HasPredictedWeapon() and self:PredictSelectWeapon().DrawAmmo ~= false and (self:GetVarClipMax1_Select() > 0 or self:GetVarClipMax2_Select() > 0 or self:GetVarAmmoType1_Select() ~= -1 or self:GetVarAmmoType2_Select() ~= -1)
 end
 
+meta.ShouldDisplayAmmo1_Select = meta.ShouldDisplayAmmo_Select
+
 --[[
 	@doc
 	@fname HUDCommonsBase:ShouldDisplaySecondaryAmmo_Select
@@ -347,6 +353,8 @@ function meta:ShouldDisplaySecondaryAmmo_Select()
 
 	return self:HasPredictedWeapon() and self:PredictSelectWeapon().DrawAmmo ~= false and (self:GetVarClipMax2_Select() > 0 or self:GetVarClip2_Select() > 0 or self:GetVarAmmoType2_Select() ~= -1)
 end
+
+meta.ShouldDisplayAmmo2_Select = meta.ShouldDisplaySecondaryAmmo_Select
 
 --[[
 	@doc
@@ -589,6 +597,9 @@ function meta:ShouldDisplayAmmoStored()
 		self:IsValidAmmoType1()
 end
 
+meta.ShouldDisplayAmmo1Stored = meta.ShouldDisplayAmmoStored
+meta.ShouldDisplayAmmoStored1 = meta.ShouldDisplayAmmoStored
+
 --[[
 	@doc
 	@fname HUDCommonsBase:ShouldDisplaySecondaryAmmoStored
@@ -626,6 +637,9 @@ function meta:ShouldDisplaySecondaryAmmoStored()
 		self:IsValidAmmoType2()
 end
 
+meta.ShouldDisplayAmmo2Stored = meta.ShouldDisplaySecondaryAmmoStored
+meta.ShouldDisplayAmmoStored2 = meta.ShouldDisplaySecondaryAmmoStored
+
 --[[
 	@doc
 	@fname HUDCommonsBase:ShouldDisplayAmmoStored_Select
@@ -660,10 +674,13 @@ function meta:ShouldDisplayAmmoStored_Select()
 	end
 
 	return self:HasPredictedWeapon() and
-		(self:GetVarClipMax1_Select() > 0 or self:GetVarClipMax2_Select() > 0) and
-		(self:GetVarAmmo1_Select() >= 0 or self:GetVarAmmo2_Select() >= 0) and
-		(self:IsValidAmmoType1_Select() or self:IsValidAmmoType2_Select())
+		self:GetVarClipMax1_Select() > 0 and
+		self:GetVarAmmo1_Select() >= 0 and
+		self:IsValidAmmoType1_Select()
 end
+
+meta.ShouldDisplayAmmo1Stored_Select = meta.ShouldDisplayAmmoStored_Select
+meta.ShouldDisplayAmmoStored1_Select = meta.ShouldDisplayAmmoStored_Select
 
 --[[
 	@doc
@@ -703,6 +720,9 @@ function meta:ShouldDisplaySecondaryAmmoStored_Select()
 		self:GetVarAmmo2_Select() >= 0 and
 		self:IsValidAmmoType2_Select()
 end
+
+meta.ShouldDisplayAmmo2Stored_Select = meta.ShouldDisplaySecondaryAmmoStored_Select
+meta.ShouldDisplayAmmoStored2_Select = meta.ShouldDisplaySecondaryAmmoStored_Select
 
 --[[
 	@doc
