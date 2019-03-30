@@ -562,6 +562,130 @@ end
 
 --[[
 	@doc
+	@fname HUDCommonsBase:GetDisplayAmmo1
+
+	@client
+
+	@desc
+	Use this instead of direct `self:GetVarAmmo1()`
+	@enddesc
+
+	@returns
+	boolean
+]]
+function meta:GetDisplayAmmo1()
+	if self:GetVarWeaponClass() == 'weapon_slam' then
+		return self:GetVarAmmo2()
+	end
+
+	local cache = self:GetVarCustomAmmoDisplayCache()
+
+	if cache then
+		if cache.PrimaryAmmo then
+			return cache.PrimaryAmmo
+		end
+
+		return -1
+	end
+
+	return self:GetVarAmmo1()
+end
+
+--[[
+	@doc
+	@fname HUDCommonsBase:GetDisplayAmmo2
+
+	@client
+
+	@desc
+	Use this instead of direct `self:GetVarAmmo2()`
+	@enddesc
+
+	@returns
+	boolean
+]]
+function meta:GetDisplayAmmo2()
+	if self:GetVarWeaponClass() == 'weapon_slam' then
+		return -1
+	end
+
+	local cache = self:GetVarCustomAmmoDisplayCache()
+
+	if cache then
+		if cache.SecondaryAmmo then
+			return cache.SecondaryAmmo
+		end
+
+		return -1
+	end
+
+	return self:GetVarAmmo2()
+end
+
+--[[
+	@doc
+	@fname HUDCommonsBase:GetDisplayAmmo1_Select
+
+	@client
+
+	@desc
+	Use this instead of direct `self:GetVarAmmo1_Select()`
+	@enddesc
+
+	@returns
+	boolean
+]]
+function meta:GetDisplayAmmo1_Select()
+	if self:GetVarWeaponClass_Select() == 'weapon_slam' then
+		return self:GetVarAmmo2_Select()
+	end
+
+	local cache = self:GetVarCustomAmmoDisplayCache_Select()
+
+	if cache then
+		if cache.PrimaryAmmo then
+			return cache.PrimaryAmmo
+		end
+
+		return -1
+	end
+
+	return self:GetVarAmmo1_Select()
+end
+
+--[[
+	@doc
+	@fname HUDCommonsBase:GetDisplayAmmo2_Select
+
+	@client
+
+	@desc
+	Use this instead of direct `self:GetVarAmmo2_Select()`
+	@enddesc
+
+	@returns
+	boolean
+]]
+function meta:GetDisplayAmmo2_Select()
+	if self:GetVarWeaponClass_Select() == 'weapon_slam' then
+		return -1
+	end
+
+	local cache = self:GetVarCustomAmmoDisplayCache_Select()
+
+	if cache then
+		if cache.SecondaryAmmo then
+			return cache.SecondaryAmmo
+		end
+
+		return -1
+	end
+
+	return self:GetVarAmmo2_Select()
+end
+
+--[[
+	@doc
 	@fname HUDCommonsBase:ShouldDisplayAmmoReady
 
 	@client
@@ -571,7 +695,7 @@ end
 ]]
 function meta:ShouldDisplayAmmoReady()
 	if self:GetVarWeaponClass() == 'weapon_slam' then
-		return true
+		return false
 	end
 
 	local cache = self:GetVarCustomAmmoDisplayCache()
@@ -598,7 +722,7 @@ end
 ]]
 function meta:ShouldDisplayAmmoReady2()
 	if self:GetVarWeaponClass_Select() == 'weapon_slam' then
-		return true
+		return false
 	end
 
 	local cache = self:GetVarCustomAmmoDisplayCache_Select()
@@ -626,7 +750,7 @@ end
 ]]
 function meta:GetDisplayClip1()
 	if self:GetVarWeaponClass() == 'weapon_slam' then
-		return self:GetVarClip1()
+		return -1
 	end
 
 	local cache = self:GetVarCustomAmmoDisplayCache()
@@ -666,7 +790,7 @@ end
 ]]
 function meta:GetDisplayMaxClip1()
 	if self:GetVarWeaponClass() == 'weapon_slam' then
-		return self:GetVarClip1()
+		return -1
 	end
 
 	return self:GetVarClipMax1()
@@ -759,7 +883,7 @@ end
 ]]
 function meta:GetDisplayClip1_Select()
 	if self:GetVarWeaponClass_Select() == 'weapon_slam' then
-		return self:GetVarClip1_Select()
+		return -1
 	end
 
 	local cache = self:GetVarCustomAmmoDisplayCache_Select()
@@ -799,7 +923,7 @@ end
 ]]
 function meta:GetDisplayMaxClip1_Select()
 	if self:GetVarWeaponClass_Select() == 'weapon_slam' then
-		return self:GetVarClip1_Select()
+		return -1
 	end
 
 	return self:GetVarClipMax1_Select()
