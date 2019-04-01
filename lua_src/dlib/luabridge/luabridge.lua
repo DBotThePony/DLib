@@ -177,6 +177,10 @@ if CLIENT then
 						ProtectedCall(function()
 							error('Native panel "' .. class .. '" is either invalid or does not exist. If code is trying to create this panel directly - this panel simply does not exist.', 4)
 						end)
+					elseif panel and not recursive then
+						hook.Run('VGUIPanelConstructed', panel, ...)
+						hook.Run('VGUIPanelInitialized', panel, ...)
+						hook.Run('VGUIPanelCreated', panel, ...)
 					end
 
 					return panel
