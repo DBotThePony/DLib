@@ -88,7 +88,8 @@ timer.Simple(0, function()
 end)
 
 hook.Add('VGUIPanelCreated', 'plz halp', function(self)
-	if self:GetName() ~= 'AvatarImage' and self.ThisClass ~= 'AvatarImage' and self.ThisClass ~= 'DScoreBoard2_Avatar' and self.ThisClass ~= 'DLib_Avatar' then return end
+	--if self:GetName() ~= 'AvatarImage' and self.ThisClass ~= 'AvatarImage' and self.ThisClass ~= 'DScoreBoard2_Avatar' and self.ThisClass ~= 'DLib_Avatar' then return end
+	if self:GetName() ~= 'AvatarImage' then return end
 	self.__FoolSetSteamID = self.SetSteamID
 	self.__FoolSetPlayer = self.SetPlayer
 
