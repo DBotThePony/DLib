@@ -197,8 +197,6 @@ MsgC('[DLib] Initializing DLib LuaBridge ... ')
 DLib.simpleInclude('luabridge/luabridge.lua')
 DLib.simpleInclude('luabridge/physgunhandler.lua')
 DLib.simpleInclude('luabridge/loading_stages.lua')
-DLib.simpleInclude('util/registry_dump.lua')
-DLib.simpleInclude('util/report.lua')
 DLib.Loader.loadPureSHTop('dlib/modules/workarounds')
 
 DLib.hl2wdata = DLib.simpleInclude('data/hl2sweps.lua')
