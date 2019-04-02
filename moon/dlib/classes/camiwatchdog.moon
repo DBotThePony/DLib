@@ -93,5 +93,10 @@ class DLib.CAMIWatchdog
 		for ply in *player.GetAll()
 			@trackedRepliesPly[ply] = @trackedRepliesPly[ply] or {}
 			for perm in *@tracked.values
-				CAMI.PlayerHasAccess ply, perm, (has = false, reason = '') -> @trackedRepliesPly[ply][perm] = has if IsValid(ply)
+				status = ProtectedCall () ->
+					CAMI.PlayerHasAccess ply, perm, (has = false, reason = '') -> @trackedRepliesPly[ply][perm] = has if IsValid(ply)
+
+				if not status
+					DLib.Message('Error while getting permissions for ' .. @idetifier .. '! Tell Admin mod (if problem is on its side)/Author of addon which use CAMIWatchdog')
+					DLib.Message('Permission in question: ' .. perm)
 
