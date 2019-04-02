@@ -43,7 +43,6 @@ DLib.simpleInclude('util/client/scrsize.lua')
 DLib.simpleInclude('util/client/chat.lua')
 DLib.simpleInclude('util/client/buystuff.lua')
 DLib.simpleInclude('util/client/donate.lua')
-DLib.simpleInclude('util/client/fool.lua')
 
 DLib.Loader.loadPureCSTop('dlib/modules/client')
 
