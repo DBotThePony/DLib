@@ -82,7 +82,7 @@ function entMeta:GetNWUInt(name, ifNone)
 
 	local value = self:GetNWInt(name, ifNone)
 
-	if grab < 0 then
+	if value < 0 then
 		return 0x100000000 + value
 	else
 		return value
