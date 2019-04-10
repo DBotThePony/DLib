@@ -148,6 +148,18 @@ local defFonts = {
 	'Exo 2'
 }
 
+--[[
+	@doc
+	@fname HUDCommonsBase:GetAutocompleteFonts
+
+	@client
+	@desc
+	Override this if you want your own list of fonts for autocomplete in setting menus
+	@enddesc
+
+	@returns
+	table: or nil
+]]
 function meta:GetAutocompleteFonts(inputText, convar, fontName, textEntry)
 	inputText = inputText:lower()
 	local output = {}
@@ -188,6 +200,7 @@ end
 function meta:PopulateFontSettingsOs(panel)
 
 end
+
 --[[
 	@doc
 	@fname HUDCommonsBase:PopulateFontSettings
