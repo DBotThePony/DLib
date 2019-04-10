@@ -1740,10 +1740,15 @@ function meta:CreateFont(fontBase, fontData)
 	self.fonts[fontBase] = fontData
 	local font = self:GetID() .. fontBase
 	fontData.weight = fontData.weight or 500
-
+	local defweight = fontData.weight
+	local defsize = fontData.osize or fontData.size
 	local cvarFont = self:CreateConVar('font_' .. fontBase:lower(), fontData.font, 'Font for ' .. fontBase .. ' stuff', true)
 	local weightVar = self:CreateConVar('fontw_' .. fontBase:lower(), fontData.weight, 'Font weight for ' .. fontBase .. ' stuff', true)
 	local sizeVar = self:CreateConVar('fonts_' .. fontBase:lower(), fontData.osize or fontData.size, 'Font size for ' .. fontBase .. ' stuff', true)
+
+	if not table.qhasValue(self.fontCVars, fontBase) then
+		table.insert(self.fontCVars, fontBase)
+	end
 
 	self:__InsertConvarIntoTable(self.fontCVars.font, cvarFont)
 	self:__InsertConvarIntoTable(self.fontCVars.weight, weightVar)
@@ -1778,9 +1783,15 @@ function meta:CreateFont(fontBase, fontData)
 	fontData.extended = true
 
 	local function buildFonts()
-		fontData.font = cvarFont:GetString()
-		fontData.weight = weightVar:GetInt()
-		fontData.size = sizeVar:GetFloat() * fontAspectRatio
+		fontData.font = cvarFont:GetString():trim()
+
+		if fontData.font == '' then
+			fontData.font = cvarFont:GetDefault()
+		end
+
+		fontData.weight = weightVar:GetInt(defweight):clamp(100, 1000)
+		fontData.size = sizeVar:GetFloat(defsize):clamp(0.01, 70) * fontAspectRatio
+
 		local fontDatas = {}
 
 		surface.CreateFont(fontNames.REGULAR, fontData)

@@ -138,6 +138,62 @@ function meta:PopulatePositionSettings(panel)
 	self:PopulatePositionSettingsOe(panel)
 end
 
+local defFonts = {
+	'Roboto',
+	'PT Sans',
+	'PT Sans Caption',
+	'PT Mono',
+	'Exo 2',
+	'Exo 2 Thin',
+	'Exo 2'
+}
+
+function meta:GetAutocompleteFonts(inputText, convar, fontName, textEntry)
+	inputText = inputText:lower()
+	local output = {}
+
+	for i, font in ipairs(defFonts) do
+		if font:lower():startsWith(inputText) then
+			table.insert(output, font)
+		end
+	end
+
+	return output
+end
+
+--[[
+	@doc
+	@fname HUDCommonsBase:PopulateFontSettings
+
+	@client
+	@internal
+]]
+function meta:PopulateFontSettings(panel)
+	panel:Help('gui.dlib.hudcommons.save_hint')
+
+	for cI, cName in ipairs(self.fontCVars) do
+		panel:Help(DLib.i18n.localize('gui.dlib.hudcommons.font_label', cName))
+
+		local entry = panel:TextEntry('gui.dlib.hudcommons.font', self.fontCVars.font[cI]:GetName())
+		entry:SetPlaceholderText(self.fontCVars.font[cI]:GetDefault())
+
+		function entry.GetAutoComplete(pself, inputText)
+			local tab = self:GetAutocompleteFonts(inputText, self.fontCVars.font[cI], cName, pself)
+
+			if not tab then return end
+
+			if self.fontCVars.font[cI]:GetDefault():lower():startsWith(inputText:lower()) then
+				table.insert(tab, self.fontCVars.font[cI]:GetDefault())
+			end
+
+			return table.deduplicate(tab)
+		end
+
+		panel:NumSlider('gui.dlib.hudcommons.weight', self.fontCVars.weight[cI]:GetName(), 100, 800, 0)
+		panel:NumSlider('gui.dlib.hudcommons.size', self.fontCVars.size[cI]:GetName(), 2, 128, 0)
+	end
+end
+
 --[[
 	@doc
 	@fname HUDCommonsBase:PopulateToolMenuDefault
@@ -150,8 +206,14 @@ function meta:PopulateToolMenuDefault()
 		self:PopulateDefaultSettings(panel)
 	end)
 
+	if #self.fontCVars ~= 0 then
+		spawnmenu.AddToolMenuOption('Utilities', 'User', self:GetID() .. '_fonts', DLib.i18n.localize('gui.dlib.hudcommons.fonts', self:GetName()), '', '', function(panel)
+			self:PopulateFontSettings(panel)
+		end)
+	end
+
 	if table.Count(self.positionsConVars) ~= 0 then
-		spawnmenu.AddToolMenuOption('Utilities', 'User', self:GetID() .. '_menus_pos', self:GetName() .. ' positions', '', '', function(panel)
+		spawnmenu.AddToolMenuOption('Utilities', 'User', self:GetID() .. '_menus_pos', DLib.i18n.localize('gui.dlib.hudcommons.positions', self:GetName()), '', '', function(panel)
 			self:PopulatePositionSettings(panel)
 		end)
 	end
