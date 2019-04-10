@@ -163,6 +163,33 @@ end
 
 --[[
 	@doc
+	@fname HUDCommonsBase:PopulateFontSettingsOe
+	@args Panel DFrame
+
+	@client
+	@desc
+	Getting called from PopulateFontSettings on END of that function
+	@enddesc
+]]
+function meta:PopulateFontSettingsOe(panel)
+
+end
+
+--[[
+	@doc
+	@fname HUDCommonsBase:PopulateFontSettingsOs
+	@args Panel DFrame
+
+	@client
+	@desc
+	Getting called from PopulateFontSettings on START of that function
+	@enddesc
+]]
+function meta:PopulateFontSettingsOs(panel)
+
+end
+--[[
+	@doc
 	@fname HUDCommonsBase:PopulateFontSettings
 
 	@client
@@ -170,6 +197,8 @@ end
 ]]
 function meta:PopulateFontSettings(panel)
 	panel:Help('gui.dlib.hudcommons.save_hint')
+
+	self:PopulateFontSettingsOs(panel)
 
 	for cI, cName in ipairs(self.fontCVars) do
 		panel:Help(DLib.i18n.localize('gui.dlib.hudcommons.font_label', cName))
@@ -192,6 +221,8 @@ function meta:PopulateFontSettings(panel)
 		panel:NumSlider('gui.dlib.hudcommons.weight', self.fontCVars.weight[cI]:GetName(), 100, 800, 0)
 		panel:NumSlider('gui.dlib.hudcommons.size', self.fontCVars.size[cI]:GetName(), 2, 128, 0)
 	end
+
+	self:PopulateFontSettingsOe(panel)
 end
 
 --[[
