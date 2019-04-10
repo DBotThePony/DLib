@@ -66,9 +66,18 @@ end
 function meta:PopulateDefaultSettings(panel)
 	if not IsValid(panel) then return end
 
+	local presets = vgui.Create('ControlPresets', panel)
+	panel.m_Presets = presets
+	panel:AddItem(presets)
+	presets:Dock(TOP)
+	presets:DockMargin(0, 5, 0, 5)
+
+	presets:SetPreset(self:GetName() .. '_def')
+
 	self:PopulateDefaultSettingsOs(panel)
 
 	for i, convar in ipairs(self.convars) do
+		presets:AddConVar(convar:GetName())
 		panel:CheckBox(convar:GetHelpText(), convar:GetName()):SetTooltip(convar:GetHelpText())
 	end
 
@@ -106,6 +115,14 @@ end
 function meta:PopulatePositionSettings(panel)
 	if not IsValid(panel) then return end
 
+	local presets = vgui.Create('ControlPresets', panel)
+	panel.m_Presets = presets
+	panel:AddItem(presets)
+	presets:Dock(TOP)
+	presets:DockMargin(0, 5, 0, 5)
+
+	presets:SetPreset(self:GetName() .. '_position')
+
 	self:PopulatePositionSettingsOs(panel)
 
 	panel:Button('Reset all').DoClick = function()
@@ -126,6 +143,9 @@ function meta:PopulatePositionSettings(panel)
 	end
 
 	for i, convar in SortedPairsByMemberValue(self.positionsConVars, 'name') do
+		presets:AddConVar(convar.cvarX:GetName())
+		presets:AddConVar(convar.cvarY:GetName())
+
 		panel:Help(convar.name)
 		panel:NumSlider('X', convar.cvarX:GetName(), 0, 1, 3)
 		panel:NumSlider('Y', convar.cvarY:GetName(), 0, 1, 3)
@@ -209,11 +229,25 @@ end
 	@internal
 ]]
 function meta:PopulateFontSettings(panel)
+	if not IsValid(panel) then return end
+
+	local presets = vgui.Create('ControlPresets', panel)
+	panel.m_Presets = presets
+	panel:AddItem(presets)
+	presets:Dock(TOP)
+	presets:DockMargin(0, 5, 0, 5)
+
+	presets:SetPreset(self:GetName() .. '_font')
+
 	panel:Help('gui.dlib.hudcommons.save_hint')
 
 	self:PopulateFontSettingsOs(panel)
 
 	for cI, cName in ipairs(self.fontCVars) do
+		presets:AddConVar(self.fontCVars.font[cI]:GetName())
+		presets:AddConVar(self.fontCVars.weight[cI]:GetName())
+		presets:AddConVar(self.fontCVars.size[cI]:GetName())
+
 		panel:Help(DLib.i18n.localize('gui.dlib.hudcommons.font_label', cName))
 
 		local entry = panel:TextEntry('gui.dlib.hudcommons.font', self.fontCVars.font[cI]:GetName())
