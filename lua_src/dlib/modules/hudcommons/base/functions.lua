@@ -1370,6 +1370,20 @@ end
 
 --[[
 	@doc
+	@fname HUDCommonsBase:GetArmorFillage
+
+	@client
+	@returns
+	number: between 0 and 1 inclusive
+]]
+function meta:GetArmorFillage()
+	if self:GetVarArmor() <= 0 then return 0 end
+	if self:GetVarMaxArmor() <= 0 then return 1 end
+	return math.min(self:GetVarArmor() / self:GetVarMaxArmor(), 1)
+end
+
+--[[
+	@doc
 	@fname HUDCommonsBase:GetAmmoFillage1
 
 	@client
