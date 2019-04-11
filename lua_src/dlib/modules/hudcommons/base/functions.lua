@@ -1356,6 +1356,20 @@ end
 
 --[[
 	@doc
+	@fname HUDCommonsBase:GetHealthFillage
+
+	@client
+	@returns
+	number: between 0 and 1 inclusive
+]]
+function meta:GetHealthFillage()
+	if self:GetVarHealth() <= 0 then return 0 end
+	if self:GetVarMaxHealth() <= 0 then return 1 end
+	return math.min(self:GetVarHealth() / self:GetVarMaxHealth(), 1)
+end
+
+--[[
+	@doc
 	@fname HUDCommonsBase:GetAmmoFillage1
 
 	@client
