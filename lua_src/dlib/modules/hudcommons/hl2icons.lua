@@ -19,7 +19,7 @@
 -- DEALINGS IN THE SOFTWARE.
 
 
--- https://i.dbot.serealia.ca/2017-2018/11/f9aa5d67b6_hl2_2017-2018-11-15_16-55-37.png
+-- https://i.dbotthepony.ru/2019/04/hl2_19-24-40-d64635b.png
 
 --[[
 local chars = 'qwertyuiopasdfghjklzxcvbnm1234567890[]{}QWERTYUIOPASDFGHJKLZXCVBNM\'"<>!@?&^%$#()~`=+-_,./:;'
