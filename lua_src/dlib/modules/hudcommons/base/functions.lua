@@ -1294,6 +1294,45 @@ end
 
 --[[
 	@doc
+	@fname HUDCommonsBase:DefineStaticPosition
+
+	@client
+
+	@desc
+	You should call this instead of `DLib.HUDCommons.Position2.DefinePosition` when making a HUD on `HUDCommonsBase`
+	This also pass static function to `DefinePosition` which always return `false`, so element never shift on it's own
+	@enddesc
+
+	@returns
+	function: returns `x, y`
+	function: returns screen side of element (`"LEFT"`, `"RIGHT"` or `"CENTER"`)
+]]
+function meta:DefineStaticPosition(name, x, y)
+	return self:DefinePosition(name, x, y, function() return false end)
+end
+
+--[[
+	@doc
+	@fname HUDCommonsBase:DefineFlexiblePosition
+	@args string name, number x, number y, ConVar whenever
+
+	@client
+
+	@desc
+	You should call this instead of `DLib.HUDCommons.Position2.DefinePosition` when making a HUD on `HUDCommonsBase`
+	`whenever` is convar which control whenever hud element should shift or not
+	@enddesc
+
+	@returns
+	function: returns `x, y`
+	function: returns screen side of element (`"LEFT"`, `"RIGHT"` or `"CENTER"`)
+]]
+function meta:DefineFlexiblePosition(name, x, y, whenever)
+	return self:DefinePosition(name, x, y, function() return whenever:GetBool() end)
+end
+
+--[[
+	@doc
 	@fname HUDCommonsBase:RegisterRegularVariable
 	@args string var, string funcName, any default
 	@client
