@@ -22,9 +22,15 @@
 -- https://i.dbot.serealia.ca/2017-2018/11/f9aa5d67b6_hl2_2017-2018-11-15_16-55-37.png
 
 --[[
-local chars = 'qwertyuiopasdfghjklzxcvbnm1234567890[]{}'
+local chars = 'qwertyuiopasdfghjklzxcvbnm1234567890[]{}QWERTYUIOPASDFGHJKLZXCVBNM\'"<>!@?&^%$#()~`=+-_,./:;'
 
-hook.Add('HUDPaint', 'test', function()
+surface.CreateFont('WeaponIconTest', {
+	font = 'HalfLife2',
+	size = ScreenSize(22),
+	weight = 500
+})
+
+hook.Add('HUDPaint', 'WeaponIconTest', function()
 	surface.SetTextPos(40, 40)
 	surface.SetTextColor(255, 255, 255)
 	local next = 0
@@ -33,10 +39,10 @@ hook.Add('HUDPaint', 'test', function()
 	for i in string.gmatch(chars, '.') do
 		surface.SetFont('Trebuchet24')
 		surface.DrawText(i .. ' === ')
-		surface.SetFont('QuickInfo')
+		surface.SetFont('WeaponIconTest')
 		surface.DrawText(i)
 		next = next + 1
-		if next > 6 then
+		if next > 8 then
 			next2 = next2 + 1
 			next = 0
 		end
