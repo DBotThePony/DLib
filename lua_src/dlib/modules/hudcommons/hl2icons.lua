@@ -19,10 +19,10 @@
 -- DEALINGS IN THE SOFTWARE.
 
 
--- https://i.dbotthepony.ru/2019/04/hl2_19-24-40-d64635b.png
+-- https://i.dbotthepony.ru/2019/04/hl2_19-26-56-40675b7.png
 
 --[[
-local chars = 'qwertyuiopasdfghjklzxcvbnm1234567890[]{}QWERTYUIOPASDFGHJKLZXCVBNM\'"<>!@?&^%$#()~`=+-_,./:;'
+local chars = 'qwertyuiopasdfghjklzxcvbnm1234567890[]{}QWERTYUIOPASDFGHJKLZXCVBNM\'"<>!@?&^%$#()~`=+-_,./:;*'
 
 surface.CreateFont('WeaponIconTest', {
 	font = 'HalfLife2',
