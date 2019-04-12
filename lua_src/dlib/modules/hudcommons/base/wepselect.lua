@@ -46,7 +46,7 @@ end
 	Initialize weapon selector for current HUD, allowing you to use selector functions
 	@enddesc
 ]]
-function meta:InitializeWeaponSelector()
+function meta:InitializeWeaponSelector(autoDefineTimer)
 	self.ENABLE_WEAPON_SELECT = self:CreateConVar('wepselect', '1', 'Enable HUD weapon selection')
 
 	self.DrawWepSelection = false
@@ -60,9 +60,50 @@ function meta:InitializeWeaponSelector()
 	self.WeaponListInSlot = {}
 	self.WeaponListInSlots = {}
 
+	self.SELECTOR_AUTO_TIMER = autoDefineTimer
+
 	self:AddHookCustom('HUDShouldDraw', '__ShouldDrawWeaponSelection', nil, 2)
 	self:AddHookCustom('CreateMove', 'TrapWeaponSelect', nil, 2)
 	self:AddHookCustom('PlayerBindPress', 'WeaponSelectionBind', nil, 2)
+
+	if autoDefineTimer then
+		self.SelectorStartFade = 0
+		self.SelectorEndFade = 0
+		self:AddHookCustom('Think', 'InternalSelectorThink', nil, 2)
+	end
+end
+
+function meta:InternalSelectorThink()
+	if not self.SELECTOR_AUTO_TIMER then return end
+	if not self.DrawWepSelection then return end
+
+	if self.SelectorEndFade <= RealTimeL() then
+		self:CallWeaponSelectorEndInternal()
+	end
+end
+
+function meta:GetSelectorAlpha()
+	if not self.SELECTOR_AUTO_TIMER then
+		return 255
+	end
+
+	return ((1 - RealTimeL():progression(self.SelectorStartFade, self.SelectorEndFade)) * 255):floor()
+end
+
+function meta:GetActiveSlot()
+	return self.LastSelectSlot
+end
+
+function meta:GetActiveWeaponPos()
+	return self.SelectWeaponPos
+end
+
+function meta:IsSlotSelectable(slotID)
+	return self.WeaponListInSlots[slotID] and #self.WeaponListInSlots[slotID] ~= 0
+end
+
+function meta:GetWeapons()
+	return self.WeaponListInSlots
 end
 
 --[[
@@ -133,7 +174,12 @@ end
 function meta:CallWeaponSelectorEndInternal()
 	self:CallWeaponSelectorEnd()
 
+	self.DrawWepSelection = false
+	self.HoldKeyTrap = false
+	self.PrevSelectWeapon = NULL
 	self.SelectWeapon = NULL
+	self.SelectWeaponPos = -1
+	self.LastSelectSlot = -1
 end
 
 --[[
@@ -163,6 +209,19 @@ end
 ]]
 function meta:CallWeaponSelectorMove(wasOpen)
 
+end
+
+--[[
+	@doc
+	@fname HUDCommonsBase:CallWeaponSelectorMoveInternal
+	@args boolean wasOpen
+
+	@client
+	@internal
+]]
+function meta:CallWeaponSelectorMoveInternal(wasOpen)
+	self.SelectorStartFade = RealTimeL() + 2
+	self.SelectorEndFade = RealTimeL() + 2.5
 end
 
 --[[
@@ -350,11 +409,14 @@ local function BindSlot(self, ply, bind, pressed, weapons)
 		if not self.DrawWepSelection then
 			self.DrawWepSelection = true
 			LEmit('Player.WeaponSelectionOpen')
+			self.SelectorStartFade = RealTimeL() + 2
+			self.SelectorEndFade = RealTimeL() + 2.5
 			self:CallWeaponSelectorStart()
 		else
 			LEmit('Player.WeaponSelectionMoveSlot')
 		end
 
+		self:CallWeaponSelectorMoveInternal(prev)
 		self:CallWeaponSelectorMove(prev)
 	end
 
@@ -470,10 +532,14 @@ local function WheelBind(self, ply, bind, pressed, weapons)
 		if not self.DrawWepSelection then
 			self.DrawWepSelection = true
 			LEmit('Player.WeaponSelectionOpen')
+			self.SelectorStartFade = RealTimeL() + 2
+			self.SelectorEndFade = RealTimeL() + 2.5
+			self:CallWeaponSelectorStart()
 		else
 			LEmit('Player.WeaponSelectionMoveSlot')
 		end
 
+		self:CallWeaponSelectorMoveInternal(prev)
 		self:CallWeaponSelectorMove(prev)
 	end
 
