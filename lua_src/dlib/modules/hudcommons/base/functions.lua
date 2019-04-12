@@ -903,6 +903,8 @@ function meta:ShouldDisplayAmmoReady()
 	return self:HasWeapon() and self:GetVarClipMax1() > 0
 end
 
+meta.ShouldDisplayAmmoReady1 = meta.ShouldDisplayAmmoReady
+
 --[[
 	@doc
 	@fname HUDCommonsBase:ShouldDisplaySecondaryAmmoReady
@@ -936,6 +938,8 @@ function meta:ShouldDisplaySecondaryAmmoReady()
 
 	return self:HasWeapon() and self:GetVarClipMax2() > 0
 end
+
+meta.ShouldDisplayAmmoReady2 = meta.ShouldDisplaySecondaryAmmoReady
 
 --[[
 	@doc
