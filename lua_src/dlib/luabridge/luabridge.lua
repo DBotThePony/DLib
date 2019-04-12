@@ -73,11 +73,12 @@ if CLIENT then
 			local tab = GetTable(wep)
 
 			if not tab.DrawWeaponSelection_DLib then
-				tab.DrawWeaponSelection_DLib = tab.DrawWeaponSelection
+				tab.DrawWeaponSelection_DLib = tab.DrawWeaponSelection or function() end
 
 				tab.DrawWeaponSelection = function(self, x, y, w, h, a)
 					local can = hook.Run('DrawWeaponSelection', self, x, y, w, h, a)
 					if can == false then return end
+
 					return tab.DrawWeaponSelection_DLib(self, x, y, w, h, a)
 				end
 			end
