@@ -189,6 +189,25 @@ end
 
 --[[
 	@doc
+	@fname HUDCommonsBase:CallWeaponHUDShouldDraw
+	@args string elem
+
+	@client
+
+	@desc
+	A safe way to call current weapon's `HUDShouldDraw`
+	@enddesc
+
+	@returns
+	boolean
+]]
+function meta:CallWeaponHUDShouldDraw(elem)
+	local wep = self:GetWeapon()
+	return not IsValid(wep) or not wep.HUDShoulDraw or wep:HUDShoulDraw(elem) ~= false
+end
+
+--[[
+	@doc
 	@fname HUDCommonsBase:ShouldDisplayWeaponStats
 
 	@client
@@ -233,6 +252,7 @@ function meta:ShouldDisplayAmmo()
 
 	return self:HasWeapon()
 		and self:GetWeapon().DrawAmmo ~= false
+		and self:CallWeaponHUDShouldDraw('CHudAmmo')
 		and (self:GetVarClipMax1() > 0 or
 			self:GetVarAmmoType1() ~= -1)
 end
@@ -272,6 +292,7 @@ function meta:ShouldDisplaySecondaryAmmo()
 
 	return self:HasWeapon()
 		and self:GetWeapon().DrawAmmo ~= false
+		and self:CallWeaponHUDShouldDraw('CHudSecondaryAmmo')
 		and (self:GetVarClipMax2() > 0 or
 			self:GetVarClip2() > 0 or
 			self:GetVarAmmoType2() ~= -1)

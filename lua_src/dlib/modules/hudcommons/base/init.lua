@@ -664,7 +664,7 @@ end
 --[[
 	@doc
 	@fname HUDCommonsBase:PreHUDPaint
-	@args player LocalPlayer
+	@args Player LocalPlayer
 
 	@client
 	@desc
@@ -678,7 +678,7 @@ end
 --[[
 	@doc
 	@fname HUDCommonsBase:PostHUDPaint
-	@args player LocalPlayer
+	@args Player LocalPlayer
 
 	@client
 	@desc
@@ -723,7 +723,7 @@ local cam = cam
 --[[
 	@doc
 	@fname HUDCommonsBase:PrePostDrawHUD
-	@args player LocalPlayer
+	@args Player LocalPlayer
 
 	@client
 	@desc
@@ -737,7 +737,7 @@ end
 --[[
 	@doc
 	@fname HUDCommonsBase:PostPostDrawHUD
-	@args player LocalPlayer
+	@args Player LocalPlayer
 
 	@client
 	@desc
@@ -783,7 +783,7 @@ end
 --[[
 	@doc
 	@fname HUDCommonsBase:PreDrawOverlay
-	@args player LocalPlayer
+	@args Player LocalPlayer
 
 	@client
 	@desc
@@ -797,7 +797,7 @@ end
 --[[
 	@doc
 	@fname HUDCommonsBase:PostDrawOverlay
-	@args player LocalPlayer
+	@args Player LocalPlayer
 
 	@client
 	@desc
