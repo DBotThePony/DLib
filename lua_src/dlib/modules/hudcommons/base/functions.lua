@@ -75,7 +75,7 @@ function meta:PredictSelectWeapon()
 
 		if state == nil then state = true end
 
-		if weapon:IsValid() and weapon ~= gweapon then
+		if IsValid(weapon) and weapon ~= gweapon then
 			local rtime = RealTimeL()
 
 			if state then
