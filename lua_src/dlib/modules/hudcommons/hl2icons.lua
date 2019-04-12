@@ -354,6 +354,18 @@ do
 		end
 	end
 
+	for wepclass, data in pairs(wepdata) do
+		if data.texturedata then
+			if data.texturedata.weapon and data.texturedata.weapon.file then
+				data.texturedata.weapon.material = Material(data.texturedata.weapon.file)
+			end
+
+			if data.texturedata.weapon_s and data.texturedata.weapon_s.file then
+				data.texturedata.weapon_s.material = Material(data.texturedata.weapon_s.file)
+			end
+		end
+	end
+
 	local wepMeta = FindMetaTable('Weapon')
 	local Matrix = Matrix
 	local cam = cam
@@ -386,10 +398,6 @@ do
 		matrix:Scale(Vector(width / 160, height / 80))]]
 
 		--surface.SetFont(selected and 'DLibDrawWeaponSelectionSelected' or 'DLibDrawWeaponSelection')
-		local size = width:min(height)
-		local selectFont = (size / 4):clamp(1, 36):ceil() * 4
-		surface.SetFont(selected and ('DLibDrawWeaponSelectionSelected' .. selectFont) or ('DLibDrawWeaponSelection' .. selectFont))
-		surface.SetTextColor(mColor:ModifyAlpha(alpha))
 		local text
 
 		if data.texturedata.weapon_s then
@@ -397,6 +405,44 @@ do
 		else
 			text = data.texturedata.weapon.character
 		end
+
+		if not text then
+			local data2
+
+			if data.texturedata.weapon_s then
+				data2 = selected and data.texturedata.weapon_s or data.texturedata.weapon
+			else
+				data2 = data.texturedata.weapon
+			end
+
+			local w, h = data2.width or data2.material:Width(), data2.height or data2.material:Height()
+			surface.SetDrawColor(255, 255, 255, alpha)
+			surface.SetMaterial(data2.material)
+			local w2, h2 = data2.material:Width(), data2.material:Height()
+
+			local u1, v1, u2, v2 =
+				(data2.x or 0) / data2.material:Width(),
+				(data2.y or 0) / data2.material:Height(),
+				((data2.x or 0) + (data2.width or 0)) / data2.material:Width(),
+				((data2.y or 0) + (data2.height or 0)) / data2.material:Height()
+
+			local size = width:max(height)
+
+			if w > h then
+				local nw, nh = size, size * (h / w)
+				surface.DrawTexturedRectUV(x + width / 2 - nw / 2, y + height / 2 - nh / 2, nw, nh, u1, v1, u2, v2)
+			else
+				local nw, nh = size * (w / h), size
+				surface.DrawTexturedRectUV(x + width / 2 - nw / 2, y + height / 2 - nh / 2, nw, nh, u1, v1, u2, v2)
+			end
+
+			return
+		end
+
+		local size = width:min(height)
+		local selectFont = (size / 4):clamp(1, 36):ceil() * 4
+		surface.SetFont(selected and ('DLibDrawWeaponSelectionSelected' .. selectFont) or ('DLibDrawWeaponSelection' .. selectFont))
+		surface.SetTextColor(mColor:ModifyAlpha(alpha))
 
 		local w, h = surface.GetTextSize(text)
 		x = x + width / 2 - w / 2
@@ -426,6 +472,8 @@ do
 			return fcall(self, x, y, width, height, alpha, ...)
 		end
 
+		if not data.texturedata.weapon.character and not data.texturedata.weapon.material then return end
+
 		InternalDrawIcon(self, x, y, width, height, alpha, data, false)
 	end
 
@@ -443,6 +491,8 @@ do
 			if not fcall then return end
 			return fcall(self, x, y, width, height, alpha, ...)
 		end
+
+		if data.texturedata.weapon_s and (not data.texturedata.weapon_s.character and not data.texturedata.weapon_s.material) then return end
 
 		InternalDrawIcon(self, x, y, width, height, alpha, data, true)
 	end
