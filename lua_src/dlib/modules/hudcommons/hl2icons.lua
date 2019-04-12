@@ -316,3 +316,134 @@ do
 		end
 	end
 end
+
+--[[
+	@doc
+	@fname HUDCommonsBase:DLibDrawWeaponSelection
+	@args number x, number y, number width, number height, number alpha
+
+	@client
+
+	@desc
+	Same as !g:Weapon:DrawWeaponSelection Except it support HL2 Sweps!
+	Call this instead of `DrawWeaponSelection`
+	This is perfect function for custom weapon selector
+	@enddesc
+]]
+
+--[[
+	@doc
+	@fname HUDCommonsBase:DLibDrawWeaponSelectionSelected
+	@args number x, number y, number width, number height, number alpha
+
+	@client
+
+	@desc
+	`DLibDrawWeaponSelection` but with glowing icons for HL2 weapons
+	@enddesc
+]]
+do
+	local files = file.Find('scripts/weapons/*.txt', 'GAME')
+	local wepdata = {}
+
+	for i, mfile in ipairs(files) do
+		local parsed = util.KeyValuesToTable(file.Read('scripts/weapons/' .. mfile, 'GAME'))
+
+		if parsed then
+			wepdata[mfile:sub(1, -5)] = parsed
+		end
+	end
+
+	local wepMeta = FindMetaTable('Weapon')
+	local Matrix = Matrix
+	local cam = cam
+	local surface = surface
+	local Vector = Vector
+
+	local mColor = Color(255, 176, 0)
+
+	for i = 4, 144, 4 do
+		surface.CreateFont('DLibDrawWeaponSelection' .. i, {
+			font = 'HalfLife2',
+			size = i,
+			weight = 500,
+			additive = true
+		})
+
+		surface.CreateFont('DLibDrawWeaponSelectionSelected' .. i, {
+			font = 'HalfLife2',
+			size = i,
+			weight = 500,
+			additive = true,
+			scanlines = 2,
+			blur = 5,
+		})
+	end
+
+	local function InternalDrawIcon(self, x, y, width, height, alpha, data, selected)
+		--[[local matrix = Matrix()
+		matrix:Translate(Vector(x, y))
+		matrix:Scale(Vector(width / 160, height / 80))]]
+
+		--surface.SetFont(selected and 'DLibDrawWeaponSelectionSelected' or 'DLibDrawWeaponSelection')
+		local size = width:min(height)
+		local selectFont = (size / 4):clamp(1, 36):ceil() * 4
+		surface.SetFont(selected and ('DLibDrawWeaponSelectionSelected' .. selectFont) or ('DLibDrawWeaponSelection' .. selectFont))
+		surface.SetTextColor(mColor:ModifyAlpha(alpha))
+		local text
+
+		if data.texturedata.weapon_s then
+			text = selected and data.texturedata.weapon_s.character or data.texturedata.weapon.character
+		else
+			text = data.texturedata.weapon.character
+		end
+
+		local w, h = surface.GetTextSize(text)
+		x = x + width / 2 - w / 2
+		y = y + height / 2 - h / 2
+
+		surface.SetTextPos(x, y)
+
+		--cam.PushModelMatrix(matrix)
+
+		surface.DrawText(text)
+
+		--cam.PopModelMatrix()
+	end
+
+	function wepMeta:DLibDrawWeaponSelection(x, y, width, height, alpha, ...)
+		assert(type(x) == 'number', 'x must be a number')
+		assert(type(y) == 'number', 'y must be a number')
+		assert(type(width) == 'number', 'width must be a number')
+		assert(type(height) == 'number', 'height must be a number')
+		assert(type(alpha) == 'number', 'alpha must be a number')
+
+		local data = wepdata[self:GetClass()]
+
+		if not data or not data.texturedata or not data.texturedata.weapon then
+			local fcall = self.DrawWeaponSelection
+			if not fcall then return end
+			return fcall(self, x, y, width, height, alpha, ...)
+		end
+
+		InternalDrawIcon(self, x, y, width, height, alpha, data, false)
+	end
+
+	function wepMeta:DLibDrawWeaponSelectionSelected(x, y, width, height, alpha, ...)
+		assert(type(x) == 'number', 'x must be a number')
+		assert(type(y) == 'number', 'y must be a number')
+		assert(type(width) == 'number', 'width must be a number')
+		assert(type(height) == 'number', 'height must be a number')
+		assert(type(alpha) == 'number', 'alpha must be a number')
+
+		local data = wepdata[self:GetClass()]
+
+		if not data or not data.texturedata or not data.texturedata.weapon then
+			local fcall = self.DrawWeaponSelection
+			if not fcall then return end
+			return fcall(self, x, y, width, height, alpha, ...)
+		end
+
+		InternalDrawIcon(self, x, y, width, height, alpha, data, true)
+	end
+end
