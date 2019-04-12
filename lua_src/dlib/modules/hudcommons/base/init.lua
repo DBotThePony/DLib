@@ -880,4 +880,5 @@ end
 include('functions.lua')
 include('variables.lua')
 include('logic.lua')
+include('wepselect.lua')
 include('menus.lua')
