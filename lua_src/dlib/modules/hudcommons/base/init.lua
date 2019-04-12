@@ -663,6 +663,34 @@ end
 
 --[[
 	@doc
+	@fname HUDCommonsBase:PreHUDPaint
+	@args player LocalPlayer
+
+	@client
+	@desc
+	Override this to define your tricks before hook
+	@enddesc
+]]
+function meta:PreHUDPaint(ply)
+
+end
+
+--[[
+	@doc
+	@fname HUDCommonsBase:PostHUDPaint
+	@args player LocalPlayer
+
+	@client
+	@desc
+	Override this to define your tricks after hook
+	@enddesc
+]]
+function meta:PostHUDPaint(ply)
+
+end
+
+--[[
+	@doc
 	@fname HUDCommonsBase:HUDPaint
 
 	@client
@@ -674,6 +702,8 @@ function meta:HUDPaint()
 
 	local ply = self:SelectPlayer()
 
+	self:PreHUDPaint(ply)
+
 	local i, nextevent = 1, paint[1]
 	::loop::
 
@@ -684,9 +714,39 @@ function meta:HUDPaint()
 	if nextevent ~= nil then
 		goto loop
 	end
+
+	self:PostHUDPaint(ply)
 end
 
 local cam = cam
+
+--[[
+	@doc
+	@fname HUDCommonsBase:PrePostDrawHUD
+	@args player LocalPlayer
+
+	@client
+	@desc
+	Override this to define your tricks before hook
+	@enddesc
+]]
+function meta:PrePostDrawHUD(ply)
+
+end
+
+--[[
+	@doc
+	@fname HUDCommonsBase:PostPostDrawHUD
+	@args player LocalPlayer
+
+	@client
+	@desc
+	Override this to define your tricks after hook
+	@enddesc
+]]
+function meta:PostPostDrawHUD(ply)
+
+end
 
 --[[
 	@doc
@@ -702,6 +762,8 @@ function meta:PostDrawHUD()
 	cam.Start2D()
 	local ply = self:SelectPlayer()
 
+	self:PrePostDrawHUD(ply)
+
 	local i, nextevent = 1, paint[1]
 	::loop::
 
@@ -712,7 +774,38 @@ function meta:PostDrawHUD()
 	if nextevent ~= nil then
 		goto loop
 	end
+
+	self:PostPostDrawHUD(ply)
+
 	cam.End2D()
+end
+
+--[[
+	@doc
+	@fname HUDCommonsBase:PreDrawOverlay
+	@args player LocalPlayer
+
+	@client
+	@desc
+	Override this to define your tricks before hook
+	@enddesc
+]]
+function meta:PreDrawOverlay(ply)
+
+end
+
+--[[
+	@doc
+	@fname HUDCommonsBase:PostDrawOverlay
+	@args player LocalPlayer
+
+	@client
+	@desc
+	Override this to define your tricks after hook
+	@enddesc
+]]
+function meta:PostDrawOverlay(ply)
+
 end
 
 --[[
@@ -729,6 +822,8 @@ function meta:DrawOverlay()
 	cam.Start2D()
 	local ply = self:SelectPlayer()
 
+	self:PreDrawOverlay(ply)
+
 	local i, nextevent = 1, paint[1]
 	::loop::
 
@@ -739,6 +834,9 @@ function meta:DrawOverlay()
 	if nextevent ~= nil then
 		goto loop
 	end
+
+	self:PostDrawOverlay(ply)
+
 	cam.End2D()
 end
 
