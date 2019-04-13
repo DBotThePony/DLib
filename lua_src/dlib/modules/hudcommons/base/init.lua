@@ -689,6 +689,8 @@ function meta:PostHUDPaint(ply)
 
 end
 
+local cl_drawhud = GetConVar('cl_drawhud')
+
 --[[
 	@doc
 	@fname HUDCommonsBase:HUDPaint
@@ -699,6 +701,8 @@ end
 function meta:HUDPaint()
 	local paint = self.paint
 	if #paint == 0 then return end
+
+	if not cl_drawhud:GetBool() then return end
 
 	local ply = self:SelectPlayer()
 
@@ -759,6 +763,8 @@ function meta:PostDrawHUD()
 	local paint = self.paintPost
 	if #paint == 0 then return end
 
+	if not cl_drawhud:GetBool() then return end
+
 	cam.Start2D()
 	local ply = self:SelectPlayer()
 
@@ -818,6 +824,8 @@ end
 function meta:DrawOverlay()
 	local paint = self.paintOverlay
 	if #paint == 0 then return end
+
+	if not cl_drawhud:GetBool() then return end
 
 	cam.Start2D()
 	local ply = self:SelectPlayer()
