@@ -209,21 +209,6 @@ end
 
 --[[
 	@doc
-	@fname Entity:GetHealth
-
-	@desc
-	alias of !g:Entity:Health
-	@enddesc
-
-	@returns
-	number
-]]
-function entMeta:GetHealth()
-	return self:Health()
-end
-
---[[
-	@doc
 	@fname Player:GetArmor
 
 	@desc
