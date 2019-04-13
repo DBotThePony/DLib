@@ -440,7 +440,7 @@ local function WheelBind(self, ply, bind, pressed, weapons)
 
 	if bind ~= 'invprev' and bind ~= 'invnext' then return end
 
-	local weapon = LocalWeapon()
+	local weapon = IsValid(self.SelectWeaponForce) and self.SelectWeaponForce or LocalWeapon()
 	local slot
 
 	if not self.DrawWepSelection then
