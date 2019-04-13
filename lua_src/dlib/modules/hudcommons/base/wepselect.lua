@@ -582,6 +582,7 @@ function meta:WeaponSelectionBind(ply, bind, pressed)
 		self.SelectWeaponForce = next
 		self.SelectWeaponForceTime = RealTimeL() + 2
 		LEmit('Player.WeaponSelected')
+		self:CallWeaponSelectorChosen(next)
 		return true
 	end
 end
