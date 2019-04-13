@@ -209,21 +209,6 @@ end
 
 --[[
 	@doc
-	@fname Player:GetArmor
-
-	@desc
-	alias of !g:Player:Armor
-	@enddesc
-
-	@returns
-	number
-]]
-function plyMeta:GetArmor()
-	return self:Armor()
-end
-
---[[
-	@doc
 	@fname Player:IsAlive
 
 	@desc
