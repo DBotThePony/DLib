@@ -58,6 +58,28 @@ function DLib.TriggerScreenSizeUpdate(...)
 	hook.Run('OnScreenResolutionUpdated', ...)
 end
 
+--[[
+	@doc
+	@fname surface.DLibCreateFont
+	@args string fontName, table fontData
+
+	@desc
+	Same as !g:surface.CreateFont but `size` getting altered by `ScreenSize()` call and
+	font is automatically recreated on each `ScreenResolutionChanged` hook call
+	@enddesc
+]]
+function surface.DLibCreateFont(fontName, fontData)
+	fontData.osize = fontData.size
+
+	local function refresh()
+		fontData.size = ScreenSize(fontData.osize)
+		surface.CreateFont(fontName, fontData)
+	end
+
+	hook.Add('ScreenResolutionChanged', fontName, refresh)
+	refresh()
+end
+
 local dlib_guiding_lines = CreateConVar('dlib_guiding_lines', '0', {}, 'Draw guiding lines on screen')
 local gui = gui
 local surface = surface

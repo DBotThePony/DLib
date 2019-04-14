@@ -18,7 +18,6 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-
 local entMeta = FindMetaTable('Entity')
 local plyMeta = FindMetaTable('Player')
 local wepMeta = FindMetaTable('Weapon')

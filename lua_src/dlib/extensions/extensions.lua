@@ -539,7 +539,7 @@ end
 hook.Add(SERVER and 'Tick' or 'Think', 'DLib.coroutine.syswait', function()
 	local stime = SysTime()
 
-	for i = #threads2, 1, -3 do
+	for i = #threads2, 1, -2 do
 		local thread = threads2[i - 1]
 		local time = threads2[i]
 

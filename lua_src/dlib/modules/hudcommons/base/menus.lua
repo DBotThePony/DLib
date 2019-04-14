@@ -190,7 +190,18 @@ function meta:GetAutocompleteFonts(inputText, convar, fontName, textEntry)
 		end
 	end
 
-	return output
+	if not DLib.ttf.IsFamilyCachePresent() then
+		DLib.ttf.ASyncSearchFamiliesCached()
+	else
+		for i, font in ipairs(DLib.ttf.SearchFamiliesCached()) do
+			if font:lower():startsWith(inputText) then
+				table.insert(output, font)
+			end
+		end
+	end
+
+	table.sort(output)
+	return table.deduplicate(output)
 end
 
 --[[

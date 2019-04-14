@@ -91,3 +91,5 @@ gui.dlib.hudcommons.font_label = 'Settings for %s'
 gui.dlib.hudcommons.save_hint = 'Don\'t forget to host_writeconfig in\nconsole after you did all your changes!'
 gui.dlib.hudcommons.weight = 'Weight'
 gui.dlib.hudcommons.size = 'Size'
+
+gui.dlib.notify.families_loading = 'Expect lag, DLib is baking a cake\n(searching for installed font families)'

@@ -62,7 +62,7 @@ end)
 	@enddesc
 ]]
 function HUDCommons.DrawLoading(x, y, radius, color, segments, inlength)
-	HUDCommons.DrawArcHollow2(x, y, radius, segments or 60, inlength or (radius / 12.5), (RealTimeL() * 4) % 4 * 90, math.sin(RealTimeL() * 2) * 180 + 180, color)
+	return HUDCommons.DrawArcHollow2(x, y, radius, segments or 60, inlength or (radius / 12.5), ((RealTimeL() * 4) % math.deg(math.pi)) * 90, math.sin(RealTimeL() * 2) * 180 + 180, color)
 end
 
 --[[
