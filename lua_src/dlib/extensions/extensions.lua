@@ -516,8 +516,10 @@ if CLIENT then
 	cvars.AddChangeCallback('dlib_screenscale', dlib_screenscale_chages, 'DLib')
 end
 
-local threads1 = {}
-local threads2 = {}
+local threads1T = {}
+local threads1C = {}
+local threads2T = {}
+local threads2C = {}
 local SysTime = SysTime
 local coroutine = coroutine
 local maximal = 0
@@ -531,21 +533,21 @@ function coroutine.syswait(seconds)
 
 	if seconds < 0 then return end
 
-	table.insert(threads1, thread)
-	table.insert(threads1, SysTime() + seconds)
+	table.insert(threads1C, thread)
+	table.insert(threads1T, SysTime() + seconds)
 	coroutine.yield()
 end
 
 hook.Add(SERVER and 'Tick' or 'Think', 'DLib.coroutine.syswait', function()
 	local stime = SysTime()
 
-	for i = #threads2, 1, -2 do
-		local thread = threads2[i - 1]
-		local time = threads2[i]
+	for i = 1, #threads2C do
+		local thread = threads2C[i]
+		local time = threads2T[i]
 
 		if time and time <= stime then
-			threads2[i] = nil
-			threads2[i - 1] = nil
+			threads2C[i] = nil
+			threads2T[i] = nil
 
 			if coroutine.status(thread) == 'suspended' then
 				local status, err = coroutine.resume(thread)
@@ -557,7 +559,9 @@ hook.Add(SERVER and 'Tick' or 'Think', 'DLib.coroutine.syswait', function()
 		end
 	end
 
-	local sw1, sw2 = threads1, threads2
-	threads2 = sw1
-	threads1 = sw2
+	local sw1t, sw2t, sw1c, sw2c = threads1T, threads2T, threads1C, threads2C
+	threads2T = sw1t
+	threads1T = sw2t
+	threads2C = sw1c
+	threads1C = sw2c
 end, 3)
