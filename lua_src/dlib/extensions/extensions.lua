@@ -515,3 +515,49 @@ if CLIENT then
 
 	cvars.AddChangeCallback('dlib_screenscale', dlib_screenscale_chages, 'DLib')
 end
+
+local threads1 = {}
+local threads2 = {}
+local SysTime = SysTime
+local coroutine = coroutine
+local maximal = 0
+
+function coroutine.syswait(seconds)
+	if type(seconds) ~= 'number'then
+		error('Invalid seconds amount provided')
+	end
+
+	local thread = assert(coroutine.running(), 'Not inside coroutine!')
+
+	if seconds < 0 then return end
+
+	table.insert(threads1, thread)
+	table.insert(threads1, SysTime() + seconds)
+	coroutine.yield()
+end
+
+hook.Add(SERVER and 'Tick' or 'Think', 'DLib.coroutine.syswait', function()
+	local stime = SysTime()
+
+	for i = #threads2, 1, -3 do
+		local thread = threads2[i - 1]
+		local time = threads2[i]
+
+		if time and time <= stime then
+			threads2[i] = nil
+			threads2[i - 1] = nil
+
+			if coroutine.status(thread) == 'suspended' then
+				local status, err = coroutine.resume(thread)
+
+				if not status then
+					ErrorNoHalt(err)
+				end
+			end
+		end
+	end
+
+	local sw1, sw2 = threads1, threads2
+	threads2 = sw1
+	threads1 = sw2
+end, 3)
