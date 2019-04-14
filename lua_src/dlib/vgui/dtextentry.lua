@@ -38,15 +38,16 @@ local draw = draw
 
 	@desc
 	DTextEntry with `:OnEnter(value)` callback (which means it will be called after user press Enter)
+	also contains autocomplete qol fixes
 	@enddesc
 ]]
 local PANEL = {}
 DLib.VGUI.TextEntry = PANEL
 
 surface.CreateFont('DLib_TextEntry', {
-	font = 'PT Serif',
+	font = 'Roboto',
 	size = 16,
-	weight = 600,
+	weight = 500,
 	extended = true
 })
 
@@ -59,6 +60,30 @@ end
 
 function PANEL:OnEnter(value)
 
+end
+
+function PANEL:OnGetFocus(...)
+	if DTextEntry.OnGetFocus then
+		DTextEntry.OnGetFocus(self, ...)
+	end
+
+	local autocomplete = self:GetAutoComplete(self:GetText())
+
+	if autocomplete then
+		self:OpenAutoComplete(autocomplete)
+	end
+end
+
+function PANEL:OnMousePressed(...)
+	if DTextEntry.OnMousePressed then
+		DTextEntry.OnMousePressed(self, ...)
+	end
+
+	local autocomplete = self:GetAutoComplete(self:GetText())
+
+	if autocomplete then
+		self:OpenAutoComplete(autocomplete)
+	end
 end
 
 function PANEL:OnKeyCodeTyped(key)

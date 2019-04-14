@@ -190,9 +190,9 @@ function meta:GetAutocompleteFonts(inputText, convar, fontName, textEntry)
 		end
 	end
 
-	if not DLib.ttf.IsFamilyCachePresent() then
+	if not DLib.ttf.IsFamilyCachePresent() and not DLib.ttf.IsFamilyCacheBuilding() then
 		DLib.ttf.ASyncSearchFamiliesCached()
-	else
+	elseif DLib.ttf.IsFamilyCachePresent() then
 		for i, font in ipairs(DLib.ttf.SearchFamiliesCached()) do
 			if font:lower():startsWith(inputText) then
 				table.insert(output, font)
@@ -261,8 +261,11 @@ function meta:PopulateFontSettings(panel)
 
 		panel:Help(DLib.i18n.localize('gui.dlib.hudcommons.font_label', cName))
 
-		local entry = panel:TextEntry('gui.dlib.hudcommons.font', self.fontCVars.font[cI]:GetName())
+		local entry = vgui.Create('DLib_TextEntry', panel)
+		entry:SetConVar(self.fontCVars.font[cI]:GetName())
 		entry:SetPlaceholderText(self.fontCVars.font[cI]:GetDefault())
+
+		panel:AddItem(entry)
 
 		function entry.GetAutoComplete(pself, inputText)
 			local tab = self:GetAutocompleteFonts(inputText, self.fontCVars.font[cI], cName, pself)

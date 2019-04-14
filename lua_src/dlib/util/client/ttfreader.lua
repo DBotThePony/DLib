@@ -334,6 +334,10 @@ function DLib.ttf.IsFamilyCachePresent()
 	return DLib.ttf.__familyCache ~= nil
 end
 
+function DLib.ttf.IsFamilyCacheBuilding()
+	return concurrentRunning ~= nil
+end
+
 function DLib.ttf.ASyncSearchFamiliesCached()
 	return DLib.Promise(function(resolve, reject)
 		if DLib.ttf.__familyCache then

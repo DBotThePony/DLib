@@ -562,7 +562,8 @@ hook.Add(SERVER and 'Tick' or 'Think', 'DLib.coroutine.syswait', function()
 				local status, err = coroutine.resume(thread)
 
 				if not status then
-					ErrorNoHalt(err)
+					DLib.MessageError('Error executing thread:')
+					ErrorNoHalt(err .. '\n')
 				end
 			end
 		end
