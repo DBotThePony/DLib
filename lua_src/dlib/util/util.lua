@@ -240,9 +240,15 @@ local function getColorForType(typeIn)
 	return DEFAULT_TEXT_COLOR
 end
 
+local unmap = {}
+
+for i = 0, 16 do
+	unmap[string.char(i)] = '\\x' .. string.format('%.2X', i)
+end
+
 local function getValueString(typeIn, valueIn)
 	if typeIn == 'string' then
-		return '"' .. valueIn:gsub('"', '\\"'):gsub('\t', '\\t'):gsub('\n', '\\n') .. '"'
+		return '"' .. valueIn:gsub('"', '\\"'):gsub('\t', '\\t'):gsub('\n', '\\n'):gsub('.', function(str) return unmap[str] or str end) .. '"'
 	elseif typeIn == 'function' then
 		local info = debug.getinfo(valueIn)
 		return tostring(valueIn), COMMENTARY_COLOR, ' --[[ ' .. info.short_src .. ': ' .. (info.lastlinedefined ~= info.linedefined and (info.linedefined .. '-' .. info.lastlinedefined) or info.lastlinedefined) .. ' ]]'
