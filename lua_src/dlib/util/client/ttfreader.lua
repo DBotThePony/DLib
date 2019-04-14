@@ -206,6 +206,7 @@ end
 
 function DLib.ttf.SearchFamilies()
 	local files = file.Find('resource/fonts/*.ttf', 'GAME')
+	local files2 = file.Find('cache/workshop/resource/fonts/*.ttf', 'GAME')
 	local output = {}
 
 	for i, mfile in ipairs(files) do
@@ -214,8 +215,22 @@ function DLib.ttf.SearchFamilies()
 		if ttf:HasName() then
 			local getName = ttf:GetFamily()
 
-			if getName then
+			if getName and getName ~= '' then
 				table.insert(output, getName)
+			end
+		end
+	end
+
+	for i, mfile in ipairs(files2) do
+		if not table.qhasValue(files, mfile) then
+			local ttf = DLib.ttf.Open(DLib.BytesBuffer(file.Read('cache/workshop/resource/fonts/' .. mfile, 'GAME')))
+
+			if ttf:HasName() then
+				local getName = ttf:GetFamily()
+
+				if getName and getName ~= '' then
+					table.insert(output, getName)
+				end
 			end
 		end
 	end
@@ -233,6 +248,7 @@ function DLib.ttf.ASyncSearchFamilies()
 	concurrentRunning = DLib.Promise(function(resolve, reject)
 		local thread = coroutine.create(function()
 			local files = file.Find('resource/fonts/*.ttf', 'GAME')
+			local files2 = file.Find('cache/workshop/resource/fonts/*.ttf', 'GAME')
 			local output = {}
 
 			for i, mfile in ipairs(files) do
@@ -242,8 +258,23 @@ function DLib.ttf.ASyncSearchFamilies()
 				if ttf:HasName() then
 					local getName = ttf:GetFamily()
 
-					if getName then
+					if getName and getName ~= '' then
 						table.insert(output, getName)
+					end
+				end
+			end
+
+			for i, mfile in ipairs(files2) do
+				if not table.qhasValue(files, mfile) then
+					local ttf = DLib.ttf.Open(DLib.BytesBuffer(file.Read('cache/workshop/resource/fonts/' .. mfile, 'GAME')))
+					coroutine.syswait(0.1)
+
+					if ttf:HasName() then
+						local getName = ttf:GetFamily()
+
+						if getName and getName ~= '' then
+							table.insert(output, getName)
+						end
 					end
 				end
 			end

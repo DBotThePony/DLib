@@ -524,6 +524,15 @@ local SysTime = SysTime
 local coroutine = coroutine
 local maximal = 0
 
+--[[
+	@doc
+	@fname coroutine.syswait
+	@args number seconds
+
+	@desc
+	like !g:coroutine.wait but use `SysTime()`
+	@enddesc
+]]
 function coroutine.syswait(seconds)
 	if type(seconds) ~= 'number'then
 		error('Invalid seconds amount provided')
