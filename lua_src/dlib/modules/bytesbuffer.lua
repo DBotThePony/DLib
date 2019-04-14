@@ -50,20 +50,30 @@ meta.__index = meta
 	@returns
 	BytesBuffer: newly created object
 ]]
-function DLib.BytesBuffer(stringIn)
+DLib.BytesBuffer = setmetatable({proto = meta, meta = meta}, {__call = function(self, stringIn)
 	local obj = setmetatable({}, meta)
 	obj.bytes = {}
 	obj.pointer = 0
 	obj.length = 0
 
 	if type(stringIn) == 'string' then
-		obj:WriteBinary(stringIn)
+		--obj:WriteBinary(stringIn)
+		-- fast initialize
+
+		local read = DLib.string.bbyte(stringIn, 1, #stringIn)
+
+		for i = 1, #read, 4 do
+			--if i + 4 > #read then break end
+			obj.bytes[math.floor(i / 4) + 1] = read[i] + (read[i + 1] or 0):lshift(8) + (read[i + 2] or 0):lshift(16) + (read[i + 3] or 0):lshift(24)
+		end
+
+		obj.length = #read
 	end
 
-	obj:Seek(0)
+	-- obj:Seek(0)
 
 	return obj
-end
+end})
 
 --[[
 	@doc
@@ -79,6 +89,20 @@ function meta:Seek(moveTo)
 	self.pointer = moveTo
 	return self
 end
+
+--[[
+	@doc
+	@fname BytesBuffer:Tell
+	@alias BytesBuffer:Ask
+
+	@returns
+	number: pointer position
+]]
+function meta:Tell(moveBy)
+	return self.pointer
+end
+
+meta.Ask = meta.Tell
 
 --[[
 	@doc
@@ -928,4 +952,112 @@ function meta:ToFileStream(fileStream)
 	end
 
 	return fileStream
+end
+
+--[[
+	@doc
+	@fname DLib.BytesBuffer.CompileStructure
+	@args string structureDef, table customTypes
+
+	@desc
+	Reads a structure from current pointer position
+	this is somewhat fancy way of reading typical headers and stuff
+	The string is in next format:
+	```
+	type identifier with any symbols
+	type on_next_line
+	uint32 thing
+	```
+	Supported types:
+	`int8`
+	`int16`
+	`int32`
+	`int64`
+	`bigint`
+	`float`
+	`double`
+	`uint8`
+	`uint16`
+	`uint32`
+	`uint64`
+	`ubigint`
+	`string` - NUL terminated string
+	@enddesc
+
+	@returns
+	function: a function to pass `BytesBuffer` to get readed structure
+]]
+function DLib.BytesBuffer.CompileStructure(structureDef, callbacks)
+	local output = {}
+
+	for i, line in ipairs(structureDef:split('\n')) do
+		line = line:trim()
+		--assert(line ~= '', 'Invalid line definition at ' .. i)
+
+		if line ~= '' then
+			local findSpace = assert(line:find('%s'), 'Can\'t find variable name at line ' .. i)
+			local rtype2 = line:sub(1, findSpace):trim()
+			local rtype = rtype2:lower()
+			local rname = line:sub(findSpace + 1):trim()
+			local findCommentary = rname:find('%s//')
+
+			if findCommentary then
+				rname = rname:sub(1, findCommentary):trim()
+			end
+
+			if rtype == 'int8' or rtype == 'byte' then
+				table.insert(output, {rname, meta.ReadByte})
+			elseif rtype == 'int16' or rtype == 'short' then
+				table.insert(output, {rname, meta.ReadInt16})
+			elseif rtype == 'int32' or rtype == 'long' or rtype == 'int' then
+				table.insert(output, {rname, meta.ReadInt32})
+			elseif rtype == 'int64' or rtype == 'longlong' or rtype == 'bigint' then
+				table.insert(output, {rname, meta.ReadInt64})
+			elseif rtype == 'uint8' or rtype == 'ubyte' then
+				table.insert(output, {rname, meta.ReadUByte})
+			elseif rtype == 'uint16' or rtype == 'ushort' then
+				table.insert(output, {rname, meta.ReadUInt16})
+			elseif rtype == 'uint32' or rtype == 'ulong' or rtype == 'uint' then
+				table.insert(output, {rname, meta.ReadUInt32})
+			elseif rtype == 'uint64' or rtype == 'ulong64' or rtype == 'biguint' or rtype == 'ubigint' then
+				table.insert(output, {rname, meta.ReadUInt64})
+			elseif rtype == 'float' then
+				table.insert(output, {rname, meta.ReadFloat})
+			elseif rtype == 'double' then
+				table.insert(output, {rname, meta.ReadDouble})
+			elseif rtype == 'variable' or rtype == 'string' then
+				table.insert(output, {rname, meta.ReadString})
+			elseif callbacks and callbacks[rtype2] then
+				table.insert(output, {rname, callbacks[rtype2]})
+			else
+				DLib.MessageError(debug.traceback('Undefined type: ' .. rtype))
+			end
+		end
+	end
+
+	return function(self)
+		local read = {}
+
+		for i, data in ipairs(output) do
+			read[data[1]] = data[2](self, read)
+		end
+
+		return read
+	end
+end
+
+--[[
+	@doc
+	@fname BytesBuffer:ReadStructure
+	@args string structureDef, table customTypes
+
+	@desc
+	`DLib.BytesBuffer.CompileStructure(structureDef, customTypes)(self)`
+	@enddesc
+
+	@returns
+	table: the read structure
+]]
+function meta:ReadStructure(structureDef, callbacks)
+	return DLib.BytesBuffer.CompileStructure(structureDef, callbacks)(self)
 end
