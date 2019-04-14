@@ -74,16 +74,50 @@ function PANEL:OnGetFocus(...)
 	end
 end
 
-function PANEL:OnMousePressed(...)
+function PANEL:OnMousePressed(mcode)
 	if DTextEntry.OnMousePressed then
-		DTextEntry.OnMousePressed(self, ...)
+		DTextEntry.OnMousePressed(self, mcode)
 	end
 
-	local autocomplete = self:GetAutoComplete(self:GetText())
+	if mcode == MOUSE_LEFT then
+		local autocomplete = self:GetAutoComplete(self:GetText())
 
-	if autocomplete then
-		self:OpenAutoComplete(autocomplete)
+		if autocomplete then
+			self:OpenAutoComplete(autocomplete)
+		end
 	end
+end
+
+function PANEL:Think()
+	if not IsValid(self.Menu) then
+		self:ConVarStringThink()
+	end
+end
+
+function PANEL:OpenAutoComplete(tab)
+	if not tab or #tab == 0 then return end
+
+	if IsValid(self.Menu) then
+		self.Menu:Remove()
+	end
+
+	self.Menu = DermaMenu()
+
+	for k, line in ipairs(tab) do
+		self.Menu:AddOption(line, function()
+			self:SetText(line)
+			self:SetCaretPos(#line)
+			self:UpdateConvarValue()
+			self:RequestFocus()
+			self:OnValueChange(line)
+		end)
+	end
+
+	local x, y = self:LocalToScreen(0, self:GetTall())
+	self.Menu:SetMinimumWidth(self:GetWide())
+	self.Menu:Open(x, y, true, self)
+	self.Menu:SetPos(x, y)
+	self.Menu:SetMaxHeight(ScrHL() - y - 10)
 end
 
 function PANEL:OnKeyCodeTyped(key)
@@ -92,6 +126,11 @@ function PANEL:OnKeyCodeTyped(key)
 	elseif key == KEY_ENTER then
 		self:OnEnter((self:GetValue() or ''):Trim())
 		self:KillFocus()
+
+		if IsValid(self.Menu) then
+			self.Menu:Remove()
+		end
+
 		return true
 	end
 
