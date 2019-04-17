@@ -72,8 +72,8 @@ if CLIENT then
 		for k, wep in ipairs(weapons) do
 			local tab = GetTable(wep)
 
-			if not tab.DrawWeaponSelection_DLib then
-				tab.DrawWeaponSelection_DLib = tab.DrawWeaponSelection or function() end
+			if not tab.DrawWeaponSelection_DLib and tab.DrawWeaponSelection then
+				tab.DrawWeaponSelection_DLib = tab.DrawWeaponSelection
 
 				tab.DrawWeaponSelection = function(self, x, y, w, h, a)
 					local can = hook.Run('DrawWeaponSelection', self, x, y, w, h, a)
