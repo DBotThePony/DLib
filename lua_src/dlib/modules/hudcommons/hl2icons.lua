@@ -474,6 +474,8 @@ do
 
 		if not data.texturedata.weapon.character and not data.texturedata.weapon.material then return end
 
+		if hook.Run('DrawWeaponSelection', self, x, y, width, height, alpha) == false then return end
+
 		InternalDrawIcon(self, x, y, width, height, alpha, data, false)
 	end
 
@@ -493,6 +495,8 @@ do
 		end
 
 		if data.texturedata.weapon_s and (not data.texturedata.weapon_s.character and not data.texturedata.weapon_s.material) then return end
+
+		if hook.Run('DrawWeaponSelection', self, x, y, width, height, alpha) == false then return end
 
 		InternalDrawIcon(self, x, y, width, height, alpha, data, true)
 	end
