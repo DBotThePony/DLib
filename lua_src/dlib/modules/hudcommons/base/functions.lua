@@ -936,7 +936,7 @@ function meta:ShouldDisplaySecondaryAmmoReady()
 		return false
 	end
 
-	return self:HasWeapon() and self:GetVarClipMax2() > 0
+	return self:HasWeapon() and (self:GetVarClipMax2() > 0 or self:GetVarClip2() > 0)
 end
 
 meta.ShouldDisplayAmmoReady2 = meta.ShouldDisplaySecondaryAmmoReady
