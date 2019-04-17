@@ -476,7 +476,9 @@ do
 
 		if hook.Run('DrawWeaponSelection', self, x, y, width, height, alpha) == false then return end
 
+		hook.Run('PreDrawWeaponSelection', self, x, y, width, height, alpha)
 		InternalDrawIcon(self, x, y, width, height, alpha, data, false)
+		hook.Run('PostDrawWeaponSelection', self, x, y, width, height, alpha)
 	end
 
 	function wepMeta:DLibDrawWeaponSelectionSelected(x, y, width, height, alpha, ...)
@@ -498,6 +500,8 @@ do
 
 		if hook.Run('DrawWeaponSelection', self, x, y, width, height, alpha) == false then return end
 
+		hook.Run('PreDrawWeaponSelection', self, x, y, width, height, alpha)
 		InternalDrawIcon(self, x, y, width, height, alpha, data, true)
+		hook.Run('PostDrawWeaponSelection', self, x, y, width, height, alpha)
 	end
 end

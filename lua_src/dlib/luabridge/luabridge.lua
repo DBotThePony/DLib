@@ -79,7 +79,10 @@ if CLIENT then
 					local can = hook.Run('DrawWeaponSelection', self, x, y, w, h, a)
 					if can == false then return end
 
-					return tab.DrawWeaponSelection_DLib(self, x, y, w, h, a)
+					hook.Run('PreDrawWeaponSelection', self, x, y, width, height, alpha)
+					local A, B, C, D, E, F = tab.DrawWeaponSelection_DLib(self, x, y, w, h, a)
+					hook.Run('PostDrawWeaponSelection', self, x, y, width, height, alpha)
+					return A, B, C, D, E, F
 				end
 			end
 		end
