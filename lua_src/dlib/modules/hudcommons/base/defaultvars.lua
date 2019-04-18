@@ -45,6 +45,7 @@ function meta:__InitVaribles()
 	self:RegisterRegularVariable('nick', 'Nick', 'put playername here')
 	self:RegisterRegularVariable('maxArmor', 'GetMaxArmor', 100)
 	self:RegisterRegularVariable('team', 'Team', 0)
+	self:RegisterRegularVariable('wearingSuit', 'IsSuitEquipped', true)
 
 	self:RegisterRegularWeaponVariable('clip1', 'Clip1', 0)
 	self:RegisterRegularWeaponVariable('clip2', 'Clip2', 0)
