@@ -68,18 +68,25 @@ class VLL2.AbstractBundle
 		@cache = {}
 
 		if @cacheExists = file.Exists(@GetCachePath(), 'DATA')
-			with fStream = file.Open(@GetCachePath(), 'rb', 'DATA')
-				fsize = \Size()
+			success = ProtectedCall ->
+				with fStream = file.Open(@GetCachePath(), 'rb', 'DATA')
+					fsize = \Size()
 
-				while \Tell() < fsize
-					pathLen = \ReadUShort()
-					path = \Read(pathLen)
-					fstamp = \ReadULong()
-					bodyLen = \ReadULong()
-					body = \Read(bodyLen)
-					@cache[path] = {:fstamp, :body}
+					while \Tell() < fsize
+						pathLen = \ReadUShort()
+						path = \Read(pathLen)
+						fstamp = \ReadULong()
+						bodyLen = \ReadULong()
+						body = \Read(bodyLen)
+						@cache[path] = {:fstamp, :body}
 
-				\Close()
+					\Close()
+
+			if not success
+				VLL2.Message('Unable to read from file cache! Looks like your files got corrupted...')
+				@cache = {}
+				file.Delete(@GetCachePath())
+
 
 	GetCachePath: => 'vll2/luapacks/' .. util.CRC(@name) .. '.dat'
 	SaveCache: =>
