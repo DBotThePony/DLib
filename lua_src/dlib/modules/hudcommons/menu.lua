@@ -39,6 +39,10 @@ local function PopulateColors(Panel)
 		collapse:SetExpanded(false)
 		collapse:SetLabel(v.name .. ' (' .. k .. ')')
 
+		if IsValid(collapse.Header) then
+			collapse.Header:SetTooltip(v.name .. ' (' .. class .. ')')
+		end
+
 		local canvas = vgui.Create('EditablePanel', collapse)
 		collapse:SetContents(canvas)
 
@@ -49,6 +53,7 @@ local function PopulateColors(Panel)
 			RunConsoleCommand(v.r:GetName(), v.r:GetDefault())
 			RunConsoleCommand(v.g:GetName(), v.g:GetDefault())
 			RunConsoleCommand(v.b:GetName(), v.b:GetDefault())
+			RunConsoleCommand(v.a:GetName(), v.a:GetDefault())
 		end
 
 		local picker = vgui.Create('DColorMixer', canvas)
@@ -78,6 +83,10 @@ local function PopulateColors2(Panel)
 
 		collapse:SetExpanded(false)
 		collapse:SetLabel(v.name .. ' (' .. k .. ')')
+
+		if IsValid(collapse.Header) then
+			collapse.Header:SetTooltip(v.name .. ' (' .. class .. ')')
+		end
 
 		local canvas = vgui.Create('EditablePanel', collapse)
 		collapse:SetContents(canvas)

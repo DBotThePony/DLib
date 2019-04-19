@@ -353,6 +353,124 @@ end
 
 --[[
 	@doc
+	@fname HUDCommonsBase:PopulateColorsMenuOe
+	@args Panel DFrame
+
+	@client
+	@desc
+	Getting called from PopulateColorsMenu on END of that function
+	@enddesc
+]]
+function meta:PopulateColorsMenuOe(panel)
+
+end
+
+--[[
+	@doc
+	@fname HUDCommonsBase:PopulateColorsMenuOs
+	@args Panel DFrame
+
+	@client
+	@desc
+	Getting called from PopulateColorsMenu on START of that function
+	@enddesc
+]]
+function meta:PopulateColorsMenuOs(panel)
+
+end
+
+--[[
+	@doc
+	@fname HUDCommonsBase:PopulateColorsMenu
+
+	@client
+	@internal
+]]
+function meta:PopulateColorsMenu(panel)
+	if not IsValid(panel) then return end
+	panel:Clear()
+
+	table.sort(self.colorNames)
+	table.sort(self.colorNamesN)
+
+	self:PopulateColorsMenuOs(panel)
+
+	for i, class in ipairs(self.colorNames) do
+		local v = HUDCommons.ColorsVars[class]
+
+		local collapse = vgui.Create('DCollapsibleCategory', panel)
+		panel:AddItem(collapse)
+
+		collapse:SetExpanded(false)
+		collapse:SetLabel(v.name .. ' (' .. class .. ')')
+
+		if IsValid(collapse.Header) then
+			collapse.Header:SetTooltip(v.name .. ' (' .. class .. ')')
+		end
+
+		local canvas = vgui.Create('Editablepanel', collapse)
+		collapse:SetContents(canvas)
+
+		local reset = vgui.Create('DButton', canvas)
+		reset:Dock(TOP)
+		reset:SetText('gui.dlib.hudcommons.reset')
+		reset.DoClick = function()
+			RunConsoleCommand(v.r:GetName(), v.r:GetDefault())
+			RunConsoleCommand(v.g:GetName(), v.g:GetDefault())
+			RunConsoleCommand(v.b:GetName(), v.b:GetDefault())
+			RunConsoleCommand(v.a:GetName(), v.a:GetDefault())
+		end
+
+		local picker = vgui.Create('DColorMixer', canvas)
+		picker:SetConVarR(v.r:GetName())
+		picker:SetConVarG(v.g:GetName())
+		picker:SetConVarB(v.b:GetName())
+		picker:SetConVarA(v.a:GetName())
+
+		picker:Dock(TOP)
+		picker:SetHeight(200)
+	end
+
+	for i, class in ipairs(self.colorNamesN) do
+		local v = HUDCommons.ColorsVarsN[class]
+
+		local collapse = vgui.Create('DCollapsibleCategory', panel)
+		panel:AddItem(collapse)
+
+		collapse:SetExpanded(false)
+		collapse:SetLabel(v.name .. ' (' .. class .. ')')
+
+		if IsValid(collapse.Header) then
+			collapse.Header:SetTooltip(v.name .. ' (' .. class .. ')')
+		end
+
+		local canvas = vgui.Create('Editablepanel', collapse)
+		collapse:SetContents(canvas)
+
+		local reset = vgui.Create('DButton', canvas)
+		reset:Dock(TOP)
+		reset:SetText('gui.dlib.hudcommons.reset')
+		reset.DoClick = function()
+			RunConsoleCommand(v.r:GetName(), v.r:GetDefault())
+			RunConsoleCommand(v.g:GetName(), v.g:GetDefault())
+			RunConsoleCommand(v.b:GetName(), v.b:GetDefault())
+		end
+
+		local picker = vgui.Create('DColorMixer', canvas)
+		picker:SetConVarR(v.r:GetName())
+		picker:SetConVarG(v.g:GetName())
+		picker:SetConVarB(v.b:GetName())
+		picker:SetAlphaBar(false)
+
+		picker:Dock(TOP)
+		picker:SetHeight(200)
+	end
+
+	self:PopulateColorsMenuOe(panel)
+end
+
+--[[
+	@doc
 	@fname HUDCommonsBase:PopulateToolMenuDefault
 
 	@client
@@ -366,6 +484,12 @@ function meta:PopulateToolMenuDefault()
 	if #self.fontCVars ~= 0 then
 		spawnmenu.AddToolMenuOption('Utilities', 'User', self:GetID() .. '_fonts', DLib.i18n.localize('gui.dlib.hudcommons.fonts', self:GetName()), '', '', function(panel)
 			self:PopulateFontSettings(panel)
+		end)
+	end
+
+	if #self.colorNames ~= 0 or #self.colorNamesN ~= 0 then
+		spawnmenu.AddToolMenuOption('Utilities', 'User', self:GetID() .. '_colors', DLib.i18n.localize('gui.dlib.hudcommons.colors', self:GetName()), '', '', function(panel)
+			self:PopulateColorsMenu(panel)
 		end)
 	end
 

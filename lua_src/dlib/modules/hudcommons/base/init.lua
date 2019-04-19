@@ -75,6 +75,9 @@ function meta:__construct(hudID, hudName)
 	self.fontsNames = {}
 	self.convars = {}
 
+	self.colorNames = {}
+	self.colorNamesN = {}
+
 	self.next_convar_auto_priority = 1000
 
 	self.positionsConVars = {}
@@ -455,7 +458,13 @@ end
 	function
 ]]
 function meta:CreateColor(class, name, r, g, b, a)
-	return HUDCommons.CreateColor(self:GetID() .. '_' .. class, self:GetName() .. ' ' .. name, r, g, b, a)
+	local name2 = self:GetID() .. '_' .. class
+
+	if not table.qhasValue(self.colorNames, name2) then
+		table.insert(self.colorNames, name2)
+	end
+
+	return HUDCommons.CreateColor(name, self:GetName() .. ' ' .. name, r, g, b, a)
 end
 
 --[[
@@ -473,6 +482,12 @@ end
 	function
 ]]
 function meta:CreateColor2(class, name, r, g, b, a)
+	local name2 = self:GetID() .. '_' .. class
+
+	if not table.qhasValue(self.colorNames, name2) then
+		table.insert(self.colorNames, name2)
+	end
+
 	return HUDCommons.CreateColor2(self:GetID() .. '_' .. class, self:GetName() .. ' ' .. name, r, g, b, a)
 end
 
@@ -491,6 +506,12 @@ end
 	function
 ]]
 function meta:CreateColorN(class, name, r, g, b, a)
+	local name2 = self:GetID() .. '_' .. class
+
+	if not table.qhasValue(self.colorNamesN, name2) then
+		table.insert(self.colorNamesN, name2)
+	end
+
 	return HUDCommons.CreateColorN(self:GetID() .. '_' .. class, self:GetName() .. ' ' .. name, r, g, b, a)
 end
 
@@ -509,6 +530,12 @@ end
 	Color
 ]]
 function meta:CreateColorN2(class, name, r, g, b, a)
+	local name2 = self:GetID() .. '_' .. class
+
+	if not table.qhasValue(self.colorNamesN, name2) then
+		table.insert(self.colorNamesN, name2)
+	end
+
 	return HUDCommons.CreateColorN2(self:GetID() .. '_' .. class, self:GetName() .. ' ' .. name, r, g, b, a)
 end
 

@@ -86,6 +86,7 @@ gui.dlib.donate.more = ' and %i more addons!..'
 
 gui.dlib.hudcommons.positions = '%s positions'
 gui.dlib.hudcommons.fonts = '%s fonts'
+gui.dlib.hudcommons.colors = '%s colors'
 gui.dlib.hudcommons.font = 'Font'
 gui.dlib.hudcommons.font_label = 'Settings for %s'
 gui.dlib.hudcommons.save_hint = 'Don\'t forget to host_writeconfig in\nconsole after you did all your changes!'
