@@ -223,10 +223,17 @@ meta.CONVAR_TYPE_ENUM = 3
 --[[
 	@doc
 	@fname HUDCommonsBase:CreateConVar
-	@args string cvar, string default, string description, boolean nomenu = false
+	@args string cvar, string default, string description, boolean nomenu = false, table options = {}
 
 	@desc
 	You don't need to prefix anything to `cvar` name!
+	`options` is a table which hold:
+	`type`: can be either of `HUDCommonsBase.CONVAR_TYPE_BOOL`, `HUDCommonsBase.CONVAR_TYPE_NUM`, `HUDCommonsBase.CONVAR_TYPE_STRING`, `HUDCommonsBase.CONVAR_TYPE_ENUM`
+	`decimals`: `number` for `HUDCommonsBase.CONVAR_TYPE_NUM` slider
+	`min`: `number` for `HUDCommonsBase.CONVAR_TYPE_NUM` slider
+	`max`: `number` for `HUDCommonsBase.CONVAR_TYPE_NUM` slider
+	`priority`: `number`, if none is present, it receive an auto decrementing number
+	`enum`: `table` of `string (label) => string (convar value)`. Can be an array, which would use value as both name and convar value
 	@enddesc
 
 	@client
