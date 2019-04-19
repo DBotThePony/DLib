@@ -460,6 +460,24 @@ end
 
 --[[
 	@doc
+	@fname HUDCommonsBase:CreateColor2
+	@args string classname, string name, number r, number g, number b, number a
+
+	@client
+
+	@desc
+	Proper way to call `HUDCommons.CreateColor2` if you build your HUD on `HUDCommonsBase`
+	@enddesc
+
+	@returns
+	function
+]]
+function meta:CreateColor2(class, name, r, g, b, a)
+	return HUDCommons.CreateColor2(self:GetID() .. '_' .. class, self:GetName() .. ' ' .. name, r, g, b, a)
+end
+
+--[[
+	@doc
 	@fname HUDCommonsBase:CreateColorN
 	@args string classname, string name, number r, number g, number b, number a
 

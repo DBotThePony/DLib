@@ -32,6 +32,7 @@ local tostring = tostring
 HUDCommons.Colors = HUDCommons.Colors or {}
 HUDCommons.ColorsN = HUDCommons.ColorsN or {}
 HUDCommons.ColorsVars = HUDCommons.ColorsVars or {}
+HUDCommons.ColorsVars_Proxies = HUDCommons.ColorsVars_Proxies or {}
 HUDCommons.ColorsVarsN = HUDCommons.ColorsVarsN or {}
 HUDCommons.ColorsVarsN_Proxies = HUDCommons.ColorsVarsN_Proxies or {}
 
@@ -95,6 +96,14 @@ function HUDCommons.CreateColor(class, name, r, g, b, a)
 	local function colorUpdated()
 		HUDCommons.Colors[class] = Color(t.r:GetInt() or r, t.g:GetInt() or g, t.b:GetInt() or b, t.a:GetInt() or a)
 		currentColor = HUDCommons.Colors[class]
+
+		if HUDCommons.ColorsVars_Proxies[class] then
+			local target = HUDCommons.ColorsVars_Proxies[class]
+			target.r = currentColor.r
+			target.g = currentColor.g
+			target.b = currentColor.b
+			target.a = currentColor.a
+		end
 	end
 
 	colorUpdated()
@@ -209,6 +218,32 @@ function HUDCommons.CreateColorN2(class, ...)
 	local colorProxy = Color()
 	local color = HUDCommons.CreateColorN(class, ...)
 	HUDCommons.ColorsVarsN_Proxies[class] = colorProxy
+	color = color()
+	colorProxy.r = color.r
+	colorProxy.g = color.g
+	colorProxy.b = color.b
+	colorProxy.a = color.a
+	return colorProxy
+end
+
+--[[
+	@doc
+	@fname DLib.HUDCommons.CreateColor2
+	@args string classname, string name, number r, number g, number b, number a
+
+	@client
+
+	@desc
+	same as `DLib.HUDCommons.CreateColor` but returns color which is always valid
+	@enddesc
+
+	@returns
+	Color: this color is being updated by the base internally, so you don't have to call function. You *are not* allowed to edit alpha channel of this color.
+]]
+function HUDCommons.CreateColor2(class, ...)
+	local colorProxy = Color()
+	local color = HUDCommons.CreateColor(class, ...)
+	HUDCommons.ColorsVars_Proxies[class] = colorProxy
 	color = color()
 	colorProxy.r = color.r
 	colorProxy.g = color.g
