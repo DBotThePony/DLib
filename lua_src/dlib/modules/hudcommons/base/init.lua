@@ -75,6 +75,8 @@ function meta:__construct(hudID, hudName)
 	self.fontsNames = {}
 	self.convars = {}
 
+	self.next_convar_auto_priority = 1000
+
 	self.positionsConVars = {}
 
 	self.fontCVars = {
@@ -92,7 +94,10 @@ function meta:__construct(hudID, hudName)
 	self.glitchEnd = 0
 	self.glitchingSince = 0
 
-	self.enabled = self:CreateConVar('enabled', '1', 'Enable ' .. hudName)
+	self.enabled = self:CreateConVar('enabled', '1', 'Enable ' .. hudName, false, {
+		priority = 1000
+	})
+
 	cvars.AddChangeCallback(self.enabled:GetName(), function(var, old, new) self:EnableSwitch(old, new) end, hudID)
 
 	self:AddHook('Tick')
@@ -210,6 +215,11 @@ function meta:__InsertConvarIntoTable(tab, convar)
 	table.insert(tab, convar)
 end
 
+meta.CONVAR_TYPE_BOOL = 0
+meta.CONVAR_TYPE_NUM = 1
+meta.CONVAR_TYPE_STRING = 2
+meta.CONVAR_TYPE_ENUM = 3
+
 --[[
 	@doc
 	@fname HUDCommonsBase:CreateConVar
@@ -224,12 +234,43 @@ end
 	@returns
 	ConVar
 ]]
-function meta:CreateConVar(cvar, default, desc, nomenu)
+function meta:CreateConVar(cvar, default, desc, nomenu, options)
 	local convar = CreateConVar(self:GetID() .. '_' .. cvar, default or '1', {FCVAR_ARCHIVE}, desc or '')
+	local name = convar:GetName()
 
-	if not nomenu then
-		self:__InsertConvarIntoTable(self.convars, convar)
+	local gendata = {
+		nomenu = nomenu,
+		convar = convar,
+		name = name,
+		default = default or '1',
+		desc = desc or name,
+	}
+
+	if options then
+		for k, v in pairs(options) do
+			gendata[k] = v
+		end
 	end
+
+	if gendata.type == nil then gendata.type = self.CONVAR_TYPE_BOOL end
+	if gendata.decimals == nil then gendata.decimals = 2 end
+	if gendata.min == nil then gendata.min = 0 end
+	if gendata.max == nil then gendata.max = 1 end
+	if gendata.priority == nil then
+		self.next_convar_auto_priority = self.next_convar_auto_priority - 1
+		gendata.priority = self.next_convar_auto_priority
+	end
+
+	assert(gendata.type ~= self.CONVAR_TYPE_ENUM or type(gendata.enum) == 'table' and #gendata.enum > 0, 'Invalid enum table provided')
+
+	for i, data in ipairs(self.convars) do
+		if data.name == name then
+			self.convars[i] = gendata
+			return convar
+		end
+	end
+
+	table.insert(self.convars, gendata)
 
 	return convar
 end

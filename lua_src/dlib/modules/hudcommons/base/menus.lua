@@ -57,6 +57,33 @@ end
 
 --[[
 	@doc
+	@fname HUDCommonsBase:GetSortedConvars
+
+	@client
+	@internal
+	@returns
+	table
+]]
+function meta:GetSortedConvars()
+	local sort = table.qcopy(self.convars)
+
+	table.sort(sort, function(a, b)
+		if a.priority ~= b.priority then
+			return a.priority > b.priority
+		end
+
+		if a.type ~= b.type then
+			return a.type < b.type
+		end
+
+		return a.desc > b.desc
+	end)
+
+	return sort
+end
+
+--[[
+	@doc
 	@fname HUDCommonsBase:PopulateDefaultSettings
 	@args Panel DFrame
 
@@ -76,9 +103,41 @@ function meta:PopulateDefaultSettings(panel)
 
 	self:PopulateDefaultSettingsOs(panel)
 
-	for i, convar in ipairs(self.convars) do
-		presets:AddConVar(convar:GetName())
-		panel:CheckBox(convar:GetHelpText(), convar:GetName()):SetTooltip(convar:GetHelpText())
+	for i, data in ipairs(self:GetSortedConvars()) do
+		if not data.nomenu then
+			presets:AddConVar(data.name)
+
+			if data.type == self.CONVAR_TYPE_BOOL then
+				panel:CheckBox(data.desc, data.name):SetTooltip(data.desc)
+			elseif data.type == self.CONVAR_TYPE_NUM then
+				panel:NumSlider(data.desc, data.name, data.min, data.max, data.decimals):SetTooltip(data.desc)
+			elseif data.type == self.CONVAR_TYPE_STRING then
+				panel:TextEntry(data.desc, data.name):SetTooltip(data.desc)
+			elseif data.type == self.CONVAR_TYPE_STRING then
+				local left = vgui.Create('DLabel', self)
+				left:SetText(data.desc)
+
+				local entry = vgui.Create('DLib_TextEntry', panel)
+				entry:SetConVar(data.name)
+				entry:SetPlaceholderText(data.convar:GetDefault())
+
+				panel:AddItem(left, entry)
+			elseif data.type == self.CONVAR_TYPE_ENUM then
+				local box = panel:ComboBox(data.desc, data.name)
+				local shake = table.GetKeys(data.enum)
+				table.sort(shake)
+
+				for i, key in ipairs(shake) do
+					if type(key) == 'number' then
+						box:AddChoice(data.enum[key])
+					else
+						box:AddChoice(key, data.enum[key])
+					end
+				end
+			else
+				error('???')
+			end
+		end
 	end
 
 	self:PopulateDefaultSettingsOe(panel)

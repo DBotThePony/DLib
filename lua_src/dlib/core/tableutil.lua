@@ -271,6 +271,7 @@ end
 
 	@desc
 	Fastly copies a table assuming it is numeric indexed array
+	does not copy subtables or values
 	@enddesc
 
 	@returns
