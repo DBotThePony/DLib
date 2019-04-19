@@ -99,7 +99,7 @@ function meta:PopulateDefaultSettings(panel)
 	presets:Dock(TOP)
 	presets:DockMargin(0, 5, 0, 5)
 
-	presets:SetPreset(self:GetName() .. '_def')
+	presets:SetPreset(self:GetID() .. '_def')
 
 	self:PopulateDefaultSettingsOs(panel)
 
@@ -139,6 +139,8 @@ function meta:PopulateDefaultSettings(panel)
 			end
 		end
 	end
+
+	DLib.VGUI.GenerateDefaultPreset(presets)
 
 	self:PopulateDefaultSettingsOe(panel)
 end
@@ -180,7 +182,7 @@ function meta:PopulatePositionSettings(panel)
 	presets:Dock(TOP)
 	presets:DockMargin(0, 5, 0, 5)
 
-	presets:SetPreset(self:GetName() .. '_position')
+	presets:SetPreset(self:GetID() .. '_position')
 
 	self:PopulatePositionSettingsOs(panel)
 
@@ -213,6 +215,8 @@ function meta:PopulatePositionSettings(panel)
 			convar.cvarY:Reset()
 		end
 	end
+
+	DLib.VGUI.GenerateDefaultPreset(presets)
 
 	self:PopulatePositionSettingsOe(panel)
 end
@@ -307,7 +311,7 @@ function meta:PopulateFontSettings(panel)
 	presets:Dock(TOP)
 	presets:DockMargin(0, 5, 0, 5)
 
-	presets:SetPreset(self:GetName() .. '_font')
+	presets:SetPreset(self:GetID() .. '_font')
 
 	panel:Help('gui.dlib.hudcommons.save_hint')
 
@@ -341,6 +345,8 @@ function meta:PopulateFontSettings(panel)
 		panel:NumSlider('gui.dlib.hudcommons.weight', self.fontCVars.weight[cI]:GetName(), 100, 800, 0)
 		panel:NumSlider('gui.dlib.hudcommons.size', self.fontCVars.size[cI]:GetName(), 2, 128, 0)
 	end
+
+	DLib.VGUI.GenerateDefaultPreset(presets)
 
 	self:PopulateFontSettingsOe(panel)
 end

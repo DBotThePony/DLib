@@ -389,3 +389,30 @@ function _G.PrintTableStrict(tableIn)
 	InternalPrintLoop(tableIn, 1)
 	MsgC(TABLE_TOKEN_COLOR, '}\n')
 end
+
+if SERVER then return end
+
+--[[
+	@doc
+	@fname DLib.VGUI.GenerateDefaultPreset
+	@args Panel manager
+
+	@desc
+	a pill for !p:ControlPresets panel
+	@enddesc
+
+	@client
+]]
+function DLib.VGUI.GenerateDefaultPreset(manager)
+	assert(manager.m_strPreset, 'ControlPresets passed must have m_strPreset already defined (`SetPreset` called)')
+	local preset = {}
+
+	for i, convar in ipairs(manager:GetConVars()) do
+		local cget = GetConVar(convar)
+		preset[cget:GetName()] = cget:GetDefault()
+	end
+
+	presets.Add(manager.m_strPreset, 'Default', preset)
+
+	manager:ReloadPresets()
+end
