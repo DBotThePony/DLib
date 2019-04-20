@@ -33,8 +33,11 @@ local RealTimeL = RealTimeL
 function meta:RegisterCrosshairHandle()
 	self.ENABLE_CROSSHAIRS = self:CreateConVar('crosshairs', '1', 'Enable custom crosshairs')
 	self.ENABLE_CROSSHAIRS_TFA = self:CreateConVar('crosshairs_tfa', '1', 'Handle (replace) TFA Base crosshairs')
+	self.DYNAMIC_CROSSHAIR = self:CreateConVar('crosshairs_dynamic', '1', 'Dynamic scaling crosshair based on distance')
+	self.DYNAMIC_CROSSHAIR_ALWAYS = self:CreateConVar('crosshairs_dynamic_always', '1', 'Always show dynamic crosshair, instead of only in third person')
 
 	self._nextDisableCrosshair = true
+	self.lastDistAccuracyMult = 1
 
 	self:AddHookCustom('HUDShouldDraw', 'CrosshairShouldDraw', nil, 6)
 	self:AddPaintHook('InternalDrawCrosshair')
@@ -192,6 +195,11 @@ function meta:HandleDoDrawCrosshair(x, y, weapon)
 	return weapon:DoDrawCrosshair(x, y) == true
 end
 
+local lastShouldDrawLocalPlayer = false
+local lastFOV = 90
+local lastOrigin = Vector()
+local LocalPlayer = LocalPlayer
+
 function meta:InternalDrawCrosshair(ply)
 	if not self.ENABLE_CROSSHAIRS:GetBool() then return end
 	if ply:InVehicle() and not ply:GetAllowWeaponsInVehicle() then return end
@@ -209,7 +217,13 @@ function meta:InternalDrawCrosshair(ply)
 	x = (x / 1.3):ceil() * 1.3
 	y = (y / 1.3):ceil() * 1.3
 
-	local accuracy = 90 / ply:GetFOV()
+	local accuracy = 90 / (lastFOV or ply:GetFOV())
+
+	if self.DYNAMIC_CROSSHAIR:GetBool() and (self.DYNAMIC_CROSSHAIR_ALWAYS:GetBool() or lastShouldDrawLocalPlayer and ply == LocalPlayer()) then
+		local newAcc = (tr.StartPos:Distance(tr.HitPos) / 256):sqrt() * (90 / (lastFOV or ply:GetFOV())) * 0.4
+		self.lastDistAccuracyMult = Lerp(1, self.lastDistAccuracyMult, newAcc)
+		accuracy = self.lastDistAccuracyMult
+	end
 
 	if weapon.DoDrawCrosshair then
 		if self.ENABLE_CROSSHAIRS_TFA:GetBool() and weapon.IsTFA and weapon:IsTFA() then
@@ -222,7 +236,7 @@ function meta:InternalDrawCrosshair(ply)
 			if ttype == 'Shotgun' then
 				accuracy = accuracy * (points / 0.05) * 1.25
 			else
-				accuracy = accuracy * (points / 0.02) * 1.4
+				accuracy = accuracy * (points / 0.02) * 1.45
 			end
 		elseif self:HandleDoDrawCrosshair(x, y, weapon) == true then
 			return
@@ -249,6 +263,18 @@ function meta:InternalDrawCrosshair(ply)
 		self:DrawCrosshairGeneric(x, y, accuracy)
 	end
 end
+
+hook.Add('CalcView', 'HUDCommons.CrosshairWatch', function(ply, origin, angles, fov, znear, zfar)
+	lastFOV = fov
+	lastOrigin = origin
+end, -3)
+
+hook.AddPostModifier('CalcView', 'HUDCommons.CrosshairWatch', function(data)
+	lastShouldDrawLocalPlayer = data.drawviewer
+	lastFOV = data.fov or lastFOV
+	lastOrigin = data.origin or lastOrigin
+	return data
+end)
 
 function meta:CrosshairShouldDraw(element)
 	if element == 'CHudCrosshair' and self.ENABLE_CROSSHAIRS:GetBool() then
