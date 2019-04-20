@@ -44,6 +44,7 @@ DLib.simpleInclude('util/client/chat.lua')
 DLib.simpleInclude('util/client/buystuff.lua')
 DLib.simpleInclude('util/client/donate.lua')
 DLib.simpleInclude('util/client/ttfreader.lua')
+DLib.simpleInclude('util/client/matnotify.lua')
 
 DLib.Loader.loadPureCSTop('dlib/modules/client')
 
