@@ -78,9 +78,9 @@ end
 ]]
 local DrawCircleCache = {}
 function HUDCommons.DrawCircle(x, y, radius, segments)
-	x = assert(type(x) == 'number' and x, 'Invalid X'):floor()
-	y = assert(type(y) == 'number' and y, 'Invalid Y'):floor()
-	radius = assert(type(radius) == 'number' and radius, 'Invalid Radius'):floor()
+	x = assert(type(x) == 'number' and x, 'Invalid X')
+	y = assert(type(y) == 'number' and y, 'Invalid Y')
+	radius = assert(type(radius) == 'number' and radius, 'Invalid Radius')
 	segments = segments or radius / 8
 	segments = assert(type(segments) == 'number' and segments, 'Invalid amount of segments'):floor():max(8)
 
@@ -209,12 +209,12 @@ end
 local DrawArcHollowCache_1 = {}
 local DrawArcHollowCache_2 = {}
 function HUDCommons.DrawArcHollow(x, y, radius, segments, inLength, arc, color)
-	x = assert(type(x) == 'number' and x, 'Invalid X'):floor()
-	y = assert(type(y) == 'number' and y, 'Invalid Y'):floor()
-	radius = assert(type(radius) == 'number' and radius, 'Invalid Radius'):floor()
+	x = assert(type(x) == 'number' and x, 'Invalid X')
+	y = assert(type(y) == 'number' and y, 'Invalid Y')
+	radius = assert(type(radius) == 'number' and radius, 'Invalid Radius')
 	segments = segments or radius / 8
 	segments = assert(type(segments) == 'number' and segments, 'Invalid amount of segments'):floor():max(8)
-	inLength = assert(type(inLength) == 'number' and inLength, 'Invalid length inside'):floor()
+	inLength = assert(type(inLength) == 'number' and inLength, 'Invalid length inside')
 	arc = assert(type(arc) == 'number' and arc, 'Invalid arc degree'):floor()
 
 	if radius <= 1 then return end
@@ -344,12 +344,12 @@ end
 ]]
 local DrawArcHollow2Cache = {}
 function HUDCommons.DrawArcHollow2(x, y, radius, segments, inLength, arc1, arc2, color)
-	x = assert(type(x) == 'number' and x, 'Invalid X'):floor()
-	y = assert(type(y) == 'number' and y, 'Invalid Y'):floor()
-	radius = assert(type(radius) == 'number' and radius, 'Invalid Radius'):floor()
+	x = assert(type(x) == 'number' and x, 'Invalid X')
+	y = assert(type(y) == 'number' and y, 'Invalid Y')
+	radius = assert(type(radius) == 'number' and radius, 'Invalid Radius')
 	segments = segments or radius / 8
 	segments = assert(type(segments) == 'number' and segments, 'Invalid amount of segments'):floor():max(8)
-	inLength = assert(type(inLength) == 'number' and inLength, 'Invalid length inside'):floor()
+	inLength = assert(type(inLength) == 'number' and inLength, 'Invalid length inside')
 	arc1 = assert(type(arc1) == 'number' and arc1, 'Invalid arc1 degree'):floor()
 	arc2 = assert(type(arc2) == 'number' and arc2, 'Invalid arc2 degree'):floor()
 
@@ -439,12 +439,12 @@ end
 	table: !s:PolygonVertex
 ]]
 function HUDCommons.DrawCircleHollow(x, y, radius, segments, inLength, color)
-	x = assert(type(x) == 'number' and x, 'Invalid X'):floor()
-	y = assert(type(y) == 'number' and y, 'Invalid Y'):floor()
-	radius = assert(type(radius) == 'number' and radius, 'Invalid Radius'):floor()
+	x = assert(type(x) == 'number' and x, 'Invalid X')
+	y = assert(type(y) == 'number' and y, 'Invalid Y')
+	radius = assert(type(radius) == 'number' and radius, 'Invalid Radius')
 	segments = segments or radius / 8
 	segments = assert(type(segments) == 'number' and segments, 'Invalid amount of segments'):floor():max(8)
-	inLength = assert(type(inLength) == 'number' and inLength, 'Invalid length inside'):floor()
+	inLength = assert(type(inLength) == 'number' and inLength, 'Invalid length inside')
 
 	if radius <= 1 then return end
 	if inLength <= 1 then return end
