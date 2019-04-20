@@ -33,7 +33,9 @@ local RealTimeL = RealTimeL
 function meta:RegisterCrosshairHandle()
 	self.ENABLE_CROSSHAIRS = self:CreateConVar('crosshairs', '1', 'Enable custom crosshairs')
 
-	self:AddHookCustom('HUDShouldDraw', 'CrosshairShouldDraw')
+	self._nextDisableCrosshair = true
+
+	self:AddHookCustom('HUDShouldDraw', 'CrosshairShouldDraw', nil, 6)
 	self:AddPaintHook('InternalDrawCrosshair')
 end
 
@@ -184,6 +186,10 @@ else
 	hook.Add('InitPostEntity', 'HUDCommons.GetAmmoTypes', refreshTypes)
 end
 
+function meta:HandleDoDrawCrosshair(x, y, weapon)
+	return weapon:DoDrawCrosshair(x, y) == true
+end
+
 function meta:InternalDrawCrosshair(ply)
 	if not self.ENABLE_CROSSHAIRS:GetBool() then return end
 	local weapon = self:GetWeapon()
@@ -200,7 +206,7 @@ function meta:InternalDrawCrosshair(ply)
 	x = (x / 1.3):ceil() * 1.3
 	y = (y / 1.3):ceil() * 1.3
 
-	if weapon.DoDrawCrosshair and weapon:DoDrawCrosshair(x, y) == true then
+	if weapon.DoDrawCrosshair and self:HandleDoDrawCrosshair(x, y, weapon) == true then
 		return
 	end
 
