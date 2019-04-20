@@ -27,6 +27,11 @@ local render = render
 local table = table
 local assert = assert
 local type = type
+local STENCIL_NEVER = STENCIL_NEVER
+local STENCIL_KEEP = STENCIL_KEEP
+local STENCIL_REPLACE = STENCIL_REPLACE
+local STENCIL_ALWAYS = STENCIL_ALWAYS
+local STENCIL_NOTEQUAL = STENCIL_NOTEQUAL
 
 --[[
 	@doc
@@ -182,17 +187,6 @@ end
 --  return poly
 -- end
 
-local STENCIL_KEEP = STENCIL_KEEP
-local STENCIL_REPLACE = STENCIL_REPLACE
-local STENCIL_ALWAYS = STENCIL_ALWAYS
-local STENCIL_NOTEQUAL = STENCIL_NOTEQUAL
-
-local stencilMat = CreateMaterial('dlib_arc_white', 'UnlitGeneric', {
-	['$basetexture'] = 'models/debug/debugwhite',
-	['$alpha'] = '0',
-	['$translucent'] = '1',
-})
-
 --[[
 	@doc
 	@fname DLib.HUDCommons.DrawArcHollow
@@ -240,14 +234,13 @@ function HUDCommons.DrawArcHollow(x, y, radius, segments, inLength, arc, color)
 	render.SetStencilTestMask(1)
 
 	render.SetStencilPassOperation(STENCIL_REPLACE)
-	render.SetStencilFailOperation(STENCIL_KEEP)
+	render.SetStencilFailOperation(STENCIL_REPLACE)
 	render.SetStencilZFailOperation(STENCIL_KEEP)
 
 	render.ClearStencil()
 
-	render.SetStencilCompareFunction(STENCIL_ALWAYS)
+	render.SetStencilCompareFunction(STENCIL_NEVER)
 
-	surface.SetMaterial(stencilMat)
 	surface.SetDrawColor(0, 0, 0, 255)
 	HUDCommons.DrawCircle(x + inLength / 2, y + inLength / 2, radius - inLength, segments)
 
@@ -320,6 +313,7 @@ function HUDCommons.DrawArcHollow(x, y, radius, segments, inLength, arc, color)
 	end
 
 	render.SetStencilCompareFunction(STENCIL_NOTEQUAL)
+	render.SetStencilFailOperation(STENCIL_KEEP)
 
 	draw.NoTexture()
 	surface.SetDrawColor(color)
@@ -376,16 +370,16 @@ function HUDCommons.DrawArcHollow2(x, y, radius, segments, inLength, arc1, arc2,
 	render.SetStencilTestMask(1)
 
 	render.SetStencilPassOperation(STENCIL_REPLACE)
-	render.SetStencilFailOperation(STENCIL_KEEP)
+	render.SetStencilFailOperation(STENCIL_REPLACE)
 	render.SetStencilZFailOperation(STENCIL_KEEP)
 
-	render.SetStencilCompareFunction(STENCIL_ALWAYS)
+	render.SetStencilCompareFunction(STENCIL_NEVER)
 
-	surface.SetMaterial(stencilMat)
 	surface.SetDrawColor(0, 0, 0, 255)
 	HUDCommons.DrawCircle(x + inLength / 2, y + inLength / 2, radius - inLength, segments)
 
 	render.SetStencilCompareFunction(STENCIL_NOTEQUAL)
+	render.SetStencilFailOperation(STENCIL_KEEP)
 
 	draw.NoTexture()
 	surface.SetDrawColor(color)
@@ -464,17 +458,17 @@ function HUDCommons.DrawCircleHollow(x, y, radius, segments, inLength, color)
 	render.SetStencilTestMask(1)
 
 	render.SetStencilPassOperation(STENCIL_REPLACE)
-	render.SetStencilFailOperation(STENCIL_KEEP)
+	render.SetStencilFailOperation(STENCIL_REPLACE)
 	render.SetStencilZFailOperation(STENCIL_KEEP)
 
 	render.ClearStencil()
 
-	render.SetStencilCompareFunction(STENCIL_ALWAYS)
+	render.SetStencilCompareFunction(STENCIL_NEVER)
 
-	surface.SetMaterial(stencilMat)
 	surface.SetDrawColor(0, 0, 0, 255)
 	local poly2 = HUDCommons.DrawCircle(x + inLength / 2, y + inLength / 2, radius - inLength, segments)
 	render.SetStencilCompareFunction(STENCIL_NOTEQUAL)
+	render.SetStencilFailOperation(STENCIL_KEEP)
 
 	draw.NoTexture()
 	surface.SetDrawColor(color)

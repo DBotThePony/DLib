@@ -172,11 +172,12 @@ local function refreshTypes()
 
 	repeat
 		nextAmmoType = game.GetAmmoName(i)
-		i = i + 1
 
 		if nextAmmoType then
 			wepTypeDef[i] = nextAmmoType:gsub('HL1', ''):lower()
 		end
+
+		i = i + 1
 	until not nextAmmoType
 end
 

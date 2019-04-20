@@ -754,6 +754,80 @@ function meta:Tick()
 	end
 end
 
+local cl_drawhud = GetConVar('cl_drawhud')
+
+--[[
+	@doc
+	@fname HUDCommonsBase:DefinePaintGroup
+	@args string groupName, boolean addHook
+
+	@client
+	@returns
+	string
+	string
+	string
+	string
+]]
+function meta:DefinePaintGroup(groupName, addHook)
+	if addHook == nil then addHook = true end
+
+	local hooks = {}
+	local hooksHash = {}
+	self['hooks_' .. groupName] = hooks
+	self['hooksHash_' .. groupName] = hooksHash
+
+	local prepaint = 'PrePaintGroup' .. groupName
+	local postpaint = 'PostPaintGroup' .. groupName
+
+	self['Paint' .. groupName .. 'Group'] = function(self)
+		if #hooks == 0 then return end
+
+		if not cl_drawhud:GetBool() then return end
+
+		local ply = self:SelectPlayer()
+
+		self[prepaint](self, ply)
+
+		local i, nextevent = 1, hooks[1]
+		::loop::
+
+		nextevent(self, ply)
+		i = i + 1
+		nextevent = hooks[i]
+
+		if nextevent ~= nil then
+			goto loop
+		end
+
+		self[postpaint](self, ply)
+	end
+
+	self[prepaint] = function(self, ply)
+
+	end
+
+	self[postpaint] = function(self, ply)
+
+	end
+
+	self['Add' .. groupName .. 'PaintHook'] = function(self, id, funcToCall)
+		funcToCall = funcToCall or self[id]
+		assert(type(funcToCall) == 'function', 'Input is not a function!')
+		hooksHash[id] = funcToCall
+		hooks = {}
+
+		for id, func in pairs(hooksHash) do
+			table.insert(hooks, func)
+		end
+	end
+
+	if addHook then
+		self:AddHookCustom('HUDPaint', 'Paint' .. groupName .. 'Group')
+	end
+
+	return 'Paint' .. groupName .. 'Group', prepaint, postpaint, 'Add' .. groupName .. 'PaintHook'
+end
+
 --[[
 	@doc
 	@fname HUDCommonsBase:PreHUDPaint
@@ -781,8 +855,6 @@ end
 function meta:PostHUDPaint(ply)
 
 end
-
-local cl_drawhud = GetConVar('cl_drawhud')
 
 --[[
 	@doc
