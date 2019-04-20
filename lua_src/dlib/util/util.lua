@@ -389,3 +389,46 @@ function _G.PrintTableStrict(tableIn)
 	InternalPrintLoop(tableIn, 1)
 	MsgC(TABLE_TOKEN_COLOR, '}\n')
 end
+
+local files = file.Find('scripts/weapons/*.txt', 'GAME')
+local wepdata = {}
+
+for i, mfile in ipairs(files) do
+	local parsed = util.KeyValuesToTable(file.Read('scripts/weapons/' .. mfile, 'GAME'))
+
+	if parsed then
+		wepdata[mfile:sub(1, -5)] = parsed
+	end
+end
+
+if CLIENT then
+	for wepclass, data in pairs(wepdata) do
+		if data.texturedata then
+			if data.texturedata.weapon and data.texturedata.weapon.file then
+				data.texturedata.weapon.material = Material(data.texturedata.weapon.file)
+			end
+
+			if data.texturedata.weapon_s and data.texturedata.weapon_s.file then
+				data.texturedata.weapon_s.material = Material(data.texturedata.weapon_s.file)
+			end
+		end
+	end
+end
+
+--[[
+	@doc
+	@fname DLib.util.GetWeaponScript
+	@args Weapon weaponIn
+
+	@returns
+	table: or nil, if no script present
+]]
+function DLib.util.GetWeaponScript(weaponIn)
+	if type(weaponIn) == 'string' then
+		return wepdata[weaponIn]
+	elseif type(weaponIn) == 'Weapon' then
+		return wepdata[weaponIn:GetClass()]
+	else
+		error('Invalid weapon provided: ' .. type(weaponIn))
+	end
+end

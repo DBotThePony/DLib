@@ -319,7 +319,7 @@ end
 
 --[[
 	@doc
-	@fname HUDCommonsBase:DLibDrawWeaponSelection
+	@fname Weapon:DLibDrawWeaponSelection
 	@args number x, number y, number width, number height, number alpha
 
 	@client
@@ -333,7 +333,7 @@ end
 
 --[[
 	@doc
-	@fname HUDCommonsBase:DLibDrawWeaponSelectionSelected
+	@fname Weapon:DLibDrawWeaponSelectionSelected
 	@args number x, number y, number width, number height, number alpha
 
 	@client
@@ -343,29 +343,6 @@ end
 	@enddesc
 ]]
 do
-	local files = file.Find('scripts/weapons/*.txt', 'GAME')
-	local wepdata = {}
-
-	for i, mfile in ipairs(files) do
-		local parsed = util.KeyValuesToTable(file.Read('scripts/weapons/' .. mfile, 'GAME'))
-
-		if parsed then
-			wepdata[mfile:sub(1, -5)] = parsed
-		end
-	end
-
-	for wepclass, data in pairs(wepdata) do
-		if data.texturedata then
-			if data.texturedata.weapon and data.texturedata.weapon.file then
-				data.texturedata.weapon.material = Material(data.texturedata.weapon.file)
-			end
-
-			if data.texturedata.weapon_s and data.texturedata.weapon_s.file then
-				data.texturedata.weapon_s.material = Material(data.texturedata.weapon_s.file)
-			end
-		end
-	end
-
 	local wepMeta = FindMetaTable('Weapon')
 	local Matrix = Matrix
 	local cam = cam
@@ -464,7 +441,7 @@ do
 		assert(type(height) == 'number', 'height must be a number')
 		assert(type(alpha) == 'number', 'alpha must be a number')
 
-		local data = wepdata[self:GetClass()]
+		local data = DLib.util.GetWeaponScript(self)
 
 		if not data or not data.texturedata or not data.texturedata.weapon then
 			local fcall = self.DrawWeaponSelection
@@ -488,7 +465,7 @@ do
 		assert(type(height) == 'number', 'height must be a number')
 		assert(type(alpha) == 'number', 'alpha must be a number')
 
-		local data = wepdata[self:GetClass()]
+		local data = DLib.util.GetWeaponScript(self)
 
 		if not data or not data.texturedata or not data.texturedata.weapon then
 			local fcall = self.DrawWeaponSelection

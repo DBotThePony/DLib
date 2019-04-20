@@ -27,11 +27,15 @@ local initialize = CurTime() > 60
 
 --[[
 	@doc
-	@fname AreEntitiesAvaliable
+	@fname AreEntitiesAvailable
 
 	@returns
 	boolean
 ]]
+function _G.AreEntitiesAvailable()
+	return init_post_entity
+end
+
 function _G.AreEntitiesAvaliable()
 	return init_post_entity
 end
