@@ -217,10 +217,14 @@ function meta:InternalDrawCrosshair(ply)
 	x = (x / 1.3):ceil() * 1.3
 	y = (y / 1.3):ceil() * 1.3
 
-	local accuracy = 90 / (lastFOV or ply:GetFOV())
+	local accuracy = (90 / (lastFOV or ply:GetFOV())):pow(1.2)
 
-	if self.DYNAMIC_CROSSHAIR:GetBool() and (self.DYNAMIC_CROSSHAIR_ALWAYS:GetBool() or lastShouldDrawLocalPlayer and ply == LocalPlayer()) then
-		local newAcc = (tr.StartPos:Distance(tr.HitPos) / 256):sqrt() * (90 / (lastFOV or ply:GetFOV())) * 0.4
+	local typedef = wepTypeDef[ammotype]
+	local mapping = mapping[typedef]
+	local wclass = self:GetVarWeaponClass()
+
+	if mapping ~= 'DrawCrosshairRPG' and mapping ~= 'DrawCrosshairNade' and self.DYNAMIC_CROSSHAIR:GetBool() and (self.DYNAMIC_CROSSHAIR_ALWAYS:GetBool() or lastShouldDrawLocalPlayer and ply == LocalPlayer()) then
+		local newAcc = (tr.StartPos:Distance(tr.HitPos) / 256):sqrt() * (90 / (lastFOV or ply:GetFOV())):pow(1.2) * 0.4
 		self.lastDistAccuracyMult = Lerp(1, self.lastDistAccuracyMult, newAcc)
 		accuracy = self.lastDistAccuracyMult
 	end
@@ -242,10 +246,6 @@ function meta:InternalDrawCrosshair(ply)
 			return
 		end
 	end
-
-	local typedef = wepTypeDef[ammotype]
-	local mapping = mapping[typedef]
-	local wclass = self:GetVarWeaponClass()
 
 	if mapping then
 		self[mapping](self, x, y, accuracy)
