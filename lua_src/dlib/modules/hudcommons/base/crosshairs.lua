@@ -211,11 +211,13 @@ function meta:InternalDrawCrosshair(ply)
 	if mapping then
 		self[mapping](self, x, y, 1)
 	elseif wclass == 'gmod_tool' then
-		self:DrawCrosshairToolgun(x, y, 1)
+		self:DrawCrosshairToolgun(x, y, 0)
 	elseif wclass == 'weapon_physgun' then
-		self:DrawCrosshairPhysicsGun(x, y, 1)
+		self:DrawCrosshairPhysicsGun(x, y, 0)
 	elseif wclass == 'weapon_physcannon' then
-		self:DrawCrosshairGravityGun(x, y, 1)
+		self:DrawCrosshairPhysicsGun(x, y, 2)
+	elseif wclass == 'weapon_crowbar' then
+		self:DrawCrosshairMelee(x, y, 0)
 	elseif ammotype == -1 and not self:ShouldDisplayAmmo() then
 		self:DrawCrosshairMelee(x, y, 1)
 	else
