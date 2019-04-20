@@ -32,6 +32,7 @@ local RealTimeL = RealTimeL
 
 function meta:RegisterCrosshairHandle()
 	self.ENABLE_CROSSHAIRS = self:CreateConVar('crosshairs', '1', 'Enable custom crosshairs')
+	self.ENABLE_CROSSHAIRS_TFA = self:CreateConVar('crosshairs_tfa', '1', 'Handle (replace) TFA Base crosshairs')
 
 	self._nextDisableCrosshair = true
 
@@ -207,8 +208,21 @@ function meta:InternalDrawCrosshair(ply)
 	x = (x / 1.3):ceil() * 1.3
 	y = (y / 1.3):ceil() * 1.3
 
-	if weapon.DoDrawCrosshair and self:HandleDoDrawCrosshair(x, y, weapon) == true then
-		return
+	local accuracy = 1
+
+	if weapon.DoDrawCrosshair then
+		if self.ENABLE_CROSSHAIRS_TFA:GetBool() and weapon.IsTFA and weapon:IsTFA() then
+			local ttype = weapon:GetType()
+			local points, gap = weapon:CalculateConeRecoil()
+
+			if ttype == 'Shotgun' then
+				accuracy = (points / 0.05) * 1.25
+			else
+				accuracy = (points / 0.02) * 1.25
+			end
+		elseif self:HandleDoDrawCrosshair(x, y, weapon) == true then
+			return
+		end
 	end
 
 	local typedef = wepTypeDef[ammotype]
@@ -216,7 +230,7 @@ function meta:InternalDrawCrosshair(ply)
 	local wclass = self:GetVarWeaponClass()
 
 	if mapping then
-		self[mapping](self, x, y, 1)
+		self[mapping](self, x, y, accuracy)
 	elseif wclass == 'gmod_tool' then
 		self:DrawCrosshairToolgun(x, y, 0)
 	elseif wclass == 'weapon_physgun' then
@@ -226,9 +240,9 @@ function meta:InternalDrawCrosshair(ply)
 	elseif wclass == 'weapon_crowbar' then
 		self:DrawCrosshairMelee(x, y, 0)
 	elseif ammotype == -1 and not self:ShouldDisplayAmmo() then
-		self:DrawCrosshairMelee(x, y, 1)
+		self:DrawCrosshairMelee(x, y, accuracy)
 	else
-		self:DrawCrosshairGeneric(x, y, 1)
+		self:DrawCrosshairGeneric(x, y, accuracy)
 	end
 end
 
