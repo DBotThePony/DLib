@@ -1353,13 +1353,37 @@ local function lua_findhooks_sv(ply, cmd, args)
 	lua_findhooks(table.concat(args, ' '):trim(), ply)
 end
 
-timer.Simple(0, function()
-	if CLIENT then
-		concommand.Add('lua_findhooks_cl', lua_findhooks_cl)
-	else
-		concommand.Add('lua_findhooks', lua_findhooks_sv)
+do
+	local function autocomplete(cmd, args)
+		args = args:lower():trim()
+
+		if args[1] == '"' then
+			args = args:sub(2)
+		end
+
+		if args[#args] == '"' then
+			args = args:sub(1, #args - 1)
+		end
+
+		local output = {}
+
+		for k, v in pairs(__tableGmod) do
+			if k:lower():startsWith(args) then
+				table.insert(output, cmd .. ' "' .. k .. '"')
+			end
+		end
+
+		return output
 	end
-end)
+
+	timer.Simple(0, function()
+		if CLIENT then
+			concommand.Add('lua_findhooks_cl', lua_findhooks_cl, autocomplete)
+		else
+			concommand.Add('lua_findhooks', lua_findhooks_sv, autocomplete)
+		end
+	end)
+end
 
 hook.Add('Think', 'DLib.PromiseTickHandler', DLib.__PromiseTickHandler)
 
