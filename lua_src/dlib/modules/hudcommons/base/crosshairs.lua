@@ -209,7 +209,7 @@ function meta:InternalDrawCrosshair(ply)
 	x = (x / 1.3):ceil() * 1.3
 	y = (y / 1.3):ceil() * 1.3
 
-	local accuracy = 1
+	local accuracy = 90 / ply:GetFOV()
 
 	if weapon.DoDrawCrosshair then
 		if self.ENABLE_CROSSHAIRS_TFA:GetBool() and weapon.IsTFA and weapon:IsTFA() then
@@ -220,9 +220,9 @@ function meta:InternalDrawCrosshair(ply)
 			local points, gap = weapon:CalculateConeRecoil()
 
 			if ttype == 'Shotgun' then
-				accuracy = (points / 0.05) * 1.25
+				accuracy = accuracy * (points / 0.05) * 1.25
 			else
-				accuracy = (points / 0.02) * 1.6
+				accuracy = accuracy * (points / 0.02) * 1.4
 			end
 		elseif self:HandleDoDrawCrosshair(x, y, weapon) == true then
 			return
