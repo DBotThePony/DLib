@@ -213,6 +213,9 @@ function meta:InternalDrawCrosshair(ply)
 
 	if weapon.DoDrawCrosshair then
 		if self.ENABLE_CROSSHAIRS_TFA:GetBool() and weapon.IsTFA and weapon:IsTFA() then
+			local drawstatus = TFA.Enum.ReloadStatus[weapon:GetStatus()] or math.min(1 - weapon.IronSightsProgress, 1 - weapon.SprintProgress, 1 - weapon.InspectingProgress) <= 0.5
+			if drawstatus then return end
+
 			local ttype = weapon:GetType()
 			local points, gap = weapon:CalculateConeRecoil()
 
