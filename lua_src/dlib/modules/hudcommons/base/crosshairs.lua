@@ -194,6 +194,7 @@ end
 
 function meta:InternalDrawCrosshair(ply)
 	if not self.ENABLE_CROSSHAIRS:GetBool() then return end
+	if ply:InVehicle() and not ply:GetAllowWeaponsInVehicle() then return end
 	local weapon = self:GetWeapon()
 	if not IsValid(weapon) then return end
 	local ammotype = self:GetRealAmmoType()
@@ -218,7 +219,7 @@ function meta:InternalDrawCrosshair(ply)
 			if ttype == 'Shotgun' then
 				accuracy = (points / 0.05) * 1.25
 			else
-				accuracy = (points / 0.02) * 1.25
+				accuracy = (points / 0.02) * 1.6
 			end
 		elseif self:HandleDoDrawCrosshair(x, y, weapon) == true then
 			return
