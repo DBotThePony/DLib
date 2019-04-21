@@ -220,7 +220,6 @@ material_override                        : 0        : , "user", "demo", "server_
 local пидорас = {
 	'mat_fullbright',
 	'mat_specular',
-	'mat_specular',
 	'mat_aaquality',
 	'mat_picmip',
 	'mat_showlowresimage',
