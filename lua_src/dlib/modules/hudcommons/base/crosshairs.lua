@@ -270,6 +270,7 @@ hook.Add('CalcView', 'HUDCommons.CrosshairWatch', function(ply, origin, angles, 
 end, -3)
 
 hook.AddPostModifier('CalcView', 'HUDCommons.CrosshairWatch', function(data)
+	if not data then return end
 	lastShouldDrawLocalPlayer = data.drawviewer
 	lastFOV = data.fov or lastFOV
 	lastOrigin = data.origin or lastOrigin
