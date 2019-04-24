@@ -1373,7 +1373,13 @@ function meta:RegisterRegularVariable(var, funcName, default)
 	local newSelf = self:RegisterVariable(var, default)
 
 	self:SetTickHook(var, function(self, hudSelf, localPlayer)
-		return localPlayer[funcName](localPlayer)
+		local --[[press]] F --[[to pay respects for Rubat at leasting doing something]] = localPlayer[funcName]
+
+		if F then
+			return F(localPlayer)
+		else
+			return default
+		end
 	end)
 
 	return newSelf
