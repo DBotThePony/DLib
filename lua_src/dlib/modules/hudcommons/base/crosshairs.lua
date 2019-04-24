@@ -203,6 +203,21 @@ local LocalPlayer = LocalPlayer
 function meta:InternalDrawCrosshair(ply)
 	if not self.ENABLE_CROSSHAIRS:GetBool() then return end
 	if ply:InVehicle() and not ply:GetAllowWeaponsInVehicle() then return end
+	local useEnt = self:GetVarEntityInUse()
+
+	if IsValid(useEnt) then
+		if useEnt:GetClass() ~= 'func_tank' then return end
+
+		local tr = ply:GetEyeTrace()
+		local x, y = tr.HitPos:ToScreen()
+		x, y = x.x, x.y
+		x = (x / 1.3):ceil() * 1.3
+		y = (y / 1.3):ceil() * 1.3
+
+		self:DrawCrosshairHeavyRifle(x, y, 1)
+		return
+	end
+
 	local weapon = self:GetWeapon()
 	if not IsValid(weapon) then return end
 	local ammotype = self:GetRealAmmoType()
