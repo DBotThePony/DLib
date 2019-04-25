@@ -468,17 +468,20 @@ if CLIENT then
 
 	-- cache and speedup lookups a bit
 	local use_type = CreateConVar('dlib_screenscale', '1', {FCVAR_ARCHIVE}, 'Use screen height as screen scale parameter instead of screen width')
+	local dlib_screenscale_mul = CreateConVar('dlib_screenscale_mul', '1', {FCVAR_ARCHIVE}, 'GUI Scale multiplier')
+	DLib.dlib_screenscale_mul = dlib_screenscale_mul
+	local dlib_screenscale_mul_get = dlib_screenscale_mul:GetFloat(1):max(0)
 	local ScrWL = ScrWL
 	local ScrHL = ScrHL
 	local screenfunc
 
 	if use_type:GetBool() then
 		function screenfunc(modify)
-			return ScrHL() / 480 * modify
+			return ScrHL() / 480 * modify * dlib_screenscale_mul_get
 		end
 	else
 		function screenfunc(modify)
-			return ScrWL() / 640 * modify
+			return ScrWL() / 640 * modify * dlib_screenscale_mul_get
 		end
 	end
 
@@ -514,6 +517,10 @@ if CLIENT then
 	end
 
 	cvars.AddChangeCallback('dlib_screenscale', dlib_screenscale_chages, 'DLib')
+	cvars.AddChangeCallback('dlib_screenscale_mul', function()
+		dlib_screenscale_mul_get = dlib_screenscale_mul:GetFloat(1):max(0)
+		DLib.TriggerScreenSizeUpdate(ScrWL(), ScrHL(), ScrWL(), ScrHL())
+	end, 'DLib')
 end
 
 local threads1T = {}
