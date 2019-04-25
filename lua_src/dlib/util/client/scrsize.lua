@@ -51,11 +51,11 @@ end
 	use this hook for recalculating logic based on sizes of screen resolution
 	@enddesc
 ]]
-function DLib.TriggerScreenSizeUpdate(...)
-	hook.Run('ScreenResolutionChanged', ...)
-	hook.Run('ScreenSizeChanged', ...)
-	hook.Run('OnScreenSizeChanged', ...)
-	hook.Run('OnScreenResolutionUpdated', ...)
+function DLib.TriggerScreenSizeUpdate(lw, lh, w, h)
+	hook.Run('ScreenResolutionChanged', lw, lh, w, h)
+	hook.Run('ScreenSizeChanged', lw, lh, w, h)
+	hook.Run('OnScreenSizeChanged', lw, lh, w, h)
+	hook.Run('OnScreenResolutionUpdated', lw, lh, w, h)
 end
 
 --[[

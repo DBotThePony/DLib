@@ -18,7 +18,8 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-hook.Add('ScreenResolutionChanged', 'DLib.Рубат не хочет ничего фиксить', function()
+hook.Add('ScreenResolutionChanged', 'DLib.Рубат не хочет ничего фиксить', function(lw, lh, w, h)
+	if lw == w and lh == h then return end
 	hook.Run('InvalidateMaterialCache')
 	hook.Run('MaterialVariableChanges')
 end)
