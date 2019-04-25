@@ -40,6 +40,7 @@ function meta:RegisterCrosshairHandle()
 	self.lastDistAccuracyMult = 1
 
 	self:AddHookCustom('HUDShouldDraw', 'CrosshairShouldDraw', nil, 6)
+	self:AddHook('TFA_DrawCrosshair')
 	self:AddPaintHook('InternalDrawCrosshair')
 end
 
@@ -191,14 +192,25 @@ else
 	hook.Add('InitPostEntity', 'HUDCommons.GetAmmoTypes', refreshTypes)
 end
 
+local handledTFA = false
+
 function meta:HandleDoDrawCrosshair(x, y, weapon)
-	return weapon:DoDrawCrosshair(x, y) == true
+	handledTFA = false
+
+	local status = weapon:DoDrawCrosshair(x, y)
+
+	if handledTFA then
+		return false
+	end
+
+	return status
 end
 
 local lastShouldDrawLocalPlayer = false
 local lastFOV = 90
 local lastOrigin = Vector()
 local LocalPlayer = LocalPlayer
+local UpcomingAccuracy = 1
 
 function meta:InternalDrawCrosshair(ply)
 	if not self.ENABLE_CROSSHAIRS:GetBool() then return end
@@ -244,22 +256,10 @@ function meta:InternalDrawCrosshair(ply)
 		accuracy = self.lastDistAccuracyMult
 	end
 
-	if weapon.DoDrawCrosshair then
-		if self.ENABLE_CROSSHAIRS_TFA:GetBool() and weapon.IsTFA and weapon:IsTFA() then
-			local drawstatus = TFA.Enum.ReloadStatus[weapon:GetStatus()] or math.min(1 - weapon.IronSightsProgress, 1 - weapon.SprintProgress, 1 - weapon.InspectingProgress) <= 0.5
-			if drawstatus then return end
+	UpcomingAccuracy = accuracy
 
-			local ttype = weapon:GetType()
-			local points, gap = weapon:CalculateConeRecoil()
-
-			if ttype == 'Shotgun' then
-				accuracy = accuracy * (points / 0.05) * 1.25
-			else
-				accuracy = accuracy * (points / 0.02) * 1.45
-			end
-		elseif self:HandleDoDrawCrosshair(x, y, weapon) == true then
-			return
-		end
+	if weapon.DoDrawCrosshair and self:HandleDoDrawCrosshair(x, y, weapon) == true then
+		return
 	end
 
 	if mapping then
@@ -277,6 +277,25 @@ function meta:InternalDrawCrosshair(ply)
 	else
 		self:DrawCrosshairGeneric(x, y, accuracy)
 	end
+end
+
+function meta:TFA_DrawCrosshair(weapon, x, y)
+	if not self.ENABLE_CROSSHAIRS_TFA:GetBool() then return end
+	local drawstatus = TFA.Enum.ReloadStatus[weapon:GetStatus()] or math.min(1 - weapon.IronSightsProgress, 1 - weapon.SprintProgress, 1 - weapon.InspectingProgress) <= 0.5
+	if drawstatus then return true end
+
+	handledTFA = true
+
+	local ttype = weapon:GetType()
+	local points, gap = weapon:CalculateConeRecoil()
+
+	if ttype == 'Shotgun' then
+		UpcomingAccuracy = UpcomingAccuracy * (points / 0.05) * 1.25
+	else
+		UpcomingAccuracy = UpcomingAccuracy * (points / 0.02) * 1.45
+	end
+
+	return true
 end
 
 hook.Add('CalcView', 'HUDCommons.CrosshairWatch', function(ply, origin, angles, fov, znear, zfar)
