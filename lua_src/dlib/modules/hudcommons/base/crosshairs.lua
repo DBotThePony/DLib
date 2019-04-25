@@ -202,7 +202,7 @@ local LocalPlayer = LocalPlayer
 
 function meta:InternalDrawCrosshair(ply)
 	if not self.ENABLE_CROSSHAIRS:GetBool() then return end
-	if ply:InVehicle() and not ply:GetAllowWeaponsInVehicle() then return end
+	if not self:GetVarAlive() or not self:WeaponsInVehicle() then return end
 	local useEnt = self:GetVarEntityInUse()
 
 	if IsValid(useEnt) then

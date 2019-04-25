@@ -325,6 +325,8 @@ function meta:TrapWeaponSelect(cmd)
 		end
 	end
 
+	if self:GetVarInDrive() then return end
+
 	if not self.DrawWepSelection and not self.HoldKeyTrap then
 		lastFrameAttack = cmd:KeyDown(IN_ATTACK)
 		return
@@ -563,8 +565,8 @@ function meta:WeaponSelectionBind(ply, bind, pressed)
 
 	if lastFrameAttack then return end
 	if not pressed then return end
-	if not self:GetVarAlive() then return end
-	if ply:InVehicle() and not ply:GetAllowWeaponsInVehicle() then return end
+	if not self:GetVarAlive() or not self:WeaponsInVehicle() then return end
+	if self:GetVarInDrive() then return end
 	local weapons = ply:GetWeapons()
 	if #weapons == 0 then return end
 

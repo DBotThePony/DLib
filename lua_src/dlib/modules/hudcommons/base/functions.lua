@@ -52,6 +52,19 @@ end
 
 --[[
 	@doc
+	@fname HUDCommonsBase:WeaponsInVehicle
+
+	@client
+
+	@returns
+	boolean: whenever weapons are currently allowed
+]]
+function meta:WeaponsInVehicle()
+	return not self:GetVarInVehicle() or self:GetVarWeaponsInVehicle()
+end
+
+--[[
+	@doc
 	@fname HUDCommonsBase:PredictSelectWeapon
 
 	@client
@@ -255,6 +268,7 @@ function meta:ShouldDisplayAmmo()
 		and self:CallWeaponHUDShouldDraw('CHudAmmo')
 		and (self:GetVarClipMax1() > 0 or
 			self:GetVarAmmoType1() ~= -1)
+		and self:WeaponsInVehicle()
 end
 
 meta.ShouldDisplayAmmo1 = meta.ShouldDisplayAmmo
@@ -296,6 +310,7 @@ function meta:ShouldDisplaySecondaryAmmo()
 		and (self:GetVarClipMax2() > 0 or
 			self:GetVarClip2() > 0 or
 			self:GetVarAmmoType2() ~= -1)
+		and self:WeaponsInVehicle()
 end
 
 meta.ShouldDisplayAmmo2 = meta.ShouldDisplaySecondaryAmmo

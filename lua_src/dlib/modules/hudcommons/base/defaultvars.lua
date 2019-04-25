@@ -38,6 +38,7 @@ function meta:__InitVaribles()
 	end)
 
 	self:RegisterRegularVariable('inVehicle', 'InVehicle', false)
+	self:RegisterRegularVariable('inDrive', 'IsDrivingEntity', false)
 	self:RegisterRegularVariable('weaponsInVehicle', 'GetAllowWeaponsInVehicle', false)
 	self:RegisterRegularVariable('health', 'Health', 0)
 	self:RegisterRegularVariable('maxHealth', 'GetMaxHealth', 100)
