@@ -351,7 +351,7 @@ do
 
 	local mColor = Color(255, 176, 0)
 
-	for i = 4, 144, 4 do
+	for i = 4, 400, 4 do
 		surface.CreateFont('DLibDrawWeaponSelection' .. i, {
 			font = 'HalfLife2',
 			size = i,
@@ -417,7 +417,7 @@ do
 		end
 
 		local size = width:min(height)
-		local selectFont = (size / 4):clamp(1, 36):ceil() * 4
+		local selectFont = (size / 4):clamp(1, 100):ceil() * 4
 		surface.SetFont(selected and ('DLibDrawWeaponSelectionSelected' .. selectFont) or ('DLibDrawWeaponSelection' .. selectFont))
 		surface.SetTextColor(mColor:ModifyAlpha(alpha))
 
