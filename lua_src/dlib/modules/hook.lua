@@ -1373,6 +1373,8 @@ do
 			end
 		end
 
+		table.sort(output)
+
 		return output
 	end
 
