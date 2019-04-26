@@ -72,6 +72,14 @@ local prefixL = {
 	return string.format('%.2f', numIn)
 end]]
 
+--[[
+	@doc
+	@fname DLib.i18n.FormatNum
+	@args number numIn
+
+	@returns
+	string
+]]
 function i18n.FormatNum(numIn)
 	if numIn >= 1 and numIn <= 1000 then
 		return string.format('%.2f', numIn)
@@ -90,28 +98,175 @@ function i18n.FormatNum(numIn)
 	return string.format('%.2f%s', numIn / lastNum, i18n.localize('info.dlib.si.prefix.' .. prefix .. '.prefix'))
 end
 
+--[[
+	@doc
+	@fname DLib.i18n.FormatFrequency
+	@args number Hz
+
+	@returns
+	string
+]]
+
+--[[
+	@doc
+	@fname DLib.i18n.FormatForce
+	@args number N
+
+	@returns
+	string
+]]
+
+--[[
+	@doc
+	@fname DLib.i18n.FormatPressure
+	@args number Pa
+
+	@returns
+	string
+]]
+
+--[[
+	@doc
+	@fname DLib.i18n.FormatWork
+	@alias DLib.i18n.FormatHeat
+	@alias DLib.i18n.FormatEnergy
+	@args number J
+
+	@returns
+	string
+]]
+
+--[[
+	@doc
+	@fname DLib.i18n.FormatPower
+	@args number W
+
+	@returns
+	string
+]]
+
+--[[
+	@doc
+	@fname DLib.i18n.FormatVoltage
+	@args number V
+
+	@returns
+	string
+]]
+
+--[[
+	@doc
+	@fname DLib.i18n.FormatElectricalCapacitance
+	@args number F
+
+	@returns
+	string
+]]
+
+--[[
+	@doc
+	@fname DLib.i18n.FormatElectricalResistance
+	@alias DLib.i18n.FormatImpedance
+	@alias DLib.i18n.FormatReactance
+	@args number Ω
+
+	@returns
+	string
+]]
+
+--[[
+	@doc
+	@fname DLib.i18n.FormatElectricalConductance
+	@args number S
+
+	@returns
+	string
+]]
+
+--[[
+	@doc
+	@fname DLib.i18n.FormatMagneticFlux
+	@args number wb
+
+	@returns
+	string
+]]
+
+--[[
+	@doc
+	@fname DLib.i18n.FormatMagneticFluxDensity
+	@alias DLib.i18n.FormatMagneticInduction
+	@args number T
+
+	@returns
+	string
+]]
+
+--[[
+	@doc
+	@fname DLib.i18n.FormatIlluminance
+	@args number lx
+
+	@returns
+	string
+]]
+
+--[[
+	@doc
+	@fname DLib.i18n.FormatRadioactivity
+	@args number Bq
+
+	@returns
+	string
+]]
+
+--[[
+	@doc
+	@fname DLib.i18n.FormatAbsorbedDose
+	@args number Gy
+
+	@returns
+	string
+]]
+
+--[[
+	@doc
+	@fname DLib.i18n.FormatEquivalentDose
+	@args number Sv
+
+	@returns
+	string
+]]
+
+--[[
+	@doc
+	@fname DLib.i18n.FormatCatalyticActivity
+	@args number kat
+
+	@returns
+	string
+]]
 local units = [[hertz    Hz  frequency   1/s     s−1
-radian   rad     angle   m/m     1
-steradian    sr  solid angle     m2/m2   1
-newton   N   force, weight   kg⋅m/s2     kg⋅m⋅s−2
-pascal   Pa  pressure, stress    N/m2    kg⋅m−1⋅s−2
-joule    J   energy, work, heat  N⋅m, C⋅V, W⋅s   kg⋅m2⋅s−2
-watt     W   power, radiant flux     J/s, V⋅A    kg⋅m2⋅s−3
-coulomb  C   electric charge or quantity of electricity  s⋅A, F⋅V    s⋅A
-volt     V   voltage, electrical potential difference, electromotive force   W/A, J/C    kg⋅m2⋅s−3⋅A−1
-farad    F   electrical capacitance  C/V, s/Ω    kg−1⋅m−2⋅s4⋅A2
-ohm  Ω   electrical resistance, impedance, reactance     1/S, V/A    kg⋅m2⋅s−3⋅A−2
-siemens  S   electrical conductance  1/Ω, A/V    kg−1⋅m−2⋅s3⋅A2
-weber    Wb  magnetic flux   J/A, T⋅m2   kg⋅m2⋅s−2⋅A−1
-tesla    T   magnetic induction, magnetic flux density   V⋅s/m2, Wb/m2, N/(A⋅m)  kg⋅s−2⋅A−1
-henry    H   electrical inductance   V⋅s/A, Ω⋅s, Wb/A    kg⋅m2⋅s−2⋅A−2
-degree Celsius   °C  temperature relative to 273.15 K    K   K
-lumen    lm  luminous flux   cd⋅sr   cd
-lux  lx  illuminance     lm/m2   cd⋅sr/m2
-becquerel    Bq  radioactivity (decays per unit time)    1/s     s−1
-gray     Gy  absorbed dose (of ionizing radiation)   J/kg    m2⋅s−2
-sievert  Sv  equivalent dose (of ionizing radiation)     J/kg    m2⋅s−2
-katal    kat     catalytic activity  mol/s   s−1⋅mol]]
+radian      rad     angle   m/m     1
+steradian   sr      solidAngle     m2/m2   1
+newton      N       force, weight   kg⋅m/s2     kg⋅m⋅s−2
+pascal      Pa      pressure, stress    N/m2    kg⋅m−1⋅s−2
+joule       J       energy, work, heat  N⋅m, C⋅V, W⋅s   kg⋅m2⋅s−2
+watt        W       power, radiantFlux     J/s, V⋅A    kg⋅m2⋅s−3
+coulomb     C       electricCharge, electricityQuantity  s⋅A, F⋅V    s⋅A
+volt        V       voltage, electrical potential difference, electromotive force   W/A, J/C    kg⋅m2⋅s−3⋅A−1
+farad       F       electricalCapacitance  C/V, s/Ω    kg−1⋅m−2⋅s4⋅A2
+ohm         Ω       electricalResistance, impedance, reactance, resistance     1/S, V/A    kg⋅m2⋅s−3⋅A−2
+siemens     S       electricalConductance  1/Ω, A/V    kg−1⋅m−2⋅s3⋅A2
+weber       Wb      magneticFlux   J/A, T⋅m2   kg⋅m2⋅s−2⋅A−1
+tesla       T       magneticInduction, magneticFluxDensity   V⋅s/m2, Wb/m2, N/(A⋅m)  kg⋅s−2⋅A−1
+henry       H       electricalInductance   V⋅s/A, Ω⋅s, Wb/A    kg⋅m2⋅s−2⋅A−2
+lumen       lm      luminous flux   cd⋅sr   cd
+lux         lx      illuminance     lm/m2   cd⋅sr/m2
+becquerel   Bq      radioactivity (decays per unit time)    1/s     s−1
+gray        Gy      absorbedDose (of ionizing radiation)   J/kg    m2⋅s−2
+sievert     Sv      equivalentDose (of ionizing radiation)     J/kg    m2⋅s−2
+katal       kat     catalyticActivity  mol/s   s−1⋅mol]]
 
 for i, row in ipairs(units:split('\n')) do
 	local measure, NaM, mtype = row:match('(%S+)%s+(%S+)%s+(.+)')
@@ -135,6 +290,22 @@ i18n.TEMPERATURE_UNITS_TYPE_CELSIUS = 0
 i18n.TEMPERATURE_UNITS_TYPE_KELVIN = 1
 i18n.TEMPERATURE_UNITS_TYPE_FAHRENHEIT = 2
 
+--[[
+	@doc
+	@fname DLib.i18n.FormatTemperature
+	@args number numIn, number providedType
+
+	@desc
+	`providedType` define in whcih temp units `numIn` is
+	Valid values are:
+	`DLib.i18n.TEMPERATURE_UNITS_TYPE_CELSIUS` (default)
+	`DLib.i18n.TEMPERATURE_UNITS_TYPE_KELVIN`
+	`DLib.i18n.TEMPERATURE_UNITS_TYPE_FAHRENHEIT`
+	@enddesc
+
+	@returns
+	string
+]]
 function i18n.FormatTemperature(tempUnits, providedType)
 	providedType = providedType or i18n.TEMPERATURE_UNITS_TYPE_CELSIUS
 
@@ -161,6 +332,13 @@ end
 
 local sv_gravity = GetConVar('sv_gravity')
 
+--[[
+	@doc
+	@fname DLib.i18n.FreeFallAcceleration
+
+	@returns
+	number: for use with `FormatForce` or anything like that
+]]
 function i18n.FreeFallAcceleration()
 	return 9.8066 * sv_gravity:GetFloat() / 600
 end
@@ -179,6 +357,14 @@ for i, row in ipairs(inchesandstuff) do
 	end
 end
 
+--[[
+	@doc
+	@fname DLib.i18n.FormatDistance
+	@args number metresIn
+
+	@returns
+	string
+]]
 function i18n.FormatDistance(numIn)
 	if useTraditional() then
 		local suffix, lastNum = inchesandstuff[1][1], inchesandstuff[1][2]
@@ -199,6 +385,15 @@ function i18n.FormatDistance(numIn)
 	return string.format('%s%s', i18n.FormatNum(numIn), i18n.localize('info.dlib.si.units.metre.suffix'))
 end
 
+--[[
+	@doc
+	@fname DLib.i18n.FormatHU
+	@alias DLib.i18n.FormatHammerUnits
+	@args number hammerUnitsIn
+
+	@returns
+	string
+]]
 function i18n.FormatHU(numIn)
 	return i18n.FormatDistance(numIn * i18n.METRES_IN_HU)
 end
@@ -221,6 +416,14 @@ do
 		row[1] = row[1]:pow(2)
 	end
 
+--[[
+	@doc
+	@fname DLib.i18n.FormatArea
+	@args number squareMetresIn
+
+	@returns
+	string
+]]
 	function i18n.FormatArea(numIn)
 		--[[if numIn < 0 then
 			error('are you high')
@@ -271,6 +474,15 @@ do
 		return string.format('%.2f%s%s^2', numIn / lastNum, i18n.localize('info.dlib.si.prefix.' .. prefix .. '.prefix'), i18n.localize('info.dlib.si.units.metre.suffix'))
 	end
 
+--[[
+	@doc
+	@fname DLib.i18n.FormatAreaHU
+	@alias DLib.i18n.FormatAreaHammerUnits
+	@args number squareHammerUnitsIn
+
+	@returns
+	string
+]]
 	function i18n.FormatAreaHU(numIn)
 		return i18n.FormatArea(numIn * i18n.METRES_IN_HU)
 	end
@@ -302,6 +514,14 @@ do
 
 	i18n.VOLUME_UNITS = CreateConVar('dlib_unit_system_volume', 'L', {FCVAR_ARCHIVE}, 'L/m')
 
+--[[
+	@doc
+	@fname DLib.i18n.FormatVolume
+	@args number litres
+
+	@returns
+	string
+]]
 	function i18n.FormatVolume(litres)
 		--[[if numIn < 0 then
 			error('are you high')
@@ -358,6 +578,15 @@ do
 		return string.format('%s%s', i18n.FormatNum(litres), i18n.localize('info.dlib.si.units.litre.suffix'))
 	end
 
+--[[
+	@doc
+	@fname DLib.i18n.FormatVolumeHU
+	@alias DLib.i18n.FormatVolumeHammerUnits
+	@args number cubicHammerUnitsIn
+
+	@returns
+	string
+]]
 	function i18n.FormatVolumeHU(numIn)
 		return i18n.FormatVolume(numIn * i18n.METRES_IN_HU / 1000)
 	end
@@ -386,6 +615,14 @@ for i, row in ipairs(inchesandstuff) do
 	end
 end
 
+--[[
+	@doc
+	@fname DLib.i18n.FormatWeight
+	@args number grams
+
+	@returns
+	string
+]]
 function i18n.FormatWeight(numIn)
 	if useTraditional() then
 		local suffix, lastNum = inchesandstuff[1][1], inchesandstuff[1][2]
@@ -406,6 +643,13 @@ function i18n.FormatWeight(numIn)
 	return string.format('%s%s', i18n.FormatNum(numIn), i18n.localize('info.dlib.si.units.gram.suffix'))
 end
 
+--[[
+	@doc
+	@fname DLib.i18n.GetNormalPressure
+
+	@returns
+	number: Pa
+]]
 function i18n.GetNormalPressure()
 	return 101325
 end
