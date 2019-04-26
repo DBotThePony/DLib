@@ -466,19 +466,28 @@ class DLib.NBT.TagCompound extends DLib.NBT.Base
 	SetTypedValue: (...) => @AddTypedValue(...)
 
 	SetVector: (key, vec) =>
-		@SetFloat(key .. '_x', vec.x)
-		@SetFloat(key .. '_y', vec.y)
-		@SetFloat(key .. '_z', vec.z)
+		@AddTagList(key, TypeID.TAG_Float, {vec.x, vec.y, vec.z})
 		return @
 
 	SetAngle: (key, ang) =>
-		@SetFloat(key .. '_p', ang.p)
-		@SetFloat(key .. '_y', ang.y)
-		@SetFloat(key .. '_r', ang.r)
+		@AddTagList(key, TypeID.TAG_Float, {ang.p, ang.y, ang.r})
 		return @
 
-	GetVector: (key) => Vector(@GetTagValue(key .. '_x'), @GetTagValue(key .. '_y'), @GetTagValue(key .. '_z'))
-	GetAngle: (key) => Angle(@GetTagValue(key .. '_p'), @GetTagValue(key .. '_y'), @GetTagValue(key .. '_r'))
+	SetColor: (key, color) =>
+		@AddByteArray(key, {color.r - 128, color.g - 128, color.b - 128, color.a - 128})
+		return @
+
+	GetVector: (key) =>
+		{a, b, c} = @GetTagValue(key)
+		return Vector(a, b, c)
+
+	GetAngle: (key) =>
+		{a, b, c} = @GetTagValue(key)
+		return Angle(a, b, c)
+
+	GetColor: (key) =>
+		{a, b, c, d} = @GetTagValue(key)
+		return Color(a + 128, b + 128, c + 128, d + 128)
 
 	GetLength: => table.Count(@table)
 	@NAME = 'TAG_Compound'
