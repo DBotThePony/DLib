@@ -38,6 +38,7 @@ function meta:RegisterCrosshairHandle()
 
 	self._nextDisableCrosshair = true
 	self.lastDistAccuracyMult = 1
+	self.UpcomingAccuracy = 1
 
 	self:AddHookCustom('HUDShouldDraw', 'CrosshairShouldDraw', nil, 6)
 	self:AddHook('TFA_DrawCrosshair')
@@ -192,14 +193,12 @@ else
 	hook.Add('InitPostEntity', 'HUDCommons.GetAmmoTypes', refreshTypes)
 end
 
-local handledTFA = false
-
 function meta:HandleDoDrawCrosshair(x, y, weapon)
-	handledTFA = false
+	self.handledTFA = false
 
 	local status = weapon:DoDrawCrosshair(x, y)
 
-	if handledTFA then
+	if self.handledTFA then
 		return false
 	end
 
@@ -210,14 +209,13 @@ local lastShouldDrawLocalPlayer = false
 local lastFOV = 90
 local lastOrigin = Vector()
 local LocalPlayer = LocalPlayer
-local UpcomingAccuracy = 1
 
 function meta:UpdateUpcomingAccuracy(val)
-	UpcomingAccuracy = val
+	self.UpcomingAccuracy = val
 end
 
 function meta:GetUpcomingAccuracy(val)
-	return UpcomingAccuracy
+	return self.UpcomingAccuracy
 end
 
 function meta:InternalDrawCrosshair(ply)
@@ -297,7 +295,7 @@ function meta:TFA_DrawCrosshair(weapon, x, y)
 	local drawstatus = TFA.Enum.ReloadStatus[weapon:GetStatus()] or math.min(1 - weapon.IronSightsProgress, 1 - weapon.SprintProgress, 1 - weapon.InspectingProgress) <= 0.5
 	if drawstatus then return true end
 
-	handledTFA = true
+	self.handledTFA = true
 
 	local ttype = weapon:GetType()
 	local points, gap = weapon:CalculateConeRecoil()
