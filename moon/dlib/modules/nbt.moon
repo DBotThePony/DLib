@@ -465,6 +465,21 @@ class DLib.NBT.TagCompound extends DLib.NBT.Base
 	SetTagCompound: (...) => @AddTagCompound(...)
 	SetTypedValue: (...) => @AddTypedValue(...)
 
+	SetVector: (key, vec) =>
+		@SetFloat(key .. '_x', vec.x)
+		@SetFloat(key .. '_y', vec.y)
+		@SetFloat(key .. '_z', vec.z)
+		return @
+
+	SetAngle: (key, ang) =>
+		@SetFloat(key .. '_p', ang.p)
+		@SetFloat(key .. '_y', ang.y)
+		@SetFloat(key .. '_r', ang.r)
+		return @
+
+	GetVector: (key) => Vector(@GetTagValue(key .. '_x'), @GetTagValue(key .. '_y'), @GetTagValue(key .. '_z'))
+	GetAngle: (key) => Angle(@GetTagValue(key .. '_p'), @GetTagValue(key .. '_y'), @GetTagValue(key .. '_r'))
+
 	GetLength: => table.Count(@table)
 	@NAME = 'TAG_Compound'
 	GetType: => 'table'
