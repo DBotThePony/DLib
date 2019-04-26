@@ -253,6 +253,11 @@ function meta:InternalDrawCrosshair(ply)
 	if mapping ~= 'DrawCrosshairRPG' and mapping ~= 'DrawCrosshairNade' and self.DYNAMIC_CROSSHAIR:GetBool() and (self.DYNAMIC_CROSSHAIR_ALWAYS:GetBool() or lastShouldDrawLocalPlayer and ply == LocalPlayer()) then
 		local newAcc = (tr.StartPos:Distance(tr.HitPos) / 256):pow(1 / 3) * (90 / (lastFOV or ply:GetFOV())):pow(1.19) * 0.4
 		self.lastDistAccuracyMult = Lerp(FrameTime() * 4, self.lastDistAccuracyMult, newAcc)
+
+		if self.lastDistAccuracyMult ~= self.lastDistAccuracyMult then
+			self.lastDistAccuracyMult = newAcc
+		end
+
 		accuracy = self.lastDistAccuracyMult
 	end
 
