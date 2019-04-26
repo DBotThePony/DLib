@@ -212,6 +212,14 @@ local lastOrigin = Vector()
 local LocalPlayer = LocalPlayer
 local UpcomingAccuracy = 1
 
+function meta:UpdateUpcomingAccuracy(val)
+	UpcomingAccuracy = val
+end
+
+function meta:GetUpcomingAccuracy(val)
+	return UpcomingAccuracy
+end
+
 function meta:InternalDrawCrosshair(ply)
 	if not self.ENABLE_CROSSHAIRS:GetBool() then return end
 	if not self:GetVarAlive() or not self:WeaponsInVehicle() then return end
@@ -268,7 +276,7 @@ function meta:InternalDrawCrosshair(ply)
 	end
 
 	if mapping then
-		self[mapping](self, x, y, accuracy)
+		self[mapping](self, x, y, UpcomingAccuracy)
 	elseif wclass == 'gmod_tool' then
 		self:DrawCrosshairToolgun(x, y, 0)
 	elseif wclass == 'weapon_physgun' then
@@ -278,9 +286,9 @@ function meta:InternalDrawCrosshair(ply)
 	elseif wclass == 'weapon_crowbar' then
 		self:DrawCrosshairMelee(x, y, 0)
 	elseif ammotype == -1 and not self:ShouldDisplayAmmo() then
-		self:DrawCrosshairMelee(x, y, accuracy)
+		self:DrawCrosshairMelee(x, y, UpcomingAccuracy)
 	else
-		self:DrawCrosshairGeneric(x, y, accuracy)
+		self:DrawCrosshairGeneric(x, y, UpcomingAccuracy)
 	end
 end
 
