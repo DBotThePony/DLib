@@ -427,6 +427,7 @@ class DLib.NBT.TagCompound extends DLib.NBT.Base
 	HasTag: (key = '') => @table[tostring(key)] ~= nil
 	GetTag: (key = '') => @table[tostring(key)]
 	GetTagValue: (key = '') => @table[tostring(key)]\GetValue()
+
 	AddByte: (key = '', value) => @AddTag(key, DLib.NBT.TagByte(value))
 	AddShort: (key = '', value) => @AddTag(key, DLib.NBT.TagShort(value))
 	AddInt: (key = '', value) => @AddTag(key, DLib.NBT.TagInt(value))
@@ -449,6 +450,20 @@ class DLib.NBT.TagCompound extends DLib.NBT.Base
 				@AddTagCompound(key, vaue)
 			else
 				error('Unable to tetermine tag type for value - ' .. type(value))
+
+	SetByte: (...) => @AddByte(...)
+	SetShort: (...) => @AddShort(...)
+	SetInt: (...) => @AddInt(...)
+	SetFloat: (...) => @AddFloat(...)
+	SetDouble: (...) => @AddDouble(...)
+	SetLong: (...) => @AddLong(...)
+	SetString: (...) => @AddString(...)
+	SetByteArray: (...) => @AddByteArray(...)
+	SetIntArray: (...) => @AddIntArray(...)
+	SetLongArray: (...) => @AddLongArray(...)
+	SetTagList: (...) => @AddTagList(...)
+	SetTagCompound: (...) => @AddTagCompound(...)
+	SetTypedValue: (...) => @AddTypedValue(...)
 
 	GetLength: => table.Count(@table)
 	@NAME = 'TAG_Compound'
