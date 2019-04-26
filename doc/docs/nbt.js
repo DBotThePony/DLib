@@ -571,6 +571,7 @@ const m2 = [
 for (const fname of m1) {
 	output.push(`
 @fname NBTTagCompound:${fname}
+@alias NBTTagCompound:${fname.replace('Add', 'Set')}
 @args string key, any value
 
 @desc
@@ -585,6 +586,7 @@ table: self
 for (const fname of m2) {
 	output.push(`
 @fname NBTTagCompound:${fname}
+@alias NBTTagCompound:${fname.replace('Add', 'Set')}
 @args string key, any value
 
 @desc
