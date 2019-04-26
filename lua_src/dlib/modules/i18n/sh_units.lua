@@ -21,7 +21,7 @@
 --i18n.UNIT_SYSTEM = CreateConVar('dlib_unit_system', 'si', {FCVAR_ARCHIVE}, 'Which measurement unit to use (traditional/imperial or si)')
 
 i18n.METRES_IN_HU_SWITCH = CreateConVar('dlib_unit_system_hu', '1', {FCVAR_ARCHIVE}, 'Use default definition of Hammer Units conversion to SI (player height = 1.37m). When set to 0, non-default conversion would be used instead (player height = 1.7947m), which feel realistic')
-i18n.METRES_IN_HU = 0.01905 * (i18n.METRES_IN_HU_SWITCH:GetBool() and 1.31 or 1)
+i18n.METRES_IN_HU = 0.01905 * (i18n.METRES_IN_HU_SWITCH:GetBool() and 1 or 1.31)
 
 local function useTraditional()
 	--return i18n.UNIT_SYSTEM:GetString() == 'imperial' or i18n.UNIT_SYSTEM:GetString() == 'traditional'
@@ -38,7 +38,7 @@ end, 'DLib')
 ]]
 
 cvars.AddChangeCallback('dlib_unit_system_hu', function(self, old, new)
-	i18n.METRES_IN_HU = 0.01905 * (i18n.METRES_IN_HU_SWITCH:GetBool() and 1.31 or 1)
+	i18n.METRES_IN_HU = 0.01905 * (i18n.METRES_IN_HU_SWITCH:GetBool() and 1 or 1.31)
 end, 'DLib')
 
 local prefixL = {

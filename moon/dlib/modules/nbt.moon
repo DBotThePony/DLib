@@ -230,8 +230,15 @@ class DLib.NBT.TagArrayBased extends DLib.NBT.Base
 
 	GetArray: => @array
 	ExtractValue: (index = 1) => @array[index]
+	AtIndex: (index = 1) => @array[index]
+	GetIndex: (index = 1) => @array[index]
 	GetValue: => [tag\GetValue() for tag in *@array]
 	CopyArray: => [tag for tag in *@array]
+
+	iterate: => ipairs @array
+	iterator: => ipairs @array
+	pairs: => ipairs @array
+	ipairs: => ipairs @array
 
 	AddValue: (value) =>
 		error('Method not implemented')
@@ -449,7 +456,7 @@ class DLib.NBT.TagCompound extends DLib.NBT.Base
 	AddIntArray: (key = '', values) => @AddTag2(key, DLib.NBT.TagIntArray(values))
 	AddLongArray: (key = '', values) => @AddTag2(key, DLib.NBT.TagLongArray(values))
 	AddTagList: (key = '', tagID, values) => @AddTag2(key, DLib.NBT.TagList(tagID, values))
-	AddTagCompound: (key = '', values) => @AddTag2(key, DLib.NBT.TagCompound(key, value))
+	AddTagCompound: (key = '', values) => @AddTag2(key, DLib.NBT.TagCompound(key, values))
 	AddTypedValue: (key = '', value) =>
 		switch type(value)
 			when 'number'
