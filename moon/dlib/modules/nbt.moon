@@ -23,7 +23,12 @@ import assert, error, DLib, table from _G
 type = luatype
 
 jit.on()
-DLib.NBT = {}
+
+if DLib.NBT
+	for k, v in pairs(DLib.NBT)
+		DLib.NBT[k] = nil
+
+DLib.NBT = DLib.NBT or {}
 
 -- names are deprecated
 -- (the @name variable)
@@ -302,7 +307,7 @@ class DLib.NBT.TagList extends DLib.NBT.TagArrayBased
 		error('Invalid tag ID specified as array type - ' .. tagID) if not @tagClass
 		super(name)
 		if values
-			@AddValue(val) for val in ipairs(values)
+			@AddValue(val) for i, val in ipairs(values)
 
 	Serialize: (bytesbuffer) =>
 		bytesbuffer\WriteUByte(@tagID)
@@ -322,7 +327,12 @@ class DLib.NBT.TagList extends DLib.NBT.TagArrayBased
 		@length += 1
 		classIn = @tagClass
 		error('Invalid tag ID specified as array type - ' .. @tagID) if not classIn
-		table.insert(@GetArray(), classIn('value', ...))
+
+		if DLib.NBT.VALID_META[type(select(1, ...))] or type(select(1, ...)) == 'table' and select(1, ...).Serialize
+			table.insert(@GetArray(), select(1, ...))
+		else
+			table.insert(@GetArray(), classIn(...))
+
 		return @
 
 	ReadTag: (bytesbuffer) =>
@@ -438,7 +448,7 @@ class DLib.NBT.TagCompound extends DLib.NBT.Base
 	AddByteArray: (key = '', values) => @AddTag2(key, DLib.NBT.TagByteArray(values))
 	AddIntArray: (key = '', values) => @AddTag2(key, DLib.NBT.TagIntArray(values))
 	AddLongArray: (key = '', values) => @AddTag2(key, DLib.NBT.TagLongArray(values))
-	AddTagList: (key = '', tagID, values) => @AddTag2(key, DLib.NBT.TagList(tagID, value))
+	AddTagList: (key = '', tagID, values) => @AddTag2(key, DLib.NBT.TagList(tagID, values))
 	AddTagCompound: (key = '', values) => @AddTag2(key, DLib.NBT.TagCompound(key, value))
 	AddTypedValue: (key = '', value) =>
 		switch type(value)
@@ -496,6 +506,8 @@ class DLib.NBT.TagCompound extends DLib.NBT.Base
 
 Typed[TypeID[classname.NAME]] = classname for k, classname in pairs DLib.NBT when TypeID[classname.NAME]
 TypedByID[classname.NAME] = classname for k, classname in pairs DLib.NBT
+
+DLib.NBT.VALID_META = {classname.MetaName, true for k, classname in pairs DLib.NBT}
 
 classname.TAG_ID = typeid for typeid, classname in pairs Typed
 
