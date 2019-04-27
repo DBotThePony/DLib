@@ -446,6 +446,7 @@ class DLib.NBT.TagCompound extends DLib.NBT.Base
 	GetTagValue: (key = '') => @table[tostring(key)]\GetValue()
 
 	AddByte: (key = '', value) => @AddTag(key, DLib.NBT.TagByte(value))
+	AddBool: (key = '', value = false) => @AddTag(key, DLib.NBT.TagByte(value and 1 or 0))
 	AddShort: (key = '', value) => @AddTag(key, DLib.NBT.TagShort(value))
 	AddInt: (key = '', value) => @AddTag(key, DLib.NBT.TagInt(value))
 	AddFloat: (key = '', value) => @AddTag(key, DLib.NBT.TagFloat(value))
@@ -469,6 +470,7 @@ class DLib.NBT.TagCompound extends DLib.NBT.Base
 				error('Unable to tetermine tag type for value - ' .. type(value))
 
 	SetByte: (...) => @AddByte(...)
+	SetBool: (...) => @AddBool(...)
 	SetShort: (...) => @AddShort(...)
 	SetInt: (...) => @AddInt(...)
 	SetFloat: (...) => @AddFloat(...)
