@@ -146,7 +146,7 @@ class DLib.NBT.TagInt extends DLib.NBT.Base
 	CheckValue: (value) =>
 		super(value)
 		error('Value must be a number! ' .. type(value) .. ' given.') if type(value) ~= 'number'
-		assert(value >= -0x40000000 and value < 0x40000000, 'value overflow')
+		assert(value >= -0x7FFFFFFF and value < 0x7FFFFFFF, 'value overflow')
 	Serialize: (bytesbuffer) => bytesbuffer\WriteInt32(@value)
 	Deserialize: (bytesbuffer) =>
 		@value = bytesbuffer\ReadInt32()
