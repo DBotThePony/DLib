@@ -33,6 +33,8 @@ local SHIFTING_MULT_WEP = CreateConVar('dlib_hud_shift_wepmult', '1', {FCVAR_ARC
 
 local SHIFTING_AIR = CreateConVar('dlib_hud_shift_midair', '1', {FCVAR_ARCHIVE}, 'Shift hud while in midair')
 
+local WEIGHTED = CreateConVar('dlib_hud_shift_weighted', '1', {FCVAR_ARCHIVE}, 'Shift of element is based on distance from screen center')
+
 local HUDCommons = HUDCommons
 local table = table
 local RealTimeL = RealTimeL
@@ -45,6 +47,7 @@ local WorldToLocal = WorldToLocal
 local ScreenSize = ScreenSize
 local ScrWL = ScrWL
 local ScrHL = ScrHL
+local ScreenScale = ScreenScale
 local ipairs = ipairs
 
 HUDCommons.Position2 = HUDCommons.Position2 or {}
@@ -66,6 +69,18 @@ Pos2.XPositions_modified = Pos2.XPositions_modified or {}
 Pos2.YPositions_modified = Pos2.YPositions_modified or {}
 Pos2.XPositions_original = Pos2.XPositions_original or {}
 Pos2.YPositions_original = Pos2.YPositions_original or {}
+
+Pos2.XPositions_mul = Pos2.XPositions_mul or {}
+Pos2.YPositions_mul = Pos2.YPositions_mul or {}
+
+for k, v in pairs(Pos2.XPositions) do
+	Pos2.XPositions_mul[v] = 1 - Pos2.XPositions_original[v]:progression(0, 1, 0.5) * 0.8
+end
+
+for k, v in pairs(Pos2.YPositions) do
+	Pos2.YPositions_mul[v] = 1 - Pos2.YPositions_original[v]:progression(0, 1, 0.5) * 0.8
+end
+
 Pos2.Positions_funcs = Pos2.Positions_funcs or {}
 
 --[[
@@ -113,15 +128,20 @@ function Pos2.DefinePosition(name, x, y, shouldShift)
 	Pos2.XPositions_original[name] = cvarX:GetFloat():clamp(0, 1)
 	Pos2.YPositions_original[name] = cvarY:GetFloat():clamp(0, 1)
 
+	Pos2.XPositions_mul[name] = 1 - Pos2.XPositions_original[name]:progression(0, 1, 0.5) * 0.8
+	Pos2.YPositions_mul[name] = 1 - Pos2.YPositions_original[name]:progression(0, 1, 0.5) * 0.8
+
 	Pos2.XPositions_modified[name] = x * ScrWL()
 	Pos2.YPositions_modified[name] = y * ScrHL()
 
 	cvars.AddChangeCallback('dlib_hpos_' .. name .. '_x', function()
 		Pos2.XPositions_original[name] = cvarX:GetFloat():clamp(0, 1)
+		Pos2.XPositions_mul[name] = 1 - Pos2.XPositions_original[name]:progression(0, 1, 0.5) * 0.8
 	end, 'DLib.HUDCommons')
 
 	cvars.AddChangeCallback('dlib_hpos_' .. name .. '_y', function()
 		Pos2.YPositions_original[name] = cvarY:GetFloat():clamp(0, 1)
+		Pos2.YPositions_mul[name] = 1 - Pos2.YPositions_original[name]:progression(0, 1, 0.5) * 0.8
 	end, 'DLib.HUDCommons')
 
 	Pos2.XPositions_CVars[name] = cvarX
@@ -219,12 +239,22 @@ local function UpdatePositions()
 	local w, h = ScrWL(), ScrHL()
 
 	if ENABLE_SHIFTING:GetBool() and ENABLE_SHIFTING_SV:GetBool() then
-		for k, v in ipairs(Pos2.XPositions) do
-			Pos2.XPositions_modified[v] = Pos2.XPositions_original[v] * w + Pos2.ShiftX + Pos2.ShiftX_Weapon + Pos2.ShiftX_Ground
-		end
+		if WEIGHTED:GetBool() then
+			for k, v in ipairs(Pos2.XPositions) do
+				Pos2.XPositions_modified[v] = Pos2.XPositions_original[v] * w + (Pos2.ShiftX + Pos2.ShiftX_Weapon + Pos2.ShiftX_Ground) * Pos2.XPositions_mul[v]
+			end
 
-		for k, v in ipairs(Pos2.YPositions) do
-			Pos2.YPositions_modified[v] = Pos2.YPositions_original[v] * h + Pos2.ShiftY + Pos2.ShiftY_Weapon + Pos2.ShiftY_Ground
+			for k, v in ipairs(Pos2.YPositions) do
+				Pos2.YPositions_modified[v] = Pos2.YPositions_original[v] * h + (Pos2.ShiftY + Pos2.ShiftY_Weapon + Pos2.ShiftY_Ground) * Pos2.YPositions_mul[v]
+			end
+		else
+			for k, v in ipairs(Pos2.XPositions) do
+				Pos2.XPositions_modified[v] = Pos2.XPositions_original[v] * w + Pos2.ShiftX + Pos2.ShiftX_Weapon + Pos2.ShiftX_Ground
+			end
+
+			for k, v in ipairs(Pos2.YPositions) do
+				Pos2.YPositions_modified[v] = Pos2.YPositions_original[v] * h + Pos2.ShiftY + Pos2.ShiftY_Weapon + Pos2.ShiftY_Ground
+			end
 		end
 	else
 		for k, v in ipairs(Pos2.XPositions) do
@@ -258,7 +288,7 @@ local function UpdateShift(delta)
 		ground = true
 	end
 
-	local M1, M2 = ScreenSize(20) * SHIFTING_CLAMP_DEF:GetFloat():clamp(0, 10), ScreenSize(30) * SHIFTING_CLAMP_DEF:GetFloat():clamp(0, 10)
+	local M1, M2 = ScreenScale(50) * SHIFTING_CLAMP_DEF:GetFloat():clamp(0, 10), ScreenSize(50) * SHIFTING_CLAMP_DEF:GetFloat():clamp(0, 10)
 
 	if LastOnGround ~= ground then
 		LastOnGround = ground
