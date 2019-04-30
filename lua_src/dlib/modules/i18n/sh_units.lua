@@ -588,7 +588,7 @@ do
 	string
 ]]
 	function i18n.FormatVolumeHU(numIn)
-		return i18n.FormatVolume(numIn * i18n.METRES_IN_HU * 258.7786259542)
+		return i18n.FormatVolume(numIn * i18n.METRES_IN_HU * 0.2587786259)
 	end
 
 	i18n.FormatVolumeHammerUnits = i18n.FormatVolumeHU
