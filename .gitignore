@@ -7,3 +7,4 @@ doc/output/
 doc/package-lock.json
 vll/*.lua
 doc.sh
+doc2.sh
