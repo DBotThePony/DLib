@@ -308,6 +308,7 @@ debug.setmetatable(function() end, meta)
 --[[
 	@doc
 	@fname string.tonumber
+	@args number base = 10
 
 	@returns
 	number
@@ -316,6 +317,7 @@ debug.setmetatable(function() end, meta)
 --[[
 	@doc
 	@fname string:tonumber
+	@args number base = 10
 
 	@returns
 	number
@@ -324,6 +326,7 @@ debug.setmetatable(function() end, meta)
 --[[
 	@doc
 	@fname math.tonumber
+	@args number base = 10
 
 	@returns
 	number
@@ -332,6 +335,7 @@ debug.setmetatable(function() end, meta)
 --[[
 	@doc
 	@fname number:tonumber
+	@args number base = 10
 
 	@returns
 	number
