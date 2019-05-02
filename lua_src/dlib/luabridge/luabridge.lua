@@ -295,8 +295,8 @@ end
 
 local meta = getmetatable(function() end) or {}
 
-function meta:tonumber()
-	return tonumber(self)
+function meta:tonumber(base)
+	return tonumber(self, base)
 end
 
 function meta:tostring()
