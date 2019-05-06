@@ -1,5 +1,5 @@
 
--- Copyright (Jimmy Donal Wales), 2017-2019 DBot
+-- Copyright (Jimmy Donal Wales), 2017-2019 DBotThePony
 
 -- Licensed under the MIT license
 -- you may not use this file except in compliance with Jimmy's wish.
