@@ -40,7 +40,7 @@ i18n.DEBUG_LANG_STRINGS = CreateConVar('gmod_language_dlib_dbg', '0', {FCVAR_ARC
 	@server
 
 	@returns
-	string: localized
+	string: formatted message
 ]]
 function i18n.getPlayer(ply, phrase, ...)
 	return i18n.localizeByLang(phrase, ply.DLib_Lang or 'en', ...)
@@ -50,6 +50,40 @@ i18n.getByPlayer = i18n.getPlayer
 i18n.localizePlayer = i18n.getPlayer
 i18n.localizebyPlayer = i18n.getPlayer
 i18n.byPlayer = i18n.getPlayer
+
+--[[
+	@doc
+	@fname DLib.i18n.getPlayerAdvanced
+	@alias DLib.i18n.getByPlayerAdvanced
+	@alias DLib.i18n.localizePlayerAdvanced
+	@alias DLib.i18n.localizebyPlayerAdvanced
+	@alias DLib.i18n.byPlayerAdvanced
+	@alias Player:LocalizePhraseAdvanced
+	@alias Player:DLibPhraseAdvanced
+	@alias Player:DLibLocalizeAdvanced
+	@alias Player:GetDLibPhraseAdvanced
+
+	@args Player ply, string phrase, Color colorDef = color_white, vararg formatArguments
+	@server
+
+	@desc
+	Supports colors from custom format arguments
+	You don't want to use this unless you know that
+	some of phrases can contain custom format arguments
+	@enddesc
+
+	@returns
+	table: formatted message
+	number: arguments "consumed"
+]]
+function i18n.getPlayerAdvanced(ply, phrase, ...)
+	return i18n.localizeByLangAdvanced(phrase, ply.DLib_Lang or 'en', ...)
+end
+
+i18n.getByPlayerAdvanced = i18n.getPlayerAdvanced
+i18n.localizePlayerAdvanced = i18n.getPlayerAdvanced
+i18n.localizebyPlayerAdvanced = i18n.getPlayerAdvanced
+i18n.byPlayerAdvanced = i18n.getPlayerAdvanced
 
 local plyMeta = FindMetaTable('Player')
 
@@ -64,7 +98,7 @@ local plyMeta = FindMetaTable('Player')
 	@server
 
 	@returns
-	string: localized
+	string: formatted message
 ]]
 function plyMeta:LocalizePhrase(phrase, ...)
 	return i18n.localizeByLang(phrase, self.DLib_Lang or 'en', ...)
@@ -73,6 +107,34 @@ end
 plyMeta.DLibPhrase = plyMeta.LocalizePhrase
 plyMeta.DLibLocalize = plyMeta.LocalizePhrase
 plyMeta.GetDLibPhrase = plyMeta.LocalizePhrase
+
+--[[
+	@doc
+	@fname Player:LocalizePhraseAdvanced
+	@alias Player:DLibPhraseAdvanced
+	@alias Player:DLibLocalizeAdvanced
+	@alias Player:GetDLibPhraseAdvanced
+
+	@args string phrase, Color colorDef = color_white, vararg formatArguments
+	@server
+
+	@desc
+	Supports colors from custom format arguments
+	You don't want to use this unless you know that
+	some of phrases can contain custom format arguments
+	@enddesc
+
+	@returns
+	table: formatted message
+	number: arguments "consumed"
+]]
+function plyMeta:LocalizePhraseAdvanced(phrase, ...)
+	return i18n.localizeByLangAdvanced(phrase, self.DLib_Lang or 'en', ...)
+end
+
+plyMeta.DLibPhraseAdvanced = plyMeta.LocalizePhraseAdvanced
+plyMeta.DLibLocalizeAdvanced = plyMeta.LocalizePhraseAdvanced
+plyMeta.GetDLibPhraseAdvanced = plyMeta.LocalizePhraseAdvanced
 
 local ipairs = ipairs
 local player = player

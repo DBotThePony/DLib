@@ -26,13 +26,92 @@ i18n.hashedNoArgs = i18n.hashedNoArgs or {}
 i18n.hashedLang = i18n.hashedLang or {}
 i18n.hashedNoArgsLang = i18n.hashedNoArgsLang or {}
 
+local formatters = {
+	['#P'] = function(ply)
+		if type(ply) ~= 'Player' then
+			error('Invalid argument to #P: ' .. type(ply))
+		end
+
+		local nick = ply:Nick()
+
+		if ply.SteamName and ply:SteamName() ~= nick then
+			nick = nick .. ' (' .. ply:SteamName() .. ')'
+		end
+
+		return {team.GetColor(ply:Team()) or Color(), nick, color_white, string.format('<%s>', ply:SteamID())}
+	end
+}
+
+local function doLocalize(unformatted, defColor, ...)
+	defColor = defColor or color_white
+	local argsPos = 1
+	local searchPos = 1
+	local output = {}
+	local args = {...}
+	local hit = true
+
+	while hit and searchPos ~= #unformatted do
+		hit = false
+
+		for formatter, funcCall in pairs(formatters) do
+			local findNext, findCutoff = unformatted:find(formatter, searchPos, true)
+
+			if findNext then
+				hit = true
+				local slicePre = unformatted:sub(searchPos, findNext - 1)
+				local count = i18n.countExpressions(slicePre)
+
+				if count ~= 0 then
+					table.insert(output, string.format(slicePre, unpack(args, argsPos, argsPos + count - 1)))
+					argsPos = argsPos + count
+				else
+					table.insert(output, slicePre)
+				end
+
+				local ret, grabbed = funcCall(unpack(args, argsPos, #args))
+				grabbed = grabbed or 1
+
+				if ret then
+					table.append(output, ret)
+					table.insert(output, defColor)
+				end
+
+				argsPos = argsPos + grabbed
+				searchPos = findCutoff + 1
+
+				if searchPos == #unformatted then
+					table.insert(output, unformatted[#unformatted])
+					return output, argsPos - 1
+				end
+
+				break
+			end
+		end
+	end
+
+	if searchPos ~= #unformatted then
+		local slice = unformatted:sub(searchPos)
+		local count = i18n.countExpressions(slice)
+
+		if count ~= 0 then
+			table.insert(output, string.format(slice, unpack(args, argsPos, argsPos + count - 1)))
+			argsPos = argsPos + count
+			return output, argsPos - 2 + count
+		else
+			table.insert(output, slice)
+		end
+	end
+
+	return output, argsPos - 1
+end
+
 --[[
 	@doc
 	@fname DLib.i18n.localizeByLang
 	@args string phrase, string lang, vararg format
 
 	@returns
-	string: formatted
+	string: formatted message
 ]]
 function i18n.localizeByLang(phrase, lang, ...)
 	if not i18n.hashed[phrase] or i18n.DEBUG_LANG_STRINGS:GetBool() then
@@ -47,12 +126,65 @@ function i18n.localizeByLang(phrase, lang, ...)
 		unformatted = i18n.hashedLang[lang][phrase] or i18n.hashed[phrase] or phrase
 	end
 
-	local status, formatted = pcall(string.format, unformatted, ...)
+	local status, formatted = pcall(doLocalize, unformatted, nil, ...)
 
 	if status then
-		return formatted
+		local output = ''
+
+		for i, value in ipairs(formatted) do
+			if type(value) == 'string' then
+				output = output .. value
+			end
+		end
+
+		return output
 	else
 		return '%%!' .. phrase .. '!%%'
+	end
+end
+
+--[[
+	@doc
+	@fname DLib.i18n.localizeByLangAdvanced
+	@args string phrase, string lang, Color colorDef = color_white, vararg format
+
+	@desc
+	Supports colors from custom format arguments
+	You don't want to use this unless you know that
+	some of phrases can contain custom format arguments
+	@enddesc
+
+	@returns
+	table: formatted message
+	number: arguments "consumed"
+]]
+function i18n.localizeByLangAdvanced(phrase, lang, colorDef, ...)
+	if luatype(colorDef) ~= 'Color' then
+		return i18n._localizeByLangAdvanced(phrase, lang, color_white, ...)
+	else
+		return i18n._localizeByLangAdvanced(phrase, lang, colorDef, ...)
+	end
+end
+
+function i18n._localizeByLangAdvanced(phrase, lang, colorDef, ...)
+	if not i18n.hashed[phrase] or i18n.DEBUG_LANG_STRINGS:GetBool() then
+		return {phrase}, 0
+	end
+
+	local unformatted
+
+	if lang == 'en' or not i18n.hashedLang[lang] then
+		unformatted = i18n.hashed[phrase] or phrase
+	else
+		unformatted = i18n.hashedLang[lang][phrase] or i18n.hashed[phrase] or phrase
+	end
+
+	local status, formatted, cnum = pcall(doLocalize, unformatted, colorDef, ...)
+
+	if status then
+		return formatted, cnum
+	else
+		return {'%%!' .. phrase .. '!%%'}, 0
 	end
 end
 
@@ -119,10 +251,33 @@ end
 	@args string phrase, vararg format
 
 	@returns
-	string: formatted
+	string: formatted message
 ]]
 function i18n.localize(phrase, ...)
 	return i18n.localizeByLang(phrase, i18n.CURRENT_LANG, ...)
+end
+
+--[[
+	@doc
+	@fname DLib.i18n.localizeAdvanced
+	@args string phrase, Color colorDef = color_white, vararg format
+
+	@desc
+	Supports colors from custom format arguments
+	You don't want to use this unless you know that
+	some of phrases can contain custom format arguments
+	@enddesc
+
+	@returns
+	table: formatted message
+	number: arguments "consumed"
+]]
+function i18n.localizeAdvanced(phrase, colorDef, ...)
+	if luatype(colorDef) ~= 'Color' then
+		return i18n.localizeByLang(phrase, i18n.CURRENT_LANG, nil, ...)
+	else
+		return i18n.localizeByLang(phrase, i18n.CURRENT_LANG, colorDef, ...)
+	end
 end
 
 --[[
@@ -209,24 +364,24 @@ local type = type
 --[[
 	@doc
 	@fname DLib.i18n.rebuildTable
-	@args table args
+	@args table args, Color colorDef = color_white
 
 	@returns
 	table: a table with localized strings. other types are untouched. does not modify original table
 ]]
-function i18n.rebuildTable(args)
-	return i18n.rebuildTableByLang(args, i18n.CURRENT_LANG)
+function i18n.rebuildTable(args, colorDef)
+	return i18n.rebuildTableByLang(args, i18n.CURRENT_LANG, colorDef)
 end
 
 --[[
 	@doc
 	@fname DLib.i18n.rebuildTableByLang
-	@args table args, string lang
+	@args table args, string lang, Color colorDef = color_white
 
 	@returns
 	table: a table with localized strings. other types are untouched. does not modify original table
 ]]
-function i18n.rebuildTableByLang(args, lang)
+function i18n.rebuildTableByLang(args, lang, colorDef)
 	local rebuild = {}
 	local i = 1
 
@@ -237,35 +392,9 @@ function i18n.rebuildTableByLang(args, lang)
 			table.insert(rebuild, arg)
 			i = i + 1
 		else
-			local phrase = i18n.getRawByLang(arg, lang)
-			local count = i18n.countExpressions(phrase)
-
-			if count == 0 then
-				table.insert(rebuild, phrase)
-				i = i + 1
-			else
-				local arguments = {}
-				local original = i
-				local success = true
-
-				for n = 1, count do
-					if type(args[i + n]) ~= 'string' and type(args[i + n]) ~= 'number' then
-						success = false
-						i = original
-						break
-					end
-
-					table.insert(arguments, args[i + n])
-				end
-
-				if success then
-					table.insert(rebuild, i18n.localizeByLang(arg, lang, unpack(arguments)))
-					i = i + 1 + count
-				else
-					table.insert(rebuild, arg)
-					i = i + 1
-				end
-			end
+			local phrase, consumed = i18n.localizeByLangAdvanced(arg, lang, colorDef, unpack(args, i + 1, #args))
+			i = i + 1 + consumed
+			table.append(rebuild, phrase)
 		end
 	end
 

@@ -511,7 +511,7 @@ return function(tableTarget, moduleName, moduleColor)
 	end
 
 	local function LMessage(...)
-		local formatted = FormatMessageRegular(DLib.i18n.rebuildTable({...}))
+		local formatted = FormatMessageRegular(DLib.i18n.rebuildTable({...}, DEFAULT_TEXT_COLOR))
 		MsgC(PREFIX_COLOR, PREFIX, unpack(formatted))
 		MsgC('\n')
 		return formatted
@@ -525,7 +525,7 @@ return function(tableTarget, moduleName, moduleColor)
 	end
 
 	local function LWarning(...)
-		local formatted = FormatMessageWarning(DLib.i18n.rebuildTable({...}))
+		local formatted = FormatMessageWarning(DLib.i18n.rebuildTable({...}, DEFAULT_TEXT_COLOR))
 		MsgC(PREFIX_COLOR, PREFIX, unpack(formatted))
 		MsgC('\n')
 		return formatted
@@ -539,7 +539,7 @@ return function(tableTarget, moduleName, moduleColor)
 	end
 
 	local function LPrintError(...)
-		local formatted = FormatMessageError(DLib.i18n.rebuildTable({...}))
+		local formatted = FormatMessageError(DLib.i18n.rebuildTable({...}, DEFAULT_TEXT_COLOR))
 		MsgC(PREFIX_COLOR, PREFIX, unpack(formatted))
 		MsgC('\n')
 		return formatted
@@ -552,7 +552,7 @@ return function(tableTarget, moduleName, moduleColor)
 	end
 
 	local function LChat(...)
-		local formatted = FormatMessageRegular(DLib.i18n.rebuildTable({...}))
+		local formatted = FormatMessageRegular(DLib.i18n.rebuildTable({...}, DEFAULT_TEXT_COLOR))
 		chat.AddText(PREFIX_COLOR, PREFIX, DEFAULT_TEXT_COLOR, unpack(formatted))
 		return formatted
 	end
@@ -564,7 +564,7 @@ return function(tableTarget, moduleName, moduleColor)
 	end
 
 	local function LChatError(...)
-		local formatted = FormatMessageError(DLib.i18n.rebuildTable({...}))
+		local formatted = FormatMessageError(DLib.i18n.rebuildTable({...}, DEFAULT_TEXT_COLOR))
 		chat.AddText(PREFIX_COLOR, PREFIX, ERROR_COLOR, unpack(formatted))
 		return formatted
 	end
@@ -576,7 +576,7 @@ return function(tableTarget, moduleName, moduleColor)
 	end
 
 	local function LChatWarn(...)
-		local formatted = FormatMessageWarning(DLib.i18n.rebuildTable({...}))
+		local formatted = FormatMessageWarning(DLib.i18n.rebuildTable({...}, DEFAULT_TEXT_COLOR))
 		chat.AddText(PREFIX_COLOR, PREFIX, WARNING_COLOR, unpack(formatted))
 		return formatted
 	end
@@ -586,7 +586,7 @@ return function(tableTarget, moduleName, moduleColor)
 	end
 
 	local function LFormatMessage(...)
-		return FormatMessageRegular(DLib.i18n.rebuildTable({PREFIX_COLOR, PREFIX, DEFAULT_TEXT_COLOR, ...}))
+		return FormatMessageRegular(DLib.i18n.rebuildTable({PREFIX_COLOR, PREFIX, DEFAULT_TEXT_COLOR, ...}, DEFAULT_TEXT_COLOR))
 	end
 
 	local function FormatMessageWarn(...)
@@ -594,7 +594,7 @@ return function(tableTarget, moduleName, moduleColor)
 	end
 
 	local function LFormatMessageWarn(...)
-		return FormatMessageWarning(DLib.i18n.rebuildTable({PREFIX_COLOR, PREFIX, WARNING_COLOR, ...}))
+		return FormatMessageWarning(DLib.i18n.rebuildTable({PREFIX_COLOR, PREFIX, WARNING_COLOR, ...}, DEFAULT_TEXT_COLOR))
 	end
 
 	local function FormatMessageErr(...)
@@ -602,7 +602,7 @@ return function(tableTarget, moduleName, moduleColor)
 	end
 
 	local function LFormatMessageErr(...)
-		return FormatMessageError(DLib.i18n.rebuildTable({PREFIX_COLOR, PREFIX, ERROR_COLOR, ...}))
+		return FormatMessageError(DLib.i18n.rebuildTable({PREFIX_COLOR, PREFIX, ERROR_COLOR, ...}, DEFAULT_TEXT_COLOR))
 	end
 
 	local function FormatMessageRaw(...)
@@ -610,7 +610,7 @@ return function(tableTarget, moduleName, moduleColor)
 	end
 
 	local function LFormatMessageRaw(...)
-		return FormatMessageRegular(DLib.i18n.rebuildTable({...}))
+		return FormatMessageRegular(DLib.i18n.rebuildTable({...}, DEFAULT_TEXT_COLOR))
 	end
 
 	local function FormatMessageWarnRaw(...)
@@ -618,7 +618,7 @@ return function(tableTarget, moduleName, moduleColor)
 	end
 
 	local function LFormatMessageWarnRaw(...)
-		return FormatMessageWarning(DLib.i18n.rebuildTable({...}))
+		return FormatMessageWarning(DLib.i18n.rebuildTable({...}, DEFAULT_TEXT_COLOR))
 	end
 
 	local function FormatMessageErrRaw(...)
@@ -626,7 +626,7 @@ return function(tableTarget, moduleName, moduleColor)
 	end
 
 	local function LFormatMessageErrRaw(...)
-		return FormatMessageError(DLib.i18n.rebuildTable({...}))
+		return FormatMessageError(DLib.i18n.rebuildTable({...}, DEFAULT_TEXT_COLOR))
 	end
 
 	local function MessagePlayer(ply, ...)
