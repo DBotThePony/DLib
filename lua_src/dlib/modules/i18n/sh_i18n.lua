@@ -45,8 +45,18 @@ local formatters = {
 			end
 
 			return {team.GetColor(ent:Team()) or Color(), nick, color_white, string.format('<%s>', ent:SteamID())}
-		elseif ltype == 'Entity' or ltype == 'NPC' or ltype == 'Vehicle' then
+		elseif ltype == 'Entity' then
 			return {DLib.ENTITY_COLOR:Copy(), tostring(ent)}
+		elseif ltype == 'NPC' then
+			return {DLib.NPC_COLOR:Copy(), tostring(ent)}
+		elseif ltype == 'Vehicle' then
+			return {DLib.VEHICLE_COLOR:Copy(), tostring(ent)}
+		elseif ltype == 'NextBot' then
+			return {DLib.NEXTBOT_COLOR:Copy(), tostring(ent)}
+		elseif ltype == 'Weapon' then
+			return {DLib.WEAPON_COLOR:Copy(), tostring(ent)}
+		else
+			error('Invalid argument to #E: ' .. ltype)
 		end
 	end,
 

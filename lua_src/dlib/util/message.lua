@@ -50,9 +50,14 @@ local BOOLEAN_COLOR = Color(33, 83, 226)
 local NUMBER_COLOR = Color(245, 199, 64)
 local STEAMID_COLOR = Color(255, 255, 255)
 local ENTITY_COLOR = Color(180, 232, 180)
+local NPC_COLOR = Color(116, 193, 209)
+local NEXTBOT_COLOR = Color(84, 196, 121)
+local WEAPON_COLOR = Color(189, 82, 122)
+local VEHICLE_COLOR = Color(189, 82, 170)
 local FUNCTION_COLOR = Color(62, 106, 255)
 local TABLE_COLOR = Color(107, 200, 224)
 local URL_COLOR = Color(174, 124, 192)
+local NIL_COLOR = Color(89, 93, 251)
 
 DLib.DEFAULT_TEXT_COLOR = DEFAULT_TEXT_COLOR
 DLib.WARNING_COLOR = WARNING_COLOR
@@ -64,12 +69,26 @@ DLib.ENTITY_COLOR = ENTITY_COLOR
 DLib.FUNCTION_COLOR = FUNCTION_COLOR
 DLib.TABLE_COLOR = TABLE_COLOR
 DLib.URL_COLOR = URL_COLOR
+DLib.NPC_COLOR = NPC_COLOR
+DLib.NEXTBOT_COLOR = NEXTBOT_COLOR
+DLib.WEAPON_COLOR = WEAPON_COLOR
+DLib.VEHICLE_COLOR = VEHICLE_COLOR
+DLib.NIL_COLOR = NIL_COLOR
 
 local function __Format(tabIn, prevColor, output)
-	for i, val in ipairs(tabIn) do
+	local max = 0
+
+	for k, v in pairs(tabIn) do max = max:max(k) end
+
+	for i = 1, max do
+		local val = tabIn[i]
 		local valType = type(val)
 
-		if valType == 'number' then
+		if valType == 'nil' then
+			table.insert(output, NIL_COLOR:Copy())
+			table.insert(output, 'nil')
+			table.insert(output, prevColor:Copy())
+		elseif valType == 'number' then
 			table.insert(output, NUMBER_COLOR:Copy())
 			table.insert(output, tostring(val))
 			table.insert(output, prevColor:Copy())
@@ -99,8 +118,24 @@ local function __Format(tabIn, prevColor, output)
 			table.insert(output, val:SteamID())
 			table.insert(output, '>')
 			table.insert(output, prevColor:Copy())
-		elseif valType == 'Entity' or valType == 'NPC' or valType == 'Vehicle' then
+		elseif valType == 'Entity' then
 			table.insert(output, ENTITY_COLOR:Copy())
+			table.insert(output, tostring(val))
+			table.insert(output, prevColor:Copy())
+		elseif valType == 'NPC' then
+			table.insert(output, NPC_COLOR:Copy())
+			table.insert(output, tostring(val))
+			table.insert(output, prevColor:Copy())
+		elseif valType == 'Vehicle' then
+			table.insert(output, VEHICLE_COLOR:Copy())
+			table.insert(output, tostring(val))
+			table.insert(output, prevColor:Copy())
+		elseif valType == 'NextBot' then
+			table.insert(output, NEXTBOT_COLOR:Copy())
+			table.insert(output, tostring(val))
+			table.insert(output, prevColor:Copy())
+		elseif valType == 'Weapon' then
+			table.insert(output, WEAPON_COLOR:Copy())
 			table.insert(output, tostring(val))
 			table.insert(output, prevColor:Copy())
 		elseif IsColor(val) then
