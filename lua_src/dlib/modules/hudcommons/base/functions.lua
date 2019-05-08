@@ -221,6 +221,25 @@ end
 
 --[[
 	@doc
+	@fname HUDCommonsBase:CallWeaponHUDShouldDraw_Select
+	@args string elem
+
+	@client
+
+	@desc
+	A safe way to call currently predicted (select) weapon's `HUDShouldDraw`
+	@enddesc
+
+	@returns
+	boolean
+]]
+function meta:CallWeaponHUDShouldDraw_Select(elem)
+	local wep = self:PredictSelectWeapon()
+	return not IsValid(wep) or not wep.HUDShoulDraw or wep:HUDShoulDraw(elem) ~= false
+end
+
+--[[
+	@doc
 	@fname HUDCommonsBase:ShouldDisplayWeaponStats
 
 	@client
@@ -349,7 +368,13 @@ function meta:ShouldDisplayAmmo_Select()
 		return cache.Draw and (cache.PrimaryAmmo ~= nil or cache.PrimaryClip ~= nil)
 	end
 
-	return self:HasPredictedWeapon() and self:PredictSelectWeapon().DrawAmmo ~= false and (self:GetVarClipMax1_Select() > 0 or self:GetVarClipMax2_Select() > 0 or self:GetVarAmmoType1_Select() ~= -1 or self:GetVarAmmoType2_Select() ~= -1)
+
+	return self:HasPredictedWeapon()
+		and self:PredictSelectWeapon().DrawAmmo ~= false
+		and self:CallWeaponHUDShouldDraw_Select('CHudAmmo')
+		and (self:GetVarClipMax1_Select() > 0 or
+			self:GetVarAmmoType1_Select() ~= -1)
+		and self:WeaponsInVehicle()
 end
 
 meta.ShouldDisplayAmmo1_Select = meta.ShouldDisplayAmmo_Select
@@ -387,7 +412,13 @@ function meta:ShouldDisplaySecondaryAmmo_Select()
 		return cache.Draw and cache.SecondaryAmmo ~= nil
 	end
 
-	return self:HasPredictedWeapon() and self:PredictSelectWeapon().DrawAmmo ~= false and (self:GetVarClipMax2_Select() > 0 or self:GetVarClip2_Select() > 0 or self:GetVarAmmoType2_Select() ~= -1)
+	return self:HasPredictedWeapon()
+		and self:PredictSelectWeapon().DrawAmmo ~= false
+		and self:CallWeaponHUDShouldDraw_Select('CHudSecondaryAmmo')
+		and (self:GetVarClipMax2_Select() > 0 or
+			self:GetVarClip2_Select() > 0 or
+			self:GetVarAmmoType2_Select() ~= -1)
+		and self:WeaponsInVehicle()
 end
 
 meta.ShouldDisplayAmmo2_Select = meta.ShouldDisplaySecondaryAmmo_Select
@@ -990,7 +1021,7 @@ function meta:ShouldDisplayAmmoReady_Select()
 		return cache.Draw and (cache.PrimaryAmmo ~= nil or cache.PrimaryClip ~= nil or cache.SecondaryAmmo ~= nil)
 	end
 
-	return self:HasPredictedWeapon() and (self:GetVarClipMax1_Select() > 0 or self:GetVarClipMax2_Select() > 0)
+	return self:HasPredictedWeapon() and self:GetVarClipMax1_Select() > 0
 end
 
 --[[
@@ -1027,7 +1058,7 @@ function meta:ShouldDisplaySecondaryAmmoReady_Select()
 		return false
 	end
 
-	return self:HasPredictedWeapon() and self:GetVarClipMax2_Select() > 0
+	return self:HasPredictedWeapon() and (self:GetVarClipMax2_Select() > 0 or self:GetVarClip2_Select() > 0)
 end
 
 --[[
