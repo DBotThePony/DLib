@@ -20,28 +20,153 @@
 
 local i18n = i18n
 local string = string
+local type = type
+local error = error
+local team = team
+local DLib = DLib
+local table = table
 
 i18n.hashed = i18n.hashed or {}
+i18n.hashedFunc = i18n.hashedFunc or {}
 i18n.hashedNoArgs = i18n.hashedNoArgs or {}
 i18n.hashedLang = i18n.hashedLang or {}
+i18n.hashedLangFunc = i18n.hashedLangFunc or {}
 i18n.hashedNoArgsLang = i18n.hashedNoArgsLang or {}
 
 local formatters = {
-	['#P'] = function(ply)
-		if type(ply) ~= 'Player' then
-			error('Invalid argument to #P: ' .. type(ply))
+	['#E'] = function(self, ent)
+		local ltype = type(ent)
+
+		if ltype == 'Player' then
+			local nick = ent:Nick()
+
+			if ent.SteamName and ent:SteamName() ~= nick then
+				nick = nick .. ' (' .. ent:SteamName() .. ')'
+			end
+
+			return {team.GetColor(ent:Team()) or Color(), nick, color_white, string.format('<%s>', ent:SteamID())}
+		elseif ltype == 'Entity' or ltype == 'NPC' or ltype == 'Vehicle' then
+			return {DLib.ENTITY_COLOR:Copy(), tostring(ent)}
+		end
+	end,
+
+	['#%.%di'] = function(self, val)
+		if type(val) ~= 'number' then
+			error('Invalid argument to custom #i: ' .. type(val))
 		end
 
-		local nick = ply:Nick()
+		return {DLib.NUMBER_COLOR:Copy(), string.format('%' .. self:sub(2, #self - 1) ..'i', val)}
+	end,
 
-		if ply.SteamName and ply:SteamName() ~= nick then
-			nick = nick .. ' (' .. ply:SteamName() .. ')'
+	['#i'] = function(self, val)
+		if type(val) ~= 'number' then
+			error('Invalid argument to #i: ' .. type(val))
 		end
 
-		return {team.GetColor(ply:Team()) or Color(), nick, color_white, string.format('<%s>', ply:SteamID())}
-	end
+		return {DLib.NUMBER_COLOR:Copy(), string.format('%i', val)}
+	end,
+
+	['#%.%df'] = function(self, val)
+		if type(val) ~= 'number' then
+			error('Invalid argument to custom #f: ' .. type(val))
+		end
+
+		return {DLib.NUMBER_COLOR:Copy(), string.format('%' .. self:sub(2, #self - 1) ..'f', val)}
+	end,
+
+	['#f'] = function(self, val)
+		if type(val) ~= 'number' then
+			error('Invalid argument to #f: ' .. type(val))
+		end
+
+		return {DLib.NUMBER_COLOR:Copy(), string.format('%f', val)}
+	end,
+
+	['#%.%d[xX]'] = function(self, val)
+		if type(val) ~= 'number' then
+			error('Invalid argument to custom #x/#X: ' .. type(val))
+		end
+
+		if self[#self] == 'x' then
+			return {DLib.NUMBER_COLOR:Copy(), string.format('%' .. self:sub(2, #self - 1) ..'x', val)}
+		else
+			return {DLib.NUMBER_COLOR:Copy(), string.format('%' .. self:sub(2, #self - 1) ..'X', val)}
+		end
+	end,
+
+	['#[xX]'] = function(self, val)
+		if type(val) ~= 'number' then
+			error('Invalid argument to #x/#X: ' .. type(val))
+		end
+
+		if self[2] == 'x' then
+			return {DLib.NUMBER_COLOR:Copy(), string.format('%x', val)}
+		else
+			return {DLib.NUMBER_COLOR:Copy(), string.format('%X', val)}
+		end
+	end,
+
+	['#[duco]'] = function(self, val)
+		if type(val) ~= 'number' then
+			error('Invalid argument to #[duco]: ' .. type(val))
+		end
+
+		return {DLib.NUMBER_COLOR:Copy(), string.format('%' .. self[2], val)}
+	end,
+
+	['#b'] = function(self, val)
+		if type(val) ~= 'number' then
+			error('Invalid argument to #b: ' .. type(val))
+		end
+
+		local format = ''
+
+		if val < 0 then
+			val = val + 0xFFFFFFFF
+		end
+
+		val = val:floor()
+
+		while val > 0 do
+			local div = val % 2
+			val = (val - div) / 2
+			format = div .. format
+		end
+
+		return {DLib.NUMBER_COLOR:Copy(), format}
+	end,
+
+	['#%.%db'] = function(self, val)
+		if type(val) ~= 'number' then
+			error('Invalid argument to custom #b: ' .. type(val))
+		end
+
+		local format = ''
+
+		if val < 0 then
+			val = val + 0xFFFFFFFF
+		end
+
+		val = val:floor()
+
+		while val > 0 do
+			local div = val % 2
+			val = (val - div) / 2
+			format = div .. format
+		end
+
+		local num = tonumber(self:sub(3, #self - 1))
+
+		if #format < num then
+			format = string.rep('0', num - #format) .. format
+		end
+
+		return {DLib.NUMBER_COLOR:Copy(), format}
+	end,
 }
 
+--[[
+-- if we get dynamic length format args, then this would be required
 local function doLocalize(unformatted, defColor, ...)
 	defColor = defColor or color_white
 	local argsPos = 1
@@ -53,38 +178,41 @@ local function doLocalize(unformatted, defColor, ...)
 	while hit and searchPos ~= #unformatted do
 		hit = false
 
+		local findBest, findBestCutoff, findBestFunc, findFormatter = 0x1000000, 0x1000000
+
 		for formatter, funcCall in pairs(formatters) do
-			local findNext, findCutoff = unformatted:find(formatter, searchPos, true)
+			local findNext, findCutoff = unformatted:find(formatter, searchPos, false)
 
-			if findNext then
+			if findNext and findBest > findNext then
 				hit = true
-				local slicePre = unformatted:sub(searchPos, findNext - 1)
-				local count = i18n.countExpressions(slicePre)
+				findBest, findBestCutoff, findBestFunc, findFormatter = findNext, findCutoff, funcCall, formatter
+			end
+		end
 
-				if count ~= 0 then
-					table.insert(output, string.format(slicePre, unpack(args, argsPos, argsPos + count - 1)))
-					argsPos = argsPos + count
-				else
-					table.insert(output, slicePre)
-				end
+		if findBestFunc then
+			local slicePre = unformatted:sub(searchPos, findBest - 1)
+			local count = i18n.countExpressions(slicePre)
 
-				local ret, grabbed = funcCall(unpack(args, argsPos, #args))
-				grabbed = grabbed or 1
+			if count ~= 0 then
+				table.insert(output, string.format(slicePre, unpack(args, argsPos, argsPos + count - 1)))
+				argsPos = argsPos + count
+			else
+				table.insert(output, slicePre)
+			end
 
-				if ret then
-					table.append(output, ret)
-					table.insert(output, defColor)
-				end
+			local ret, grabbed = findBestFunc(unformatted:sub(findBest, findBestCutoff), unpack(args, argsPos, #args))
 
-				argsPos = argsPos + grabbed
-				searchPos = findCutoff + 1
+			if ret then
+				table.append(output, ret)
+				table.insert(output, defColor)
+			end
 
-				if searchPos == #unformatted then
-					table.insert(output, unformatted[#unformatted])
-					return output, argsPos - 1
-				end
+			argsPos = argsPos + (grabbed or 1)
+			searchPos = findBestCutoff + 1
 
-				break
+			if searchPos == #unformatted then
+				table.insert(output, unformatted[#unformatted])
+				return output, argsPos - 1
 			end
 		end
 	end
@@ -104,6 +232,96 @@ local function doLocalize(unformatted, defColor, ...)
 
 	return output, argsPos - 1
 end
+]]
+
+
+local function compileExpression(unformatted)
+	local searchPos = 1
+	local funclist = {}
+	local hit = true
+
+	while hit and searchPos ~= #unformatted do
+		hit = false
+
+		local findBest, findBestCutoff, findBestFunc, findFormatter = 0x1000000, 0x1000000
+
+		for formatter, funcCall in pairs(formatters) do
+			local findNext, findCutoff = unformatted:find(formatter, searchPos, false)
+
+			if findNext and findBest > findNext then
+				hit = true
+				findBest, findBestCutoff, findBestFunc, findFormatter = findNext, findCutoff, funcCall, formatter
+			end
+		end
+
+		if findBestFunc then
+			local slicePre = unformatted:sub(searchPos, findBest - 1)
+			local count = i18n.countExpressions(slicePre)
+
+			if count ~= 0 then
+				table.insert(funclist, function(...)
+					return string.format(slicePre, ...), count
+				end)
+			else
+				table.insert(funclist, slicePre)
+			end
+
+			table.insert(funclist, function(...)
+				local ret, count = findBestFunc(unformatted:sub(findBest, findBestCutoff), ...)
+				return ret, count or 1
+			end)
+
+			searchPos = findBestCutoff + 1
+
+			if searchPos == #unformatted then
+				table.insert(funclist, unformatted[#unformatted])
+				break
+			end
+		end
+	end
+
+	if searchPos ~= #unformatted then
+		local slice = unformatted:sub(searchPos)
+		local count = i18n.countExpressions(slice)
+
+		if count ~= 0 then
+			table.insert(funclist, function(...)
+				return string.format(slice, ...), count
+			end)
+		else
+			table.insert(funclist, slice)
+		end
+	end
+
+	return function(defColor, ...)
+		defColor = defColor or color_white
+		local output = {}
+		local argsPos = 1
+		local args = {...}
+
+		for i, func in ipairs(funclist) do
+			local ftype = type(func)
+
+			if ftype == 'string' then
+				table.insert(output, func)
+			else
+				local fret, fcount = func(unpack(args, argsPos, #args))
+				local frettype = type(fret)
+
+				if frettype == 'string' then
+					table.insert(output, fret)
+					argsPos = argsPos + fcount
+				elseif frettype == 'table' then
+					table.append(output, fret)
+					table.insert(output, defColor)
+					argsPos = argsPos + fcount
+				end
+			end
+		end
+
+		return output, argsPos - 1
+	end
+end
 
 --[[
 	@doc
@@ -118,6 +336,36 @@ function i18n.localizeByLang(phrase, lang, ...)
 		return phrase
 	end
 
+	if i18n.hashedFunc[phrase] then
+		local unformatted
+
+		if lang == 'en' or not i18n.hashedLang[lang] then
+			unformatted = i18n.hashedFunc[phrase] or nil
+		else
+			unformatted = i18n.hashedLangFunc[lang][phrase] or i18n.hashedFunc[phrase] or nil
+		end
+
+		if not unformatted then
+			return phrase
+		end
+
+		local status, formatted = pcall(unformatted, nil, ...)
+
+		if status then
+			local output = ''
+
+			for i, value in ipairs(formatted) do
+				if type(value) == 'string' then
+					output = output .. value
+				end
+			end
+
+			return output
+		else
+			return '%%!' .. phrase .. '!%%'
+		end
+	end
+
 	local unformatted
 
 	if lang == 'en' or not i18n.hashedLang[lang] then
@@ -126,18 +374,10 @@ function i18n.localizeByLang(phrase, lang, ...)
 		unformatted = i18n.hashedLang[lang][phrase] or i18n.hashed[phrase] or phrase
 	end
 
-	local status, formatted = pcall(doLocalize, unformatted, nil, ...)
+	local status, formatted = pcall(string.format, unformatted, ...)
 
 	if status then
-		local output = ''
-
-		for i, value in ipairs(formatted) do
-			if type(value) == 'string' then
-				output = output .. value
-			end
-		end
-
-		return output
+		return formatted
 	else
 		return '%%!' .. phrase .. '!%%'
 	end
@@ -171,6 +411,28 @@ function i18n._localizeByLangAdvanced(phrase, lang, colorDef, ...)
 		return {phrase}, 0
 	end
 
+	if i18n.hashedFunc[phrase] then
+		local unformatted
+
+		if lang == 'en' or not i18n.hashedLang[lang] then
+			unformatted = i18n.hashedFunc[phrase] or nil
+		else
+			unformatted = i18n.hashedLangFunc[lang][phrase] or i18n.hashedFunc[phrase] or nil
+		end
+
+		if not unformatted then
+			return phrase
+		end
+
+		local status, formatted, cnum = pcall(unformatted, colorDef, ...)
+
+		if status then
+			return formatted, cnum
+		else
+			return {'%%!' .. phrase .. '!%%'}, 0
+		end
+	end
+
 	local unformatted
 
 	if lang == 'en' or not i18n.hashedLang[lang] then
@@ -179,10 +441,10 @@ function i18n._localizeByLangAdvanced(phrase, lang, colorDef, ...)
 		unformatted = i18n.hashedLang[lang][phrase] or i18n.hashed[phrase] or phrase
 	end
 
-	local status, formatted, cnum = pcall(doLocalize, unformatted, colorDef, ...)
+	local status, formatted, cnum = pcall(string.format, unformatted, ...)
 
 	if status then
-		return formatted, cnum
+		return {formatted}, i18n.countExpressions(unformatted)
 	else
 		return {'%%!' .. phrase .. '!%%'}, 0
 	end
@@ -218,12 +480,33 @@ end
 	boolean: true
 ]]
 function i18n.registerPhrase(lang, phrase, unformatted)
+	local advanced = false
+
+	for formatter, funcCall in pairs(formatters) do
+		if unformatted:find(formatter) then
+			advanced = true
+			break
+		end
+	end
+
 	if lang == 'en' then
 		i18n.hashed[phrase] = unformatted
 	else
-		i18n.hashed[phrase] = i18n.hashed[phrase] or phrase
+		i18n.hashed[phrase] = i18n.hashed[phrase] or unformatted
 		i18n.hashedLang[lang] = i18n.hashedLang[lang] or {}
 		i18n.hashedLang[lang][phrase] = unformatted
+	end
+
+	if advanced then
+		local fncompile = compileExpression(unformatted)
+
+		if lang == 'en' then
+			i18n.hashedFunc[phrase] = fncompile
+		else
+			i18n.hashedLang[lang] = i18n.hashedLang[lang] or {}
+			i18n.hashedLang[lang][phrase] = fncompile
+			i18n.hashedFunc[phrase] = i18n.hashedFunc[phrase] or fncompile
+		end
 	end
 
 	if i18n.countExpressions(phrase) == 0 then
