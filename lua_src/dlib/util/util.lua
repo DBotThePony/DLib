@@ -432,3 +432,36 @@ function DLib.util.GetWeaponScript(weaponIn)
 		error('Invalid weapon provided: ' .. type(weaponIn))
 	end
 end
+
+--[[
+	@doc
+	@fname printflags
+	@args number flags, number minimumDecimals = 0
+
+	@returns
+	string: formatted
+]]
+function _G.printflags(flagsIn, mnum)
+	assert(type(flagsIn) == 'number', 'flagsIn must be a number')
+	mnum = mnum or 0
+	local format = ''
+
+	if flagsIn < 0 then
+		flagsIn = flagsIn + 0xFFFFFFFF
+	end
+
+	flagsIn = flagsIn:floor()
+
+	while flagsIn > 0 do
+		local div = flagsIn % 2
+		flagsIn = (flagsIn - div) / 2
+		format = div .. format
+	end
+
+	if #format < mnum then
+		format = string.rep('0', mnum - #format) .. format
+	end
+
+	print(format)
+	return format
+end
