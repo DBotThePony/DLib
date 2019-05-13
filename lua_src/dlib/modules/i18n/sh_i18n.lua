@@ -60,7 +60,7 @@ local formatters = {
 		end
 	end,
 
-	['#%.%di'] = function(self, val)
+	['#%.%d+i'] = function(self, val)
 		if type(val) ~= 'number' then
 			error('Invalid argument to custom #i: ' .. type(val))
 		end
@@ -76,7 +76,7 @@ local formatters = {
 		return {DLib.NUMBER_COLOR:Copy(), string.format('%i', val)}
 	end,
 
-	['#%.%df'] = function(self, val)
+	['#%.%d+f'] = function(self, val)
 		if type(val) ~= 'number' then
 			error('Invalid argument to custom #f: ' .. type(val))
 		end
@@ -92,7 +92,7 @@ local formatters = {
 		return {DLib.NUMBER_COLOR:Copy(), string.format('%f', val)}
 	end,
 
-	['#%.%d[xX]'] = function(self, val)
+	['#%.%d+[xX]'] = function(self, val)
 		if type(val) ~= 'number' then
 			error('Invalid argument to custom #x/#X: ' .. type(val))
 		end
@@ -146,7 +146,7 @@ local formatters = {
 		return {DLib.NUMBER_COLOR:Copy(), format}
 	end,
 
-	['#%.%db'] = function(self, val)
+	['#%.%d+b'] = function(self, val)
 		if type(val) ~= 'number' then
 			error('Invalid argument to custom #b: ' .. type(val))
 		end
@@ -176,6 +176,7 @@ local formatters = {
 }
 
 function i18n.format(unformatted, defColor, ...)
+	local formatTable = luatype(defColor) == 'Color'
 	defColor = defColor or color_white
 	local argsPos = 1
 	local searchPos = 1
@@ -220,7 +221,20 @@ function i18n.format(unformatted, defColor, ...)
 
 			if searchPos == #unformatted then
 				table.insert(output, unformatted[#unformatted])
-				return output, argsPos - 1
+
+				if formatTable then
+					return output, argsPos - 1
+				end
+
+				local build = ''
+
+				for i, arg in ipairs(output) do
+					if type(arg) == 'string' then
+						build = build .. arg
+					end
+				end
+
+				return build, argsPos - 1
 			end
 		end
 	end
@@ -232,13 +246,24 @@ function i18n.format(unformatted, defColor, ...)
 		if count ~= 0 then
 			table.insert(output, string.format(slice, unpack(args, argsPos, argsPos + count - 1)))
 			argsPos = argsPos + count
-			return output, argsPos - 2 + count
 		else
 			table.insert(output, slice)
 		end
 	end
 
-	return output, argsPos - 1
+	if formatTable then
+		return output, argsPos - 1
+	end
+
+	local build = ''
+
+	for i, arg in ipairs(output) do
+		if type(arg) == 'string' then
+			build = build .. arg
+		end
+	end
+
+	return build, argsPos - 1
 end
 
 local function compileExpression(unformatted)
