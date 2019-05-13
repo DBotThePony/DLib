@@ -175,9 +175,7 @@ local formatters = {
 	end,
 }
 
---[[
--- if we get dynamic length format args, then this would be required
-local function doLocalize(unformatted, defColor, ...)
+function i18n.format(unformatted, defColor, ...)
 	defColor = defColor or color_white
 	local argsPos = 1
 	local searchPos = 1
@@ -242,8 +240,6 @@ local function doLocalize(unformatted, defColor, ...)
 
 	return output, argsPos - 1
 end
-]]
-
 
 local function compileExpression(unformatted)
 	local searchPos = 1
