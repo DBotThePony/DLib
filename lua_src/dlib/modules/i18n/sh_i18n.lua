@@ -182,6 +182,11 @@ function i18n.format(unformatted, defColor, ...)
 	local searchPos = 1
 	local output = {}
 	local args = {...}
+
+	if not formatTable then
+		table.unshift(args, defColor)
+	end
+
 	local hit = true
 
 	while hit and searchPos ~= #unformatted do
