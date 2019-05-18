@@ -46,6 +46,7 @@ class DLib.CAMIWatchdog
 
 	Track: (...) =>
 		@tracked\addArray({...})
+		@TriggerUpdate()
 		return @
 
 	HasPermission: (ply, perm) =>
