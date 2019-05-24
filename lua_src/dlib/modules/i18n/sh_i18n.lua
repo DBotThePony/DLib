@@ -180,6 +180,25 @@ local formatters = {
 	end,
 }
 
+--[[
+	@doc
+	@fname DLib.i18n.format
+	@args string unformatted, Color colorDef = nil, vararg format
+
+	@desc
+	Supports colors from custom format arguments
+	This is the same as creating i18n phrase with required arguments put in,
+	but slower due to `unformatted` being parsed each time on call, when
+	i18n phrase is parsed only once.
+	Available arguments are:
+	`#.0b`, `#b`, `#d`, `#u`, `#c`, `#o`, `#x`, `#.0x`, `#X`, `#.0X`, `#f`, `#.0f`, `#i`, `#.0i`, `#C` = Color, `#E` = Entity
+	As well as all `%` arguments !g:string.format accept
+	@enddesc
+
+	@returns
+	table: formatted message
+	number: arguments "consumed"
+]]
 function i18n.format(unformatted, defColor, ...)
 	local formatTable = luatype(defColor) == 'Color'
 	defColor = defColor or color_white
