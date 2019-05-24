@@ -566,6 +566,28 @@ function hook.Add(event, stringID, funcToCall, priority)
 	return
 end
 
+hook._O_SALT = hook._O_SALT or -0xFFFFFFF
+
+--[[
+	@doc
+	@fname hook.Once
+	@replaces
+	@args string event, function callback, number priority = 0
+
+	@desc
+	`hook.Add`, but function would be called back only once.
+	@enddesc
+]]
+function hook.Once(event, funcToCall, priority)
+	hook._O_SALT = hook._O_SALT + 1
+	local id = 'hook.Once.' .. hook._O_SALT
+
+	hook.Add(event, id, function(...)
+		hook.Remove(event, id)
+		return funcToCall(...)
+	end, priority)
+end
+
 --[[
 	@doc
 	@fname hook.Remove
