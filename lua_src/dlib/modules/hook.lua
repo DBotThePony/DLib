@@ -562,13 +562,8 @@ function hook.Add(event, stringID, funcToCall, priority)
 	__tableGmod[event] = __tableGmod[event] or {}
 	__tableGmod[event][stringID] = funcToCall
 
-	if ITERATING == event then
-		IS_DIRTY = true
-		IS_DIRTY_ID = event
-		return
-	end
-
 	hook.Reconstruct(event)
+	return
 end
 
 hook._O_SALT = hook._O_SALT or -0xFFFFFFF
