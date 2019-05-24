@@ -34,9 +34,6 @@ local traceback = debug.traceback
 local DLib = DLib
 local unpack = unpack
 local gxpcall = xpcall
-local ITERATING = false
-local IS_DIRTY = false
-local IS_DIRTY_ID
 local SysTime = SysTime
 
 DLib.hook = DLib.hook or {}
@@ -625,14 +622,8 @@ function hook.Remove(event, stringID)
 			local oldData = eventsTable[stringID]
 			if oldData ~= nil then
 				eventsTable[stringID] = nil
-
-				if ITERATING == event then
-					IS_DIRTY = true
-					IS_DIRTY_ID = event
-					return
-				end
-
 				hook.Reconstruct(event)
+				return
 			end
 		end
 	end
@@ -1030,12 +1021,6 @@ end
 	vararg: values
 ]]
 function hook.Call2(event, hookTable, ...)
-	if IS_DIRTY then
-		hook.Reconstruct(IS_DIRTY_ID)
-		IS_DIRTY = false
-		IS_DIRTY_ID = nil
-	end
-
 	if __disabled[event] then
 		return
 	end
