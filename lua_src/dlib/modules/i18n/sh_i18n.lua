@@ -25,6 +25,7 @@ local error = error
 local team = team
 local DLib = DLib
 local table = table
+local IsColor = IsColor
 
 i18n.hashed = i18n.hashed or {}
 i18n.hashedFunc = i18n.hashedFunc or {}
@@ -58,6 +59,10 @@ local formatters = {
 		else
 			error('Invalid argument to #E: ' .. ltype)
 		end
+	end,
+
+	['#C'] = function(self, color)
+		return assert(IsColor(color) and color, '#C must be a color! ')
 	end,
 
 	['#%.%d+i'] = function(self, val)
