@@ -209,11 +209,6 @@ local pcall = pcall
 local debug = debug
 local strict = false
 
-local DEFAULT_TEXT_COLOR = Color(247, 255, 27)
-local BOOLEAN_COLOR = Color(107, 141, 227)
-local NUMBER_COLOR = Color(245, 199, 64)
-local ENTITY_COLOR = Color(180, 232, 180)
-local FUNCTION_COLOR = Color(117, 207, 226)
 local RECURSION_COLOR = Color(195, 222, 69)
 local TOO_DEEP_COLOR = Color(196, 158, 91)
 local EQUALS_COLOR = Color(169, 117, 222)
@@ -223,23 +218,6 @@ local COMMENTARY_COLOR = Color(143, 165, 46)
 DLib._OldPrintTable = DLib._OldPrintTable or PrintTable
 
 local wellknown, prints
-
-local function getColorForType(typeIn)
-	if typeIn == 'boolean' then
-		return BOOLEAN_COLOR
-	elseif typeIn == 'number' then
-		return NUMBER_COLOR
-	elseif typeIn == 'function' then
-		return FUNCTION_COLOR
-	elseif typeIn == 'string' then
-		return DEFAULT_TEXT_COLOR
-	elseif typeIn == 'Entity' or typeIn == 'Weapon' or typeIn == 'Vehicle' or typeIn == 'Player' then
-		return ENTITY_COLOR
-	end
-
-	return DEFAULT_TEXT_COLOR
-end
-
 local unmap = {}
 
 for i = 0, 16 do
@@ -248,13 +226,10 @@ end
 
 local function getValueString(typeIn, valueIn)
 	if typeIn == 'string' then
-		return '"' .. valueIn:gsub('"', '\\"'):gsub('\t', '\\t'):gsub('\n', '\\n'):gsub('.', function(str) return unmap[str] or str end) .. '"'
-	elseif typeIn == 'function' then
-		local info = debug.getinfo(valueIn)
-		return tostring(valueIn), COMMENTARY_COLOR, ' --[[ ' .. info.short_src .. ': ' .. (info.lastlinedefined ~= info.linedefined and (info.linedefined .. '-' .. info.lastlinedefined) or info.lastlinedefined) .. ' ]]'
+		return DLib.DEFAULT_TEXT_COLOR, '"' .. valueIn:gsub('"', '\\"'):gsub('\t', '\\t'):gsub('\n', '\\n'):gsub('.', function(str) return unmap[str] or str end) .. '"'
 	end
 
-	return tostring(valueIn)
+	return DLib.GetPrettyPrint(valueIn, typeIn)
 end
 
 local comparableTypes = {}
@@ -322,7 +297,7 @@ local function InternalPrintLoop(tableIn, level, recursionCheck)
 
 		local ktp = type(key)
 		MsgC(string.rep(' ', level * 4), TABLE_TOKEN_COLOR, '[')
-		MsgC(getColorForType(ktp), getValueString(ktp, key))
+		MsgC(getValueString(ktp, key))
 		MsgC(TABLE_TOKEN_COLOR, ']', EQUALS_COLOR, ' = ')
 		local value = tableIn[key]
 
@@ -337,7 +312,7 @@ local function InternalPrintLoop(tableIn, level, recursionCheck)
 			end
 		else
 			local tp = type(value)
-			MsgC(getColorForType(tp), getValueString(tp, value))
+			MsgC(getValueString(tp, value))
 			MsgC(TABLE_TOKEN_COLOR, ',\n')
 		end
 	end

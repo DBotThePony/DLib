@@ -46,7 +46,7 @@ end
 local DEFAULT_TEXT_COLOR = Color(200, 200, 200)
 local WARNING_COLOR = Color(239, 215, 52)
 local ERROR_COLOR = Color(239, 78, 52)
-local BOOLEAN_COLOR = Color(33, 83, 226)
+local BOOLEAN_COLOR = Color(69, 112, 235)
 local NUMBER_COLOR = Color(245, 199, 64)
 local STEAMID_COLOR = Color(255, 255, 255)
 local ENTITY_COLOR = Color(180, 232, 180)
@@ -54,10 +54,11 @@ local NPC_COLOR = Color(116, 193, 209)
 local NEXTBOT_COLOR = Color(84, 196, 121)
 local WEAPON_COLOR = Color(189, 82, 122)
 local VEHICLE_COLOR = Color(189, 82, 170)
-local FUNCTION_COLOR = Color(62, 106, 255)
+local FUNCTION_COLOR = Color(102, 133, 237)
 local TABLE_COLOR = Color(107, 200, 224)
 local URL_COLOR = Color(174, 124, 192)
 local NIL_COLOR = Color(89, 93, 251)
+local COMMENTARY_COLOR = Color(143, 165, 46)
 
 DLib.DEFAULT_TEXT_COLOR = DEFAULT_TEXT_COLOR
 DLib.WARNING_COLOR = WARNING_COLOR
@@ -74,6 +75,64 @@ DLib.NEXTBOT_COLOR = NEXTBOT_COLOR
 DLib.WEAPON_COLOR = WEAPON_COLOR
 DLib.VEHICLE_COLOR = VEHICLE_COLOR
 DLib.NIL_COLOR = NIL_COLOR
+DLib.COMMENTARY_COLOR = COMMENTARY_COLOR
+
+function DLib.PrettyPrint(val, newline, valType)
+	MsgC(DLib.GetPrettyPrint(val, valType))
+
+	if newline == true or newline == nil then
+		MsgC('\n')
+	end
+end
+
+function DLib.GetPrettyPrint(val, valType)
+	valType = valType or type(val)
+
+	if valType == 'nil' then
+		return BOOLEAN_COLOR, 'nil'
+	elseif valType == 'number' then
+		return NUMBER_COLOR, tostring(val)
+	elseif valType == 'string' then
+		if val:find('^https?://') then
+			return URL_COLOR, val
+		else
+			return DEFAULT_TEXT_COLOR, val
+		end
+	elseif valType == 'Player' then
+		local nick = val:Nick()
+
+		if val.SteamName and val:SteamName() ~= val:Nick() then
+			nick = nick .. ' (' .. val:SteamName() .. ')'
+		end
+
+		return team and team.GetColor(val:Team()) or ENTITY_COLOR, nick, STEAMID_COLOR, '<' .. val:SteamID() .. '>'
+	elseif valType == 'Entity' then
+		return ENTITY_COLOR, tostring(val)
+	elseif valType == 'NPC' then
+		return NPC_COLOR, tostring(val)
+	elseif valType == 'Vehicle' then
+		return VEHICLE_COLOR, tostring(val)
+	elseif valType == 'NextBot' then
+		return NEXTBOT_COLOR, tostring(val)
+	elseif valType == 'Weapon' then
+		return WEAPON_COLOR, tostring(val)
+	elseif IsColor(val) then
+		return FUNCTION_COLOR, tostring(val), val, ' ███'
+	elseif valType == 'table' then
+		return TABLE_COLOR, string.format('table - %p (%s)', val, tostring(val))
+	elseif valType == 'function' then
+		local info = debug.getinfo(val)
+		return FUNCTION_COLOR, string.format('function - %p', val), COMMENTARY_COLOR, ' --[[ ' .. info.short_src .. ': ' .. (info.lastlinedefined ~= info.linedefined and (info.linedefined .. '-' .. info.lastlinedefined) or info.lastlinedefined) .. ' ]]'
+	elseif valType == 'boolean' then
+		return BOOLEAN_COLOR, tostring(val)
+	elseif valType == 'Vector' then
+		return FUNCTION_COLOR, 'Vector', DEFAULT_TEXT_COLOR, '(', NUMBER_COLOR, val.x, DEFAULT_TEXT_COLOR, ', ', NUMBER_COLOR, val.y, DEFAULT_TEXT_COLOR, ', ', NUMBER_COLOR, val.z, DEFAULT_TEXT_COLOR, ')'
+	elseif valType == 'Angle' then
+		return FUNCTION_COLOR, 'Angle', DEFAULT_TEXT_COLOR, '(', NUMBER_COLOR, val.p, DEFAULT_TEXT_COLOR, ', ', NUMBER_COLOR, val.y, DEFAULT_TEXT_COLOR, ', ', NUMBER_COLOR, val.r, DEFAULT_TEXT_COLOR, ')'
+	end
+
+	return DEFAULT_TEXT_COLOR, tostring(val)
+end
 
 local function __Format(tabIn, prevColor, output)
 	local max = 0
@@ -101,12 +160,7 @@ local function __Format(tabIn, prevColor, output)
 				table.insert(output, val)
 			end
 		elseif valType == 'Player' then
-			if team then
-				table.insert(output, team.GetColor(val:Team()) or ENTITY_COLOR:Copy())
-			else
-				table.insert(output, ENTITY_COLOR:Copy())
-			end
-
+			table.insert(output, team and team.GetColor(val:Team()) or ENTITY_COLOR:Copy())
 			table.insert(output, val:Nick())
 
 			if val.SteamName and val:SteamName() ~= val:Nick() then
@@ -114,9 +168,7 @@ local function __Format(tabIn, prevColor, output)
 			end
 
 			table.insert(output, STEAMID_COLOR:Copy())
-			table.insert(output, '<')
-			table.insert(output, val:SteamID())
-			table.insert(output, '>')
+			table.insert(output, '<' .. val:SteamID() .. '>')
 			table.insert(output, prevColor:Copy())
 		elseif valType == 'Entity' then
 			table.insert(output, ENTITY_COLOR:Copy())
@@ -148,11 +200,56 @@ local function __Format(tabIn, prevColor, output)
 		elseif valType == 'function' then
 			table.insert(output, FUNCTION_COLOR:Copy())
 			table.insert(output, string.format('function - %p', val))
+			table.insert(output, COMMENTARY_COLOR:Copy())
+			local info = debug.getinfo(val)
+			table.insert(output, ' --[[ ' .. info.short_src .. ': ' .. (info.lastlinedefined ~= info.linedefined and (info.linedefined .. '-' .. info.lastlinedefined) or info.lastlinedefined) .. ' ]]')
 			table.insert(output, prevColor:Copy())
 		elseif valType == 'boolean' then
 			table.insert(output, BOOLEAN_COLOR:Copy())
 			table.insert(output, tostring(val))
 			table.insert(output, prevColor:Copy())
+		elseif valType == 'Vector' then
+			table.insert(output, FUNCTION_COLOR:Copy())
+			table.insert(output, 'Vector')
+			table.insert(output, DEFAULT_TEXT_COLOR:Copy())
+			table.insert(output, '(')
+
+			table.insert(output, NUMBER_COLOR:Copy())
+			table.insert(output, tostring(val.x))
+			table.insert(output, DEFAULT_TEXT_COLOR:Copy())
+			table.insert(output, ', ')
+
+			table.insert(output, NUMBER_COLOR:Copy())
+			table.insert(output, tostring(val.y))
+			table.insert(output, DEFAULT_TEXT_COLOR:Copy())
+			table.insert(output, ', ')
+
+			table.insert(output, NUMBER_COLOR:Copy())
+			table.insert(output, tostring(val.z))
+
+			table.insert(output, DEFAULT_TEXT_COLOR:Copy())
+			table.insert(output, ')')
+		elseif valType == 'Angle' then
+			table.insert(output, FUNCTION_COLOR:Copy())
+			table.insert(output, 'Angle')
+			table.insert(output, DEFAULT_TEXT_COLOR:Copy())
+			table.insert(output, '(')
+
+			table.insert(output, NUMBER_COLOR:Copy())
+			table.insert(output, tostring(val.p))
+			table.insert(output, DEFAULT_TEXT_COLOR:Copy())
+			table.insert(output, ', ')
+
+			table.insert(output, NUMBER_COLOR:Copy())
+			table.insert(output, tostring(val.y))
+			table.insert(output, DEFAULT_TEXT_COLOR:Copy())
+			table.insert(output, ', ')
+
+			table.insert(output, NUMBER_COLOR:Copy())
+			table.insert(output, tostring(val.r))
+
+			table.insert(output, DEFAULT_TEXT_COLOR:Copy())
+			table.insert(output, ')')
 		else
 			table.insert(output, tostring(val))
 		end
