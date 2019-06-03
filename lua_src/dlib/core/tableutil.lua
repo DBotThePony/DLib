@@ -458,7 +458,7 @@ end
 function table.flipIntoHash(tableIn)
 	local output = {}
 
-	for i, value in ipairs(output) do
+	for i, value in ipairs(tableIn) do
 		output[value] = i
 	end
 
