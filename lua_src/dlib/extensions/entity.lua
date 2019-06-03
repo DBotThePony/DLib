@@ -324,7 +324,64 @@ function vehMeta:GetAmmoCount()
 	return select(3, self:GetAmmo())
 end
 
+if SERVER then
+	net.pool('dlib_emitsoundpredicted')
+end
+
+--[[
+	@doc
+	@fname Entity:EmitSoundPredicted
+
+	@desc
+	Same as !g:Entity:EmitSound , but if `self` is a player, the sound will not be networked to him.
+	This DOES NOT correspond to !g:IsFirstTimePredicted , since in some predicted hooks  `IsFirstTimePredicted()` always return `false`
+	Achieved with GMod
+	basically it is partial fix for https://github.com/Facepunch/garrysmod-issues/issues/2651
+	@enddesc
+]]
+function entMeta:EmitSoundPredicted(soundName, soundLevel, pitch, volume, channel)
+	assert(type(soundName) == 'string', 'Whats up with sound name')
+	soundLevel = soundLevel or 75
+	pitch = pitch or 100
+	volume = volume or 1
+	channel = channel or CHAN_AUTO
+
+	if not self:IsPlayer() then
+		return self:EmitSound(soundName, soundLevel, pitch, volume, channel)
+	end
+
+	if CLIENT and game.SinglePlayer() then return end
+
+	if CLIENT then
+		return self:EmitSound(soundName, soundLevel, pitch, volume, channel)
+	end
+
+	if player.GetCount() <= 1 then return end
+
+	local filter = RecipientFilter()
+	filter:AddPAS(self:EyePos())
+	filter:RemovePlayer(self)
+
+	if filter:GetCount() == 0 then return end
+
+	net.Start('dlib_emitsoundpredicted', true)
+	net.WriteString(soundName)
+	net.WriteUInt16(soundLevel)
+	net.WriteUInt8(pitch)
+	net.WriteFloat(volume)
+	net.WriteUInt8(channel)
+	net.WriteEntity(self)
+	net.Send(filter)
+end
+
 if CLIENT then
+	net.receive('dlib_emitsoundpredicted', function()
+		local soundName, soundLevel, pitch, volume, channel, self = net.ReadString(), net.ReadUInt16(), net.ReadUInt8(), net.ReadFloat(), net.ReadUInt8(), net.ReadEntity()
+
+		if not IsValid(self) then return end
+		self:EmitSound(soundName, soundLevel, pitch, volume, channel)
+	end)
+
 	local player = player
 	local IsValid = FindMetaTable('Entity').IsValid
 	local GetTable = FindMetaTable('Entity').GetTable
