@@ -29,6 +29,23 @@ local surface = surface
 local math = math
 local ScreenSize = ScreenSize
 local RealTimeL = RealTimeL
+local CurTime = UnPredictedCurTime
+
+local startTooHeavy, endTooHeavy, heavyType = 0, 0, false
+local startOpenClaws, endOpenClaws, clawsType = 0, 0, false
+local startHold, endHold, holdType = 0, 0, false
+
+net.receive('dlib_physgun_tooheavy', function()
+	startTooHeavy, endTooHeavy, heavyType = CurTime(), CurTime() + 0.2, net.ReadBool()
+end)
+
+net.receive('dlib_physgun_claws', function()
+	startOpenClaws, endOpenClaws, clawsType = CurTime(), CurTime() + 0.2, net.ReadBool()
+end)
+
+net.receive('dlib_physgun_hold', function()
+	startHold, endHold, holdType = CurTime(), CurTime() + 0.2, net.ReadBool()
+end)
 
 function meta:RegisterCrosshairHandle()
 	self.ENABLE_CROSSHAIRS = self:CreateConVar('crosshairs', '1', 'Enable custom crosshairs')
@@ -119,6 +136,18 @@ end
 
 function meta:DrawCrosshairGravityGun(x, y, accuracy)
 	return self:DrawCrosshairGeneric(x, y, accuracy)
+end
+
+function meta:DrawCrosshairGravityGunClawsOpening(x, y, accuracy)
+	return self:DrawCrosshairGravityGun(x, y, accuracy)
+end
+
+function meta:DrawCrosshairGravityGunClawsClosing(x, y, accuracy)
+	return self:DrawCrosshairGravityGun(x, y, accuracy)
+end
+
+function meta:DrawCrosshairGravityGunClawsHolding(x, y, accuracy)
+	return self:DrawCrosshairGravityGun(x, y, accuracy)
 end
 
 function meta:DrawCrosshairPhysicsGun(x, y, accuracy)
@@ -273,6 +302,8 @@ function meta:InternalDrawCrosshair(ply)
 		return
 	end
 
+	local ctime = CurTime()
+
 	if mapping then
 		self[mapping](self, x, y, UpcomingAccuracy)
 	elseif wclass == 'gmod_tool' then
@@ -280,7 +311,21 @@ function meta:InternalDrawCrosshair(ply)
 	elseif wclass == 'weapon_physgun' then
 		self:DrawCrosshairPhysicsGun(x, y, 0)
 	elseif wclass == 'weapon_physcannon' then
-		self:DrawCrosshairPhysicsGun(x, y, 2)
+		if holdType then
+			self:DrawCrosshairGravityGun(x, y, 1 - ctime:progression(startHold, endHold))
+		elseif endHold >= ctime then
+			self:DrawCrosshairGravityGun(x, y, ctime:progression(startHold, endHold))
+		elseif clawsType then
+			self:DrawCrosshairGravityGun(x, y, 2 - ctime:progression(startOpenClaws, endOpenClaws))
+		elseif endOpenClaws >= ctime then
+			self:DrawCrosshairGravityGun(x, y, 1 + ctime:progression(startOpenClaws, endOpenClaws))
+		elseif heavyType then
+			self:DrawCrosshairGravityGun(x, y, 2 + ctime:progression(startTooHeavy, endTooHeavy))
+		elseif endTooHeavy >= ctime then
+			self:DrawCrosshairGravityGun(x, y, 3 - ctime:progression(startTooHeavy, endTooHeavy))
+		else
+			self:DrawCrosshairGravityGun(x, y, 2)
+		end
 	elseif wclass == 'weapon_crowbar' then
 		self:DrawCrosshairMelee(x, y, 0)
 	elseif ammotype == -1 and not self:ShouldDisplayAmmo() then

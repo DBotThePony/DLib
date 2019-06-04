@@ -20,6 +20,10 @@
 
 -- commented out to not forget which mess my brain digested in sdk code
 
+net.pool('dlib_physgun_tooheavy')
+net.pool('dlib_physgun_claws')
+net.pool('dlib_physgun_hold')
+
 local IsValid = FindMetaTable('Entity').IsValid
 local CurTimeL = CurTimeL
 local util = util
@@ -64,6 +68,9 @@ hook.Add('Think', 'DLib_GravgunSoundFix', function(ply)
 
 			if plyt.__dlib_gravgun_hold_r then
 				weapon:EmitSound('Weapon_PhysCannon.Pickup')
+				net.Start('dlib_physgun_hold', true)
+				net.WriteBool(true)
+				net.Send(ply)
 			end
 
 			plyt.__dlib_gravgun_hold_check = false
@@ -85,6 +92,9 @@ hook.Add('Think', 'DLib_GravgunSoundFix', function(ply)
 			if plyt.__dlib_gravgun_hold_r then
 				weapon:StopSound('Weapon_PhysCannon.HoldSound')
 				weapon:EmitSound('Weapon_PhysCannon.Drop')
+				net.Start('dlib_physgun_hold', true)
+				net.WriteBool(false)
+				net.Send(ply)
 			end
 
 			plyt.__dlib_gravgun_hold = nil
@@ -135,9 +145,15 @@ hook.Add('Think', 'DLib_GravgunSoundFix', function(ply)
 
 			if not weapont.__dlib_hold_idle and not clawsOpen then
 				weapon:EmitSound('Weapon_PhysCannon.TooHeavy')
+				net.Start('dlib_physgun_tooheavy', true)
+				net.WriteBool(true)
+				net.Send(ply)
 			end
 		elseif not altfire and weapont.__dlib_too_heavy then
 			weapont.__dlib_too_heavy = false
+			net.Start('dlib_physgun_tooheavy', true)
+			net.WriteBool(false)
+			net.Send(ply)
 		end
 
 		-- hold
@@ -157,6 +173,9 @@ hook.Add('Think', 'DLib_GravgunSoundFix', function(ply)
 				if not weapont.__dlib_claws_open then
 					if not altfire and tr.Entity ~= weapont.__dlib_gravgun_dropped then
 						weapon:EmitSound('Weapon_PhysCannon.OpenClaws')
+						net.Start('dlib_physgun_claws', true)
+						net.WriteBool(true)
+						net.Send(ply)
 					end
 
 					weapont.__dlib_claws_open = true
@@ -180,6 +199,9 @@ hook.Add('Think', 'DLib_GravgunSoundFix', function(ply)
 
 				if weapont.__dlib_claws_open and weapont.__dlib_claws_open_t < CurTimeL() then
 					weapon:EmitSound('Weapon_PhysCannon.CloseClaws')
+					net.Start('dlib_physgun_claws', true)
+					net.WriteBool(false)
+					net.Send(ply)
 					weapont.__dlib_claws_open = false
 					weapont.__dlib_gravgun_dropped = nil
 				end
