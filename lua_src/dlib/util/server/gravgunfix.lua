@@ -39,7 +39,7 @@ local MAX_GRAB_DIST = 250
 
 local CLAWS_MINS, CLAWS_MAXS = Vector(-4, -4, -4), Vector(4, 4, 4)
 
-local ENABLE = CreateConVar('dlib_gravgun_fix', '1', {FCVAR_NOTIFY, FCVAR_ARCHIVE}, 'Enable Zero Point Energy Manipulator:tm: sound fix')
+local ENABLE = CreateConVar('dlib_gravgun_fix', '1', {FCVAR_NOTIFY, FCVAR_ARCHIVE}, 'Enable Zero Point Energy Field Manipulator:tm: sound fix')
 
 -- this code can not be predicted clientside due to VPhysics limitations
 hook.Add('Think', 'DLib_GravgunSoundFix', function(ply)
