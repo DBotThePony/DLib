@@ -83,6 +83,7 @@ hook.Add('Think', 'DLib_GravgunSoundFix', function(ply)
 
 		if plyt.__dlib_gravgun_hold and (not IsValid(plyt.__dlib_gravgun_hold) or not plyt.__dlib_gravgun_hold:IsPlayerHolding()) then
 			if plyt.__dlib_gravgun_hold_r then
+				weapon:StopSound('Weapon_PhysCannon.HoldSound')
 				weapon:EmitSound('Weapon_PhysCannon.Drop')
 			end
 
