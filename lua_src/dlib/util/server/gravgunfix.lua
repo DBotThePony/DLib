@@ -71,6 +71,7 @@ hook.Add('Think', 'DLib_GravgunSoundFix', function(ply)
 				net.Start('dlib_physgun_hold', true)
 				net.WriteBool(true)
 				net.Send(ply)
+				plyt.__dlib_physgun_hold_s = true
 			end
 
 			plyt.__dlib_gravgun_hold_check = false
@@ -83,6 +84,10 @@ hook.Add('Think', 'DLib_GravgunSoundFix', function(ply)
 			plyt.__dlib_gravgun_hold = nil
 			weapont.__dlib_gravgun_wait = CurTimeL() + 0.3
 			weapont.__dlib_gravgun_dropped = plyt.__dlib_gravgun_hold
+			net.Start('dlib_physgun_hold', true)
+			net.WriteBool(false)
+			net.Send(ply)
+			plyt.__dlib_physgun_hold_s = false
 			goto CONTINUE
 		end
 
@@ -95,6 +100,7 @@ hook.Add('Think', 'DLib_GravgunSoundFix', function(ply)
 				net.Start('dlib_physgun_hold', true)
 				net.WriteBool(false)
 				net.Send(ply)
+				plyt.__dlib_physgun_hold_s = false
 			end
 
 			plyt.__dlib_gravgun_hold = nil
@@ -165,6 +171,10 @@ hook.Add('Think', 'DLib_GravgunSoundFix', function(ply)
 		elseif sequencesH.hold_idle ~= seq and weapont.__dlib_hold_idle then
 			weapont.__dlib_hold_idle = false
 			weapon:StopSound('Weapon_PhysCannon.HoldSound')
+			net.Start('dlib_physgun_hold', true)
+			net.WriteBool(false)
+			net.Send(ply)
+			plyt.__dlib_physgun_hold_s = false
 		end
 
 		-- claws

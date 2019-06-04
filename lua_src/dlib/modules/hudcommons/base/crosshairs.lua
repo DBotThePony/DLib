@@ -45,6 +45,8 @@ end)
 
 net.receive('dlib_physgun_hold', function()
 	startHold, endHold, holdType = CurTime(), CurTime() + 0.2, net.ReadBool()
+	startOpenClaws, endOpenClaws, clawsType = 0, 0, false
+	startTooHeavy, endTooHeavy, heavyType = 0, 0, false
 end)
 
 function meta:RegisterCrosshairHandle()
