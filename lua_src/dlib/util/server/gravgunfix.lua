@@ -58,7 +58,18 @@ hook.Add('Think', 'DLib_GravgunSoundFix', function(ply)
 			sequencesH = table.flipIntoHash(sequences)
 		end
 
-		if IsValid(plyt.__dlib_gravgun_hold) and ply:KeyDown(IN_ATTACK) then
+		if plyt.__dlib_gravgun_hold_check then
+			local m_hUseEntity = ply:GetInternalVariable('m_hUseEntity')
+			plyt.__dlib_gravgun_hold_r = not IsValid(m_hUseEntity)
+
+			if plyt.__dlib_gravgun_hold_r then
+				weapon:EmitSound('Weapon_PhysCannon.Pickup')
+			end
+
+			plyt.__dlib_gravgun_hold_check = false
+		end
+
+		if IsValid(plyt.__dlib_gravgun_hold) and ply:KeyDown(IN_ATTACK) and plyt.__dlib_gravgun_hold_r then
 			weapont.__dlib_too_heavy = false
 			--clawsOpen = false
 			weapont.__dlib_claws_open = false
@@ -71,8 +82,16 @@ hook.Add('Think', 'DLib_GravgunSoundFix', function(ply)
 		if weapont.__dlib_gravgun_wait and weapont.__dlib_gravgun_wait > CurTimeL() then goto CONTINUE end
 
 		if plyt.__dlib_gravgun_hold and (not IsValid(plyt.__dlib_gravgun_hold) or not plyt.__dlib_gravgun_hold:IsPlayerHolding()) then
-			weapon:EmitSound('Weapon_PhysCannon.Drop')
+			if plyt.__dlib_gravgun_hold_r then
+				weapon:EmitSound('Weapon_PhysCannon.Drop')
+			end
+
 			plyt.__dlib_gravgun_hold = nil
+		end
+
+		if not plyt.__dlib_gravgun_hold_r then
+			local m_hUseEntity = ply:GetInternalVariable('m_hUseEntity')
+			plyt.__dlib_gravgun_hold_r = not IsValid(m_hUseEntity)
 		end
 
 		local spos = ply:GetShootPos()
@@ -101,7 +120,8 @@ hook.Add('Think', 'DLib_GravgunSoundFix', function(ply)
 		if clawsOpen then
 			if tr.Entity:IsPlayerHolding() and plyt.__dlib_gravgun_hold ~= tr.Entity then
 				plyt.__dlib_gravgun_hold = tr.Entity
-				weapon:EmitSound('Weapon_PhysCannon.Pickup')
+				plyt.__dlib_gravgun_hold_check = true
+				plyt.__dlib_gravgun_hold_r = false
 			end
 		elseif IsValid(plyt.__dlib_gravgun_hold) and plyt.__dlib_gravgun_hold:IsPlayerHolding() then
 			clawsOpen = true
