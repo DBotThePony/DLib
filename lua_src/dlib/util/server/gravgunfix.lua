@@ -20,6 +20,13 @@
 
 -- commented out to not forget which mess my brain digested in sdk code
 
+local IsValid = FindMetaTable('Entity').IsValid
+local CurTimeL = CurTimeL
+local util = util
+local MOVETYPE_VPHYSICS = MOVETYPE_VPHYSICS
+local IN_ATTACK = IN_ATTACK
+local IN_ATTACK2 = IN_ATTACK2
+
 -- lets hope nobody reload models and suddenly
 -- different model for gravgun loads
 local sequences, sequencesH
@@ -39,6 +46,7 @@ hook.Add('Think', 'DLib_GravgunSoundFix', function(ply)
 		if not weapon:IsValid() then goto CONTINUE end
 		if weapon:GetClass() ~= 'weapon_physcannon' then goto CONTINUE end
 		local weapont = weapon:GetTable()
+		local plyt = ply:GetTable()
 		local altfire = ply:KeyDown(IN_ATTACK2)
 
 		if not sequences then
@@ -46,21 +54,21 @@ hook.Add('Think', 'DLib_GravgunSoundFix', function(ply)
 			sequencesH = table.flipIntoHash(sequences)
 		end
 
-		if IsValid(ply.__dlib_gravgun_hold) and ply:KeyDown(IN_ATTACK) then
+		if IsValid(plyt.__dlib_gravgun_hold) and ply:KeyDown(IN_ATTACK) then
 			weapont.__dlib_too_heavy = false
 			--clawsOpen = false
 			weapont.__dlib_claws_open = false
-			ply.__dlib_gravgun_hold = nil
+			plyt.__dlib_gravgun_hold = nil
 			weapont.__dlib_gravgun_wait = CurTimeL() + 0.3
-			weapont.__dlib_gravgun_dropped = ply.__dlib_gravgun_hold
+			weapont.__dlib_gravgun_dropped = plyt.__dlib_gravgun_hold
 			goto CONTINUE
 		end
 
 		if weapont.__dlib_gravgun_wait and weapont.__dlib_gravgun_wait > CurTimeL() then goto CONTINUE end
 
-		if ply.__dlib_gravgun_hold and (not IsValid(ply.__dlib_gravgun_hold) or not ply.__dlib_gravgun_hold:IsPlayerHolding()) then
+		if plyt.__dlib_gravgun_hold and (not IsValid(plyt.__dlib_gravgun_hold) or not plyt.__dlib_gravgun_hold:IsPlayerHolding()) then
 			weapon:EmitSound('Weapon_PhysCannon.Drop')
-			ply.__dlib_gravgun_hold = nil
+			plyt.__dlib_gravgun_hold = nil
 		end
 
 		local spos = ply:GetShootPos()
@@ -87,13 +95,13 @@ hook.Add('Think', 'DLib_GravgunSoundFix', function(ply)
 		end
 
 		if clawsOpen then
-			if tr.Entity:IsPlayerHolding() and ply.__dlib_gravgun_hold ~= tr.Entity then
-				ply.__dlib_gravgun_hold = tr.Entity
+			if tr.Entity:IsPlayerHolding() and plyt.__dlib_gravgun_hold ~= tr.Entity then
+				plyt.__dlib_gravgun_hold = tr.Entity
 				weapon:EmitSound('Weapon_PhysCannon.Pickup')
 			end
-		elseif IsValid(ply.__dlib_gravgun_hold) and ply.__dlib_gravgun_hold:IsPlayerHolding() then
+		elseif IsValid(plyt.__dlib_gravgun_hold) and plyt.__dlib_gravgun_hold:IsPlayerHolding() then
 			clawsOpen = true
-			tr.Entity = ply.__dlib_gravgun_hold
+			tr.Entity = plyt.__dlib_gravgun_hold
 		end
 
 		-- grab from distance
