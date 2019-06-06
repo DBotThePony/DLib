@@ -95,7 +95,6 @@ hook.Add('Think', 'DLib_GravgunSoundFix', function(ply)
 
 		if plyt.__dlib_gravgun_hold and (not IsValid(plyt.__dlib_gravgun_hold) or not plyt.__dlib_gravgun_hold:IsPlayerHolding()) then
 			if plyt.__dlib_gravgun_hold_r then
-				weapon:StopSound('Weapon_PhysCannon.HoldSound')
 				weapon:EmitSound('Weapon_PhysCannon.Drop')
 				net.Start('dlib_physgun_hold', true)
 				net.WriteBool(false)
@@ -167,10 +166,8 @@ hook.Add('Think', 'DLib_GravgunSoundFix', function(ply)
 
 		if sequencesH.hold_idle == seq and not weapont.__dlib_hold_idle then
 			weapont.__dlib_hold_idle = true
-			weapon:EmitSound('Weapon_PhysCannon.HoldSound')
 		elseif sequencesH.hold_idle ~= seq and weapont.__dlib_hold_idle then
 			weapont.__dlib_hold_idle = false
-			weapon:StopSound('Weapon_PhysCannon.HoldSound')
 			net.Start('dlib_physgun_hold', true)
 			net.WriteBool(false)
 			net.Send(ply)
