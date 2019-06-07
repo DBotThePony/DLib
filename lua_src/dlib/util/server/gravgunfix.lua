@@ -27,6 +27,7 @@ net.pool('dlib_physgun_hold')
 local IsValid = FindMetaTable('Entity').IsValid
 local CurTimeL = CurTimeL
 local util = util
+local hook = hook
 local MOVETYPE_VPHYSICS = MOVETYPE_VPHYSICS
 local IN_ATTACK = IN_ATTACK
 local IN_ATTACK2 = IN_ATTACK2
@@ -129,7 +130,7 @@ hook.Add('Think', 'DLib_GravgunSoundFix', function(ply)
 			clawsOpen = phys:IsValid()
 
 			if clawsOpen then
-				clawsOpen = phys:IsMotionEnabled() and phys:GetMass() <= physcannon_maxmass:GetInt()
+				clawsOpen = phys:IsMotionEnabled() and phys:GetMass() <= physcannon_maxmass:GetInt() and hook.Run('GravGunPickupAllowed', ply, tr.Entity) ~= false
 			end
 		end
 
