@@ -61,6 +61,25 @@ local formatters = {
 		end
 	end,
 
+	-- executor
+	['#e'] = function(self, ent)
+		local ltype = type(ent)
+
+		if ltype == 'Player' then
+			local nick = ent:Nick()
+
+			if ent.SteamName and ent:SteamName() ~= nick then
+				nick = nick .. ' (' .. ent:SteamName() .. ')'
+			end
+
+			return {team.GetColor(ent:Team()) or Color(), nick, color_white, string.format('<%s>', ent:SteamID())}
+		elseif ltype == 'Entity' and not IsValid(ent) then
+			return {Color(126, 63, 255), 'Console'}
+		else
+			error('Invalid argument to #e (executor) - ' .. ltype .. ' (' .. tostring(ent)  .. ')')
+		end
+	end,
+
 	['#C'] = function(self, color)
 		return assert(IsColor(color) and color, '#C must be a color! ')
 	end,
@@ -191,7 +210,7 @@ local formatters = {
 	but slower due to `unformatted` being parsed each time on call, when
 	i18n phrase is parsed only once.
 	Available arguments are:
-	`#.0b`, `#b`, `#d`, `#u`, `#c`, `#o`, `#x`, `#.0x`, `#X`, `#.0X`, `#f`, `#.0f`, `#i`, `#.0i`, `#C` = Color, `#E` = Entity
+	`#.0b`, `#b`, `#d`, `#u`, `#c`, `#o`, `#x`, `#.0x`, `#X`, `#.0X`, `#f`, `#.0f`, `#i`, `#.0i`, `#C` = Color, `#E` = Entity, `#e` = Command executor
 	As well as all `%` arguments !g:string.format accept
 	@enddesc
 
