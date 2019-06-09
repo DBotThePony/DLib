@@ -43,7 +43,7 @@ class DLib.Set
 	Remove: (...) => @remove(...)
 	Delete: (...) => @remove(...)
 	UnSet: (...) => @remove(...)
-	GetValues: (...) => @values
+	GetValues: (...) => @getValues()
 	CopyValues: (...) => [val for val in ipairs(@values)]
 
 	addArray: (objects) => @add(object) for object in *objects
