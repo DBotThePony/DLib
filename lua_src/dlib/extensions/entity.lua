@@ -347,13 +347,19 @@ function entMeta:EmitSoundPredicted(soundName, soundLevel, pitch, volume, channe
 	channel = channel or CHAN_AUTO
 
 	if not self:IsPlayer() then
-		return self:EmitSound(soundName, soundLevel, pitch, volume, channel)
+		self:EmitSound(soundName, soundLevel, pitch, volume, channel)
+		return
 	end
 
-	if CLIENT and game.SinglePlayer() then return end
+	if game.SinglePlayer() then
+		if CLIENT then return end
+		self:EmitSound(soundName, soundLevel, pitch, volume, channel)
+		return
+	end
 
 	if CLIENT then
-		return self:EmitSound(soundName, soundLevel, pitch, volume, channel)
+		self:EmitSound(soundName, soundLevel, pitch, volume, channel)
+		return
 	end
 
 	if player.GetCount() <= 1 then return end
