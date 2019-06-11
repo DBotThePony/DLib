@@ -66,6 +66,7 @@ DLib.i18n.refreshFileList()
 DLib.i18n.loadFileList()
 
 concommand.Add('dlib_reload_i18n_cl', function(ply)
+	timeStart = SysTime()
 	DLib.Message('Reloading translations for i18n ... ')
 	DLib.i18n.refreshFileList()
 	DLib.i18n.loadFileList()
