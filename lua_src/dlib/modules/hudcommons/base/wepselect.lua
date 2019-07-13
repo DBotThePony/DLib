@@ -116,7 +116,7 @@ end
 	boolean
 ]]
 function meta:ShouldDrawWeaponSelection()
-	return self.DrawWepSelection and self.ENABLE_WEAPON_SELECT and self.ENABLE_WEAPON_SELECT:GetBool()
+	return self.DrawWepSelection and self.ENABLE_WEAPON_SELECT and self.ENABLE_WEAPON_SELECT:GetBool() and self:GetVarAlive()
 end
 
 --[[
