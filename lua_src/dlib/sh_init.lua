@@ -176,6 +176,7 @@ DLib.Loader.shclass('rainbow.lua')
 DLib.Loader.shclass('camiwatchdog.lua')
 DLib.Loader.shclass('measure.lua')
 DLib.Loader.shclass('bezier.lua')
+DLib.Loader.shclass('predictedvars.lua')
 DLib.Loader.clclass('keybinds.lua')
 
 DLib.Loader.start('i18n')
