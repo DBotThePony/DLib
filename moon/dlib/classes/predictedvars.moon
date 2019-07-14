@@ -18,14 +18,44 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
+_OBJECTS = DLib.PredictedVarList and DLib.PredictedVarList._OBJECTS or {}
+
 class DLib.PredictedVarList
-	new: =>
+	@_OBJECTS = _OBJECTS
+
+	GetByName: (id) => @_OBJECTS[id]
+
+	new: (netname) =>
+		@netname = assert(netname, 'Missing network name')
+		@@_OBJECTS[@netname] = @
+
 		@vars = {}
 		@prev = {}
 		@cur = {}
 		@first = {}
 		@frame_id = 0
 		@firstF = true
+		@sync_cooldown = 60
+		@_nw = 'dlib_pred_' .. netname
+
+		if SERVER
+			net.pool(@_nw)
+			@sync_closure = -> @Sync(ply) for ply in *player.GetAll() when ply.__dlib_predvars and ply.__dlib_predvars[@netname]
+			timer.Create 'DLib.PredictedVarList.Sync', @sync_cooldown, 0, -> ProtectedCall @sync_closure
+		else
+			net.receive @_nw, -> @prev = net.ReadTable()
+
+	SetSyncTimer: (stimer = @sync_cooldown) =>
+		@sync_cooldown = assert(type(stimer) == 'number' and stimer >= 0, 'Time must be a positive number!')
+		timer.Create 'DLib.PredictedVarList.Sync', @sync_cooldown, 0, -> ProtectedCall @sync_closure
+
+	Sync: (ply) =>
+		error('Invalid realm') if CLIENT
+		net.Start(@_nw)
+		ply.__dlib_predvars = ply.__dlib_predvars or {}
+		ply.__dlib_predvars[@netname] = ply.__dlib_predvars[@netname] or {}
+		net.WriteTable(ply.__dlib_predvars[@netname])
+		net.Send(ply)
 
 	GetFrame: => @frame_id
 
@@ -33,7 +63,15 @@ class DLib.PredictedVarList
 		@vars[identifier] = def
 		return @
 
-	Invalidate: =>
+	Invalidate: (ply) =>
+		if SERVER
+			@frame_id += 1
+
+			ply.__dlib_predvars = {} if not ply.__dlib_predvars
+			ply.__dlib_predvars[@netname] = {} if not ply.__dlib_predvars[@netname]
+
+			return
+
 		if IsFirstTimePredicted()
 			@firstF = true
 			@frame_id += 1
@@ -48,7 +86,12 @@ class DLib.PredictedVarList
 		@firstF = false
 		@cur[key] = nil for key in pairs(@cur)
 
-	Get: (identifier, def = @vars[identifier]) =>
+	Get: (ply, identifier, def = @vars[identifier]) =>
+		if SERVER
+			val = assert(assert(ply.__dlib_predvars, ':Invalidate() was never called with this player')[@netname], ':Invalidate() was never called with this player')[identifier]
+			return val if val ~= nil
+			return def
+
 		assert(def ~= nil, 'Variable does not exist')
 
 		if @firstF
@@ -62,7 +105,11 @@ class DLib.PredictedVarList
 		return @prev[identifier] if @prev[identifier] ~= nil
 		return def
 
-	Set: (identifier, val) =>
+	Set: (ply, identifier, val) =>
+		if SERVER
+			assert(assert(ply.__dlib_predvars, ':Invalidate() was never called with this player')[@netname], ':Invalidate() was never called with this player')[identifier] = val
+			return
+
 		assert(@vars[identifier] ~= nil, 'Variable does not exist')
 
 		if @firstF
