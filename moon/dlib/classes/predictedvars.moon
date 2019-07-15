@@ -88,7 +88,8 @@ class DLib.PredictedVarList
 
 	Get: (ply, identifier, def = @vars[identifier]) =>
 		if SERVER
-			val = assert(assert(ply.__dlib_predvars, ':Invalidate() was never called with this player')[@netname], ':Invalidate() was never called with this player')[identifier]
+			return def if not ply.__dlib_predvars or not ply.__dlib_predvars[@netname]
+			val = ply.__dlib_predvars[@netname][identifier]
 			return val if val ~= nil
 			return def
 
