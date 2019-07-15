@@ -109,6 +109,7 @@ class DLib.PredictedVarList
 	Set: (ply, identifier, val) =>
 		if SERVER
 			assert(assert(ply.__dlib_predvars, ':Invalidate() was never called with this player')[@netname], ':Invalidate() was never called with this player')[identifier] = val
+			@Sync(ply) if game.SinglePlayer()
 			return
 
 		assert(@vars[identifier] ~= nil, 'Variable does not exist')
