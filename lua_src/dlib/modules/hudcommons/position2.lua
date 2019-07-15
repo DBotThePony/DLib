@@ -83,6 +83,8 @@ end
 
 Pos2.Positions_funcs = Pos2.Positions_funcs or {}
 
+local UpdatePositions
+
 --[[
 	@doc
 	@fname DLib.HUDCommons.Position2.DefinePosition
@@ -135,13 +137,19 @@ function Pos2.DefinePosition(name, x, y, shouldShift)
 	Pos2.YPositions_modified[name] = y * ScrHL()
 
 	cvars.AddChangeCallback('dlib_hpos_' .. name .. '_x', function()
+		local old = Pos2.XPositions_original[name]
 		Pos2.XPositions_original[name] = cvarX:GetFloat():clamp(0, 1)
 		Pos2.XPositions_mul[name] = 1 - Pos2.XPositions_original[name]:progression(0, 1, 0.5) * 0.8
+		hook.Run('HUDCommons_PositionSettingUpdatesX', name, old, Pos2.XPositions_original[name])
+		hook.Run('HUDCommons_PositionSettingUpdates', name, Pos2.XPositions_original[name], Pos2.YPositions_original[name])
 	end, 'DLib.HUDCommons')
 
 	cvars.AddChangeCallback('dlib_hpos_' .. name .. '_y', function()
+		local old = Pos2.YPositions_original[name]
 		Pos2.YPositions_original[name] = cvarY:GetFloat():clamp(0, 1)
 		Pos2.YPositions_mul[name] = 1 - Pos2.YPositions_original[name]:progression(0, 1, 0.5) * 0.8
+		hook.Run('HUDCommons_PositionSettingUpdatesY', name, old, Pos2.YPositions_original[name])
+		hook.Run('HUDCommons_PositionSettingUpdates', name, Pos2.XPositions_original[name], Pos2.YPositions_original[name])
 	end, 'DLib.HUDCommons')
 
 	Pos2.XPositions_CVars[name] = cvarX
@@ -235,7 +243,7 @@ end
 
 Pos2.GetPosition = Pos2.GetPos
 
-local function UpdatePositions()
+function UpdatePositions()
 	local w, h = ScrWL(), ScrHL()
 
 	if ENABLE_SHIFTING:GetBool() and ENABLE_SHIFTING_SV:GetBool() then

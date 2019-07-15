@@ -2044,6 +2044,8 @@ function meta:CreateFont(fontBase, fontData)
 				fontNames[name .. '_SIZE_W'], fontNames[name .. '_SIZE_H'] = surface.GetTextSize('W')
 			end
 		end
+
+		hook.Run('HUDCommons_FontDataUpdates', self, name, fontNames, fontDatas)
 	end
 
 	buildFonts()

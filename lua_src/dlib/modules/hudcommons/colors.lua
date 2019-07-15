@@ -94,6 +94,7 @@ function HUDCommons.CreateColor(class, name, r, g, b, a)
 	local currentColor
 
 	local function colorUpdated()
+		local old = HUDCommons.Colors[class]
 		HUDCommons.Colors[class] = Color(t.r:GetInt() or r, t.g:GetInt() or g, t.b:GetInt() or b, t.a:GetInt() or a)
 		currentColor = HUDCommons.Colors[class]
 
@@ -104,6 +105,8 @@ function HUDCommons.CreateColor(class, name, r, g, b, a)
 			target.b = currentColor.b
 			target.a = currentColor.a
 		end
+
+		hook.Run('HUDCommons_ColorUpdates', class, old, Color(HUDCommons.Colors[class]))
 	end
 
 	colorUpdated()
@@ -182,7 +185,10 @@ function HUDCommons.CreateColorN(class, name, r, g, b, a)
 		end
 
 		HUDCommons.ColorsN[class] = color
+		local old = currentColor or color
 		currentColor = color
+
+		hook.Run('HUDCommons_ColorUpdates', class, old, Color(color))
 	end
 
 	colorUpdated()
