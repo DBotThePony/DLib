@@ -340,6 +340,8 @@ end
 	@enddesc
 ]]
 function entMeta:EmitSoundPredicted(soundName, soundLevel, pitch, volume, channel)
+	if not IsFirstTimePredicted() then return end
+
 	assert(type(soundName) == 'string', 'Whats up with sound name')
 	soundLevel = soundLevel or 75
 	pitch = pitch or 100
