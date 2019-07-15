@@ -40,7 +40,7 @@ local function PopulateColors(Panel)
 		collapse:SetLabel(v.name .. ' (' .. k .. ')')
 
 		if IsValid(collapse.Header) then
-			collapse.Header:SetTooltip(v.name .. ' (' .. class .. ')')
+			collapse.Header:SetTooltip(v.name .. ' (' .. k .. ')')
 		end
 
 		local canvas = vgui.Create('EditablePanel', collapse)
@@ -85,7 +85,7 @@ local function PopulateColors2(Panel)
 		collapse:SetLabel(v.name .. ' (' .. k .. ')')
 
 		if IsValid(collapse.Header) then
-			collapse.Header:SetTooltip(v.name .. ' (' .. class .. ')')
+			collapse.Header:SetTooltip(v.name .. ' (' .. k .. ')')
 		end
 
 		local canvas = vgui.Create('EditablePanel', collapse)
