@@ -78,7 +78,7 @@ function pred.Define(identify, mtype, default)
 
 	plyMeta['Get' .. identify] = function(self)
 		local ent = self.__dlib_pred_ent and self.__dlib_pred_ent[entId + 1]
-		if not IsValid(ent) then return default end
+		if not IsValid(ent) then return pred.Vars[identify].default end
 		return ent['Get' .. identify](ent)
 	end
 
@@ -89,7 +89,7 @@ function pred.Define(identify, mtype, default)
 	end
 
 	plyMeta['Reset' .. identify] = function(self)
-		return self['Set' .. identify](self, default)
+		return self['Set' .. identify](self, pred.Vars[identify].default)
 	end
 end
 
