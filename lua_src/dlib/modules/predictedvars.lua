@@ -47,7 +47,37 @@ pred.SlotCounters = pred.SlotCounters or {
 
 function pred.Define(identify, mtype, default)
 	if pred.Vars[identify] then
-		assert(pred.Vars[identify].type == mtype, 'Can not change type of variable at runtime')
+		-- assert(pred.Vars[identify].type == mtype, 'Can not change type of variable at runtime')
+
+		if pred.Vars[identify].type ~= mtype then
+			pred.Vars[identify].default = default
+			pred.Vars[identify].type = mtype
+
+			DLib.Warning(debug.traceback('Changing type of single predicted variable forces full reload of predictedvars module.'))
+
+			local vars = pred.Vars
+			pred.Vars = {}
+			pred.MaxEnt = 0
+			pred._known = {}
+			pred._Vars = {}
+
+			pred.SlotCounters = {
+				String = 0,
+				Bool = 0,
+				Float = 0,
+				Int = 0,
+				Vector = 0,
+				Angle = 0,
+				Entity = 0,
+			}
+
+			for key, value in pairs(vars) do
+				pred.Define(key, value.type, value.default)
+			end
+
+			return
+		end
+
 		pred.Vars[identify].default = default
 
 		return
