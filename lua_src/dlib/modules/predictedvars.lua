@@ -94,7 +94,7 @@ function pred.Define(identify, mtype, default)
 end
 
 function plyMeta:DLibInvalidatePrediction(status)
-	if not self.__dlib_pred_ent then return end
+	if not self.__dlib_pred_ent or SERVER then return end
 
 	for i, ent in ipairs(self.__dlib_pred_ent) do
 		if IsValid(ent) then
