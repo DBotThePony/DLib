@@ -93,6 +93,16 @@ function pred.Define(identify, mtype, default)
 	end
 end
 
+function plyMeta:DLibInvalidatePrediction(status)
+	if not self.__dlib_pred_ent then return end
+
+	for i, ent in ipairs(self.__dlib_pred_ent) do
+		if IsValid(ent) then
+			ent:SetPredictable(status)
+		end
+	end
+end
+
 function pred.RebuildEntityDefinition(entId)
 	local ENT = {}
 	ENT.Type = 'anim'
