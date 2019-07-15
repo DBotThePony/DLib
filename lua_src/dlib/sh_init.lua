@@ -154,6 +154,7 @@ DLib.Loader.shmodule('nbt.lua')
 DLib.Loader.shmodule('lerp.lua')
 DLib.Loader.shmodule('sh_cami.lua')
 DLib.Loader.shmodule('getinfo.lua')
+DLib.Loader.shmodule('predictedvars.lua')
 
 DLib.Loader.start('nw')
 DLib.Loader.load('dlib/modules/nwvar')
