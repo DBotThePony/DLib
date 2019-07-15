@@ -40,12 +40,15 @@ class DLib.PredictedVarList
 
 		if SERVER
 			net.pool(@_nw)
-			@sync_closure = -> @Sync(ply) for ply in *player.GetAll() when ply.__dlib_predvars and ply.__dlib_predvars[@netname]
-			timer.Create 'DLib.PredictedVarList.Sync', @sync_cooldown, 0, -> ProtectedCall @sync_closure
+
+			if not game.SinglePlayer()
+				@sync_closure = -> @Sync(ply) for ply in *player.GetAll() when ply.__dlib_predvars and ply.__dlib_predvars[@netname]
+				timer.Create 'DLib.PredictedVarList.Sync', @sync_cooldown, 0, -> ProtectedCall @sync_closure
 		else
 			net.receive @_nw, -> @prev = net.ReadTable()
 
 	SetSyncTimer: (stimer = @sync_cooldown) =>
+		return if game.SinglePlayer()
 		@sync_cooldown = assert(type(stimer) == 'number' and stimer >= 0, 'Time must be a positive number!')
 		timer.Create 'DLib.PredictedVarList.Sync', @sync_cooldown, 0, -> ProtectedCall @sync_closure
 
