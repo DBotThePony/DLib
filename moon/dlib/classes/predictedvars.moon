@@ -22,12 +22,14 @@ _OBJECTS = DLib.PredictedVarList and DLib.PredictedVarList._OBJECTS or {}
 
 plyMeta = FindMetaTable('Player')
 
+cl_showerror = GetConVar('cl_showerror')
+
 class DLib.PredictedVarList
 	@_OBJECTS = _OBJECTS
 
 	GetByName: (id) => @_OBJECTS[id]
 
-	new: (netname) =>
+	new: (netname, smartSync = false) =>
 		@netname = assert(netname, 'Missing network name')
 		@@_OBJECTS[@netname] = @
 
@@ -39,19 +41,46 @@ class DLib.PredictedVarList
 		@firstF = true
 		@sync_cooldown = 60
 		@lastInvalidate = 0
+		@smartSync = smartSync
 		@_nw = 'dlib_pred_' .. netname
 
 		if SERVER
 			net.pool(@_nw)
 
 			if not game.SinglePlayer()
-				@sync_closure = -> @Sync(ply) for ply in *player.GetAll() when ply.__dlib_predvars and ply.__dlib_predvars[@netname]
-				timer.Create 'DLib.PredictedVarList.Sync', @sync_cooldown, 0, -> ProtectedCall @sync_closure
+				if not smartSync
+					@sync_closure = -> @Sync(ply) for ply in *player.GetAll() when ply.__dlib_predvars and ply.__dlib_predvars[@netname]
+					timer.Create 'DLib.PredictedVarList.' .. netname, @sync_cooldown, 0, -> ProtectedCall @sync_closure
+				else
+					@sync_closure = ->
+						for ply in *player.GetAll()
+							score = ply\PacketLoss()\pow(2) / 30 + ply\Ping() / 10
+
+							ply['__dlib_psync_last_' .. netname] = (ply['__dlib_psync_last_' .. netname] or 400) - score
+
+							if ply['__dlib_psync_last_' .. netname] <= 0
+								ply['__dlib_psync_last_' .. netname] = 400
+								@Sync(ply)
+
+					timer.Create 'DLib.PredictedVarList.' .. netname, 1, 0, -> ProtectedCall @sync_closure
 		else
-			net.receive @_nw, -> @prev = net.ReadTable()
+			net.receive @_nw, ->
+				newR = net.ReadTable()
+
+				if cl_showerror\GetInt() >= 2
+					num = 0
+
+					for k, v in pairs(newR)
+						if v ~= @prev[k]
+							num += 1
+							val = @prev[k]
+							val = 'null' if val == nil
+							DLib.Warning(string.format('%.3d %s:%s', num, netname, k), ' - variable differs (net: ', v, ' pred ', val, ')')
+
+				@prev = newR
 
 	SetSyncTimer: (stimer = @sync_cooldown) =>
-		return if game.SinglePlayer()
+		return if game.SinglePlayer() or @smartSync
 		@sync_cooldown = assert(type(stimer) == 'number' and stimer >= 0, 'Time must be a positive number!')
 		timer.Create 'DLib.PredictedVarList.Sync', @sync_cooldown, 0, -> ProtectedCall @sync_closure
 

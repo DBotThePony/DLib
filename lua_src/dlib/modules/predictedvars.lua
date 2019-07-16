@@ -26,6 +26,11 @@
 -- although tf2 does have certain controller entities that parent to players and have dtvars, so i guess it's not too different to that
 -- i didn't think the jetpack would be so many lines of code... not a great example
 
+-- despite everything
+-- this module does not work (because entities don't work they way i want to use them for this)
+-- consider using DLib.PredictedVarList
+-- or NW2Vars when their proper version get merged with stable/x64/chromium branch
+
 DLib.pred = DLib.pred or {}
 local pred = DLib.pred
 local plyMeta = FindMetaTable('Player')
