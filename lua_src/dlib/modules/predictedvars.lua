@@ -30,6 +30,8 @@ DLib.pred = DLib.pred or {}
 local pred = DLib.pred
 local plyMeta = FindMetaTable('Player')
 
+local lockRebuild = false
+
 pred.Vars = pred.Vars or {}
 pred._known = pred._known or {}
 pred._Vars = pred._Vars or {}
@@ -45,6 +47,46 @@ pred.SlotCounters = pred.SlotCounters or {
 	Entity = 0,
 }
 
+pred.Slots = pred.Slots or {
+	String = {},
+	Bool = {},
+	Float = {},
+	Int = {},
+	Vector = {},
+	Angle = {},
+	Entity = {},
+}
+
+function pred.Reload()
+	local vars = pred.Vars
+	pred.Vars = {}
+	pred.MaxEnt = 0
+	pred._known = {}
+	pred._Vars = {}
+
+	pred.SlotCounters = {
+		String = 0,
+		Bool = 0,
+		Float = 0,
+		Int = 0,
+		Vector = 0,
+		Angle = 0,
+		Entity = 0,
+	}
+
+	lockRebuild = true
+
+	for key, value in pairs(vars) do
+		pred.Define(key, value.type, value.default)
+	end
+
+	lockRebuild = false
+
+	for i = 0, pred.MaxEnt do
+		pred.RebuildEntityDefinition(i)
+	end
+end
+
 function pred.Define(identify, mtype, default)
 	if pred.Vars[identify] then
 		-- assert(pred.Vars[identify].type == mtype, 'Can not change type of variable at runtime')
@@ -53,27 +95,7 @@ function pred.Define(identify, mtype, default)
 			pred.Vars[identify].default = default
 			pred.Vars[identify].type = mtype
 
-			DLib.Warning(debug.traceback('Changing type of single predicted variable forces full reload of predictedvars module.'))
-
-			local vars = pred.Vars
-			pred.Vars = {}
-			pred.MaxEnt = 0
-			pred._known = {}
-			pred._Vars = {}
-
-			pred.SlotCounters = {
-				String = 0,
-				Bool = 0,
-				Float = 0,
-				Int = 0,
-				Vector = 0,
-				Angle = 0,
-				Entity = 0,
-			}
-
-			for key, value in pairs(vars) do
-				pred.Define(key, value.type, value.default)
-			end
+			pred.Reload()
 
 			return
 		end
@@ -87,34 +109,69 @@ function pred.Define(identify, mtype, default)
 		error('Invalid variable type provided: ' .. mtype)
 	end
 
-	local slot = pred.SlotCounters[mtype]
-	pred.SlotCounters[mtype] = slot + 1
+	local crc = util.CRC(identify):tonumber()
+
+	if crc < 0 then
+		crc = 0xFFFFFFFF + crc
+	end
 
 	pred.Vars[identify] = {
 		identify = identify,
 		type = mtype,
-		slot = slot,
+		--slot = slot,
+		crc = crc,
 		default = default
 	}
 
-	local _, entId, realSlot = pred.GetEntityAndSlot(identify)
-	pred.Vars[identify].realSlot = realSlot
-	pred._Vars[entId] = pred._Vars[entId] or {}
-	pred._Vars[entId][identify] = pred.Vars[identify]
-	pred.RebuildEntityDefinition(entId)
-	pred.MaxEnt = pred.MaxEnt:max(entId)
+	local mData = pred.Vars[identify]
+	local sorted = {}
 
-	pred.Vars[identify].entId = entId
+	for key, data in pairs(pred.Vars) do
+		sorted[data.type] = sorted[data.type] or {}
+		table.insert(sorted[data.type], data)
+	end
+
+	local function sorter(a, b)
+		return a.crc > b.crc
+	end
+
+	for itype, list in pairs(sorted) do
+		table.sort(list, sorter)
+
+		for i, data in ipairs(list) do
+			data.slot = i - 1
+		end
+	end
+
+	pred._Vars = {}
+	pred.MaxEnt = 0
+
+	for key, data in pairs(pred.Vars) do
+		local _, entId, realSlot = pred.GetEntityAndSlot(key)
+		data.realSlot = realSlot
+		data.entId = entId
+		pred._Vars[entId] = pred._Vars[entId] or {}
+		pred._Vars[entId][key] = data
+		pred.MaxEnt = pred.MaxEnt:max(entId)
+	end
+
+	if not lockRebuild then
+		for i = 0, pred.MaxEnt do
+			pred.RebuildEntityDefinition(i)
+		end
+	end
 
 	plyMeta['Get' .. identify] = function(self)
-		local ent = self.__dlib_pred_ent and self.__dlib_pred_ent[entId + 1]
-		if not IsValid(ent) then return pred.Vars[identify].default end
+		local ent = self.__dlib_pred_ent and self.__dlib_pred_ent[mData.entId + 1]
+		if not IsValid(ent) then return mData.default end
+		if not ent['Get' .. identify] then return mData.default end
 		return ent['Get' .. identify](ent)
 	end
 
 	plyMeta['Set' .. identify] = function(self, newValue)
-		local ent = self.__dlib_pred_ent and self.__dlib_pred_ent[entId + 1]
+		local ent = self.__dlib_pred_ent and self.__dlib_pred_ent[mData.entId + 1]
 		if not IsValid(ent) then return end
+		if not ent['Set' .. identify] then return end
 		return ent['Set' .. identify](ent, newValue)
 	end
 
@@ -133,6 +190,20 @@ function plyMeta:DLibInvalidatePrediction(status)
 	end
 end
 
+function pred.Fingerprint()
+	local fingerprint = 0
+
+	for key, data in pairs(pred.Vars) do
+		fingerprint = fingerprint + ((data.crc % 4634661) / 12):floor()
+		fingerprint = fingerprint + ((util.CRC(data.type):tonumber():rshift(4) % 612348) / 5):floor()
+		fingerprint = fingerprint + (data.slot:rshift(6) + 23):band(65535)
+
+		fingerprint = fingerprint % 5839581561
+	end
+
+	return fingerprint
+end
+
 function pred.RebuildEntityDefinition(entId)
 	local ENT = {}
 	ENT.Type = 'anim'
@@ -145,7 +216,7 @@ function pred.RebuildEntityDefinition(entId)
 		self:SetSolid(SOLID_NONE)
 		self:SetMoveType(MOVETYPE_NONE)
 		self:SetNoDraw(true)
-		self.initial_setup = false
+		self:SetTransmitWithParent(true)
 	end
 
 	function ENT:Draw()
@@ -157,6 +228,9 @@ function pred.RebuildEntityDefinition(entId)
 
 		for k, v in pairs(pred._Vars[entId]) do
 			self:NetworkVar(v.type, v.realSlot, k)
+		end
+
+		for k, v in pairs(pred._Vars[entId]) do
 			self['Set' .. k](self, v.default)
 		end
 	end
@@ -195,15 +269,6 @@ function pred.RebuildEntityDefinition(entId)
 			end
 		end
 
-		if not self.initial_setup then
-			self.initial_setup = true
-			self:SetTransmitWithParent(true)
-
-			if CLIENT then
-				self:SetPredictable(true)
-			end
-		end
-
 		local ply = self:GetParent():GetTable()
 
 		if not ply.__dlib_pred_ent then
@@ -226,14 +291,17 @@ function pred.RebuildEntityDefinition(entId)
 		local ply = ent:GetParent()
 		SafeRemoveEntity(ent)
 
-		ent = ents.Create('dlib_predictednw' .. entId)
-		ent:SetParent(ply)
-		ent:SetPos(ply:GetPos())
-		ent:LoadVariables(dump)
-		ent:Spawn()
-		ent.__dlib_parent = ply
-		ent:Activate()
-		ent:Think()
+		if IsValid(ply) then
+			ent = ents.Create('dlib_predictednw' .. entId)
+			ent:SetParent(ply)
+			ent:SetPos(ply:GetPos())
+			ent:LoadVariables(dump)
+			ent:Spawn()
+			ent:LoadVariables(dump)
+			ent.__dlib_parent = ply
+			ent:Activate()
+			ent:Think()
+		end
 	end
 
 	for i, ply in ipairs(player.GetAll()) do
@@ -288,5 +356,23 @@ hook.Add('PlayerAuthed', 'DLib.pred', function(ply)
 		ent.__dlib_parent = ply
 		ent:Activate()
 		ent:Think()
+	end
+end, -3)
+
+hook.Add('PostCleanupMap', 'DLib.pred', function()
+	for i, ply in ipairs(player.GetAll()) do
+		if ply.__dlib_pred_ent then
+			for entId = 0, pred.MaxEnt do
+				if not IsValid(ply.__dlib_pred_ent[entId + 1]) then
+					local ent = ents.Create('dlib_predictednw' .. entId)
+					ent:SetParent(ply)
+					ent:SetPos(ply:GetPos())
+					ent:Spawn()
+					ent.__dlib_parent = ply
+					ent:Activate()
+					ent:Think()
+				end
+			end
+		end
 	end
 end, -3)

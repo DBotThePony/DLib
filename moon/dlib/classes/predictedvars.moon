@@ -20,6 +20,8 @@
 
 _OBJECTS = DLib.PredictedVarList and DLib.PredictedVarList._OBJECTS or {}
 
+plyMeta = FindMetaTable('Player')
+
 class DLib.PredictedVarList
 	@_OBJECTS = _OBJECTS
 
@@ -36,6 +38,7 @@ class DLib.PredictedVarList
 		@frame_id = 0
 		@firstF = true
 		@sync_cooldown = 60
+		@lastInvalidate = 0
 		@_nw = 'dlib_pred_' .. netname
 
 		if SERVER
@@ -66,7 +69,19 @@ class DLib.PredictedVarList
 		@vars[identifier] = def
 		return @
 
-	Invalidate: (ply) =>
+	RegisterMeta: (invalidateName, syncName) =>
+		self2 = @
+		plyMeta[assert(invalidateName, 'Missing invalidate meta name')] = (smart = false) => self2\Invalidate(@, smart)
+		plyMeta[assert(syncName, 'Missing sync meta name')] = => self2\Sync(@)
+
+		for name, def in pairs(@vars)
+			plyMeta['Get' .. name] = => self2\Get(@, name)
+			plyMeta['Set' .. name] = (...) => self2\Set(@, name, ...)
+			plyMeta['Reset' .. name] = => self2\Reset(@, name)
+
+		return @
+
+	Invalidate: (ply, smart = false) =>
 		if SERVER
 			@frame_id += 1
 
@@ -74,6 +89,9 @@ class DLib.PredictedVarList
 			ply.__dlib_predvars[@netname] = {} if not ply.__dlib_predvars[@netname]
 
 			return
+
+		return if smart and @lastInvalidate == FrameNumber()
+		@lastInvalidate = FrameNumber()
 
 		if IsFirstTimePredicted()
 			@firstF = true
@@ -122,3 +140,5 @@ class DLib.PredictedVarList
 			return
 
 		@cur[identifier] = val
+
+	Reset: (ply, identifier) => @Set(ply, identifier, @vars[identifier])
