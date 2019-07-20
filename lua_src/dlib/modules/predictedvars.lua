@@ -108,6 +108,10 @@ function pred.Define(identify, mtype, default)
 			return self['SetNW2' .. mtype](self, identify, val)
 		end
 
+		plyMeta['Add' .. identify] = function(self, val)
+			return self['SetNW2' .. mtype](self, identify, self['GetNW2' .. mtype](self, identify, default) + val)
+		end
+
 		plyMeta['Reset' .. identify] = function(self)
 			return self['SetNW2' .. mtype](self, identify, default)
 		end
@@ -202,6 +206,10 @@ function pred.Define(identify, mtype, default)
 		if not IsValid(ent) then return end
 		if not ent['Set' .. identify] then return end
 		return ent['Set' .. identify](ent, newValue)
+	end
+
+	plyMeta['Add' .. identify] = function(self, newValue)
+		return self['Set' .. identify](self, self['Get' .. identify](self) + newValue)
 	end
 
 	plyMeta['Reset' .. identify] = function(self)
