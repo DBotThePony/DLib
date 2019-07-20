@@ -32,8 +32,6 @@ local ProtectedCall = ProtectedCall
 meta.MetaName = 'Promise'
 meta.__index = meta
 
-local promises = {}
-
 --[[
 	@doc
 	@fname DLib.Promise
@@ -56,15 +54,11 @@ local function constructor(handler)
 	local self = setmetatable({}, meta)
 
 	self.handler = handler
-	self.executed = false
 	self.success = false
 	self.failure = false
 	self.traceback = debug.traceback(nil, 2)
 
-	self.__resolve = function(arg) return self:onResolve(arg) end
-	self.__reject = function(arg) return self:onReject(arg) end
-
-	table.insert(promises, self)
+	self:execute()
 
 	return self
 end
@@ -72,41 +66,26 @@ end
 DLib.Promise = constructor
 _G.Promise = constructor
 
-function meta:onResolve(arg)
-	self.success = true
-	self.failure = false
-
-	if not self.resolve then return end
-
-	xpcall(self.resolve, function(err)
-		self:onReject(debug.traceback(err, 2))
-	end, arg)
-end
-
-function meta:onReject(arg)
-	self.success = false
-	self.failure = true
-
-	if not self.reject then
-		error('Unhandled promise rejection: ' .. tostring(arg), 2)
-	end
-
-	xpcall(self.reject, function(err)
-		DLib.Message('Error while handling promise rejection. WTF?!')
-		DLib.Message(debug.traceback(err, 2))
-		DLib.Message('Promise created at')
-		DLib.Message(self.traceback)
-
-		ProtectedCall(error:Wrap('Unhandled promise rejection: ' .. err2, 3))
-	end, arg)
-end
-
 function meta:execute()
 	self.executed = true
 
 	xpcall(self.handler, function(err)
 		self:onReject(debug.traceback(err, 2))
-	end, self.__resolve, self.__reject)
+	end, function(...)
+		self.returns = {...}
+		self.success = true
+
+		if self.resolve then
+			self.resolve(...)
+		end
+	end, function(...)
+		self.errors = {...}
+		self.failure = true
+
+		if self.reject then
+			self.reject(...)
+		end
+	end)
 
 	return self
 end
@@ -118,8 +97,8 @@ function meta:catch(handler)
 
 	self.reject = handler
 
-	if self.reject and self.resolve then
-		self:execute()
+	if self.executed and self.failure then
+		handler(unpack(self.errors, 1, #self.errors))
 	end
 
 	return self
@@ -132,8 +111,8 @@ function meta:reslv(handler)
 
 	self.resolve = handler
 
-	if self.reject and self.resolve then
-		self:execute()
+	if self.executed and self.success then
+		handler(unpack(self.returns, 1, #self.returns))
 	end
 
 	return self
@@ -144,19 +123,3 @@ meta.after = meta.reslv
 meta.Then = meta.reslv
 meta.error = meta.catch
 meta.Catch = meta.catch
-
-local ipairs = ipairs
-
-local function tickHandler()
-	if #promises == 0 then return end
-
-	for i, promise in ipairs(promises) do
-		if not promise.executed then
-			promise:execute()
-		end
-	end
-
-	promises = {}
-end
-
-DLib.__PromiseTickHandler = tickHandler

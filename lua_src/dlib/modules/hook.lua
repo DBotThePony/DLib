@@ -1394,8 +1394,6 @@ do
 	end)
 end
 
-hook.Add('Think', 'DLib.PromiseTickHandler', DLib.__PromiseTickHandler)
-
 local function printProfilingResults(ply)
 	local deftable = {}
 
