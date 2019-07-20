@@ -31,6 +31,12 @@
 -- consider using DLib.PredictedVarList
 -- or NW2Vars when their proper version get merged with stable/x64/chromium branch
 
+local net = net
+local DLib = DLib
+local string = string
+local table = table
+local pairs = pairs
+
 if SERVER then
 	net.pool('dlib_pred_ack')
 end
