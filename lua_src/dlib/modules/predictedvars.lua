@@ -31,9 +31,15 @@
 -- consider using DLib.PredictedVarList
 -- or NW2Vars when their proper version get merged with stable/x64/chromium branch
 
+if SERVER then
+	net.pool('dlib_pred_ack')
+end
+
 DLib.pred = DLib.pred or {}
 local pred = DLib.pred
 local plyMeta = FindMetaTable('Player')
+
+pred._ack = {}
 
 local lockRebuild = false
 
@@ -93,6 +99,22 @@ function pred.Reload()
 end
 
 function pred.Define(identify, mtype, default)
+	if VERSION >= 0x0002e8fb then
+		plyMeta['Get' .. identify] = function(self)
+			return self['GetNW2' .. mtype](self, identify, default)
+		end
+
+		plyMeta['Set' .. identify] = function(self, val)
+			return self['SetNW2' .. mtype](self, identify, val)
+		end
+
+		plyMeta['Reset' .. identify] = function(self)
+			return self['SetNW2' .. mtype](self, identify, default)
+		end
+
+		return
+	end
+
 	if pred.Vars[identify] then
 		-- assert(pred.Vars[identify].type == mtype, 'Can not change type of variable at runtime')
 
@@ -162,7 +184,9 @@ function pred.Define(identify, mtype, default)
 
 	if not lockRebuild then
 		for i = 0, pred.MaxEnt do
-			pred.RebuildEntityDefinition(i)
+			timer.Create('DLib.pred.DeferReload' .. i, 0, 1, function()
+				pred.RebuildEntityDefinition(i)
+			end)
 		end
 	end
 
@@ -195,21 +219,53 @@ function plyMeta:DLibInvalidatePrediction(status)
 	end
 end
 
-function pred.Fingerprint()
+function pred.Fingerprint(entId)
 	local fingerprint = 0
 
-	for key, data in pairs(pred.Vars) do
-		fingerprint = fingerprint + ((data.crc % 4634661) / 12):floor()
-		fingerprint = fingerprint + ((util.CRC(data.type):tonumber():rshift(4) % 612348) / 5):floor()
-		fingerprint = fingerprint + (data.slot:rshift(6) + 23):band(65535)
+	if not entId then
+		for key, data in pairs(pred.Vars) do
+			fingerprint = fingerprint + ((data.crc % 4634661) / 12):floor()
+			fingerprint = fingerprint + ((util.CRC(data.type):tonumber():rshift(4) % 612348) / 5):floor()
+			fingerprint = fingerprint + (data.slot:rshift(6) + 23):band(65535)
 
-		fingerprint = fingerprint % 5839581561
+			fingerprint = fingerprint % 5839581561
+		end
+	elseif pred._Vars[entId] then
+		for key, data in pairs(pred._Vars[entId]) do
+			fingerprint = fingerprint + ((data.crc % 4634661) / 12):floor()
+			fingerprint = fingerprint + ((util.CRC(data.type):tonumber():rshift(4) % 612348) / 5):floor()
+			fingerprint = fingerprint + (data.slot:rshift(6) + 23):band(65535)
+
+			fingerprint = fingerprint % 5839581561
+		end
 	end
 
 	return fingerprint
 end
 
-function pred.RebuildEntityDefinition(entId)
+function pred.RebuildEntityDefinition(entId, _now)
+	if SERVER and not _now then
+		pred._ack[entId] = player.GetHumans()
+
+		if #pred._ack[entId] == 0 then
+			pred.RebuildEntityDefinition(entId, true)
+			return
+		end
+
+		net.Start('dlib_pred_ack')
+		net.WriteUInt8(entId)
+		net.WriteUInt64(pred.Fingerprint())
+		net.Broadcast()
+
+		timer.Start('DLib.pred.RebuildAck', 10, 1, function()
+			pred.RebuildEntityDefinition(entId, true)
+		end)
+
+		return
+	end
+
+	pred._ack[entId] = nil
+
 	local ENT = {}
 	ENT.Type = 'anim'
 	ENT.Spawnable = false
@@ -350,7 +406,51 @@ function pred.GetEntityAndSlot(identify)
 	return data.slot, (data.slot - data.slot % 32) / 32, data.slot % 32
 end
 
-if CLIENT then return end
+if CLIENT then
+	net.receive('dlib_pred_ack', function()
+		local entId = net.ReadUInt8()
+		local fingerprint = net.ReadUInt64()
+		pred.RebuildEntityDefinition(entId)
+		local mfinger = pred.Fingerprint(entId)
+
+		if mfinger ~= fingerprint then
+			DLib.MessageError('Integrity check failed in prediction module. Server expected ', fingerprint, ' fingerprint but i got ', mfinger, '. Expect desyncs with server!')
+		end
+
+		net.Start('dlib_pred_ack')
+		net.WriteUInt8(entId)
+		net.WriteUInt64(mfinger)
+		net.SendToServer()
+	end)
+
+	return
+end
+
+net.receive('dlib_pred_ack', function(len, ply)
+	local entId = net.ReadUInt8()
+	if not pred._ack[entId] then return end
+	local hit = false
+
+	for i, ply2 in ipairs(pred._ack[entId]) do
+		if ply2 == ply then
+			hit = true
+			table.remove(pred._ack[entId], i)
+			break
+		end
+	end
+
+	if not hit then return end
+	local fingerprint = net.ReadUInt64()
+	local mfinger = pred.Fingerprint(entId)
+
+	if mfinger ~= fingerprint then
+		DLib.MessageError('Integrity check failed in prediction module over client. Client expected ', fingerprint, ' fingerprint, but i got ', mfinger, '. Expect desyncs with that client!')
+	end
+
+	if #pred._ack[entId] == 0 then
+		pred.RebuildEntityDefinition(entId, true)
+	end
+end)
 
 hook.Add('PlayerAuthed', 'DLib.pred', function(ply)
 	for entId = 0, pred.MaxEnt do
