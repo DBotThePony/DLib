@@ -330,7 +330,7 @@ end
 
 --[[
 	@doc
-	@fname Entity:EmitSoundPredicted
+	@fname Entity:EmitSoundPredictedR
 
 	@desc
 	Same as !g:Entity:EmitSound , but if `self` is a player, the sound will not be networked to him.
@@ -339,9 +339,7 @@ end
 	basically it is partial fix for https://github.com/Facepunch/garrysmod-issues/issues/2651
 	@enddesc
 ]]
-function entMeta:EmitSoundPredicted(soundName, soundLevel, pitch, volume, channel)
-	if not IsFirstTimePredicted() then return end
-
+function entMeta:EmitSoundPredictedR(soundName, soundLevel, pitch, volume, channel)
 	assert(type(soundName) == 'string', 'Whats up with sound name')
 	soundLevel = soundLevel or 75
 	pitch = pitch or 100
@@ -380,6 +378,24 @@ function entMeta:EmitSoundPredicted(soundName, soundLevel, pitch, volume, channe
 	net.WriteUInt8(channel)
 	net.WriteEntity(self)
 	net.Send(filter)
+end
+
+--[[
+	@doc
+	@fname Entity:EmitSoundPredicted
+
+	@desc
+	Same as !g:Entity:EmitSound , but if `self` is a player, the sound will not be networked to him.
+	This do correspond to !g:IsFirstTimePredicted
+	Achieved with GMod
+	basically it is partial fix for https://github.com/Facepunch/garrysmod-issues/issues/2651
+
+	Look at `Entity:EmitSoundPredictedR` for non !g:IsFirstTimePredicted based version of this function
+	@enddesc
+]]
+function entMeta:EmitSoundPredicted(...)
+	if not IsFirstTimePredicted() then return end
+	return self:EmitSoundPredictedR(...)
 end
 
 if CLIENT then
