@@ -171,6 +171,15 @@ end
 
 local plyMeta = FindMetaTable('Player')
 
+--[[
+	@doc
+	@fname Player:LookupServerInternalVariable
+	@args string varname, any default
+	@deprecated
+
+	@returns
+	any: stored variable
+]]
 function plyMeta:LookupServerInternalVariable(varname, def)
 	if SERVER then
 		local val = self:GetInternalVariable(varname)

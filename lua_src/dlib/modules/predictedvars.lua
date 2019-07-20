@@ -74,6 +74,15 @@ pred.Slots = pred.Slots or {
 	Entity = {},
 }
 
+--[[
+	@doc
+	@fname DLib.pred.Reload
+	@internal
+
+	@desc
+	Forcefully rebuilds all entity definition for mimicking. Does nothing when gmod version is fresh enough.
+	@enddesc
+]]
 function pred.Reload()
 	local vars = pred.Vars
 	pred.Vars = {}
@@ -104,6 +113,31 @@ function pred.Reload()
 	end
 end
 
+--[[
+	@doc
+	@fname DLib.pred.Define
+	@args string identify, string type, any default
+	@deprecated
+
+	@desc
+	If gmod version is good enough, this function just defines NW2Vars methods to player metatable based
+	on identify you provided (e.g.)
+	`plyMeta['Get' .. identify]`
+	`plyMeta['Set' .. identify]`
+	`plyMeta['Add' .. identify]`
+	`plyMeta['Reset' .. identify]`
+
+	if gmod version is old, it tries to mimic NW2Vars behavior by creating predicted network entities
+	(which of course sometimes do and sometimes do not work properly, thanks to gmod)
+	Also, in such case, you have to call `Player:DLibInvalidatePrediction(true)` and `Player:DLibInvalidatePrediction(false)`
+	where you would normally call !g:Entity:SetPredictable
+	`Player:DLibInvalidatePrediction` is safe to be called serverside and does nothing there
+
+	Types for `type` argument you can find on [Data Tables](https://wiki.garrysmod.com/page/Networking_Entities) gmod wiki page
+	This function is marked as deprecated since it is somewhat *very* dirty hack over gmod,
+	but it probably won't be removed
+	@enddesc
+]]
 function pred.Define(identify, mtype, default)
 	if VERSION >= 0x0002e8fb then
 		plyMeta['Get' .. identify] = function(self)
@@ -223,16 +257,34 @@ function pred.Define(identify, mtype, default)
 	end
 end
 
+--[[
+	@doc
+	@fname plyMeta:DLibInvalidatePrediction
+	@args boolean status = false
+
+	@desc
+	Sets !g:Entity:SetPredictable on all parented DLib vars entities to desired state
+	Does nothing when gmod version is fresh enough
+	@enddesc
+]]
 function plyMeta:DLibInvalidatePrediction(status)
 	if not self.__dlib_pred_ent or SERVER then return end
 
 	for i, ent in ipairs(self.__dlib_pred_ent) do
 		if IsValid(ent) then
-			ent:SetPredictable(status)
+			ent:SetPredictable(status or false)
 		end
 	end
 end
 
+--[[
+	@doc
+	@fname DLib.pred.Fingerprint
+	@args number entitySlotID = nil
+
+	@returns
+	number: the fingerpring
+]]
 function pred.Fingerprint(entId)
 	local fingerprint = 0
 
@@ -257,6 +309,12 @@ function pred.Fingerprint(entId)
 	return fingerprint
 end
 
+--[[
+	@doc
+	@fname DLib.pred.RebuildEntityDefinition
+	@args number entitySlotID, boolean _now = false
+	@internal
+]]
 function pred.RebuildEntityDefinition(entId, _now)
 	if SERVER and not _now then
 		pred._ack[entId] = player.GetHumans()
