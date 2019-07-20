@@ -115,6 +115,38 @@ local typesFuncs = {
 	},
 }
 
+--[[
+	@doc
+	@fname DLib.TrackSaveTableVar
+	@args string varname, string vartype
+	@deprecated
+
+	@desc
+	Asks DLib for networking this savetable variable to clients.
+	This function very bandwidth efficently does so, however, it increase serverside lag because
+	it use !g:GetInternalVariable which is **damn slow**
+	`vartype` can be anything from next:
+	`string`
+	`int`
+	`uint`
+	`smallint`
+	`usmallint`
+	`byte`
+	`ubyte`
+	`float`
+	`angle`
+	`vector`
+	`angle_double`
+	`vector_double`
+	`bool`
+	`entity`
+	`any`
+	This is basically a workaround for https://github.com/Facepunch/garrysmod-issues/issues/2552
+	@enddesc
+
+	@returns
+	boolean: whenever variable was registered before. if so, it just updates it's type
+]]
 function DLib.TrackSaveTableVar(varname, vartype)
 	if not typesFuncs[vartype] then
 		error('Unknown variable type provided')
