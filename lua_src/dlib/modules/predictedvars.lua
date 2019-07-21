@@ -36,6 +36,7 @@ local DLib = DLib
 local string = string
 local table = table
 local pairs = pairs
+local math = math
 
 if SERVER then
 	net.pool('dlib_pred_ack')
@@ -148,7 +149,17 @@ function pred.Define(identify, mtype, default)
 			return self['SetNW2' .. mtype](self, identify, val)
 		end
 
-		plyMeta['Add' .. identify] = function(self, val)
+		plyMeta['Add' .. identify] = function(self, val, min, max)
+			if min and not max then
+				if val < 0 then
+					return self['SetNW2' .. mtype](self, identify, math.max(self['GetNW2' .. mtype](self, identify, default) + val, min))
+				else
+					return self['SetNW2' .. mtype](self, identify, math.min(self['GetNW2' .. mtype](self, identify, default) + val, min))
+				end
+			elseif min and max then
+				return self['SetNW2' .. mtype](self, identify, math.clamp(self['GetNW2' .. mtype](self, identify, default) + val, min, max))
+			end
+
 			return self['SetNW2' .. mtype](self, identify, self['GetNW2' .. mtype](self, identify, default) + val)
 		end
 
@@ -248,9 +259,20 @@ function pred.Define(identify, mtype, default)
 		return ent['Set' .. identify](ent, newValue)
 	end
 
-	plyMeta['Add' .. identify] = function(self, newValue)
-		return self['Set' .. identify](self, self['Get' .. identify](self) + newValue)
+	plyMeta['Add' .. identify] = function(self, val, min, max)
+		if min and not max then
+			if val < 0 then
+				return self['SetNW2' .. mtype](self, identify, math.max(self['Get' .. identify](self) + val, min))
+			else
+				return self['SetNW2' .. mtype](self, identify, math.min(self['Get' .. identify](self) + val, min))
+			end
+		elseif min and max then
+			return self['SetNW2' .. mtype](self, identify, math.clamp(self['Get' .. identify](self) + val, min, max))
+		end
+
+		return self['SetNW2' .. mtype](self, identify, self['Get' .. identify](self) + val)
 	end
+
 
 	plyMeta['Reset' .. identify] = function(self)
 		return self['Set' .. identify](self, pred.Vars[identify].default)
