@@ -148,6 +148,8 @@ local typesFuncs = {
 	boolean: whenever variable was registered before. if so, it just updates it's type
 ]]
 function DLib.TrackSaveTableVar(varname, vartype)
+	if vartype == 'Entity' then vartype = 'entity' end
+
 	if not typesFuncs[vartype] then
 		error('Unknown variable type provided')
 	end
@@ -158,9 +160,14 @@ function DLib.TrackSaveTableVar(varname, vartype)
 		return false
 	end
 
-	trackr[varname] = table.insert(track, varname)
-
+	table.insert(track, varname)
 	table.sort(track)
+
+	for i, var in ipairs(track) do
+		if var == varname then
+			trackr[varname] = i
+		end
+	end
 
 	return true
 end
@@ -202,20 +209,19 @@ if SERVER then
 			ply.__dlib_st_cache = data
 		end
 
-		local send = {}
-		local hit = false
+		local send
 
 		for i, var in ipairs(track) do
 			local getvar = ply:GetInternalVariable(var)
 
 			if getvar ~= data[var] and getvar ~= nil then
+				send = send or {}
 				send[var] = getvar
 				data[var] = getvar
-				hit = true
 			end
 		end
 
-		if not hit then return end
+		if not send then return end
 
 		net.Start('dlib_sync_savetable_values')
 		local flags = {}
@@ -235,8 +241,12 @@ if SERVER then
 			net.WriteInt32(flags[slot])
 		end
 
-		for var, val in pairs(send) do
-			typesFuncs[tracktypes[var]][1](val)
+		for i, var in ipairs(track) do
+			local val = send[var]
+
+			if val ~= nil then
+				typesFuncs[tracktypes[var]][1](val)
+			end
 		end
 
 		net.Send(ply)
