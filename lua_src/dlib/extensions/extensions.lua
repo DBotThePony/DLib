@@ -34,6 +34,12 @@ local list = list
 local pairs = pairs
 local CLIENT = CLIENT
 
+_G.angle_empty = Angle()
+_G.angle_up = Angle(90)
+_G.angle_down = Angle(-90)
+_G.angle_left = Angle(0, 90)
+_G.angle_right = Angle(0, -90)
+
 function PhysObj:SetAngleVelocity(newAngle)
 	return self:AddAngleVelocity(newAngle - self:GetAngleVelocity())
 end
