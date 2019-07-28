@@ -377,7 +377,7 @@ class DLib.NBT.TagCompound extends DLib.NBT.Base
 		return status
 
 	ReadFileProtected: (bytesbuffer) =>
-		assert(bytesbuffer\ReadUByte() == 10, 'invalid header')
+		assert(bytesbuffer\ReadUByte() == 10, 'Invalid header. Is file corrupted or not a valid NBT file?')
 
 		readNameLen = bytesbuffer\ReadUInt16()
 		@SetTagName(bytesbuffer\ReadBinary(readNameLen))
