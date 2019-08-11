@@ -286,33 +286,12 @@ end
 local type = type
 local table = table
 local unpack = unpack
+local buffer = {}
 
---[[
-	@doc
-	@fname math.bezier
-	@args number t, vararg numbers
-
-	@returns
-	number
-]]
-function math.bezier(t, ...)
-	return math.tbezier(t, {...})
-end
-
---[[
-	@doc
-	@fname math.tbezier
-	@args number t, table numbers
-
-	@returns
-	number
-]]
--- accepts table
-function math.tbezier(t, values)
+local function tbezier(t, values, amount)
 	assert(type(t) == 'number', 'invalid T variable')
 	assert(t >= 0 and t <= 1, '0 <= t <= 1!')
 	assert(#values >= 2, 'at least two values must be provided')
-	local amount = #values
 	local a, b = values[1], values[2]
 
 	-- linear
@@ -326,18 +305,39 @@ function math.tbezier(t, values)
 		return (1 - t):pow(3) * a + 3 * t * (1 - t):pow(2) * b + 3 * t:pow(2) * (1 - t) * values[3] + t:pow(3) * values[4]
 	end
 
-	-- instead of implementing matrix, using bare loops
-	local points = {}
-
 	for point = 1, amount do
 		local point1 = values[point]
 		local point2 = values[point + 1]
 		if not point2 then break end
-		local newpoint = point1 + (point2 - point1) * t
-		table.insert(points, newpoint)
+		buffer[point] = point1 + (point2 - point1) * t
 	end
 
-	return math.tbezier(t, points)
+	return tbezier(t, buffer, amount - 1)
+end
+
+--[[
+	@doc
+	@fname math.bezier
+	@args number t, vararg numbers
+
+	@returns
+	number
+]]
+function math.bezier(t, ...)
+	return tbezier(t, {...}, select('#', ...))
+end
+
+--[[
+	@doc
+	@fname math.tbezier
+	@args number t, table numbers
+
+	@returns
+	number
+]]
+-- accepts table
+function math.tbezier(t, values)
+	return tbezier(t, values, #values)
 end
 
 --[[
