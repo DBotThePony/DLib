@@ -81,7 +81,11 @@ local formatters = {
 	end,
 
 	['#C'] = function(self, color)
-		return assert(IsColor(color) and color, '#C must be a color! ')
+		if not IsColor(color) then
+			error('#C must be a color! ' .. type(color) .. ' given.')
+		end
+
+		return {color}
 	end,
 
 	['#%.%d+i'] = function(self, val)
@@ -261,7 +265,10 @@ function i18n.format(unformatted, defColor, ...)
 
 			if ret then
 				table.append(output, ret)
-				table.insert(output, defColor)
+
+				if not IsColor(ret[#ret]) then
+					table.insert(output, defColor)
+				end
 			end
 
 			argsPos = argsPos + (grabbed or 1)
@@ -392,7 +399,11 @@ local function compileExpression(unformatted)
 					argsPos = argsPos + fcount
 				elseif frettype == 'table' then
 					table.append(output, fret)
-					table.insert(output, defColor)
+
+					if not IsColor(fret[#fret]) then
+						table.insert(output, defColor)
+					end
+
 					argsPos = argsPos + fcount
 				end
 			end
@@ -441,7 +452,7 @@ function i18n.localizeByLang(phrase, lang, ...)
 
 			return output
 		else
-			return '%%!' .. phrase .. '!%%'
+			return 'Format error: ' .. formatted
 		end
 	end
 
@@ -458,7 +469,7 @@ function i18n.localizeByLang(phrase, lang, ...)
 	if status then
 		return formatted
 	else
-		return '%%!' .. phrase .. '!%%'
+		return 'Format error: ' .. formatted
 	end
 end
 
@@ -508,7 +519,7 @@ function i18n._localizeByLangAdvanced(phrase, lang, colorDef, ...)
 		if status then
 			return formatted, cnum
 		else
-			return {'%%!' .. phrase .. '!%%'}, 0
+			return {'Format error: ' .. formatted}, 0
 		end
 	end
 
@@ -525,7 +536,7 @@ function i18n._localizeByLangAdvanced(phrase, lang, colorDef, ...)
 	if status then
 		return {formatted}, i18n.countExpressions(unformatted)
 	else
-		return {'%%!' .. phrase .. '!%%'}, 0
+		return {'Format error: ' .. formatted}, 0
 	end
 end
 
