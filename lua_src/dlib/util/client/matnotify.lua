@@ -292,3 +292,7 @@ function DLib.MaterialCacheHook(name, func)
 	func()
 	return hook.Add('InvalidateMaterialCache', name, func)
 end
+
+timer.Simple(0, function()
+	hook.Run('InvalidateMaterialCache')
+end)
