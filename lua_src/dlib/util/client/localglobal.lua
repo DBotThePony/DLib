@@ -43,6 +43,7 @@ end
 --[[
 	@doc
 	@fname LocalViewModel
+	@alias LocalViewmodel
 
 	@returns
 	Entity
@@ -52,6 +53,24 @@ function _G.LocalViewModel(...)
 	if not IsValid(ply) then return NULL end
 	return ply:GetViewModel(...)
 end
+
+_G.LocalViewmodel = LocalViewModel
+
+--[[
+	@doc
+	@fname LocalHands
+	@alias LocalArms
+
+	@returns
+	Entity
+]]
+function _G.LocalHands(...)
+	local ply = LocalPlayer()
+	if not IsValid(ply) then return NULL end
+	return ply:GetHands(...)
+end
+
+_G.LocalArms = LocalHands
 
 --[[
 	@doc
