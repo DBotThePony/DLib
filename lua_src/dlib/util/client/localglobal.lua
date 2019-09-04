@@ -74,6 +74,34 @@ _G.LocalArms = LocalHands
 
 --[[
 	@doc
+	@fname LocalEyeTrace
+
+	@returns
+	table: !g:TraceResult or `false`
+]]
+function _G.LocalEyeTrace(...)
+	local ply = LocalPlayer()
+	if not IsValid(ply) then return false end
+	return ply:GetEyeTrace(...)
+end
+
+local LocalEyeTrace = LocalEyeTrace
+
+--[[
+	@doc
+	@fname LocalLookingAt
+
+	@returns
+	Entity: or NULL
+]]
+function _G.LocalLookingAt(...)
+	local tr = LocalEyeTrace(...)
+	if not tr then return NULL end
+	return tr.Entity or NULL
+end
+
+--[[
+	@doc
 	@fname LocalClip1
 
 	@returns
