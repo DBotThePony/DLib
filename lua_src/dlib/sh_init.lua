@@ -169,6 +169,7 @@ timeStart = SysTime()
 MsgC('[DLib] Initializing DLib classes ... ')
 
 DLib.Loader.shclass('astar.lua')
+DLib.Loader.shclass('dmginfo.lua')
 DLib.Loader.shclass('collector.lua')
 DLib.Loader.shclass('set.lua')
 DLib.Loader.shclass('freespace.lua')
