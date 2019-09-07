@@ -85,8 +85,8 @@ class DLib.CAMIWatchdog
 						table.removeValues(@trackedPanels[perm], cleanup)
 
 			if not status
-				DLib.Message('Error while getting permissions for ' .. @idetifier .. '! Tell Admin mod (if problem is on its side)/Author of addon which use CAMIWatchdog')
-				DLib.Message('Permission in question: ' .. perm)
+				DLib.MessageError('Error while getting permissions for ' .. @idetifier .. '! Tell Admin mod (if problem is on its side)/Author of addon which use CAMIWatchdog')
+				DLib.MessageError('Permission in question: ' .. perm)
 
 	TriggerUpdateRegular: =>
 		@trackedRepliesPly = {ply, data for ply, data in pairs @trackedRepliesPly when ply\IsValid()}
