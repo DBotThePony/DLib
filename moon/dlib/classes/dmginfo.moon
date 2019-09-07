@@ -91,6 +91,8 @@ class DLib.LTakeDamageInfo
 
 	TypesArray: => [dtype for {dtype, dname} in *damageTypes when @IsDamageType(dtype)]
 
+	@__base.MetaName = 'LTakeDamageInfo'
+
 	new: (copyfrom) =>
 		@damage = 0
 		@maxDamage = 0
