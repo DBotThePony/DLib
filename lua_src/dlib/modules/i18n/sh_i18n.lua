@@ -737,7 +737,17 @@ local type = type
 --[[
 	@doc
 	@fname DLib.i18n.rebuildTable
-	@args table args, Color colorDef = color_white
+	@args table args, Color colorDef = color_white, boolean backward = false
+
+	@desc
+	when `backward` is `true`, table will be constructed from it's end. This means that when a phrase require
+	format arguments, it's arguments can be localized too (recursive localization)
+	`'info.i18n.phrase_with_two_format_values', 'Player', 'info.i18n.phrase'`
+	will localize both `info.i18n.phrase_with_two_format_values` and `info.i18n.phrase`
+	in case if `info.i18n.phrase_with_two_format_values` hold two format values (e.g. `'%s was %s'`)
+	`false` = `'Player was info.i18n.phrase'`
+	`true` = `'Player was looking at phrase'`
+	@enddesc
 
 	@returns
 	table: a table with localized strings. other types are untouched. does not modify original table
@@ -749,7 +759,17 @@ end
 --[[
 	@doc
 	@fname DLib.i18n.rebuildTableByLang
-	@args table args, string lang, Color colorDef = color_white
+	@args table args, string lang, Color colorDef = color_white, boolean backward = false
+
+	@desc
+	when `backward` is `true`, table will be constructed from it's end. This means that when a phrase require
+	format arguments, it's arguments can be localized too (recursive localization)
+	`'info.i18n.phrase_with_two_format_values', 'Player', 'info.i18n.phrase'`
+	will localize both `info.i18n.phrase_with_two_format_values` and `info.i18n.phrase`
+	in case if `info.i18n.phrase_with_two_format_values` hold two format values (e.g. `'%s was %s'`)
+	`false` = `'Player was info.i18n.phrase'`
+	`true` = `'Player was looking at phrase'`
+	@enddesc
 
 	@returns
 	table: a table with localized strings. other types are untouched. does not modify original table
