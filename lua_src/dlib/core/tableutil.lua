@@ -599,3 +599,67 @@ function table.deduplicate(tableIn)
 	table.removeValues(tableIn, toremove)
 	return tableIn
 end
+
+--[[
+	@doc
+	@fname table.splice
+	@args table tableIn, number start, number deleteCount, vararg insertValues
+
+	@desc
+	https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/splice
+	@enddesc
+
+	@returns
+	table: removed elements
+]]
+function table.splice(tableIn, start, deleteCount, ...)
+	local removed = {}
+	local inserts = select('#', ...)
+	local actuallyMove = inserts - deleteCount
+
+	-- inserting more elements than deleting
+	if actuallyMove > 0 then
+		-- moving old values to right
+		for i = #tableIn, start + actuallyMove - 2, -1 do
+			tableIn[i + actuallyMove] = tableIn[i]
+		end
+
+		for i = start, start + inserts - 1 do
+			if i < start + deleteCount and tableIn[i] ~= nil then
+				table.insert(removed, tableIn[i])
+			end
+
+			tableIn[i] = select(i - start + 1, ...)
+		end
+	-- inserting same amount of elements as deleting
+	elseif actuallyMove == 0 then
+		for i = start, start + deleteCount - 1 do
+			if tableIn[i] ~= nil then
+				table.insert(removed, tableIn[i])
+			end
+
+			tableIn[i] = select(i - start + 1, ...)
+		end
+	-- inserting lesser elements than deleting
+	else
+		local sizeof = #tableIn
+		for i = start, start + inserts do
+			if tableIn[i] ~= nil then
+				table.insert(removed, tableIn[i])
+			end
+
+			tableIn[i] = select(i - start + 1, ...)
+		end
+
+		print(start + inserts, sizeof)
+		for i = start + inserts, sizeof do
+			if i - (start + inserts) < -actuallyMove and tableIn[i] ~= nil then
+				table.insert(removed, tableIn[i])
+			end
+
+			tableIn[i] = tableIn[i - actuallyMove]
+		end
+	end
+
+	return removed
+end
