@@ -95,6 +95,7 @@ class DLib.LTakeDamageInfo
 
 	new: (copyfrom) =>
 		@damage = 0
+		@baseDamage = 0
 		@maxDamage = 0
 		@ammoType = 0
 		@damageBonus = 0
@@ -134,8 +135,10 @@ class DLib.LTakeDamageInfo
 	GetDamageForce: => @damageForce
 	GetDamagePosition: => @damagePosition
 	GetReportedPosition: => @reportedPosition
+	GetDamageForce: => @damageForce
 	GetDamageType: => @damageType
 	GetMaxDamage: => @maxDamage
+	GetBaseDamage: => @baseDamage
 	IsDamageType: (dtype) => @damageType\band(dtype) == dtype
 	IsBulletDamage: => @IsDamageType(DMG_BULLET)
 	IsExplosionDamage: => @IsDamageType(DMG_BLAST)
@@ -151,5 +154,7 @@ class DLib.LTakeDamageInfo
 	SetDamageType: (dmg) => @damageType = dmg
 	SetDamagePosition: (pos) => @damagePosition = pos
 	SetReportedPosition: (pos) => @reportedPosition = pos
+	SetDamageForce: (force) => @damageForce = force
+	SetBaseDamage: (damage) => @baseDamage = damage
 
 	Copy: => DLib.LTakeDamageInfo(@)
