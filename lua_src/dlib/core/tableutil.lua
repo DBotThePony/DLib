@@ -655,7 +655,6 @@ function table.splice(tableIn, start, deleteCount, ...)
 			tableIn[i] = select(i - start + 1, ...)
 		end
 
-		print(start + inserts, sizeof)
 		for i = start + inserts, sizeof do
 			if i - (start + inserts) < -actuallyMove and tableIn[i] ~= nil then
 				table.insert(removed, tableIn[i])
