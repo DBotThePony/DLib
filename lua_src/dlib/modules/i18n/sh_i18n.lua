@@ -742,8 +742,8 @@ local type = type
 	@returns
 	table: a table with localized strings. other types are untouched. does not modify original table
 ]]
-function i18n.rebuildTable(args, colorDef)
-	return i18n.rebuildTableByLang(args, i18n.CURRENT_LANG, colorDef)
+function i18n.rebuildTable(args, colorDef, backward)
+	return i18n.rebuildTableByLang(args, i18n.CURRENT_LANG, colorDef, backward)
 end
 
 --[[
@@ -754,20 +754,40 @@ end
 	@returns
 	table: a table with localized strings. other types are untouched. does not modify original table
 ]]
-function i18n.rebuildTableByLang(args, lang, colorDef)
-	local rebuild = {}
-	local i = 1
+function i18n.rebuildTableByLang(args, lang, colorDef, backward)
+	if backward == nil then backward = false end
+	local rebuild
+	local i = backward and #args or 1
 
-	while i <= #args do
-		local arg = args[i]
+	if backward then
+		rebuild = table.qcopy(args)
 
-		if type(arg) ~= 'string' or not i18n.exists(arg) then
-			table.insert(rebuild, arg)
-			i = i + 1
-		else
-			local phrase, consumed = i18n.localizeByLangAdvanced(arg, lang, colorDef, unpack(args, i + 1, #args))
-			i = i + 1 + consumed
-			table.append(rebuild, phrase)
+		while i > 0 do
+			local arg = rebuild[i]
+			local index = #rebuild - i
+
+			if type(arg) ~= 'string' or not i18n.exists(arg) then
+				i = i - 1
+			else
+				local phrase, consumed = i18n.localizeByLangAdvanced(arg, lang, colorDef, unpack(rebuild, i + 1, #rebuild))
+				table.splice(rebuild, i, consumed + 1, unpack(phrase, 1, #phrase))
+				i = i - 1 - consumed
+			end
+		end
+	else
+		rebuild = {}
+
+		while i <= #args do
+			local arg = args[i]
+
+			if type(arg) ~= 'string' or not i18n.exists(arg) then
+				table.insert(rebuild, arg)
+				i = i + 1
+			else
+				local phrase, consumed = i18n.localizeByLangAdvanced(arg, lang, colorDef, unpack(args, i + 1, #args))
+				i = i + 1 + consumed
+				table.append(rebuild, phrase)
+			end
 		end
 	end
 
