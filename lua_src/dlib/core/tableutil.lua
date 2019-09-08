@@ -613,6 +613,10 @@ end
 	table: removed elements
 ]]
 function table.splice(tableIn, start, deleteCount, ...)
+	if not deleteCount then
+		deleteCount = #tableIn - start + 1
+	end
+
 	local removed = {}
 	local inserts = select('#', ...)
 	local actuallyMove = inserts - deleteCount
