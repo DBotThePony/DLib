@@ -504,6 +504,11 @@ end
 --[[
 	@doc
 	@fname Vehicle:GetPrintNameDLib
+	@args boolean unlocalized = false
+
+	@desc
+	When `unlocalized` is `true`, if i18n phrase is present, it will return unlocalized.
+	@enddesc
 
 	@returns
 	string
