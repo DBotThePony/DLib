@@ -398,6 +398,8 @@ function entMeta:EmitSoundPredicted(...)
 	return self:EmitSoundPredictedR(...)
 end
 
+local language = language
+
 if CLIENT then
 	net.receive('dlib_emitsoundpredicted', function()
 		local soundName, soundLevel, pitch, volume, channel, self = net.ReadString(), net.ReadUInt16(), net.ReadUInt8(), net.ReadFloat(), net.ReadUInt8(), net.ReadEntity()
@@ -474,18 +476,6 @@ if CLIENT then
 
 		return getname
 	end
-
-	--[[
-		@doc
-		@fname Vehicle:GetPrintNameDLib
-
-		@returns
-		string
-	]]
-	function entMeta:GetPrintNameDLib()
-		if self.GetPrintName then return self:GetPrintName() end
-		return self.PrintName or language.GetPhrase(self:GetClass())
-	end
 else
 	entMeta.GetNetworkName = entMeta.GetName
 	entMeta.SetNetworkName = entMeta.SetName
@@ -509,9 +499,49 @@ else
 
 		return getname
 	end
+end
 
-	function entMeta:GetPrintNameDLib()
-		if self.GetPrintName then return self:GetPrintName() end
-		return self.PrintName
+--[[
+	@doc
+	@fname Vehicle:GetPrintNameDLib
+
+	@returns
+	string
+]]
+function entMeta:GetPrintNameDLib(unlocalized)
+	if self:IsPlayer() then return self:Nick() end
+
+	if self.GetPrintName then
+		local pname = self:GetPrintName()
+
+		if SERVER and pname:startsWith('#') then
+			local class = self:GetClass() or 'unknown'
+			local localized = 'info.entity.' .. class .. '.name'
+
+			if DLib.i18n.exists(localized) then
+				return unlocalized and localized or DLib.i18n.localize(localized)
+			end
+		end
+
+		return pname
 	end
+
+	local class = self:GetClass() or 'unknown'
+	local localized = 'info.entity.' .. class .. '.name'
+
+	if DLib.i18n.exists(localized) then
+		return unlocalized and localized or DLib.i18n.localize(localized)
+	end
+
+	local str = self.PrintName
+
+	if not str or #str == 0 then
+		str = language and language.GetPhrase and language.GetPhrase(class) or class
+	end
+
+	if str:startsWith('#') and language and language.GetPhrase then
+		str = language.GetPhrase(str:sub(1)) or str
+	end
+
+	return str or self:GetName()
 end
