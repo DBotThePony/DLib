@@ -349,6 +349,28 @@ end
 	table: formatted table
 ]]
 function math.tformat(time)
+	local centuries, years, months, weeks, days, hours, minutes, seconds = math.tformatVararg(time)
+	return {
+		centuries = centuries, years = years, months = months, weeks = weeks, days = days, hours = hours, minutes = minutes, seconds = seconds
+	}
+end
+
+--[[
+	@doc
+	@fname math.tformatVararg
+	@args number time
+
+	@returns
+	number: centuries
+	number: years
+	number: months
+	number: weeks
+	number: days
+	number: hours
+	number: minutes
+	number: seconds
+]]
+function math.tformatVararg(time)
 	assert(type(time) == 'number', 'Invalid time provided.')
 
 	if time > 0xFFFFFFFFFF then
@@ -357,34 +379,31 @@ function math.tformat(time)
 		return {centuries = 0, years = 0, weeks = 0, days = 0, hours = 0, minutes = 0, seconds = 0, months = 0}
 	end
 
-	local output = {}
+	local centuries = (time - time % 0xBBF81E00) / 0xBBF81E00
+	time = time - centuries * 0xBBF81E00
 
-	output.centuries = (time - time % 0xBBF81E00) / 0xBBF81E00
-	time = time - output.centuries * 0xBBF81E00
+	local years = (time - time % 0x01E13380) / 0x01E13380
+	time = time - years * 0x01E13380
 
-	output.years = (time - time % 0x01E13380) / 0x01E13380
-	time = time - output.years * 0x01E13380
+	local months = ((time - time % 0x00278D00) / 0x00278D00):min(11)
+	time = time - months * 0x00278D00
 
-	output.months = ((time - time % 0x00278D00) / 0x00278D00):min(11)
-	time = time - output.months * 0x00278D00
+	local weeks = (time - time % 604800) / 604800
+	time = time - weeks * 604800
 
-	output.weeks = (time - time % 604800) / 604800
-	time = time - output.weeks * 604800
+	local days = (time - time % 86400) / 86400
+	time = time - days * 86400
 
-	output.days = (time - time % 86400) / 86400
-	time = time - output.days * 86400
+	local hours = (time - time % 3600) / 3600
+	time = time - hours * 3600
 
-	output.hours = (time - time % 3600) / 3600
-	time = time - output.hours * 3600
+	local minutes = (time - time % 60) / 60
+	time = time - minutes * 60
 
-	output.minutes = (time - time % 60) / 60
-	time = time - output.minutes * 60
+	local seconds = time:floor()
 
-	output.seconds = math.floor(time)
-
-	return output
+	return centuries, years, months, weeks, days, hours, minutes, seconds
 end
-
 
 --[[
 	@doc
@@ -400,23 +419,40 @@ end
 ]]
 function math.untformat(time)
 	assert(type(time) == 'table', 'Invalid time provided. You must provide table in math.tformat output format.')
-	assert(type(time.centuries) == 'number', 'Invalid time provided. You must provide table in math.tformat output format.')
-	assert(type(time.years) == 'number', 'Invalid time provided. You must provide table in math.tformat output format.')
-	assert(type(time.months) == 'number', 'Invalid time provided. You must provide table in math.tformat output format.')
-	assert(type(time.weeks) == 'number', 'Invalid time provided. You must provide table in math.tformat output format.')
-	assert(type(time.days) == 'number', 'Invalid time provided. You must provide table in math.tformat output format.')
-	assert(type(time.hours) == 'number', 'Invalid time provided. You must provide table in math.tformat output format.')
-	assert(type(time.minutes) == 'number', 'Invalid time provided. You must provide table in math.tformat output format.')
-	assert(type(time.seconds) == 'number', 'Invalid time provided. You must provide table in math.tformat output format.')
 
-	return time.centuries * 0xBBF81E00
-		+ time.years * 0x01E13380
-		+ time.months * 0x00278D00
-		+ time.weeks * 604800
-		+ time.days * 86400
-		+ time.hours * 3600
-		+ time.minutes * 60
-		+ time.seconds
+	return math.untformatVararg(time.centuries, time.years, time.months, time.weeks, time.days, time.hours, time.minutes, time.seconds)
+end
+
+--[[
+	@doc
+	@fname math.untformatVararg
+	@args number centuries, number years, number months, number weeks, number days, number hours, number minutes, number seconds
+
+	@desc
+	reverse of time numbers format of number
+	@enddesc
+
+	@returns
+	number
+]]
+function math.untformatVararg(centuries, years, months, weeks, days, hours, minutes, seconds)
+	assert(type(centuries) == 'number', 'Invalid time provided. You must provide table in math.tformat output format.')
+	assert(type(years) == 'number', 'Invalid time provided. You must provide table in math.tformat output format.')
+	assert(type(months) == 'number', 'Invalid time provided. You must provide table in math.tformat output format.')
+	assert(type(weeks) == 'number', 'Invalid time provided. You must provide table in math.tformat output format.')
+	assert(type(days) == 'number', 'Invalid time provided. You must provide table in math.tformat output format.')
+	assert(type(hours) == 'number', 'Invalid time provided. You must provide table in math.tformat output format.')
+	assert(type(minutes) == 'number', 'Invalid time provided. You must provide table in math.tformat output format.')
+	assert(type(seconds) == 'number', 'Invalid time provided. You must provide table in math.tformat output format.')
+
+	return centuries * 0xBBF81E00
+		+ years * 0x01E13380
+		+ months * 0x00278D00
+		+ weeks * 604800
+		+ days * 86400
+		+ hours * 3600
+		+ minutes * 60
+		+ seconds
 end
 
 local CLIENT = CLIENT

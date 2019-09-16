@@ -42,6 +42,41 @@ info.dlib.tformat.long = 'Никогда™'
 info.dlib.tformat.now = 'Прямо сейчас'
 info.dlib.tformat.past = 'В прошлом'
 
+local function define(from, to, target, form1, form2, form3)
+	for i = from, to do
+		local div = i % 10
+
+		if i == 0 or i > 9 and i < 19 or div > 4 or div == 0 then
+			target[tostring(i)] = i .. ' ' .. form1
+		elseif div == 1 then
+			target[tostring(i)] = i .. ' ' .. form2
+		elseif div == 2 or div == 3 or div == 4 then
+			target[tostring(i)] = i .. ' ' .. form3
+		end
+	end
+end
+
+define(1, 60, info.dlib.tformat.countable.second, 'секунд', 'секунда', 'секунды')
+define(1, 60, info.dlib.tformat.countable.minute, 'минут', 'минута', 'минуты')
+define(1, 24, info.dlib.tformat.countable.hour, 'часов', 'час', 'часа')
+define(1, 7, info.dlib.tformat.countable.day, 'день', 'дня', 'дней')
+define(1, 4, info.dlib.tformat.countable.week, 'неделя', 'недели', 'недель')
+define(1, 12, info.dlib.tformat.countable.month, 'месяц', 'месяца', 'месяцев')
+define(1, 100, info.dlib.tformat.countable.year, 'год', 'года', 'лет')
+define(1, 100, info.dlib.tformat.countable.century, 'век', 'века', 'веков')
+
+define(1, 60, info.dlib.tformat.countable_ago.second, 'секунд', 'секунду', 'секунды')
+define(1, 60, info.dlib.tformat.countable_ago.minute, 'минут', 'минуту', 'минуты')
+define(1, 24, info.dlib.tformat.countable_ago.hour, 'часов', 'час', 'часа')
+define(1, 7, info.dlib.tformat.countable_ago.day, 'дней', 'день', 'дня')
+define(1, 4, info.dlib.tformat.countable_ago.week, 'недель', 'неделю', 'недели')
+define(1, 12, info.dlib.tformat.countable_ago.month, 'месяцев', 'месяц', 'месяца')
+define(1, 100, info.dlib.tformat.countable_ago.year, 'лет', 'год', 'года')
+define(1, 100, info.dlib.tformat.countable_ago.century, 'веков', 'век', 'века')
+
+info.dlib.tformat.ago = '%s тому назад'
+info.dlib.tformat.ago_inv = 'Через %s'
+
 gui.dlib.friends.title = 'DLib друзья'
 gui.dlib.friends.open = 'Отрыть меню друзей'
 

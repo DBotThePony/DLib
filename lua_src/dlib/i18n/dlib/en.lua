@@ -40,7 +40,33 @@ info.dlib.tformat.centuries = 'centuries'
 
 info.dlib.tformat.long = 'Never™'
 info.dlib.tformat.now = 'Right now'
-info.dlib.tformat.past = 'In the past'
+info.dlib.tformat.past = 'The past'
+
+local function define(from, to, target, form1, form2)
+	for i = from, to do
+		local div = i % 10
+
+		if div == 1 and i ~= 11 then
+			target[tostring(i)] = i .. ' ' .. form1
+		else -- when you encounter that english is way too simple
+			target[tostring(i)] = i .. ' ' .. form2
+		end
+	end
+end
+
+for _, thing in ipairs({info.dlib.tformat.countable, info.dlib.tformat.countable_ago}) do
+	define(1, 60, thing.second, 'second', 'seconds')
+	define(1, 60, thing.minute, 'minute', 'minutes')
+	define(1, 24, thing.hour, 'hour', 'hours')
+	define(1, 7, thing.day, 'day', 'days')
+	define(1, 4, thing.week, 'week', 'weeks')
+	define(1, 12, thing.month, 'month', 'months')
+	define(1, 100, thing.year, 'year', 'years')
+	define(1, 100, thing.century, 'century', 'centuries')
+end
+
+info.dlib.tformat.ago = '%s ago'
+info.dlib.tformat.ago_inv = '%s in future'
 
 gui.dlib.friends.title = 'DLib Friends'
 gui.dlib.friends.open = 'Open Friends Menu'

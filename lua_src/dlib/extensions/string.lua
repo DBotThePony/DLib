@@ -82,15 +82,7 @@ function string.tformat(time)
 
 	local str = ''
 
-	local tformat = math.tformat(time)
-	local centuries = tformat.centuries
-	local years = tformat.years
-	local months = tformat.months
-	local weeks = tformat.weeks
-	local days = tformat.days
-	local hours = tformat.hours
-	local minutes = tformat.minutes
-	local seconds = tformat.seconds
+	local centuries, years, months, weeks, days, hours, minutes, seconds = math.tformatVararg(time)
 
 	if seconds ~= 0 then
 		str = seconds .. ' seconds'
