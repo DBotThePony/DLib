@@ -106,6 +106,7 @@ class DLib.LTakeDamageInfo
 		@damageType = DMG_GENERIC
 		@attacker = NULL
 		@inflictor = NULL
+		@recordedInflictor = NULL
 
 		if copyfrom
 			with copyfrom
@@ -122,12 +123,26 @@ class DLib.LTakeDamageInfo
 				@SetMaxDamage(\GetMaxDamage())
 				@SetReportedPosition(\GetReportedPosition())
 
+	RecordInflictor: =>
+		if @inflictor ~= @attacker or not @attacker.GetActiveWeapon
+			@recordedInflictor = @inflictor
+			return
+
+		weapon = @attacker\GetActiveWeapon()
+
+		if not IsValid(weapon)
+			@recordedInflictor = @inflictor
+			return
+
+		@recordedInflictor = weapon
+
 	AddDamage: (damageNum = 0) => @damage = math.clamp(@damage + damageNum, 0, 0x7FFFFFFF)
 	SubtractDamage: (damageNum = 0) => @damage = math.clamp(@damage - damageNum, 0, 0x7FFFFFFF)
 
 	GetDamageType: => @damageType
 	GetAttacker: => @attacker
 	GetInflictor: => @inflictor
+	GetRecordedInflictor: => @recordedInflictor
 	GetBaseDamage: => @damage
 	GetDamage: => @damage
 	GetDamageBonus: => @damageBonus
@@ -147,6 +162,7 @@ class DLib.LTakeDamageInfo
 	SetAmmoType: (ammotype) => @ammoType = ammotype
 	SetAttacker: (attacker) => @attacker = assert(isentity(attacker) and attacker, 'Invalid attacker')
 	SetInflictor: (attacker) => @inflictor = assert(isentity(attacker) and attacker, 'Invalid inflictor')
+	SetRecordedInflictor: (attacker) => @recordedInflictor = assert(isentity(attacker) and attacker, 'Invalid recorded inflictor')
 	SetDamage: (dmg) => @damage = math.clamp(dmg, 0, 0x7FFFFFFF)
 	SetDamageBonus: (dmg) => @damageBonus = math.clamp(dmg, 0, 0x7FFFFFFF)
 	SetMaxDamage: (dmg) => @maxDamage = math.clamp(dmg, 0, 0x7FFFFFFF)
