@@ -41,6 +41,8 @@ meta.__index = meta
 	Same as [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) but:
 	use `Promise:Catch(function)` and
 	`Promise:Then(function)`
+
+	Alse there is `Promise:Awat(varargForYield)` for use inside coroutine available.
 	@enddesc
 
 	@returns
@@ -118,6 +120,37 @@ function meta:reslv(handler)
 	return self
 end
 
+local coroutine = coroutine
+
+function meta:Await(...)
+	local thread = assert(coroutine.running(), 'not in a coroutine thread')
+
+	local fulfilled = false
+	local err
+
+	self:reslv(function()
+		fulfilled = true
+		coroutine.resume(thread)
+	end)
+
+	self:catch(function(err2)
+		err = err2
+		fulfilled = true
+		coroutine.resume(thread)
+	end)
+
+	while not fulfilled do
+		coroutine.yield(...)
+	end
+
+	if err then
+		error(err)
+	end
+
+	return unpack(self.returns, 1, #self.returns)
+end
+
+meta.await = meta.Await
 meta.resolv = meta.reslv
 meta.after = meta.reslv
 meta.Then = meta.reslv
