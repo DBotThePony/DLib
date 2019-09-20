@@ -1,5 +1,5 @@
 
--- Copyright (C) 2018 DBot
+-- Copyright (C) 2018-2019 DBot
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -49,6 +49,10 @@ meta.__index = meta
 DMySQL4.STYLE_TMYSQL = 0
 DMySQL4.STYLE_MYSQLOO = 1
 
+local prohibited = {
+	' ', '"', '`', ':', '<', '>', '|', '/', '\\', '?', '*'
+}
+
 --[[
 	@doc
 	@fname DMySQL4.Create
@@ -71,10 +75,16 @@ DMySQL4.STYLE_MYSQLOO = 1
 ]]
 function DMySQL4.Create(name)
 	if type(name) ~= 'string' then
-		error('Configuration name must be a string! For default configuration, use "default"', 2)
+		error('Configuration name must be a string! For default configuration, use "default" (which is not recommended, since it provide some restrictions)', 2)
 	end
 
 	name = name:lower():trim()
+	assert(#name ~= 0, 'Config name length is zero')
+
+	for i, symbol in ipairs(prohibited) do
+		assert(not name:find(symbol, 1, true), string.format('%q is not allowed in config name', symbol))
+	end
+
 	local readConfig
 
 	if not file.Exists('dmysql4/' .. name .. '.txt', 'DATA') then
@@ -550,5 +560,261 @@ function meta:TableColumns(tableIn)
 				resolve(output)
 			end):Catch(reject)
 		end
+	end)
+end
+
+-- YYMMDD_hhmmss_.*
+local filematch = '([0-9][0-9])([0-9][0-9])([0-9][0-9])_([0-9][0-9])([0-9][0-9])([0-9][0-9])_(.*)%.lua'
+local filematch2 = '([0-9][0-9])([0-9][0-9])([0-9][0-9])_([0-9][0-9])([0-9][0-9])([0-9][0-9])_(.*)'
+
+function meta:Migrate(doServerCrash)
+	if doServerCrash == nil then doServerCrash = game.IsDedicated() end
+
+	return Promise(function(resolve, reject)
+		DMySQL4.MessageError(self.configName .. ': Migrating database')
+		local files = file.Find('dlib/migration/' .. self.configName .. '/*.lua', 'Lua')
+		local migrations = {}
+
+		for i, file in ipairs(files) do
+			local year, month, day, hour, minute, second, name = file:match(filematch)
+
+			if year and month and day and hour and minute and second and name then
+				local data = {
+					year = year:tonumber() or 0,
+					month = month:tonumber() or 0,
+					day = day:tonumber() or 0,
+					hour = hour:tonumber() or 0,
+					minute = minute:tonumber() or 0,
+					second = second:tonumber() or 0,
+					name = name,
+					migrationname = file:sub(1, -5),
+					filename = 'dlib/migration/' .. self.configName .. '/' .. file
+				}
+
+				data.score = second + minute * 60 + hour * 3600 + day * 86400 + month * 2592000 + year * 31104000
+				table.insert(migrations, data)
+			else
+				DMySQL4.MessageWarning(self.configName .. ': Unknown file in migrations folder: ', file)
+				DMySQL4.MessageWarning('File should be named in this form: YYMMDD_hhmmss_your_own_name.lua')
+				DMySQL4.MessageWarning('So migration controller can figure in which order is to apply migrations')
+			end
+		end
+
+		if #migrations == 0 then
+			resolve()
+			DMySQL4.MessageError(self.configName .. ': Nothing to migrate')
+			return
+		end
+
+		table.sort(migrations, function(a, b)
+			return a.score < b.score
+		end)
+
+		local applied = {}
+
+		local function doStuff()
+			table.sort(applied, function(a, b)
+				return a.score < b.score
+			end)
+
+			local migrationsToApply = {}
+
+			for i, migration in ipairs(migrations) do
+				if applied[i] and applied[i].migrationname ~= migration.migrationname then
+					DMySQL4.MessageError('-------------------------------------------------')
+					DMySQL4.MessageError(self.configName .. ': MIGRATION MISORDER !!!!!!!!!')
+					DMySQL4.MessageError('Something VERY BAD happened!')
+					DMySQL4.MessageError('Migrations in code do not match migrations in database!')
+					DMySQL4.MessageError('This might be due to missing files inside addon,')
+					DMySQL4.MessageError('Bad changes inside it\'s files or')
+					DMySQL4.MessageError('Manual bad database edit.')
+					DMySQL4.MessageError('Server load continuation is highly discouraged!' .. (doServerCrash and '\n' or ''))
+
+					if doServerCrash then
+						DMySQL4.MessageError('TO AVOID SEVERE DAMAGE TO DATABASE AND TO GAME SERVER')
+						DMySQL4.MessageError('GAME SERVER WOULD EXIT NOW\n')
+					end
+
+					DMySQL4.MessageError('DO NOT IGNORE THIS ERROR')
+					DMySQL4.MessageError('DO NOT IGNORE THIS ERROR')
+					DMySQL4.MessageError('DO NOT IGNORE THIS ERROR')
+
+					DMySQL4.MessageError('-------------------------------------------------')
+
+					if doServerCrash then
+						RunConsoleCommand('_restart')
+						return
+					end
+				end
+
+				if not applied[i] then
+					table.insert(migrationsToApply, migration)
+				-- else
+				--  DMySQL4.MessageError(self.configName .. ': ' .. migration.migrationname .. ': Already migrated')
+				end
+			end
+
+			if #migrationsToApply == 0 then
+				resolve()
+				DMySQL4.MessageError(self.configName .. ': Nothing to migrate')
+				return
+			end
+
+			local function migrateNext()
+				local migration = table.remove(migrationsToApply, 1)
+
+				if not migration then
+					resolve()
+					DMySQL4.MessageError(self.configName .. ': All migrations were applied!')
+					return
+				end
+
+				local fn = CompileFile(migration.filename)
+
+				if type(fn) == 'string' then
+					DMySQL4.MessageError(self.configName .. ': CAN\'T MIGRATE')
+					DMySQL4.MessageError('Unable to compile ' .. migration.filename)
+					DMySQL4.MessageError(fn)
+					reject(fn)
+					return
+				end
+
+				local function continueDoingStuff()
+					local thread = coroutine.create(function()
+						local env = getfenv(0)
+
+						setfenv(fn, setmetatable({}, {
+							__index = function(_self, key)
+								if key == 'Connection' or key == 'Link' or key == 'LINK' or key == 'SQL' then
+									return self
+								end
+
+								return env[key]
+							end,
+
+							__newindex = function(_self, key, value)
+								env[key] = value
+							end
+						}))
+
+						fn()
+					end)
+
+					DMySQL4.MessageError(self.configName .. ': Migrating ' .. migration.migrationname)
+
+					hook.Add('Think', self.configName .. '_migrate', function()
+						local status, err = coroutine.resume(thread)
+
+						if not status then
+							DMySQL4.MessageError(self.configName .. ': CAN\'T MIGRATE')
+							DMySQL4.MessageError('Can\'t apply migration ' .. migration.migrationname)
+							DMySQL4.MessageError(err)
+							DMySQL4.MessageError('PRAY TO GOD FOR YOUR DATABASE TO BE SAFE')
+							DMySQL4.MessageError('SINCE BOTH MYSQL AND SQLITE CANT DO FULL ROLLBACK')
+
+							hook.Remove('Think', self.configName .. '_migrate')
+
+							self:Query('ROLLBACK'):Then(function()
+								reject(err)
+							end):Catch(function(err2)
+								DMySQL4.MessageError(self.configName .. ': UNABLE TO ROLLBACK')
+								DMySQL4.MessageError(err2)
+								DMySQL4.MessageError('SOMETHING VERY BAD HAPPENED')
+								DMySQL4.MessageError('PRAY TO GOD FOR YOUR DATABASE TO BE SAFE')
+							end)
+
+							return
+						end
+
+						local status = coroutine.status(thread)
+
+						if status == 'dead' then
+							hook.Remove('Think', self.configName .. '_migrate')
+
+							self:Query('INSERT INTO ' .. self.configName .. '_migrations VALUES (' .. SQLStr(migration.migrationname) .. ', ' .. os.time() .. ')'):Then(function()
+								self:Query('COMMIT'):Then(function()
+									DMySQL4.MessageError(self.configName .. ': Migrated ' .. migration.migrationname)
+									migrateNext()
+								end):Catch(function(err)
+									DMySQL4.MessageError(self.configName .. ': CAN\'T MIGRATE')
+									DMySQL4.MessageError('Unable to COMMIT for ' .. migration.migrationname)
+									DMySQL4.MessageError(err)
+									DMySQL4.MessageError('PRAY TO GOD FOR YOUR DATABASE TO BE SAFE')
+								end)
+							end):Catch(function(err)
+								DMySQL4.MessageError(self.configName .. ': CAN\'T MIGRATE')
+								DMySQL4.MessageError('Unable to insert migration name for ' .. migration.migrationname)
+								DMySQL4.MessageError(err)
+								DMySQL4.MessageError('PRAY TO GOD FOR YOUR DATABASE TO BE SAFE')
+							end)
+						end
+					end)
+				end
+
+				self:Query('BEGIN'):Then(continueDoingStuff):Catch(function(err)
+					if err == 'cannot start a transaction within a transaction' then
+						self:Query('COMMIT'):Then(function()
+							self:Query('BEGIN'):Then(function()
+								continueDoingStuff()
+							end):Catch(function(err)
+								DMySQL4.MessageError(self.configName .. ': CAN\'T MIGRATE')
+								DMySQL4.MessageError('Unable to BEGIN for ' .. migration.migrationname)
+								DMySQL4.MessageError(err)
+							end)
+						end):Catch(function(err)
+							DMySQL4.MessageError(self.configName .. ': CAN\'T MIGRATE')
+							DMySQL4.MessageError('Unable to COMMIT open transaction block for ' .. migration.migrationname)
+							DMySQL4.MessageError(err)
+						end)
+
+						return
+					end
+
+					DMySQL4.MessageError(self.configName .. ': CAN\'T MIGRATE')
+					DMySQL4.MessageError('Unable to BEGIN for ' .. migration.migrationname)
+					DMySQL4.MessageError(err)
+				end)
+			end
+
+			migrateNext()
+		end
+
+		self:Query('SELECT name FROM ' .. self.configName .. '_migrations'):Then(function(data)
+			for i, row in ipairs(data) do
+				local year, month, day, hour, minute, second, name = row.name:match(filematch2)
+
+				if year and month and day and hour and minute and second and name then
+					local data = {
+						year = year:tonumber() or 0,
+						month = month:tonumber() or 0,
+						day = day:tonumber() or 0,
+						hour = hour:tonumber() or 0,
+						minute = minute:tonumber() or 0,
+						second = second:tonumber() or 0,
+						name = name,
+						migrationname = row.name
+					}
+
+					data.score = second + minute * 60 + hour * 3600 + day * 86400 + month * 2592000 + year * 31104000
+					table.insert(applied, data)
+				else
+					DMySQL4.MessageError(self.configName .. ': Unknown migration in database: ', row.name)
+					DMySQL4.MessageError('This should NEVER happen!')
+				end
+			end
+
+			doStuff()
+		end):Catch(function()
+			self:Query([[
+				CREATE TABLE ]] .. self.configName .. [[_migrations (
+					name VARCHAR(255) NOT NULL PRIMARY KEY,
+					apply_time BIGINT NOT NULL
+				)
+			]]):Then(doStuff):Catch(function(...)
+				DMySQL4.MessageError(self.configName .. ': CAN\'T MIGRATE')
+				DMySQL4.MessageError(...)
+				reject(...)
+			end)
+		end)
 	end)
 end

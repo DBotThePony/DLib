@@ -32,6 +32,8 @@ local ProtectedCall = ProtectedCall
 meta.MetaName = 'Promise'
 meta.__index = meta
 
+local coroutine = coroutine
+
 --[[
 	@doc
 	@fname DLib.Promise
@@ -49,14 +51,16 @@ meta.__index = meta
 	Promise: created promise
 ]]
 local function constructor(handler)
-	if type(handler) ~= 'function' then
-		error('Promise handler were not provided; got ' .. type(handler))
-	end
+	local mtype = type(handler)
+	assert(mtype == 'function' or mtype ~= 'thread', 'Promise handler were not provided (function/thread); got ' .. mtype)
 
 	local self = setmetatable({}, meta)
 
+	self.handlerType = mtype
 	self.handler = handler
 	self.success = false
+	self.executed = false
+	self.executed_finish = false
 	self.failure = false
 	self.traceback = debug.traceback(nil, 2)
 
@@ -69,25 +73,61 @@ DLib.Promise = constructor
 _G.Promise = constructor
 
 function meta:execute()
+	if self.executed then error('wtf dude') end
+
 	self.executed = true
 
-	xpcall(self.handler, function(err)
-		self:onReject(debug.traceback(err, 2))
-	end, function(...)
-		self.returns = {...}
-		self.success = true
+	if self.handlerType == 'function' then
+		xpcall(self.handler, function(err)
+			self:onReject(debug.traceback(err, 2))
+		end, function(...)
+			self.returns = {...}
+			self.success = true
+			self.executed_finish = true
 
-		if self.resolve then
-			self.resolve(...)
-		end
-	end, function(...)
-		self.errors = {...}
-		self.failure = true
+			if self.resolve then
+				self.resolve(...)
+			end
+		end, function(...)
+			self.errors = {...}
+			self.failure = true
+			self.executed_finish = true
 
-		if self.reject then
-			self.reject(...)
-		end
-	end)
+			if self.reject then
+				self.reject(...)
+			end
+		end)
+	else
+		hook.Add('Think', self, function()
+			local args = {coroutine.resume(self.handler)}
+
+			if not args[1] then
+				self.errors = {args[2]}
+				self.failure = true
+				self.executed_finish = true
+
+				if self.reject then
+					self.reject(err)
+				end
+
+				return
+			end
+
+			local status = coroutine.status(status)
+
+			if status == 'dead' then
+				table.remove(args, 1)
+
+				self.returns = args
+				self.success = true
+				self.executed_finish = true
+
+				if self.resolve then
+					self.resolve(unpack(args, 1, #args))
+				end
+			end
+		end)
+	end
 
 	return self
 end
@@ -120,7 +160,9 @@ function meta:reslv(handler)
 	return self
 end
 
-local coroutine = coroutine
+function meta:IsValid()
+	return not self.executed_finish
+end
 
 function meta:Await(...)
 	local thread = assert(coroutine.running(), 'not in a coroutine thread')
