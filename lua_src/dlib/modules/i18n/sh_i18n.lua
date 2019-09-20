@@ -35,6 +35,10 @@ i18n.hashedLangFunc = i18n.hashedLangFunc or {}
 i18n.hashedNoArgsLang = i18n.hashedNoArgsLang or {}
 
 local formatters = {
+	['##'] = function(self)
+		return {'##'}, 0
+	end,
+
 	['#E'] = function(self, ent)
 		local ltype = type(ent)
 
