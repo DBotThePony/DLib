@@ -500,7 +500,7 @@ end
 	any: found value
 ]]
 function table.sortedFind(findIn, findWhat, ifNone)
-	local hash = table.flipIntoHash(findIN)
+	local hash = table.flipIntoHash(findIn)
 
 	for i, valueFind in ipairs(findWhat) do
 		if hash[valueFind] then
