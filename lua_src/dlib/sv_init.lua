@@ -41,7 +41,6 @@ DLib.Loader.svmodule('server/friendstatus.lua')
 
 DLib.Loader.loadPureCS('dlib/vgui')
 include('dlib/util/server/chat.lua')
-include('dlib/util/server/gravgunfix.lua')
 
 MsgC(string.format('%.2f ms\n', (SysTime() - timeStart) * 1000))
 timeStart = SysTime()
