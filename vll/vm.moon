@@ -99,6 +99,7 @@ class VLL2.VM
 			scripted_ents.Register(ENT, ename)
 			baseclass.Set(ename, ENT)
 			table.insert(pendingMeta, ename)
+			table.insert(pendingMeta, _name) for _name in *VLL2.WTFWithMetatables(ename)
 			_G.ENT = nil
 
 		for _dir in *dirs
@@ -117,9 +118,23 @@ class VLL2.VM
 				scripted_ents.Register(ENT, _dir)
 				baseclass.Set(_dir, ENT)
 				table.insert(pendingMeta, _dir)
+				table.insert(pendingMeta, _name) for _name in *VLL2.WTFWithMetatables(_dir)
 				_G.ENT = nil
 
-		VLL2.RecursiveMergeBase(meta) for _meta in *pendingMeta
+		_dedup = {}
+
+		for name in *pendingMeta
+			hit = false
+
+			for name2 in *_dedup
+				if name == name2
+					hit = true
+					break
+
+			if not hit
+				table.insert(_dedup, name)
+
+		VLL2.RecursiveMergeBase(_meta) for _meta in *_dedup
 
 	LoadEffects: =>
 		files, dirs = @localFS\Find('effects/*.lua')
@@ -173,6 +188,7 @@ class VLL2.VM
 			weapons.Register(SWEP, ename)
 			baseclass.Set(ename, SWEP)
 			table.insert(pendingMeta, ename)
+			table.insert(pendingMeta, _name) for _name in *VLL2.WTFWithMetatables(ename)
 			_G.SWEP = nil
 
 		for _dir in *dirs
@@ -193,9 +209,23 @@ class VLL2.VM
 				weapons.Register(SWEP, _dir)
 				baseclass.Set(_dir, SWEP)
 				table.insert(pendingMeta, _dir)
+				table.insert(pendingMeta, _name) for _name in *VLL2.WTFWithMetatables(_dir)
 				_G.SWEP = nil
 
-		VLL2.RecursiveMergeBase(meta) for _meta in *pendingMeta
+		_dedup = {}
+
+		for name in *pendingMeta
+			hit = false
+
+			for name2 in *_dedup
+				if name == name2
+					hit = true
+					break
+
+			if not hit
+				table.insert(_dedup, name)
+
+		VLL2.RecursiveMergeBase(_meta) for _meta in *_dedup
 
 	__TFALoader: (fpath) =>
 		files = @localFS\Find(fpath .. '/*')

@@ -190,6 +190,11 @@ end
 	@doc
 	@fname DLib.string.niceName
 	@args Entity ent
+	@deprecated
+
+	@desc
+	Use Entity:GetPrintNameDLib()
+	@enddesc
 
 	@returns
 	string

@@ -20,13 +20,25 @@
 
 import VLL2, baseclass, table, string, assert, type from _G
 
+VLL2.WTFWithMetatables = (base) ->
+	output = {}
+
+	for classname, definition in pairs(scripted_ents.GetList())
+		if definition.Base == base
+			table.append(output, VLL2.WTFWithMetatables(classname))
+
+	for aWEAPUN in *weapons.GetList()
+		if aWEAPUN.ClassName and aWEAPUN.Base == base
+			table.append(output, VLL2.WTFWithMetatables(aWEAPUN.ClassName))
+
+	return {base} if #output == 0
+	return output
+
 VLL2.RecursiveMergeBase = (mergeMeta) ->
 	return if not mergeMeta
 	metaGet = baseclass.Get(mergeMeta)
-	return if not metaGet.Base
-	return if metaGet.Base == mergeMeta
-	VLL2.RecursiveMergeBase(metaGet.Base)
-	metaBase = baseclass.Get(metaGet.Base)
+	return if not metaGet.Base or metaGet.Base == mergeMeta
+	metaBase = baseclass.Get(metaGet.Base) or {}
 	metaGet[key] = value for key, value in pairs(metaBase) when metaGet[key] == nil
 
 -- Easy to access functions
