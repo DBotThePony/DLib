@@ -436,7 +436,7 @@ function i18n.localizeByLang(phrase, lang, ...)
 		if lang == 'en' or not i18n.hashedLang[lang] then
 			unformatted = i18n.hashedFunc[phrase] or nil
 		else
-			unformatted = i18n.hashedLangFunc[lang][phrase] or i18n.hashedFunc[phrase] or nil
+			unformatted = i18n.hashedLangFunc[lang] and i18n.hashedLangFunc[lang][phrase] or i18n.hashedFunc[phrase] or nil
 		end
 
 		if not unformatted then
@@ -511,7 +511,7 @@ function i18n._localizeByLangAdvanced(phrase, lang, colorDef, ...)
 		if lang == 'en' or not i18n.hashedLang[lang] then
 			unformatted = i18n.hashedFunc[phrase] or nil
 		else
-			unformatted = i18n.hashedLangFunc[lang][phrase] or i18n.hashedFunc[phrase] or nil
+			unformatted = i18n.hashedLangFunc[lang] and i18n.hashedLangFunc[lang][phrase] or i18n.hashedFunc[phrase] or nil
 		end
 
 		if not unformatted then
