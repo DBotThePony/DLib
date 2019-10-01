@@ -434,7 +434,7 @@ class VLL2.GMABundle extends VLL2.AbstractBundle
 		@status = @@STATUS_LOADED
 
 class VLL2.URLGMABundle extends VLL2.GMABundle
-	new: (name, url) =>
+	new: (name = 'URL:' .. util.CRC(url), url) =>
 		super(name)
 		@crc = util.CRC(url)
 		@url = url

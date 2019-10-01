@@ -53,6 +53,19 @@ vll2_mkautocomplete = (commandToReg) ->
 		result = [commandToReg .. ' ' .. _file for _file in *autocomplete when _file\StartWith(args)]
 		return result
 
+vll2_urlcontent = (ply, cmd, args) ->
+	return VLL2.MessagePlayer(ply, 'Not a super admin!') if disallow(ply)
+	bundle = args[1]
+	return VLL2.MessagePlayer(ply, 'No URL were specified') if not bundle
+	matchStart, matchEnd = bundle\find('https?://([a-zA-Z.-/%%0-9%?=_&]+)')
+	return VLL2.MessagePlayer(ply, 'Invalid URL provided') if not matchStart or matchEnd ~= #bundle
+	return VLL2.MessagePlayer(ply, 'Bundle is already loading!') if not VLL2.AbstractBundle\Checkup(bundle\lower())
+	fbundle = VLL2.URLGMABundle(nil, bundle)
+	fbundle\DoNotLoadLua()
+	fbundle\Load()
+	fbundle\Replicate()
+	VLL2.MessagePlayer(ply, 'Loading URL Bundle: ' .. bundle)
+
 vll2_workshop = (ply, cmd, args) ->
 	return VLL2.MessagePlayer(ply, 'Not a super admin!') if disallow(ply)
 	bundle = args[1]
@@ -154,6 +167,7 @@ timer.Simple 0, ->
 	if not game.SinglePlayer() or CLIENT
 		concommand.Add 'vll2_load', vll2_load, vll2_mkautocomplete('vll2_load')
 		concommand.Add 'vll2_workshop', vll2_workshop
+		concommand.Add 'vll2_urlcontent', vll2_urlcontent
 		concommand.Add 'vll2_wscollection', vll2_wscollection
 		concommand.Add 'vll2_wscollection_content', vll2_wscollection_content
 		concommand.Add 'vll2_workshop_silent', vll2_workshop_silent
@@ -166,6 +180,7 @@ timer.Simple 0, ->
 		net.Receive 'vll2_cmd_load_server', (_, ply) -> vll2_load(ply, nil, string.Explode(' ', net.ReadString()\Trim()))
 		concommand.Add 'vll2_load_server', vll2_load, vll2_mkautocomplete('vll2_load_server')
 		concommand.Add 'vll2_load_silent', vll2_load_silent, vll2_mkautocomplete('vll2_load_silent')
+		concommand.Add 'vll2_urlcontent_server', vll2_urlcontent
 		concommand.Add 'vll2_workshop_server', vll2_workshop
 		concommand.Add 'vll2_wscollection_server', vll2_wscollection
 		concommand.Add 'vll2_wscollection_content_server', vll2_wscollection_content
