@@ -456,7 +456,7 @@ function i18n.localizeByLang(phrase, lang, ...)
 
 			return output
 		else
-			return 'Format error: ' .. formatted
+			return 'Format error: ' .. phrase .. ' ' .. formatted
 		end
 	end
 
@@ -473,7 +473,7 @@ function i18n.localizeByLang(phrase, lang, ...)
 	if status then
 		return formatted
 	else
-		return 'Format error: ' .. formatted
+		return 'Format error: ' .. phrase .. ' ' .. formatted
 	end
 end
 
@@ -523,7 +523,7 @@ function i18n._localizeByLangAdvanced(phrase, lang, colorDef, ...)
 		if status then
 			return formatted, cnum
 		else
-			return {'Format error: ' .. formatted}, 0
+			return {'Format error: ' .. phrase .. ' ' .. formatted}, 0
 		end
 	end
 
@@ -540,7 +540,7 @@ function i18n._localizeByLangAdvanced(phrase, lang, colorDef, ...)
 	if status then
 		return {formatted}, i18n.countExpressions(unformatted)
 	else
-		return {'Format error: ' .. formatted}, 0
+		return {'Format error: ' .. phrase .. ' ' .. formatted}, 0
 	end
 end
 
