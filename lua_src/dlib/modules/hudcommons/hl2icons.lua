@@ -131,14 +131,17 @@ local stuff = {
 
 		output.push(`@func DLib.HUDCommons.GetWeaponAmmoIcon${size}`)
 		output.push(`@client`)
+		output.push(`@deprecated`)
 		output.push(`@args Weapon weapon`)
 		output.push(`@returns`)
 		output.push(`function: or nil`)
 
+		reply.push(output)
 		output = []
 
 		output.push(`@func DLib.HUDCommons.GetWeaponSecondaryAmmoIcon${size}`)
 		output.push(`@client`)
+		output.push(`@deprecated`)
 		output.push(`@args Weapon weapon`)
 		output.push(`@returns`)
 		output.push(`function: or nil`)
@@ -148,6 +151,7 @@ local stuff = {
 
 		output.push(`@func DLib.HUDCommons.DrawWeaponAmmoIcon${size}`)
 		output.push(`@client`)
+		output.push(`@deprecated`)
 		output.push(`@args Weapon weapon, number x, number y, Color r = nil, number g = nil, number b = nil, number a = nil`)
 		output.push(`@desc`)
 		output.push(`\`r\` argument can be either Color or a number`)
@@ -163,6 +167,7 @@ local stuff = {
 
 		output.push(`@func DLib.HUDCommons.DrawWeaponSecondaryAmmoIcon${size}`)
 		output.push(`@client`)
+		output.push(`@deprecated`)
 		output.push(`@args Weapon weapon, number x, number y, Color r = nil, number g = nil, number b = nil, number a = nil`)
 		output.push(`@desc`)
 		output.push(`\`r\` argument can be either Color or a number`)
@@ -188,6 +193,7 @@ local stuff = {
 				output.push(`@func DLib.HUDCommons.Draw${name}${size}`)
 				output.push(`@args number x, number y, Color r = nil, number g = nil, number b = nil, number a = nil`)
 				output.push(`@client`)
+				output.push(`@deprecated`)
 				output.push(`@desc`)
 				output.push(`Draws corresponding image`)
 				output.push(`\`r\` argument can be either Color or a number`)
@@ -317,6 +323,226 @@ do
 	end
 end
 
+-- FIXME: After Rubat's "fix", fonts with size over 128 seem to render bad.
+for i = 4, 400, 4 do
+	surface.CreateFont('DLibDrawWeaponSelection' .. i, {
+		font = 'HalfLife2',
+		size = i:min(128),
+		weight = 500,
+		additive = true
+	})
+
+	surface.CreateFont('DLibDrawAmmoIcon' .. i, {
+		font = 'HalfLife2',
+		size = i:min(128),
+		weight = 500
+	})
+
+	surface.CreateFont('DLibDrawWeaponSelectionSelected' .. i, {
+		font = 'HalfLife2',
+		size = i:min(128),
+		weight = 500,
+		additive = true,
+		scanlines = 2,
+		blur = 5,
+	})
+end
+
+-- 1 = AR2
+-- 2 = AR2AltFire
+-- 3 = Pistol
+-- 4 = SMG1
+-- 5 = 357
+-- 6 = XBowBolt
+-- 7 = Buckshot
+-- 8 = RPG_Round
+-- 9 = SMG1_Grenade
+-- 10 = Grenade
+-- 11 = slam
+-- 12 = AlyxGun
+-- 13 = SniperRound
+-- 14 = SniperPenetratedRound
+-- 15 = Thumper
+-- 16 = Gravity
+-- 17 = Battery
+-- 18 = GaussEnergy
+-- 19 = CombineCannon
+-- 20 = AirboatGun
+-- 21 = StriderMinigun
+-- 22 = HelicopterGun
+-- 23 = 9mmRound
+-- 24 = 357Round
+-- 25 = BuckshotHL1
+-- 26 = XBowBoltHL1
+-- 27 = MP5_Grenade
+-- 28 = RPG_Rocket
+-- 29 = Uranium
+-- 30 = GrenadeHL1
+-- 31 = Hornet
+-- 32 = Snark
+-- 33 = TripMine
+-- 34 = Satchel
+-- 35 = 12mmRound
+-- 36 = StriderMinigunDirect
+-- 37 = CombineHeavyCannon
+
+local ammo_map_id = {}
+local ammo_map_name = {}
+
+local function refreshTypes()
+	local i = 1
+	local nextAmmoType
+	local types = {}
+
+	repeat
+		nextAmmoType = game.GetAmmoName(i)
+
+		if nextAmmoType then
+			types[nextAmmoType:lower()] = i
+		end
+
+		i = i + 1
+	until not nextAmmoType
+
+	local function batbat(name, wepclass, isSecondary)
+		-- SKREEEEEEEEEEEEEEEE
+		if not types[name] then return end
+
+		ammo_map_name[name] = types[name]
+		ammo_map_id[types[name]] = {
+			name = name,
+			wepclass = wepclass,
+			isSecondary = isSecondary
+		}
+	end
+
+	batbat('ar2', 'weapon_ar2')
+	batbat('ar2altfire', 'weapon_ar2', true)
+	batbat('pistol', 'weapon_pistol')
+	batbat('smg1', 'weapon_smg1')
+	batbat('357', 'weapon_357')
+	batbat('xbowbolt', 'weapon_crossbow')
+	batbat('xbowbolthl1', 'weapon_crossbow_hl1')
+	batbat('buckshot', 'weapon_shotgun')
+	batbat('buckshothl1', 'weapon_shotgun_hl1')
+	batbat('rpg_round', 'weapon_rpg')
+	batbat('rpg_rocket', 'weapon_rpg_hl1')
+	batbat('smg1_grenade', 'weapon_smg1', true)
+	batbat('grenade', 'weapon_frag')
+	batbat('slam', 'weapon_slam')
+	batbat('alyxgun', 'weapon_alyxgun')
+	batbat('9mmround', 'weapon_glock_hl1')
+	batbat('357round', 'weapon_357_hl1')
+	batbat('mp5_grenade', 'weapon_mp5_hl1', true)
+	batbat('uranium', 'weapon_gauss')
+	batbat('grenadehl1', 'weapon_handgrenade')
+	batbat('hornet', 'weapon_hornetgun')
+	batbat('snark', 'weapon_snark')
+	batbat('tripmine', 'weapon_tripmine')
+	batbat('satchel', 'weapon_satchel')
+
+	-- batbat('sniperround', 'q')
+	-- batbat('sniperpenetratedround', 'q')
+end
+
+if AreEntitiesAvailable() then
+	refreshTypes()
+else
+	hook.Add('InitPostEntity', 'HUDCommons.AmmoIcons', refreshTypes)
+end
+
+local TEXT_ALIGN_LEFT = TEXT_ALIGN_LEFT
+local TEXT_ALIGN_CENTER = TEXT_ALIGN_CENTER
+local TEXT_ALIGN_RIGHT = TEXT_ALIGN_RIGHT
+local TEXT_ALIGN_TOP = TEXT_ALIGN_TOP
+local TEXT_ALIGN_BOTTOM = TEXT_ALIGN_BOTTOM
+
+local function DrawSprite(drawdata, font, x, y, width, height, color, xalign, yalign)
+	if not drawdata then return end
+
+	xalign = xalign or TEXT_ALIGN_LEFT
+	yalign = yalign or TEXT_ALIGN_TOP
+
+	local text = drawdata.character
+
+	local size = width:max(height)
+
+	if not text then
+		local w, h = drawdata.width or drawdata.material:Width(), drawdata.height or drawdata.material:Height()
+		local w2, h2 = drawdata.material:Width(), drawdata.material:Height()
+		surface.SetDrawColor(color)
+		surface.SetMaterial(drawdata.material)
+
+		local u1, v1, u2, v2 =
+			(drawdata.x or 0) / drawdata.material:Width(),
+			(drawdata.y or 0) / drawdata.material:Height(),
+			((drawdata.x or 0) + (drawdata.width or 0)) / drawdata.material:Width(),
+			((drawdata.y or 0) + (drawdata.height or 0)) / drawdata.material:Height()
+
+		local nw, nh
+
+		if w > h then
+			nw, nh = size, size * (h / w)
+		else
+			nw, nh = size * (w / h), size
+		end
+
+		if xalign == TEXT_ALIGN_CENTER then
+			x = x - nw / 2
+		elseif xalign == TEXT_ALIGN_RIGHT then
+			x = x - nw
+		end
+
+		if yalign == TEXT_ALIGN_CENTER then
+			y = y - nh / 2
+		elseif yalign == TEXT_ALIGN_BOTTOM then
+			y = y - nh
+		end
+
+		surface.DrawTexturedRectUV(x, y, nw, nh, u1, v1, u2, v2)
+		return
+	end
+
+	local selectFont = (size / 4):clamp(1, 100):ceil() * 4
+	surface.SetFont(font .. selectFont)
+	surface.SetTextColor(color)
+
+	local w, h = surface.GetTextSize(text)
+
+	if xalign == TEXT_ALIGN_CENTER then
+		x = x - w / 2
+	elseif xalign == TEXT_ALIGN_RIGHT then
+		x = x - w
+	end
+
+	if yalign == TEXT_ALIGN_CENTER then
+		y = y - h / 2
+	elseif yalign == TEXT_ALIGN_BOTTOM then
+		y = y - h
+	end
+
+	surface.SetTextPos(x, y)
+	surface.DrawText(text)
+end
+
+function HUDCommons.DrawAmmoIcon(ammotype, x, y, width, height, color, xalign, yalign)
+	local data = ammo_map_id[ammotype]
+
+	if isstring(ammotype) then
+		data = ammo_map_id[ammo_map_name[ammotype]]
+	end
+
+	if not data then return end
+	local wepdata = DLib.util.GetWeaponScript(data.wepclass)
+	if not wepdata then return end
+	if not wepdata.texturedata then return end
+
+	return DrawSprite(
+		data.isSecondary and wepdata.texturedata.ammo2 or wepdata.texturedata.ammo,
+		'DLibDrawAmmoIcon',
+		x, y, width, height, color, xalign, yalign)
+end
+
 --[[
 	@doc
 	@fname Weapon:DLibDrawWeaponSelection
@@ -342,143 +568,61 @@ end
 	`DLibDrawWeaponSelection` but with glowing icons for HL2 weapons
 	@enddesc
 ]]
-do
-	local wepMeta = FindMetaTable('Weapon')
-	local Matrix = Matrix
-	local cam = cam
-	local surface = surface
-	local Vector = Vector
 
-	local mColor = Color(255, 176, 0)
+local wepMeta = FindMetaTable('Weapon')
+local Matrix = Matrix
+local cam = cam
+local Vector = Vector
 
-	for i = 4, 400, 4 do
-		surface.CreateFont('DLibDrawWeaponSelection' .. i, {
-			font = 'HalfLife2',
-			size = i,
-			weight = 500,
-			additive = true
-		})
+local mColor = Color(255, 176, 0)
 
-		surface.CreateFont('DLibDrawWeaponSelectionSelected' .. i, {
-			font = 'HalfLife2',
-			size = i,
-			weight = 500,
-			additive = true,
-			scanlines = 2,
-			blur = 5,
-		})
+local function InternalDrawIcon(self, x, y, width, height, alpha, selected, ...)
+	assert(type(x) == 'number', 'x must be a number')
+	assert(type(y) == 'number', 'y must be a number')
+	assert(type(width) == 'number', 'width must be a number')
+	assert(type(height) == 'number', 'height must be a number')
+	assert(type(alpha) == 'number', 'alpha must be a number')
+
+	local data = DLib.util.GetWeaponScript(self)
+
+	if not data or not data.texturedata or not data.texturedata.weapon then
+		local fcall = self.DrawWeaponSelection
+		if not fcall then return end
+		return fcall(self, x, y, width, height, alpha, ...)
 	end
 
-	local function InternalDrawIcon(self, x, y, width, height, alpha, data, selected)
-		--[[local matrix = Matrix()
-		matrix:Translate(Vector(x, y))
-		matrix:Scale(Vector(width / 160, height / 80))]]
+	if data.texturedata.weapon_s and (not data.texturedata.weapon_s.character and not data.texturedata.weapon_s.material) then return end
 
-		--surface.SetFont(selected and 'DLibDrawWeaponSelectionSelected' or 'DLibDrawWeaponSelection')
-		local text
+	if hook.Run('DrawWeaponSelection', self, x, y, width, height, alpha) == false then return end
 
-		if data.texturedata.weapon_s then
-			text = selected and data.texturedata.weapon_s.character or data.texturedata.weapon.character
-		else
-			text = data.texturedata.weapon.character
-		end
+	hook.Run('PreDrawWeaponSelection', self, x, y, width, height, alpha)
 
-		if not text then
-			local data2
+	DrawSprite(
+		selected and data.texturedata.weapon_s or data.texturedata.weapon,
+		selected and 'DLibDrawWeaponSelectionSelected' or 'DLibDrawWeaponSelection',
+		x + width / 2, y + height / 2, width, height, mColor:ModifyAlpha(alpha), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
 
-			if data.texturedata.weapon_s then
-				data2 = selected and data.texturedata.weapon_s or data.texturedata.weapon
-			else
-				data2 = data.texturedata.weapon
-			end
+	hook.Run('PostDrawWeaponSelection', self, x, y, width, height, alpha)
+end
 
-			local w, h = data2.width or data2.material:Width(), data2.height or data2.material:Height()
-			surface.SetDrawColor(255, 255, 255, alpha)
-			surface.SetMaterial(data2.material)
-			local w2, h2 = data2.material:Width(), data2.material:Height()
+function wepMeta:DLibDrawWeaponSelection(x, y, width, height, alpha, ...)
+	InternalDrawIcon(self, x, y, width, height, alpha, data, false, ...)
+end
 
-			local u1, v1, u2, v2 =
-				(data2.x or 0) / data2.material:Width(),
-				(data2.y or 0) / data2.material:Height(),
-				((data2.x or 0) + (data2.width or 0)) / data2.material:Width(),
-				((data2.y or 0) + (data2.height or 0)) / data2.material:Height()
+function wepMeta:DLibDrawWeaponSelectionSelected(x, y, width, height, alpha, ...)
+	InternalDrawIcon(self, x, y, width, height, alpha, data, true, ...)
+end
 
-			local size = width:max(height)
+function wepMeta:DrawPrimaryAmmoIcon(x, y, width, height, color, xalign, yalign)
+	local ammotype = self:GetPrimaryAmmoType()
+	if not ammotype or ammotype == -1 then return end
 
-			if w > h then
-				local nw, nh = size, size * (h / w)
-				surface.DrawTexturedRectUV(x + width / 2 - nw / 2, y + height / 2 - nh / 2, nw, nh, u1, v1, u2, v2)
-			else
-				local nw, nh = size * (w / h), size
-				surface.DrawTexturedRectUV(x + width / 2 - nw / 2, y + height / 2 - nh / 2, nw, nh, u1, v1, u2, v2)
-			end
+	return HUDCommons.DrawAmmoIcon(ammotype, x, y, width, height, color, xalign, yalign)
+end
 
-			return
-		end
+function wepMeta:DrawSecondaryAmmoIcon(x, y, width, height, color, xalign, yalign)
+	local ammotype = self:GetSecondaryAmmoType()
+	if not ammotype or ammotype == -1 then return end
 
-		local size = width:min(height)
-		local selectFont = (size / 4):clamp(1, 100):ceil() * 4
-		surface.SetFont(selected and ('DLibDrawWeaponSelectionSelected' .. selectFont) or ('DLibDrawWeaponSelection' .. selectFont))
-		surface.SetTextColor(mColor:ModifyAlpha(alpha))
-
-		local w, h = surface.GetTextSize(text)
-		x = x + width / 2 - w / 2
-		y = y + height / 2 - h / 2
-
-		surface.SetTextPos(x, y)
-
-		--cam.PushModelMatrix(matrix)
-
-		surface.DrawText(text)
-
-		--cam.PopModelMatrix()
-	end
-
-	function wepMeta:DLibDrawWeaponSelection(x, y, width, height, alpha, ...)
-		assert(type(x) == 'number', 'x must be a number')
-		assert(type(y) == 'number', 'y must be a number')
-		assert(type(width) == 'number', 'width must be a number')
-		assert(type(height) == 'number', 'height must be a number')
-		assert(type(alpha) == 'number', 'alpha must be a number')
-
-		local data = DLib.util.GetWeaponScript(self)
-
-		if not data or not data.texturedata or not data.texturedata.weapon then
-			local fcall = self.DrawWeaponSelection
-			if not fcall then return end
-			return fcall(self, x, y, width, height, alpha, ...)
-		end
-
-		if not data.texturedata.weapon.character and not data.texturedata.weapon.material then return end
-
-		if hook.Run('DrawWeaponSelection', self, x, y, width, height, alpha) == false then return end
-
-		hook.Run('PreDrawWeaponSelection', self, x, y, width, height, alpha)
-		InternalDrawIcon(self, x, y, width, height, alpha, data, false)
-		hook.Run('PostDrawWeaponSelection', self, x, y, width, height, alpha)
-	end
-
-	function wepMeta:DLibDrawWeaponSelectionSelected(x, y, width, height, alpha, ...)
-		assert(type(x) == 'number', 'x must be a number')
-		assert(type(y) == 'number', 'y must be a number')
-		assert(type(width) == 'number', 'width must be a number')
-		assert(type(height) == 'number', 'height must be a number')
-		assert(type(alpha) == 'number', 'alpha must be a number')
-
-		local data = DLib.util.GetWeaponScript(self)
-
-		if not data or not data.texturedata or not data.texturedata.weapon then
-			local fcall = self.DrawWeaponSelection
-			if not fcall then return end
-			return fcall(self, x, y, width, height, alpha, ...)
-		end
-
-		if data.texturedata.weapon_s and (not data.texturedata.weapon_s.character and not data.texturedata.weapon_s.material) then return end
-
-		if hook.Run('DrawWeaponSelection', self, x, y, width, height, alpha) == false then return end
-
-		hook.Run('PreDrawWeaponSelection', self, x, y, width, height, alpha)
-		InternalDrawIcon(self, x, y, width, height, alpha, data, true)
-		hook.Run('PostDrawWeaponSelection', self, x, y, width, height, alpha)
-	end
+	return HUDCommons.DrawAmmoIcon(ammotype, x, y, width, height, color, xalign, yalign)
 end

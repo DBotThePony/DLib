@@ -386,6 +386,14 @@ if CLIENT then
 			if data.texturedata.weapon_s and data.texturedata.weapon_s.file then
 				data.texturedata.weapon_s.material = Material(data.texturedata.weapon_s.file)
 			end
+
+			if data.texturedata.ammo and data.texturedata.ammo.file then
+				data.texturedata.ammo.material = Material(data.texturedata.ammo.file)
+			end
+
+			if data.texturedata.ammo2 and data.texturedata.ammo2.file then
+				data.texturedata.ammo2.material = Material(data.texturedata.ammo2.file)
+			end
 		end
 	end
 end
@@ -399,7 +407,7 @@ end
 	table: or nil, if no script present
 ]]
 function DLib.util.GetWeaponScript(weaponIn)
-	if type(weaponIn) == 'string' then
+	if isstring(weaponIn) then
 		return wepdata[weaponIn]
 	elseif type(weaponIn) == 'Weapon' then
 		return wepdata[weaponIn:GetClass()]
