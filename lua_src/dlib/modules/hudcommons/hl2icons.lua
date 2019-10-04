@@ -525,11 +525,22 @@ local function DrawSprite(drawdata, font, x, y, width, height, color, xalign, ya
 	surface.DrawText(text)
 end
 
+--[[
+	@doc
+	@fname DLib.HUDCommons.DrawAmmoIcon
+	@args number ammotype, number x, number y, number width, number height, Color alpha, number xalign, number yalign
+
+	@client
+
+	@desc
+	Ammotype can be a string
+	@enddesc
+]]
 function HUDCommons.DrawAmmoIcon(ammotype, x, y, width, height, color, xalign, yalign)
 	local data = ammo_map_id[ammotype]
 
 	if isstring(ammotype) then
-		data = ammo_map_id[ammo_map_name[ammotype]]
+		data = ammo_map_id[ammo_map_name[ammotype:lower()]]
 	end
 
 	if not data then return end
@@ -613,6 +624,13 @@ function wepMeta:DLibDrawWeaponSelectionSelected(x, y, width, height, alpha, ...
 	InternalDrawIcon(self, x, y, width, height, alpha, data, true, ...)
 end
 
+--[[
+	@doc
+	@fname Weapon:DrawPrimaryAmmoIcon
+	@args number x, number y, number width, number height, Color alpha, number xalign, number yalign
+
+	@client
+]]
 function wepMeta:DrawPrimaryAmmoIcon(x, y, width, height, color, xalign, yalign)
 	local ammotype = self:GetPrimaryAmmoType()
 	if not ammotype or ammotype == -1 then return end
@@ -620,6 +638,13 @@ function wepMeta:DrawPrimaryAmmoIcon(x, y, width, height, color, xalign, yalign)
 	return HUDCommons.DrawAmmoIcon(ammotype, x, y, width, height, color, xalign, yalign)
 end
 
+--[[
+	@doc
+	@fname Weapon:DrawSecondaryAmmoIcon
+	@args number x, number y, number width, number height, Color alpha, number xalign, number yalign
+
+	@client
+]]
 function wepMeta:DrawSecondaryAmmoIcon(x, y, width, height, color, xalign, yalign)
 	local ammotype = self:GetSecondaryAmmoType()
 	if not ammotype or ammotype == -1 then return end
