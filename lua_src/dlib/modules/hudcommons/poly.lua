@@ -115,7 +115,7 @@ end
 --[[
 	@doc
 	@fname DLib.HUDCommons.DrawPolyFrame
-	@args table PolygonVertex, boolean drawXY, boolean drawUV
+	@args table PolygonVertex, boolean drawname, boolean drawXY, boolean drawUV
 
 	@client
 
@@ -123,7 +123,7 @@ end
 	useful for debugging shapes of !s:PolygonVertex when it doesn't draw or something
 	@enddesc
 ]]
-function HUDCommons.DrawPolyFrame(polydata, drawXY, drawUV)
+function HUDCommons.DrawPolyFrame(polydata, drawnum, drawXY, drawUV)
 	local w, h = ScrWL(), ScrHL()
 	local padding = ScreenSize(2)
 	local x, y
@@ -141,9 +141,15 @@ function HUDCommons.DrawPolyFrame(polydata, drawXY, drawUV)
 		x = X
 		y = Y
 
-		if drawXY or drawUV then
+		if drawXY or drawUV or drawnum then
 			HUDCommons.DrawCircle(x - 4, y - 4, 8, 16)
-			local text = drawXY and drawUV and string.format('%f,%f %.2f,%.2f', x, y, vertex.u or 0, vertex.v or 0) or drawXY and string.format('%f,%f', x, y) or string.format('%.2f,%.2f', vertex.u or 0, vertex.v or 0)
+			local text = drawXY and drawUV and drawnum and
+				string.format('%i:%f,%f %.2f,%.2f', i, x, y, vertex.u or 0, vertex.v or 0) or
+				drawXY and drawnum and string.format('%i:%f,%f', i, x, y) or
+				drawUV and drawnum and string.format('%i:%.2f,%.2f', i, vertex.u or 0, vertex.v or 0) or
+				drawXY and string.format('%f,%f', x, y) or
+				string.format('%.2f,%.2f', vertex.u or 0, vertex.v or 0)
+
 			local tw, th = surface.GetTextSize(text)
 
 			surface.SetTextPos(math.clamp(x - tw, padding, w - padding), math.clamp(y - th, padding, h - padding))
