@@ -115,7 +115,7 @@ end
 --[[
 	@doc
 	@fname DLib.HUDCommons.DrawPolyFrame
-	@args table PolygonVertex
+	@args table PolygonVertex, boolean drawXY, boolean drawUV
 
 	@client
 
@@ -123,8 +123,13 @@ end
 	useful for debugging shapes of !s:PolygonVertex when it doesn't draw or something
 	@enddesc
 ]]
-function HUDCommons.DrawPolyFrame(polydata)
+function HUDCommons.DrawPolyFrame(polydata, drawXY, drawUV)
+	local w, h = ScrWL(), ScrHL()
+	local padding = ScreenSize(2)
 	local x, y
+
+	surface.SetFont('Default')
+	surface.SetTextColor(255, 255, 255)
 
 	HUDCommons.DrawCircle(polydata[1].x - 4, polydata[1].y - 4, 8, 16)
 
@@ -135,6 +140,15 @@ function HUDCommons.DrawPolyFrame(polydata)
 		surface.DrawLine(x, y, X, Y)
 		x = X
 		y = Y
+
+		if drawXY or drawUV then
+			HUDCommons.DrawCircle(x - 4, y - 4, 8, 16)
+			local text = drawXY and drawUV and string.format('%f,%f %.2f,%.2f', x, y, vertex.u or 0, vertex.v or 0) or drawXY and string.format('%f,%f', x, y) or string.format('%.2f,%.2f', vertex.u or 0, vertex.v or 0)
+			local tw, th = surface.GetTextSize(text)
+
+			surface.SetTextPos(math.clamp(x - tw, padding, w - padding), math.clamp(y - th, padding, h - padding))
+			surface.DrawText(text)
+		end
 	end
 
 	HUDCommons.DrawCircle(x - 6, y - 6, 12, 16)
