@@ -143,6 +143,9 @@ DLib.Loader.shmodule('hook.lua')
 DLib.simpleInclude('luabridge/luaify2.lua')
 DLib.simpleInclude('luabridge/lobject.lua')
 
+DLib.simpleInclude('util/http.lua')
+DLib.simpleInclude('util/promisify.lua')
+
 MsgC(string.format('%.2f ms\n', (SysTime() - timeStart) * 1000))
 timeStart = SysTime()
 MsgC('[DLib] Initializing DLib modules ... ')
