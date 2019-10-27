@@ -455,6 +455,79 @@ function math.untformatVararg(centuries, years, months, weeks, days, hours, minu
 		+ seconds
 end
 
+do
+	local daysIn = {
+		31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
+	}
+
+	local _timeCached = {}
+	local _timeCachedHigh = {}
+
+	for month = 1, 12 do
+		local stamp1 = 0
+		local stamp2 = 0
+
+		for _month = 1, month - 1 do
+			if _month == 2 then
+				stamp1 = stamp1 + 29 * 86400
+				stamp2 = stamp2 + 28 * 86400
+			else
+				stamp1 = stamp1 + daysIn[_month] * 86400
+				stamp2 = stamp2 + daysIn[_month] * 86400
+			end
+		end
+
+		_timeCachedHigh[month] = stamp1
+		_timeCached[month] = stamp2
+	end
+
+	local yearLength = 31536000
+	local longYearLength = 31622400
+	local isnumber = isnumber
+
+	function math.dateToTimestamp(year, month, day, hour, minute, second)
+		assert(isnumber(year), 'year is not a number or missing')
+		assert(isnumber(month), 'month is not a number or missing')
+		assert(isnumber(day), 'day is not a number or missing')
+		assert(isnumber(hour), 'hour is not a number or missing')
+		assert(isnumber(minute), 'minute is not a number or missing')
+		assert(isnumber(second), 'second is not a number or missing')
+
+		assert(year >= 1970, 'year < 1970 is not supported yet')
+		assert(month >= 1 and month < 13, 'invalid month')
+		assert(day >= 1 and day <= 31, 'invalid day')
+		assert(hour >= 0 and hour <= 24, 'invalid hour')
+		assert(minute >= 0 and minute <= 60, 'invalid minute')
+		assert(second >= 0 and second <= 60, 'invalid second')
+
+		local yearS, peaks, skips, shift = year - 1970, 0, 0, 0
+
+		if year > 2000 then
+			-- ???
+			peaks = ((year - 1600) / 400):floor()
+			yearS = yearS - peaks
+			shift = -86400 * peaks
+
+			skips = (((year - 1900) / 100):floor() - peaks):max(0)
+			yearS = yearS - skips
+
+			local peak2 = (((year - 1968) / 4):floor() - skips):max(0)
+			yearS = yearS - peak2
+			peaks = peaks + peak2
+		elseif year < 2000 then
+			peaks = ((year - 1968) / 4):floor()
+			yearS = yearS - peaks
+		else
+			peaks = 7
+			yearS = yearS - 7
+		end
+
+		return peaks * longYearLength + skips * yearLength + yearS * yearLength +
+			((year % 400 == 0 or year % 100 ~= 0 and year % 4 == 0) and _timeCachedHigh[month] or _timeCached[month]) +
+			(day - 1) * 86400 + hour * 3600 + minute * 60 + second + shift
+	end
+end
+
 local CLIENT = CLIENT
 local hook = hook
 local net = net

@@ -38,6 +38,12 @@ function http.PromisePost(url, params, headers)
 	end)
 end
 
+function http.PromisePostBody(url, body, headers)
+	return Promise(function(resolve, reject)
+		http.PostBody(url, body, resolve, reject, headers)
+	end)
+end
+
 function http.PromiseHead(url, headers)
 	return Promise(function(resolve, reject)
 		http.Head(url, resolve, reject, headers)
