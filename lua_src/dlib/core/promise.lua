@@ -79,7 +79,13 @@ function meta:execute()
 
 	if self.handlerType == 'function' then
 		xpcall(self.handler, function(err)
-			self:onReject(debug.traceback(err, 2))
+			self.errors = {debug.traceback(err, 2)}
+			self.failure = true
+			self.executed_finish = true
+
+			if self.reject then
+				self.reject(debug.traceback(err, 2))
+			end
 		end, function(...)
 			self.returns = {...}
 			self.success = true
