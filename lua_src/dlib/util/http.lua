@@ -90,6 +90,11 @@ local function figureoutSeparator(struct, len)
 				return figureoutSeparator(struct, len + 1)
 			end
 		else
+			if isnumber(value) then
+				value = tostring(value)
+				struct[_] = tostring(value)
+			end
+
 			if value:find(separator, 1, true) then
 				return figureoutSeparator(struct, len + 1)
 			end
