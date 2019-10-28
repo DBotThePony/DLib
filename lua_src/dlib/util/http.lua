@@ -136,11 +136,11 @@ function http.EncodeMultipart(struct)
 				table.insert(build, '')
 			end
 
-			table.insert(build, value.body)
+			table.insert(build, tostring(value.body))
 			table.insert(build, separator)
 		else
 			table.insert(build, 'Content-Disposition: form-data; name="' .. whut(key) .. '"\n')
-			table.insert(build, value)
+			table.insert(build, tostring(value))
 			table.insert(build, separator)
 		end
 	end
