@@ -23,14 +23,6 @@ local SCREENCOPY, DRAWMAT, RTW, RTH
 local function refreshRT()
 	RTW, RTH = ScrW(), ScrH()
 
-	local textureFlags = 0
-	--textureFlags = textureFlags + 16 -- anisotropic
-	textureFlags = textureFlags + 256 -- no mipmaps
-	textureFlags = textureFlags + 2048 -- Texture is procedural
-	textureFlags = textureFlags + 32768 -- Texture is a render target
-	-- textureFlags = textureFlags + 67108864 -- Usable as a vertex texture
-
-	--SCREENCOPY = GetRenderTargetEx('dlib-blur-' .. RTW .. '-' .. RTH, RTW, RTH, RT_SIZE_NO_CHANGE, MATERIAL_RT_DEPTH_ONLY, textureFlags, CREATERENDERTARGETFLAGS_UNFILTERABLE_OK, IMAGE_FORMAT_RGBA8888)
 	SCREENCOPY = GetRenderTarget('dlib-blur-' .. RTW .. '-' .. RTH, RTW, RTH, false)
 
 	DRAWMAT = CreateMaterial('dlib-blur1', 'UnlitGeneric', {
