@@ -53,6 +53,7 @@ local FrameNumber = FrameNumber
 local render = render
 local surface = surface
 local DLib = DLib
+local SysTime = SysTime
 
 local mat_BlurX = Material("pp/blurx")
 local mat_BlurY = Material("pp/blury")
@@ -83,10 +84,14 @@ local BLUR_Y = CreateConVar('dlib_blur_y', '2', {FCVAR_ARCHIVE}, 'Blurring stren
 local BLUR_PASSES = CreateConVar('dlib_blur_passes', '1', {FCVAR_ARCHIVE}, 'Blurring passes. Do not change unless you know what you are doing!')
 local BLUR_ENABLE = CreateConVar('dlib_blur_enable', '1', {FCVAR_ARCHIVE}, 'Enable blur utility functions. Usually this does not affect performance or do so slightly.')
 
+local LAST_DRAW = 0
+
 function blur.RefreshNow(force)
 	if not BLUR_ENABLE:GetBool() then return false end
 	if last_refresh == FrameNumber() and not force then return false end
+	if LAST_DRAW < 0 and not force then return false end
 	last_refresh = FrameNumber()
+	LAST_DRAW = LAST_DRAW - 1
 
 	render.CopyRenderTargetToTexture(SCREENCOPY)
 	BlurRenderTarget(SCREENCOPY, BLUR_X:GetInt(2):clamp(1, 32), BLUR_Y:GetInt(2):clamp(1, 32), BLUR_PASSES:GetInt(1):clamp(1, 32))
@@ -100,6 +105,7 @@ end, -1)
 
 function blur.Draw(x, y, w, h)
 	if not BLUR_ENABLE:GetBool() then return end
+	LAST_DRAW = 10
 	local u, v, eu, ev = x / RTW, y / RTH, (x + w) / RTW, (y + h) / RTH
 
 	surface.SetMaterial(DRAWMAT)
@@ -109,6 +115,7 @@ end
 
 function blur.DrawOffset(drawX, drawY, w, h, realX, realY)
 	if not BLUR_ENABLE:GetBool() then return end
+	LAST_DRAW = 10
 	local u, v, eu, ev = realX / RTW, realY / RTH, (realX + w) / RTW, (realY + h) / RTH
 
 	surface.SetMaterial(DRAWMAT)
@@ -118,6 +125,7 @@ end
 
 function blur.DrawPanel(w, h, x, y)
 	if not BLUR_ENABLE:GetBool() then return end
+	LAST_DRAW = SysTime() + 5
 	local u, v, eu, ev = x / RTW, y / RTH, (x + w) / RTW, (y + h) / RTH
 
 	surface.SetMaterial(DRAWMAT)
