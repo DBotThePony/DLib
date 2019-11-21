@@ -132,7 +132,8 @@ function DLib.skin:PaintPropertySheet(panel, w, h)
 	if ActiveTab then Offset = ActiveTab:GetTall()-8 end
 
 	if self.ENABLE_BLUR:GetBool() then
-		DLib.blur.DrawOffset(0, Offset, w, h, panel:LocalToScreen(0, 0))
+		DLib.blur.RefreshNow(true)
+		DLib.blur.DrawOffset(0, Offset, w, h, panel:LocalToScreen(0, Offset))
 	end
 
 	self.tex.Tab_Control(0, Offset, w, h-Offset)
@@ -551,6 +552,7 @@ end
 
 function DLib.skin:PaintMenu(panel, w, h)
 	if self.ENABLE_BLUR:GetBool() then
+		DLib.blur.RefreshNow(true)
 		DLib.blur.DrawPanel(w, h, panel:LocalToScreen(0, 0))
 	end
 
@@ -683,6 +685,7 @@ function DLib.skin:PaintFrame(panel, w, h)
 	end
 
 	if self.ENABLE_BLUR:GetBool() then
+		DLib.blur.RefreshNow(true)
 		DLib.blur.DrawPanel(w, h, panel:LocalToScreen(0, 0))
 	end
 

@@ -47,7 +47,6 @@ hook.Add('InvalidateMaterialCache', 'BAHUD.RefreshRT', refreshRT)
 
 DLib.blur = DLib.blur or {}
 local blur = DLib.blur
-local last_refresh
 
 local FrameNumber = FrameNumber
 local render = render
@@ -84,12 +83,13 @@ local BLUR_PASSES = CreateConVar('dlib_blur_passes', '1', {FCVAR_ARCHIVE}, 'Blur
 local BLUR_ENABLE = CreateConVar('dlib_blur_enable', '1', {FCVAR_ARCHIVE}, 'Enable blur utility functions. Usually this does not affect performance or do so slightly.')
 
 local LAST_DRAW = 0
+local LAST_REFRESH
 
 function blur.RefreshNow(force)
 	if not BLUR_ENABLE:GetBool() then return false end
-	if last_refresh == FrameNumber() and not force then return false end
+	if LAST_REFRESH == FrameNumber() and not force then return false end
 	if LAST_DRAW < 0 and not force then return false end
-	last_refresh = FrameNumber()
+	LAST_REFRESH = FrameNumber()
 	LAST_DRAW = LAST_DRAW - 1
 
 	render.CopyRenderTargetToTexture(SCREENCOPY)
@@ -105,6 +105,7 @@ end, -1)
 function blur.Draw(x, y, w, h)
 	if not BLUR_ENABLE:GetBool() then return end
 	LAST_DRAW = 10
+	if LAST_REFRESH ~= FrameNumber() then return end
 	local u, v, eu, ev = x / RTW, y / RTH, (x + w) / RTW, (y + h) / RTH
 
 	surface.SetMaterial(DRAWMAT)
@@ -115,6 +116,7 @@ end
 function blur.DrawOffset(drawX, drawY, w, h, realX, realY)
 	if not BLUR_ENABLE:GetBool() then return end
 	LAST_DRAW = 10
+	if LAST_REFRESH ~= FrameNumber() then return end
 	local u, v, eu, ev = realX / RTW, realY / RTH, (realX + w) / RTW, (realY + h) / RTH
 
 	surface.SetMaterial(DRAWMAT)
@@ -125,6 +127,7 @@ end
 function blur.DrawPanel(w, h, x, y)
 	if not BLUR_ENABLE:GetBool() then return end
 	LAST_DRAW = 10
+	if LAST_REFRESH ~= FrameNumber() then return end
 	local u, v, eu, ev = x / RTW, y / RTH, (x + w) / RTW, (y + h) / RTH
 
 	surface.SetMaterial(DRAWMAT)
