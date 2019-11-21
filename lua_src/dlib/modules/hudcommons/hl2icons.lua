@@ -323,24 +323,30 @@ do
 	end
 end
 
--- FIXME: After Rubat's "fix", fonts with size over 128 seem to render bad.
+-- CShaderAPIDX8::BlitTextureBits: couldn't lock texture rect or use UpdateSurface
+-- CShaderAPIDX8::BlitTextureBits: couldn't lock texture rect or use UpdateSurface
+local WTFSIZE = 160
+
 for i = 4, 400, 4 do
 	surface.CreateFont('DLibDrawWeaponSelection' .. i, {
 		font = 'HalfLife2',
-		size = i:min(128),
+		--size = i:min(128),
+		size = i:min(WTFSIZE),
 		weight = 500,
 		additive = true
 	})
 
 	surface.CreateFont('DLibDrawAmmoIcon' .. i, {
 		font = 'HalfLife2',
-		size = i:min(128),
+		--size = i:min(128),
+		size = i:min(WTFSIZE),
 		weight = 500
 	})
 
 	surface.CreateFont('DLibDrawWeaponSelectionSelected' .. i, {
 		font = 'HalfLife2',
-		size = i:min(128),
+		--size = i:min(128),
+		size = i:min(WTFSIZE),
 		weight = 500,
 		additive = true,
 		scanlines = 2,
@@ -465,7 +471,7 @@ local function DrawSprite(drawdata, font, x, y, width, height, color, xalign, ya
 
 	local text = drawdata.character
 
-	local size = width:max(height)
+	local size = width:min(height)
 
 	if not text then
 		local w, h = drawdata.width or drawdata.material:Width(), drawdata.height or drawdata.material:Height()
@@ -503,11 +509,22 @@ local function DrawSprite(drawdata, font, x, y, width, height, color, xalign, ya
 		return
 	end
 
+	local recalc = false
+
+	::RECALC::
+
 	local selectFont = (size / 4):clamp(1, 100):ceil() * 4
 	surface.SetFont(font .. selectFont)
 	surface.SetTextColor(color)
 
 	local w, h = surface.GetTextSize(text)
+	local ratio = w / h
+
+	if ratio < 0.9 and not recalc then
+		size = width:max(height)
+		recalc = true
+		goto RECALC
+	end
 
 	if xalign == TEXT_ALIGN_CENTER then
 		x = x - w / 2
