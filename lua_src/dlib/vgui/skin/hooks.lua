@@ -95,19 +95,6 @@ end
 --[[---------------------------------------------------------
 	Menu
 -----------------------------------------------------------]]
-function DLib.skin:PaintMenu(panel, w, h)
-
-	if panel:GetDrawColumn() then
-		self.tex.MenuBG_Column(0, 0, w, h)
-	else
-		self.tex.MenuBG(0, 0, w, h)
-	end
-
-end
-
---[[---------------------------------------------------------
-	Menu
------------------------------------------------------------]]
 function DLib.skin:PaintMenuSpacer(panel, w, h)
 	self.tex.MenuBG(0, 0, w, h)
 end
@@ -144,6 +131,10 @@ function DLib.skin:PaintPropertySheet(panel, w, h)
 	local Offset = 0
 	if ActiveTab then Offset = ActiveTab:GetTall()-8 end
 
+	if self.ENABLE_BLUR:GetBool() then
+		DLib.blur.DrawOffset(0, Offset, w, h, panel:LocalToScreen(0, 0))
+	end
+
 	self.tex.Tab_Control(0, Offset, w, h-Offset)
 end
 
@@ -155,10 +146,12 @@ function DLib.skin:PaintTab(panel, w, h)
 		return self:PaintActiveTab(panel, w, h)
 	end
 
+	--DLib.blur.DrawPanel(w, h, panel:LocalToScreen(0, 0))
 	self.tex.TabT_Inactive(0, 0, w, h)
 end
 
 function DLib.skin:PaintActiveTab(panel, w, h)
+	--DLib.blur.DrawPanel(w, h, panel:LocalToScreen(0, 0))
 	self.tex.TabT_Active(0, 0, w, h)
 end
 
@@ -557,6 +550,10 @@ function DLib.skin:PaintMenuOption(panel, w, h)
 end
 
 function DLib.skin:PaintMenu(panel, w, h)
+	if self.ENABLE_BLUR:GetBool() then
+		DLib.blur.DrawPanel(w, h, panel:LocalToScreen(0, 0))
+	end
+
 	if panel:GetDrawColumn() then
 		self.tex.MenuBG_Column(0, 0, w, h)
 	else
@@ -673,4 +670,25 @@ function DLib.skin:PaintWindowMaximizeButton(panel, w, h)
 	end
 
 	self.tex.Window.Maxi(0, 0, w, h, panel)
+end
+
+--[[---------------------------------------------------------
+	Frame
+-----------------------------------------------------------]]
+function DLib.skin:PaintFrame(panel, w, h)
+	if panel.m_bPaintShadow then
+		DisableClipping(true)
+		SKIN.tex.Shadow(-4, -4, w + 10, h + 10)
+		DisableClipping(false)
+	end
+
+	if self.ENABLE_BLUR:GetBool() then
+		DLib.blur.DrawPanel(w, h, panel:LocalToScreen(0, 0))
+	end
+
+	if panel:HasHierarchicalFocus() then
+		self.tex.Window.Normal(0, 0, w, h)
+	else
+		self.tex.Window.Inactive(0, 0, w, h)
+	end
 end

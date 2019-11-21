@@ -127,7 +127,7 @@ function DLib.skin.tex.MenuBG_Column(x, y, w, h, self)
 end
 
 function DLib.skin.tex.MenuBG(x, y, w, h, self)
-	Simple_DrawBox(x, y, w, h, DLib.skin.bg_color)
+	Simple_DrawBox(x, y, w, h, DLib.skin.bg_color_menu)
 end
 
 function DLib.skin.tex.MenuBG_Hover(x, y, w, h, self)

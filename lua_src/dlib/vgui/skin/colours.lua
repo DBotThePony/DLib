@@ -37,6 +37,7 @@ local Simple_DrawBox = DLib.skin.Simple_DrawBox
 local Simple_DrawText = DLib.skin.Simple_DrawText
 
 local WINDOW_ALPHA = 200
+local WINDOW_ALPHA_SOFT = 140
 
 DLib.skin.colours = {}
 DLib.skin.colors = DLib.skin.colours
@@ -55,6 +56,7 @@ DLib.skin.colours.ComboBoxDisabled = Color(0, 0, 0, 130)
 DLib.skin.CloseAlpha = 150
 
 DLib.skin.bg_color  = Color(55, 55, 55, WINDOW_ALPHA)
+DLib.skin.bg_color_menu  = Color(55, 55, 55, WINDOW_ALPHA_SOFT)
 DLib.skin.bg_color_sleep  = Color(70, 70, 70, WINDOW_ALPHA)
 DLib.skin.bg_color_dark = Color(0, 0, 0, WINDOW_ALPHA)
 DLib.skin.bg_color_bright = Color(220, 220, 220, WINDOW_ALPHA)
