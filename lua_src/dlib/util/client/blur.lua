@@ -53,7 +53,6 @@ local FrameNumber = FrameNumber
 local render = render
 local surface = surface
 local DLib = DLib
-local SysTime = SysTime
 
 local mat_BlurX = Material("pp/blurx")
 local mat_BlurY = Material("pp/blury")
@@ -125,7 +124,7 @@ end
 
 function blur.DrawPanel(w, h, x, y)
 	if not BLUR_ENABLE:GetBool() then return end
-	LAST_DRAW = SysTime() + 5
+	LAST_DRAW = 10
 	local u, v, eu, ev = x / RTW, y / RTH, (x + w) / RTW, (y + h) / RTH
 
 	surface.SetMaterial(DRAWMAT)
