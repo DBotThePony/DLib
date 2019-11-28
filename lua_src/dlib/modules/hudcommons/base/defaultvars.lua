@@ -21,6 +21,14 @@
 
 local meta = DLib.FindMetaTable('HUDCommonsBase')
 local math = math
+local gmod_suit = GetConVar('gmod_suit')
+local SPRINT = GetConVar('sv_limited_sprint')
+local WATER = GetConVar('sv_limited_oxygen')
+
+timer.Simple(0, function()
+	SPRINT = GetConVar('sv_limited_sprint')
+	WATER = GetConVar('sv_limited_oxygen')
+end)
 
 -- do not override
 function meta:__InitVaribles()
@@ -60,10 +68,26 @@ function meta:__InitVaribles()
 	self:RegisterRegularWeaponVariable('weaponClass', 'GetClass', '')
 	self:RegisterRegularWeaponVariable('customAmmoDisplayCache', 'CustomAmmoDisplay', 'NULLABLE')
 
+	self:RegisterVariable('suitPower', -1)
+
 	self:RegisterVariable('ammo1', 0)
 	self:RegisterVariable('ammo1_Select', 0)
 	self:RegisterVariable('ammo2', 0)
 	self:RegisterVariable('ammo2_Select', 0)
+
+	self:SetTickHook('suitPower', function(self, hudSelf, localPlayer, current)
+		if not hudSelf:GetVarWearingSuit() then return -1 end
+
+		if gmod_suit and gmod_suit:GetBool() then
+			return localPlayer:GetSuitPower() or -1
+		end
+
+		if localPlayer.GetLimitedHEVPower and (SPRINT:GetBool() or WATER:GetBool()) then
+			return localPlayer:GetLimitedHEVPower()
+		end
+
+		return -1
+	end)
 
 	self:SetTickHook('ammo1', function(self, hudSelf, localPlayer, current)
 		local atype = hudSelf:GetVarAmmoType1()
