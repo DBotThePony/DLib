@@ -45,6 +45,18 @@ local month_map = table.flipIntoHash({
 	'dec'
 })
 
+--[[
+	@doc
+	@fname http.ParseDate
+	@args string input
+
+	@desc
+	Parses date in next format `Tue, 26 Nov 2019 01:18:04 GMT`
+	@enddesc
+
+	@returns
+	number: timestamp
+]]
 function http.ParseDate(input)
 	local day_of_week, day, month_str, year, hour, minute, second = input:lower():match('([a-z]+),%s+([0-9]+)%s+([a-z]+)%s+([0-9]+)%s+([0-9]+):([0-9]+):([0-9]+)%s+gmt')
 
@@ -109,6 +121,22 @@ local function whut(name)
 	return name
 end
 
+--[[
+	@doc
+	@fname http.EncodeMultipart
+	@args table struct
+
+	@desc
+	Encodes input as `multipart/form-data`
+	`struct` is a table consist of string `key`s
+	and `value`s either of string or table, containing
+	`filename`, `mimetype` and `body` values
+	@enddesc
+
+	@returns
+	string: encoded string
+	string: header value for Content-Type
+]]
 function http.EncodeMultipart(struct)
 	assert(istable(struct), 'Structure must be a table!')
 	local separator = figureoutSeparator(struct, 1)
@@ -148,6 +176,19 @@ function http.EncodeMultipart(struct)
 	return table.concat(build, '\n'), 'multipart/form-data; boundary=' .. separator:sub(3)
 end
 
+--[[
+	@doc
+	@fname http.EncodeQuery
+	@args table struct
+
+	@desc
+	struct is a table of `key -> value`
+	Both key and value should be strings
+	@enddesc
+
+	@returns
+	string: encoded string
+]]
 function http.EncodeQuery(params)
 	assert(istable(params), 'Params input must be a table!')
 
@@ -176,6 +217,18 @@ local function escape(input)
 	return '%' .. string.format('%X', string.byte(input))
 end
 
+--[[
+	@doc
+	@fname http.EncodeComponent
+	@args string input
+
+	@desc
+	See [Mozilla Developer Network](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent) for details
+	@enddesc
+
+	@returns
+	string: encoded string
+]]
 function http.EncodeComponent(component)
 	assert(isstring(component), 'Input must be a string!')
 	return component:gsub("[\x01-\x26]", escape)
@@ -187,6 +240,16 @@ function http.EncodeComponent(component)
 		:gsub(utf8.charpattern, escapeUnicode)
 end
 
+--[[
+	@doc
+	@fname http.Head
+	@args string url, function onsuccess, function onfailure, table headers = {}
+
+	@desc
+	Executes a HTTP HEAD request
+	onsuccess is a function with `table headers, number code` parameters
+	@enddesc
+]]
 function http.Head(url, onsuccess, onfailure, headers)
 	local request = {
 		url = url,
@@ -209,6 +272,16 @@ function http.Head(url, onsuccess, onfailure, headers)
 	return HTTP(request)
 end
 
+--[[
+	@doc
+	@fname http.Put
+	@args string url, string body, function onsuccess, function onfailure, table headers = {}
+
+	@desc
+	Executes a HTTP PUT request
+	onsuccess is a function with `string body, number size, table headers, number code` parameters
+	@enddesc
+]]
 function http.Put(url, body, onsuccess, onfailure, headers)
 	local request = {
 		url = url,
@@ -241,6 +314,16 @@ function http.Put(url, body, onsuccess, onfailure, headers)
 	return HTTP(request)
 end
 
+--[[
+	@doc
+	@fname http.PostBody
+	@args string url, string body, function onsuccess, function onfailure, table headers = {}
+
+	@desc
+	Executes a HTTP POST request
+	onsuccess is a function with `string body, number size, table headers, number code` parameters
+	@enddesc
+]]
 function http.PostBody(url, body, onsuccess, onfailure, headers)
 	local request = {
 		url = url,

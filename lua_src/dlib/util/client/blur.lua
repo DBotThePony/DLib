@@ -85,6 +85,16 @@ local BLUR_ENABLE = CreateConVar('dlib_blur_enable', '1', {FCVAR_ARCHIVE}, 'Enab
 local LAST_DRAW = 0
 local LAST_REFRESH
 
+--[[
+	@doc
+	@fname DLib.blur.RefreshNow
+	@args boolean force = false
+	@client
+
+	@desc
+	calls render.CopyRenderTargetToTexture and blurs internal render target
+	@enddesc
+]]
 function blur.RefreshNow(force)
 	if not BLUR_ENABLE:GetBool() then return false end
 	if LAST_REFRESH == FrameNumber() and not force then return false end
@@ -102,6 +112,12 @@ hook.Add('PostDrawHUD', 'DLib.Blur', function()
 	blur.RefreshNow()
 end, -1)
 
+--[[
+	@doc
+	@fname DLib.blur.Draw
+	@args number x, number y, number width, number height
+	@client
+]]
 function blur.Draw(x, y, w, h)
 	if not BLUR_ENABLE:GetBool() then return end
 	LAST_DRAW = 10
@@ -113,6 +129,12 @@ function blur.Draw(x, y, w, h)
 	surface.DrawTexturedRectUV(x, y, w, h, u, v, eu, ev)
 end
 
+--[[
+	@doc
+	@fname DLib.blur.DrawOffset
+	@args number drawx, number drawy, number width, number height, number realx, number realy
+	@client
+]]
 function blur.DrawOffset(drawX, drawY, w, h, realX, realY)
 	if not BLUR_ENABLE:GetBool() then return end
 	LAST_DRAW = 10
@@ -124,6 +146,16 @@ function blur.DrawOffset(drawX, drawY, w, h, realX, realY)
 	surface.DrawTexturedRectUV(drawX, drawY, w, h, u, v, eu, ev)
 end
 
+--[[
+	@doc
+	@fname DLib.blur.DrawPanel
+	@args number width, number height, number screenx, number screeny
+	@client
+
+	@desc
+	handy with use of panels. Example usage: `DLib.blut.DrawPanel(w, h, self:LocalToScreen(0, 0))`
+	@enddesc
+]]
 function blur.DrawPanel(w, h, x, y)
 	if not BLUR_ENABLE:GetBool() then return end
 	LAST_DRAW = 10
