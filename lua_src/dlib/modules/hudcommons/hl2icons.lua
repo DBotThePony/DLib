@@ -574,7 +574,7 @@ end
 --[[
 	@doc
 	@fname Weapon:DLibDrawWeaponSelection
-	@args number x, number y, number width, number height, number alpha
+	@args number x, number y, number width, number height, any alpha
 
 	@client
 
@@ -582,13 +582,14 @@ end
 	Same as !g:Weapon:DrawWeaponSelection Except it support HL2 Sweps!
 	Call this instead of `DrawWeaponSelection`
 	This is perfect function for custom weapon selector
+	Alpha can be either a number (0-255) or a color
 	@enddesc
 ]]
 
 --[[
 	@doc
 	@fname Weapon:DLibDrawWeaponSelectionSelected
-	@args number x, number y, number width, number height, number alpha
+	@args number x, number y, number width, number height, any alpha
 
 	@client
 
@@ -604,19 +605,19 @@ local Vector = Vector
 
 local mColor = Color(255, 176, 0)
 
-local function InternalDrawIcon(self, x, y, width, height, alpha, selected, ...)
+local function InternalDrawIcon(self, x, y, width, height, alpha, selected, color, ...)
 	assert(type(x) == 'number', 'x must be a number')
 	assert(type(y) == 'number', 'y must be a number')
 	assert(type(width) == 'number', 'width must be a number')
 	assert(type(height) == 'number', 'height must be a number')
-	assert(type(alpha) == 'number', 'alpha must be a number')
+	-- assert(type(alpha) == 'number', 'alpha must be a number')
 
 	local data = DLib.util.GetWeaponScript(self)
 
 	if not data or not data.texturedata or not data.texturedata.weapon then
 		local fcall = self.DrawWeaponSelection
 		if not fcall then return end
-		return fcall(self, x, y, width, height, alpha, ...)
+		return fcall(self, x, y, width, height, alpha or color and color.a or error('wtf?'), ...)
 	end
 
 	if data.texturedata.weapon_s and (not data.texturedata.weapon_s.character and not data.texturedata.weapon_s.material) then return end
@@ -628,17 +629,31 @@ local function InternalDrawIcon(self, x, y, width, height, alpha, selected, ...)
 	DrawSprite(
 		selected and data.texturedata.weapon_s or data.texturedata.weapon,
 		selected and 'DLibDrawWeaponSelectionSelected' or 'DLibDrawWeaponSelection',
-		x + width / 2, y + height / 2, width, height, mColor:ModifyAlpha(alpha), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+		x + width / 2,
+		y + height / 2,
+		width,
+		height,
+		alpha and mColor:ModifyAlpha(alpha) or color or error('wtf?'),
+		TEXT_ALIGN_CENTER,
+		TEXT_ALIGN_CENTER)
 
 	hook.Run('PostDrawWeaponSelection', self, x, y, width, height, alpha)
 end
 
-function wepMeta:DLibDrawWeaponSelection(x, y, width, height, alpha, ...)
-	InternalDrawIcon(self, x, y, width, height, alpha, data, false, ...)
+function wepMeta:DLibDrawWeaponSelection(x, y, width, height, color, ...)
+	if type(color) == 'number' then
+		InternalDrawIcon(self, x, y, width, height, color, false, nil, ...)
+	else
+		InternalDrawIcon(self, x, y, width, height, nil, false, color, ...)
+	end
 end
 
-function wepMeta:DLibDrawWeaponSelectionSelected(x, y, width, height, alpha, ...)
-	InternalDrawIcon(self, x, y, width, height, alpha, data, true, ...)
+function wepMeta:DLibDrawWeaponSelectionSelected(x, y, width, height, color, ...)
+	if type(color) == 'number' then
+		InternalDrawIcon(self, x, y, width, height, color, true, nil, ...)
+	else
+		InternalDrawIcon(self, x, y, width, height, nil, true, color, ...)
+	end
 end
 
 --[[
