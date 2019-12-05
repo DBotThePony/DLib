@@ -332,7 +332,6 @@ local maxint = 0x100000000
 --[[
 	@doc
 	@fname net.ReadBigUInt
-	@args number value
 
 	@returns
 	number: 64 bit unsigned integer
@@ -341,7 +340,6 @@ local maxint = 0x100000000
 --[[
 	@doc
 	@fname net.ReadBigInt
-	@args number value
 
 	@returns
 	number: 64 bit integer
