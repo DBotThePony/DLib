@@ -1543,3 +1543,30 @@ else
 		hook.Reconstruct()
 	end)
 end
+
+if file.Exists('autorun/hat_init.lua', 'LUA') then
+	DLib.Message(string.rep('-', 63))
+	DLib.Message(string.rep('W', 63))
+	DLib.Message(string.rep('A', 63))
+	DLib.Message(string.rep('R', 63))
+	DLib.Message(string.rep('N', 63))
+	DLib.Message(string.rep('I', 63))
+	DLib.Message(string.rep('N', 63))
+	DLib.Message(string.rep('G', 63))
+	DLib.Message('HAT INSTALLATION DETECTED')
+	DLib.Message('HAT IS BASICALLY BROKEN FOR YEARS')
+	DLib.Message('AND IT ALSO BREAK THE GAME, OBVIOUSLY')
+	DLib.Message('IMPLEMENTING HAT LOADER TRAP')
+	DLib.Message(string.rep('-', 63))
+
+	table._DLibCopy = table._DLibCopy or table.Copy
+
+	function table.Copy(tableIn)
+		if tableIn == _G.concommand or tableIn == _G.hook then
+			table.Copy = table._DLibCopy
+			error('Nuh uh. No. Definitely Not. I dont even.', 2)
+		end
+
+		return table._DLibCopy(tableIn)
+	end
+end
