@@ -82,7 +82,7 @@ function meta:__InitVaribles()
 			return localPlayer:GetSuitPower() or -1
 		end
 
-		if localPlayer.GetLimitedHEVPower and (SPRINT:GetBool() or WATER:GetBool()) then
+		if localPlayer.GetLimitedHEVPower and (SPRINT and SPRINT:GetBool() or WATER and WATER:GetBool()) then
 			return localPlayer:GetLimitedHEVPower()
 		end
 
