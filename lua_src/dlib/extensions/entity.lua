@@ -156,7 +156,6 @@ npcMeta.GetActiveWeaponClass = plyMeta.GetActiveWeaponClass
 
 if CLIENT then
 	local CSEnt = FindMetaTable('CSEnt')
-	entMeta.RemoveDLib = entMeta.RemoveDLib or entMeta.Remove
 
 	function CSEnt:IsClientsideEntity()
 		return true
@@ -165,16 +164,6 @@ if CLIENT then
 	function entMeta:IsClientsideEntity()
 		local class = self:GetClass()
 		return class == 'class C_PhysPropClientside' or class == 'class C_ClientRagdoll' or class == 'class CLuaEffect'
-	end
-
-	function entMeta:Remove()
-		local class = self:GetClass()
-
-		if class ~= 'class C_PhysPropClientside' and class ~= 'class C_ClientRagdoll' and class ~= 'class CLuaEffect' then
-			print(debug.traceback('[DLib] Maybe removal of non clientside entity (' .. (class or 'NOT_A_CLASS') .. ')', 1))
-		end
-
-		return self:RemoveDLib()
 	end
 else
 	--[[
