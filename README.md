@@ -9,7 +9,7 @@ Steam Workshop is running off `master` branch, not `develop`. My other addons ar
 
 [Latest builds](https://gitlab.com/DBotThePony/DLib/-/jobs)
 
-[Issues](https://gitlab.com/DBotThePony/DLib/issues) (report them here!!!)
+[Issues](https://gitlab.com/DBotThePony/DLib/issues) (report them there!!!)
 
 [Merge requests](https://gitlab.com/DBotThePony/DLib/merge_requests)
 (if they are average quality or better they are very likely to get merged! Since i can edit some stuff by myself after merge)
