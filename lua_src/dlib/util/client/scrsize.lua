@@ -58,6 +58,10 @@ function DLib.TriggerScreenSizeUpdate(lw, lh, w, h)
 	hook.Run('OnScreenResolutionUpdated', lw, lh, w, h)
 end
 
+concommand.Add('dlib_reload_materials', function()
+	DLib.TriggerScreenSizeUpdate(0, 0, lastW, lastH)
+end)
+
 --[[
 	@doc
 	@fname surface.DLibCreateFont
