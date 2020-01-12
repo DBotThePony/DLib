@@ -348,6 +348,20 @@ function meta:Query(query)
 				local data = data[1]
 
 				if not data.status then
+					if data.error and isstring(data.error) and data.error:lower() == 'MySQL server has gone away' then
+						self.connected = false
+
+						self:Reconnect():Then(function()
+							self:Query(query):Then(resolve):Catch(reject)
+						end):Catch(function(err)
+							reject(err)
+						end)
+
+						DMySQL4.Message(self.configName .. ': Connection to database lost while executing query!')
+
+						return
+					end
+
 					reject(data.error)
 				else
 					resolve(data.data or {})
@@ -362,8 +376,16 @@ function meta:Query(query)
 
 			function obj:onError(err)
 				if self.connection:status() == mysqloo.DATABASE_NOT_CONNECTED then
-					self:Reconnect()
+					self.connected = false
+
+					self:Reconnect():Then(function()
+						self:Query(query):Then(resolve):Catch(reject)
+					end):Catch(function(err)
+						reject(err)
+					end)
+
 					DMySQL4.Message(self.configName .. ': Connection to database lost while executing query!')
+					return
 				end
 
 				reject(err)
