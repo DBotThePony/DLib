@@ -940,17 +940,10 @@ class VLL2.WSBundle extends VLL2.GMABundle
 				net.WriteString(path)
 				net.SendToServer()
 
-	DownloadGMA: (url, filename = util.CRC(url)) =>
-		if CLIENT
-			msgid = 'vll2_dl_' .. @workshopID
-			notification.AddProgress(msgid, 'Downloading ' .. data.title .. ' from workshop')
-			@status = @@STATUS_LOADING
-			steamworks.Download data.fileid, true, (path2) ->
-				notification.Kill(msgid)
-				@Msg('Downloaded from workshop')
-				@SpecifyPath(path2 or path)
-				@__Mount()
-			return
+	DownloadGMA: (url, filename = util.CRC(url), data, callback) =>
+		msgid = 'vll2_dl_' .. @workshopID
+		@status = @@STATUS_LOADING
+		notification.AddProgress(msgid, 'Downloading ' .. data.title .. ' from workshop') if CLIENT and data
 
 		fdir, fname = VLL2.FileSystem.StripFileName(filename)
 		fadd = ''
@@ -959,12 +952,15 @@ class VLL2.WSBundle extends VLL2.GMABundle
 		fpath = 'vll2/ws_cache/' .. fadd .. fname .. '.dat'
 
 		if file.Exists(fpath, 'DATA')
+			notification.Kill(msgid) if CLIENT
 			@Msg('Found GMA in cache, mounting in-place...')
-			@SpecifyPath('data/' .. fpath)
+			@wscontentPath = 'data/' .. fpath
+			@SpecifyPath(@wscontentPath)
+			callback(@wscontentPath)
 			@__Mount()
 			return
 
-		if not game.IsDedicated()
+		if not game.IsDedicated() and SERVER
 			@Msg('Singleplayer detected, waiting for client realm to download...')
 			timer.Simple 1, ->
 				net.Start('vll2.gma_notify')
@@ -976,6 +972,7 @@ class VLL2.WSBundle extends VLL2.GMABundle
 		@gmadownloader = VLL2.LargeFileLoader(url, fpath)
 
 		@gmadownloader\AddFinishHook ->
+			notification.Kill(msgid) if CLIENT
 			@Msg('--- DECOMPRESSING')
 			stime = SysTime()
 			decompress = util.Decompress(file.Read(fpath, 'DATA'))
@@ -992,10 +989,13 @@ class VLL2.WSBundle extends VLL2.GMABundle
 			file.Write(fpath, decompress)
 			@Msg(string.format('Writing to disk took %.2f ms', (SysTime() - stime) * 1000))
 
-			@SpecifyPath('data/' .. fpath)
+			@wscontentPath = 'data/' .. fpath
+			@SpecifyPath(@wscontentPath)
+			callback(@wscontentPath)
 			@__Mount()
 
 		@gmadownloader\AddErrorHook (_, reason = 'failure') ->
+			notification.Kill(msgid) if CLIENT
 			@status = @@STATUS_ERROR
 			@Msg('Failed to download the GMA! Reason: ' .. reason)
 			@CallError()
@@ -1013,151 +1013,86 @@ class VLL2.WSBundle extends VLL2.GMABundle
 			@status = @@STATUS_LOADED
 			return
 
-		if CLIENT
-			@status = @@STATUS_GETTING_INFO
-			req = {
-				method: 'POST'
-				url: @@INFO_URL
-				parameters: {itemcount: '1', 'publishedfileids[0]': tostring(@workshopID)}
-				headers: {
-					'User-Agent': 'VLL2'
-					Referer: VLL2.Referer()
-				}
+		@status = @@STATUS_GETTING_INFO
+		req = {
+			method: 'POST'
+			url: @@INFO_URL
+			parameters: {itemcount: '1', 'publishedfileids[0]': tostring(@workshopID)}
+			headers: {
+				'User-Agent': 'VLL2'
+				Referer: VLL2.Referer()
 			}
+		}
 
-			req.failed = (reason = 'failure') ->
+		req.failed = (reason = 'failure') ->
+			@status = @@STATUS_ERROR
+			@Msg('Failed to grab GMA info! Reason: ' .. reason)
+			@CallError()
+
+		req.success = (code = 400, body = '', headers) ->
+			if code ~= 200
 				@status = @@STATUS_ERROR
-				@Msg('Failed to grab GMA info! Reason: ' .. reason)
+				@Msg('Failed to grab GMA info! Server returned: ' .. code)
+				@Msg(body)
 				@CallError()
+				return
 
-			req.success = (code = 400, body = '', headers) ->
-				if code ~= 200
-					@status = @@STATUS_ERROR
-					@Msg('Failed to grab GMA info! Server returned: ' .. code)
-					@Msg(body)
-					@CallError()
-					return
+			@Msg('Got info reply')
 
-				resp = util.JSONToTable(body)
-				@steamResponse = resp
-				@steamResponseRaw = body
+			resp = util.JSONToTable(body)
+			@steamResponse = resp
+			@steamResponseRaw = body
 
-				if resp and resp.response and resp.response.publishedfiledetails
-					for item in *resp.response.publishedfiledetails
-						if VLL2.WSBundle.IsAddonMounted(item.publishedfileid) and not @loadLua
-							@status = @@STATUS_LOADED
-							@Msg('Addon ' .. item.title .. ' is already mounted and running')
-						elseif item.hcontent_file and item.title
-							@Msg('GOT FILEINFO DETAILS FOR ' .. @workshopID .. ' (' .. item.title .. ')')
-							path = 'cache/workshop/' .. item.hcontent_file .. '.cache'
-							@steamworksInfo = item
-							@wsTitle = item.title
-							@name = item.title
-							@hcontent_file = item.hcontent_file
+			if resp and resp.response and resp.response.publishedfiledetails
+				for item in *resp.response.publishedfiledetails
+					if VLL2.WSBundle.IsAddonMounted(item.publishedfileid) and not @loadLua
+						@status = @@STATUS_LOADED
+						@Msg('Addon ' .. item.title .. ' is already mounted and running')
+					elseif item.hcontent_file and item.title
+						@Msg('GOT FILEINFO DETAILS FOR ' .. @workshopID .. ' (' .. item.title .. ')')
+						@steamworksInfo = item
+						@wsTitle = item.title
+						@name = item.title
+						@hcontent_file = item.hcontent_file
 
-							if tobool(item.banned)
-								@Msg('-----------------------------')
-								@Msg('--- This workshop item was BANNED!')
-								@Msg('--- Ban reason: ' .. (item.ban_reason or '<unknown>'))
-								@Msg('--- But the addon will still be mounted though')
-								@Msg('-----------------------------')
+						if tobool(item.banned)
+							@Msg('-----------------------------')
+							@Msg('--- This workshop item was BANNED!')
+							@Msg('--- Ban reason: ' .. (item.ban_reason or '<unknown>'))
+							@Msg('--- But the addon will still be mounted though')
+							@Msg('-----------------------------')
 
-							if file.Exists(path, 'GAME')
-								@SpecifyPath(path)
-								@__Mount()
-							elseif not DO_DOWNLOAD_WORKSHOP\GetBool()
+						if CLIENT
+							if not DO_DOWNLOAD_WORKSHOP\GetBool()
 								@Msg('Not downloading workshop GMA file, since we have it disabled')
 								@status = @@STATUS_ERROR
 								@CallError('Restricted by user')
 							else
 								@Msg('Downloading from workshop')
-								msgid = 'vll2_dl_' .. @workshopID
-								notification.AddProgress(msgid, 'Downloading ' .. item.title .. ' from workshop')
-								@status = @@STATUS_LOADING
-								steamworks.Download item.hcontent_file, true, (path2) ->
-									notification.Kill(msgid)
+
+								@DownloadGMA item.file_url, item.filename, item, ->
 									@Msg('Downloaded from workshop')
-									@SpecifyPath(path2 or path)
-									@wscontentPath = path2 or path
 
 									if @shouldNotifyServerside
 										net.Start('vll2.gma_notify')
 										net.WriteUInt(@workshopID, 32)
-										net.WriteString(path2 or path)
 										net.SendToServer()
 										@Msg('Notifying server realm that we downloaded GMA.')
 										@shouldNotifyServerside = false
 
 									@__Mount()
 						else
-							@status = @@STATUS_ERROR
-							@Msg('This workshop item contains no valid data.')
-							@CallError('This workshop item contains no valid data.', @@INVALID_WS_DATA)
-				else
-					@status = @@STATUS_ERROR
-					@Msg('Failed to grab GMA info! Server did not sent valid reply')
-					@CallError()
-
-			HTTP(req)
-		else
-			@status = @@STATUS_GETTING_INFO
-			req = {
-				method: 'POST'
-				url: @@INFO_URL
-				parameters: {itemcount: '1', 'publishedfileids[0]': tostring(@workshopID)}
-				headers: {
-					'User-Agent': 'VLL2'
-					Referer: VLL2.Referer()
-				}
-			}
-
-			req.failed = (reason = 'failure') ->
+							@DownloadGMA(item.file_url, item.filename)
+					else
+						@status = @@STATUS_ERROR
+						@Msg('This workshop item contains no valid data.')
+						@CallError('This workshop item contains no valid data.')
+			else
 				@status = @@STATUS_ERROR
-				@Msg('Failed to grab GMA info! Reason: ' .. reason)
+				@Msg('Failed to grab GMA info! Server did not sent valid reply')
 				@CallError()
 
-			req.success = (code = 400, body = '', headers) ->
-				if code ~= 200
-					@status = @@STATUS_ERROR
-					@Msg('Failed to grab GMA info! Server returned: ' .. code)
-					@Msg(body)
-					@CallError()
-					return
-
-				resp = util.JSONToTable(body)
-				@steamResponse = resp
-				@steamResponseRaw = body
-
-				if resp and resp.response and resp.response.publishedfiledetails
-					for item in *resp.response.publishedfiledetails
-						if VLL2.WSBundle.IsAddonMounted(item.publishedfileid) and not @loadLua
-							@status = @@STATUS_LOADED
-							@Msg('Addon ' .. item.title .. ' is already mounted and running')
-						elseif item.hcontent_file and item.title
-							@Msg('GOT FILEINFO DETAILS FOR ' .. @workshopID .. ' (' .. item.title .. ')')
-							@steamworksInfo = item
-							@wsTitle = item.title
-							@name = item.title
-							@hcontent_file = item.hcontent_file
-
-							if tobool(item.banned)
-								@Msg('-----------------------------')
-								@Msg('--- This workshop item was BANNED!')
-								@Msg('--- Ban reason: ' .. (item.ban_reason or '<unknown>'))
-								@Msg('--- But the addon will still be mounted though')
-								@Msg('-----------------------------')
-
-							@DownloadGMA(item.file_url, item.filename)
-						else
-							@status = @@STATUS_ERROR
-							@Msg('This workshop item contains no valid data.')
-							@CallError('This workshop item contains no valid data.')
-				else
-					@status = @@STATUS_ERROR
-					@Msg('Failed to grab GMA info! Server did not sent valid reply')
-					@CallError()
-
-			HTTP(req)
+		HTTP(req)
 
 if SERVER
 	net.Receive 'vll2.replicate_all', (len, ply) -> bundle\Replicate(ply) for _, bundle in pairs(VLL2.AbstractBundle._S) when bundle\IsReplicated()
