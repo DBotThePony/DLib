@@ -353,7 +353,7 @@ local HSVToColorC = HSVToColorC
 	@desc
 	JIT compilable !g:HSVToColor
 	**This function has metatable of color fixed**
-	**This function has left birwise shift overflow fixed**
+	**This function has left bitwise shift overflow fixed**
 	**This function clamp saturation and value (unlike original function), and modulo divide hue (like original function)**
 	@enddesc
 
