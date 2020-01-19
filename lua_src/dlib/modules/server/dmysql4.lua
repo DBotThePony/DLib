@@ -348,7 +348,7 @@ function meta:Query(query)
 				local data = data[1]
 
 				if not data.status then
-					if data.error and isstring(data.error) and data.error:lower() == 'MySQL server has gone away' then
+					if data.error and isstring(data.error) and data.error:lower():trim() == 'mysql server has gone away' then
 						self.connected = false
 
 						self:Reconnect():Then(function()
