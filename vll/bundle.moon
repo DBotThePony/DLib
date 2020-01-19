@@ -24,6 +24,8 @@ local DO_DOWNLOAD_WORKSHOP
 
 if SERVER
 	util.AddNetworkString('vll2.replicate_url')
+	util.AddNetworkString('vll2.replicate_urlgma')
+	util.AddNetworkString('vll2.replicate_urlgmaz')
 	util.AddNetworkString('vll2.replicate_workshop')
 	util.AddNetworkString('vll2.replicate_wscollection')
 	util.AddNetworkString('vll2.replicate_all')
@@ -434,6 +436,8 @@ class VLL2.GMABundle extends VLL2.AbstractBundle
 		@status = @@STATUS_LOADED
 
 class VLL2.URLGMABundle extends VLL2.GMABundle
+	@LISTING = {}
+
 	new: (name = 'URL:' .. util.CRC(url), url) =>
 		super(name)
 		@crc = util.CRC(url)
@@ -442,6 +446,28 @@ class VLL2.URLGMABundle extends VLL2.GMABundle
 		@_datapath_full = 'data/vll2/gma_cache/' .. @crc .. '.dat'
 
 		@mountAfterLoad = true
+
+	if CLIENT
+		net.Receive 'vll2.replicate_urlgma', ->
+			graburl = net.ReadString()
+			fname = 'URL:' .. util.CRC(graburl)
+			return if not @Checkup(fname)
+			loadLua = net.ReadBool()
+			mountAfterLoad = net.ReadBool()
+			VLL2.MessageBundle('Server requires URL GMA to be loaded: ' .. graburl)
+			bundle = VLL2.URLGMABundle(nil, graburl)
+			bundle.loadLua = loadLua
+			bundle.mountAfterLoad = mountAfterLoad
+			bundle\Load()
+
+	Replicate: (ply = player.GetAll()) =>
+		return if CLIENT
+		return if player.GetHumans() == 0
+		net.Start('vll2.replicate_urlgma')
+		net.WriteString(@url)
+		net.WriteBool(@loadLua)
+		net.WriteBool(@addToSpawnMenu)
+		net.Send(ply)
 
 	SetMountAfterLoad: (status = @mountAfterLoad) =>
 		@mountAfterLoad = status
@@ -561,6 +587,30 @@ class VLL2.URLGMABundle extends VLL2.GMABundle
 		@gmadownloader\Load()
 
 class VLL2.URLGMABundleZ extends VLL2.URLGMABundle
+	@LISTING = {}
+
+	if CLIENT
+		net.Receive 'vll2.replicate_urlgmaz', ->
+			graburl = net.ReadString()
+			fname = 'URL:' .. util.CRC(graburl)
+			return if not @Checkup(fname)
+			loadLua = net.ReadBool()
+			mountAfterLoad = net.ReadBool()
+			VLL2.MessageBundle('Server requires URL GMA to be loaded: ' .. graburl)
+			bundle = VLL2.URLGMABundleZ(nil, graburl)
+			bundle.loadLua = loadLua
+			bundle.mountAfterLoad = mountAfterLoad
+			bundle\Load()
+
+	Replicate: (ply = player.GetAll()) =>
+		return if CLIENT
+		return if player.GetHumans() == 0
+		net.Start('vll2.replicate_urlgmaz')
+		net.WriteString(@url)
+		net.WriteBool(@loadLua)
+		net.WriteBool(@addToSpawnMenu)
+		net.Send(ply)
+
 	AfterLoad: (clientload) =>
 		@Msg('--- DECOMPRESSING')
 		stime = SysTime()
