@@ -1058,8 +1058,8 @@ class VLL2.WSBundle extends VLL2.GMABundle
 	Load: =>
 		@status = @@STATUS_LOADING
 
-		if CLIENT and steamworks.IsSubscribed(tostring(id)) and not @loadLua
-			@Msg('Not downloading addon ' .. id .. ' since it is already mounted on client.')
+		if CLIENT and steamworks.IsSubscribed(tostring(@workshopID)) and not @loadLua
+			@Msg('Not downloading addon ' .. @workshopID .. ' since it is already mounted on client.')
 			@status = @@STATUS_LOADED
 			return
 
