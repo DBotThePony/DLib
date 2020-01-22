@@ -18,24 +18,8 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
---i18n.UNIT_SYSTEM = CreateConVar('dlib_unit_system', 'si', {FCVAR_ARCHIVE}, 'Which measurement unit to use (traditional/imperial or si)')
-
 i18n.METRES_IN_HU_SWITCH = CreateConVar('dlib_unit_system_hu', '1', {FCVAR_ARCHIVE}, 'Use default definition of Hammer Units conversion to SI (player height = 1.37m). When set to 0, non-default conversion would be used instead (player height = 1.7947m), which feel realistic')
 i18n.METRES_IN_HU = 0.01905 * (i18n.METRES_IN_HU_SWITCH:GetBool() and 1 or 1.31)
-
-local function useTraditional()
-	--return i18n.UNIT_SYSTEM:GetString() == 'imperial' or i18n.UNIT_SYSTEM:GetString() == 'traditional'
-	return false
-end
-
---[[
-cvars.AddChangeCallback('dlib_unit_system', function(self, old, new)
-	if new ~= 'traditional' and new ~= 'imperial' and new ~= 'si' then
-		DLib.MessageError('Invalid value for dlib_unit_system specified, reverting to si')
-		i18n.UNIT_SYSTEM:Reset()
-	end
-end, 'DLib')
-]]
 
 cvars.AddChangeCallback('dlib_unit_system_hu', function(self, old, new)
 	i18n.METRES_IN_HU = 0.01905 * (i18n.METRES_IN_HU_SWITCH:GetBool() and 1 or 1.31)
@@ -62,15 +46,13 @@ local prefixL = {
 	{math.pow(10, 24), 'yotta'},
 }
 
---[[function i18n.FormatNumImperial(numIn)
-	if numIn > 1000 then
-		return string.format('%.2fk', numIn / 1000)
-	elseif numIn < 1 / 1000 then
-		return string.format('%.2fn', numIn * 1000)
+function i18n.FormatNumImperial(numIn)
+	if numIn >= -1000 and numIn <= 1000 then
+		return string.format('%.2f', numIn)
 	end
 
-	return string.format('%.2f', numIn)
-end]]
+	return string.format('%.2fk', numIn / 1000)
+end
 
 --[[
 	@doc
@@ -80,15 +62,17 @@ end]]
 	@returns
 	string
 ]]
-function i18n.FormatNum(numIn)
-	if numIn >= 1 and numIn <= 1000 then
+function i18n.FormatNum(numIn, minFormat)
+	local abs = numIn:abs()
+
+	if abs >= (minFormat or 1) and abs <= 1000 then
 		return string.format('%.2f', numIn)
 	end
 
 	local prefix, lastNum = prefixL[1][2], prefixL[1][1]
 
 	for i, row in ipairs(prefixL) do
-		if row[1] <= numIn then
+		if row[1] <= abs then
 			prefix, lastNum = row[2], row[1]
 		else
 			break
@@ -284,7 +268,6 @@ for i, row in ipairs(units:split('\n')) do
 	end
 end
 
---i18n.TEMPERATURE_UNITS = CreateConVar('dlib_unit_system_temperature', 'inherit', {FCVAR_ARCHIVE}, 'inherit/C/K/F')
 i18n.TEMPERATURE_UNITS = CreateConVar('dlib_unit_system_temperature', 'C', {FCVAR_ARCHIVE}, 'C/K/F')
 i18n.TEMPERATURE_UNITS_TYPE_CELSIUS = 0
 i18n.TEMPERATURE_UNITS_TYPE_KELVIN = 1
@@ -317,16 +300,12 @@ function i18n.FormatTemperature(tempUnits, providedType)
 
 	local units = i18n.TEMPERATURE_UNITS:GetString()
 
-	if units == 'inherit' then
-		units = useTraditional() and 'F' or 'K'
-	end
-
 	if units == 'K' then
-		return string.format('%s°%s', i18n.FormatNum(tempUnits), i18n.localize('info.dlib.si.units.kelvin.suffix'))
+		return string.format('%s°%s', i18n.FormatNum(tempUnits, 0.01), i18n.localize('info.dlib.si.units.kelvin.suffix'))
 	elseif units == 'F' then
-		return string.format('%s°%s', i18n.FormatNumImperial(tempUnits * 9 / 5 + 32), i18n.localize('info.dlib.si.units.fahrenheit.suffix'))
+		return string.format('%s°%s', i18n.FormatNumImperial((tempUnits - 273.15) * 9 / 5 + 32), i18n.localize('info.dlib.si.units.fahrenheit.suffix'))
 	else
-		return string.format('%s°%s', i18n.FormatNum(tempUnits - 273.15), i18n.localize('info.dlib.si.units.celsius.suffix'))
+		return string.format('%s°%s', i18n.FormatNum(tempUnits - 273.15, 0.01), i18n.localize('info.dlib.si.units.celsius.suffix'))
 	end
 end
 
@@ -343,20 +322,6 @@ function i18n.FreeFallAcceleration()
 	return 9.8066 * sv_gravity:GetFloat() / 600
 end
 
-local inchesandstuff = {}
-table.insert(inchesandstuff, {'p', 0.000352778, 6})
-table.insert(inchesandstuff, {'P/', 0.000352778 * 12, 24})
-table.insert(inchesandstuff, {'"', 0.000352778 * 12 * 6, 6})
-table.insert(inchesandstuff, {'\'', 0.000352778 * 12 * 6 * 12, 12})
-table.insert(inchesandstuff, {'yd', 0.000352778 * 12 * 6 * 12 * 3, 800})
-table.insert(inchesandstuff, {'mi', 0.000352778 * 12 * 6 * 12 * 3 * 1760})
-
-for i, row in ipairs(inchesandstuff) do
-	if row[3] then
-		row[3] = row[2] * row[3]
-	end
-end
-
 --[[
 	@doc
 	@fname DLib.i18n.FormatDistance
@@ -366,22 +331,6 @@ end
 	string
 ]]
 function i18n.FormatDistance(numIn)
-	if useTraditional() then
-		local suffix, lastNum = inchesandstuff[1][1], inchesandstuff[1][2]
-
-		for i, row in ipairs(inchesandstuff) do
-			if row[2] <= numIn then
-				suffix, lastNum = row[1], row[2]
-
-				if row[3] and row[3] >= numIn then break end
-			else
-				break
-			end
-		end
-
-		return string.format('%.2f%s', numIn / lastNum, suffix)
-	end
-
 	return string.format('%s%s', i18n.FormatNum(numIn), i18n.localize('info.dlib.si.units.metre.suffix'))
 end
 
@@ -402,15 +351,6 @@ i18n.FormatHammerUnits = i18n.FormatHU
 
 do
 	local prefixL = table.Copy(prefixL)
-	local inchesandstuff = {}
-
-	do
-		local ft = 0.09290341
-		table.insert(inchesandstuff, {'ft', ft})
-		table.insert(inchesandstuff, {'ch', 404.6873})
-		table.insert(inchesandstuff, {'mi', 4046.873 * 640})
-		table.insert(inchesandstuff, {'twp', 4046.873 * 640 * 36})
-	end
 
 	for i, row in ipairs(prefixL) do
 		row[1] = row[1]:pow(2)
@@ -425,30 +365,7 @@ do
 	string
 ]]
 	function i18n.FormatArea(numIn)
-		--[[if numIn < 0 then
-			error('are you high')
-		end]]
-
-		if useTraditional() then
-			local suffix, lastNum = inchesandstuff[1][1], inchesandstuff[1][2]
-
-			for i, row in ipairs(inchesandstuff) do
-				if row[2] <= numIn then
-					suffix, lastNum = row[1], row[2]
-
-					if row[3] and row[3] >= numIn then break end
-				else
-					break
-				end
-			end
-
-			if suffix == 'ch' and numIn / lastNum > 200 then
-				suffix = 'mi'
-				lastNum = inchesandstuff[3][2]
-			end
-
-			return string.format('%.2f%s^2', numIn / lastNum, suffix)
-		end
+		assert(numIn >= 0, 'Area can not be negative')
 
 		if numIn >= 1 and numIn <= 1000 then
 			return string.format('%.2fm^2', numIn)
@@ -492,21 +409,6 @@ end
 
 do
 	local prefixL = table.Copy(prefixL)
-	local inchesandstuff = {}
-
-	do
-		--[[local inch = 16.387064 / 1000
-		table.insert(inchesandstuff, {'in', inch})
-		table.insert(inchesandstuff, {'ft', inch * 1728})
-		table.insert(inchesandstuff, {'yd', inch * 1728 * 27})]]
-
-		--[[local tsp = 4.92892159375 / 1000
-		table.insert(inchesandstuff, {'tsp', tsp})
-		table.insert(inchesandstuff, {'Tbsp', tsp * 3})
-		table.insert(inchesandstuff, {'fl oz', tsp * 3 * 2})
-		table.insert(inchesandstuff, {'cp', tsp * 3 * 2 * 8})]]
-
-	end
 
 	for i, row in ipairs(prefixL) do
 		row[1] = row[1]:pow(3)
@@ -523,30 +425,7 @@ do
 	string
 ]]
 	function i18n.FormatVolume(litres)
-		--[[if numIn < 0 then
-			error('are you high')
-		end]]
-
-		if useTraditional() then
-			local suffix, lastNum = inchesandstuff[1][1], inchesandstuff[1][2]
-
-			for i, row in ipairs(inchesandstuff) do
-				if row[2] <= numIn then
-					suffix, lastNum = row[1], row[2]
-
-					if row[3] and row[3] >= numIn then break end
-				else
-					break
-				end
-			end
-
-			if suffix == 'ch' and numIn / lastNum > 200 then
-				suffix = 'mi'
-				lastNum = inchesandstuff[3][2]
-			end
-
-			return string.format('%.2f%s', numIn / lastNum, suffix)
-		end
+		assert(litres >= 0, 'Volume can not be negative')
 
 		if i18n.VOLUME_UNITS:GetString() == 'm' then
 			local numIn = litres / 1000
@@ -601,20 +480,6 @@ do
 	end, 'DLib')
 end
 
-local inchesandstuff = {}
-table.insert(inchesandstuff, {'gr', 64.798 / 1000, 20})
-table.insert(inchesandstuff, {'dr', 1.771, 16})
-table.insert(inchesandstuff, {'oz', 1.771 * 16, 16})
-table.insert(inchesandstuff, {'lb', 1.771 * 16 * 16, 400})
-table.insert(inchesandstuff, {'cwt', 1.771 * 16 * 16 * 100, 200})
-table.insert(inchesandstuff, {'ton', 1.771 * 16 * 16 * 100 * 20})
-
-for i, row in ipairs(inchesandstuff) do
-	if row[3] then
-		row[3] = row[2] * row[3]
-	end
-end
-
 --[[
 	@doc
 	@fname DLib.i18n.FormatWeight
@@ -624,22 +489,6 @@ end
 	string
 ]]
 function i18n.FormatWeight(numIn)
-	if useTraditional() then
-		local suffix, lastNum = inchesandstuff[1][1], inchesandstuff[1][2]
-
-		for i, row in ipairs(inchesandstuff) do
-			if row[2] <= numIn then
-				suffix, lastNum = row[1], row[2]
-
-				if row[3] and row[3] >= numIn then break end
-			else
-				break
-			end
-		end
-
-		return string.format('%.2f%s', numIn / lastNum, suffix)
-	end
-
 	return string.format('%s%s', i18n.FormatNum(numIn), i18n.localize('info.dlib.si.units.gram.suffix'))
 end
 
@@ -655,7 +504,6 @@ function i18n.GetNormalPressure()
 end
 
 cvars.AddChangeCallback('dlib_unit_system_temperature', function(self, old, new)
-	--if new ~= 'inherit' and new ~= 'C' and new ~= 'K' and new ~= 'F' then
 	if new ~= 'C' and new ~= 'K' and new ~= 'F' then
 		DLib.MessageError('Invalid value for dlib_unit_system_temperature specified, reverting to C')
 		i18n.TEMPERATURE_UNITS:Reset()
