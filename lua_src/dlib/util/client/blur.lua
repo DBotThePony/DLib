@@ -25,12 +25,11 @@ local function refreshRT()
 
 	SCREENCOPY = GetRenderTarget('dlib-blur-' .. RTW .. '-' .. RTH, RTW, RTH, false)
 
-	DRAWMAT = CreateMaterial('dlib-blur1', 'UnlitGeneric', {
+	DRAWMAT = CreateMaterial('dlib-blur', 'UnlitGeneric', {
 		['$basetexture'] = 'models/debug/debugwhite',
-		['$translucent'] = '0',
-		['$halflambert'] = '0',
-		['$color'] = '1 1 1',
-		['$color2'] = '1 1 1',
+		['$translucent'] = '1',
+		['$color'] = '[1 1 1]',
+		['$color2'] = '[1 1 1]',
 		['$alpha'] = '1',
 		['$nolod'] = '1',
 		['$additive'] = '0',
