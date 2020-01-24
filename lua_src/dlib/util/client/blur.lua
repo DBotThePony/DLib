@@ -25,14 +25,12 @@ local function refreshRT()
 
 	SCREENCOPY = GetRenderTarget('dlib-blur-' .. RTW .. '-' .. RTH, RTW, RTH, false)
 
-	DRAWMAT = CreateMaterial('dlib-blur', 'UnlitGeneric', {
+	DRAWMAT = CreateMaterial('dlib-blur2', 'UnlitGeneric', {
 		['$basetexture'] = 'models/debug/debugwhite',
-		['$translucent'] = '1',
+		['$translucent'] = '0',
 		['$color'] = '[1 1 1]',
-		['$color2'] = '[1 1 1]',
 		['$alpha'] = '1',
 		['$nolod'] = '1',
-		['$additive'] = '0',
 	})
 
 	DRAWMAT:SetFloat('$alpha', '1')
@@ -125,7 +123,9 @@ function blur.Draw(x, y, w, h)
 
 	surface.SetMaterial(DRAWMAT)
 	surface.SetDrawColor(255, 255, 255)
+	render.OverrideDepthEnable(true, false)
 	surface.DrawTexturedRectUV(x, y, w, h, u, v, eu, ev)
+	render.OverrideDepthEnable(false)
 end
 
 --[[
@@ -142,7 +142,9 @@ function blur.DrawOffset(drawX, drawY, w, h, realX, realY)
 
 	surface.SetMaterial(DRAWMAT)
 	surface.SetDrawColor(255, 255, 255)
+	render.OverrideDepthEnable(true, false)
 	surface.DrawTexturedRectUV(drawX, drawY, w, h, u, v, eu, ev)
+	render.OverrideDepthEnable(false)
 end
 
 --[[
@@ -163,5 +165,7 @@ function blur.DrawPanel(w, h, x, y)
 
 	surface.SetMaterial(DRAWMAT)
 	surface.SetDrawColor(255, 255, 255)
+	render.OverrideDepthEnable(true, false)
 	surface.DrawTexturedRectUV(0, 0, w, h, u, v, eu, ev)
+	render.OverrideDepthEnable(false)
 end
