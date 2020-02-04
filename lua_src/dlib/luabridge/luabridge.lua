@@ -173,79 +173,83 @@ if CLIENT then
 			local error = error
 			local table = table
 
-			local recursive = false
-
-			function vgui.Create(class, parent, name, ...)
-				if class == '' then return end
-
-				if not PanelDefinitions[class] then
-					local panel = CreateNative(class, parent, name, ...)
-
-					if not panel and not recursive then
-						ProtectedCall(function()
-							error('Native panel "' .. class .. '" is either invalid or does not exist. If code is trying to create this panel directly - this panel simply does not exist.', 4)
-						end)
-					elseif panel and not recursive then
-						hook.Run('VGUIPanelConstructed', panel, ...)
-						hook.Run('VGUIPanelInitialized', panel, ...)
-						hook.Run('VGUIPanelCreated', panel, ...)
-					end
-
-					return panel
+			local function Create(from, class, parent, name, level, ...)
+				if class == '' then
+					error(debug.traceback('Tried to create panel with empty classname'))
+					return
 				end
 
 				local meta = PanelDefinitions[class]
 
+				if not meta then
+					local panel = CreateNative(class, parent, name, ...)
+
+					if not panel then
+						if level == 1 then
+							error('Panel "' .. class .. '" does not exist.', level + 2)
+						else
+							error(string.fromat('%q tried to derive from panel %s which does not exist.', from, class), level + 2)
+						end
+					end
+
+					return panel, true
+				end
+
 				if not meta.Base then
-					error('Missing panel base of ' .. class .. '. This should never happen!')
+					error(string.format('Meta table of %q does not contain Base panel classname', class))
 				end
 
-				local prevrecursive = recursive
-				if not prevrecursive then
-					recursive = true
-				end
-
-				local panel = vgui.Create(meta.Base, parent, name or classname)
+				local panel = Create(class, meta.Base, parent, name or class, level + 1, ...)
 
 				if not panel then
-					recursive = false
-
-					if not prevrecursive then
-						error('Unable to create base panel "' .. meta.Base .. '" of "' .. class .. '" because base panel does not exist!')
-					else
-						error('Unable to find base panel "' .. meta.Base .. '" of "' .. class .. '". Panel inheritance tree might be corrupted because of missing base panels.')
-					end
+					error(string.fromat('%q cannot derive from %s', class, meta.Base), level + 2)
 				end
 
 				table.Merge(panel:GetTable(), meta)
 				panel.BaseClass = PanelDefinitions[meta.Base]
 				panel.ClassName = class
 
-				if not prevrecursive then
-					recursive = false
+				if level == 1 then
 					hook.Run('VGUIPanelConstructed', panel, ...)
 				end
 
 				if panel.Init then
-					local err2 = '<lua memory corruption>'
-					local status = xpcall(panel.Init, function(err)
-						recursive = false
-						err2 = err
-						ProtectedCall(error:Wrap(err, 3))
-					end, panel, ...)
-
-					if not status then
-						error('Rethrow: Look for error above - ' .. err2)
-					end
+					panel:Init(...)
 				end
 
-				if not prevrecursive then
+				if level == 1 then
 					hook.Run('VGUIPanelInitialized', panel, ...)
 				end
 
 				panel:Prepare()
 
-				if not prevrecursive then
+				if level == 1 then
+					hook.Run('VGUIPanelCreated', panel, ...)
+				end
+
+				return panel
+			end
+
+			function vgui.Create(class, parent, name, ...)
+				if class == '' then
+					DLib.MessageError(debug.traceback('Tried to create panel with empty classname'))
+					return
+				end
+
+				local panel, isNative
+				local packed, size = {...}, select('#', ...)
+
+				local status = ProtectedCall(function()
+					panel, isNative = Create(nil, class, parent, name, 1, unpack(packed, 1, size))
+				end)
+
+				if not status then
+					error(string.format('Cannot create panel %q! Look for errors above', class))
+				end
+
+				if isNative then
+					hook.Run('VGUIPanelConstructed', panel, ...)
+					hook.Run('VGUIPanelInitialized', panel, ...)
 					hook.Run('VGUIPanelCreated', panel, ...)
 				end
 
