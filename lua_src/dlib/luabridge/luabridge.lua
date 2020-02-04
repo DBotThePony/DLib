@@ -186,9 +186,9 @@ if CLIENT then
 
 					if not panel then
 						if level == 1 then
-							error('Panel "' .. class .. '" does not exist.', level + 2)
+							error('Panel "' .. class .. '" does not exist.', level + 4)
 						else
-							error(string.fromat('%q tried to derive from panel %s which does not exist.', from, class), level + 2)
+							error(string.fromat('%q tried to derive from panel %s which does not exist.', from, class), level + 4)
 						end
 					end
 
@@ -202,7 +202,7 @@ if CLIENT then
 				local panel = Create(class, meta.Base, parent, name or class, level + 1, ...)
 
 				if not panel then
-					error(string.fromat('%q cannot derive from %s', class, meta.Base), level + 2)
+					error(string.fromat('%q cannot derive from %s', class, meta.Base), level + 4)
 				end
 
 				table.Merge(panel:GetTable(), meta)
