@@ -137,9 +137,13 @@ if CLIENT then
 		Called **after** everything.
 		@enddesc
 	]]
-	if not DLib._PanelDefinitions then
-		local patched = false
 
+
+	vgui.DLib_Create = vgui.DLib_Create or vgui.Create
+
+	local patched = false
+
+	if not DLib._PanelDefinitions then
 		(function()
 			if not vgui.GetControlTable or not vgui.CreateX then
 				return
@@ -252,7 +256,6 @@ if CLIENT then
 		if not patched then
 			DLib.Message('Unable to fully replace vgui.Create, falling back to old one patch of vgui.Create... Localization might break!')
 			local vgui = vgui
-			vgui.DLib_Create = vgui.DLib_Create or vgui.Create
 			local ignore = 0
 
 			function vgui.Create(...)
