@@ -244,7 +244,7 @@ if CLIENT then
 				end)
 
 				if not status then
-					error(string.format('Cannot create panel %q! Look for errors above', class))
+					error(string.format('Cannot create panel %q! Look for errors above', class), 2)
 				end
 
 				if isNative then
