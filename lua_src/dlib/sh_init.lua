@@ -96,11 +96,19 @@ DLib.simpleInclude('core/sandbox.lua')
 DLib.simpleInclude('core/promise.lua')
 
 if jit then
-	if SERVER then AddCSLuaFile('dlib/core/vmdef.lua') end
-	local vmdef = CompileFile('dlib/core/vmdef.lua')
-	jit.vmdef = nil
-	vmdef('jit_vmdef')
-	jit.vmdef = jit_vmdef
+	if SERVER then
+		AddCSLuaFile('dlib/core/vmdef.lua')
+		AddCSLuaFile('dlib/core/vmdef_x64.lua')
+	end
+
+	if jit.arch == 'x86' then
+		local vmdef = CompileFile('dlib/core/vmdef.lua')
+		jit.vmdef = nil
+		vmdef('jit_vmdef')
+		jit.vmdef = jit_vmdef
+	elseif jit.arch == 'x64' then
+		jit.vmdef = include('dlib/core/vmdef_x64.lua')
+	end
 end
 
 DLib.CMessage = DLib.MessageMaker
