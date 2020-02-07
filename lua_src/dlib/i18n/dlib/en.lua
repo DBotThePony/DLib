@@ -20,6 +20,7 @@
 
 
 gui.misc.apply = 'Apply'
+gui.misc.ok = 'OK'
 gui.misc.cancel = 'Cancel'
 gui.misc.yes = 'Yes'
 gui.misc.no = 'No'
