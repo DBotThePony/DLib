@@ -278,7 +278,6 @@ if CLIENT then
 
 				table.Merge(panel:GetTable(), meta)
 				panel.BaseClass = PanelDefinitions[meta.Base]
-				panel.ClassName = class
 
 				hook.Run('VGUIPanelConstructed', panel, ...)
 
