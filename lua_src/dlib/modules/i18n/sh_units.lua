@@ -18,12 +18,7 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-i18n.METRES_IN_HU_SWITCH = CreateConVar('dlib_unit_system_hu', '1', {FCVAR_ARCHIVE}, 'Use default definition of Hammer Units conversion to SI (player height = 1.37m). When set to 0, non-default conversion would be used instead (player height = 1.7947m), which feel realistic')
-i18n.METRES_IN_HU = 0.01905 * (i18n.METRES_IN_HU_SWITCH:GetBool() and 1 or 1.31)
-
-cvars.AddChangeCallback('dlib_unit_system_hu', function(self, old, new)
-	i18n.METRES_IN_HU = 0.01905 * (i18n.METRES_IN_HU_SWITCH:GetBool() and 1 or 1.31)
-end, 'DLib')
+i18n.METRES_IN_HU = 0.0254
 
 local prefixL = {
 	{math.pow(10, -24), 'yocto'},
