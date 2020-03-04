@@ -94,6 +94,7 @@ local LAST_REFRESH
 ]]
 function blur.RefreshNow(force)
 	if not BLUR_ENABLE:GetBool() then return false end
+	if not render.SupportsPixelShaders_2_0() then return false end
 	if LAST_REFRESH == FrameNumber() and not force then return false end
 	if LAST_DRAW < 0 and not force then return false end
 	LAST_REFRESH = FrameNumber()
@@ -107,6 +108,9 @@ end
 
 hook.Add('PostDrawHUD', 'DLib.Blur', function()
 	blur.RefreshNow()
+	if not render.SupportsPixelShaders_2_0() then
+		hook.Remove('PostDrawHUD', 'DLib.Blur')
+	end
 end, -1)
 
 --[[
@@ -117,6 +121,7 @@ end, -1)
 ]]
 function blur.Draw(x, y, w, h)
 	if not BLUR_ENABLE:GetBool() then return end
+	if not render.SupportsPixelShaders_2_0() then return end
 	LAST_DRAW = 10
 	if LAST_REFRESH ~= FrameNumber() then return end
 	local u, v, eu, ev = x / RTW, y / RTH, (x + w) / RTW, (y + h) / RTH
@@ -136,6 +141,7 @@ end
 ]]
 function blur.DrawOffset(drawX, drawY, w, h, realX, realY)
 	if not BLUR_ENABLE:GetBool() then return end
+	if not render.SupportsPixelShaders_2_0() then return end
 	LAST_DRAW = 10
 	if LAST_REFRESH ~= FrameNumber() then return end
 	local u, v, eu, ev = realX / RTW, realY / RTH, (realX + w) / RTW, (realY + h) / RTH
@@ -159,6 +165,7 @@ end
 ]]
 function blur.DrawPanel(w, h, x, y)
 	if not BLUR_ENABLE:GetBool() then return end
+	if not render.SupportsPixelShaders_2_0() then return end
 	LAST_DRAW = 10
 	if LAST_REFRESH ~= FrameNumber() then return end
 	local u, v, eu, ev = x / RTW, y / RTH, (x + w) / RTW, (y + h) / RTH
