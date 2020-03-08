@@ -122,13 +122,41 @@ end
 --[[
 	@doc
 	@fname DLib.string.qdate
-	@args number time
+	@args number time = os.time(), boolean isLocal = true, boolean removeTimezone = false
+
+	@desc
+	`isLocal` - time is result of call os.time() or similar
+	`removeTimezone` - whenever to sub/add time using operating system's timezone (and don't print timezone in final result)
+	@enddesc
 
 	@returns
-	string: quick formatted os.date (European format)
+	string: quick formatted os.date (Human friendly ISO8601 format)
 ]]
-function string.qdate(time)
-	return os.date('%H:%M:%S - %d/%m/%Y', time)
+function string.qdate(time, isLocal, removeTimezone)
+	if time == nil then time = os.time() end
+	if isLocal == nil then isLocal = true end
+
+	local timezone = os.date('%z', time)
+	local timezoneNum = 0
+
+	if isLocal then
+		if #timezone == 0 then
+			timezone = '+??:??'
+		else
+			timezone = timezone:sub(1, 3) .. ':' .. timezone:sub(4)
+			timezoneNum = ((tonumber(timezone:sub(2, 3)) or 0) * 3600 + (tonumber(timezone:sub(4)) or 0) * 60) * (timezone[1] == '-' and -1 or 1)
+		end
+	end
+
+	if removeTimezone and isLocal then
+		time = time - timezoneNum
+	end
+
+	if isLocal and not removeTimezone then
+		return os.date('%Y-%m-%d %T', time) .. ' UTC' .. timezone
+	else
+		return os.date('%Y-%m-%d %T', time) .. ' UTC+00:00'
+	end
 end
 
 string.HU_IN_M = 40
