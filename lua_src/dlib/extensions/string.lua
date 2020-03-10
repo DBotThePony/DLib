@@ -153,9 +153,9 @@ function string.qdate(time, isLocal, removeTimezone)
 	end
 
 	if isLocal and not removeTimezone then
-		return os.date('%Y-%m-%d %T', time) .. ' UTC' .. timezone
+		return os.date('%Y-%m-%d %H:%M:%S', time) .. ' UTC' .. timezone
 	else
-		return os.date('%Y-%m-%d %T', time) .. ' UTC+00:00'
+		return os.date('%Y-%m-%d %H:%M:%S', time) .. ' UTC+00:00'
 	end
 end
 
