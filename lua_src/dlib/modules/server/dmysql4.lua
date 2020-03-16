@@ -520,8 +520,12 @@ end
 	string
 ]]
 -- Currently only simulation is supported
-function meta:Bake(raw)
-	return DMySQL4.PlainBakedQuery(self, raw)
+function meta:Bake(...)
+	return DMySQL4.PlainBakedQuery(self, ...)
+end
+
+function meta:AdvancedBake(...)
+	return DMySQL4.AdvancedBakedQuery(self, ...)
 end
 
 --[[
