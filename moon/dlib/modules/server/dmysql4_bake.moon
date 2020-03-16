@@ -189,11 +189,10 @@ class DMySQL4.AdvancedBakedQuery
 	ExecInPlace: (...) => assert(@database, 'database wasn\'t specified earlier')\Query(@Format(...))
 	Execute: (...) => @Format(...)
 	Format: (params = {}) =>
-		style = false -- false = mysql/sqlite, true - postgresql
+		style = false if @database == nil
+		style = not @database\IsMySQLStyle() if style == nil
 
 		build = {}
-
 		table.insert(build, arg\Format(params, style)) for arg in *@parsed
-
 		return table.concat(build, ' ')
 

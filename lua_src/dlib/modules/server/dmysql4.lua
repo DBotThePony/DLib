@@ -29,7 +29,7 @@ DMySQL4.Clients = DMySQL4.Clients or {}
 DLib.MessageMaker(DMySQL4, 'DMySQL4')
 
 local default = {
-	-- Possible values are sqlite, mysql
+	-- Possible values are sqlite, mysql, (reserved) pgsql
 	driver = 'sqlite',
 	host = '127.0.0.1',
 	port = 3306,
@@ -144,6 +144,32 @@ local tmysql4, mysqloo = file.Exists('bin/gmsv_tmysql4_*', 'LUA'), file.Exists('
 ]]
 function meta:IsMySQL()
 	return self.config.driver == 'mysql'
+end
+
+--[[
+	@doc
+	@fname DMySQL4Connection:IsPGSQL
+
+	@server
+
+	@returns
+	boolean
+]]
+function meta:IsPGSQL()
+	return self.config.driver == 'pgsql'
+end
+
+--[[
+	@doc
+	@fname DMySQL4Connection:IsMySQLStyle
+
+	@server
+
+	@returns
+	boolean
+]]
+function meta:IsMySQLStyle()
+	return not self:IsPGSQL()
 end
 
 --[[
