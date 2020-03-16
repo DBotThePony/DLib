@@ -128,7 +128,7 @@ function DMySQL4.Create(name)
 	self.config = readConfig
 	self.connected = false
 
-	return self:Connect()
+	return self:Connect(), self
 end
 
 local tmysql4, mysqloo = file.Exists('bin/gmsv_tmysql4_*', 'LUA'), file.Exists('bin/gmsv_mysqloo_*', 'LUA')
