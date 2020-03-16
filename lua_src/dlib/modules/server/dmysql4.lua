@@ -881,10 +881,24 @@ function meta:Migrate(doServerCrash)
 	end)
 end
 
-function meta:SerialColumn(name, primary_key)
+function meta:SerialColumn(name, primary_key, escapeStyle)
 	assert(isstring(name), 'column name must be a string')
-
+	escapeStyle = escapeStyle == nil or escapeStyle == true
 	primary_key = (primary_key == nil or primary_key == true) and ' PRIMARY KEY' or ''
+
+	if not escapeStyle then
+		if self:IsMySQL() then
+			return string.format('[[%s]] INT NOT NULL AUTO_INCREMENT%s', name, primary_key)
+		end
+
+		if self:IsSQLite() then
+			return string.format('[[%s]] INT NOT NULL AUTOINCREMENT%s', name, primary_key)
+		end
+
+		if self:IsPGSQL() then
+			return string.format('[[%s]] SERIAL NOT NULL%s', name, primary_key)
+		end
+	end
 
 	if self:IsMySQL() then
 		return string.format('`%s` INT NOT NULL AUTO_INCREMENT%s', name:gsub('`', '``'), primary_key)
