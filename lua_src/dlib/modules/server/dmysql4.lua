@@ -38,6 +38,8 @@ local default = {
 	password = ''
 }
 
+local Promise = Promise
+local sql = sql
 local table = table
 local setmetatable = setmetatable
 local type = type
@@ -126,9 +128,7 @@ function DMySQL4.Create(name)
 	self.config = readConfig
 	self.connected = false
 
-	self:Connect()
-
-	return self
+	return self:Connect()
 end
 
 local tmysql4, mysqloo = file.Exists('bin/gmsv_tmysql4_*', 'LUA'), file.Exists('bin/gmsv_mysqloo_*', 'LUA')
@@ -199,95 +199,102 @@ end
 	boolean: whenever connection was successful or not
 ]]
 function meta:Connect()
-	if self.connected then
-		error('Already connected. To reconnect use :Reconnect()')
-	end
+	return Promise(function(resolve, reject)
+		if self.connected then
+			reject('Already connected. To reconnect use :Reconnect()')
+			return
+		end
 
-	if self:IsSQLite() then
-		self.connected = true
-		DMySQL4.Message(self.configName .. ': Connected using SQLite')
-		return true
-	end
+		if self:IsSQLite() then
+			self.connected = true
+			DMySQL4.Message(self.configName .. ': Connected using SQLite')
+			resolve(true)
+			return
+		end
 
-	if not tmysql4 and not mysqloo then
-		self.connected = false
-		DMySQL4.Message(self.configName .. ': Trying to use MySQL but none MySQL native drivers found! Aborting.')
-		DMySQL4.Message(self.configName .. ': All queries will be rejected!')
-		return true
-	end
+		if self:IsPGSQL() then
+			self.connected = false
+			DMySQL4.Message(self.configName .. ': pgsql driver is reserved for future use')
+			reject('pgsql driver is reserved for future use')
+			return
+		end
 
-	if tmysql4 then
-		local status, returned = xpcall(function()
-			require('tmysql4')
+		if not tmysql4 and not mysqloo then
+			self.connected = false
+			DMySQL4.Message(self.configName .. ': Trying to use MySQL but none MySQL native drivers found! Aborting.')
+			DMySQL4.Message(self.configName .. ': All queries will be rejected!')
+			resolve(false)
+			return
+		end
 
-			DMySQL4.Message(self.configName .. ': Trying to connect to ' .. self.config.host .. ' using native driver TMySQL4')
+		if tmysql4 then
+			local status, returned = xpcall(function()
+				require('tmysql4')
 
-			local connection, err = tmysql.initialize(self.config.host, self.config.user, self.config.password, self.config.database, self.config.port)
+				DMySQL4.Message(self.configName .. ': Trying to connect to ' .. self.config.host .. ' using native driver TMySQL4')
 
-			if not connection then
-				DMySQL4.Message(self.configName .. ': Connection failed: ' .. err)
+				local connection, err = tmysql.initialize(self.config.host, self.config.user, self.config.password, self.config.database, self.config.port)
+
+				if not connection then
+					DMySQL4.Message(self.configName .. ': Connection failed: ' .. (err or '<unknown>'))
+					DMySQL4.Message(self.configName .. ': All queries will be rejected!')
+					self.connected = false
+					reject(err or 'Connection failed')
+					return
+				end
+
+				DMySQL4.Message(self.configName .. ': Connected using TMySQL4')
+				self.connection = connection
+				self.style = DMySQL4.STYLE_TMYSQL
+				self.connected = true
+
+				resolve(true)
+			end, function(err)
+				DMySQL4.Message(self.configName .. ': Could not initialize native driver TMySQL4')
+				DMySQL4.Message(err)
 				DMySQL4.Message(self.configName .. ': All queries will be rejected!')
 				self.connected = false
-				return false
-			end
+				reject(err)
+			end)
+		elseif mysqloo then
+			DMySQL4.Message('It is reccomended that you use TMySQL4 instead of MySQLoo')
 
-			DMySQL4.Message(self.configName .. ': Connected using TMySQL4')
-			self.connection = connection
-			self.style = DMySQL4.STYLE_TMYSQL
-			self.connected = true
+			local status, returned = xpcall(function()
+				require('mysqloo')
 
-			return true
-		end, function(err)
-			DMySQL4.Message(self.configName .. ': Could not initialize native driver TMySQL4')
-			DMySQL4.Message(err)
-			DMySQL4.Message(self.configName .. ': All queries will be rejected!')
-			self.connected = false
-		end)
+				DMySQL4.Message(self.configName .. ': Trying to connect to ' .. self.config.host .. ' using native driver MySQLoo')
 
-		return status and returned
-	elseif mysqloo then
-		DMySQL4.Message('It is reccomended that you use TMySQL4 instead of MySQLoo')
+				local connection = mysqloo.connect(self.config.host, self.config.user, self.config.password, self.config.database, self.config.port)
 
-		local status, returned = xpcall(function()
-			require('mysqloo')
+				connection:connect()
 
-			DMySQL4.Message(self.configName .. ': Trying to connect to ' .. self.config.host .. ' using native driver MySQLoo')
+				connection.onConnected = function()
+					DMySQL4.Message(self.configName .. ': Connected using MySQLoo')
+					self.connection = connection
+					self.style = DMySQL4.STYLE_MYSQLOO
+					self.connected = true
+					resolve(true)
+				end
 
-			local connection = mysqloo.connect(self.config.host, self.config.user, self.config.password, self.config.database, self.config.port)
-
-			connection:connect()
-			connection:wait()
-
-			local status = connection:status()
-
-			if status ~= mysqloo.DATABASE_CONNECTED then
-				DMySQL4.Message(self.configName .. ': Connection failed: ')
-				DMySQL4.Message(connection:hostInfo())
+				connection.onConnectionFailed = function(err)
+					DMySQL4.Message(self.configName .. ': Connection failed: ')
+					DMySQL4.Message(connection:hostInfo())
+					DMySQL4.Message(self.configName .. ': All queries will be rejected!')
+					self.connected = false
+					reject(connection:hostInfo())
+				end
+			end, function(err)
+				DMySQL4.Message(self.configName .. ': Could not initialize native driver MySQLoo')
+				DMySQL4.Message(err)
 				DMySQL4.Message(self.configName .. ': All queries will be rejected!')
 				self.connected = false
-				return false
-			end
+				reject(err)
+			end)
+		end
 
-			DMySQL4.Message(self.configName .. ': Connected using MySQLoo')
-			self.connection = connection
-			self.style = DMySQL4.STYLE_MYSQLOO
-			self.connected = true
-			return true
-		end, function(err)
-			DMySQL4.Message(self.configName .. ': Could not initialize native driver MySQLoo')
-			DMySQL4.Message(err)
-			DMySQL4.Message(self.configName .. ': All queries will be rejected!')
-			self.connected = false
-		end)
-
-		return status and returned
-	end
-
-	return false
+		reject('unknown error')
+	end)
 end
-
-local Promise = Promise
-local sql = sql
 
 --[[
 	@doc
@@ -757,8 +764,11 @@ function meta:Migrate(doServerCrash)
 							DMySQL4.MessageError(self.configName .. ': CAN\'T MIGRATE')
 							DMySQL4.MessageError('Can\'t apply migration ' .. migration.migrationname)
 							DMySQL4.MessageError(err)
-							DMySQL4.MessageError('PRAY TO GOD FOR YOUR DATABASE TO BE SAFE')
-							DMySQL4.MessageError('SINCE BOTH MYSQL AND SQLITE CANT DO FULL ROLLBACK')
+
+							if not self:IsPGSQL() then
+								DMySQL4.MessageError('PRAY TO GOD FOR YOUR DATABASE TO BE SAFE')
+								DMySQL4.MessageError('SINCE BOTH MYSQL AND SQLITE CANT DO FULL ROLLBACK')
+							end
 
 							hook.Remove('Think', self.configName .. '_migrate')
 
