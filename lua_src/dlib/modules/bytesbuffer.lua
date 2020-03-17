@@ -57,17 +57,8 @@ DLib.BytesBuffer = setmetatable({proto = meta, meta = meta}, {__call = function(
 	obj.length = 0
 
 	if type(stringIn) == 'string' then
-		--obj:WriteBinary(stringIn)
-		-- fast initialize
-
-		local read = DLib.string.bbyte(stringIn, 1, #stringIn)
-
-		for i = 1, #read, 4 do
-			--if i + 4 > #read then break end
-			obj.bytes[math.floor(i / 4) + 1] = read[i] + (read[i + 1] or 0):lshift(8) + (read[i + 2] or 0):lshift(16) + (read[i + 3] or 0):lshift(24)
-		end
-
-		obj.length = #read
+		obj.bytes = DLib.string.bbyte(stringIn, 1, #stringIn)
+		obj.length = #obj.bytes
 	end
 
 	-- obj:Seek(0)
@@ -211,35 +202,14 @@ end
 	BytesBuffer: self
 ]]
 function meta:WriteUByte(valueIn)
-	if valueIn == 0 then
-		local internal = math.floor(self.pointer / 4) + 1
-		self.bytes[internal] = (self.bytes[internal] or 0)
-			:band((0xFF):lshift((self.pointer % 4) * 8):bnot())
-
-		self.pointer = self.pointer + 1
-
-		if self.length < self.pointer then
-			self.length = self.pointer
-		end
-
-		return self
-	end
-
 	assertType(valueIn, 'number', 'WriteUByte')
 	assertRange(valueIn, 0, 0xFF, 'WriteUByte')
 
 	valueIn = math.floor(valueIn)
-	local internal = math.floor(self.pointer / 4) + 1
 
-	self.bytes[internal] = (self.bytes[internal] or 0)
-		:band((0xFF):lshift((self.pointer % 4) * 8):bnot())
-		:bor(valueIn:lshift((self.pointer % 4) * 8))
-
+	self.bytes[self.pointer + 1] = valueIn
 	self.pointer = self.pointer + 1
-
-	if self.length < self.pointer then
-		self.length = self.pointer
-	end
+	self.length = #self.bytes
 
 	return self
 end
@@ -529,12 +499,10 @@ end
 
 function meta:ReadUByte()
 	self:CheckOverflow('UByte', 1)
-	local internal = math.floor(self.pointer / 4) + 1
-	local pointer = self.pointer
+	local value = self.bytes[self.pointer + 1]
 	self.pointer = self.pointer + 1
 
-	return (self.bytes[internal] or 0)
-		:band((0xFF):lshift((pointer % 4) * 8)):rshift((pointer % 4) * 8)
+	return value
 end
 
 meta.ReadInt8 = meta.ReadByte
@@ -930,25 +898,8 @@ function meta:ToFileStream(fileStream)
 	local bytes = #self.bytes
 	if bytes == 0 then return fileStream end
 
-	for i = 1, #self.bytes do
-		if i ~= self.bytes[i] then
-			fileStream:WriteULong(self.bytes[i])
-		else
-			local len = self.length % 4
-
-			if len == 0 then
-				fileStream:WriteULong(self.bytes[i])
-			elseif len == 1 then
-				fileStream:WriteByte(self.bytes[i])
-			elseif len == 2 then
-				fileStream:WriteByte(self.bytes[i]:rshift(8):band(0xFF))
-				fileStream:WriteByte(self.bytes[i]:band(0xFF))
-			else
-				fileStream:WriteByte(self.bytes[i]:rshift(16):band(0xFF))
-				fileStream:WriteByte(self.bytes[i]:rshift(8):band(0xFF))
-				fileStream:WriteByte(self.bytes[i]:band(0xFF))
-			end
-		end
+	for i, byte in ipairs(self.bytes) do
+		fileStream:WriteUByte(byte)
 	end
 
 	return fileStream
