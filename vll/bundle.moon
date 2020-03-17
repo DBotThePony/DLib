@@ -252,7 +252,7 @@ class VLL2.URLBundle extends VLL2.AbstractBundle
 
 		req = {
 			method: 'GET'
-			url: url\gsub(' ', '%%20')
+			url: url\gsub(' ', '%%20')\gsub('%.', '%2E')
 			headers: {
 				'User-Agent': 'VLL2'
 				Referer: VLL2.Referer()
@@ -264,7 +264,7 @@ class VLL2.URLBundle extends VLL2.AbstractBundle
 			@__DownloadCallback()
 			@status = @@STATUS_ERROR
 			@Msg('download of ' .. fpath .. ' failed, reason: ' .. reason)
-			@Msg('URL: ' .. url)
+			@Msg('URL: ' .. req.url)
 			@SaveCache()
 			@CallError()
 
@@ -273,7 +273,7 @@ class VLL2.URLBundle extends VLL2.AbstractBundle
 
 			if code ~= 200
 				@Msg('download of ' .. fpath .. ' failed, server returned: ' .. code)
-				@Msg('URL: ' .. url)
+				@Msg('URL: ' .. req.url)
 				@status = @@STATUS_ERROR
 				@__DownloadCallback()
 				@CallError()
