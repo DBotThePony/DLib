@@ -1006,7 +1006,7 @@ class VLL2.WSBundle extends VLL2.GMABundle
 			@Msg('Found GMA in cache, mounting in-place...')
 			@wscontentPath = 'data/' .. fpath
 			@SpecifyPath(@wscontentPath)
-			callback(@wscontentPath)
+			callback(@wscontentPath) if callback
 			@__Mount()
 			return
 
@@ -1041,7 +1041,7 @@ class VLL2.WSBundle extends VLL2.GMABundle
 
 			@wscontentPath = 'data/' .. fpath
 			@SpecifyPath(@wscontentPath)
-			callback(@wscontentPath)
+			callback(@wscontentPath) if callback
 			@__Mount()
 
 		@gmadownloader\AddErrorHook (_, reason = 'failure') ->
