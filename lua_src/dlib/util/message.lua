@@ -668,7 +668,7 @@ return function(tableTarget, moduleName, moduleColor)
 	end
 
 	local function LWarning(...)
-		local formatted = FormatMessageWarning(DLib.i18n.rebuildTable({...}, DEFAULT_TEXT_COLOR))
+		local formatted = FormatMessageWarning(DLib.i18n.rebuildTable({...}, WARNING_COLOR))
 		MsgC(PREFIX_COLOR, PREFIX, unpack(formatted))
 		MsgC('\n')
 		return formatted
@@ -682,7 +682,7 @@ return function(tableTarget, moduleName, moduleColor)
 	end
 
 	local function LPrintError(...)
-		local formatted = FormatMessageError(DLib.i18n.rebuildTable({...}, DEFAULT_TEXT_COLOR))
+		local formatted = FormatMessageError(DLib.i18n.rebuildTable({...}, ERROR_COLOR))
 		MsgC(PREFIX_COLOR, PREFIX, unpack(formatted))
 		MsgC('\n')
 		return formatted
@@ -707,7 +707,7 @@ return function(tableTarget, moduleName, moduleColor)
 	end
 
 	local function LChatError(...)
-		local formatted = FormatMessageError(DLib.i18n.rebuildTable({...}, DEFAULT_TEXT_COLOR))
+		local formatted = FormatMessageError(DLib.i18n.rebuildTable({...}, ERROR_COLOR))
 		chat.AddText(PREFIX_COLOR, PREFIX, ERROR_COLOR, unpack(formatted))
 		return formatted
 	end
@@ -719,7 +719,7 @@ return function(tableTarget, moduleName, moduleColor)
 	end
 
 	local function LChatWarn(...)
-		local formatted = FormatMessageWarning(DLib.i18n.rebuildTable({...}, DEFAULT_TEXT_COLOR))
+		local formatted = FormatMessageWarning(DLib.i18n.rebuildTable({...}, WARNING_COLOR))
 		chat.AddText(PREFIX_COLOR, PREFIX, WARNING_COLOR, unpack(formatted))
 		return formatted
 	end
