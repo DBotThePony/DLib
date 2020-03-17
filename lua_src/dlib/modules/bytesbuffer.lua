@@ -899,7 +899,7 @@ function meta:ToFileStream(fileStream)
 	if bytes == 0 then return fileStream end
 
 	for i, byte in ipairs(self.bytes) do
-		fileStream:WriteUByte(byte)
+		fileStream:WriteByte(byte)
 	end
 
 	return fileStream
