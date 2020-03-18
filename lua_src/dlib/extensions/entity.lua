@@ -508,7 +508,7 @@ function entMeta:GetPrintNameDLib(unlocalized)
 	if self.GetPrintName then
 		local pname = self:GetPrintName()
 
-		if SERVER and pname:startsWith('#') then
+		if SERVER and pname and pname:startsWith('#') then
 			local class = self:GetClass() or 'unknown'
 			local localized = 'info.entity.' .. class .. '.name'
 
@@ -517,7 +517,7 @@ function entMeta:GetPrintNameDLib(unlocalized)
 			end
 		end
 
-		return pname
+		return pname or '<MISSING PRINT NAME>'
 	end
 
 	local class = self:GetClass() or 'unknown'
