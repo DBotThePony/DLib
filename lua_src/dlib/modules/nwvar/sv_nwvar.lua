@@ -84,11 +84,15 @@ local function EntityRemoved(ent)
 	if player.GetCount() == 0 then return end
 	if game.SinglePlayer() and CurTime() < 10 then return end
 	local euid = ent:EntIndex()
+	if not nw.NETWORK_DB[euid] then return end
 
 	nw.NETWORK_DB[euid] = nil
-	net.Start('DLib.NetworkedRemove')
-	net.WriteUInt(euid, 12)
-	net.Broadcast()
+
+	timer.Simple(0, function()
+		net.Start('DLib.NetworkedRemove')
+		net.WriteUInt(euid, 12)
+		net.Broadcast()
+	end)
 end
 
 local function command(ply)
