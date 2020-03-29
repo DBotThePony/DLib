@@ -713,8 +713,11 @@ end
 function meta:WriteDouble(valueIn)
 	assertType(valueIn, 'number', 'WriteDouble')
 	local bits = DLib.bitworker.FloatToBinaryIEEE(valueIn, 11, 52)
-	local bitsInNumber = DLib.bitworker.BinaryToUInteger(bits)
-	self:WriteUInt64(bitsInNumber)
+	local bytes = DLib.bitworker.BitsToBytes(bits)
+	self:WriteUByte(bytes[1])
+	self:WriteUByte(bytes[2])
+	self:WriteUByte(bytes[3])
+	self:WriteUByte(bytes[4])
 	return self
 end
 
@@ -730,8 +733,15 @@ end
 	number
 ]]
 function meta:ReadDouble()
-	local bitsInNumber = self:ReadUInt64()
-	local bits = DLib.bitworker.UIntegerToBinary(bitsInNumber, 64)
+	local bytes1 = self:ReadUByte()
+	local bytes2 = self:ReadUByte()
+	local bytes3 = self:ReadUByte()
+	local bytes4 = self:ReadUByte()
+	local bits = {}
+	table.append(bits, DLib.bitworker.UIntegerToBinary(bytes1, 8))
+	table.append(bits, DLib.bitworker.UIntegerToBinary(bytes2, 8))
+	table.append(bits, DLib.bitworker.UIntegerToBinary(bytes3, 8))
+	table.append(bits, DLib.bitworker.UIntegerToBinary(bytes4, 8))
 	return DLib.bitworker.BinaryToFloatIEEE(bits, 11, 52)
 end
 
