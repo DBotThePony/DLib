@@ -144,6 +144,7 @@ class DLib.LTakeDamageInfo
 	GetInflictor: => @inflictor
 	GetRecordedInflictor: => @recordedInflictor
 	GetBaseDamage: => @damage
+	GetAmmoType: => @ammoType
 	GetDamage: => @damage
 	GetDamageBonus: => @damageBonus
 	GetDamageCustom: => @damageCustomFlags
