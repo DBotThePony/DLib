@@ -100,6 +100,7 @@ class GON.IDataProvider
 	GetIdentity: => @@GetIdentity()
 	IsKnownValue: => true
 	GetRegistryID: => @_identity_id
+	IsInstantValue: => true
 
 class GON.UnknownValue
 	new: (structure, data, id, registryid) =>
@@ -119,9 +120,11 @@ class GON.Structure
 	@ERROR_MISSING_PROVIDER = 0
 	@ERROR_NO_IDENTIFIER = 1
 
-	new: (lowmem = true) =>
+	new: (lowmem = false) =>
+		@lowmem = lowmem
 		@nextid = 1
 		@heap = {}
+		@_heap = {} if not lowmem
 		@next_reg_id = 0
 		@identity_registry = {}
 		@_identity_registry = {}
@@ -134,6 +137,9 @@ class GON.Structure
 		return ret
 
 	FindInHeap: (value) =>
+		if @_heap
+			return @_heap[value] or false
+
 		for provider in *@heap
 			if provider and provider\IsKnownValue() and provider\GetValue() == value
 				return provider
@@ -172,6 +178,7 @@ class GON.Structure
 		serialized = provider(@, id)
 		serialized._identity_id = iid
 		@heap[id] = serialized
+		@_heap[value] = serialized if @_heap
 		@root = serialized if not @root
 		serialized\SetValue(value)
 		return serialized
@@ -242,8 +249,10 @@ class GON.Structure
 				@heap[heapid] = GON.UnknownValue(@, bytesbuffer\ReadBinary(len), heapid, iid)
 			else
 				pos1 = bytesbuffer\Tell()
-				@heap[heapid] = provider\Deserialize(bytesbuffer, @, heapid, len)
-				@heap[heapid]._identity_id = iid
+				p = provider\Deserialize(bytesbuffer, @, heapid, len)
+				@heap[heapid] = p
+				p._identity_id = iid
+				@_heap[p\GetValue()] = p if @_heap and p\IsInstantValue()
 				pos2 = bytesbuffer\Tell()
 				error('provider read more or less than required (' .. (pos2 - pos1) .. ' vs ' .. len .. ')') if (pos2 - pos1) ~= len
 
@@ -300,8 +309,12 @@ class GON.TableProvider extends GON.IDataProvider
 		@was_serialized = true
 		@value = nil
 
+	IsInstantValue: => false
+
 	Rehash: (value = @value, preserveUnknown = true) =>
+		@structure._heap[@value] = nil if @value and @structure._heap
 		@value = value
+		@structure._heap[value] = @ if @structure._heap
 		copy = @_serialized
 		@_serialized = {}
 
@@ -328,7 +341,9 @@ class GON.TableProvider extends GON.IDataProvider
 
 	GetValue: =>
 		return @value if not @was_serialized
+		@structure._heap[@value] = nil if @value and @structure._heap
 		@value = {}
+		@structure._heap[@value] = @ if @structure._heap
 		@was_serialized = false
 
 		for key, value in pairs(@_serialized)
