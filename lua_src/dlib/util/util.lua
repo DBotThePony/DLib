@@ -232,6 +232,10 @@ local function getValueString(typeIn, valueIn)
 	return DLib.GetPrettyPrint(valueIn, typeIn)
 end
 
+function util.PrintableString(valueIn)
+	return valueIn:gsub('"', '\\"'):gsub('\t', '\\t'):gsub('\n', '\\n'):gsub('.', function(str) return unmap[str] or str end), nil
+end
+
 local comparableTypes = {}
 
 local function InternalPrintLoop(tableIn, level, recursionCheck)
