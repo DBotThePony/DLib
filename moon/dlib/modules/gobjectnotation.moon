@@ -37,7 +37,10 @@ GON.RegisterProvider = (provider) ->
 	should_put = provider\ShouldPutIntoMainRegistry()
 
 	GON.LongIdentityRegistry[identity] = provider
-	GON.HashRegistry[identify] = provider if identify
+	if istable(identify)
+		GON.HashRegistry[i] = provider for i in *identify
+	elseif isstring(identify)
+		GON.HashRegistry[identify] = provider
 
 	if should_put
 		for i, provider2 in ipairs(GON.Registry)
@@ -228,6 +231,8 @@ class GON.Structure
 		bytesbuffer = DLib.BytesBuffer()
 		return @WriteFile(bytesbuffer)
 
+-- Builtin
+
 class GON.StringProvider extends GON.IDataProvider
 	@_IDENTIFY = 'string'
 	@GetIdentity = => 'builtin:string'
@@ -305,6 +310,8 @@ GON.RegisterProvider(GON.NumberProvider)
 GON.RegisterProvider(GON.BooleanProvider)
 GON.RegisterProvider(GON.TableProvider)
 
+-- Common
+
 class GON.VectorProvider extends GON.IDataProvider
 	@_IDENTIFY = 'Vector'
 	@GetIdentity = => 'gmod:Vector'
@@ -345,3 +352,96 @@ class GON.ColorProvider extends GON.IDataProvider
 GON.RegisterProvider(GON.VectorProvider)
 GON.RegisterProvider(GON.AngleProvider)
 GON.RegisterProvider(GON.ColorProvider)
+
+-- Advanced
+
+writeVector = (vec, bytesbuffer) ->
+	bytesbuffer\WriteFloat(vec.x)
+	bytesbuffer\WriteFloat(vec.y)
+	bytesbuffer\WriteFloat(vec.z)
+
+readVector = (bytesbuffer) -> Vector(bytesbuffer\ReadFloat(), bytesbuffer\ReadFloat(), bytesbuffer\ReadFloat())
+
+class GON.ConVarProvider extends GON.IDataProvider
+	@_IDENTIFY = 'ConVar'
+	@GetIdentity = => 'gmod:ConVar'
+
+	Serialize: (bytesbuffer) => bytesbuffer\WriteString(@value\GetName())
+	@Deserialize = (bytesbuffer, structure, heapid, length) =>
+		GON.ConVarProvider(structure, heapid)\SetValue(ConVar(bytesbuffer\ReadString()))
+
+class GON.VMatrixProvider extends GON.IDataProvider
+	@_IDENTIFY = 'VMatrix'
+	@GetIdentity = => 'gmod:VMatrix'
+
+	Serialize: (bytesbuffer) =>
+		tab = @value\ToTable()
+
+		for row in *tab
+			bytesbuffer\WriteDouble(row[1])
+			bytesbuffer\WriteDouble(row[2])
+			bytesbuffer\WriteDouble(row[3])
+			bytesbuffer\WriteDouble(row[4])
+
+	@Deserialize = (bytesbuffer, structure, heapid, length) =>
+		tab = {}
+
+		for i = 1, 4
+			table.insert(tab, {
+				bytesbuffer\ReadDouble()
+				bytesbuffer\ReadDouble()
+				bytesbuffer\ReadDouble()
+				bytesbuffer\ReadDouble()
+			})
+
+		return GON.VMatrixProvider(structure, heapid)\SetValue(Matrix(tab))
+
+class GON.MaterialProvider extends GON.IDataProvider
+	@_IDENTIFY = 'IMaterial'
+	@GetIdentity = => 'gmod:IMaterial'
+
+	Serialize: (bytesbuffer) => bytesbuffer\WriteString(@value\GetName())
+	@Deserialize = (bytesbuffer, structure, heapid, length) => GON.MaterialProvider(structure, heapid)\SetValue(Material(bytesbuffer\ReadString()), nil)
+
+class GON.CTakeDamageInfoProvider extends GON.IDataProvider
+	@_IDENTIFY = {'CTakeDamageInfo', 'LTakeDamageInfo'}
+	@GetIdentity = => 'dlib:LTakeDamageInfo'
+
+	@Write = (obj, bytesbuffer) =>
+		with bytesbuffer
+			\WriteDouble(obj\GetDamage())
+			\WriteDouble(obj\GetBaseDamage())
+			\WriteDouble(obj\GetMaxDamage())
+			\WriteDouble(obj\GetDamageBonus())
+			\WriteUInt32(obj\GetDamageCustom())
+			\WriteUInt32(obj\GetAmmoType())
+			writeVector(obj\GetDamagePosition(), bytesbuffer)
+			writeVector(obj\GetDamageForce(), bytesbuffer)
+			writeVector(obj\GetReportedPosition(), bytesbuffer)
+			\WriteUInt32(obj\GetDamageType())
+
+	@Read = (obj, bytesbuffer) =>
+		with bytesbuffer
+			obj\SetDamage(\ReadDouble())
+			obj\SetBaseDamage(\ReadDouble())
+			obj\SetMaxDamage(\ReadDouble())
+			obj\SetDamageBonus(\ReadDouble())
+			obj\SetDamageCustom(\ReadUInt32())
+			obj\SetAmmoType(\ReadUInt32())
+
+			obj\SetDamagePosition(readVector(bytesbuffer))
+			obj\SetDamageForce(readVector(bytesbuffer))
+			obj\SetReportedPosition(readVector(bytesbuffer))
+
+			obj\SetDamageType(\ReadUInt32())
+
+	Serialize: (bytesbuffer) => @@Write(@value, bytesbuffer)
+	@Deserialize = (bytesbuffer, structure, heapid, length) =>
+		obj = DLib.LTakeDamageInfo()
+		@Read(obj, bytesbuffer)
+		return GON.CTakeDamageInfoProvider(structure, heapid)\SetValue(obj)
+
+GON.RegisterProvider(GON.ConVarProvider)
+GON.RegisterProvider(GON.VMatrixProvider)
+GON.RegisterProvider(GON.MaterialProvider)
+GON.RegisterProvider(GON.CTakeDamageInfoProvider)
