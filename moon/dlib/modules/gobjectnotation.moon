@@ -128,6 +128,7 @@ class GON.Structure
 		@next_reg_id = 0
 		@identity_registry = {}
 		@_identity_registry = {}
+		@long_heap = false
 
 	GetHeapValue: (id) => @heap[id]
 
@@ -188,8 +189,10 @@ class GON.Structure
 		error('Given provider is not part of this structure heap') if @heap[provider\GetHeapID()] ~= provider
 		@root = provider
 
+	IsHeapBig: => @long_heap or #@heap >= 0xFFFF
+
 	WriteHeader: (bytesbuffer) =>
-		bytesbuffer\WriteBinary('\xF7\x7FDLib.GON\x00\x01')
+		bytesbuffer\WriteBinary('\xF7\x7FDLib.GON\x00\x02')
 		bytesbuffer\WriteUByte(@next_reg_id - 1)
 		bytesbuffer\WriteString(@identity_registry[i]) for i = 0, @next_reg_id - 1
 
@@ -214,22 +217,42 @@ class GON.Structure
 
 	WriteRoot: (bytesbuffer) =>
 		bytesbuffer\WriteUByte(@root and 1 or 0)
-		bytesbuffer\WriteUInt32(@root\GetHeapID()) if @root
+		bytesbuffer\WriteUInt32(@root\GetHeapID()) if @root and @IsHeapBig()
+		bytesbuffer\WriteUInt16(@root\GetHeapID()) if @root and not @IsHeapBig()
 
 	ReadHeader: (bytesbuffer) =>
 		read = bytesbuffer\ReadBinary(12)
-		return false if read ~= '\xF7\x7FDLib.GON\x00\x01'
-		@identity_registry = {}
-		@_identity_registry = {}
 
-		@next_reg_id = bytesbuffer\ReadUByte() + 1
+		@long_heap = false
 
-		for i = 0, @next_reg_id - 1
-			read = bytesbuffer\ReadString()
-			@identity_registry[i] = read
-			@_identity_registry[read] = i
+		if read == '\xF7\x7FDLib.GON\x00\x01'
+			@identity_registry = {}
+			@_identity_registry = {}
 
-		return true
+			@next_reg_id = bytesbuffer\ReadUByte() + 1
+
+			for i = 0, @next_reg_id - 1
+				read = bytesbuffer\ReadString()
+				@identity_registry[i] = read
+				@_identity_registry[read] = i
+
+			@long_heap = true
+
+			return true
+		elseif read == '\xF7\x7FDLib.GON\x00\x02'
+			@identity_registry = {}
+			@_identity_registry = {}
+
+			@next_reg_id = bytesbuffer\ReadUByte() + 1
+
+			for i = 0, @next_reg_id - 1
+				read = bytesbuffer\ReadString()
+				@identity_registry[i] = read
+				@_identity_registry[read] = i
+
+			return true
+
+		return false
 
 	ReadHeap: (bytesbuffer) =>
 		@heap = {}
@@ -260,7 +283,8 @@ class GON.Structure
 		has_root = bytesbuffer\ReadUByte() == 1
 
 		if has_root
-			@root = @heap[bytesbuffer\ReadUInt32()]
+			@root = @heap[bytesbuffer\ReadUInt32()] if @IsHeapBig()
+			@root = @heap[bytesbuffer\ReadUInt16()] if not @IsHeapBig()
 		else
 			@root = nil
 
@@ -354,22 +378,39 @@ class GON.TableProvider extends GON.IDataProvider
 		return @value
 
 	Serialize: (bytesbuffer) =>
-		for key, value in pairs(@_serialized)
-			bytesbuffer\WriteUInt32(key)
-			bytesbuffer\WriteUInt32(value)
+		long_heap = @structure\IsHeapBig()
 
-		bytesbuffer\WriteUInt32(0)
+		for key, value in pairs(@_serialized)
+			if long_heap
+				bytesbuffer\WriteUInt32(key)
+				bytesbuffer\WriteUInt32(value)
+			else
+				bytesbuffer\WriteUInt16(key)
+				bytesbuffer\WriteUInt16(value)
+
+		bytesbuffer\WriteUInt32(0) if long_heap
+		bytesbuffer\WriteUInt16(0) if not long_heap
 
 	@Deserialize = (bytesbuffer, structure, heapid, length) =>
+		long_heap = structure\IsHeapBig()
+
 		obj = GON.TableProvider(structure, heapid)
 		_serialized = {}
 
-		while true
-			readKey = bytesbuffer\ReadUInt32()
-			break if readKey == 0
-			readValue = bytesbuffer\ReadUInt32()
-			break if readValue == 0
-			_serialized[readKey] = readValue
+		if long_heap
+			while true
+				readKey = bytesbuffer\ReadUInt32()
+				break if readKey == 0
+				readValue = bytesbuffer\ReadUInt32()
+				break if readValue == 0
+				_serialized[readKey] = readValue
+		else
+			while true
+				readKey = bytesbuffer\ReadUInt16()
+				break if readKey == 0
+				readValue = bytesbuffer\ReadUInt16()
+				break if readValue == 0
+				_serialized[readKey] = readValue
 
 		obj\SetSerializedValue(_serialized)
 		return obj
