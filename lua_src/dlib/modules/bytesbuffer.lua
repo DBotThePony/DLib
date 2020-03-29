@@ -677,11 +677,12 @@ end
 
 --[[
 	@doc
-	@fname BytesBuffer:WriteFloat
+	@fname BytesBuffer:WriteFloatSlow
 	@args number float
 
 	@desc
 	due to precision errors, this is a slightly inaccurate operation
+	*This function internally utilize tables, so it can hog memory*
 	@enddesc
 
 	@returns
@@ -694,9 +695,39 @@ function meta:WriteFloatSlow(valueIn)
 	return self:WriteUInt32(bitsInNumber)
 end
 
+--[[
+	@doc
+	@fname BytesBuffer:WriteFloat
+	@args number float
+
+	@desc
+	due to precision errors, this is a slightly inaccurate operation
+	@enddesc
+
+	@returns
+	BytesBuffer: self
+]]
 function meta:WriteFloat(valueIn)
 	assertType(valueIn, 'number', 'WriteFloat')
 	return self:WriteInt32(bitworker.FastFloatToBinaryIEEE(valueIn))
+end
+
+--[[
+	@doc
+	@fname BytesBuffer:ReadFloatSlow
+
+	@desc
+	due to precision errors, this is a slightly inaccurate operation
+	*This function internally utilize tables, so it can hog memory*
+	@enddesc
+
+	@returns
+	number
+]]
+function meta:ReadFloatSlow()
+	local bitsInNumber = self:ReadUInt32()
+	local bits = bitworker.UIntegerToBinary(bitsInNumber, 32)
+	return bitworker.BinaryToFloatIEEE(bits, 8, 23)
 end
 
 --[[
@@ -710,23 +741,18 @@ end
 	@returns
 	number
 ]]
-function meta:ReadFloatSlow()
-	local bitsInNumber = self:ReadUInt32()
-	local bits = bitworker.UIntegerToBinary(bitsInNumber, 32)
-	return bitworker.BinaryToFloatIEEE(bits, 8, 23)
-end
-
 function meta:ReadFloat()
 	return bitworker.FastBinaryToFloatIEEE(self:ReadUInt32())
 end
 
 --[[
 	@doc
-	@fname BytesBuffer:WriteDouble
+	@fname BytesBuffer:WriteDoubleSlow
 	@args number double
 
 	@desc
 	due to precision errors, this is a inaccurate operation
+	*This function internally utilize tables, so it can hog memory*
 	@enddesc
 
 	@returns
@@ -751,6 +777,18 @@ function meta:WriteDoubleSlow(valueIn)
 	return self
 end
 
+--[[
+	@doc
+	@fname BytesBuffer:WriteDouble
+	@args number double
+
+	@desc
+	due to precision errors, this is a inaccurate operation
+	@enddesc
+
+	@returns
+	BytesBuffer: self
+]]
 function meta:WriteDouble(valueIn)
 	assertType(valueIn, 'number', 'WriteDouble')
 	local int1, int2 = bitworker.FastDoubleToBinaryIEEE(valueIn, 11, 52)
@@ -761,10 +799,11 @@ end
 
 --[[
 	@doc
-	@fname BytesBuffer:ReadDouble
+	@fname BytesBuffer:ReadDoubleSlow
 
 	@desc
 	due to precision errors, this is a slightly inaccurate operation
+	*This function internally utilize tables, so it can hog memory*
 	@enddesc
 
 	@returns
@@ -779,6 +818,17 @@ function meta:ReadDoubleSlow()
 	return bitworker.BinaryToFloatIEEE(bits, 11, 52)
 end
 
+--[[
+	@doc
+	@fname BytesBuffer:ReadDouble
+
+	@desc
+	due to precision errors, this is a slightly inaccurate operation
+	@enddesc
+
+	@returns
+	number
+]]
 function meta:ReadDouble()
 	return bitworker.FastBinaryToDoubleIEEE(self:ReadUInt32(), self:ReadUInt32())
 end

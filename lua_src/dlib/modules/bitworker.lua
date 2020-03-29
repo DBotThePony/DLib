@@ -317,6 +317,16 @@ function bitworker.NumberToMantiss(numberIn, bitsAllowed)
 	return bits, exp
 end
 
+--[[
+	@doc
+	@fname DLib.bitworker.NumberToMantissFast
+	@args number value, number bitsAllowed
+
+	@returns
+	number: fist part of mantiss (32-bit integer)
+	number: second part of mantiss (32-bit integer)
+	number: exponent
+]]
 function bitworker.NumberToMantissFast(numberIn, bitsAllowed)
 	if not isValidNumber(numberIn) then
 		return 0
@@ -391,6 +401,14 @@ function bitworker.MantissToNumber(bitsIn, exp)
 	return pow(2, exp) * (1 + num)
 end
 
+--[[
+	@doc
+	@fname DLib.bitworker.MantissToNumberFast
+	@args number mantiss1, number mantiss2, number exponent, number bitsIn
+
+	@returns
+	number
+]]
 function bitworker.MantissToNumberFast(numberIn1, numberIn2, exp, bitsIn)
 	exp = exp or 0
 	numberIn1 = numberIn1 or 0
@@ -448,6 +466,14 @@ function bitworker.FloatToBinaryIEEE(numberIn, bitsExponent, bitsMantissa)
 	return bits
 end
 
+--[[
+	@doc
+	@fname DLib.bitworker.FastFloatToBinaryIEEE
+	@args number value
+
+	@returns
+	number: integer representation of float
+]]
 function bitworker.FastFloatToBinaryIEEE(numberIn)
 	if not isValidNumber(numberIn) or numberIn == 0 then
 		return 0
@@ -457,6 +483,15 @@ function bitworker.FastFloatToBinaryIEEE(numberIn)
 	return bor(lshift(numberIn >= 0 and 0 or 1, 31), lshift(exp + 127, 23), mantissa1)
 end
 
+--[[
+	@doc
+	@fname DLib.bitworker.FastDoubleToBinaryIEEE
+	@args number value
+
+	@returns
+	number: integer representation of double (first part)
+	number: integer representation of double (second part)
+]]
 function bitworker.FastDoubleToBinaryIEEE(numberIn)
 	if not isValidNumber(numberIn) or numberIn == 0 then
 		return 0
@@ -500,6 +535,14 @@ function bitworker.BinaryToFloatIEEE(bitsIn, bitsExponent, bitsMantissa)
 	return -value
 end
 
+--[[
+	@doc
+	@fname DLib.bitworker.FastBinaryToFloatIEEE
+	@args number integerRepresentation
+
+	@returns
+	number: float
+]]
 function bitworker.FastBinaryToFloatIEEE(numberIn)
 	if numberIn == 0 then return 0 end
 	local point = rshift(numberIn, 31)
@@ -511,6 +554,14 @@ function bitworker.FastBinaryToFloatIEEE(numberIn)
 	return -value
 end
 
+--[[
+	@doc
+	@fname DLib.bitworker.FastBinaryToDoubleIEEE
+	@args number integerRepresentation1, number integerRepresentation2
+
+	@returns
+	number: double
+]]
 function bitworker.FastBinaryToDoubleIEEE(numberIn1, numberIn2)
 	if numberIn == 0 then return 0 end
 	local point = rshift(numberIn1, 31)
