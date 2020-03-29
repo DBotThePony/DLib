@@ -26,6 +26,15 @@ local bitworker = DLib.bitworker
 local type = type
 local ipairs = ipairs
 
+local bit = bit
+local lshift = bit.lshift
+local rshift = bit.rshift
+local band = bit.band
+local bor = bit.bor
+local bxor = bit.bxor
+local bnot = bit.bnot
+local pow = math.pow
+
 local function isValidNumber(numIn)
 	return type(numIn) == 'number' and numIn == numIn and numIn ~= math.huge and numIn ~= -math.huge
 end
@@ -308,6 +317,59 @@ function bitworker.NumberToMantiss(numberIn, bitsAllowed)
 	return bits, exp
 end
 
+function bitworker.NumberToMantissFast(numberIn, bitsAllowed)
+	if not isValidNumber(numberIn) then
+		return 0
+	end
+
+	local exp, numberOut1, numberOut2 = 0, 0, 0
+	numberIn = math.abs(numberIn)
+	local lastMult = numberIn % 1
+
+	if numberIn >= 2 then
+		-- try to normalize number to be less than 2
+		-- shift to right
+		while numberIn >= 2 do
+			numberIn = numberIn / 2
+			exp = exp + 1
+		end
+	end
+
+	-- if our number is less than one, shift to left
+	if exp == 0 and numberIn < 1 then
+		while numberIn < 1 do
+			numberIn = numberIn * 2
+			exp = exp - 1
+		end
+	end
+
+	-- if number is not a zero, it is known amoung all computers that
+	-- first bit of mantissa is always 1
+	-- so let's assume so
+	numberIn = numberIn - 1
+	local dest1, dest2 = math.min(32, bitsAllowed), math.min(32, bitsAllowed - 32)
+
+	for i = 1, dest1 do
+		numberIn = numberIn * 2
+
+		if numberIn >= 1 then
+			numberOut1 = bor(numberOut1, lshift(1, dest1 - i))
+			numberIn = numberIn - 1
+		end
+	end
+
+	for i = 1, dest2 do
+		numberIn = numberIn * 2
+
+		if numberIn >= 1 then
+			numberOut2 = bor(numberOut2, lshift(1, dest2 - i))
+			numberIn = numberIn - 1
+		end
+	end
+
+	return numberOut1, numberOut2, exp
+end
+
 --[[
 	@doc
 	@fname DLib.bitworker.MantissToNumber
@@ -322,11 +384,37 @@ function bitworker.MantissToNumber(bitsIn, exp)
 
 	for i = 1, #bitsIn do
 		if bitsIn[i] == 1 then
-			num = num + math.pow(2, -i)
+			num = num + pow(2, -i)
 		end
 	end
 
-	return math.pow(2, exp) * (1 + num)
+	return pow(2, exp) * (1 + num)
+end
+
+function bitworker.MantissToNumberFast(numberIn1, numberIn2, exp, bitsIn)
+	exp = exp or 0
+	numberIn1 = numberIn1 or 0
+	numberIn2 = numberIn2 or 0
+	local num = 0
+	local dest1 = math.min(32, bitsIn) - 1
+	local dest2 = math.min(32, bitsIn - 32) - 1
+
+	numberIn1 = lshift(numberIn1, math.max(32 - bitsIn, 0))
+	numberIn2 = lshift(numberIn2, 63 - bitsIn)
+
+	for i = 0, dest1 do
+		if band(rshift(numberIn1, 31 - i), 1) == 1 then
+			num = num + pow(2, -(i + 1))
+		end
+	end
+
+	for i = 0, dest2 do
+		if band(rshift(numberIn2, 31 - i), 1) == 1 then
+			num = num + pow(2, -(i + 32))
+		end
+	end
+
+	return pow(2, exp) * (1 + num)
 end
 
 --[[
@@ -352,12 +440,30 @@ function bitworker.FloatToBinaryIEEE(numberIn, bitsExponent, bitsMantissa)
 
 	local bits = {numberIn >= 0 and 0 or 1}
 	local mantissa, exp = bitworker.NumberToMantiss(numberIn, bitsMantissa)
-	local expBits = bitworker.UIntegerToBinary(exp + 127, bitsExponent)
+	local expBits = bitworker.UIntegerToBinary(exp + math.pow(2, bitsExponent - 1) - 1, bitsExponent)
 
 	table.append(bits, expBits)
 	table.append(bits, mantissa)
 
 	return bits
+end
+
+function bitworker.FastFloatToBinaryIEEE(numberIn)
+	if not isValidNumber(numberIn) or numberIn == 0 then
+		return 0
+	end
+
+	local mantissa1, mantissa2, exp = bitworker.NumberToMantissFast(numberIn, 23)
+	return bor(lshift(numberIn >= 0 and 0 or 1, 31), lshift(exp + 127, 23), mantissa1)
+end
+
+function bitworker.FastDoubleToBinaryIEEE(numberIn)
+	if not isValidNumber(numberIn) or numberIn == 0 then
+		return 0
+	end
+
+	local mantissa1, mantissa2, exp = bitworker.NumberToMantissFast(numberIn, 52)
+	return bor(lshift(numberIn >= 0 and 0 or 1, 31), lshift(exp + 1023, 20), rshift(mantissa1, 12)), bor(lshift(band(mantissa1, 4095), 20), mantissa2)
 end
 
 --[[
@@ -385,13 +491,37 @@ function bitworker.BinaryToFloatIEEE(bitsIn, bitsExponent, bitsMantissa)
 	local exp = bitworker.BinaryToUInteger(exponent)
 	local mantissa = table.gcopyRange(bitsIn, 2 + bitsExponent)
 
-	local value = bitworker.MantissToNumber(mantissa, exp - 127)
+	local value = bitworker.MantissToNumber(mantissa, exp - math.pow(2, bitsExponent - 1) + 1)
 
 	if forward == 0 then
 		return value
-	else
-		return -value
 	end
+
+	return -value
+end
+
+function bitworker.FastBinaryToFloatIEEE(numberIn)
+	if numberIn == 0 then return 0 end
+	local point = rshift(numberIn, 31)
+	local exp = band(rshift(numberIn, 23), 0xFF) - 127
+	local mantissa = band(numberIn, 0x7FFFFF)
+	local value = bitworker.MantissToNumberFast(mantissa, 0, exp, 23)
+
+	if point == 0 then return value end
+	return -value
+end
+
+function bitworker.FastBinaryToDoubleIEEE(numberIn1, numberIn2)
+	if numberIn == 0 then return 0 end
+	local point = rshift(numberIn1, 31)
+	local exp = band(rshift(numberIn1, 20), 0x7FF) - 1023
+	local mantissa1 = lshift(band(numberIn1, 0xFFFFF), 12)
+	local mantissa2 = band(numberIn2, 0xFFFFF)
+	mantissa1 = bor(mantissa1, rshift(numberIn2, 20))
+	local value = bitworker.MantissToNumberFast(mantissa1, mantissa2, exp, 52)
+
+	if point == 0 then return value end
+	return -value
 end
 
 --[[

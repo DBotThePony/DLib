@@ -40,7 +40,7 @@ local lshift = bit.lshift
 local rshift = bit.rshift
 local band = bit.band
 local bor = bit.bor
-local xor = bit.xor
+local bxor = bit.bxor
 
 meta.__index = meta
 
@@ -687,12 +687,16 @@ end
 	@returns
 	BytesBuffer: self
 ]]
--- Float
-function meta:WriteFloat(valueIn)
+function meta:WriteFloatSlow(valueIn)
 	assertType(valueIn, 'number', 'WriteFloat')
 	local bits = bitworker.FloatToBinaryIEEE(valueIn, 8, 23)
 	local bitsInNumber = bitworker.BinaryToUInteger(bits)
 	return self:WriteUInt32(bitsInNumber)
+end
+
+function meta:WriteFloat(valueIn)
+	assertType(valueIn, 'number', 'WriteFloat')
+	return self:WriteInt32(bitworker.FastFloatToBinaryIEEE(valueIn))
 end
 
 --[[
@@ -706,10 +710,14 @@ end
 	@returns
 	number
 ]]
-function meta:ReadFloat()
+function meta:ReadFloatSlow()
 	local bitsInNumber = self:ReadUInt32()
 	local bits = bitworker.UIntegerToBinary(bitsInNumber, 32)
 	return bitworker.BinaryToFloatIEEE(bits, 8, 23)
+end
+
+function meta:ReadFloat()
+	return bitworker.FastBinaryToFloatIEEE(self:ReadUInt32())
 end
 
 --[[
@@ -724,7 +732,7 @@ end
 	@returns
 	BytesBuffer: self
 ]]
-function meta:WriteDouble(valueIn)
+function meta:WriteDoubleSlow(valueIn)
 	assertType(valueIn, 'number', 'WriteDouble')
 	local bits = bitworker.FloatToBinaryIEEE(valueIn, 11, 52)
 	local bytes = bitworker.BitsToBytes(bits)
@@ -743,6 +751,14 @@ function meta:WriteDouble(valueIn)
 	return self
 end
 
+function meta:WriteDouble(valueIn)
+	assertType(valueIn, 'number', 'WriteDouble')
+	local int1, int2 = bitworker.FastDoubleToBinaryIEEE(valueIn, 11, 52)
+	self:WriteInt32(int1)
+	self:WriteInt32(int2)
+	return self
+end
+
 --[[
 	@doc
 	@fname BytesBuffer:ReadDouble
@@ -754,7 +770,7 @@ end
 	@returns
 	number
 ]]
-function meta:ReadDouble()
+function meta:ReadDoubleSlow()
 	local bytes1 = self:ReadUInt32()
 	local bytes2 = self:ReadUInt32()
 	local bits = {}
@@ -763,6 +779,9 @@ function meta:ReadDouble()
 	return bitworker.BinaryToFloatIEEE(bits, 11, 52)
 end
 
+function meta:ReadDouble()
+	return bitworker.FastBinaryToDoubleIEEE(self:ReadUInt32(), self:ReadUInt32())
+end
 
 --[[
 	@doc
