@@ -35,6 +35,12 @@ local rawget = rawget
 local rawset = rawset
 local setmetatable = setmetatable
 local string = string
+local bit = bit
+local lshift = bit.lshift
+local rshift = bit.rshift
+local band = bit.band
+local bor = bit.bor
+local xor = bit.xor
 
 meta.__index = meta
 
@@ -327,9 +333,12 @@ end
 function meta:WriteUInt16(valueIn)
 	assertType(valueIn, 'number', 'WriteUInt16')
 	assertRange(valueIn, 0, 0xFFFF, 'WriteUInt16')
-	valueIn = math.floor(valueIn)
-	self:WriteUByte((valueIn - valueIn % 0x100) / 0x100)
-	self:WriteUByte(valueIn % 0x100)
+
+	self.bytes[self.pointer + 1] = band(rshift(valueIn, 8), 0xFF)
+	self.bytes[self.pointer + 2] = band(valueIn, 0xFF)
+	self.pointer = self.pointer + 2
+	self.length = #self.bytes
+
 	return self
 end
 
@@ -382,20 +391,13 @@ end
 function meta:WriteUInt32(valueIn)
 	assertType(valueIn, 'number', 'WriteUInt32')
 	assertRange(valueIn, 0, 0xFFFFFFFF, 'WriteUInt32')
-	valueIn = math.floor(valueIn)
 
-	local four = valueIn % 0x100
-	valueIn = (valueIn - valueIn % 0x100) / 0x100
-	local three = valueIn % 0x100
-	valueIn = (valueIn - valueIn % 0x100) / 0x100
-	local two = valueIn % 0x100
-	valueIn = (valueIn - valueIn % 0x100) / 0x100
-	local one = valueIn % 0x100
-
-	self:WriteUByte(one)
-	self:WriteUByte(two)
-	self:WriteUByte(three)
-	self:WriteUByte(four)
+	self.bytes[self.pointer + 1] = band(rshift(valueIn, 24), 0xFF)
+	self.bytes[self.pointer + 2] = band(rshift(valueIn, 16), 0xFF)
+	self.bytes[self.pointer + 3] = band(rshift(valueIn, 8), 0xFF)
+	self.bytes[self.pointer + 4] = band(valueIn, 0xFF)
+	self.pointer = self.pointer + 4
+	self.length = #self.bytes
 
 	return self
 end
@@ -554,7 +556,13 @@ end
 
 function meta:ReadUInt16()
 	self:CheckOverflow('UInt16', 2)
-	return self:ReadUByte() * 256 + self:ReadUByte()
+
+	local value =
+		lshift(self.bytes[self.pointer + 1], 8) +
+		self.bytes[self.pointer + 2]
+
+	self.pointer = self.pointer + 2
+	return value
 end
 
 --[[
@@ -598,11 +606,15 @@ end
 
 function meta:ReadUInt32()
 	self:CheckOverflow('UInt32', 4)
-	return
-		self:ReadUByte() * 0x1000000 +
-		self:ReadUByte() * 0x10000 +
-		self:ReadUByte() * 0x100 +
-		self:ReadUByte()
+
+	local value =
+		lshift(self.bytes[self.pointer + 1], 24) +
+		lshift(self.bytes[self.pointer + 2], 16) +
+		lshift(self.bytes[self.pointer + 3], 8) +
+		self.bytes[self.pointer + 4]
+
+	self.pointer = self.pointer + 4
+	return value
 end
 
 --[[
@@ -716,14 +728,18 @@ function meta:WriteDouble(valueIn)
 	assertType(valueIn, 'number', 'WriteDouble')
 	local bits = bitworker.FloatToBinaryIEEE(valueIn, 11, 52)
 	local bytes = bitworker.BitsToBytes(bits)
-	self:WriteUByte(bytes[1])
-	self:WriteUByte(bytes[2])
-	self:WriteUByte(bytes[3])
-	self:WriteUByte(bytes[4])
-	self:WriteUByte(bytes[5])
-	self:WriteUByte(bytes[6])
-	self:WriteUByte(bytes[7])
-	self:WriteUByte(bytes[8])
+
+	self.bytes[self.pointer + 1] = bytes[1]
+	self.bytes[self.pointer + 2] = bytes[2]
+	self.bytes[self.pointer + 3] = bytes[3]
+	self.bytes[self.pointer + 4] = bytes[4]
+	self.bytes[self.pointer + 5] = bytes[5]
+	self.bytes[self.pointer + 6] = bytes[6]
+	self.bytes[self.pointer + 7] = bytes[7]
+	self.bytes[self.pointer + 8] = bytes[8]
+	self.pointer = self.pointer + 8
+	self.length = #self.bytes
+
 	return self
 end
 
