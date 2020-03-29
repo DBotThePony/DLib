@@ -791,7 +791,7 @@ end
 ]]
 function meta:WriteDouble(valueIn)
 	assertType(valueIn, 'number', 'WriteDouble')
-	local int1, int2 = bitworker.FastDoubleToBinaryIEEE(valueIn, 11, 52)
+	local int1, int2 = bitworker.FastDoubleToBinaryIEEE(valueIn)
 	self:WriteInt32(int1)
 	self:WriteInt32(int2)
 	return self

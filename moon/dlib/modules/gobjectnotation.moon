@@ -25,30 +25,23 @@ GON = DLib.GON
 
 GON.HashRegistry = GON.HashRegistry or {}
 GON.Registry = GON.Registry or {}
-GON.ShortIdentityRegistry = GON.ShortIdentityRegistry or {}
 GON.LongIdentityRegistry = GON.LongIdentityRegistry or {}
-
-GON.FindShortProvider = (identity) ->
-	provider = GON.ShortIdentityRegistry[identity]
-	return provider or false
 
 GON.FindLongProvider = (identity) ->
 	provider = GON.LongIdentityRegistry[identity]
 	return provider or false
 
 GON.RegisterProvider = (provider) ->
-	short = provider\ShortIdentity()
-	long = provider\LongIdentity()
-	identity = provider\LuaTypeIdentify()
+	identity = provider\GetIdentity()
+	identify = provider\LuaTypeIdentify()
 	should_put = provider\ShouldPutIntoMainRegistry()
 
-	GON.ShortIdentityRegistry[short] = provider if short
-	GON.LongIdentityRegistry[long] = provider
-	GON.HashRegistry[identity] = provider if identity
+	GON.LongIdentityRegistry[identity] = provider
+	GON.HashRegistry[identify] = provider if identify
 
 	if should_put
 		for i, provider2 in ipairs(GON.Registry)
-			if provider2\LongIdentity() == long
+			if provider2\GetIdentity() == identity
 				GON.Registry[i] = provider
 				return
 
@@ -60,8 +53,7 @@ class GON.IDataProvider
 	@LuaTypeIdentify = => @_IDENTIFY
 	@ShouldPutIntoMainRegistry = => @LuaTypeIdentify() == nil
 
-	@ShortIdentity = =>
-	@LongIdentity = => error('Not implemented')
+	@GetIdentity = => error('Not implemented')
 
 	@Ask = (value, ltype = luatype(value)) =>
 		identify = @LuaTypeIdentify()
@@ -85,18 +77,18 @@ class GON.IDataProvider
 	GetValue: => @value
 	GetStructure: => @structure
 	GetHeapID: => @heapid
-	GetLongIdentity: => @@LongIdentity()
-	GetShortIdentity: => @@ShortIdentity()
+	GetIdentity: => @@GetIdentity()
 
 class GON.Structure
 	@ERROR_MISSING_PROVIDER = 0
-	@ERROR_NO_SHORT_IDENTIFIER = 1
-	@ERROR_NO_LONG_IDENTIFIER = 2
+	@ERROR_NO_IDENTIFIER = 1
 
-	new: (lowmem = true, short = false) =>
+	new: (lowmem = true) =>
 		@nextid = 1
 		@heap = {}
-		@is_short = short
+		@next_reg_id = 0
+		@identity_registry = {}
+		@_identity_registry = {}
 
 	GetHeapValue: (id) => @heap[id]
 
@@ -112,6 +104,16 @@ class GON.Structure
 
 		return false
 
+	GetIdentityID: (identity) =>
+		_get = @_identity_registry[identity]
+		return _get if _get
+		_get = @next_reg_id
+		error('Too many types in a single file! 255 is the maximum!') if _get >= 0x100
+		@identity_registry[_get] = identity
+		@_identity_registry[identity] = _get
+		@next_reg_id += 1
+		return _get
+
 	AddToHeap: (value) =>
 		if provider = @FindInHeap(value)
 			return provider
@@ -126,11 +128,13 @@ class GON.Structure
 					break
 
 		return false, @@ERROR_MISSING_PROVIDER if not provider
-		identity = @is_short and provider\ShortIdentity() or not @is_short and provider\LongIdentity()
-		return false, @is_short and @@ERROR_NO_SHORT_IDENTIFIER or @@ERROR_NO_LONG_IDENTIFIER if not identity
+		identity = provider\GetIdentity()
+		return false, @@ERROR_NO_IDENTIFIER if not identity
+		iid = @GetIdentityID(identity)
 
 		id = @NextHeapIdentifier()
 		serialized = provider(@, id)
+		serialized._identity_id = iid
 		@heap[id] = serialized
 		@root = serialized if not @root
 		serialized\SetValue(value)
@@ -141,18 +145,16 @@ class GON.Structure
 		error('Given provider is not part of this structure heap') if @heap[provider\GetHeapID()] ~= provider
 		@root = provider
 
-	WriteHeader: (bytesbuffer) => bytesbuffer\WriteBinary('\xF7\x7FDLib.GON\x00\x00' .. (@is_short and '\x01' or '\x00'))
+	WriteHeader: (bytesbuffer) =>
+		bytesbuffer\WriteBinary('\xF7\x7FDLib.GON\x00\x01')
+		bytesbuffer\WriteUByte(@next_reg_id - 1)
+		bytesbuffer\WriteString(@identity_registry[i]) for i = 0, @next_reg_id - 1
 
 	WriteHeap: (bytesbuffer) =>
 		bytesbuffer\WriteUInt32(#@heap)
 
 		for provider in *@heap
-			if @is_short
-				identity = assert(provider\GetShortIdentity(), 'This should never happen: Heap value does not have short identity')
-				error('Identity is out of bounds') if identity < 0 or identity > 255
-				bytesbuffer\WriteUByte(identity)
-			else
-				bytesbuffer\WriteString(assert(provider\GetLongIdentity(), 'This should never happen: Heap value does not have long identity'))
+			bytesbuffer\WriteUByte(provider._identity_id)
 
 			bytesbuffer\WriteUInt16(0)
 			pos = bytesbuffer\Tell()
@@ -169,8 +171,15 @@ class GON.Structure
 
 	ReadHeader: (bytesbuffer) =>
 		read = bytesbuffer\ReadBinary(12)
-		return false if read ~= '\xF7\x7FDLib.GON\x00\x00'
-		@is_short = bytesbuffer\ReadUByte() == 1
+		return false if read ~= '\xF7\x7FDLib.GON\x00\x01'
+		@identity_registry = {}
+		@_identity_registry = {}
+
+		for i = 0, bytesbuffer\ReadUByte()
+			read = bytesbuffer\ReadString()
+			@identity_registry[i] = read
+			@_identity_registry[read] = i
+
 		return true
 
 	ReadHeap: (bytesbuffer) =>
@@ -182,13 +191,9 @@ class GON.Structure
 		for i = 1, amount
 			heapid = @nextid
 			@nextid += 1
-			local provider
-
-			if @is_short
-				provider = GON.FindShortProvider(bytesbuffer\ReadUByte())
-			else
-				provider = GON.FindLongProvider(bytesbuffer\ReadString())
-
+			iid = bytesbuffer\ReadUByte()
+			regid = @identity_registry[iid]
+			provider = GON.FindLongProvider(regid) if regid
 			len = bytesbuffer\ReadUInt16()
 
 			if not provider
@@ -225,29 +230,25 @@ class GON.Structure
 
 class GON.StringProvider extends GON.IDataProvider
 	@_IDENTIFY = 'string'
-	@ShortIdentity = => 0
-	@LongIdentity = => 'builtin:string'
+	@GetIdentity = => 'builtin:string'
 	Serialize: (bytesbuffer) => bytesbuffer\WriteBinary(@value)
 	@Deserialize = (bytesbuffer, structure, heapid, length) => GON.StringProvider(structure, heapid)\SetValue(bytesbuffer\ReadBinary(length))
 
 class GON.NumberProvider extends GON.IDataProvider
 	@_IDENTIFY = 'number'
-	@ShortIdentity = => 1
-	@LongIdentity = => 'builtin:number'
+	@GetIdentity = => 'builtin:number'
 	Serialize: (bytesbuffer) => bytesbuffer\WriteDouble(@value)
 	@Deserialize = (bytesbuffer, structure, heapid, length) => GON.NumberProvider(structure, heapid)\SetValue(bytesbuffer\ReadDouble())
 
 class GON.BooleanProvider extends GON.IDataProvider
 	@_IDENTIFY = 'boolean'
-	@ShortIdentity = => 2
-	@LongIdentity = => 'builtin:boolean'
+	@GetIdentity = => 'builtin:boolean'
 	Serialize: (bytesbuffer) => bytesbuffer\WriteUByte(@value and 1 or 0)
 	@Deserialize = (bytesbuffer, structure, heapid, length) => GON.BooleanProvider(structure, heapid)\SetValue(bytesbuffer\ReadUByte() == 1)
 
 class GON.TableProvider extends GON.IDataProvider
 	@_IDENTIFY = 'table'
-	@ShortIdentity = => 3
-	@LongIdentity = => 'builtin:table'
+	@GetIdentity = => 'builtin:table'
 
 	SetSerializedValue: (value) =>
 		@_serialized = value
@@ -306,8 +307,7 @@ GON.RegisterProvider(GON.TableProvider)
 
 class GON.VectorProvider extends GON.IDataProvider
 	@_IDENTIFY = 'Vector'
-	@ShortIdentity = => 4
-	@LongIdentity = => 'gmod:Vector'
+	@GetIdentity = => 'gmod:Vector'
 
 	Serialize: (bytesbuffer) =>
 		bytesbuffer\WriteDouble(@value.x)
@@ -319,8 +319,7 @@ class GON.VectorProvider extends GON.IDataProvider
 
 class GON.AngleProvider extends GON.IDataProvider
 	@_IDENTIFY = 'Angle'
-	@ShortIdentity = => 5
-	@LongIdentity = => 'gmod:Angle'
+	@GetIdentity = => 'gmod:Angle'
 
 	Serialize: (bytesbuffer) =>
 		bytesbuffer\WriteFloat(@value.x)
@@ -332,8 +331,7 @@ class GON.AngleProvider extends GON.IDataProvider
 
 class GON.ColorProvider extends GON.IDataProvider
 	@_IDENTIFY = 'Color'
-	@ShortIdentity = => 6
-	@LongIdentity = => 'dlib:Color'
+	@GetIdentity = => 'dlib:Color'
 
 	Serialize: (bytesbuffer) =>
 		bytesbuffer\WriteUByte(@value.r)
