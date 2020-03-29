@@ -303,3 +303,47 @@ GON.RegisterProvider(GON.StringProvider)
 GON.RegisterProvider(GON.NumberProvider)
 GON.RegisterProvider(GON.BooleanProvider)
 GON.RegisterProvider(GON.TableProvider)
+
+class GON.VectorProvider extends GON.IDataProvider
+	@_IDENTIFY = 'Vector'
+	@ShortIdentity = => 4
+	@LongIdentity = => 'gmod:Vector'
+
+	Serialize: (bytesbuffer) =>
+		bytesbuffer\WriteDouble(@value.x)
+		bytesbuffer\WriteDouble(@value.y)
+		bytesbuffer\WriteDouble(@value.z)
+
+	@Deserialize = (bytesbuffer, structure, heapid, length) =>
+		GON.VectorProvider(structure, heapid)\SetValue(Vector(bytesbuffer\ReadDouble(), bytesbuffer\ReadDouble(), bytesbuffer\ReadDouble()))
+
+class GON.AngleProvider extends GON.IDataProvider
+	@_IDENTIFY = 'Angle'
+	@ShortIdentity = => 5
+	@LongIdentity = => 'gmod:Angle'
+
+	Serialize: (bytesbuffer) =>
+		bytesbuffer\WriteFloat(@value.x)
+		bytesbuffer\WriteFloat(@value.y)
+		bytesbuffer\WriteFloat(@value.z)
+
+	@Deserialize = (bytesbuffer, structure, heapid, length) =>
+		GON.AngleProvider(structure, heapid)\SetValue(Angle(bytesbuffer\ReadFloat(), bytesbuffer\ReadFloat(), bytesbuffer\ReadFloat()))
+
+class GON.ColorProvider extends GON.IDataProvider
+	@_IDENTIFY = 'Color'
+	@ShortIdentity = => 6
+	@LongIdentity = => 'dlib:Color'
+
+	Serialize: (bytesbuffer) =>
+		bytesbuffer\WriteUByte(@value.r)
+		bytesbuffer\WriteUByte(@value.g)
+		bytesbuffer\WriteUByte(@value.b)
+		bytesbuffer\WriteUByte(@value.a)
+
+	@Deserialize = (bytesbuffer, structure, heapid, length) =>
+		GON.ColorProvider(structure, heapid)\SetValue(Color(bytesbuffer\ReadUByte(), bytesbuffer\ReadUByte(), bytesbuffer\ReadUByte(), bytesbuffer\ReadUByte()))
+
+GON.RegisterProvider(GON.VectorProvider)
+GON.RegisterProvider(GON.AngleProvider)
+GON.RegisterProvider(GON.ColorProvider)
