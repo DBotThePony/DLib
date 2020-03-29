@@ -25,6 +25,8 @@ local meta = FindMetaTable('LBytesBuffer') or {}
 debug.getregistry().LBytesBuffer = meta
 DLib.BytesBufferMeta = meta
 
+local bitworker = DLib.bitworker
+
 local type = type
 local math = math
 local assert = assert
@@ -676,8 +678,8 @@ end
 -- Float
 function meta:WriteFloat(valueIn)
 	assertType(valueIn, 'number', 'WriteFloat')
-	local bits = DLib.bitworker.FloatToBinaryIEEE(valueIn, 8, 23)
-	local bitsInNumber = DLib.bitworker.BinaryToUInteger(bits)
+	local bits = bitworker.FloatToBinaryIEEE(valueIn, 8, 23)
+	local bitsInNumber = bitworker.BinaryToUInteger(bits)
 	return self:WriteUInt32(bitsInNumber)
 end
 
@@ -694,8 +696,8 @@ end
 ]]
 function meta:ReadFloat()
 	local bitsInNumber = self:ReadUInt32()
-	local bits = DLib.bitworker.UIntegerToBinary(bitsInNumber, 32)
-	return DLib.bitworker.BinaryToFloatIEEE(bits, 8, 23)
+	local bits = bitworker.UIntegerToBinary(bitsInNumber, 32)
+	return bitworker.BinaryToFloatIEEE(bits, 8, 23)
 end
 
 --[[
@@ -712,12 +714,16 @@ end
 ]]
 function meta:WriteDouble(valueIn)
 	assertType(valueIn, 'number', 'WriteDouble')
-	local bits = DLib.bitworker.FloatToBinaryIEEE(valueIn, 11, 52)
-	local bytes = DLib.bitworker.BitsToBytes(bits)
+	local bits = bitworker.FloatToBinaryIEEE(valueIn, 11, 52)
+	local bytes = bitworker.BitsToBytes(bits)
 	self:WriteUByte(bytes[1])
 	self:WriteUByte(bytes[2])
 	self:WriteUByte(bytes[3])
 	self:WriteUByte(bytes[4])
+	self:WriteUByte(bytes[5])
+	self:WriteUByte(bytes[6])
+	self:WriteUByte(bytes[7])
+	self:WriteUByte(bytes[8])
 	return self
 end
 
@@ -733,16 +739,12 @@ end
 	number
 ]]
 function meta:ReadDouble()
-	local bytes1 = self:ReadUByte()
-	local bytes2 = self:ReadUByte()
-	local bytes3 = self:ReadUByte()
-	local bytes4 = self:ReadUByte()
+	local bytes1 = self:ReadUInt32()
+	local bytes2 = self:ReadUInt32()
 	local bits = {}
-	table.append(bits, DLib.bitworker.UIntegerToBinary(bytes1, 8))
-	table.append(bits, DLib.bitworker.UIntegerToBinary(bytes2, 8))
-	table.append(bits, DLib.bitworker.UIntegerToBinary(bytes3, 8))
-	table.append(bits, DLib.bitworker.UIntegerToBinary(bytes4, 8))
-	return DLib.bitworker.BinaryToFloatIEEE(bits, 11, 52)
+	table.append(bits, bitworker.UIntegerToBinary(bytes1, 32))
+	table.append(bits, bitworker.UIntegerToBinary(bytes2, 32))
+	return bitworker.BinaryToFloatIEEE(bits, 11, 52)
 end
 
 
