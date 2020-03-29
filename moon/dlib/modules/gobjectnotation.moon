@@ -25,18 +25,35 @@ GON = DLib.GON
 
 GON.HashRegistry = GON.HashRegistry or {}
 GON.Registry = GON.Registry or {}
-GON.LongIdentityRegistry = GON.LongIdentityRegistry or {}
+GON.IdentityRegistry = GON.IdentityRegistry or {}
 
-GON.FindLongProvider = (identity) ->
-	provider = GON.LongIdentityRegistry[identity]
+GON.FindProvider = (identity) ->
+	provider = GON.IdentityRegistry[identity]
 	return provider or false
+
+GON.RemoveProvider = (provider) ->
+	identity = provider\GetIdentity()
+	identify = provider\LuaTypeIdentify()
+
+	GON.IdentityRegistry[identity] = nil
+
+	if istable(identify)
+		GON.HashRegistry[i] = nil for i in *identify
+	elseif isstring(identify)
+		GON.HashRegistry[identify] = nil
+
+	for i, provider2 in ipairs(GON.Registry)
+		if provider2\GetIdentity() == identity
+			GON.Registry[i] = nil
+			return
 
 GON.RegisterProvider = (provider) ->
 	identity = provider\GetIdentity()
 	identify = provider\LuaTypeIdentify()
 	should_put = provider\ShouldPutIntoMainRegistry()
 
-	GON.LongIdentityRegistry[identity] = provider
+	GON.IdentityRegistry[identity] = provider
+
 	if istable(identify)
 		GON.HashRegistry[i] = provider for i in *identify
 	elseif isstring(identify)
@@ -81,6 +98,22 @@ class GON.IDataProvider
 	GetStructure: => @structure
 	GetHeapID: => @heapid
 	GetIdentity: => @@GetIdentity()
+	IsKnownValue: => true
+	GetRegistryID: => @_identity_id
+
+class GON.UnknownValue
+	new: (structure, data, id, registryid) =>
+		@structure = structure
+		@data = data
+		@heapid = id
+		@registryid = registryid
+
+	GetHeapID: => @heapid
+
+	Length: => #@data
+	IsKnownValue: => false
+	BinaryData: => @data
+	GetRegistryID: => @registryid
 
 class GON.Structure
 	@ERROR_MISSING_PROVIDER = 0
@@ -102,7 +135,7 @@ class GON.Structure
 
 	FindInHeap: (value) =>
 		for provider in *@heap
-			if provider and provider\GetValue() == value
+			if provider and provider\IsKnownValue() and provider\GetValue() == value
 				return provider
 
 		return false
@@ -157,16 +190,20 @@ class GON.Structure
 		bytesbuffer\WriteUInt32(#@heap)
 
 		for provider in *@heap
-			bytesbuffer\WriteUByte(provider._identity_id)
+			bytesbuffer\WriteUByte(provider\GetRegistryID())
 
-			bytesbuffer\WriteUInt16(0)
-			pos = bytesbuffer\Tell()
-			provider\Serialize(bytesbuffer)
-			pos2 = bytesbuffer\Tell()
-			len = pos2 - pos
-			bytesbuffer\Move(-len - 2)
-			bytesbuffer\WriteUInt16(len)
-			bytesbuffer\Move(len)
+			if provider\IsKnownValue()
+				bytesbuffer\WriteUInt16(0)
+				pos = bytesbuffer\Tell()
+				provider\Serialize(bytesbuffer)
+				pos2 = bytesbuffer\Tell()
+				len = pos2 - pos
+				bytesbuffer\Move(-len - 2)
+				bytesbuffer\WriteUInt16(len)
+				bytesbuffer\Move(len)
+			else
+				bytesbuffer\WriteUInt16(provider\Length())
+				bytesbuffer\WriteBinary(provider\BinaryData())
 
 	WriteRoot: (bytesbuffer) =>
 		bytesbuffer\WriteUByte(@root and 1 or 0)
@@ -178,7 +215,9 @@ class GON.Structure
 		@identity_registry = {}
 		@_identity_registry = {}
 
-		for i = 0, bytesbuffer\ReadUByte()
+		@next_reg_id = bytesbuffer\ReadUByte() + 1
+
+		for i = 0, @next_reg_id - 1
 			read = bytesbuffer\ReadString()
 			@identity_registry[i] = read
 			@_identity_registry[read] = i
@@ -196,14 +235,15 @@ class GON.Structure
 			@nextid += 1
 			iid = bytesbuffer\ReadUByte()
 			regid = @identity_registry[iid]
-			provider = GON.FindLongProvider(regid) if regid
+			provider = GON.FindProvider(regid) if regid
 			len = bytesbuffer\ReadUInt16()
 
 			if not provider
-				bytesbuffer\Move(len)
+				@heap[heapid] = GON.UnknownValue(@, bytesbuffer\ReadBinary(len), heapid, iid)
 			else
 				pos1 = bytesbuffer\Tell()
 				@heap[heapid] = provider\Deserialize(bytesbuffer, @, heapid, len)
+				@heap[heapid]._identity_id = iid
 				pos2 = bytesbuffer\Tell()
 				error('provider read more or less than required (' .. (pos2 - pos1) .. ' vs ' .. len .. ')') if (pos2 - pos1) ~= len
 
@@ -260,10 +300,16 @@ class GON.TableProvider extends GON.IDataProvider
 		@was_serialized = true
 		@value = nil
 
-	SetValue: (value) =>
+	Rehash: (value = @value, preserveUnknown = true) =>
 		@value = value
+		copy = @_serialized
 		@_serialized = {}
-		@was_serialized = false
+
+		if preserveUnknown
+			for key, value in pairs(copy)
+				_key = @structure\GetHeapValue(key)
+				_value = @structure\GetHeapValue(value)
+				@_serialized[key] = value if _key and _value and (not _key\IsKnownValue() or not _value\IsKnownValue())
 
 		for key, value in pairs(value)
 			keyHeap = @structure\AddToHeap(key)
@@ -274,13 +320,21 @@ class GON.TableProvider extends GON.IDataProvider
 				if keyValue
 					@_serialized[keyHeap\GetHeapID()] = keyValue\GetHeapID()
 
+		return @
+
+	SetValue: (value) =>
+		@Rehash(value, false)
+		@was_serialized = false
+
 	GetValue: =>
 		return @value if not @was_serialized
 		@value = {}
 		@was_serialized = false
 
 		for key, value in pairs(@_serialized)
-			@value[@structure\GetHeapValue(key)\GetValue()] = @structure\GetHeapValue(value)\GetValue()
+			_key = @structure\GetHeapValue(key)
+			_value = @structure\GetHeapValue(value)
+			@value[_key\GetValue()] = _value\GetValue() if _key and _value and _key\IsKnownValue() and _value\IsKnownValue()
 
 		return @value
 
