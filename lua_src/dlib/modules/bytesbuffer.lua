@@ -76,7 +76,10 @@ end})
 ]]
 -- Operations
 function meta:Seek(moveTo)
-	assert(moveTo >= 0 and moveTo <= self.length, 'Seek - invalid position')
+	if moveTo < 0 or moveTo > self.length then
+		error('Seek - invalid position (' .. moveTo .. '; ' .. self.length .. ')', 2)
+	end
+
 	self.pointer = moveTo
 	return self
 end
@@ -89,7 +92,7 @@ end
 	@returns
 	number: pointer position
 ]]
-function meta:Tell(moveBy)
+function meta:Tell()
 	return self.pointer
 end
 
@@ -647,7 +650,6 @@ end
 
 function meta:ReadUInt64()
 	self:CheckOverflow('UInt64', 8)
-	self.pointer = self.pointer + 8
 	return
 		self:ReadUByte() * 0x100000000000000 +
 		self:ReadUByte() * 0x1000000000000 +
