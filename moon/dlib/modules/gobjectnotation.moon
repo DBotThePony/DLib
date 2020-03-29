@@ -514,3 +514,16 @@ GON.RegisterProvider(GON.ConVarProvider)
 GON.RegisterProvider(GON.VMatrixProvider)
 GON.RegisterProvider(GON.MaterialProvider)
 GON.RegisterProvider(GON.CTakeDamageInfoProvider)
+
+GON.Serialize = (value, toBuffer = true) ->
+	struct = GON.Structure()
+	struct\AddToHeap(value)
+	return struct if not toBuffer
+	return struct\CreateBuffer()
+
+GON.Deserialize = (bufferIn, retreiveValue = true) ->
+	struct = GON.Structure()
+	struct\ReadFile(bufferIn)
+	return struct if not retreiveValue
+	return if not struct.root
+	return struct.root\GetValue()
