@@ -32,6 +32,11 @@ do
 	end
 
 	local function SetText(self, text, ...)
+		if not text or not isstring(text) then
+			hook.Remove('DLib.i18n.LangUpdate5', self)
+			return self:_SetTextDLib(text, ...)
+		end
+
 		local text2 = text
 
 		if text2[1] == '#' then
@@ -69,7 +74,7 @@ do
 	end
 
 	local function SetLabel(self, text, ...)
-		if not i18n.exists(text) then
+		if not isstring(text) or not i18n.exists(text) then
 			hook.Remove('DLib.i18n.LangUpdate4', self)
 			return self:_SetLabelDLib(text, ...)
 		end
@@ -96,7 +101,7 @@ do
 	end
 
 	local function SetTooltip(self, text, ...)
-		if not i18n.exists(text) then
+		if not isstring(text) or not i18n.exists(text) then
 			hook.Remove('DLib.i18n.LangUpdate3', self)
 			return self:_SetTooltipDLib(text, ...)
 		end
@@ -123,7 +128,7 @@ do
 	end
 
 	local function SetTitle(self, text, ...)
-		if not i18n.exists(text) then
+		if not isstring(text) or not i18n.exists(text) then
 			hook.Remove('DLib.i18n.LangUpdate2', self)
 			return self:_SetTitleDLib(text, ...)
 		end
@@ -150,7 +155,7 @@ do
 	end
 
 	local function SetName(self, text, ...)
-		if not i18n.exists(text) then
+		if not isstring(text) or not i18n.exists(text) then
 			hook.Remove('DLib.i18n.LangUpdate1', self)
 			return self:_SetNameDLib(text, ...)
 		end
