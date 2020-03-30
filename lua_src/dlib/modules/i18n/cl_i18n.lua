@@ -59,10 +59,6 @@ do
 
 		self._SetTextDLib = self._SetTextDLib or self.SetText
 		self.SetText = SetText
-
-		if self.GetText and self:GetText() then
-			self:SetText(self:GetText())
-		end
 	end
 end
 
