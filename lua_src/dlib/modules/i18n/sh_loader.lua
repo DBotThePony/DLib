@@ -30,38 +30,27 @@ local getfenv = getfenv
 
 --[[
 	@doc
-	@fname DLib.i18n.refreshFileList
+	@fname DLib.i18n.reload
 	@internal
-	@returns
-	table
 ]]
-function i18n.refreshFileList()
-	filesLoad = {}
+function i18n.reload(module)
+	if not module then
+		local _, dirs = file.Find('dlib/i18n/*', 'LUA')
 
-	local _, dirs = file.Find('dlib/i18n/*', 'LUA')
-
-	for i, dir in ipairs(dirs) do
-		local files = file.Find('dlib/i18n/' .. dir .. '/*', 'LUA')
-
-		for i2, luafile in ipairs(files) do
-			if luafile:sub(-4) == '.lua' then
-				table.insert(filesLoad, {luafile:sub(1, -5), 'dlib/i18n/' .. dir .. '/' .. luafile})
-			end
+		for i, dir in ipairs(dirs) do
+			i18n.reload(dir)
 		end
+
+		return
 	end
 
-	return filesLoad
-end
+	local files = file.Find('dlib/i18n/' .. module .. '/*', 'LUA')
 
---[[
-	@doc
-	@fname DLib.i18n.loadFileList
-	@internal
-]]
-function i18n.loadFileList()
-	for i, data in ipairs(filesLoad) do
-		AddCSLuaFile(data[2])
-		i18n.executeFile(data[1], data[2])
+	for i2, luafile in ipairs(files) do
+		if luafile:sub(-4) == '.lua' then
+			AddCSLuaFile('dlib/i18n/' .. module .. '/' .. luafile)
+			i18n.executeFile(luafile:sub(1, -5), 'dlib/i18n/' .. module .. '/' .. luafile)
+		end
 	end
 end
 
