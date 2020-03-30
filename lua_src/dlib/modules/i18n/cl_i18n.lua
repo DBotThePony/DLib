@@ -32,15 +32,21 @@ do
 	end
 
 	local function SetText(self, text, ...)
-		if not i18n.exists(text) then
+		local text2 = text
+
+		if text2[1] == '#' then
+			text2 = text2:sub(2)
+		end
+
+		if not i18n.exists(text2) then
 			hook.Remove('DLib.i18n.LangUpdate5', self)
 			return self:_SetTextDLib(text, ...)
 		end
 
 		hook.Add('DLib.i18n.LangUpdate5', self, languageWatchdog)
-		self._DLibLocalize = text
+		self._DLibLocalize = text2
 		self._DLibLocalizeArgs = {...}
-		return self:_SetTextDLib(i18n.localize(text, ...))
+		return self:_SetTextDLib(i18n.localize(text2, ...))
 	end
 
 	function DefaultPanelCreated(self)
@@ -48,6 +54,10 @@ do
 
 		self._SetTextDLib = self._SetTextDLib or self.SetText
 		self.SetText = SetText
+
+		if self.GetText and self:GetText() then
+			self:SetText(self:GetText())
+		end
 	end
 end
 
