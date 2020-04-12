@@ -597,9 +597,17 @@ function i18n.registerPhrase(lang, phrase, unformatted)
 		if lang == 'en' then
 			i18n.hashedFunc[phrase] = fncompile
 		else
+			i18n.hashedLangFunc[lang] = i18n.hashedLangFunc[lang] or {}
+			i18n.hashedLangFunc[lang][phrase] = fncompile
+		end
+	else
+		if lang == 'en' then
+			i18n.hashedFunc[phrase] = nil
+		else
 			i18n.hashedLang[lang] = i18n.hashedLang[lang] or {}
-			i18n.hashedLang[lang][phrase] = fncompile
-			i18n.hashedFunc[phrase] = i18n.hashedFunc[phrase] or fncompile
+			i18n.hashedLangFunc[lang] = i18n.hashedLangFunc[lang] or {}
+			i18n.hashedLang[lang][phrase] = nil
+			i18n.hashedLangFunc[lang][phrase] = nil
 		end
 	end
 
