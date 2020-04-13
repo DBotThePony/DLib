@@ -286,7 +286,8 @@ end
 
 --[[
 	@doc
-	@fname BytesBuffer:WriteInt16_2
+	@fname BytesBuffer:WriteShort_2
+	@alias BytesBuffer:WriteInt16_2
 	@args number value
 
 	@desc
@@ -299,7 +300,8 @@ end
 
 --[[
 	@doc
-	@fname BytesBuffer:WriteInt16
+	@fname BytesBuffer:WriteShort
+	@alias BytesBuffer:WriteInt16
 	@args number value
 
 	@desc
@@ -312,7 +314,8 @@ end
 
 --[[
 	@doc
-	@fname BytesBuffer:WriteUInt16
+	@fname BytesBuffer:WriteUShort
+	@alias BytesBuffer:WriteUInt16
 	@args number value
 
 	@returns
@@ -342,9 +345,14 @@ function meta:WriteUInt16(valueIn)
 	return self
 end
 
+meta.WriteShort = meta.WriteInt16
+meta.WriteShort_2 = meta.WriteInt16_2
+meta.WriteUShort = meta.WriteUInt16
+
 --[[
 	@doc
-	@fname BytesBuffer:WriteInt32_2
+	@fname BytesBuffer:WriteInt_2
+	@alias BytesBuffer:WriteInt32_2
 	@args number value
 
 	@desc
@@ -357,7 +365,8 @@ end
 
 --[[
 	@doc
-	@fname BytesBuffer:WriteInt32
+	@fname BytesBuffer:WriteInt
+	@alias BytesBuffer:WriteInt32
 	@args number value
 
 	@desc
@@ -370,7 +379,8 @@ end
 
 --[[
 	@doc
-	@fname BytesBuffer:WriteUInt32
+	@fname BytesBuffer:WriteUInt
+	@alias BytesBuffer:WriteUInt32
 	@args number value
 
 	@returns
@@ -402,9 +412,14 @@ function meta:WriteUInt32(valueIn)
 	return self
 end
 
+meta.WriteInt = meta.WriteInt32
+meta.WriteInt_2 = meta.WriteInt32_2
+meta.WriteUInt = meta.WriteUInt32
+
 --[[
 	@doc
-	@fname BytesBuffer:WriteInt64_2
+	@fname BytesBuffer:WriteLong_2
+	@alias BytesBuffer:WriteInt64_2
 	@args number value
 
 	@desc
@@ -418,7 +433,8 @@ end
 
 --[[
 	@doc
-	@fname BytesBuffer:WriteInt64
+	@fname BytesBuffer:WriteLong
+	@alias BytesBuffer:WriteInt64
 	@args number value
 
 	@desc
@@ -432,7 +448,8 @@ end
 
 --[[
 	@doc
-	@fname BytesBuffer:WriteUInt64
+	@fname BytesBuffer:WriteULong
+	@alias BytesBuffer:WriteUInt64
 	@args number value
 
 	@desc
@@ -464,6 +481,10 @@ function meta:CheckOverflow(name, moveBy)
 		error('Read' .. name .. ' - bytes amount overflow (' .. self.pointer .. ' + ' .. moveBy .. ' vs ' .. self.length .. ')', 3)
 	end
 end
+
+meta.WriteLong = meta.WriteInt64
+meta.WriteLong_2 = meta.WriteInt64_2
+meta.WriteULong = meta.WriteUInt64
 
 --[[
 	@doc
