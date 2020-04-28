@@ -920,6 +920,26 @@ return function(tableTarget, moduleName, moduleColor)
 			local array = net.ReadArray()
 			LMessage(unpack(array))
 		end)
+
+		net.receive(nwnameW, function()
+			local array = net.ReadArray()
+			Warning(unpack(array))
+		end)
+
+		net.receive(nwnameWL, function()
+			local array = net.ReadArray()
+			LWarning(unpack(array))
+		end)
+
+		net.receive(nwnameE, function()
+			local array = net.ReadArray()
+			PrintError(unpack(array))
+		end)
+
+		net.receive(nwnameEL, function()
+			local array = net.ReadArray()
+			LPrintError(unpack(array))
+		end)
 	end
 
 	local function export(tableTo)
