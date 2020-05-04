@@ -548,6 +548,8 @@ function hook.Add(event, stringID, funcToCall, priority)
 		event = event,
 		priority = priority,
 		funcToCall = funcToCall,
+		fn = funcToCall, -- ULib
+		isstring = type(stringID) == 'string', -- ULib
 		id = stringID,
 		idString = tostring(stringID),
 		registeredAt = SysTime(),
