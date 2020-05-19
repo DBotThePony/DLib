@@ -244,7 +244,9 @@ if CLIENT then
 				end)
 
 				if not status then
-					error(string.format('Cannot create panel %q! Look for errors above', class), 2)
+					-- error(string.format('Cannot create panel %q! Look for errors above', class), 2)
+					DLib.MessageError(unpack(debug.traceback(string.format('Cannot create panel %q! Look for errors above', class)):split('\n')))
+					return
 				end
 
 				if isNative then
