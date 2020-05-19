@@ -1,5 +1,5 @@
 
-moonc -t . bundle.moon fs.moon init.moon util.moon vm_def.moon vm.moon commands.moon hud.moon
+moonc -t . bundle/init.moon bundle/urlbundle.moon bundle/gmabundle.moon bundle/workshop.moon fs.moon init.moon util.moon vm_def.moon vm.moon commands.moon hud.moon
 
 echo "
 -- Copyright (C) 2018-2020 DBotThePony
@@ -59,10 +59,31 @@ if not ___status then
 end" >> vll2.lua
 
 echo "___status, ___err = pcall(function()" >> vll2.lua
-cat bundle.lua >> vll2.lua
+cat bundle/init.lua >> vll2.lua
 echo "end)
 if not ___status then
 	VLL2.Message('STARTUP FAILURE AT BUNDLE: ', ___err)
+end" >> vll2.lua
+
+echo "___status, ___err = pcall(function()" >> vll2.lua
+cat bundle/urlbundle.lua >> vll2.lua
+echo "end)
+if not ___status then
+	VLL2.Message('STARTUP FAILURE AT URL BUNDLE: ', ___err)
+end" >> vll2.lua
+
+echo "___status, ___err = pcall(function()" >> vll2.lua
+cat bundle/gmabundle.lua >> vll2.lua
+echo "end)
+if not ___status then
+	VLL2.Message('STARTUP FAILURE AT GMA BUNDLE: ', ___err)
+end" >> vll2.lua
+
+echo "___status, ___err = pcall(function()" >> vll2.lua
+cat bundle/workshop.lua >> vll2.lua
+echo "end)
+if not ___status then
+	VLL2.Message('STARTUP FAILURE AT WORKSHOP BUNDLE: ', ___err)
 end" >> vll2.lua
 
 echo "___status, ___err = pcall(function()" >> vll2.lua

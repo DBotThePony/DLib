@@ -5,6 +5,6 @@ doc/**/*.js
 !doc/docs/*.js
 doc/output/
 doc/package-lock.json
-vll/*.lua
+vll/**/*.lua
 doc.sh
 doc2.sh
