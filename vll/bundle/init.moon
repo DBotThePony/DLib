@@ -20,23 +20,23 @@
 
 import file, util, error, assert, HTTP, Entity, game, VLL2 from _G
 
-local DO_DOWNLOAD_WORKSHOP
-
 if SERVER
 	util.AddNetworkString('vll2.replicate_url')
 	util.AddNetworkString('vll2.replicate_urlgma')
 	util.AddNetworkString('vll2.replicate_urlgmaz')
 	util.AddNetworkString('vll2.replicate_workshop')
 	util.AddNetworkString('vll2.replicate_wscollection')
+	util.AddNetworkString('vll2.replicate_github')
 	util.AddNetworkString('vll2.replicate_all')
 else
-	DO_DOWNLOAD_WORKSHOP = CreateConVar('vll2_dl_workshop', '1', {FCVAR_ARCHIVE}, 'Actually download GMA files. Disabling this is VERY experemental, and can cause undesired behaviour of stuff. You were warned.')
+	VLL2.DO_DOWNLOAD_WORKSHOP = CreateConVar('vll2_dl_workshop', '1', {FCVAR_ARCHIVE}, 'Actually download GMA files. Disabling this is VERY experemental, and can cause undesired behaviour of stuff. You were warned.')
 	cvars.AddChangeCallback 'vll2_dl_workshop', (-> RunConsoleCommand('host_writeconfig')), 'VLL2'
 
 file.CreateDir('vll2')
 file.CreateDir('vll2/ws_cache')
 file.CreateDir('vll2/gma_cache')
 file.CreateDir('vll2/luapacks')
+file.CreateDir('vll2/git_luapacks')
 
 sql.Query('DROP TABLE vll2_lua_cache')
 

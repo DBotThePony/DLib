@@ -45,6 +45,23 @@ vll2_load = (ply, cmd, args) ->
 	fbundle\Replicate()
 	VLL2.MessagePlayer(ply, 'Loading URL Bundle: ' .. bundle)
 
+vll2_github = (ply, cmd, args) ->
+	return VLL2.MessagePlayer(ply, 'Not a super admin!') if disallow(ply)
+
+	author = args[1]
+	repository = args[2]
+	branch = args[3]
+	subdir = args[4]
+
+	return VLL2.MessagePlayer(ply, 'No github username were specified') if not author
+	return VLL2.MessagePlayer(ply, 'No repository name were specified') if not repository
+
+	return VLL2.MessagePlayer(ply, 'Bundle is already loading!') if not VLL2.AbstractBundle\Checkup('github:' .. author .. '/' .. repository)
+	fbundle = VLL2.GitHubBundle(author, repository, branch, subdir)
+	fbundle\Load()
+	fbundle\Replicate()
+	VLL2.MessagePlayer(ply, 'Loading GitHub Bundle from ' .. author .. ' git repo ' .. repository .. ' at branch ' .. (branch or 'master') .. (subdir and ' with ' or ' without ') .. 'subdirectory check')
+
 vll2_mkautocomplete = (commandToReg) ->
 	return (cmd, args) ->
 		return if not args
@@ -178,6 +195,7 @@ vll2_clear_lua_cache = (ply, cmd, args) ->
 timer.Simple 0, ->
 	if not game.SinglePlayer() or CLIENT
 		concommand.Add 'vll2_load', vll2_load, vll2_mkautocomplete('vll2_load')
+		concommand.Add 'vll2_github', vll2_github
 		concommand.Add 'vll2_workshop', vll2_workshop
 		concommand.Add 'vll2_urlcontent', vll2_urlcontent
 		concommand.Add 'vll2_urlgma', vll2_urlgma
@@ -192,6 +210,7 @@ timer.Simple 0, ->
 	if SERVER
 		net.Receive 'vll2_cmd_load_server', (_, ply) -> vll2_load(ply, nil, string.Explode(' ', net.ReadString()\Trim()))
 		concommand.Add 'vll2_load_server', vll2_load, vll2_mkautocomplete('vll2_load_server')
+		concommand.Add 'vll2_github_server', vll2_github
 		concommand.Add 'vll2_load_silent', vll2_load_silent, vll2_mkautocomplete('vll2_load_silent')
 		concommand.Add 'vll2_urlcontent_server', vll2_urlcontent
 		concommand.Add 'vll2_urlgma_server', vll2_urlgma

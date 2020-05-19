@@ -45,9 +45,9 @@ class VLL2.URLBundle extends VLL2.AbstractBundle
 		@downloadQueue = {}
 		@cDownloading = 0
 
-	Replicate: (ply = player.GetAll()) =>
+	Replicate: (ply = player.GetHumans()) =>
 		return if CLIENT
-		return if player.GetHumans() == 0
+		return if istable(ply) and #ply == 0
 		net.Start('vll2.replicate_url')
 		net.WriteString(@name)
 		net.Send(ply)
@@ -76,8 +76,8 @@ class VLL2.URLBundle extends VLL2.AbstractBundle
 		@DownloadNextFile(fpath, url, fstamp)
 
 	DownloadNextFile: (fpath, url, fstamp) =>
-		assert(fpath)
-		assert(url)
+		assert(fpath, 'missing path')
+		assert(url, 'missing url')
 
 		@cDownloading += 1
 
@@ -120,10 +120,10 @@ class VLL2.URLBundle extends VLL2.AbstractBundle
 		HTTP(req)
 
 	LoadFromList: (bundle = @bundleList) =>
-		@toDownload = #@bundleList
+		@toDownload = #bundle
 		@downloaded = 0
 
-		lines = [string.Explode(';', line) for line in *@bundleList when line ~= '']
+		lines = [string.Explode(';', line) for line in *bundle when line ~= '']
 
 		for {fpath, url, fstamp} in *lines
 			fstamp = tonumber(fstamp)

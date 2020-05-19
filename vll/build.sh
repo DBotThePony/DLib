@@ -1,5 +1,5 @@
 
-moonc -t . bundle/init.moon bundle/urlbundle.moon bundle/gmabundle.moon bundle/workshop.moon fs.moon init.moon util.moon vm_def.moon vm.moon commands.moon hud.moon
+moonc -t . bundle/init.moon bundle/urlbundle.moon bundle/gmabundle.moon bundle/workshop.moon bundle/git.moon fs.moon init.moon util.moon vm_def.moon vm.moon commands.moon hud.moon
 
 echo "
 -- Copyright (C) 2018-2020 DBotThePony
@@ -84,6 +84,13 @@ cat bundle/workshop.lua >> vll2.lua
 echo "end)
 if not ___status then
 	VLL2.Message('STARTUP FAILURE AT WORKSHOP BUNDLE: ', ___err)
+end" >> vll2.lua
+
+echo "___status, ___err = pcall(function()" >> vll2.lua
+cat bundle/git.lua >> vll2.lua
+echo "end)
+if not ___status then
+	VLL2.Message('STARTUP FAILURE AT GIT BUNDLE: ', ___err)
 end" >> vll2.lua
 
 echo "___status, ___err = pcall(function()" >> vll2.lua

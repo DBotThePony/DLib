@@ -39,9 +39,9 @@ class VLL2.WSCollection extends VLL2.AbstractBundle
 			bundle.mountAfterLoad = mountAfterLoad
 			bundle\Load()
 
-	Replicate: (ply = player.GetAll()) =>
+	Replicate: (ply = player.GetHumans()) =>
 		return if CLIENT
-		return if player.GetHumans() == 0
+		return if istable(ply) and #ply == 0
 		net.Start('vll2.replicate_wscollection')
 		net.WriteUInt(@workshopID, 32)
 		net.WriteBool(@loadLua)
@@ -317,9 +317,9 @@ class VLL2.WSBundle extends VLL2.GMABundle
 			bundle.addToSpawnMenu = addToSpawnMenu
 			bundle\Load()
 
-	Replicate: (ply = player.GetAll()) =>
+	Replicate: (ply = player.GetHumans()) =>
 		return if CLIENT
-		return if player.GetHumans() == 0
+		return if istable(ply) and #ply == 0
 		net.Start('vll2.replicate_workshop')
 		net.WriteUInt(@workshopID, 32)
 		net.WriteBool(@loadLua)
@@ -497,7 +497,7 @@ class VLL2.WSBundle extends VLL2.GMABundle
 							@Msg('-----------------------------')
 
 						if CLIENT
-							if not DO_DOWNLOAD_WORKSHOP\GetBool()
+							if not VLL2.DO_DOWNLOAD_WORKSHOP\GetBool()
 								@Msg('Not downloading workshop GMA file, since we have it disabled')
 								@status = @@STATUS_ERROR
 								@CallError('Restricted by user')

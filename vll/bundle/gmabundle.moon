@@ -135,9 +135,9 @@ class VLL2.URLGMABundle extends VLL2.GMABundle
 			bundle.mountAfterLoad = mountAfterLoad
 			bundle\Load()
 
-	Replicate: (ply = player.GetAll()) =>
+	Replicate: (ply = player.GetHumans()) =>
 		return if CLIENT
-		return if player.GetHumans() == 0
+		return if istable(ply) and #ply == 0
 		net.Start('vll2.replicate_urlgma')
 		net.WriteString(@url)
 		net.WriteBool(@loadLua)
@@ -236,7 +236,7 @@ class VLL2.URLGMABundle extends VLL2.GMABundle
 			@__Mount()
 			return
 
-		if CLIENT and not DO_DOWNLOAD_WORKSHOP\GetBool()
+		if CLIENT and not VLL2.DO_DOWNLOAD_WORKSHOP\GetBool()
 			@Msg('Not downloading workshop GMA file, since we have it disabled')
 			@status = @@STATUS_ERROR
 			@CallError('Restricted by user')
@@ -277,9 +277,9 @@ class VLL2.URLGMABundleZ extends VLL2.URLGMABundle
 			bundle.mountAfterLoad = mountAfterLoad
 			bundle\Load()
 
-	Replicate: (ply = player.GetAll()) =>
+	Replicate: (ply = player.GetHumans()) =>
 		return if CLIENT
-		return if player.GetHumans() == 0
+		return if istable(ply) and #ply == 0
 		net.Start('vll2.replicate_urlgmaz')
 		net.WriteString(@url)
 		net.WriteBool(@loadLua)
