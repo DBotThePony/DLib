@@ -459,7 +459,7 @@ function PANEL:DLib_ColorMixerWangBarsUpdate(newvalue)
 end
 
 function PANEL:PerformLayout()
-	self.wang_canvas:SetWide(ENABLE_WANG_BARS:GetBool() and math.clamp(self:GetWide() * 0.35, 80, 200) or 80)
+	self.wang_canvas:SetWide(ENABLE_WANG_BARS:GetBool() and math.clamp(self:GetWide() * 0.5, 80, 200) or 80)
 end
 
 function PANEL:BindRegularWang(wang, index)
