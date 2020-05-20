@@ -49,7 +49,7 @@ end
 
 function PANEL:OnCursorMoved(x, y)
 	if not input.IsMouseDown(MOUSE_LEFT) then return end
-	local wang_position = x / self:GetWide()
+	local wang_position = math.clamp(x / self:GetWide(), 0, 1)
 
 	if wang_position ~= self.wang_position then
 		self:ValueChanged(self.wang_position, wang_position)
@@ -149,8 +149,8 @@ function PANEL:Paint(w, h)
 	surface.SetDrawColor(255, 255, 255, 255)
 	surface.SetMaterial(alpha_grid)
 
-	for i = 0, math.ceil(h / ALPHA_GRID_SIZE) do
-		surface.DrawTexturedRect(w / 2 - ALPHA_GRID_SIZE / 2, i * ALPHA_GRID_SIZE, ALPHA_GRID_SIZE, ALPHA_GRID_SIZE)
+	for i = 0, math.ceil(w / ALPHA_GRID_SIZE) do
+		surface.DrawTexturedRect(i * ALPHA_GRID_SIZE, 0, ALPHA_GRID_SIZE, ALPHA_GRID_SIZE)
 	end
 
 	surface.SetMaterial(gradient_r)
@@ -185,6 +185,9 @@ function PANEL:Init()
 	self.wang_label_rgb:SetText('   RGB')
 	self.wang_label_rgb:Dock(TOP)
 	self.wang_label_rgb:DockMargin(0, 0, 0, 5)
+	self.wang_label_rgb:SetZPos(0)
+
+	local add = 1
 
 	for i, panelname in ipairs(wang_panels) do
 		if panelname == 'hue' then
@@ -192,11 +195,14 @@ function PANEL:Init()
 			self.wang_label_hsv:SetText('   HSV')
 			self.wang_label_hsv:Dock(TOP)
 			self.wang_label_hsv:DockMargin(0, 5, 0, 5)
+			self.wang_label_hsv:SetZPos(i + add)
+			add = add + 1
 		end
 
 		self['wang_canvas_' .. panelname] = vgui.Create('EditablePanel', self.wang_canvas)
 		self['wang_canvas_' .. panelname]:Dock(TOP)
 		self['wang_canvas_' .. panelname]:DockMargin(1, 1, 1, 1)
+		self['wang_canvas_' .. panelname]:SetZPos(i + add)
 	end
 
 	for i, panelname in ipairs(rgba) do
@@ -267,6 +273,7 @@ function PANEL:Init()
 
 	self.hex_canvas = vgui.Create('EditablePanel', self.wang_canvas)
 	self.hex_canvas:Dock(TOP)
+	self.hex_canvas:SetZPos(50)
 
 	self.hex_label = vgui.Create('DLabel', self.hex_canvas)
 	self.hex_label:Dock(LEFT)
@@ -358,6 +365,7 @@ function PANEL:Init()
 	self.update = false
 
 	self.allow_alpha = true
+	self.tall_layout = false
 
 	hook.Add('DLib_ColorMixerAlphaUpdate', self, self.DLib_ColorMixerAlphaUpdate)
 	hook.Add('DLib_ColorMixerWangBarsUpdate', self, self.DLib_ColorMixerWangBarsUpdate)
@@ -423,6 +431,85 @@ function PANEL:ParseHexInput(input, fromForm)
 	self:UpdateData(fromForm)
 end
 
+function PANEL:DisableTallLayout()
+	self.color_cube:Dock(FILL)
+	self.color_cube:DockMargin(0, 0, 0, 0)
+
+	self.wang_canvas:Dock(RIGHT)
+
+	for i, panelname in ipairs(rgba) do
+		self['wang_canvas_' .. panelname]:SetParent(self.wang_canvas)
+		self['wang_' .. panelname]:Dock(RIGHT)
+	end
+
+	for i, panelname in ipairs(hsv) do
+		self['wang_canvas_' .. panelname]:SetParent(self.wang_canvas)
+	end
+
+	self.hex_canvas:SetParent(self.wang_canvas)
+
+	if IsValid(self.wang_canvas_left) then
+		self.wang_canvas_left:Remove()
+	end
+
+	if IsValid(self.wang_canvas_right) then
+		self.wang_canvas_right:Remove()
+	end
+
+	self:SetTall(260)
+	self:InvalidateLayout()
+end
+
+function PANEL:EnableTallLayout()
+	self.color_cube:Dock(TOP)
+	self.color_cube:SetTall(200)
+	self.color_cube:DockMargin(4, 4, 4, 4)
+
+	self.wang_canvas:Dock(FILL)
+
+	self.wang_canvas_left = vgui.Create('EditablePanel', self)
+	self.wang_canvas_left:Dock(LEFT)
+
+	self.wang_canvas_right = vgui.Create('EditablePanel', self)
+	self.wang_canvas_right:Dock(RIGHT)
+
+	for i, panelname in ipairs(rgba) do
+		self['wang_canvas_' .. panelname]:SetParent(self.wang_canvas_left)
+		self['wang_' .. panelname]:Dock(LEFT)
+	end
+
+	for i, panelname in ipairs(hsv) do
+		self['wang_canvas_' .. panelname]:SetParent(self.wang_canvas_right)
+	end
+
+	self.hex_canvas:SetParent(self.wang_canvas_right)
+
+	self:SetTall(320)
+	self:InvalidateLayout()
+end
+
+function PANEL:SetTallLayout(shoulddo)
+	if self.tall_layout == shoulddo then return end
+
+	self.tall_layout = shoulddo
+
+	if shoulddo then
+		self:EnableTallLayout()
+	else
+		self:DisableTallLayout()
+	end
+end
+
+function PANEL:PerformLayout()
+	if self.tall_layout and IsValid(self.wang_canvas_left) then
+		local wide = self:GetWide()
+		self.wang_canvas_left:SetWide(wide / 2)
+		self.wang_canvas_right:SetWide(wide / 2)
+	else
+		self.wang_canvas:SetWide(ENABLE_WANG_BARS:GetBool() and math.clamp(self:GetWide() * 0.4, 80, 170) or 60)
+	end
+end
+
 function PANEL:DLib_ColorMixerAlphaUpdate(newvalue)
 	if newvalue and self.allow_alpha then
 		if IsValid(self.alpha_wang) then
@@ -458,10 +545,6 @@ function PANEL:DLib_ColorMixerWangBarsUpdate(newvalue)
 	end
 
 	self:InvalidateLayout()
-end
-
-function PANEL:PerformLayout()
-	self.wang_canvas:SetWide(ENABLE_WANG_BARS:GetBool() and math.clamp(self:GetWide() * 0.4, 80, 170) or 60)
 end
 
 function PANEL:BindRegularWang(wang, index)

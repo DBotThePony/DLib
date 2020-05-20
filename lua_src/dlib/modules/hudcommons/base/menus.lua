@@ -428,6 +428,7 @@ function meta:PopulateColorsMenu(panel)
 		picker:SetConVarA(v.a:GetName())
 
 		picker:Dock(TOP)
+		picker:SetTallLayout(true)
 		-- picker:SetHeight(200)
 	end
 
@@ -463,6 +464,7 @@ function meta:PopulateColorsMenu(panel)
 		picker:SetAllowAlpha(false)
 
 		picker:Dock(TOP)
+		picker:SetTallLayout(true)
 		-- picker:SetHeight(200)
 	end
 

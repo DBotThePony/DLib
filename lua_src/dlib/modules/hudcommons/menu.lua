@@ -63,6 +63,7 @@ local function PopulateColors(Panel)
 		picker:SetConVarA(v.a:GetName())
 
 		picker:Dock(TOP)
+		picker:SetTallLayout(true)
 		-- picker:SetHeight(200)
 	end
 end
@@ -107,6 +108,7 @@ local function PopulateColors2(Panel)
 		picker:SetAllowAlpha(false)
 
 		picker:Dock(TOP)
+		picker:SetTallLayout(true)
 		-- picker:SetHeight(200)
 	end
 end
