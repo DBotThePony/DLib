@@ -27,6 +27,7 @@ if SERVER
 	util.AddNetworkString('vll2.replicate_workshop')
 	util.AddNetworkString('vll2.replicate_wscollection')
 	util.AddNetworkString('vll2.replicate_github')
+	util.AddNetworkString('vll2.replicate_gitlab')
 	util.AddNetworkString('vll2.replicate_all')
 else
 	VLL2.DO_DOWNLOAD_WORKSHOP = CreateConVar('vll2_dl_workshop', '1', {FCVAR_ARCHIVE}, 'Actually download GMA files. Disabling this is VERY experemental, and can cause undesired behaviour of stuff. You were warned.')

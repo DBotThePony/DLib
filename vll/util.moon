@@ -88,6 +88,13 @@ VLL2.API = {
 		fbundle\SetReplicate(replicate)
 		return fbundle
 
+	LoadGitLab: (author, repository, branch = 'master', subdir = '', silent = false, replicate = true) ->
+		fbundle = VLL2.GitLabBundle(author, repository, branch, subdir)
+		fbundle\Load()
+		fbundle\Replicate() if not silent
+		fbundle\SetReplicate(replicate)
+		return fbundle
+
 	LoadURLContentZ: (name, url, silent = false, replicate = true) ->
 		assert(type(name) == 'string', 'Bundle name must be a string')
 		assert(type(url) == 'string', 'Bundle url must be a string')

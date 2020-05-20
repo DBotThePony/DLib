@@ -110,13 +110,15 @@ class VLL2.GitHubBundle extends VLL2.URLBundle
 
 	@API_BASE = 'https://api.github.com/repos/'
 	@FILE_BASE = 'https://raw.githubusercontent.com/'
+	@GIT_PREFIX = 'github'
+	@GIT_NAME = 'GitHub'
 
 	@GetMessage = =>
 		return if SERVER
 		downloading = 0
 		downloading += 1 for _, bundle in pairs(@LISTING) when bundle\IsLoading()
 		return if downloading == 0
-		return 'VLL2 Is downloading ' .. downloading .. ' GitHub bundles'
+		return 'VLL2 Is downloading ' .. downloading .. ' ' .. @GIT_NAME .. ' bundles'
 
 	if CLIENT
 		net.Receive 'vll2.replicate_github', ->
@@ -142,7 +144,7 @@ class VLL2.GitHubBundle extends VLL2.URLBundle
 		subdir = subdir\sub(1, #subdir - 1) if subdir[#subdir] == '/'
 
 		-- super('github:' .. author .. '/' .. repository .. '%' .. branch)
-		super('github:' .. author .. '/' .. repository)
+		super(@@GIT_PREFIX .. ':' .. author .. '/' .. repository)
 		@author = author
 		@repository = repository
 		@subdir = subdir
@@ -151,12 +153,14 @@ class VLL2.GitHubBundle extends VLL2.URLBundle
 		@mountAfterLoad = true
 		@loadLua = true
 
-		@cache = VLL2.GitCache('github_' .. author .. '_' .. repository)
+		@cache = VLL2.GitCache(@@GIT_PREFIX .. '_' .. author .. '_' .. repository)
+
+	@GIT_NWNAME = 'vll2.replicate_github'
 
 	Replicate: (ply = player.GetAll()) =>
 		return if CLIENT
 		return if istable(ply) and #ply == 0
-		net.Start('vll2.replicate_github')
+		net.Start(@@GIT_NWNAME)
 		net.WriteString(@author)
 		net.WriteString(@repository)
 		net.WriteString(@subdir)
@@ -201,8 +205,8 @@ class VLL2.GitHubBundle extends VLL2.URLBundle
 			@cDownloading -= 1
 			@__DownloadCallback()
 			@status = @@STATUS_ERROR
-			@Msg('download of ' .. fpath .. ' failed, reason: ' .. reason)
-			@Msg('URL: ' .. url)
+			@Msg('download of tree index failed, reason: ' .. reason)
+			@Msg('URL: ' .. req.url)
 			@SaveCache()
 			@CallError()
 
@@ -235,6 +239,99 @@ class VLL2.GitHubBundle extends VLL2.URLBundle
 
 			@Msg('Received index file, total ' .. #@file_index .. ' files to load')
 			@LoadFromList()
+
+		HTTP(req)
+
+		return @
+
+class VLL2.GitLabBundle extends VLL2.GitHubBundle
+	@LISTING = {}
+
+	@API_BASE = 'https://gitlab.com/api/v4/'
+	@FILE_BASE = 'https://gitlab.com/'
+
+	@GIT_NWNAME = 'vll2.replicate_gitlab'
+	@GIT_PREFIX = 'gitlab'
+	@GIT_NAME = 'GitLab'
+
+	if CLIENT
+		net.Receive 'vll2.replicate_gitlab', ->
+			author = net.ReadString()
+			repository = net.ReadString()
+			subdir = net.ReadString()
+			branch = net.ReadString()
+			return if not @Checkup('github:' .. author .. '/' .. repository)
+			VLL2.MessageBundle('Server requires GitLab bundle to be loaded from ' .. author .. ' git repo ' .. repository .. ' at branch ' .. (branch or 'master') .. (subdir ~= '' and ' with ' or ' without ') .. 'subdirectory check')
+			VLL2.GitLabBundle(author, repository, branch, subdir)\Load()
+
+	Load: (page = 1) =>
+		@status = @@STATUS_LOADING
+		@_load_json = {} if page == 1
+
+		req = {
+			method: 'GET'
+			url: @@API_BASE .. 'projects/' .. @author .. '%2F' .. @repository .. '/repository/tree'
+
+			parameters: {
+				path: (@subdir == '' or @subdir == '/') and 'lua' or @subdir
+				recursive: '1'
+				ref: @branch
+				page: tostring(page)
+				per_page: '100'
+			}
+
+			headers: {
+				'User-Agent': 'VLL2'
+				Referer: VLL2.Referer()
+			}
+		}
+
+		req.failed = (reason = 'failed') ->
+			@cDownloading -= 1
+			@__DownloadCallback()
+			@status = @@STATUS_ERROR
+			@Msg('download of tree index failed, reason: ' .. reason)
+			@Msg('URL: ' .. req.url)
+			@SaveCache()
+			@CallError()
+
+		req.success = (code = 400, body = '', headers) ->
+			if code ~= 200
+				@Msg('download of index file failed, server returned: ' .. code)
+				@status = @@STATUS_ERROR
+				@CallError()
+				return
+
+			json = util.JSONToTable(body)
+
+			if not json or not json[1]
+				if page == 1
+					@Msg('bad file index')
+					@status = @@STATUS_ERROR
+					@CallError()
+					return
+				else
+					@file_index = {}
+
+					for {:path, :mode, :type, id: sha} in *@_load_json
+						-- path = path\sub(#@subdir + 1)
+						path2 = path
+						path = path\sub(2) if path[1] == '/'
+						-- path = path\sub(5) if path\StartWith('lua/')
+
+						if type == 'blob'
+							_url = @@FILE_BASE .. @author .. '/' .. @repository .. '/-/raw/' .. @branch .. '/' .. path2
+							path = path\sub(5)
+							table.insert(@file_index, {path, _url, sha})
+							print(path, _url, sha)
+
+					@Msg('Received index file, total ' .. #@file_index .. ' files to load')
+					@_load_json = nil
+					@LoadFromList()
+			else
+				@Msg('received tree index page ' .. page)
+				table.insert(@_load_json, object) for object in *json
+				@Load(page + 1)
 
 		HTTP(req)
 
