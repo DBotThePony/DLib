@@ -19,6 +19,7 @@
 -- DEALINGS IN THE SOFTWARE.
 
 local ENABLE_GMOD_ALPHA_WANG = CreateConVar('cl_dlib_colormixer_oldalpha', '0', {FCVAR_ARCHIVE}, 'Enable gmod styled alpha bar in color mixers')
+local ENABLE_GMOD_HUE_WANG = CreateConVar('cl_dlib_colormixer_oldhue', '0', {FCVAR_ARCHIVE}, 'Enable gmod styled hue bar in color mixers')
 local ENABLE_WANG_BARS = CreateConVar('cl_dlib_colormixer_wangbars', '1', {FCVAR_ARCHIVE}, 'Enable color wang bars')
 
 cvars.AddChangeCallback('cl_dlib_colormixer_oldalpha', function(cvar, old, new)
@@ -29,8 +30,13 @@ cvars.AddChangeCallback('cl_dlib_colormixer_wangbars', function(cvar, old, new)
 	hook.Run('DLib_ColorMixerWangBarsUpdate', tobool(new))
 end, 'DLib')
 
+cvars.AddChangeCallback('cl_dlib_colormixer_oldhue', function(cvar, old, new)
+	hook.Run('DLib_ColorMixerWangHueUpdate', tobool(new))
+end, 'DLib')
+
 local gradient_r = Material('vgui/gradient-r')
 local alpha_grid = Material('gui/alpha_grid.png', 'nocull')
+local hue_picker = Material('gui/colors.png')
 
 local PANEL = {}
 
@@ -98,8 +104,8 @@ AccessorFunc(PANEL, 'left_color', 'LeftColor')
 AccessorFunc(PANEL, 'right_color', 'RightColor')
 
 function PANEL:Init()
-	self.left_color = Color(0, 0, 255)
-	self.right_color = Color(255, 0, 0)
+	self.left_color = Color(0, 0, 0)
+	self.right_color = Color()
 end
 
 function PANEL:Paint(w, h)
@@ -115,6 +121,19 @@ function PANEL:Paint(w, h)
 end
 
 vgui.Register('DLibColorMixer_RGBWang', PANEL, 'DLibColorMixer_WangBase')
+
+local PANEL = {}
+
+function PANEL:Paint(w, h)
+	surface.SetMaterial(hue_picker)
+
+	surface.SetDrawColor(255, 255, 255)
+	surface.DrawTexturedRectRotated(w / 2, h / 2, h, w, -90)
+
+	self:PaintWangControls(w, h)
+end
+
+vgui.Register('DLibColorMixer_HueWang', PANEL, 'DLibColorMixer_WangBase')
 
 local PANEL = {}
 
@@ -193,7 +212,7 @@ function PANEL:Init()
 		self['wang_' .. panelname .. '_bar'] = vgui.Create(panelname == 'alpha' and 'DLibColorMixer_AlphaWang' or 'DLibColorMixer_RGBWang', self['wang_canvas_' .. panelname])
 		self['wang_' .. panelname .. '_bar']:Dock(FILL)
 		self['wang_' .. panelname .. '_bar']:DockMargin(2, 2, 2, 2)
-		self['wang_' .. panelname .. '_bar']:SetWide(200)
+		-- self['wang_' .. panelname .. '_bar']:SetWide(200)
 		--end
 	end
 
@@ -203,6 +222,48 @@ function PANEL:Init()
 		self['wang_' .. panelname]:SetDecimals(0)
 		-- self['wang_' .. panelname]:SetMinMax(0, 255)
 		self['wang_' .. panelname]:SetMinMax(0, 100)
+	end
+
+	self.wang_hue_bar = vgui.Create('DLibColorMixer_HueWang', self.wang_canvas_hue)
+	self.wang_hue_bar:Dock(FILL)
+	self.wang_hue_bar:DockMargin(2, 2, 2, 2)
+	-- self.wang_hue_bar:SetWide(200)
+
+	function self.wang_hue_bar.ValueChanged(wang_hue_bar, oldvalue, newvalue)
+		self.update = true
+		self.wang_hue:SetValue(math.round(newvalue * 360))
+		self.update = false
+
+		self:UpdateFromHSVWangs()
+		self:UpdateHSVWangBars('hue')
+	end
+
+	self.wang_saturation_bar = vgui.Create('DLibColorMixer_RGBWang', self.wang_canvas_saturation)
+	self.wang_saturation_bar:Dock(FILL)
+	self.wang_saturation_bar:DockMargin(2, 2, 2, 2)
+	-- self.wang_saturation_bar:SetWide(200)
+
+	function self.wang_saturation_bar.ValueChanged(wang_saturation_bar, oldvalue, newvalue)
+		self.update = true
+		self.wang_saturation:SetValue(math.round(newvalue * 100))
+		self.update = false
+
+		self:UpdateFromHSVWangs()
+		self:UpdateHSVWangBars('saturation')
+	end
+
+	self.wang_value_bar = vgui.Create('DLibColorMixer_RGBWang', self.wang_canvas_value)
+	self.wang_value_bar:Dock(FILL)
+	self.wang_value_bar:DockMargin(2, 2, 2, 2)
+	-- self.wang_value_bar:SetWide(200)
+
+	function self.wang_value_bar.ValueChanged(wang_value_bar, oldvalue, newvalue)
+		self.update = true
+		self.wang_value:SetValue(math.round(newvalue * 100))
+		self.update = false
+
+		self:UpdateFromHSVWangs()
+		self:UpdateHSVWangBars('value')
 	end
 
 	self.wang_hue:SetMinMax(0, 360)
@@ -230,6 +291,7 @@ function PANEL:Init()
 		self:UpdateWangs()
 		self:UpdateWangBars()
 		self:UpdateHSVWangs()
+		self:UpdateHSVWangBars()
 		self:UpdateAlphaBar()
 	end
 
@@ -249,6 +311,7 @@ function PANEL:Init()
 		self:_SetColor(newvalue)
 		self:UpdateWangs()
 		self:UpdateHSVWangs()
+		self:UpdateHSVWangBars()
 		self:UpdateColorCube()]]
 
 		if self.update then return end
@@ -259,6 +322,7 @@ function PANEL:Init()
 
 		self:UpdateWangs()
 		self:UpdateHSVWangs()
+		self:UpdateHSVWangBars()
 		self:UpdateColorCube()
 		self:UpdateAlphaBar()
 		self:UpdateWangBars()
@@ -279,6 +343,7 @@ function PANEL:Init()
 
 	hook.Add('DLib_ColorMixerAlphaUpdate', self, self.DLib_ColorMixerAlphaUpdate)
 	hook.Add('DLib_ColorMixerWangBarsUpdate', self, self.DLib_ColorMixerWangBarsUpdate)
+	hook.Add('DLib_ColorMixerWangHueUpdate', self, self.DLib_ColorMixerWangHueUpdate)
 
 	if not ENABLE_GMOD_ALPHA_WANG:GetBool() then
 		self.alpha_wang:SetVisible(false)
@@ -289,6 +354,14 @@ function PANEL:Init()
 		self.wang_green_bar:SetVisible(false)
 		self.wang_blue_bar:SetVisible(false)
 		self.wang_alpha_bar:SetVisible(false)
+
+		self.wang_hue_bar:SetVisible(false)
+		self.wang_saturation_bar:SetVisible(false)
+		self.wang_value_bar:SetVisible(false)
+	end
+
+	if not ENABLE_GMOD_HUE_WANG:GetBool() then
+		self.color_wang:SetVisible(false)
 	end
 
 	self:UpdateData()
@@ -309,10 +382,19 @@ function PANEL:DLib_ColorMixerAlphaUpdate(newvalue)
 	end
 end
 
+function PANEL:DLib_ColorMixerWangHueUpdate(newvalue)
+	self.color_wang:SetVisible(newvalue)
+	self:InvalidateLayout()
+end
+
 function PANEL:DLib_ColorMixerWangBarsUpdate(newvalue)
 	self.wang_red_bar:SetVisible(newvalue)
 	self.wang_green_bar:SetVisible(newvalue)
 	self.wang_blue_bar:SetVisible(newvalue)
+
+	self.wang_hue_bar:SetVisible(newvalue)
+	self.wang_saturation_bar:SetVisible(newvalue)
+	self.wang_value_bar:SetVisible(newvalue)
 
 	if newvalue and self.allow_alpha then
 		self.wang_alpha_bar:SetVisible(true)
@@ -335,6 +417,7 @@ function PANEL:BindRegularWang(wang, index)
 
 		self:UpdateColorCube()
 		self:UpdateHSVWangs()
+		self:UpdateHSVWangBars()
 		self:UpdateAlphaBar()
 		self:UpdateWangBars()
 	end
@@ -348,6 +431,7 @@ function PANEL:BindRegularWangBar(wang, index)
 
 		self:UpdateColorCube()
 		self:UpdateHSVWangs()
+		self:UpdateHSVWangBars()
 		self:UpdateAlphaBar()
 		self:UpdateWangs()
 		self:UpdateWangBars(index)
@@ -365,6 +449,7 @@ function PANEL:UpdateData()
 	self:UpdateWangs()
 	self:UpdateWangBars()
 	self:UpdateHSVWangs()
+	self:UpdateHSVWangBars()
 	self:UpdateColorCube()
 	self:UpdateAlphaBar()
 	self:UpdateHueBar()
@@ -448,6 +533,32 @@ function PANEL:UpdateHSVWangs()
 	self.wang_hue:SetValue(hue)
 	self.wang_saturation:SetValue(math.round(saturation * 100))
 	self.wang_value:SetValue(math.round(value * 100))
+
+	self.update = false
+end
+
+function PANEL:UpdateHSVWangBars(onset)
+	self.update = true
+
+	local scol = self:GetColor()
+	local hue, saturation, value = ColorToHSV(scol)
+
+	if onset ~= 'hue' then
+		self.wang_hue_bar:SetWangPosition(hue / 360)
+	end
+
+	if onset ~= 'saturation' then
+		self.wang_saturation_bar:SetWangPosition(saturation)
+		self.wang_saturation_bar:SetLeftColor(HSVToColorLua(hue, 0, value))
+		self.wang_saturation_bar:SetRightColor(HSVToColorLua(hue, 1, value))
+	end
+
+	if onset ~= 'value' then
+		self.wang_value_bar:SetWangPosition(value)
+		self.wang_value_bar:SetLeftColor(HSVToColorLua(hue, saturation, 0))
+		self.wang_value_bar:SetRightColor(HSVToColorLua(hue, saturation, 1))
+	end
+
 	self.update = false
 end
 
