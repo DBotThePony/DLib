@@ -141,15 +141,16 @@ if CLIENT then
 
 	vgui.DLib_Create = vgui.DLib_Create or vgui.Create
 
-	local patched = false
+	local patched = DLib._PanelDefinitions ~= nil
+	local vgui = vgui
 
-	if not DLib._PanelDefinitions then
-		(function()
-			if not vgui.GetControlTable or not vgui.CreateX then
-				return
-			end
+	local function patch()
+		if not vgui.CreateX then
+			return
+		end
 
-			local PanelDefinitions
+		if not patched then
+			if not vgui.GetControlTable then return end
 
 			for i = 1, 10 do
 				local name, value = debug.getupvalue(vgui.GetControlTable, 1)
@@ -165,156 +166,169 @@ if CLIENT then
 			end
 
 			patched = true
-			local vgui = vgui
 			vgui.CreateNative = vgui.CreateX
 			DLib._PanelDefinitions = PanelDefinitions
 			vgui.PanelDefinitions = PanelDefinitions
-			local CreateNative = vgui.CreateNative
-			local error = error
-			local table = table
+		end
 
-			local function Create(from, class, parent, name, level, ...)
-				if class == '' then
-					error(debug.traceback('Tried to create panel with empty classname'))
-					return
-				end
+		local PanelDefinitions = DLib._PanelDefinitions
 
-				local meta = PanelDefinitions[class]
+		local CreateNative = vgui.CreateNative
+		local error = error
+		local table = table
 
-				if not meta then
-					local panel = CreateNative(class, parent, name, ...)
+		local function Create(from, class, parent, name, level, ...)
+			if class == '' then
+				error(debug.traceback('Tried to create panel with empty classname'))
+				return
+			end
 
-					if not panel then
-						if level == 1 then
-							error(string.format('(Native) Panel %q does not exist.', class), level + 4)
-						else
-							error(string.format('%q tried to derive from (native) panel %q which does not exist.', from, class), level + 4)
-						end
-					end
+			local meta = PanelDefinitions[class]
 
-					return panel, true
-				end
-
-				if not meta.Base then
-					error(string.format('Meta table of %q does not contain `Base` panel classname', class))
-				end
-
-				local panel = Create(class, meta.Base, parent, name or class, level + 1, ...)
+			if not meta then
+				local panel = CreateNative(class, parent, name, ...)
 
 				if not panel then
-					error(string.format('%q cannot derive from %q', class, meta.Base), level + 4)
+					if level == 1 then
+						error(string.format('(Native) Panel %q does not exist.', class), level + 4)
+					else
+						error(string.format('%q tried to derive from (native) panel %q which does not exist.', from, class), level + 4)
+					end
 				end
 
-				table.Merge(panel:GetTable(), meta)
-				panel.BaseClass = PanelDefinitions[meta.Base]
-				panel.ClassName = class
-
-				if level == 1 then
-					hook.Run('VGUIPanelConstructed', panel, ...)
-				end
-
-				if panel.Init then
-					panel:Init(...)
-				end
-
-				if level == 1 then
-					hook.Run('VGUIPanelInitialized', panel, ...)
-				end
-
-				panel:Prepare()
-
-				if level == 1 then
-					hook.Run('VGUIPanelCreated', panel, ...)
-				end
-
-				return panel
+				return panel, true
 			end
 
-			function vgui.Create(class, parent, name, ...)
-				if class == '' then
-					DLib.MessageError(debug.traceback('BACKWARDS COMPATIVILITY WITH GMOD ENGINE: Tried to create panel with empty classname'))
-					return
-				end
-
-				local panel, isNative
-				local packed, size = {...}, select('#', ...)
-
-				local status = ProtectedCall(function()
-					panel, isNative = Create(nil, class, parent, name, 1, unpack(packed, 1, size))
-				end)
-
-				if not status then
-					-- error(string.format('Cannot create panel %q! Look for errors above', class), 2)
-					DLib.MessageError(unpack(debug.traceback(string.format('Cannot create panel %q! Look for errors above', class)):split('\n')))
-					return
-				end
-
-				if isNative then
-					hook.Run('VGUIPanelConstructed', panel, ...)
-					hook.Run('VGUIPanelInitialized', panel, ...)
-					hook.Run('VGUIPanelCreated', panel, ...)
-				end
-
-				return panel
+			if not meta.Base then
+				error(string.format('Meta table of %q does not contain `Base` panel classname', class))
 			end
 
-			function vgui.CreateFromTable(meta, parent, name, ...)
-				if not meta or not istable(meta) then
-					error('Invalid meta (PANEL table) provided (typeof ' .. type(meta) .. ')')
-				end
+			local panel = Create(class, meta.Base, parent, name or class, level + 1, ...)
 
-				if not meta.Base then
-					error(string.format('Meta table of %p (%s) does not contain `Base` panel classname', meta, meta))
-				end
+			if not panel then
+				error(string.format('%q cannot derive from %q', class, meta.Base), level + 4)
+			end
 
-				local panel, isNative
-				local packed, size = {...}, select('#', ...)
+			table.Merge(panel:GetTable(), meta)
+			panel.BaseClass = PanelDefinitions[meta.Base]
+			panel.ClassName = class
 
-				local status = ProtectedCall(function()
-					panel, isNative = Create(string.format('%p (%s)', meta, meta), meta.Base, parent, name, 2, unpack(packed, 1, size))
-				end)
-
-				if not status then
-					error(string.format('Cannot create panel %p (%s)! Look for errors above', meta, meta), 2)
-				end
-
-				table.Merge(panel:GetTable(), meta)
-				panel.BaseClass = PanelDefinitions[meta.Base]
-
+			if level == 1 then
 				hook.Run('VGUIPanelConstructed', panel, ...)
+			end
 
-				if panel.Init then
-					panel:Init(...)
+			if panel.Init then
+				panel:Init(...)
+			end
+
+			if level == 1 then
+				hook.Run('VGUIPanelInitialized', panel, ...)
+			end
+
+			panel:Prepare()
+
+			if level == 1 then
+				hook.Run('VGUIPanelCreated', panel, ...)
+			end
+
+			return panel
+		end
+
+		function vgui.Create(class, parent, name, ...)
+			if class == '' then
+				DLib.MessageError(debug.traceback('BACKWARDS COMPATIVILITY WITH GMOD ENGINE: Tried to create panel with empty classname'))
+				return
+			end
+
+			local panel, isNative
+			local packed, size = {...}, select('#', ...)
+
+			local status = ProtectedCall(function()
+				panel, isNative = Create(nil, class, parent, name, 1, unpack(packed, 1, size))
+			end)
+
+			if not status then
+				-- error(string.format('Cannot create panel %q! Look for errors above', class), 2)
+				local rebuild = {}
+
+				for i, line in ipairs(debug.traceback(string.format('Cannot create panel %q! Look for errors above', class)):split('\n')) do
+					table.insert(rebuild, line)
+					table.insert(rebuild, '\n')
 				end
 
+				DLib.MessageError(unpack(rebuild))
+				return
+			end
+
+			if isNative then
+				hook.Run('VGUIPanelConstructed', panel, ...)
 				hook.Run('VGUIPanelInitialized', panel, ...)
-				panel:Prepare()
 				hook.Run('VGUIPanelCreated', panel, ...)
-
-				return panel
 			end
-		end)()
 
-		if not patched then
-			DLib.Message('Unable to fully replace vgui.Create, falling back to old one patch of vgui.Create... Localization might break!')
-			local vgui = vgui
-			local ignore = 0
+			return panel
+		end
 
-			function vgui.Create(...)
-				if ignore == FrameNumberL() then return vgui.DLib_Create(...) end
-
-				ignore = FrameNumberL()
-				local pnl = vgui.DLib_Create(...)
-				ignore = 0
-
-				if not pnl then return end
-				hook.Run('VGUIPanelConstructed', pnl, ...)
-				hook.Run('VGUIPanelInitialized', pnl, ...)
-				hook.Run('VGUIPanelCreated', pnl, ...)
-				return pnl
+		function vgui.CreateFromTable(meta, parent, name, ...)
+			if not meta or not istable(meta) then
+				error('Invalid meta (PANEL table) provided (typeof ' .. type(meta) .. ')')
 			end
+
+			if not meta.Base then
+				error(string.format('Meta table of %p (%s) does not contain `Base` panel classname', meta, meta))
+			end
+
+			local panel, isNative
+			local packed, size = {...}, select('#', ...)
+
+			local status = ProtectedCall(function()
+				panel, isNative = Create(string.format('%p (%s)', meta, meta), meta.Base, parent, name, 2, unpack(packed, 1, size))
+			end)
+
+			if not status then
+				error(string.format('Cannot create panel %p (%s)! Look for errors above', meta, meta), 2)
+			end
+
+			table.Merge(panel:GetTable(), meta)
+			panel.BaseClass = PanelDefinitions[meta.Base]
+
+			hook.Run('VGUIPanelConstructed', panel, ...)
+
+			if panel.Init then
+				panel:Init(...)
+			end
+
+			hook.Run('VGUIPanelInitialized', panel, ...)
+			panel:Prepare()
+			hook.Run('VGUIPanelCreated', panel, ...)
+
+			return panel
 		end
 	end
+
+	--if not DLib._PanelDefinitions then
+	patch()
+
+	if not patched then
+		DLib.Message('Unable to fully replace vgui.Create, falling back to old one patch of vgui.Create... Localization might break!')
+		local vgui = vgui
+		local ignore = 0
+
+		function vgui.Create(...)
+			if ignore == FrameNumberL() then return vgui.DLib_Create(...) end
+
+			ignore = FrameNumberL()
+			local pnl = vgui.DLib_Create(...)
+			ignore = 0
+
+			if not pnl then return end
+			hook.Run('VGUIPanelConstructed', pnl, ...)
+			hook.Run('VGUIPanelInitialized', pnl, ...)
+			hook.Run('VGUIPanelCreated', pnl, ...)
+			return pnl
+		end
+	end
+	--end
 end
 
 local CSoundPatch = FindMetaTable('CSoundPatch')
