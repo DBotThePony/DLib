@@ -218,19 +218,15 @@ function PANEL:Init()
 		self['wang_' .. panelname]:SetMinMax(0, 255)
 		self['wang_' .. panelname]:SetWide(40)
 
-		--if panelname ~= 'alpha' then
 		self['wang_' .. panelname .. '_bar'] = vgui.Create(panelname == 'alpha' and 'DLibColorMixer_AlphaWang' or 'DLibColorMixer_RGBWang', self['wang_canvas_' .. panelname])
 		self['wang_' .. panelname .. '_bar']:Dock(FILL)
 		self['wang_' .. panelname .. '_bar']:DockMargin(2, 2, 2, 2)
-		-- self['wang_' .. panelname .. '_bar']:SetWide(200)
-		--end
 	end
 
 	for i, panelname in ipairs(hsv) do
 		self['wang_' .. panelname] = vgui.Create('DNumberWang', self['wang_canvas_' .. panelname])
 		self['wang_' .. panelname]:Dock(RIGHT)
 		self['wang_' .. panelname]:SetDecimals(0)
-		-- self['wang_' .. panelname]:SetMinMax(0, 255)
 		self['wang_' .. panelname]:SetMinMax(0, 100)
 		self['wang_' .. panelname]:SetWide(40)
 	end
@@ -238,43 +234,37 @@ function PANEL:Init()
 	self.wang_hue_bar = vgui.Create('DLibColorMixer_HueWang', self.wang_canvas_hue)
 	self.wang_hue_bar:Dock(FILL)
 	self.wang_hue_bar:DockMargin(2, 2, 2, 2)
-	-- self.wang_hue_bar:SetWide(200)
 
 	function self.wang_hue_bar.ValueChanged(wang_hue_bar, oldvalue, newvalue)
 		self.update = true
 		self.wang_hue:SetValue(math.round(newvalue * 360))
 		self.update = false
 
-		self:UpdateFromHSVWangs()
-		self:UpdateHSVWangBars('hue')
+		self:UpdateFromHSVWangs('hue', 'bar')
 	end
 
 	self.wang_saturation_bar = vgui.Create('DLibColorMixer_RGBWang', self.wang_canvas_saturation)
 	self.wang_saturation_bar:Dock(FILL)
 	self.wang_saturation_bar:DockMargin(2, 2, 2, 2)
-	-- self.wang_saturation_bar:SetWide(200)
 
 	function self.wang_saturation_bar.ValueChanged(wang_saturation_bar, oldvalue, newvalue)
 		self.update = true
 		self.wang_saturation:SetValue(math.round(newvalue * 100))
 		self.update = false
 
-		self:UpdateFromHSVWangs()
-		self:UpdateHSVWangBars('saturation')
+		self:UpdateFromHSVWangs('saturation', 'bar')
 	end
 
 	self.wang_value_bar = vgui.Create('DLibColorMixer_RGBWang', self.wang_canvas_value)
 	self.wang_value_bar:Dock(FILL)
 	self.wang_value_bar:DockMargin(2, 2, 2, 2)
-	-- self.wang_value_bar:SetWide(200)
 
 	function self.wang_value_bar.ValueChanged(wang_value_bar, oldvalue, newvalue)
 		self.update = true
 		self.wang_value:SetValue(math.round(newvalue * 100))
 		self.update = false
 
-		self:UpdateFromHSVWangs()
-		self:UpdateHSVWangBars('value')
+		self:UpdateFromHSVWangs('value', 'bar')
 	end
 
 	self.hex_canvas = vgui.Create('EditablePanel', self.wang_canvas)
@@ -307,9 +297,9 @@ function PANEL:Init()
 	self:BindRegularWangBar(self.wang_blue_bar, '_b')
 	self:BindRegularWangBar(self.wang_alpha_bar, '_a')
 
-	self:BindHSVWang(self.wang_hue)
-	self:BindHSVWang(self.wang_saturation)
-	self:BindHSVWang(self.wang_value)
+	self:BindHSVWang(self.wang_hue, 'hue')
+	self:BindHSVWang(self.wang_saturation, 'saturation')
+	self:BindHSVWang(self.wang_value, 'value')
 
 	self.color_cube = vgui.Create('DColorCube', self)
 	self.color_cube:Dock(FILL)
@@ -317,12 +307,7 @@ function PANEL:Init()
 	function self.color_cube.OnUserChanged(color_cube, newvalue)
 		newvalue:SetAlpha(self._a)
 		self:_SetColor(newvalue)
-		self:UpdateWangs()
-		self:UpdateWangBars()
-		self:UpdateHSVWangs()
-		self:UpdateHSVWangBars()
-		self:UpdateAlphaBar()
-		self:UpdateHexInput()
+		self:UpdateData('color_cube')
 	end
 
 	self.color_wang = vgui.Create('DRGBPicker', self)
@@ -334,34 +319,17 @@ function PANEL:Init()
 	self.alpha_wang:SetWide(26)
 
 	function self.color_wang.OnChange(color_wang, newvalue)
-		-- this is basically Hue wang by default
-		-- so let's do this in Hue way
-
-		--[[newvalue.a = self._a -- no color metatable
-		self:_SetColor(newvalue)
-		self:UpdateWangs()
-		self:UpdateHSVWangs()
-		self:UpdateHSVWangBars()
-		self:UpdateColorCube()]]
-
 		if self.update then return end
 
 		local h, s, v = ColorToHSV(self:GetColor())
 		local h2, s2, v2 = ColorToHSV(newvalue)
 		self:_SetColor(HSVToColor(h2, s, v):SetAlpha(self._a))
-
-		self:UpdateWangs()
-		self:UpdateHSVWangs()
-		self:UpdateHSVWangBars()
-		self:UpdateColorCube()
-		self:UpdateAlphaBar()
-		self:UpdateWangBars()
-		self:UpdateHexInput()
+		self:UpdateData('hue_wang_old')
 	end
 
 	function self.alpha_wang.OnChange(color_wang, newvalue)
 		self._a = math.round(newvalue * 255)
-		self:UpdateWangs()
+		self:UpdateData('alpha_wang_old')
 	end
 
 	self._r = 255
@@ -434,7 +402,7 @@ function PANEL:ParseHexInput(input, fromForm)
 	if not self.allow_alpha then a = 255 end
 
 	self:_SetColor(Color(r, g, b, a))
-	self:UpdateData(fromForm)
+	self:UpdateData('hex')
 end
 
 function PANEL:DisableTallLayout()
@@ -558,13 +526,8 @@ function PANEL:BindRegularWang(wang, index)
 		if self.update then return end
 
 		self[index] = newvalue
+		self:UpdateData(index, 'wang')
 
-		self:UpdateColorCube()
-		self:UpdateHSVWangs()
-		self:UpdateHSVWangBars()
-		self:UpdateAlphaBar()
-		self:UpdateWangBars()
-		self:UpdateHexInput()
 		self:ValueChanged(self:GetColor())
 		self:UpdateConVars()
 	end
@@ -575,23 +538,17 @@ function PANEL:BindRegularWangBar(wang, index)
 		if self.update then return end
 
 		self[index] = newvalue * 255
+		self:UpdateData(index, 'bar')
 
-		self:UpdateColorCube()
-		self:UpdateHSVWangs()
-		self:UpdateHSVWangBars()
-		self:UpdateAlphaBar()
-		self:UpdateWangs()
-		self:UpdateHexInput()
-		self:UpdateWangBars(index)
 		self:ValueChanged(self:GetColor())
 		self:UpdateConVars()
 	end
 end
 
-function PANEL:BindHSVWang(wang)
+function PANEL:BindHSVWang(wang, wang_type)
 	function wang.OnValueChanged(wang, newvalue)
 		if self.update then return end
-		self:UpdateFromHSVWangs()
+		self:UpdateFromHSVWangs(wang_type, 'wang')
 	end
 end
 
@@ -607,16 +564,25 @@ function PANEL:UpdateHexInput()
 	self.update = false
 end
 
-function PANEL:UpdateData(fromHex)
-	self:UpdateWangs()
-	self:UpdateWangBars()
-	self:UpdateHSVWangs()
-	self:UpdateHSVWangBars()
-	self:UpdateColorCube()
-	self:UpdateAlphaBar()
-	self:UpdateHueBar()
+function PANEL:UpdateData(update_type, update_subtype, ...)
+	self:UpdateWangs(update_type, update_subtype, ...)
+	self:UpdateWangBars(update_type, update_subtype, ...)
+	self:UpdateHSVWangs(update_type, update_subtype, ...)
+	self:UpdateHSVWangBars(update_type, update_subtype, ...)
 
-	if not fromHex then
+	if update_type ~= 'color_cube' then
+		self:UpdateColorCube()
+	end
+
+	if update_type ~= 'alpha_wang_old' then
+		self:UpdateAlphaBar()
+	end
+
+	if update_type ~= 'hue_wang_old' then
+		self:UpdateHueBar()
+	end
+
+	if update_type ~= 'hex' then
 		self:UpdateHexInput()
 	end
 end
@@ -652,28 +618,28 @@ function PANEL:UpdateAlphaBar()
 	self.update = false
 end
 
-function PANEL:UpdateWangBars(onset)
+function PANEL:UpdateWangBars(update_type, update_subtype)
 	self.update = true
 
-	if onset ~= '_r' then
+	if update_type ~= '_r' or update_subtype ~= 'bar' then
 		self.wang_red_bar:SetWangPosition(self._r / 255)
 		self.wang_red_bar:SetLeftColor(Color(0, self._g, self._b))
 		self.wang_red_bar:SetRightColor(Color(255, self._g, self._b))
 	end
 
-	if onset ~= '_g' then
+	if update_type ~= '_g' or update_subtype ~= 'bar' then
 		self.wang_green_bar:SetWangPosition(self._g / 255)
 		self.wang_green_bar:SetLeftColor(Color(self._r, 0, self._b))
 		self.wang_green_bar:SetRightColor(Color(self._r, 255, self._b))
 	end
 
-	if onset ~= '_b' then
+	if update_type ~= '_b' or update_subtype ~= 'bar' then
 		self.wang_blue_bar:SetWangPosition(self._b / 255)
 		self.wang_blue_bar:SetLeftColor(Color(self._r, self._g, 0))
 		self.wang_blue_bar:SetRightColor(Color(self._r, self._g, 255))
 	end
 
-	if onset ~= '_a' and self.allow_alpha then
+	if (update_type ~= '_a' or update_subtype ~= 'bar') and self.allow_alpha then
 		self.wang_alpha_bar:SetWangPosition(self._a / 255)
 		self.wang_alpha_bar:SetBaseColor(self:GetColor():SetAlpha(255))
 	end
@@ -681,45 +647,64 @@ function PANEL:UpdateWangBars(onset)
 	self.update = false
 end
 
-function PANEL:UpdateWangs()
+function PANEL:UpdateWangs(update_type, update_subtype)
 	self.update = true
 
-	self.wang_red:SetValue(self._r)
-	self.wang_green:SetValue(self._g)
-	self.wang_blue:SetValue(self._b)
-	self.wang_alpha:SetValue(self._a)
+	if update_type ~= '_r' or update_subtype ~= 'wang' then
+		self.wang_red:SetValue(self._r)
+	end
+
+	if update_type ~= '_g' or update_subtype ~= 'wang' then
+		self.wang_green:SetValue(self._g)
+	end
+
+	if update_type ~= '_b' or update_subtype ~= 'wang' then
+		self.wang_blue:SetValue(self._b)
+	end
+
+	if update_type ~= '_a' or update_subtype ~= 'wang' then
+		self.wang_alpha:SetValue(self._a)
+	end
 
 	self.update = false
 end
 
-function PANEL:UpdateHSVWangs()
+function PANEL:UpdateHSVWangs(update_type, update_subtype)
 	self.update = true
 	local hue, saturation, value = ColorToHSV(self:GetColor())
 
-	self.wang_hue:SetValue(hue)
-	self.wang_saturation:SetValue(math.round(saturation * 100))
-	self.wang_value:SetValue(math.round(value * 100))
+	if update_type ~= 'hue' or update_subtype ~= 'wang' then
+		self.wang_hue:SetValue(hue)
+	end
+
+	if update_type ~= 'saturation' or update_subtype ~= 'wang' then
+		self.wang_saturation:SetValue(math.round(saturation * 100))
+	end
+
+	if update_type ~= 'value' or update_subtype ~= 'wang' then
+		self.wang_value:SetValue(math.round(value * 100))
+	end
 
 	self.update = false
 end
 
-function PANEL:UpdateHSVWangBars(onset)
+function PANEL:UpdateHSVWangBars(update_type, update_subtype)
 	self.update = true
 
 	local scol = self:GetColor()
 	local hue, saturation, value = ColorToHSV(scol)
 
-	if onset ~= 'hue' then
+	if update_type ~= 'hue' or update_subtype ~= 'bar' then
 		self.wang_hue_bar:SetWangPosition(hue / 360)
 	end
 
-	if onset ~= 'saturation' then
+	if update_type ~= 'saturation' or update_subtype ~= 'bar' then
 		self.wang_saturation_bar:SetWangPosition(saturation)
 		self.wang_saturation_bar:SetLeftColor(HSVToColorLua(hue, 0, value))
 		self.wang_saturation_bar:SetRightColor(HSVToColorLua(hue, 1, value))
 	end
 
-	if onset ~= 'value' then
+	if update_type ~= 'value' or update_subtype ~= 'bar' then
 		self.wang_value_bar:SetWangPosition(value)
 		self.wang_value_bar:SetLeftColor(HSVToColorLua(hue, saturation, 0))
 		self.wang_value_bar:SetRightColor(HSVToColorLua(hue, saturation, 1))
@@ -728,16 +713,11 @@ function PANEL:UpdateHSVWangBars(onset)
 	self.update = false
 end
 
-function PANEL:UpdateFromHSVWangs()
+function PANEL:UpdateFromHSVWangs(...)
 	local col = HSVToColorLua(self.wang_hue:GetValue(), self.wang_saturation:GetValue() / 100, self.wang_value:GetValue() / 100)
 	col:SetAlpha(self._a)
 	self:_SetColor(col)
-	self:UpdateColorCube()
-	self:UpdateWangs()
-	self:UpdateWangBars()
-	self:UpdateAlphaBar()
-	self:UpdateHueBar()
-	self:UpdateHexInput()
+	self:UpdateData(...)
 end
 
 function PANEL:_SetColor(r, g, b, a)
