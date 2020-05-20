@@ -18,6 +18,132 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
+local ENABLE_GMOD_ALPHA_WANG = CreateConVar('cl_dlib_colormixer_oldalpha', '0', {FCVAR_ARCHIVE}, 'Enable gmod styled alpha bar in color mixers')
+local ENABLE_WANG_BARS = CreateConVar('cl_dlib_colormixer_wangbars', '1', {FCVAR_ARCHIVE}, 'Enable color wang bars')
+
+cvars.AddChangeCallback('cl_dlib_colormixer_oldalpha', function(cvar, old, new)
+	hook.Run('DLib_ColorMixerAlphaUpdate', tobool(new))
+end, 'DLib')
+
+cvars.AddChangeCallback('cl_dlib_colormixer_wangbars', function(cvar, old, new)
+	hook.Run('DLib_ColorMixerWangBarsUpdate', tobool(new))
+end, 'DLib')
+
+local gradient_r = Material('vgui/gradient-r')
+local alpha_grid = Material('gui/alpha_grid.png', 'nocull')
+
+local PANEL = {}
+
+AccessorFunc(PANEL, 'wang_position', 'WangPosition')
+
+function PANEL:Init()
+	self.wang_position = 0.5
+	self:SetSize(200, 20)
+end
+
+function PANEL:OnCursorMoved(x, y)
+	if not input.IsMouseDown(MOUSE_LEFT) then return end
+	local wang_position = x / self:GetWide()
+
+	if wang_position ~= self.wang_position then
+		self:ValueChanged(self.wang_position, wang_position)
+		self.wang_position = wang_position
+	end
+end
+
+function PANEL:OnMousePressed(mcode)
+	if mcode == MOUSE_LEFT then
+		self:MouseCapture(true)
+		self:OnCursorMoved(self:CursorPos())
+	end
+end
+
+function PANEL:OnMouseReleased(mcode)
+	if mcode == MOUSE_LEFT then
+		self:MouseCapture(false)
+		self:OnCursorMoved(self:CursorPos())
+	end
+end
+
+function PANEL:ValueChanged(old, new)
+
+end
+
+function PANEL:PaintWangControls(w, h)
+	draw.NoTexture()
+	surface.SetDrawColor(0, 0, 0, 255)
+
+	local wpos = math.round(self.wang_position * w)
+
+	surface.DrawPoly({
+		{x = wpos - 4, y = 0},
+		{x = wpos + 4, y = 0},
+		{x = wpos, y = 4},
+	})
+
+	surface.SetDrawColor(255, 255, 255, 255)
+
+	surface.DrawPoly({
+		{x = wpos - 4, y = h},
+		{x = wpos, y = h - 4},
+		{x = wpos + 4, y = h},
+	})
+end
+
+vgui.Register('DLibColorMixer_WangBase', PANEL, 'EditablePanel')
+
+local PANEL = {}
+
+AccessorFunc(PANEL, 'left_color', 'LeftColor')
+AccessorFunc(PANEL, 'right_color', 'RightColor')
+
+function PANEL:Init()
+	self.left_color = Color(0, 0, 255)
+	self.right_color = Color(255, 0, 0)
+end
+
+function PANEL:Paint(w, h)
+	surface.SetMaterial(gradient_r)
+
+	surface.SetDrawColor(self.right_color)
+	surface.DrawTexturedRect(0, 0, w, h)
+
+	surface.SetDrawColor(self.left_color)
+	surface.DrawTexturedRectUV(0, 0, w, h, 1, 1, 0, 0)
+
+	self:PaintWangControls(w, h)
+end
+
+vgui.Register('DLibColorMixer_RGBWang', PANEL, 'DLibColorMixer_WangBase')
+
+local PANEL = {}
+
+AccessorFunc(PANEL, 'base_color', 'BaseColor')
+
+function PANEL:Init()
+	self.base_color = Color()
+end
+
+local ALPHA_GRID_SIZE = 128
+
+function PANEL:Paint(w, h)
+	surface.SetDrawColor(255, 255, 255, 255)
+	surface.SetMaterial(alpha_grid)
+
+	for i = 0, math.ceil(h / ALPHA_GRID_SIZE) do
+		surface.DrawTexturedRect(w / 2 - ALPHA_GRID_SIZE / 2, i * ALPHA_GRID_SIZE, ALPHA_GRID_SIZE, ALPHA_GRID_SIZE)
+	end
+
+	surface.SetMaterial(gradient_r)
+
+	surface.SetDrawColor(self.base_color)
+	surface.DrawTexturedRect(0, 0, w, h)
+
+	self:PaintWangControls(w, h)
+end
+
+vgui.Register('DLibColorMixer_AlphaWang', PANEL, 'DLibColorMixer_WangBase')
+
 local PANEL = {}
 
 local rgba = {
@@ -31,26 +157,10 @@ local hsv = {
 local wang_panels = table.qcopy(rgba)
 table.append(wang_panels, hsv)
 
-function PANEL:BindRegularWang(wang, index)
-	function wang.OnValueChanged(wang, newvalue)
-		if self.update then return end
-		self[index] = newvalue
-		self:UpdateColorCube()
-		self:UpdateHSVWangs()
-		self:UpdateAlphaBar()
-	end
-end
-
-function PANEL:BindHSVWang(wang)
-	function wang.OnValueChanged(wang, newvalue)
-		if self.update then return end
-		self:UpdateFromHSVWangs()
-	end
-end
-
 function PANEL:Init()
 	self.wang_canvas = vgui.Create('EditablePanel', self)
 	self.wang_canvas:Dock(RIGHT)
+	-- self.wang_canvas:SetWide(200)
 
 	self.wang_label_rgb = vgui.Create('DLabel', self.wang_canvas)
 	self.wang_label_rgb:SetText('   RGB')
@@ -67,6 +177,7 @@ function PANEL:Init()
 
 		self['wang_canvas_' .. panelname] = vgui.Create('EditablePanel', self.wang_canvas)
 		self['wang_canvas_' .. panelname]:Dock(TOP)
+		self['wang_canvas_' .. panelname]:DockMargin(1, 1, 1, 1)
 	end
 
 	self.hex_canvas = vgui.Create('EditablePanel', self.wang_canvas)
@@ -77,6 +188,13 @@ function PANEL:Init()
 		self['wang_' .. panelname]:Dock(RIGHT)
 		self['wang_' .. panelname]:SetDecimals(0)
 		self['wang_' .. panelname]:SetMinMax(0, 255)
+
+		--if panelname ~= 'alpha' then
+		self['wang_' .. panelname .. '_bar'] = vgui.Create(panelname == 'alpha' and 'DLibColorMixer_AlphaWang' or 'DLibColorMixer_RGBWang', self['wang_canvas_' .. panelname])
+		self['wang_' .. panelname .. '_bar']:Dock(FILL)
+		self['wang_' .. panelname .. '_bar']:DockMargin(2, 2, 2, 2)
+		self['wang_' .. panelname .. '_bar']:SetWide(200)
+		--end
 	end
 
 	for i, panelname in ipairs(hsv) do
@@ -94,6 +212,11 @@ function PANEL:Init()
 	self:BindRegularWang(self.wang_blue, '_b')
 	self:BindRegularWang(self.wang_alpha, '_a')
 
+	self:BindRegularWangBar(self.wang_red_bar, '_r')
+	self:BindRegularWangBar(self.wang_green_bar, '_g')
+	self:BindRegularWangBar(self.wang_blue_bar, '_b')
+	self:BindRegularWangBar(self.wang_alpha_bar, '_a')
+
 	self:BindHSVWang(self.wang_hue)
 	self:BindHSVWang(self.wang_saturation)
 	self:BindHSVWang(self.wang_value)
@@ -105,6 +228,7 @@ function PANEL:Init()
 		newvalue:SetAlpha(self._a)
 		self:_SetColor(newvalue)
 		self:UpdateWangs()
+		self:UpdateWangBars()
 		self:UpdateHSVWangs()
 		self:UpdateAlphaBar()
 	end
@@ -137,11 +261,12 @@ function PANEL:Init()
 		self:UpdateHSVWangs()
 		self:UpdateColorCube()
 		self:UpdateAlphaBar()
+		self:UpdateWangBars()
 	end
 
 	function self.alpha_wang.OnChange(color_wang, newvalue)
 		self._a = math.round(newvalue * 255)
-		self:UpdateData()
+		self:UpdateWangs()
 	end
 
 	self._r = 255
@@ -152,12 +277,93 @@ function PANEL:Init()
 
 	self.allow_alpha = true
 
+	hook.Add('DLib_ColorMixerAlphaUpdate', self, self.DLib_ColorMixerAlphaUpdate)
+	hook.Add('DLib_ColorMixerWangBarsUpdate', self, self.DLib_ColorMixerWangBarsUpdate)
+
+	if not ENABLE_GMOD_ALPHA_WANG:GetBool() then
+		self.alpha_wang:SetVisible(false)
+	end
+
+	if not ENABLE_WANG_BARS:GetBool() then
+		self.wang_red_bar:SetVisible(false)
+		self.wang_green_bar:SetVisible(false)
+		self.wang_blue_bar:SetVisible(false)
+		self.wang_alpha_bar:SetVisible(false)
+	end
+
 	self:UpdateData()
 	self:SetTall(250)
 end
 
+function PANEL:DLib_ColorMixerAlphaUpdate(newvalue)
+	if newvalue and self.allow_alpha then
+		if IsValid(self.alpha_wang) then
+			self.alpha_wang:SetVisible(true)
+			self:InvalidateLayout()
+		end
+	else
+		if IsValid(self.alpha_wang) then
+			self.alpha_wang:SetVisible(false)
+			self:InvalidateLayout()
+		end
+	end
+end
+
+function PANEL:DLib_ColorMixerWangBarsUpdate(newvalue)
+	self.wang_red_bar:SetVisible(newvalue)
+	self.wang_green_bar:SetVisible(newvalue)
+	self.wang_blue_bar:SetVisible(newvalue)
+
+	if newvalue and self.allow_alpha then
+		self.wang_alpha_bar:SetVisible(true)
+	else
+		self.wang_alpha_bar:SetVisible(false)
+	end
+
+	self:InvalidateLayout()
+end
+
+function PANEL:PerformLayout()
+	self.wang_canvas:SetWide(ENABLE_WANG_BARS:GetBool() and math.clamp(self:GetWide() * 0.35, 80, 200) or 80)
+end
+
+function PANEL:BindRegularWang(wang, index)
+	function wang.OnValueChanged(wang, newvalue)
+		if self.update then return end
+
+		self[index] = newvalue
+
+		self:UpdateColorCube()
+		self:UpdateHSVWangs()
+		self:UpdateAlphaBar()
+		self:UpdateWangBars()
+	end
+end
+
+function PANEL:BindRegularWangBar(wang, index)
+	function wang.ValueChanged(wang, oldvalue, newvalue)
+		if self.update then return end
+
+		self[index] = newvalue * 255
+
+		self:UpdateColorCube()
+		self:UpdateHSVWangs()
+		self:UpdateAlphaBar()
+		self:UpdateWangs()
+		self:UpdateWangBars(index)
+	end
+end
+
+function PANEL:BindHSVWang(wang)
+	function wang.OnValueChanged(wang, newvalue)
+		if self.update then return end
+		self:UpdateFromHSVWangs()
+	end
+end
+
 function PANEL:UpdateData()
 	self:UpdateWangs()
+	self:UpdateWangBars()
 	self:UpdateHSVWangs()
 	self:UpdateColorCube()
 	self:UpdateAlphaBar()
@@ -183,6 +389,8 @@ function PANEL:UpdateHueBar()
 end
 
 function PANEL:UpdateAlphaBar()
+	if not IsValid(self.alpha_wang) then return end
+
 	self.update = true
 
 	self.alpha_wang:SetBarColor(self:GetColor():SetAlpha(255))
@@ -193,12 +401,43 @@ function PANEL:UpdateAlphaBar()
 	self.update = false
 end
 
+function PANEL:UpdateWangBars(onset)
+	self.update = true
+
+	if onset ~= '_r' then
+		self.wang_red_bar:SetWangPosition(self._r / 255)
+		self.wang_red_bar:SetLeftColor(Color(0, self._g, self._b))
+		self.wang_red_bar:SetRightColor(Color(255, self._g, self._b))
+	end
+
+	if onset ~= '_g' then
+		self.wang_green_bar:SetWangPosition(self._g / 255)
+		self.wang_green_bar:SetLeftColor(Color(self._r, 0, self._b))
+		self.wang_green_bar:SetRightColor(Color(self._r, 255, self._b))
+	end
+
+	if onset ~= '_b' then
+		self.wang_blue_bar:SetWangPosition(self._b / 255)
+		self.wang_blue_bar:SetLeftColor(Color(self._r, self._g, 0))
+		self.wang_blue_bar:SetRightColor(Color(self._r, self._g, 255))
+	end
+
+	if onset ~= '_a' and self.allow_alpha then
+		self.wang_alpha_bar:SetWangPosition(self._a / 255)
+		self.wang_alpha_bar:SetBaseColor(self:GetColor():SetAlpha(255))
+	end
+
+	self.update = false
+end
+
 function PANEL:UpdateWangs()
 	self.update = true
+
 	self.wang_red:SetValue(self._r)
 	self.wang_green:SetValue(self._g)
 	self.wang_blue:SetValue(self._b)
 	self.wang_alpha:SetValue(self._a)
+
 	self.update = false
 end
 
@@ -218,6 +457,7 @@ function PANEL:UpdateFromHSVWangs()
 	self:_SetColor(col)
 	self:UpdateColorCube()
 	self:UpdateWangs()
+	self:UpdateWangBars()
 	self:UpdateAlphaBar()
 	self:UpdateHueBar()
 end
@@ -278,11 +518,19 @@ function PANEL:SetAllowAlpha(allow)
 
 	if allow then
 		self:CheckConVar(self.con_var_alpha, '_a')
-		self.alpha_wang:SetVisible(true)
+
+		if IsValid(self.alpha_wang) then
+			self.alpha_wang:SetVisible(true)
+		end
+
 		self.wang_canvas_alpha:SetVisible(true)
 	else
 		self._a = 255
-		self.alpha_wang:SetVisible(false)
+
+		if IsValid(self.alpha_wang) then
+			self.alpha_wang:SetVisible(false)
+		end
+
 		self.wang_canvas_alpha:SetVisible(false)
 	end
 
