@@ -112,6 +112,7 @@ class VLL2.GitHubBundle extends VLL2.URLBundle
 	@FILE_BASE = 'https://raw.githubusercontent.com/'
 	@GIT_PREFIX = 'github'
 	@GIT_NAME = 'GitHub'
+	@SLASH_AUTHOR = false
 
 	@GetMessage = =>
 		return if SERVER
@@ -136,7 +137,7 @@ class VLL2.GitHubBundle extends VLL2.URLBundle
 		assert(isstring(branch), 'Branch name is not a string')
 		assert(isstring(subdir), 'Sub directory is not a string')
 
-		assert(not author\find('.', 1, true) and not author\find('/', 1, true) and not author\find('\\', 1, true), 'Bad author name')
+		assert(not author\find('.', 1, true) and (@@SLASH_AUTHOR or not author\find('/', 1, true)) and not author\find('\\', 1, true), 'Bad author name')
 		assert(not repository\find('.', 1, true) and not repository\find('/', 1, true) and not repository\find('\\', 1, true), 'Bad repository name')
 		assert(not branch\find('.', 1, true), 'Bad branch name')
 
@@ -153,7 +154,7 @@ class VLL2.GitHubBundle extends VLL2.URLBundle
 		@mountAfterLoad = true
 		@loadLua = true
 
-		@cache = VLL2.GitCache(@@GIT_PREFIX .. '_' .. author .. '_' .. repository)
+		@cache = VLL2.GitCache(@@GIT_PREFIX .. '_' .. string.gsub(author, '%/', '__') .. '_' .. repository)
 
 	@GIT_NWNAME = 'vll2.replicate_github'
 
@@ -253,6 +254,7 @@ class VLL2.GitLabBundle extends VLL2.GitHubBundle
 	@GIT_NWNAME = 'vll2.replicate_gitlab'
 	@GIT_PREFIX = 'gitlab'
 	@GIT_NAME = 'GitLab'
+	@SLASH_AUTHOR = true
 
 	if CLIENT
 		net.Receive 'vll2.replicate_gitlab', ->
@@ -270,7 +272,7 @@ class VLL2.GitLabBundle extends VLL2.GitHubBundle
 
 		req = {
 			method: 'GET'
-			url: @@API_BASE .. 'projects/' .. @author .. '%2F' .. @repository .. '/repository/tree'
+			url: @@API_BASE .. 'projects/' .. string.gsub(@author, '%/', '%%2F') .. '%2F' .. @repository .. '/repository/tree'
 
 			parameters: {
 				path: (@subdir == '' or @subdir == '/') and 'lua' or @subdir
@@ -323,7 +325,6 @@ class VLL2.GitLabBundle extends VLL2.GitHubBundle
 							_url = @@FILE_BASE .. @author .. '/' .. @repository .. '/-/raw/' .. @branch .. '/' .. path2
 							path = path\sub(5)
 							table.insert(@file_index, {path, _url, sha})
-							print(path, _url, sha)
 
 					@Msg('Received index file, total ' .. #@file_index .. ' files to load')
 					@_load_json = nil
