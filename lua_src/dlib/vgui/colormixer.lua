@@ -566,6 +566,7 @@ function PANEL:BindRegularWang(wang, index)
 		self:UpdateWangBars()
 		self:UpdateHexInput()
 		self:ValueChanged(self:GetColor())
+		self:UpdateConVars()
 	end
 end
 
@@ -583,6 +584,7 @@ function PANEL:BindRegularWangBar(wang, index)
 		self:UpdateHexInput()
 		self:UpdateWangBars(index)
 		self:ValueChanged(self:GetColor())
+		self:UpdateConVars()
 	end
 end
 
@@ -884,10 +886,13 @@ function PANEL:SetConVarAll(prefix)
 	self:CheckConVars(true)
 end
 
+PANEL.next_con_var_check = 0
+
 function PANEL:CheckConVars(force)
 	if not force and input.IsMouseDown(MOUSE_LEFT) then return end
+	if not force and self.next_con_var_check > RealTime() then return end
 
-	local change = self:CheckConVar(self.con_var_red, '_r') or
+	local change = self:CheckConVar(self.con_var_red, '_r', false) or
 		self:CheckConVar(self.con_var_green, '_g', false) or
 		self:CheckConVar(self.con_var_blue, '_b', false) or
 		self.allow_alpha and self:CheckConVar(self.con_var_alpha, '_a', false)
@@ -898,6 +903,8 @@ function PANEL:CheckConVars(force)
 end
 
 function PANEL:UpdateConVars()
+	self.next_con_var_check = RealTime() + 0.3
+
 	if self.con_var_red then
 		local value = self.con_var_red:GetInt(255)
 
@@ -910,7 +917,7 @@ function PANEL:UpdateConVars()
 		local value = self.con_var_green:GetInt(255)
 
 		if value ~= self._r then
-			RunConsoleCommand(self.con_var_green:GetName(), self._r:tostring())
+			RunConsoleCommand(self.con_var_green:GetName(), self._g:tostring())
 		end
 	end
 
@@ -918,15 +925,15 @@ function PANEL:UpdateConVars()
 		local value = self.con_var_blue:GetInt(255)
 
 		if value ~= self._r then
-			RunConsoleCommand(self.con_var_blue:GetName(), self._r:tostring())
+			RunConsoleCommand(self.con_var_blue:GetName(), self._b:tostring())
 		end
 	end
 
 	if self.allow_alpha and self.con_var_alpha then
 		local value = self.con_var_alpha:GetInt(255)
 
-		if value ~= self._r then
-			RunConsoleCommand(self.con_var_alpha:GetName(), self._r:tostring())
+		if value ~= self._a then
+			RunConsoleCommand(self.con_var_alpha:GetName(), self._a:tostring())
 		end
 	end
 end
