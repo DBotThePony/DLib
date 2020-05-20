@@ -94,6 +94,12 @@ function PANEL:PaintWangControls(w, h)
 		{x = wpos, y = h - 4},
 		{x = wpos + 4, y = h},
 	})
+
+	surface.SetDrawColor(0, 0, 0, 255)
+	surface.DrawLine(0, 0, w, 0)
+	surface.DrawLine(0, 0, 0, h)
+	surface.DrawLine(w - 1, 0, w - 1, h)
+	surface.DrawLine(0, h - 1, w, h - 1)
 end
 
 vgui.Register('DLibColorMixer_WangBase', PANEL, 'EditablePanel')
