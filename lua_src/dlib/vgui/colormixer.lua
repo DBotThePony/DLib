@@ -204,6 +204,7 @@ function PANEL:Init()
 		self['wang_' .. panelname]:Dock(RIGHT)
 		self['wang_' .. panelname]:SetDecimals(0)
 		self['wang_' .. panelname]:SetMinMax(0, 255)
+		self['wang_' .. panelname]:SetWide(40)
 
 		--if panelname ~= 'alpha' then
 		self['wang_' .. panelname .. '_bar'] = vgui.Create(panelname == 'alpha' and 'DLibColorMixer_AlphaWang' or 'DLibColorMixer_RGBWang', self['wang_canvas_' .. panelname])
@@ -219,6 +220,7 @@ function PANEL:Init()
 		self['wang_' .. panelname]:SetDecimals(0)
 		-- self['wang_' .. panelname]:SetMinMax(0, 255)
 		self['wang_' .. panelname]:SetMinMax(0, 100)
+		self['wang_' .. panelname]:SetWide(40)
 	end
 
 	self.wang_hue_bar = vgui.Create('DLibColorMixer_HueWang', self.wang_canvas_hue)
@@ -381,7 +383,7 @@ function PANEL:Init()
 	end
 
 	self:UpdateData()
-	self:SetTall(275)
+	self:SetTall(260)
 end
 
 function PANEL:ParseHexInput(input, fromForm)
@@ -459,7 +461,7 @@ function PANEL:DLib_ColorMixerWangBarsUpdate(newvalue)
 end
 
 function PANEL:PerformLayout()
-	self.wang_canvas:SetWide(ENABLE_WANG_BARS:GetBool() and math.clamp(self:GetWide() * 0.5, 80, 200) or 80)
+	self.wang_canvas:SetWide(ENABLE_WANG_BARS:GetBool() and math.clamp(self:GetWide() * 0.4, 80, 170) or 60)
 end
 
 function PANEL:BindRegularWang(wang, index)
@@ -718,6 +720,7 @@ function PANEL:SetAllowAlpha(allow)
 		self.wang_canvas_alpha:SetVisible(false)
 	end
 
+	self:UpdateHexInput()
 	self:InvalidateLayout()
 end
 

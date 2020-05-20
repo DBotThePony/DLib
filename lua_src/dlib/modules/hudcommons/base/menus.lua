@@ -421,14 +421,14 @@ function meta:PopulateColorsMenu(panel)
 			RunConsoleCommand(v.a:GetName(), v.a:GetDefault())
 		end
 
-		local picker = vgui.Create('DColorMixer', canvas)
+		local picker = vgui.Create('DLibColorMixer', canvas)
 		picker:SetConVarR(v.r:GetName())
 		picker:SetConVarG(v.g:GetName())
 		picker:SetConVarB(v.b:GetName())
 		picker:SetConVarA(v.a:GetName())
 
 		picker:Dock(TOP)
-		picker:SetHeight(200)
+		-- picker:SetHeight(200)
 	end
 
 	for i, class in ipairs(self.colorNamesN) do
@@ -456,14 +456,14 @@ function meta:PopulateColorsMenu(panel)
 			RunConsoleCommand(v.b:GetName(), v.b:GetDefault())
 		end
 
-		local picker = vgui.Create('DColorMixer', canvas)
+		local picker = vgui.Create('DLibColorMixer', canvas)
 		picker:SetConVarR(v.r:GetName())
 		picker:SetConVarG(v.g:GetName())
 		picker:SetConVarB(v.b:GetName())
-		picker:SetAlphaBar(false)
+		picker:SetAllowAlpha(false)
 
 		picker:Dock(TOP)
-		picker:SetHeight(200)
+		-- picker:SetHeight(200)
 	end
 
 	self:PopulateColorsMenuOe(panel)
