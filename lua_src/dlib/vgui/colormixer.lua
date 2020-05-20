@@ -199,9 +199,6 @@ function PANEL:Init()
 		self['wang_canvas_' .. panelname]:DockMargin(1, 1, 1, 1)
 	end
 
-	self.hex_canvas = vgui.Create('EditablePanel', self.wang_canvas)
-	self.hex_canvas:Dock(TOP)
-
 	for i, panelname in ipairs(rgba) do
 		self['wang_' .. panelname] = vgui.Create('DNumberWang', self['wang_canvas_' .. panelname])
 		self['wang_' .. panelname]:Dock(RIGHT)
@@ -266,6 +263,23 @@ function PANEL:Init()
 		self:UpdateHSVWangBars('value')
 	end
 
+	self.hex_canvas = vgui.Create('EditablePanel', self.wang_canvas)
+	self.hex_canvas:Dock(TOP)
+
+	self.hex_label = vgui.Create('DLabel', self.hex_canvas)
+	self.hex_label:Dock(LEFT)
+	self.hex_label:SetText('  HEX:')
+
+	self.hex_input = vgui.Create('DTextEntry', self.hex_canvas)
+	self.hex_input:Dock(FILL)
+	self.hex_input:SetText('fff')
+	self.hex_input:SetUpdateOnType(true)
+
+	function self.hex_input.OnValueChange(hex_input, newvalue)
+		if self.update then return end
+		self:ParseHexInput(newvalue, true)
+	end
+
 	self.wang_hue:SetMinMax(0, 360)
 
 	self:BindRegularWang(self.wang_red, '_r')
@@ -293,6 +307,7 @@ function PANEL:Init()
 		self:UpdateHSVWangs()
 		self:UpdateHSVWangBars()
 		self:UpdateAlphaBar()
+		self:UpdateHexInput()
 	end
 
 	self.color_wang = vgui.Create('DRGBPicker', self)
@@ -326,6 +341,7 @@ function PANEL:Init()
 		self:UpdateColorCube()
 		self:UpdateAlphaBar()
 		self:UpdateWangBars()
+		self:UpdateHexInput()
 	end
 
 	function self.alpha_wang.OnChange(color_wang, newvalue)
@@ -365,7 +381,44 @@ function PANEL:Init()
 	end
 
 	self:UpdateData()
-	self:SetTall(250)
+	self:SetTall(275)
+end
+
+function PANEL:ParseHexInput(input, fromForm)
+	if input[1] == '#' then
+		input = input:sub(2)
+	end
+
+	if input:startsWith('0x') then
+		input = input:sub(3)
+	end
+
+	local r, g, b, a
+
+	if #input == 3 then
+		r, g, b = input[1]:tonumber(16), input[2]:tonumber(16), input[3]:tonumber(16)
+	elseif #input == 4 then
+		r, g, b, a = input[1]:tonumber(16), input[2]:tonumber(16), input[3]:tonumber(16), input[4]:tonumber(16)
+	elseif #input == 6 then
+		r, g, b = input:sub(1, 2):tonumber(16), input:sub(3, 4):tonumber(16), input:sub(5, 6):tonumber(16)
+	elseif #input == 8 then
+		r, g, b, a = input:sub(1, 2):tonumber(16), input:sub(3, 4):tonumber(16), input:sub(5, 6):tonumber(16), input:sub(7, 8):tonumber(16)
+	end
+
+	if not r or not g or not b then return end
+
+	if #input < 6 then
+		r, g, b = r * 0x10, g * 0x10, b * 0x10
+
+		if a then
+			a = a * 0x10
+		end
+	end
+
+	if not self.allow_alpha then a = 255 end
+
+	self:_SetColor(Color(r, g, b, a))
+	self:UpdateData(fromForm)
 end
 
 function PANEL:DLib_ColorMixerAlphaUpdate(newvalue)
@@ -420,6 +473,7 @@ function PANEL:BindRegularWang(wang, index)
 		self:UpdateHSVWangBars()
 		self:UpdateAlphaBar()
 		self:UpdateWangBars()
+		self:UpdateHexInput()
 	end
 end
 
@@ -434,6 +488,7 @@ function PANEL:BindRegularWangBar(wang, index)
 		self:UpdateHSVWangBars()
 		self:UpdateAlphaBar()
 		self:UpdateWangs()
+		self:UpdateHexInput()
 		self:UpdateWangBars(index)
 	end
 end
@@ -445,7 +500,19 @@ function PANEL:BindHSVWang(wang)
 	end
 end
 
-function PANEL:UpdateData()
+function PANEL:UpdateHexInput()
+	self.update = true
+
+	if self.allow_alpha then
+		self.hex_input:SetValue(string.format('%.2x%.2x%.2x%.2x', self._r, self._g, self._b, self._a))
+	else
+		self.hex_input:SetValue(string.format('%.2x%.2x%.2x', self._r, self._g, self._b))
+	end
+
+	self.update = false
+end
+
+function PANEL:UpdateData(fromHex)
 	self:UpdateWangs()
 	self:UpdateWangBars()
 	self:UpdateHSVWangs()
@@ -453,6 +520,10 @@ function PANEL:UpdateData()
 	self:UpdateColorCube()
 	self:UpdateAlphaBar()
 	self:UpdateHueBar()
+
+	if not fromHex then
+		self:UpdateHexInput()
+	end
 end
 
 function PANEL:UpdateColorCube()
@@ -571,6 +642,7 @@ function PANEL:UpdateFromHSVWangs()
 	self:UpdateWangBars()
 	self:UpdateAlphaBar()
 	self:UpdateHueBar()
+	self:UpdateHexInput()
 end
 
 function PANEL:_SetColor(r, g, b, a)
@@ -584,6 +656,7 @@ function PANEL:_SetColor(r, g, b, a)
 	self._a = a
 
 	self:ValueChanged(self:GetColor())
+	self:UpdateConVars()
 end
 
 function PANEL:SetColor(r, g, b, a)
