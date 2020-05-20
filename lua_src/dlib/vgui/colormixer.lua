@@ -559,6 +559,7 @@ function PANEL:BindRegularWang(wang, index)
 		self:UpdateAlphaBar()
 		self:UpdateWangBars()
 		self:UpdateHexInput()
+		self:ValueChanged(self:GetColor())
 	end
 end
 
@@ -575,6 +576,7 @@ function PANEL:BindRegularWangBar(wang, index)
 		self:UpdateWangs()
 		self:UpdateHexInput()
 		self:UpdateWangBars(index)
+		self:ValueChanged(self:GetColor())
 	end
 end
 
