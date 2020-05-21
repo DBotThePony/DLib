@@ -30,7 +30,7 @@ if SERVER
 
 autocomplete = {}
 
-timer.Simple 0, -> http.Fetch 'https://dbotthepony.ru/vll/plist.php', (body = '', size = string.len(body), headers = {}, code = 400) ->
+timer.Simple 0, -> http.Fetch 'https://vll.dbotthepony.ru/plist.php', (body = '', size = string.len(body), headers = {}, code = 400) ->
 	return if code ~= 200
 	autocomplete = [_file\Trim()\lower() for _file in *string.Explode('\n', body) when _file\Trim() ~= '']
 	table.sort(autocomplete)
@@ -195,14 +195,14 @@ vll2_reload = (ply, cmd, args) ->
 	return VLL2.MessagePlayer(ply, 'Not a super admin!') if disallow(ply)
 	VLL2.MessagePlayer(ply, 'Reloading VLL2, this can take some time...')
 	_G.VLL2_GOING_TO_RELOAD = true
-	http.Fetch "https://dbotthepony.ru/vll/vll2.lua", (b) -> _G.RunString(b, "VLL2")
+	http.Fetch "https://vll.dbotthepony.ru/vll2.lua", (b) -> _G.RunString(b, "VLL2")
 
 vll2_reload_full = (ply, cmd, args) ->
 	return VLL2.MessagePlayer(ply, 'Not a super admin!') if disallow(ply)
 	VLL2.MessagePlayer(ply, 'Flly Reloading VLL2, this can take some time...')
 	_G.VLL2_GOING_TO_RELOAD = true
 	_G.VLL2_FULL_RELOAD = true
-	http.Fetch "https://dbotthepony.ru/vll/vll2.lua", (b) -> _G.RunString(b, "VLL2")
+	http.Fetch "https://vll.dbotthepony.ru/vll2.lua", (b) -> _G.RunString(b, "VLL2")
 
 vll2_clear_lua_cache = (ply, cmd, args) ->
 	return VLL2.MessagePlayer(ply, 'Not a super admin!') if disallow(ply)

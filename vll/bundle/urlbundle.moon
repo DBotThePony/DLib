@@ -21,7 +21,7 @@
 import file, util, error, assert, HTTP, Entity, game, VLL2 from _G
 
 class VLL2.URLBundle extends VLL2.AbstractBundle
-	@FETH_BUNDLE_URL = 'https://dbotthepony.ru/vll/package.php'
+	@FETH_BUNDLE_URL = 'https://vll.dbotthepony.ru/package.php'
 	@LISTING = {}
 
 	@GetMessage = =>
