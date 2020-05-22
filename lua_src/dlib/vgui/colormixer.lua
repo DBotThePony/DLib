@@ -450,7 +450,7 @@ do
 		local original_color = self:GetColor()
 
 		local frame = vgui.Create('DLib_Window')
-		frame:SetSize(400, 400)
+		frame:SetSize(420, 450)
 		frame:SetTitle('gui.dlib.colormixer.palette_window')
 		frame:SetPos(posX, posY)
 		frame:MakePopup()
@@ -467,6 +467,7 @@ do
 		self.palette:SetButtonSize(16)
 		self.palette:SetCookieName('dlib_palette_def')
 		self.palette:Reset()
+		self.palette:DockMargin(5, 5, 5, 5)
 
 		label = vgui.Create('DLabel', frame)
 		label:Dock(TOP)
@@ -479,6 +480,7 @@ do
 		self.palette_extended:SetNumRows(50)
 		self.palette_extended:SetCookieName('dlib_palette_ext')
 		self.palette_extended:Reset()
+		self.palette_extended:DockMargin(5, 5, 5, 5)
 
 		paletteStuff(self, self.palette)
 		paletteStuff(self, self.palette_extended)
