@@ -269,8 +269,16 @@ string.StartsWith = string.StartWith
 ]]
 gstring.StartsWith = gstring.StartWith
 
+local funcs = {}
+
 for k, v in pairs(gstring) do
-	gstring[k:sub(1, 1):lower() .. k:sub(2)] = v
+	funcs[k:sub(1, 1):lower() .. k:sub(2)] = v
+end
+
+for k, v in pairs(funcs) do
+	if gstring[k] == nil then
+		gstring[k] = v
+	end
 end
 
 --[[
