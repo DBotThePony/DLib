@@ -30,6 +30,9 @@ gui.entry.limit = 'Field limit exceeded.'
 
 gui.dlib.hudcommons.reset = 'Reset'
 
+info.dlib.colormixer.palette = 'Palette'
+info.dlib.colormixer.palette_window = info.dlib.colormixer.palette
+
 info.dlib.tformat.seconds = 'seconds'
 info.dlib.tformat.minutes = 'minutes'
 info.dlib.tformat.hours = 'hours'

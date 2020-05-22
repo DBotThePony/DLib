@@ -301,6 +301,9 @@ function PANEL:Init()
 	self:BindHSVWang(self.wang_saturation, 'saturation')
 	self:BindHSVWang(self.wang_value, 'value')
 
+	self.wang_value_bar:SetLeftColor(Color(0, 0, 0))
+	self.wang_saturation_bar:SetLeftColor(Color(0, 0, 0))
+
 	self.color_cube = vgui.Create('DColorCube', self)
 	self.color_cube:Dock(FILL)
 
@@ -366,6 +369,19 @@ function PANEL:Init()
 
 	self:UpdateData()
 	self:SetTall(260)
+end
+
+function PANEL:OpenPaletteWindow()
+	local original_color = self:GetColor()
+
+	local posX, posY = self:LocalToScreen(self:GetWide(), 0)
+	posX = posX + 14
+
+	local frame = vgui.Create('DLib_Window')
+	frame:SetSize(400, 400)
+	frame:SetTitle('info.dlib.colormixer.palette_window')
+	frame:SetPos(posX, posY)
+	frame:MakePopup()
 end
 
 function PANEL:ParseHexInput(input, fromForm)
@@ -700,13 +716,13 @@ function PANEL:UpdateHSVWangBars(update_type, update_subtype)
 
 	if update_type ~= 'saturation' or update_subtype ~= 'bar' then
 		self.wang_saturation_bar:SetWangPosition(saturation)
-		self.wang_saturation_bar:SetLeftColor(HSVToColorLua(hue, 0, value))
+		-- self.wang_saturation_bar:SetLeftColor(HSVToColorLua(hue, 0, value))
 		self.wang_saturation_bar:SetRightColor(HSVToColorLua(hue, 1, value))
 	end
 
 	if update_type ~= 'value' or update_subtype ~= 'bar' then
 		self.wang_value_bar:SetWangPosition(value)
-		self.wang_value_bar:SetLeftColor(HSVToColorLua(hue, saturation, 0))
+		-- self.wang_value_bar:SetLeftColor(HSVToColorLua(hue, saturation, 0))
 		self.wang_value_bar:SetRightColor(HSVToColorLua(hue, saturation, 1))
 	end
 
