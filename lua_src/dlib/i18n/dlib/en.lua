@@ -30,8 +30,15 @@ gui.entry.limit = 'Field limit exceeded.'
 
 gui.dlib.hudcommons.reset = 'Reset'
 
-info.dlib.colormixer.palette = 'Palette'
-info.dlib.colormixer.palette_window = info.dlib.colormixer.palette
+gui.dlib.colormixer.palette = 'Palette'
+gui.dlib.colormixer.save_color = 'Save current color into this square'
+gui.dlib.colormixer.reset_palette = 'Reset palette'
+gui.dlib.colormixer.reset_palette_confirm = 'Really?'
+gui.dlib.colormixer.palette_window = 'Palette window'
+gui.dlib.colormixer.palette_regular = 'Regular palette'
+gui.dlib.colormixer.palette_extended = 'Extended palette'
+gui.dlib.colormixer.copy_color = 'Copy color in RGB format'
+gui.dlib.colormixer.copy_hex_color = 'Copy color in HEX format'
 
 info.dlib.tformat.seconds = 'seconds'
 info.dlib.tformat.minutes = 'minutes'

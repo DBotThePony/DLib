@@ -187,11 +187,27 @@ function PANEL:Init()
 	self.wang_canvas:Dock(RIGHT)
 	-- self.wang_canvas:SetWide(200)
 
-	self.wang_label_rgb = vgui.Create('DLabel', self.wang_canvas)
-	self.wang_label_rgb:SetText('   RGB')
-	self.wang_label_rgb:Dock(TOP)
-	self.wang_label_rgb:DockMargin(0, 0, 0, 5)
-	self.wang_label_rgb:SetZPos(0)
+	self.rgb_canvas = vgui.Create('EditablePanel', self.wang_canvas)
+	self.rgb_canvas:Dock(TOP)
+	self.rgb_canvas:SetZPos(0)
+	self.rgb_canvas:DockPadding(5, 0, 5, 0)
+
+	self.wang_label_rgb = vgui.Create('DLabel', self.rgb_canvas)
+	self.wang_label_rgb:SetText('RGB')
+	self.wang_label_rgb:Dock(LEFT)
+	-- self.wang_label_rgb:DockMargin(0, 0, 0, 5)
+	self.wang_label_rgb:SizeToContents()
+
+	self.palette_button = vgui.Create('DButton', self.rgb_canvas)
+	self.palette_button:Dock(RIGHT)
+	self.palette_button:SetText('...')
+	self.palette_button:SizeToContents()
+	self.palette_button:SetWide(self.palette_button:GetWide() + 6)
+	self.palette_button:SetZPos(-1)
+
+	function self.palette_button.DoClick()
+		self:OpenPaletteWindow()
+	end
 
 	local add = 1
 
@@ -273,12 +289,15 @@ function PANEL:Init()
 
 	self.hex_label = vgui.Create('DLabel', self.hex_canvas)
 	self.hex_label:Dock(LEFT)
-	self.hex_label:SetText('  HEX:')
+	self.hex_label:SetText('HEX:')
+	self.hex_label:DockMargin(5, 0, 0, 0)
+	self.hex_label:SetZPos(1)
 
 	self.hex_input = vgui.Create('DTextEntry', self.hex_canvas)
 	self.hex_input:Dock(FILL)
 	self.hex_input:SetText('fff')
 	self.hex_input:SetUpdateOnType(true)
+	self.hex_input:SetZPos(2)
 
 	function self.hex_input.OnValueChange(hex_input, newvalue)
 		if self.update then return end
@@ -371,17 +390,127 @@ function PANEL:Init()
 	self:SetTall(260)
 end
 
-function PANEL:OpenPaletteWindow()
-	local original_color = self:GetColor()
+do
+	local function paletteStuff(self, palette)
+		function palette.DoClick(_, color_chosen, button)
+			local copy = Color(color_chosen)
+			if not self:GetAllowAlpha() then copy:SetAlpha(255) end
+			self:_SetColor(copy)
+			self:UpdateData()
+		end
 
-	local posX, posY = self:LocalToScreen(self:GetWide(), 0)
-	posX = posX + 14
+		function palette.OnRightClickButton(_, button)
+			local menu = DermaMenu()
 
-	local frame = vgui.Create('DLib_Window')
-	frame:SetSize(400, 400)
-	frame:SetTitle('info.dlib.colormixer.palette_window')
-	frame:SetPos(posX, posY)
-	frame:MakePopup()
+			menu:AddOption('gui.dlib.colormixer.save_color', function()
+				palette:SaveColor(button, self:GetColor())
+			end)
+
+			menu:AddOption('gui.dlib.colormixer.copy_color', function()
+				local color = button:GetColor()
+
+				if self:GetAllowAlpha() then
+					SetClipboardText(string.format('%d, %d, %d, %d', color.r, color.g, color.b, color.a))
+				else
+					SetClipboardText(string.format('%d, %d, %d', color.r, color.g, color.b))
+				end
+			end)
+
+			menu:AddOption('gui.dlib.colormixer.copy_hex_color', function()
+				local color = button:GetColor()
+
+				if self:GetAllowAlpha() then
+					SetClipboardText(string.format('%.2x%.2x%.2x%.2x', color.r, color.g, color.b, color.a))
+				else
+					SetClipboardText(string.format('%.2x%.2x%.2x', color.r, color.g, color.b))
+				end
+			end)
+
+			local submenu, button_child = menu:AddSubMenu('gui.dlib.colormixer.reset_palette')
+
+			submenu:AddOption('gui.dlib.colormixer.reset_palette_confirm', function()
+				palette:ResetSavedColors()
+			end)
+
+			menu:Open()
+		end
+	end
+
+	function PANEL:OpenPaletteWindow()
+		local posX, posY = self:LocalToScreen(self:GetWide(), 0)
+		posX = posX + 14
+
+		if IsValid(self.palette_frame) then
+			self.palette_frame:SetPos(posX, posY)
+			self.palette_frame:MakePopup()
+
+			return
+		end
+
+		local original_color = self:GetColor()
+
+		local frame = vgui.Create('DLib_Window')
+		frame:SetSize(400, 400)
+		frame:SetTitle('gui.dlib.colormixer.palette_window')
+		frame:SetPos(posX, posY)
+		frame:MakePopup()
+
+		self.palette_frame = frame
+
+		local label = vgui.Create('DLabel', frame)
+		label:Dock(TOP)
+		label:SetText('gui.dlib.colormixer.palette_regular')
+		label:DockMargin(10, 0, 0, 0)
+
+		self.palette = vgui.Create('DColorPalette', frame)
+		self.palette:Dock(TOP)
+		self.palette:SetButtonSize(16)
+		self.palette:SetCookieName('dlib_palette_def')
+		self.palette:Reset()
+
+		label = vgui.Create('DLabel', frame)
+		label:Dock(TOP)
+		label:SetText('gui.dlib.colormixer.palette_extended')
+		label:DockMargin(10, 0, 0, 0)
+
+		self.palette_extended = vgui.Create('DColorPalette', frame)
+		self.palette_extended:Dock(FILL)
+		self.palette_extended:SetButtonSize(16)
+		self.palette_extended:SetNumRows(50)
+		self.palette_extended:SetCookieName('dlib_palette_ext')
+		self.palette_extended:Reset()
+
+		paletteStuff(self, self.palette)
+		paletteStuff(self, self.palette_extended)
+
+		local color_button = vgui.Create('DButton', frame)
+		color_button:Dock(BOTTOM)
+		color_button:SetText('coolors.co')
+		color_button:DockMargin(5, 5, 5, 5)
+		color_button:SetZPos(1)
+
+		function color_button.DoClick()
+			gui.OpenURL('https://coolors.co/palettes/trending')
+		end
+
+		color_button = vgui.Create('DButton', frame)
+		color_button:Dock(BOTTOM)
+		color_button:SetText('mycolor.space')
+		color_button:DockMargin(5, 5, 5, 5)
+		color_button:SetZPos(0)
+
+		function color_button.DoClick()
+			gui.OpenURL('https://mycolor.space/')
+		end
+	end
+end
+
+function PANEL:SetPalette()
+	-- NO OP
+end
+
+function PANEL:GetPalette()
+	return true
 end
 
 function PANEL:ParseHexInput(input, fromForm)
@@ -446,6 +575,9 @@ function PANEL:DisableTallLayout()
 		self.wang_canvas_right:Remove()
 	end
 
+	self.palette_button:SetParent(self.rgb_canvas)
+	self.palette_button:Dock(RIGHT)
+
 	self:SetTall(260)
 	self:InvalidateLayout()
 end
@@ -473,6 +605,9 @@ function PANEL:EnableTallLayout()
 	end
 
 	self.hex_canvas:SetParent(self.wang_canvas_right)
+
+	self.palette_button:SetParent(self.hex_canvas)
+	self.palette_button:Dock(LEFT)
 
 	self:SetTall(320)
 	self:InvalidateLayout()
