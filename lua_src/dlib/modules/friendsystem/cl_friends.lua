@@ -220,6 +220,8 @@ function friends.UpdateFriendType(steamid, ftype, fnew)
 
 	steamidsCache[steamid].isFriend = isFriend
 
+	hook.Run('DLib_FriendStatusUpdated', steamid, ftype, fnew, player.GetBySteamID(steamid))
+
 	return steamidsCache[steamid]
 end
 
@@ -390,7 +392,7 @@ function friends.Reload()
 	local targetsH = {}
 	local targetsH2 = {}
 
-	sql.EQuery('BEGIN')
+	-- sql.EQuery('BEGIN')
 
 	for k, ply in ipairs(player.GetHumans()) do
 		if lply ~= ply then
@@ -413,9 +415,9 @@ function friends.Reload()
 		end
 	end
 
-	sql.EQuery('COMMIT')
+	-- sql.EQuery('COMMIT')
 
-	local data = sql.EQuery('SELECT * FROM dlib_friends WHERE steamid IN (' .. table.concat(targets, ',') .. ')')
+	local data = sql.EQuery('SELECT * FROM `dlib_friends` WHERE `steamid` IN (' .. table.concat(targets, ',') .. ')')
 
 	if data then
 		for i, row in ipairs(data) do
