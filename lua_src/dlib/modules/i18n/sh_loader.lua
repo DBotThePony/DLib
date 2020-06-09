@@ -44,13 +44,13 @@ function i18n.reload(module)
 		return
 	end
 
-	local files = file.Find('dlib/i18n/' .. module .. '/*', 'LUA')
+	local files = file.Find('dlib/i18n/' .. module .. '/*.lua', 'LUA')
 
 	for i2, luafile in ipairs(files) do
-		if luafile:sub(-4) == '.lua' then
+		-- if luafile:sub(-4) == '.lua' then
 			AddCSLuaFile('dlib/i18n/' .. module .. '/' .. luafile)
 			i18n.executeFile(luafile:sub(1, -5), 'dlib/i18n/' .. module .. '/' .. luafile)
-		end
+		-- end
 	end
 end
 
