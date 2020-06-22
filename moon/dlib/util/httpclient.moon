@@ -18,7 +18,7 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-class http.Cookie
+class http.DLibCookie
 	@Parse = (strInput, domain, unsafe = false) =>
 		assert(isstring(strInput), 'Input must be a string')
 		split = strInput\split(';')
@@ -150,12 +150,12 @@ class http.Cookie
 
 		return table.concat(build, '; ')
 
-class http.CookieJar
+class http.DLibCookieJar
 	new: =>
 		@jar = {}
 
 	Add: (input, domain) =>
-		cookie = isstring(input) and http.Cookie\Parse(input, domain) or input
+		cookie = isstring(input) and http.DLibCookie\Parse(input, domain) or input
 		hash = cookie\Hash()
 
 		if @jar[hash]
@@ -165,7 +165,7 @@ class http.CookieJar
 		return @
 
 	Remove: (input, domain) =>
-		cookie = isstring(input) and http.Cookie\Parse(input, domain) or input
+		cookie = isstring(input) and http.DLibCookie\Parse(input, domain) or input
 		hash = cookie\Hash()
 
 		if @jar[hash]
@@ -183,7 +183,7 @@ class http.CookieJar
 
 import Promise from DLib
 
-class http.Client
+class http.DLibClient
 	AccessorFunc(@__base, 'set_referer', 'SetReferer', FORCE_BOOL)
 	AccessorFunc(@__base, 'last_referer', 'LastReferer')
 
@@ -193,7 +193,7 @@ class http.Client
 		elseif type(cookiejar) == 'table'
 			@cookiejar = cookiejar
 		else
-			@cookiejar = http.CookieJar()
+			@cookiejar = http.DLibCookie()
 
 		@set_referer = true
 		@last_referer = false
