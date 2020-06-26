@@ -570,7 +570,6 @@ hook._O_SALT = hook._O_SALT or -0xFFFFFFF
 --[[
 	@doc
 	@fname hook.Once
-	@replaces
 	@args string event, function callback, number priority = 0
 
 	@desc
