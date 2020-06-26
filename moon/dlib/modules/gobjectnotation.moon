@@ -27,9 +27,7 @@ GON.HashRegistry = GON.HashRegistry or {}
 GON.Registry = GON.Registry or {}
 GON.IdentityRegistry = GON.IdentityRegistry or {}
 
-GON.FindProvider = (identity) ->
-	provider = GON.IdentityRegistry[identity]
-	return provider or false
+GON.FindProvider = (identity) -> GON.IdentityRegistry[identity] or false
 
 GON.RemoveProvider = (provider) ->
 	identity = provider\GetIdentity()
@@ -93,7 +91,7 @@ class GON.IDataProvider
 		@value = value
 		return @
 
-	Serialize: => error('Not implemented')
+	Serialize: (bytesbuffer) => error('Not implemented')
 	GetValue: => @value
 	GetStructure: => @structure
 	GetHeapID: => @heapid

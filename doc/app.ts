@@ -122,6 +122,7 @@ function addFile(file: string) {
 
 addFile('./docs/nbt.js')
 addFile('./docs/camiwatchdog.js')
+addFile('./docs/gobjectnotation.js')
 addFile('./docs/set.js')
 
 if (annotations.length == 0) {
