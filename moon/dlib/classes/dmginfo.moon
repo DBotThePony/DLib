@@ -108,20 +108,7 @@ class DLib.LTakeDamageInfo
 		@inflictor = NULL
 		@recordedInflictor = NULL
 
-		if copyfrom
-			with copyfrom
-				@SetAmmoType(\GetAmmoType())
-				@SetAttacker(\GetAttacker())
-				@SetBaseDamage(\GetBaseDamage())
-				@SetDamage(\GetDamage())
-				@SetDamageBonus(\GetDamageBonus())
-				@SetDamageCustom(\GetDamageCustom())
-				@SetDamageForce(\GetDamageForce())
-				@SetDamagePosition(\GetDamagePosition())
-				@SetDamageType(\GetDamageType())
-				@SetInflictor(\GetInflictor())
-				@SetMaxDamage(\GetMaxDamage())
-				@SetReportedPosition(\GetReportedPosition())
+		DLib.LTakeDamageInfo.CopyInto(copyfrom, @) if copyfrom
 
 	RecordInflictor: =>
 		if @inflictor ~= @attacker or not @attacker.GetActiveWeapon
@@ -175,3 +162,20 @@ class DLib.LTakeDamageInfo
 	SetBaseDamage: (damage) => @baseDamage = damage
 
 	Copy: => DLib.LTakeDamageInfo(@)
+
+DLib.LTakeDamageInfo.CopyInto = (objectSource, self) ->
+	with objectSource
+		@SetAmmoType(\GetAmmoType())
+		@SetAttacker(\GetAttacker())
+		@SetBaseDamage(\GetBaseDamage()) if @SetBaseDamage and .SetBaseDamage
+		@SetDamage(\GetDamage())
+		@SetDamageBonus(\GetDamageBonus())
+		@SetDamageCustom(\GetDamageCustom())
+		@SetDamageForce(\GetDamageForce())
+		@SetDamagePosition(\GetDamagePosition())
+		@SetDamageType(\GetDamageType())
+		@SetInflictor(\GetInflictor())
+		@SetMaxDamage(\GetMaxDamage())
+		@SetReportedPosition(\GetReportedPosition())
+
+	return self
