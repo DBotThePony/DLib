@@ -98,7 +98,7 @@ surface.CreateFont('DLib.GuidingLine', {
 local function DrawGuidingLines()
 	if not dlib_guiding_lines:GetBool() then return end
 
-	local x, y = gui.MousePos()
+	local x, y = input.GetCursorPos()
 	if x == 0 and y == 0 then return end
 
 	surface.SetDrawColor(183, 174, 174)

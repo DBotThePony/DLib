@@ -244,7 +244,7 @@ end
 function PANEL:OnMousePressed(code)
 	if code ~= MOUSE_LEFT then return end
 	self.dragging = true
-	self.mouseXPrev, self.mouseYPrev = gui.MousePos()
+	self.mouseXPrev, self.mouseYPrev = input.GetCursorPos()
 end
 
 function PANEL:ApplyChanges()
@@ -283,7 +283,7 @@ function PANEL:Think()
 
 	if not self.dragging then return end
 
-	local x, y = gui.MousePos()
+	local x, y = input.GetCursorPos()
 	local deltaX, deltaY = x - self.mouseXPrev, y - self.mouseYPrev
 	self.calculatedX = self.calculatedX + deltaX
 	self.calculatedY = self.calculatedY + deltaY

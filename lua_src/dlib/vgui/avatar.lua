@@ -82,7 +82,7 @@ end
 
 function PANEL:Think()
 	if not IsValid(self.ply) and not self.steamid then return end
-	local x, y = gui.MousePos()
+	local x, y = input.GetCursorPos()
 
 	local hover = self:IsHovered()
 

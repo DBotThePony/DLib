@@ -70,7 +70,7 @@ end
 function PANEL:OnMousePressed(key)
 	if key ~= MOUSE_LEFT then return end
 	self.tapped = true
-	self.tapX, self.tapY = gui.MousePos()
+	self.tapX, self.tapY = input.GetCursorPos()
 	self.oldW, self.oldH = self.target:GetSize()
 	self.translucent = 0
 	self.currX, self.currY = self.target:GetPos()
@@ -93,7 +93,7 @@ function PANEL:Think()
 end
 
 function PANEL:GetNewDimensions()
-	local x, y = gui.MousePos()
+	local x, y = input.GetCursorPos()
 	local diffX, diffY = x - self.tapX, y - self.tapY
 	return math.max(self.oldW + diffX, self.minW), math.max(self.oldH + diffY, self.minH)
 end
