@@ -32,9 +32,6 @@ meta.MetaName = 'number'
 	@returns
 	function: associated function in math or bit table
 ]]
-function meta:__index(key)
-	return meta[key] or math[key] or bit[key]
-end
 
 --[[
 	@doc
@@ -43,6 +40,13 @@ end
 	@returns
 	boolean: false
 ]]
+
+if not meta.__dlib_sf_patch then
+	function meta:__index(key)
+		return meta[key] or math[key] or bit[key]
+	end
+end
+
 function meta:IsValid()
 	return false
 end
