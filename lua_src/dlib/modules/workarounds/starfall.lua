@@ -20,6 +20,7 @@
 
 local function patch()
 	if not istable(SF) then return end
+	SF._DLib_OnRunningOps = SF._DLib_OnRunningOps or SF.OnRunningOps or function() end
 
 	local whitelisted_functions = {
 		-- built-in / C
@@ -99,7 +100,7 @@ local function patch()
 			local bit = bit
 			local math = math
 
-			meta.__index_sf_patch = meta.__index_sf_patch or meta.__index
+			meta.__index_sf_patch = meta.__index_sf_patch or math.__index
 
 			function meta:__index(key)
 				if bit[key] then
@@ -126,35 +127,15 @@ local function patch()
 		end
 	end
 
-	local runningOps = SF.runningOps
-	SF.runningOps = nil
-
-	local meta = getmetatable(SF) or {}
-
-	if not meta.__index or isfunction(meta.__index) and isstring(debug.getinfo(meta.__index).source) and string.find(debug.getinfo(meta.__index).source, 'dlib', 1, true) then
-		function meta:__index(key)
-			if key == 'runningOps' then return runningOps end
-			return rawget(self, key)
+	function SF.OnRunningOps(new_state, ...)
+		if new_state == true then
+			on_run()
+		elseif new_state == false then
+			on_stop()
 		end
 
-		function meta:__newindex(key, value)
-			if key == 'runningOps' then
-				runningOps = value
-
-				if value == true then
-					on_run()
-				elseif value == false then
-					on_stop()
-				end
-
-				return
-			end
-
-			rawset(self, key, value)
-		end
+		return SF._DLib_OnRunningOps(new_state, ...)
 	end
-
-	setmetatable(SF, meta)
 end
 
 patch()
