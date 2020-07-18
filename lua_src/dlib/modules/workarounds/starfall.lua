@@ -54,6 +54,10 @@ local function patch()
 		'modf',
 		'sin',
 
+		-- MEGALUL ????
+		'deg',
+		'rad',
+
 		-- DLib
 		'tformatVararg',
 		'untformat',
@@ -100,7 +104,7 @@ local function patch()
 			local bit = bit
 			local math = math
 
-			meta.__index_sf_patch = meta.__index_sf_patch or math.__index
+			meta.__index_sf_patch = meta.__index_sf_patch or meta.__index
 
 			function meta:__index(key)
 				if bit[key] then
@@ -130,7 +134,7 @@ local function patch()
 	function SF.OnRunningOps(new_state, ...)
 		if new_state == true then
 			on_run()
-		elseif new_state == false then
+		elseif not new_state then
 			on_stop()
 		end
 
