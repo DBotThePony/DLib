@@ -147,7 +147,9 @@ end
 function vectorMeta:RotateAroundAxis(axis, rotation)
 	local ang = self:Angle()
 	ang:RotateAroundAxis(axis, rotation)
-	return self:Receive(ang:Forward() * self:Length())
+	local fwd = ang:Forward()
+	fwd:Mul(self:Length())
+	return self:Receive(fwd)
 end
 
 --[[
