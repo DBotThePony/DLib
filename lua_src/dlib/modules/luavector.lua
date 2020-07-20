@@ -187,17 +187,6 @@ function meta:__tostring()
 	return string.format('LuaVector [%.6f %.6f %.6f]', self.x, self.y, self.z)
 end
 
---[[
-	@doc
-	@fname LVector:__call
-
-	@returns
-	LVector: copy
-]]
-function meta:__call()
-	return LVector(self)
-end
-
 -- Vector maths
 
 local math = math

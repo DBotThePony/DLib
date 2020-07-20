@@ -91,17 +91,6 @@ end
 
 --[[
 	@doc
-	@fname Vector:__call
-
-	@returns
-	Vector: copy
-]]
-function vectorMeta:__call()
-	return Vector(self)
-end
-
---[[
-	@doc
 	@fname Vector:ToNative
 
 	@returns
