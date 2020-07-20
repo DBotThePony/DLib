@@ -163,33 +163,52 @@ end
 
 local type = luatype
 
+vectorMeta._DLib_WithinAABox = vectorMeta._DLib_WithinAABox or vectorMeta.WithinAABox
+
 --[[
 	@doc
 	@fname Vector:WithinAABox
 	@args Vector mins, Vector maxs
+	@replaces
 
 	@desc
-	can also accept `LVector`
+	modifies function to also accept `LVector`
+	forwards call to original function when both arguments are regular vectors
 	@enddesc
 
 	@returns
 	boolean
 ]]
 function vectorMeta:WithinAABox(mins, maxs)
-	if type(mins) ~= 'Vector' and type(mins) ~= 'LVector' then
-		error('Vector:WithinAABox(' .. type(mins) .. ', ' .. type(maxs) .. ') - invalid call')
+	local typemi, typema = type(mins), type(maxs)
+
+	if typemi == 'Vector' and typema == 'Vector' then
+		return self:_DLib_WithinAABox(mins, maxs)
 	end
 
-	if type(maxs) ~= 'Vector' and type(maxs) ~= 'LVector' then
-		error('Vector:WithinAABox(' .. type(mins) .. ', ' .. type(maxs) .. ') - invalid call')
+	if typemi ~= 'Vector' and typemi ~= 'LVector' then
+		error('Vector:WithinAABox(' .. typemi .. ', ' .. typema.. ') - invalid call')
 	end
 
-	return self.x >= mins.x
-		and self.y >= mins.y
-		and self.z >= mins.z
-		and self.x <= maxs.x
-		and self.y <= maxs.y
-		and self.z <= maxs.z
+	if typema ~= 'Vector' and typema ~= 'LVector' then
+		error('Vector:WithinAABox(' .. typemi .. ', ' .. typema .. ') - invalid call')
+	end
+
+	local minsx, minsy, minsz, maxsx, maxsy, maxsz = mins.x, mins.y, mins.z, maxs.x, maxs.y, maxs.z
+
+	local normalized = minsx < maxsx and minxy < maxsy and minsz < maxsz
+
+	if not normalized then
+		-- as seen on example on https://wiki.facepunch.com/gmod/Vector:WithinAABox
+		-- local mins = Vector(1119, 895, 63)
+		-- local maxs = Vector(656, -896, -144)
+		minsx, minsy, minsz, maxsx, maxsy, maxsz = minsx:min(maxsx), minsy:min(maxsy), minsz:min(maxsz), maxsx:max(minsx), maxsy:max(minsy), maxsz:max(minsz)
+	end
+
+	local x, y, z = self.x, self.y, self.z
+
+	return x >= minsx and y >= minsy and z >= minsz and
+		x <= maxsx and y <= maxsy and z <= maxsz
 end
 
 --[[
