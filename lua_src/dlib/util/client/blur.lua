@@ -18,14 +18,39 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-local SCREENCOPY, DRAWMAT, RTW, RTH
+local SCREENCOPY, DRAWMAT, EFFECTSMAT, RTW, RTH, RTX, RTY, copymatrix
 
 local function refreshRT()
-	RTW, RTH = ScrW(), ScrH()
+	RTW, RTH = 0, 0
+	local w, h = ScrW(), ScrH()
+
+	for i = 1, 13 do
+		local pow = math.pow(2, i)
+
+		if RTW == 0 and w < pow then
+			RTW = pow
+		end
+
+		if RTH == 0 and h < pow then
+			RTH = pow
+		end
+
+		if RTW ~= 0 and RTH ~= 0 then break end
+	end
 
 	SCREENCOPY = GetRenderTarget('dlib-blur-' .. RTW .. '-' .. RTH, RTW, RTH, false)
+	RTX = RTW / 2 - w / 2
+	RTY = RTH / 2 - h / 2
 
 	DRAWMAT = CreateMaterial('dlib-blur2', 'UnlitGeneric', {
+		['$basetexture'] = 'models/debug/debugwhite',
+		['$translucent'] = '0',
+		['$color'] = '[1 1 1]',
+		['$alpha'] = '1',
+		['$nolod'] = '1',
+	})
+
+	EFFECTSMAT = CreateMaterial('dlib-screen-space', 'UnlitGeneric', {
 		['$basetexture'] = 'models/debug/debugwhite',
 		['$translucent'] = '0',
 		['$color'] = '[1 1 1]',
@@ -78,9 +103,12 @@ local BLUR_X = CreateConVar('dlib_blur_x', '2', {FCVAR_ARCHIVE}, 'Blurring stren
 local BLUR_Y = CreateConVar('dlib_blur_y', '2', {FCVAR_ARCHIVE}, 'Blurring strength at Y scale. Do not change unless you know what you are doing!')
 local BLUR_PASSES = CreateConVar('dlib_blur_passes', '1', {FCVAR_ARCHIVE}, 'Blurring passes. Do not change unless you know what you are doing!')
 local BLUR_ENABLE = CreateConVar('dlib_blur_enable', '1', {FCVAR_ARCHIVE}, 'Enable blur utility functions. Usually this does not affect performance or do so slightly.')
+local BLUR_NEW = CreateConVar('dlib_blur_new', '1', {FCVAR_ARCHIVE}, 'Enable new way of blur rendering, fixing some of distortion issues.')
 
 local LAST_DRAW = 0
 local LAST_REFRESH
+DLib.DISTORT_FIX_X = -70
+DLib.DISTORT_FIX_Y = 100
 
 --[[
 	@doc
@@ -100,14 +128,42 @@ function blur.RefreshNow(force)
 	LAST_REFRESH = FrameNumber()
 	LAST_DRAW = LAST_DRAW - 1
 
-	render.CopyRenderTargetToTexture(SCREENCOPY)
+	if BLUR_NEW:GetBool() then
+		render.UpdateScreenEffectTexture()
+		EFFECTSMAT:SetTexture('$basetexture', render.GetScreenEffectTexture())
+
+		local w, h = ScrW(), ScrH()
+
+		-- distortion fix (near screen edges on right and bottom)
+		render.PushRenderTarget(SCREENCOPY)
+		render.Clear(0, 0, 0, 255, true, true)
+		render.OverrideAlphaWriteEnable(true, true)
+		cam.Start2D()
+
+		local dirort_fix_x = w / DLib.DISTORT_FIX_X
+		local dirort_fix_y = h / DLib.DISTORT_FIX_Y
+
+		DisableClipping(true)
+		surface.SetMaterial(EFFECTSMAT)
+		surface.SetDrawColor(255, 255, 255)
+		surface.DrawTexturedRect(RTX - dirort_fix_x, RTY - dirort_fix_y, w + dirort_fix_x * 2, h + dirort_fix_y * 2)
+		DisableClipping(false)
+
+		cam.End2D()
+
+		render.OverrideAlphaWriteEnable(false)
+		render.PopRenderTarget()
+	else
+		render.CopyRenderTargetToTexture(SCREENCOPY)
+	end
+
 	BlurRenderTarget(SCREENCOPY, BLUR_X:GetInt(2):clamp(1, 32), BLUR_Y:GetInt(2):clamp(1, 32), BLUR_PASSES:GetInt(1):clamp(1, 32))
 
 	return true
 end
 
 hook.Add('PostDrawHUD', 'DLib.Blur', function()
-	blur.RefreshNow()
+	--blur.RefreshNow()
 	if not render.SupportsPixelShaders_2_0() then
 		hook.Remove('PostDrawHUD', 'DLib.Blur')
 	end
@@ -124,7 +180,13 @@ function blur.Draw(x, y, w, h)
 	if not render.SupportsPixelShaders_2_0() then return end
 	LAST_DRAW = 10
 	if LAST_REFRESH ~= FrameNumber() then return end
-	local u, v, eu, ev = x / RTW, y / RTH, (x + w) / RTW, (y + h) / RTH
+	local u, v, eu, ev
+
+	if BLUR_NEW:GetBool() then
+		u, v, eu, ev = (RTX + x) / RTW, (RTY + y) / RTH, (RTX + x + w) / RTW, (RTY + y + h) / RTH
+	else
+		u, v, eu, ev = x / ScrWL(), y / ScrHL(), (x + w) / ScrWL(), (y + h) / ScrHL()
+	end
 
 	surface.SetMaterial(DRAWMAT)
 	surface.SetDrawColor(255, 255, 255)
@@ -144,7 +206,14 @@ function blur.DrawOffset(drawX, drawY, w, h, realX, realY)
 	if not render.SupportsPixelShaders_2_0() then return end
 	LAST_DRAW = 10
 	if LAST_REFRESH ~= FrameNumber() then return end
-	local u, v, eu, ev = realX / RTW, realY / RTH, (realX + w) / RTW, (realY + h) / RTH
+
+	local u, v, eu, ev
+
+	if BLUR_NEW:GetBool() then
+		u, v, eu, ev = (RTX + realX) / RTW, (RTY + realY) / RTH, (RTX + realX + w) / RTW, (RTY + realY + h) / RTH
+	else
+		u, v, eu, ev = realX / ScrWL(), realY / ScrHL(), (realX + w) / ScrWL(), (realY + h) / ScrHL()
+	end
 
 	surface.SetMaterial(DRAWMAT)
 	surface.SetDrawColor(255, 255, 255)
@@ -168,7 +237,14 @@ function blur.DrawPanel(w, h, x, y)
 	if not render.SupportsPixelShaders_2_0() then return end
 	LAST_DRAW = 10
 	if LAST_REFRESH ~= FrameNumber() then return end
-	local u, v, eu, ev = x / RTW, y / RTH, (x + w) / RTW, (y + h) / RTH
+
+	local u, v, eu, ev
+
+	if BLUR_NEW:GetBool() then
+		u, v, eu, ev = (RTX + x) / RTW, (RTY + y) / RTH, (RTX + x + w) / RTW, (RTY + y + h) / RTH
+	else
+		u, v, eu, ev = x / ScrWL(), y / ScrHL(), (x + w) / ScrWL(), (y + h) / ScrHL()
+	end
 
 	surface.SetMaterial(DRAWMAT)
 	surface.SetDrawColor(255, 255, 255)
