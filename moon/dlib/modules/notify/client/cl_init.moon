@@ -133,16 +133,22 @@ Think = ->
 
 NetHook = ->
 	mode = net.ReadUInt(4)
-	mes = net.ReadString!
+	message = net.ReadString()
+	message = language.GetPhrase(message\sub(2)) if message[1] == '#'
 
 	if mode == HUD_PRINTCENTER
-		notif = Notify.CreateCentered({color_white, mes})
+		rebuild = {color_white, message}
+
+		if DLib.i18n.exists(message)
+			rebuild = DLib.i18n.rebuildTable(rebuild, color_white)
+
+		notif = Notify.CreateCentered(rebuild)
 		notif\Start()
 	elseif mode == HUD_PRINTTALK
-		print(mes)
-		chat.AddText(mes)
+		print(message)
+		chat.AddText(message)
 	elseif mode == HUD_PRINTCONSOLE or mode == HUD_PRINTNOTIFY
-		print(mes)
+		print(message)
 
 legacyColors = {
 	[NOTIFY_GENERIC]: color_white
