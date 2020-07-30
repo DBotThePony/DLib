@@ -1132,3 +1132,86 @@ end
 function meta:ReadStructure(structureDef, callbacks)
 	return DLib.BytesBuffer.CompileStructure(structureDef, callbacks)(self)
 end
+
+local meta_view = {}
+local meta_bytes = {}
+
+function meta_view:CalculateTotalLength()
+	local length = 0
+
+	for _, buffer in ipairs(self.buffers) do
+		length = length + buffer.length
+	end
+
+	return length
+end
+
+function meta_view:__index(key)
+	local value = rawget(self, key)
+
+	if value ~= nil then return value end
+
+	--[[if key == 'length' then
+		return meta_view.CalculateLength(self)
+	end]]
+
+	return meta_view[key] or meta[key]
+end
+
+function meta_bytes:__index(key)
+	if not isnumber(key) then return end
+	local self2 = rawget(self, 'self')
+	key = key + self2.slice_start
+
+	if key < 0 then return end
+	if key > self2.slice_end then return end
+
+	for _, buffer in ipairs(self2.buffers) do
+		local key2 = key - buffer.length
+
+		if key2 < 0 then
+			return buffer.bytes[key]
+		else
+			key = key2
+		end
+	end
+end
+
+function meta_bytes:__newindex(key, value)
+	if not isnumber(key) then return end
+	local self2 = rawget(self, 'self')
+	key = key + self2.slice_start
+
+	if key < 0 then return end
+	if key > self2.slice_end then return end
+
+	for _, buffer in ipairs(self2.buffers) do
+		local key2 = key - buffer.length
+
+		if key2 < 0 then
+			buffer.bytes[key] = value
+			return
+		else
+			key = key2
+		end
+	end
+end
+
+DLib.BytesBufferView = setmetatable({proto = meta_view, meta = meta_view}, {__call = function(self, slice_start, slice_end, ...)
+	if select('#', ...) == 0 then
+		error('You should provide at least one buffer for view!')
+	end
+
+	assert(isnumber(slice_start) and slice_start >= 0, 'Invalid slice start')
+	assert(isnumber(slice_end) and slice_end >= slice_start, 'Invalid slice end')
+
+	local obj = setmetatable({}, meta_view)
+	obj.pointer = 0
+	obj.length = slice_end - slice_start
+	obj.slice_start = slice_start
+	obj.slice_end = slice_end
+	obj.buffers = {...}
+	obj.bytes = setmetatable({self = obj}, meta_bytes)
+
+	return obj
+end})
