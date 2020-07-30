@@ -1169,7 +1169,7 @@ function meta_bytes:__index(key)
 	for _, buffer in ipairs(self2.buffers) do
 		local key2 = key - buffer.length
 
-		if key2 < 0 then
+		if key2 <= 0 then
 			return buffer.bytes[key]
 		else
 			key = key2
@@ -1188,7 +1188,7 @@ function meta_bytes:__newindex(key, value)
 	for _, buffer in ipairs(self2.buffers) do
 		local key2 = key - buffer.length
 
-		if key2 < 0 then
+		if key2 <= 0 then
 			buffer.bytes[key] = value
 			return
 		else
