@@ -42,12 +42,12 @@ if net.server_chunk_ack == nil then
 end
 
 function net.SendToServer()
-	if #net.active_buffers == 0 then
+	if #net.active_write_buffers == 0 then
 		error('No net message active to be sent')
 	end
 
 	net.Dispatch()
-	table.remove(net.active_buffers)
+	table.remove(net.active_write_buffers)
 end
 
 function net.Think()

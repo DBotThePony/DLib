@@ -30,29 +30,29 @@ net.pool('dlib_net_chunk')
 net.pool('dlib_net_chunk_ack')
 
 function net.Send(target)
-	if #net.active_buffers == 0 then
+	if #net.active_write_buffers == 0 then
 		error('No net message active to be sent')
 	end
 
 	if target == nil then
-		table.remove(net.active_buffers)
+		table.remove(net.active_write_buffers)
 
 		error('Target is nil')
 	end
 
 	if type(target) == 'Player' then
 		if target:IsBot() then
-			table.remove(net.active_buffers)
+			table.remove(net.active_write_buffers)
 			return
 		end
 
 		net.Dispatch(target)
-		table.remove(net.active_buffers)
+		table.remove(net.active_write_buffers)
 		return
 	end
 
 	if not istable(target) and type(target) ~= 'CRecipientFilter' then
-		table.remove(net.active_buffers)
+		table.remove(net.active_write_buffers)
 		error('Target is not a table and is not a CRecipientFilter')
 	end
 

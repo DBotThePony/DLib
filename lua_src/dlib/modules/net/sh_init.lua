@@ -31,7 +31,7 @@ function net.Receive(identifier, callback)
 end
 
 net.receive = net.Receive
-net.active_buffers = {}
+net.active_write_buffers = {}
 net.message_size_limit = 0x4000
 net.message_chunk_limit = 0x8000
 net.message_datagram_limit = 0x400
@@ -45,15 +45,15 @@ function net.Start(identifier)
 	local dgram_id = net._next_datagram
 	net._next_datagram = net._next_datagram + 1
 
-	table.insert(net.active_buffers, {
+	table.insert(net.active_write_buffers, {
 		identifier = identifier,
 		id = id,
 		buffer = DLib.BytesBuffer(),
 		dgram_id = dgram_id,
 	})
 
-	if #net.active_buffers > 20 then
-		DLib.MessageWarning('Net message queue might got leaked. Currently ', #net.active_buffers, ' net messages are awaiting send.')
+	if #net.active_write_buffers > 20 then
+		DLib.MessageWarning('Net message send queue might got leaked. Currently ', #net.active_write_buffers, ' net messages are awaiting send.')
 	end
 end
 
@@ -63,9 +63,18 @@ function net.TriggerEvent(network_id, buffer, ply)
 	local net_event_listener = net.Receivers[string_id:lower()]
 
 	if net_event_listener then
+		net.active_read = {
+			identifier = string_id,
+			id = network_id,
+			buffer = buffer,
+			ply = ply,
+		}
+
 		local status = ProtectedCall(function()
 			net_event_listener(buffer and buffer.length * 8 or 0, ply, buffer)
 		end)
+
+		net.active_read = nil
 
 		if not status then
 			ErrorNoHalt('Listener on network message ' .. string_id .. ' has failed!\n')
@@ -75,8 +84,307 @@ function net.TriggerEvent(network_id, buffer, ply)
 	end
 end
 
+function net.AccessWriteData()
+	return assert(net.active_write_buffers[#net.active_write_buffers], 'Currently not constructing a network message')
+end
+
 function net.AccessWriteBuffer()
-	return assert(net.active_buffers[#net.active_buffers], 'Currently not constructing a net message').buffer
+	return net.AccessWriteData().buffer
+end
+
+function net.AccessReadData()
+	return assert(net.active_read, 'Currently not reading a network message')
+end
+
+function net.AccessReadBuffer()
+	return net.AccessReadData().buffer
+end
+
+local function round_bits(bitsin)
+	if not isnumber(bitsin) then return end
+
+	if bitsin <= 0 then
+		error('Bit amount is lower than zero')
+	end
+
+	if bitsin > 64 then
+		error('Bit amount overflow')
+	end
+
+	local round = math.round(bitsin / 8)
+
+	if round > 0 and round <= 4 then
+		return round * 8
+	end
+
+	return 64
+end
+
+-- Default GMod functions
+function net.WriteUInt(numberin, bitsin)
+	bitsin = assert(round_bits(bitsin), 'Bit amount is not a number')
+	assert(isnumber(numberin), 'Input is not a number')
+	assert(numberin >= 0, 'Input is lesser than zero')
+
+	local buffer = net.AccessWriteBuffer()
+
+	if bitsin == 8 then
+		buffer:WriteUByte(numberin)
+	elseif bitsin == 16 then
+		buffer:WriteUInt16(numberin)
+	elseif bitsin == 24 then
+		buffer:WriteUInt16(numberin:rshift(8))
+		buffer:WriteUByte(numberin:band(255))
+	elseif bitsin == 32 then
+		buffer:WriteUInt32(numberin)
+	elseif bitsin == 64 then
+		buffer:WriteUInt64(numberin)
+	end
+end
+
+function net.ReadUInt(bitsin)
+	bitsin = assert(round_bits(bitsin), 'Bit amount is not a number')
+	assert(isnumber(numberin), 'Input is not a number')
+	assert(numberin >= 0, 'Input is lesser than zero')
+
+	local buffer = net.AccessReadBuffer()
+
+	if bitsin == 8 then
+		return buffer:ReadUByte()
+	elseif bitsin == 16 then
+		return buffer:ReadUInt16()
+	elseif bitsin == 24 then
+		return buffer:WriteUInt16():lshift(8) + buffer:ReadUByte()
+	elseif bitsin == 32 then
+		return buffer:ReadUInt32()
+	elseif bitsin == 64 then
+		return buffer:ReadUInt64()
+	end
+end
+
+function net.WriteInt(numberin, bitsin)
+	bitsin = assert(round_bits(bitsin), 'Bit amount is not a number')
+	assert(isnumber(numberin), 'Input is not a number')
+	assert(numberin >= 0, 'Input is lesser than zero')
+
+	local buffer = net.AccessWriteBuffer()
+
+	if bitsin == 8 then
+		buffer:WriteByte(numberin)
+	elseif bitsin == 16 then
+		buffer:WriteInt16(numberin)
+	elseif bitsin == 24 then
+		if numberin >= 0 then
+			buffer:WriteInt16(numberin:rshift(8))
+			buffer:WriteByte(numberin:band(255))
+		else
+			buffer:WriteInt16(-(-numberin):rshift(8))
+			buffer:WriteUByte((-numberin):band(255))
+		end
+	elseif bitsin == 32 then
+		buffer:WriteInt32(numberin)
+	elseif bitsin == 64 then
+		buffer:WriteInt64(numberin)
+	end
+end
+
+function net.ReadInt(bitsin)
+	bitsin = assert(round_bits(bitsin), 'Bit amount is not a number')
+	assert(isnumber(numberin), 'Input is not a number')
+	assert(numberin >= 0, 'Input is lesser than zero')
+
+	local buffer = net.AccessReadBuffer()
+
+	if bitsin == 8 then
+		return buffer:ReadByte()
+	elseif bitsin == 16 then
+		return buffer:ReadInt16()
+	elseif bitsin == 24 then
+		local num = buffer:WriteInt16():lshift(8)
+
+		if num >= 0 then
+			return num + buffer:ReadUByte()
+		else
+			return num - buffer:ReadUByte()
+		end
+	elseif bitsin == 32 then
+		return buffer:ReadInt32()
+	elseif bitsin == 64 then
+		return buffer:ReadInt64()
+	end
+end
+
+function net.WriteBit(bitin)
+	net.AccessWriteBuffer():WriteUByte(bitin:band(1))
+end
+
+function net.ReadBit()
+	return net.AccessReadBuffer():ReadUByte()
+end
+
+function net.WriteBool(boolin)
+	net.AccessWriteBuffer():WriteUByte(boolin and 1 or 0)
+end
+
+function net.ReadBool()
+	return net.AccessReadBuffer():ReadUByte() >= 1
+end
+
+function net.WriteData(data, length)
+	net.AccessWriteBuffer():WriteData(length and data:sub(1, length) or data)
+end
+
+function net.ReadData(length)
+	return net.AccessReadBuffer():ReadData(length)
+end
+
+function net.WriteString(data)
+	net.AccessWriteBuffer():WriteString(data)
+end
+
+function net.ReadString()
+	return net.AccessReadBuffer():ReadString()
+end
+
+function net.WriteFloat(data)
+	net.AccessWriteBuffer():WriteFloat(data)
+end
+
+function net.ReadFloat()
+	return net.AccessReadBuffer():ReadFloat()
+end
+
+function net.WriteDouble(data)
+	net.AccessWriteBuffer():WriteDouble(data)
+end
+
+function net.ReadDouble()
+	return net.AccessReadBuffer():ReadDouble()
+end
+
+function net.WriteAngle(data)
+	local buffer = net.AccessWriteBuffer()
+
+	buffer:WriteFloat(data.p)
+	buffer:WriteFloat(data.y)
+	buffer:WriteFloat(data.r)
+end
+
+function net.ReadAngle()
+	local buffer = net.AccessReadBuffer()
+
+	return Angle(buffer:ReadFloat(), buffer:ReadFloat(), buffer:ReadFloat())
+end
+
+function net.WriteVector(data)
+	local buffer = net.AccessWriteBuffer()
+
+	buffer:WriteFloat(data.x)
+	buffer:WriteFloat(data.y)
+	buffer:WriteFloat(data.z)
+end
+
+function net.ReadVector()
+	local buffer = net.AccessReadBuffer()
+	return Vector(buffer:ReadFloat(), buffer:ReadFloat(), buffer:ReadFloat())
+end
+
+function net.WriteColor(data)
+	local buffer = net.AccessWriteBuffer()
+
+	buffer:WriteUByte(data.r)
+	buffer:WriteUByte(data.g)
+	buffer:WriteUByte(data.b)
+end
+
+function net.ReadColor()
+	local buffer = net.AccessReadBuffer()
+	return Color(buffer:ReadUByte(), buffer:ReadUByte(), buffer:ReadUByte())
+end
+
+function net.WriteNormal(data)
+	local buffer = net.AccessWriteBuffer()
+
+	buffer:WriteInt16(math.floor(data.x * 0x3fff):clamp(-0x3fff, 0x3fff))
+	buffer:WriteInt16(math.floor(data.y * 0x3fff):clamp(-0x3fff, 0x3fff))
+	buffer:WriteInt16(math.floor(data.z * 0x3fff):clamp(-0x3fff, 0x3fff))
+end
+
+function net.ReadNormal(data)
+	local buffer = net.AccessReadBuffer()
+
+	local x = buffer:ReadInt16() / 0x3fff
+	local y = buffer:ReadInt16() / 0x3fff
+	local z = buffer:ReadInt16() / 0x3fff
+
+	return Vector(x, y, z)
+end
+
+function net.WriteEntity(data)
+	net.AccessWriteBuffer():WriteUInt16(IsValid(data) and data:EntIndex() > 0 and data:EntIndex() or 0)
+end
+
+function net.ReadEntity(data)
+	local int = net.AccessReadBuffer():ReadUInt16()
+
+	if int <= 0 then
+		return NULL
+	end
+
+	return Entity(int)
+end
+
+function net.WriteMatrix(data)
+	local buffer = net.AccessWriteBuffer()
+
+	for i, row in ipairs(data:ToTable()) do
+		for i2 = 1, 4 do
+			buffer:WriteDouble(row[i2])
+		end
+	end
+end
+
+function net.ReadMatrix(data)
+	local buffer = net.AccessReadBuffer()
+	local tab = {}
+
+	for i = 1, 4 do
+		local target = {}
+		table.insert(tab, target)
+
+		for i2 = 1, 4 do
+			table.insert(target, buffer:ReadDouble())
+		end
+	end
+
+	return Matrix(tab)
+end
+
+-- DLib extended functions
+function net.WriteAngleDouble(data)
+	local buffer = net.AccessWriteBuffer()
+
+	buffer:WriteDouble(data.p)
+	buffer:WriteDouble(data.y)
+	buffer:WriteDouble(data.r)
+end
+
+function net.ReadAngleDouble()
+	local buffer = net.AccessReadBuffer()
+	return Angle(buffer:ReadDouble(), buffer:ReadDouble(), buffer:ReadDouble())
+end
+
+function net.WriteVectorDouble(data)
+	local buffer = net.AccessWriteBuffer()
+
+	buffer:WriteDouble(data.x)
+	buffer:WriteDouble(data.y)
+	buffer:WriteDouble(data.z)
+end
+
+function net.ReadVectorDouble()
+	local buffer = net.AccessReadBuffer()
+	return Vector(buffer:ReadDouble(), buffer:ReadDouble(), buffer:ReadDouble())
 end
 
 function net.Namespace(target)
@@ -254,7 +562,7 @@ end
 function net.Dispatch(ply)
 	local namespace = net.Namespace(CLIENT and net or ply)
 
-	local data = net.active_buffers[#net.active_buffers]
+	local data = net.active_write_buffers[#net.active_write_buffers]
 
 	if not data.string and data.buffer.length then
 		data.string = data.buffer:ToString()
