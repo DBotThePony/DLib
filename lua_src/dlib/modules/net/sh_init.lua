@@ -312,7 +312,7 @@ end
 function net.DispatchChunk(ply)
 	local namespace = net.Namespace(CLIENT and net or ply)
 
-	if #namespace.server_queued ~= 0 then
+	if #namespace.server_queued ~= 0 and #namespace.server_chunks == 0 then
 		local stringbuilder = {}
 		local startpos, endpos = 0xFFFFFFFFF, 0
 
