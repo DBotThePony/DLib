@@ -100,6 +100,10 @@ function net.AccessReadBuffer()
 	return assert(net.AccessReadData().buffer, 'Message is zero length')
 end
 
+function net.Discard()
+	table.remove(net.active_write_buffers)
+end
+
 function net.Namespace(target)
 	if type(target) == 'Player' then
 		if target.dlib_net ~= nil then return target.dlib_net end
