@@ -870,7 +870,12 @@ end
 -- String
 function meta:WriteString(stringIn)
 	assertType(stringIn, 'string', 'WriteString')
-	if #stringIn == 0 then return self end
+
+	if #stringIn == 0 then
+		self:WriteUByte(0)
+		return self
+	end
+
 	local bytes = DLib.string.bbyte(stringIn, 1, #stringIn)
 	local i = 0
 	local len = #bytes
