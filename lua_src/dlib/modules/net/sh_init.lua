@@ -97,7 +97,7 @@ function net.AccessReadData()
 end
 
 function net.AccessReadBuffer()
-	return net.AccessReadData().buffer
+	return assert(net.AccessReadData().buffer, 'Message is zero length')
 end
 
 local function round_bits(bitsin)
