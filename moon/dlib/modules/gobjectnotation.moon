@@ -112,6 +112,7 @@ class GON.UnknownValue
 	Length: => #@data
 	IsKnownValue: => false
 	BinaryData: => @data
+	GetValue: => nil
 	GetRegistryID: => @registryid
 
 class GON.Structure
