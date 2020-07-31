@@ -909,25 +909,17 @@ end
 function meta:ReadString()
 	self:CheckOverflow('ReadString', 1)
 	local readNext = self:ReadUByte()
-	local output = {}
+	local bytes = self.bytes
 
-	if readNext == 0 then return '' end
-
-	::loop::
-
-	table.insert(output, readNext)
-
-	if self:EndOfStream() then
-		error('No NUL terminator was found, buffer overflow!')
+	for i = self.pointer + 1, self.length do
+		if bytes[i] == 0 then
+			local string = self:StringSlice(self.pointer, i)
+			self.pointer = i
+			return string
+		end
 	end
 
-	readNext = self:ReadUByte()
-
-	if readNext ~= 0 and readNext ~= nil then
-		goto loop
-	end
-
-	return DLib.string.bcharTable(output)
+	error('No NUL terminator was found while reached EOF')
 end
 
 -- Binary Data
