@@ -81,6 +81,39 @@ function net.Send(target)
 	error('yo dude what the fuck')
 end
 
+function net.SendPVS(position)
+	local filter = RecipientFilter()
+	filter:AddPVS(position)
+	net.Send(filter)
+end
+
+function net.SendPAS(position)
+	local filter = RecipientFilter()
+	filter:AddPAS(position)
+	net.Send(filter)
+end
+
+function net.Broadcast(position)
+	net.Send(player.GetHumans())
+end
+
+function net.SendOmit(data)
+	local filter = RecipientFilter()
+	filter:AddAllPlayers()
+
+	if type(data) == 'Player' then
+		filer:RemovePlayer(data)
+	elseif type(data) == 'table' then
+		for _, ply in ipairs(data) do
+			if IsValid(ply) then
+				filter:RemovePlayer(ply)
+			end
+		end
+	end
+
+	net.Send(filer)
+end
+
 function net.Think()
 	for _, ply in ipairs(player.GetHumans()) do
 		local namespace = net.Namespace(ply)
