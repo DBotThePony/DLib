@@ -169,6 +169,9 @@ DLib.Loader.shmodule('sh_cami.lua')
 DLib.Loader.shmodule('getinfo.lua')
 DLib.Loader.shmodule('predictedvars.lua')
 
+DLib.Loader.load('dlib/modules/net')
+DLib.MessageMaker(DLib, 'DLib')
+
 DLib.Loader.start('nw')
 DLib.Loader.load('dlib/modules/nwvar')
 DLib.Loader.finish()
@@ -176,6 +179,14 @@ DLib.Loader.finish()
 DLib.simpleInclude('util/queue.lua')
 
 DLib.Loader.loadPureSHTop('dlib/enums')
+
+DLib.Loader.start('i18n')
+DLib.Loader.load('dlib/modules/i18n')
+DLib.Loader.finish()
+
+DLib.Loader.start('friends', true)
+DLib.Loader.load('dlib/modules/friendsystem')
+DLib.Loader.finish()
 
 MsgC(string.format('%.2f ms\n', (SysTime() - timeStart) * 1000))
 timeStart = SysTime()
@@ -193,16 +204,6 @@ DLib.Loader.shclass('measure.lua')
 DLib.Loader.shclass('bezier.lua')
 DLib.Loader.shclass('predictedvars.lua')
 DLib.Loader.clclass('keybinds.lua')
-
-DLib.Loader.load('dlib/modules/net')
-
-DLib.Loader.start('i18n')
-DLib.Loader.load('dlib/modules/i18n')
-DLib.Loader.finish()
-
-DLib.Loader.start('friends', true)
-DLib.Loader.load('dlib/modules/friendsystem')
-DLib.Loader.finish()
 
 if CLIENT then
 	DLib.VGUI = DLib.VGUI or {}

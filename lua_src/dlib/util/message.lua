@@ -18,7 +18,6 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-
 local table = table
 local DLib = DLib
 
@@ -627,6 +626,8 @@ local LocalPlayer = LocalPlayer
 	table: formatted table of arguments printed to chat
 ]]
 return function(tableTarget, moduleName, moduleColor)
+	local net = DLib.net or net
+
 	local nwname = 'DLib.Message.' .. util.CRC(moduleName)
 	local nwnameL = 'DLib.Message.' .. util.CRC(moduleName) .. '.L'
 	local nwnameW = 'DLib.MessageW.' .. util.CRC(moduleName)

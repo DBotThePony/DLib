@@ -20,6 +20,7 @@
 
 local chat = setmetatable(DLib.chat or {}, {__index = chat})
 DLib.chat = chat
+local net = DLib.net
 
 --[[
 	@doc
