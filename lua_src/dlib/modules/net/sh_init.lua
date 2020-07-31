@@ -495,6 +495,8 @@ function net.WriteUInt(numberin, bitsin)
 		buffer:WriteUInt32(numberin)
 	elseif bitsin == 64 then
 		buffer:WriteUInt64(numberin)
+	else
+		error('Can\'t write UInt with ' .. bitsin .. ' bits')
 	end
 end
 
@@ -513,6 +515,8 @@ function net.ReadUInt(bitsin)
 		return buffer:ReadUInt32()
 	elseif bitsin == 64 then
 		return buffer:ReadUInt64()
+	else
+		error('Can\'t read UInt with ' .. bitsin .. ' bits')
 	end
 end
 
@@ -538,6 +542,8 @@ function net.WriteInt(numberin, bitsin)
 		buffer:WriteInt32(numberin)
 	elseif bitsin == 64 then
 		buffer:WriteInt64(numberin)
+	else
+		error('Can\'t write Int with ' .. bitsin .. ' bits')
 	end
 end
 
@@ -562,6 +568,8 @@ function net.ReadInt(bitsin)
 		return buffer:ReadInt32()
 	elseif bitsin == 64 then
 		return buffer:ReadInt64()
+	else
+		error('Can\'t read Int with ' .. bitsin .. ' bits')
 	end
 end
 
@@ -786,7 +794,7 @@ function net.ReadType(typeid)
 		return readcallback()
 	end
 
-	error('net.ReadType: Can\'t read type ' .. typeid .. 'since it has no function assigned to that type')
+	error('net.ReadType: Can\'t read type ' .. typeid .. ' since it has no function assigned to that type')
 end
 
 -- DLib extended functions
