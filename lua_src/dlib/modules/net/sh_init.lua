@@ -60,6 +60,11 @@ end
 function net.TriggerEvent(network_id, buffer, ply)
 	local string_id = util.NetworkIDToString(network_id)
 
+	if not string_id then
+		ErrorNoHalt('DLib.net: Trying to trigger network event with ID ' .. network_id .. ' but util.NetworkIDToString returned nothing. Is this newly added network string?')
+		return
+	end
+
 	local net_event_listener = net.Receivers[string_id:lower()]
 
 	if net_event_listener then
