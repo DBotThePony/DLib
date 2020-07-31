@@ -62,12 +62,20 @@ function net.Send(target)
 				net.Dispatch(ply)
 			end
 		end
+
+		table.remove(net.active_write_buffers)
+
+		return
 	elseif type(target) == 'CRecipientFilter' then
 		for _, ply in pairs(target:GetPlayers()) do
 			if IsValid(ply) and type(ply) == 'Player' and not ply:IsBot() then
 				net.Dispatch(ply)
 			end
 		end
+
+		table.remove(net.active_write_buffers)
+
+		return
 	end
 
 	error('yo dude what the fuck')
