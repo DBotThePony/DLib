@@ -77,7 +77,7 @@ function net.TriggerEvent(network_id, buffer, ply)
 		net.active_read = nil
 
 		if not status then
-			ErrorNoHalt('Listener on network message ' .. string_id .. ' has failed!\n')
+			ErrorNoHalt('DLib.net: Listener on network message ' .. string_id .. ' has failed!\n')
 		end
 	else
 		ErrorNoHalt('DLib.net: No network listener attached on network message ' .. string_id .. '\n')
