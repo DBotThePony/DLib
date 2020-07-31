@@ -1197,6 +1197,21 @@ function meta_bytes:__newindex(key, value)
 	end
 end
 
+--[[
+	@doc
+	@fname DLib.BytesBufferView
+	@args number slice_start, number slice_end, vararg buffers
+
+	@desc
+	Allows you to create lightweight slices of one or more buffers at specified positions
+	Keep in mind that this is generally slower to work with big slices since there is a cost at translating
+	byte index to corresponding buffers
+	This object expose every property and method regular `BytesBuffer` has
+	@descdesc
+
+	@returns
+	BytesBufferView: newly created object
+]]
 DLib.BytesBufferView = setmetatable({proto = meta_view, meta = meta_view}, {__call = function(self, slice_start, slice_end, ...)
 	if select('#', ...) == 0 then
 		error('You should provide at least one buffer for view!')
