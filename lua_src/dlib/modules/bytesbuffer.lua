@@ -907,13 +907,12 @@ end
 	string
 ]]
 function meta:ReadString()
-	self:CheckOverflow('ReadString', 1)
-	local readNext = self:ReadUByte()
+	self:CheckOverflow('String', 1)
 	local bytes = self.bytes
 
 	for i = self.pointer + 1, self.length do
 		if bytes[i] == 0 then
-			local string = self:StringSlice(self.pointer, i)
+			local string = self:StringSlice(self.pointer + 1, i - 1)
 			self.pointer = i
 			return string
 		end
@@ -1137,14 +1136,14 @@ local meta_bytes = {}
 function meta_view:StringSlice(slice_start, slice_end)
 	local strings = {}
 	local self_slice_start, self_slice_end = self.slice_start, self.slice_end
-	local aqs = self_slice_start + slice_start - 1
-	local aqe = aqs + slice_end - 1
+	local aqs = self_slice_start + (slice_start - 1):max(0)
+	local aqe = aqs + (slice_end - slice_start + 1)
 	local distance = aqe - aqs
 	local started = false
 
 	for i, buffer in ipairs(self.buffers) do
 		if buffer.length >= aqs then
-			table.insert(strings, buffer:StringSlice(aqs:max(1), aqe:min(buffer.length)))
+			table.insert(strings, buffer:StringSlice((aqs + 1):max(1), aqe:min(buffer.length)))
 		end
 
 		aqs = aqs - buffer.length
