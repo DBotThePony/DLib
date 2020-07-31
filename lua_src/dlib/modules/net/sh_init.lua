@@ -491,8 +491,6 @@ end
 
 function net.ReadUInt(bitsin)
 	bitsin = assert(round_bits(bitsin), 'Bit amount is not a number')
-	assert(isnumber(numberin), 'Input is not a number')
-	assert(numberin >= 0, 'Input is lesser than zero')
 
 	local buffer = net.AccessReadBuffer()
 
@@ -537,8 +535,6 @@ end
 
 function net.ReadInt(bitsin)
 	bitsin = assert(round_bits(bitsin), 'Bit amount is not a number')
-	assert(isnumber(numberin), 'Input is not a number')
-	assert(numberin >= 0, 'Input is lesser than zero')
 
 	local buffer = net.AccessReadBuffer()
 
@@ -705,6 +701,84 @@ function net.ReadMatrix(data)
 	end
 
 	return Matrix(tab)
+end
+
+-- copy pasted from gmod code LULW
+function net.WriteTable(tab)
+	for k, v in pairs(tab) do
+		net.WriteType(k)
+		net.WriteType(v)
+	end
+
+	-- End of table
+	net.WriteType()
+end
+
+function net.ReadTable()
+	local tab = {}
+
+	while true do
+		local k = net.ReadType()
+		if k == nil then return tab end
+
+		tab[k] = net.ReadType()
+	end
+end
+
+net.WriteVars = {
+	[TYPE_NIL]			= function(typeid, value) net.AccessWriteBuffer():WriteUByte(typeid)							end,
+	[TYPE_STRING]		= function(typeid, value) net.AccessWriteBuffer():WriteUByte(typeid)	net.WriteString(value)	end,
+	[TYPE_NUMBER]		= function(typeid, value) net.AccessWriteBuffer():WriteUByte(typeid)	net.WriteDouble(value)	end,
+	[TYPE_TABLE]		= function(typeid, value) net.AccessWriteBuffer():WriteUByte(typeid)	net.WriteTable(value)	end,
+	[TYPE_BOOL]			= function(typeid, value) net.AccessWriteBuffer():WriteUByte(typeid)	net.WriteBool(value)	end,
+	[TYPE_ENTITY]		= function(typeid, value) net.AccessWriteBuffer():WriteUByte(typeid)	net.WriteEntity(value)	end,
+	[TYPE_VECTOR]		= function(typeid, value) net.AccessWriteBuffer():WriteUByte(typeid)	net.WriteVector(value)	end,
+	[TYPE_ANGLE]		= function(typeid, value) net.AccessWriteBuffer():WriteUByte(typeid)	net.WriteAngle(value)	end,
+	[TYPE_MATRIX]		= function(typeid, value) net.AccessWriteBuffer():WriteUByte(typeid)	net.WriteMatrix(value)	end,
+	[TYPE_COLOR]		= function(typeid, value) net.AccessWriteBuffer():WriteUByte(typeid)	net.WriteColor(value)	end,
+}
+
+function net.WriteType(v)
+	local typeid
+
+	if IsColor(v) then
+		typeid = TYPE_COLOR
+	else
+		typeid = TypeID(v)
+	end
+
+	local writecallback = net.WriteVars[typeid]
+
+	if writecallback then
+		return writecallback(typeid, v)
+	end
+
+	error('net.WriteType: Can\'t write ' .. type( v ) .. ' (type ' .. typeid .. ') because there is no function assigned to that type')
+end
+
+net.ReadVars = {
+	[TYPE_NIL]		= function ()	return nil end,
+	[TYPE_STRING]	= function ()	return net.ReadString() end,
+	[TYPE_NUMBER]	= function ()	return net.ReadDouble() end,
+	[TYPE_TABLE]	= function ()	return net.ReadTable() end,
+	[TYPE_BOOL]		= function ()	return net.ReadBool() end,
+	[TYPE_ENTITY]	= function ()	return net.ReadEntity() end,
+	[TYPE_VECTOR]	= function ()	return net.ReadVector() end,
+	[TYPE_ANGLE]	= function ()	return net.ReadAngle() end,
+	[TYPE_MATRIX]	= function ()	return net.ReadMatrix() end,
+	[TYPE_COLOR]	= function ()	return net.ReadColor() end,
+}
+
+function net.ReadType(typeid)
+	typeid = typeid or net.AccessReadBuffer():ReadUByte()
+
+	local readcallback = net.ReadVars[typeid]
+
+	if readcallback then
+		return readcallback()
+	end
+
+	error('net.ReadType: Can\'t read type ' .. typeid .. 'since it has no function assigned to that type')
 end
 
 -- DLib extended functions
