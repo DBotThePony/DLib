@@ -966,20 +966,10 @@ function meta:ReadBinary(readAmount)
 	if readAmount == 0 then return '' end
 	self:CheckOverflow('Binary', readAmount)
 
-	local output = {}
+	local slice = self:StringSlice(self.pointer + 1, self.pointer + readAmount)
+	self.pointer = self.pointer + readAmount
 
-	local i = 0
-
-	::loop::
-
-	i = i + 1
-	table.insert(output, self:ReadUByte())
-
-	if i < readAmount then
-		goto loop
-	end
-
-	return DLib.string.bcharTable(output)
+	return slice
 end
 
 meta.WriteData = meta.WriteBinary
