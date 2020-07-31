@@ -514,7 +514,6 @@ end
 function net.WriteInt(numberin, bitsin)
 	bitsin = assert(round_bits(bitsin), 'Bit amount is not a number')
 	assert(isnumber(numberin), 'Input is not a number')
-	assert(numberin >= 0, 'Input is lesser than zero')
 
 	local buffer = net.AccessWriteBuffer()
 
