@@ -220,4 +220,6 @@ DLib.Loader.loadPureSHTop('dlib/modules/workarounds')
 
 DLib.hl2wdata = DLib.simpleInclude('data/hl2sweps.lua')
 
+DLib.__net_ext_export(DLib.net)
+
 MsgC(string.format('%.2f ms\n', (SysTime() - timeStart) * 1000))

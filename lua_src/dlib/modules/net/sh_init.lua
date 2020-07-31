@@ -733,3 +733,25 @@ function net.ReadVectorDouble()
 	local buffer = net.AccessReadBuffer()
 	return Vector(buffer:ReadDouble(), buffer:ReadDouble(), buffer:ReadDouble())
 end
+
+function net.WriteBigInt(value)
+	net.AccessWriteBuffer():WriteInt64(value)
+end
+
+function net.ReadBigInt()
+	return net.AccessReadBuffer():ReadInt64()
+end
+
+function net.WriteBigUInt(value)
+	net.AccessWriteBuffer():WriteUInt64(value)
+end
+
+function net.ReadBigUInt()
+	return net.AccessReadBuffer():ReadUInt64()
+end
+
+net.WriteUInt64 = net.WriteBigUInt
+net.WriteInt64 = net.WriteBigInt
+
+net.ReadUInt64 = net.ReadBigUInt
+net.ReadInt64 = net.ReadBigInt

@@ -32,11 +32,6 @@ net.pool = util.AddNetworkString
 	@fname net.WritePlayer
 	@args Player ply
 ]]
-function net.WritePlayer(ply)
-	local i = ply:EntIndex()
-	net.WriteUInt(i, 8)
-	return i
-end
 
 --[[
 	@doc
@@ -44,9 +39,6 @@ end
 	@returns
 	Player
 ]]
-function net.ReadPlayer()
-	return Entity(net.ReadUInt(8))
-end
 
 --[[
 	@doc
@@ -58,13 +50,6 @@ end
 	example usage: `net.WriteTypedArray(arr, net.WriteType)`
 	@enddesc
 ]]
-function net.WriteTypedArray(input, callFunc)
-	net.WriteUInt(#input, 16)
-
-	for i, value in ipairs(input) do
-		callFunc(value)
-	end
-end
 
 --[[
 	@doc
@@ -78,18 +63,12 @@ end
 	@returns
 	table
 ]]
-function net.ReadTypedArray(callFunc)
-	return table.construct({}, callFunc, net.ReadUInt(16))
-end
 
 --[[
 	@doc
 	@fname net.WriteArray
 	@args table arrayIn
 ]]
-function net.WriteArray(input)
-	net.WriteTypedArray(input, net.WriteType)
-end
 
 --[[
 	@doc
@@ -97,18 +76,12 @@ end
 	@returns
 	table
 ]]
-function net.ReadArray()
-	return table.construct({}, net.ReadType, net.ReadUInt(16))
-end
 
 --[[
 	@doc
 	@fname net.WriteStringArray
 	@args table arrayOfStrings
 ]]
-function net.WriteStringArray(input)
-	net.WriteTypedArray(input, net.WriteString)
-end
 
 --[[
 	@doc
@@ -116,18 +89,12 @@ end
 	@returns
 	table: array of strings
 ]]
-function net.ReadStringArray()
-	return table.construct({}, net.ReadString, net.ReadUInt(16))
-end
 
 --[[
 	@doc
 	@fname net.WriteEntityArray
 	@args Entity input
 ]]
-function net.WriteEntityArray(input)
-	net.WriteTypedArray(input, net.WriteEntity)
-end
 
 --[[
 	@doc
@@ -135,18 +102,12 @@ end
 	@returns
 	table: array of entities
 ]]
-function net.ReadEntityArray()
-	return table.construct({}, net.ReadEntity, net.ReadUInt(16))
-end
 
 --[[
 	@doc
 	@fname net.WritePlayerArray
 	@args table arrayOfPlayers
 ]]
-function net.WritePlayerArray(input)
-	net.WriteTypedArray(input, net.WritePlayer)
-end
 
 --[[
 	@doc
@@ -154,9 +115,6 @@ end
 	@returns
 	table: array of players
 ]]
-function net.ReadPlayerArray()
-	return table.construct({}, net.ReadPlayer, net.ReadUInt(16))
-end
 
 --[[
 	@doc
@@ -170,13 +128,6 @@ end
 	@returns
 	table: array of floats
 ]]
-function net.WriteFloatArray(input)
-	net.WriteTypedArray(input, net.WriteFloat)
-end
-
-function net.ReadFloatArray()
-	return table.construct({}, net.ReadFloat, net.ReadUInt(16))
-end
 
 --[[
 	@doc
@@ -190,13 +141,6 @@ end
 	@returns
 	table: array of doubles
 ]]
-function net.WriteDoubleArray(input)
-	net.WriteTypedArray(input, net.WriteDouble)
-end
-
-function net.ReadDoubleArray()
-	return table.construct({}, net.ReadDouble, net.ReadUInt(16))
-end
 
 --[[
 	@doc
@@ -215,17 +159,6 @@ end
 	@returns
 	function: alias of `net.WriteUInt(..., bits)`
 ]]
-function net.GReadUInt(val)
-	return function()
-		return net.ReadUInt(val)
-	end
-end
-
-function net.GWriteUInt(val)
-	return function(val2)
-		return net.WriteUInt(val2, val)
-	end
-end
 
 --[[
 	@docpreprocess
@@ -260,13 +193,6 @@ end
 
 	return reply
 ]]
-net.ReadUInt8 = net.GReadUInt(8)
-net.ReadUInt16 = net.GReadUInt(16)
-net.ReadUInt32 = net.GReadUInt(32)
-
-net.WriteUInt8 = net.GWriteUInt(8)
-net.WriteUInt16 = net.GWriteUInt(16)
-net.WriteUInt32 = net.GWriteUInt(32)
 
 --[[
 	@doc
@@ -285,25 +211,131 @@ net.WriteUInt32 = net.GWriteUInt(32)
 	@returns
 	function: alias of `net.WriteInt(..., bits)`
 ]]
-function net.GReadInt(val)
-	return function()
-		return net.ReadInt(val)
+
+local function export(net)
+	function net.ReadPlayer()
+		return Entity(net.ReadUInt(8))
+	end
+
+	function net.WriteTypedArray(input, callFunc)
+		net.WriteUInt(#input, 16)
+
+		for i, value in ipairs(input) do
+			callFunc(value)
+		end
+	end
+
+	function net.ReadTypedArray(callFunc)
+		return table.construct({}, callFunc, net.ReadUInt(16))
+	end
+
+	function net.WriteArray(input)
+		net.WriteTypedArray(input, net.WriteType)
+	end
+
+	function net.ReadArray()
+		return table.construct({}, net.ReadType, net.ReadUInt(16))
+	end
+
+	function net.WriteStringArray(input)
+		net.WriteTypedArray(input, net.WriteString)
+	end
+
+	function net.ReadStringArray()
+		return table.construct({}, net.ReadString, net.ReadUInt(16))
+	end
+
+	function net.WriteEntityArray(input)
+		net.WriteTypedArray(input, net.WriteEntity)
+	end
+
+	function net.ReadEntityArray()
+		return table.construct({}, net.ReadEntity, net.ReadUInt(16))
+	end
+
+	function net.WritePlayerArray(input)
+		net.WriteTypedArray(input, net.WritePlayer)
+	end
+
+	function net.ReadPlayerArray()
+		return table.construct({}, net.ReadPlayer, net.ReadUInt(16))
+	end
+
+	function net.WriteDoubleArray(input)
+		net.WriteTypedArray(input, net.WriteDouble)
+	end
+
+	function net.ReadDoubleArray()
+		return table.construct({}, net.ReadDouble, net.ReadUInt(16))
+	end
+
+	function net.WriteFloatArray(input)
+		net.WriteTypedArray(input, net.WriteFloat)
+	end
+
+	function net.ReadFloatArray()
+		return table.construct({}, net.ReadFloat, net.ReadUInt(16))
+	end
+
+	function net.WritePlayer(ply)
+		local i = ply:EntIndex()
+		net.WriteUInt(i, 8)
+		return i
+	end
+
+	function net.GReadInt(val)
+		return function()
+			return net.ReadInt(val)
+		end
+	end
+
+	function net.GWriteInt(val)
+		return function(val2)
+			return net.WriteInt(val2, val)
+		end
+	end
+
+	function net.GReadUInt(val)
+		return function()
+			return net.ReadUInt(val)
+		end
+	end
+
+	function net.GWriteUInt(val)
+		return function(val2)
+			return net.WriteUInt(val2, val)
+		end
+	end
+
+	net.ReadInt8 = net.GReadInt(8)
+	net.ReadInt16 = net.GReadInt(16)
+	net.ReadInt32 = net.GReadInt(32)
+
+	net.WriteInt8 = net.GWriteInt(8)
+	net.WriteInt16 = net.GWriteInt(16)
+	net.WriteInt32 = net.GWriteInt(32)
+
+	net.ReadUInt8 = net.GReadUInt(8)
+	net.ReadUInt16 = net.GReadUInt(16)
+	net.ReadUInt32 = net.GReadUInt(32)
+
+	net.WriteUInt8 = net.GWriteUInt(8)
+	net.WriteUInt16 = net.GWriteUInt(16)
+	net.WriteUInt32 = net.GWriteUInt(32)
+
+	function net.ChooseOptimalBits(amount)
+		local bits = 1
+
+		while 2 ^ bits <= amount do
+			bits = bits + 1
+		end
+
+		return math.max(bits, 4)
 	end
 end
 
-function net.GWriteInt(val)
-	return function(val2)
-		return net.WriteInt(val2, val)
-	end
-end
-
-net.ReadInt8 = net.GReadInt(8)
-net.ReadInt16 = net.GReadInt(16)
-net.ReadInt32 = net.GReadInt(32)
-
-net.WriteInt8 = net.GWriteInt(8)
-net.WriteInt16 = net.GWriteInt(16)
-net.WriteInt32 = net.GWriteInt(32)
+export(net)
+DLib.__net_ext_export = export
 
 local maxint = 0x100000000
 
@@ -388,15 +420,6 @@ net.ReadInt64 = net.ReadBigInt
 	@returns
 	number: minimal amount of bits required for sending all possible values
 ]]
-function net.ChooseOptimalBits(amount)
-	local bits = 1
-
-	while 2 ^ bits <= amount do
-		bits = bits + 1
-	end
-
-	return math.max(bits, 4)
-end
 
 --[[
 	@doc
