@@ -194,6 +194,8 @@ DLib.Loader.shclass('bezier.lua')
 DLib.Loader.shclass('predictedvars.lua')
 DLib.Loader.clclass('keybinds.lua')
 
+DLib.Loader.load('dlib/modules/net')
+
 DLib.Loader.start('i18n')
 DLib.Loader.load('dlib/modules/i18n')
 DLib.Loader.finish()
