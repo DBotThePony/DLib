@@ -993,17 +993,33 @@ end
 	@doc
 	@fname BytesBuffer:ToString
 
-	@deprecated
-
 	@returns
 	string
 ]]
 function meta:ToString()
-	local pointer = self.pointer
-	self:Seek(0)
-	local str = self:ReadBinary(self.length)
-	self:Seek(pointer)
-	return str
+	return self:StringSlice(1, self.length)
+end
+
+--[[
+	@doc
+	@fname BytesBuffer:StringSlice
+	@internal
+
+	@returns
+	string
+]]
+function meta:StringSlice(slice_start, slice_end)
+	local strings = {}
+	slice_start = slice_start - 1
+
+	while slice_start < slice_end do
+		local nexti = math.min(7996, slice_end - slice_start)
+
+		table.insert(strings, string.char(unpack(self.bytes, slice_start + 1, slice_start + nexti)))
+		slice_start = slice_start + nexti
+	end
+
+	return table.concat(strings, '')
 end
 
 --[[
@@ -1135,6 +1151,28 @@ end
 
 local meta_view = {}
 local meta_bytes = {}
+
+function meta_view:StringSlice(slice_start, slice_end)
+	local strings = {}
+	local self_slice_start, self_slice_end = self.slice_start, self.slice_end
+	local aqs = self_slice_start + slice_start - 1
+	local aqe = aqs + slice_end - 1
+	local distance = aqe - aqs
+	local started = false
+
+	for i, buffer in ipairs(self.buffers) do
+		if buffer.length >= aqs then
+			table.insert(strings, buffer:StringSlice(aqs:max(1), aqe:min(buffer.length)))
+		end
+
+		aqs = aqs - buffer.length
+		aqe = aqe - buffer.length
+
+		if aqe <= 0 then break end
+	end
+
+	return table.concat(strings, '')
+end
 
 function meta_view:CalculateTotalLength()
 	local length = 0
