@@ -492,7 +492,7 @@ end
 
 --[[
 	@doc
-	@fname Vehicle:GetPrintNameDLib
+	@fname Entity:GetPrintNameDLib
 	@args boolean unlocalized = false
 
 	@desc
