@@ -41,6 +41,9 @@ local rshift = bit.rshift
 local band = bit.band
 local bor = bit.bor
 local bxor = bit.bxor
+local string_byte = string.byte
+local string_char = string.char
+local table_insert = table.insert
 
 meta.__index = meta
 
@@ -60,13 +63,20 @@ meta.__index = meta
 ]]
 DLib.BytesBuffer = setmetatable({proto = meta, meta = meta}, {__call = function(self, stringIn)
 	local obj = setmetatable({}, meta)
-	obj.bytes = {}
 	obj.pointer = 0
-	obj.length = 0
 
-	if type(stringIn) == 'string' then
-		obj.bytes = DLib.string.bbyte(stringIn, 1, #stringIn)
-		obj.length = #obj.bytes
+	if isstring(stringIn) then
+		local bytes = {}
+
+		for i = 1, #stringIn do
+			bytes[i] = string_byte(stringIn, i)
+		end
+
+		obj.bytes = bytes
+		obj.length = #bytes
+	else
+		obj.bytes = {}
+		obj.length = 0
 	end
 
 	-- obj:Seek(0)
@@ -280,7 +290,7 @@ meta.WriteUInt8 = meta.WriteUByte
 function meta:WriteChar(char)
 	assertType(char, 'string', 'WriteChar')
 	assert(#char == 1, 'Input is not a single char!')
-	self:WriteUByte(string.byte(char))
+	self:WriteUByte(string_byte(char))
 	return self
 end
 
@@ -876,22 +886,23 @@ function meta:WriteString(stringIn)
 		return self
 	end
 
-	local bytes = DLib.string.bbyte(stringIn, 1, #stringIn)
-	local i = 0
-	local len = #bytes
+	local bytes = self.bytes
+	local pointer = self.pointer + 1
 
-	::loop::
-	i = i + 1
+	-- LuaJIT optimize such loop so it is pretty fast
+	for i = 1, #stringIn do
+		local byte = string_byte(stringIn, i)
 
-	if bytes[i] == 0 then
-		error('Binary data in a string?!')
+		if byte == 0 then
+			error('NUL terminator in string at ' .. i)
+		else
+			bytes[pointer] = byte
+			pointer = pointer + 1
+		end
 	end
 
-	self:WriteUByte(bytes[i])
-
-	if i < len then
-		goto loop
-	end
+	self.length = #bytes
+	self.pointer = pointer - 1
 
 	self:WriteUByte(0)
 
@@ -941,9 +952,17 @@ function meta:WriteBinary(binaryString)
 	assertType(binaryString, 'string', 'WriteBinary')
 	if #binaryString == 0 then return self end
 
+	local bytes = self.bytes
+	local pointer = self.pointer + 1
+
+	-- LuaJIT optimize such loop so it is pretty fast
 	for i = 1, #binaryString do
-		self:WriteUByte(binaryString:byte(i, i))
+		bytes[pointer] = string_byte(binaryString, i)
+		pointer = pointer + 1
 	end
+
+	self.length = #bytes
+	self.pointer = pointer - 1
 
 	return self
 end
@@ -972,7 +991,7 @@ meta.WriteData = meta.WriteBinary
 meta.ReadData = meta.ReadBinary
 
 function meta:ReadChar()
-	return string.char(self:ReadUByte())
+	return string_char(self:ReadUByte())
 end
 
 --[[
@@ -1001,7 +1020,7 @@ function meta:StringSlice(slice_start, slice_end)
 	while slice_start < slice_end do
 		local nexti = math.min(7996, slice_end - slice_start)
 
-		table.insert(strings, string.char(unpack(self.bytes, slice_start + 1, slice_start + nexti)))
+		table_insert(strings, string_char(unpack(self.bytes, slice_start + 1, slice_start + nexti)))
 		slice_start = slice_start + nexti
 	end
 
@@ -1079,29 +1098,29 @@ function DLib.BytesBuffer.CompileStructure(structureDef, callbacks)
 			end
 
 			if rtype == 'int8' or rtype == 'byte' then
-				table.insert(output, {rname, meta.ReadByte})
+				table_insert(output, {rname, meta.ReadByte})
 			elseif rtype == 'int16' or rtype == 'short' then
-				table.insert(output, {rname, meta.ReadInt16})
+				table_insert(output, {rname, meta.ReadInt16})
 			elseif rtype == 'int32' or rtype == 'long' or rtype == 'int' then
-				table.insert(output, {rname, meta.ReadInt32})
+				table_insert(output, {rname, meta.ReadInt32})
 			elseif rtype == 'int64' or rtype == 'longlong' or rtype == 'bigint' then
-				table.insert(output, {rname, meta.ReadInt64})
+				table_insert(output, {rname, meta.ReadInt64})
 			elseif rtype == 'uint8' or rtype == 'ubyte' then
-				table.insert(output, {rname, meta.ReadUByte})
+				table_insert(output, {rname, meta.ReadUByte})
 			elseif rtype == 'uint16' or rtype == 'ushort' then
-				table.insert(output, {rname, meta.ReadUInt16})
+				table_insert(output, {rname, meta.ReadUInt16})
 			elseif rtype == 'uint32' or rtype == 'ulong' or rtype == 'uint' then
-				table.insert(output, {rname, meta.ReadUInt32})
+				table_insert(output, {rname, meta.ReadUInt32})
 			elseif rtype == 'uint64' or rtype == 'ulong64' or rtype == 'biguint' or rtype == 'ubigint' then
-				table.insert(output, {rname, meta.ReadUInt64})
+				table_insert(output, {rname, meta.ReadUInt64})
 			elseif rtype == 'float' then
-				table.insert(output, {rname, meta.ReadFloat})
+				table_insert(output, {rname, meta.ReadFloat})
 			elseif rtype == 'double' then
-				table.insert(output, {rname, meta.ReadDouble})
+				table_insert(output, {rname, meta.ReadDouble})
 			elseif rtype == 'variable' or rtype == 'string' then
-				table.insert(output, {rname, meta.ReadString})
+				table_insert(output, {rname, meta.ReadString})
 			elseif callbacks and callbacks[rtype2] then
-				table.insert(output, {rname, callbacks[rtype2]})
+				table_insert(output, {rname, callbacks[rtype2]})
 			else
 				DLib.MessageError(debug.traceback('Undefined type: ' .. rtype))
 			end
@@ -1148,7 +1167,7 @@ function meta_view:StringSlice(slice_start, slice_end)
 
 	for i, buffer in ipairs(self.buffers) do
 		if buffer.length >= aqs then
-			table.insert(strings, buffer:StringSlice((aqs + 1):max(1), aqe:min(buffer.length)))
+			table_insert(strings, buffer:StringSlice((aqs + 1):max(1), aqe:min(buffer.length)))
 		end
 
 		aqs = aqs - buffer.length
