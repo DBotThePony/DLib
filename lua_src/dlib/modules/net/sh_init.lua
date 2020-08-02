@@ -61,7 +61,7 @@ function net.TriggerEvent(network_id, buffer, ply)
 	local string_id = util.NetworkIDToString(network_id)
 
 	if not string_id then
-		ErrorNoHalt('DLib.net: Trying to trigger network event with ID ' .. network_id .. ' but util.NetworkIDToString returned nothing. Is this newly added network string?')
+		ErrorNoHalt('DLib.net: Trying to trigger network event with ID ' .. network_id .. ' but util.NetworkIDToString returned nothing. Is this newly added network string?\n')
 		return
 	end
 
