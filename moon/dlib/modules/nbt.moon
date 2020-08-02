@@ -465,7 +465,13 @@ class DLib.NBT.TagCompound extends DLib.NBT.Base
 			when 'string'
 				@AddString(key, value)
 			when 'table'
-				@AddTagCompound(key, vaue)
+				@AddTagCompound(key, value)
+			when 'boolean'
+				@AddByte(key, value and 1 or 0)
+			when 'Angle'
+				@AddTagList(key, TypeID.TAG_Float, {value.p, value.y, value.r})
+			when 'Vector'
+				@AddTagList(key, TypeID.TAG_Float, {value.x, value.y, value.z})
 			else
 				error('Unable to tetermine tag type for value - ' .. type(value))
 
