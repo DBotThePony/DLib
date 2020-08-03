@@ -45,6 +45,7 @@ surface.CreateFont('BuyFontsFont', {
 })
 
 local ENABLED = CreateConVar('dlib_replace_missing_textures', '0', {FCVAR_ARCHIVE}, 'Replace missing textures with something less boring')
+local sugarrush = CreateConVar('dlib_replace_missing_textures_sugar', '0', {FCVAR_ARCHIVE}, 'sugarrush pattern change')
 local buy_rt = GetRenderTargetEx('buy_counter_strike', 128, 128, RT_SIZE_NO_CHANGE, MATERIAL_RT_DEPTH_SHARED, 0, CREATERENDERTARGETFLAGS_UNFILTERABLE_OK, IMAGE_FORMAT_RGB888)
 
 local Textings = {
@@ -130,13 +131,13 @@ local function RedrawRT()
 		end
 
 		BackgroundStart = time
-		BackgroundNext = time + 20
+		BackgroundNext = time + (sugarrush:GetBool() and 5 or 20)
 	end
 
 	if time > NextText then
 		local data = table.frandom(Textings)
 		CurrentText, CurrentFont = data[1], data[2]
-		NextText = time + math.random(60, 120)
+		NextText = time + (sugarrush:GetBool() and math.random(5, 10) or math.random(60, 120))
 	end
 
 	BackgroundColorState = BackgroundColorCurrent:Lerp(time:progression(BackgroundStart, BackgroundNext), BackgroundColorNext)
