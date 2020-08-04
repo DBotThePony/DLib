@@ -604,6 +604,10 @@ function meta:ReadUInt16()
 	return value
 end
 
+meta.ReadShort = meta.ReadInt16
+meta.ReadShort_2 = meta.ReadInt16_2
+meta.ReadUShort = meta.ReadUInt16
+
 --[[
 	@doc
 	@fname BytesBuffer:ReadInt32_2
@@ -658,6 +662,10 @@ function meta:ReadUInt32()
 
 	return value
 end
+
+meta.ReadInt = meta.ReadInt32
+meta.ReadInt_2 = meta.ReadInt32_2
+meta.ReadUInt = meta.ReadUInt32
 
 --[[
 	@doc
@@ -723,6 +731,10 @@ function meta:ReadUInt64()
 
 	return value
 end
+
+meta.ReadLong = meta.ReadInt32
+meta.ReadLong_2 = meta.ReadInt32_2
+meta.ReadULong = meta.ReadUInt32
 
 --[[
 	@doc

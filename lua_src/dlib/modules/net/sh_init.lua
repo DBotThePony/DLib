@@ -741,17 +741,44 @@ function net.ReadTable()
 	end
 end
 
+local TYPE_NSHORT = 93
+local TYPE_USHORT = TYPE_NSHORT + 1
+local TYPE_NBYTE = TYPE_NSHORT + 2
+local TYPE_UBYTE = TYPE_NSHORT + 3
+local TYPE_NINT = TYPE_NSHORT + 4
+local TYPE_UINT = TYPE_NSHORT + 5
+local TYPE_FLOAT = TYPE_NSHORT + 6
+local TYPE_ULONG = TYPE_NSHORT + 7
+local TYPE_NLONG = TYPE_NSHORT + 8
+
 net.WriteVars = {
-	[TYPE_NIL]			= function(typeid, value) net.AccessWriteBuffer():WriteUByte(typeid)							end,
-	[TYPE_STRING]		= function(typeid, value) net.AccessWriteBuffer():WriteUByte(typeid)	net.WriteString(value)	end,
-	[TYPE_NUMBER]		= function(typeid, value) net.AccessWriteBuffer():WriteUByte(typeid)	net.WriteDouble(value)	end,
-	[TYPE_TABLE]		= function(typeid, value) net.AccessWriteBuffer():WriteUByte(typeid)	net.WriteTable(value)	end,
-	[TYPE_BOOL]			= function(typeid, value) net.AccessWriteBuffer():WriteUByte(typeid)	net.WriteBool(value)	end,
-	[TYPE_ENTITY]		= function(typeid, value) net.AccessWriteBuffer():WriteUByte(typeid)	net.WriteEntity(value)	end,
-	[TYPE_VECTOR]		= function(typeid, value) net.AccessWriteBuffer():WriteUByte(typeid)	net.WriteVector(value)	end,
-	[TYPE_ANGLE]		= function(typeid, value) net.AccessWriteBuffer():WriteUByte(typeid)	net.WriteAngle(value)	end,
-	[TYPE_MATRIX]		= function(typeid, value) net.AccessWriteBuffer():WriteUByte(typeid)	net.WriteMatrix(value)	end,
-	[TYPE_COLOR]		= function(typeid, value) net.AccessWriteBuffer():WriteUByte(typeid)	net.WriteColor(value)	end,
+	[TYPE_NIL]			= function(typeid, value) end,
+	[TYPE_STRING]		= function(typeid, value) net.WriteString(value)	end,
+	[TYPE_NUMBER]		= function(typeid, value) net.WriteDouble(value)	end,
+	[TYPE_TABLE]		= function(typeid, value) net.WriteTable(value)		end,
+	[TYPE_BOOL]			= function(typeid, value) net.WriteBool(value)		end,
+	[TYPE_ENTITY]		= function(typeid, value) net.WriteEntity(value)	end,
+	[TYPE_VECTOR]		= function(typeid, value) net.WriteVector(value)	end,
+	[TYPE_ANGLE]		= function(typeid, value) net.WriteAngle(value)		end,
+	[TYPE_MATRIX]		= function(typeid, value) net.WriteMatrix(value)	end,
+	[TYPE_COLOR]		= function(typeid, value) net.WriteColor(value)		end,
+
+	[TYPE_NSHORT]		= function(typeid, value) net.AccessWriteBuffer():WriteUShort(value:abs())		end,
+	[TYPE_USHORT]		= function(typeid, value) net.AccessWriteBuffer():WriteUShort(value)		end,
+
+	[TYPE_NBYTE]		= function(typeid, value) net.AccessWriteBuffer():WriteUByte(value:abs())		end,
+	[TYPE_UBYTE]		= function(typeid, value) net.AccessWriteBuffer():WriteUByte(value)		end,
+
+	[TYPE_NINT]		= function(typeid, value) net.AccessWriteBuffer():WriteUInt(value:abs())		end,
+	[TYPE_UINT]		= function(typeid, value) net.AccessWriteBuffer():WriteUInt(value)		end,
+
+	[TYPE_NINT]		= function(typeid, value) net.AccessWriteBuffer():WriteUInt(value:abs())		end,
+	[TYPE_UINT]		= function(typeid, value) net.AccessWriteBuffer():WriteUInt(value)		end,
+
+	[TYPE_NLONG]		= function(typeid, value) net.AccessWriteBuffer():WriteULong(value:abs())		end,
+	[TYPE_ULONG]		= function(typeid, value) net.AccessWriteBuffer():WriteULong(value)		end,
+
+	[TYPE_FLOAT]		= function(typeid, value) net.WriteFloat(value)		end,
 }
 
 function net.WriteType(v)
@@ -763,9 +790,40 @@ function net.WriteType(v)
 		typeid = TypeID(v)
 	end
 
+	if typeid == TYPE_NUMBER then
+		if v % 1 == 0 then
+			if v >= 0 then
+				if v < 0xFF then
+					typeid = TYPE_UBYTE
+				elseif v < 0xFFFF then
+					typeid = TYPE_USHORT
+				elseif v < 0xFFFFFFFF then
+					typeid = TYPE_UINT
+				else
+					typeid = TYPE_ULONG
+				end
+			else
+				local abs = math.abs(v)
+
+				if abs < 0xFF then
+					typeid = TYPE_NBYTE
+				elseif abs < 0xFFFF then
+					typeid = TYPE_NSHORT
+				elseif abs < 0xFFFFFFFF then
+					typeid = TYPE_NINT
+				else
+					typeid = TYPE_NLONG
+				end
+			end
+		else
+			typeid = math.abs(v) <= 262144 and TYPE_FLOAT or TYPE_NUMBER
+		end
+	end
+
 	local writecallback = net.WriteVars[typeid]
 
 	if writecallback then
+		net.AccessWriteBuffer():WriteUByte(typeid)
 		return writecallback(typeid, v)
 	end
 
@@ -783,6 +841,23 @@ net.ReadVars = {
 	[TYPE_ANGLE]	= function ()	return net.ReadAngle() end,
 	[TYPE_MATRIX]	= function ()	return net.ReadMatrix() end,
 	[TYPE_COLOR]	= function ()	return net.ReadColor() end,
+
+	[TYPE_NSHORT]		= function() return -net.AccessReadBuffer():ReadUShort()		end,
+	[TYPE_USHORT]		= function() return net.AccessReadBuffer():ReadUShort()		end,
+
+	[TYPE_NBYTE]		= function() return -net.AccessReadBuffer():ReadUByte()		end,
+	[TYPE_UBYTE]		= function() return net.AccessReadBuffer():ReadUByte()		end,
+
+	[TYPE_NINT]		= function() return -net.AccessReadBuffer():ReadUInt()		end,
+	[TYPE_UINT]		= function() return net.AccessReadBuffer():ReadUInt()		end,
+
+	[TYPE_NINT]		= function() return -net.AccessReadBuffer():ReadUInt()		end,
+	[TYPE_UINT]		= function() return net.AccessReadBuffer():ReadUInt()		end,
+
+	[TYPE_NLONG]		= function() return -net.AccessReadBuffer():ReadULong()		end,
+	[TYPE_ULONG]		= function() return net.AccessReadBuffer():ReadULong()		end,
+
+	[TYPE_FLOAT]		= function() return net.ReadFloat()		end,
 }
 
 function net.ReadType(typeid)
