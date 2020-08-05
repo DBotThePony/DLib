@@ -25,7 +25,6 @@ local error = error
 local math = math
 local ipairs = ipairs
 local Vector = Vector
-local LVector = LVector
 local type = type
 local setmetatable = setmetatable
 
