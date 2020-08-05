@@ -328,7 +328,10 @@ end
 	@fname DLib.vector.CalculateSurfaceFromTwoPoints
 	@args Vector mins, Vector maxs, Vector zero
 
+	@deprecated
+
 	@desc
+	**This appears to be broken**
 	Give two vectors (e.g. mins and maxs) and origin position
 	origin position is Vector(0, 0, 0) if mins and maxs are WORLDSPACE vectors
 	if mins and maxs are local vectors, origin is probably position of entity
@@ -337,7 +340,10 @@ end
 	@enddesc
 
 	@returns
-	table: `{A, B, C, D}`
+	number: A
+	number: B
+	number: C
+	number: D
 ]]
 function vector.CalculateSurfaceFromTwoPoints(mins, maxs, zero)
 	zero = zero or LVector(0, 0, 0)
@@ -391,43 +397,107 @@ function vector.CalculateSurfaceFromTwoPoints(mins, maxs, zero)
 	Y = Y - m6
 	D = D - a2 * m6
 
-	return {X, Y, Z, D}
+	return X, Y, Z, D
 end
 
 --[[
 	@doc
-	@fname DLib.vector.DistanceFromPointToSurface
-	@args Vector point, table surface
+	@fname DLib.vector.CalculateSurfaceFromThreePoints
+	@args Vector M, Vector N, Vector P
 
 	@desc
-	surface is `{A, B, C, D}`
+	Pass three points of a triangle which belong to plane you want to find
+	Returns multipliers for this equation: `Ax + By + Cz + D = 0`
 	@enddesc
+
+	@returns
+	number: A
+	number: B
+	number: C
+	number: D
+]]
+function vector.CalculateSurfaceFromThreePoints(M, N, P)
+	local x0, y0, z0 = M.x, M.y, M.z
+	local x1, y1, z1 = N.x, N.y, N.z
+	local x2, y2, z2 = P.x, P.y, P.z
+
+	local m2_1 = x1 - x0
+	local m2_2 = y1 - y0
+	local m2_3 = z1 - z0
+
+	local m3_1 = x2 - x0
+	local m3_2 = y2 - y0
+	local m3_3 = z2 - z0
+
+	--[[
+		a    b    c
+		m2_1 m2_2 m2_3
+		m3_1 m3_2 m3_3
+	]]
+
+	-- a - x0 b - y0 z - z0
+
+	local f1 = m2_2 * m3_3 - m2_3 * m3_2
+	local f2 = m2_1 * m3_3 - m2_3 * m3_1
+	local f3 = m2_1 * m3_2 - m2_2 * m3_1
+	local d = f1 * -x0 - f2 * -y0 + f3 * -z0
+
+	return f1, -f2, f3, d
+end
+
+--[[
+	@doc
+	@fname DLib.vector.DistanceFromPointToPlaneByEquation
+	@alias DLib.vector.DistanceFromPointToSurface
+	@args Vector point, number A, number B, number C, number D
 
 	@returns
 	number
 ]]
-function vector.DistanceFromPointToSurface(point, surfaceTable)
-	local A, B, C, D = surfaceTable[1], surfaceTable[2], surfaceTable[3], surfaceTable[4]
+function vector.DistanceFromPointToPlaneByEquation(point, A, B, C, D)
 	local Mx, My, Mz = point.x, point.y, point.z
 	local toDivide = math.abs(A * Mx + B * My + C * Mz + D)
 	local square = math.sqrt(math.pow(A, 2) + math.pow(B, 2) + math.pow(C, 2))
 	return toDivide / square
 end
 
+vector.DistanceFromPointToSurface = vector.DistanceFromPointToPlaneByEquation
+
 --[[
 	@doc
 	@fname DLib.vector.DistanceFromPointToPlane
+	@alias DLib.vector.DistanceFromPointToPlaneByTwoPoints
 	@args Vector point, Vector mins, Vector maxs
+	@deprecated
 
 	@desc
-	minimal possible distance from point to plane
+	use `DLib.vector.DistanceFromPointToPlaneByThreePoints`
+	minimal possible distance from point to a plane
 	@enddesc
 
 	@returns
 	number
 ]]
 function vector.DistanceFromPointToPlane(point, mins, maxs)
-	return vector.DistanceFromPointToSurface(point, vector.CalculateSurfaceFromTwoPoints(mins, maxs))
+	return vector.DistanceFromPointToPlaneByEquation(point, vector.CalculateSurfaceFromTwoPoints(mins, maxs))
+end
+
+vector.DistanceFromPointToPlaneByTwoPoints = vector.DistanceFromPointToPlane
+
+--[[
+	@doc
+	@fname DLib.vector.DistanceFromPointToPlaneByThreePoints
+	@args Vector point, Vector M, Vector N, Vector P
+
+	@desc
+	minimal possible distance from point to a plane
+	@enddesc
+
+	@returns
+	number
+]]
+function vector.DistanceFromPointToPlaneByThreePoints(point, M, N, P)
+	return vector.DistanceFromPointToPlaneByEquation(point, vector.CalculateSurfaceFromThreePoints(M, N, P))
 end
 
 --[[
