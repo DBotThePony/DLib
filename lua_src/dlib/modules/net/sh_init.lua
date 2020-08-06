@@ -762,11 +762,12 @@ function net.WriteColor(data)
 	buffer:WriteUByte(data.r)
 	buffer:WriteUByte(data.g)
 	buffer:WriteUByte(data.b)
+	buffer:WriteUByte(data.a)
 end
 
 function net.ReadColor()
 	local buffer = net.AccessReadBuffer()
-	return Color(buffer:ReadUByte(), buffer:ReadUByte(), buffer:ReadUByte())
+	return Color(buffer:ReadUByte(), buffer:ReadUByte(), buffer:ReadUByte(), buffer:ReadUByte())
 end
 
 function net.WriteNormal(data)
