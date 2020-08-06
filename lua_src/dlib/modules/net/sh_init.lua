@@ -192,6 +192,8 @@ _net.receive('dlib_net_chunk', function(_, ply)
 end)
 
 _net.receive('dlib_net_datagram', function(_, ply)
+	-- TODO: Too many datagrams at once can create unordered execution, causing undefined behvaior
+	-- such as removing buffers too early (before every datagram belonging to that buffer execute)
 	if SERVER and not IsValid(ply) then return end
 	local readnetid = _net.ReadUInt16()
 
@@ -279,6 +281,26 @@ function net.ProcessIncomingQueue(namespace, ply)
 			end
 		end
 	end
+end
+
+function net.DiscardAndFire(namespace)
+	local discarded_num, discarded_bytes = 0, 0
+
+	local minimal = 0xFFFFFFFFF
+
+	for i, buffdata in ipairs(namespace.queued_buffers) do
+		if buffdata.startpos < minimal then
+			minimal = buffdata.startpos
+		end
+	end
+
+	for dgram_id, data in pairs(namespace.queued_datagrams) do
+		if data.startpos < minimal then
+			namespace.queued_datagrams[dgram_id] = nil
+		end
+	end
+
+	net.ProcessIncomingQueue(namespace)
 end
 
 function net.Dispatch(ply)
