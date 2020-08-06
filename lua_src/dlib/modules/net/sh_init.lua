@@ -35,21 +35,16 @@ net.active_write_buffers = {}
 net.message_size_limit = 0x4000
 net.message_chunk_limit = 0x8000
 net.message_datagram_limit = 0x400
-net._next_datagram = net._next_datagram or 0
 net._next_chunk = net._next_chunk or 0
 
 function net.Start(identifier)
 	local id = util.NetworkStringToID(assert(isstring(identifier) and identifier, 'Bad identifier given. typeof ' .. type(identifier)))
 	assert(id > 0, 'Identifier ' .. identifier .. ' is not pooled by net.pool/util.AddNetworkString!')
 
-	local dgram_id = net._next_datagram
-	net._next_datagram = net._next_datagram + 1
-
 	table.insert(net.active_write_buffers, {
 		identifier = identifier,
 		id = id,
 		buffer = DLib.BytesBuffer(),
-		dgram_id = dgram_id,
 	})
 
 	if #net.active_write_buffers > 20 then
@@ -120,14 +115,22 @@ function net.Namespace(target)
 
 	target.network_position = target.network_position or 0
 	target.queued_buffers = target.queued_buffers or {}
+	target.queued_buffers_num = target.queued_buffers_num or 0
 	target.queued_chunks = target.queued_chunks or {}
+	target.queued_chunks_num = target.queued_chunks_num or 0
 	target.queued_datagrams = target.queued_datagrams or {}
+	target.queued_datagrams_num = target.queued_datagrams_num or 0
 
 	target.server_position = target.server_position or 0
 	target.server_chunks = target.server_chunks or {}
+	target.server_chunks_num = target.server_chunks_num or 0
 	target.server_queued = target.server_queued or {}
+	target.server_queued_num = target.server_queued_num or 0
 	target.server_datagrams = target.server_datagrams or {}
+	target.server_datagrams_num = target.server_datagrams_num or 0
 	target.next_expected_datagram = target.next_expected_datagram or -1
+
+	target.next_datagram_id = target.next_datagram_id or 0
 
 	if target.server_datagram_ack == nil then
 		target.server_datagram_ack = true
@@ -162,11 +165,17 @@ _net.receive('dlib_net_chunk', function(_, ply)
 
 	local namespace = net.Namespace(CLIENT and net or ply)
 
-	namespace.queued_chunks[chunkid] = namespace.queued_chunks[chunkid] or {
-		chunks = {}
-	}
-
 	local data = namespace.queued_chunks[chunkid]
+
+	if not data then
+		data = {
+			chunks = {}
+		}
+
+		namespace.queued_chunks[chunkid] = data
+		namespace.queued_chunks_num = namespace.queued_chunks_num + 1
+	end
+
 	data.is_compressed = is_compressed
 	data.startpos = startpos
 	data.endpos = endpos
@@ -187,6 +196,8 @@ _net.receive('dlib_net_chunk', function(_, ply)
 		})
 
 		namespace.queued_chunks[chunkid] = nil
+		namespace.queued_chunks_num = namespace.queued_chunks_num - 1
+		namespace.queued_buffers_num = namespace.queued_buffers_num + 1
 
 		net.ProcessIncomingQueue(namespace, ply)
 	end
@@ -214,6 +225,8 @@ _net.receive('dlib_net_datagram', function(_, ply)
 			endpos = endpos,
 			dgram_id = dgram_id,
 		}
+
+		namespace.queued_datagrams_num = namespace.queued_datagrams_num + 1
 
 		readnetid = _net.ReadUInt16()
 	end
@@ -260,12 +273,15 @@ function net.ProcessIncomingQueue(namespace, ply)
 				if bdata.endpos < fdata.startpos then
 					stop = false
 					namespace.queued_buffers[i] = nil
+					namespace.queued_buffers_num = namespace.queued_buffers_num - 1
 				end
 			end
 		until stop
 
 		if fdata.startpos == fdata.endpos then
 			namespace.queued_datagrams[fdgram] = nil
+			namespace.queued_datagrams_num = namespace.queued_datagrams_num - 1
+			namespace.next_expected_datagram = namespace.next_expected_datagram + 1
 			hit = true
 			net.TriggerEvent(fdata.readnetid, nil, ply)
 		else
@@ -273,10 +289,12 @@ function net.ProcessIncomingQueue(namespace, ply)
 				if bdata.startpos <= fdata.startpos and bdata.endpos >= fdata.endpos then
 					hit = true
 					namespace.queued_datagrams[fdgram] = nil
+					namespace.queued_datagrams_num = namespace.queued_datagrams_num - 1
 					namespace.network_position = fdata.endpos
 
 					if fdata.endpos == bdata.endpos then
 						namespace.queued_buffers[i] = nil
+						namespace.queued_buffers_num = namespace.queued_buffers_num - 1
 					end
 
 					local len = fdata.endpos - fdata.startpos
@@ -307,6 +325,7 @@ function net.DiscardAndFire(namespace)
 	for dgram_id, data in pairs(namespace.queued_datagrams) do
 		if data.startpos < minimal then
 			namespace.queued_datagrams[dgram_id] = nil
+			namespace.queued_datagrams_num = namespace.queued_datagrams_num - 1
 		end
 	end
 
@@ -336,16 +355,23 @@ function net.Dispatch(ply)
 			startpos = startpos,
 			endpos = endpos,
 		})
+
+		namespace.server_queued_num = namespace.server_queued_num + 1
 	end
 
 	namespace.server_position = endpos
 
-	namespace.server_datagrams[data.dgram_id] = {
+	local dgram_id = namespace.next_datagram_id
+	namespace.next_datagram_id = namespace.next_datagram_id + 1
+
+	namespace.server_datagrams[dgram_id] = {
 		id = data.id,
 		startpos = startpos,
 		endpos = endpos,
-		dgram_id = data.dgram_id,
+		dgram_id = dgram_id,
 	}
+
+	namespace.server_datagrams_num = namespace.server_datagrams_num + 1
 end
 
 function net.DispatchChunk(ply)
@@ -387,6 +413,7 @@ function net.DispatchChunk(ply)
 		}
 
 		table.insert(namespace.server_chunks, data)
+		namespace.server_chunks_num = namespace.server_chunks_num + 1
 
 		local writedata = compressed or build
 		local written = 1
@@ -400,6 +427,7 @@ function net.DispatchChunk(ply)
 		data.total_chunks = #data.chunks
 
 		namespace.server_queued = {}
+		namespace.server_queued_num = 0
 	end
 
 	if #namespace.server_chunks == 0 then return end
@@ -408,6 +436,7 @@ function net.DispatchChunk(ply)
 
 	if not chunkNum then
 		table.remove(namespace.server_chunks, 1)
+		namespace.server_chunks_num = namespace.server_chunks_num - 1
 		return net.DispatchChunk(ply)
 	end
 
@@ -486,7 +515,12 @@ _net.receive('dlib_net_datagram_ack', function(length, ply)
 	namespace.server_datagram_ack = true
 
 	for i = 1, length / 32 do
-		namespace.server_datagrams[_net.ReadUInt32()] = nil
+		local readid = _net.ReadUInt32()
+
+		if namespace.server_datagrams[readid] then
+			namespace.server_datagrams[readid] = nil
+			namespace.server_datagrams_num = namespace.server_datagrams_num - 1
+		end
 	end
 end)
 
