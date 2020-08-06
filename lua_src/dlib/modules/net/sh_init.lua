@@ -174,6 +174,14 @@ _net.receive('dlib_net_chunk', function(_, ply)
 
 		namespace.queued_chunks[chunkid] = data
 		namespace.queued_chunks_num = namespace.queued_chunks_num + 1
+
+		if namespace.queued_chunks_num > 21 and namespace.queued_chunks_num % 20 == 0 then
+			if CLIENT then
+				DLib.MessageWarning('DLib.net: Queued ', namespace.queued_chunks_num, ' chunks from server!')
+			else
+				DLib.MessageWarning('DLib.net: Queued ', namespace.queued_chunks_num, ' chunks from ', ply, '!')
+			end
+		end
 	end
 
 	data.is_compressed = is_compressed
@@ -227,6 +235,14 @@ _net.receive('dlib_net_datagram', function(_, ply)
 		}
 
 		namespace.queued_datagrams_num = namespace.queued_datagrams_num + 1
+
+		if namespace.queued_datagrams_num > 101 and namespace.queued_datagrams_num % 100 == 0 then
+			if CLIENT then
+				DLib.MessageWarning('DLib.net: Queued ', namespace.queued_datagrams_num, ' datagrams from server!')
+			else
+				DLib.MessageWarning('DLib.net: Queued ', namespace.queued_datagrams_num, ' datagrams from ', ply, '!')
+			end
+		end
 
 		readnetid = _net.ReadUInt16()
 	end
@@ -357,6 +373,14 @@ function net.Dispatch(ply)
 		})
 
 		namespace.server_queued_num = namespace.server_queued_num + 1
+
+		if namespace.server_queued_num > 101 and namespace.server_queued_num % 100 == 0 then
+			if CLIENT then
+				DLib.MessageWarning('DLib.net: Queued ', namespace.server_queued_num, ' message payloads for server! Is server not ACKing them?')
+			else
+				DLib.MessageWarning('DLib.net: Queued ', namespace.server_queued_num, ' message payloads for ', ply, '! Is client not ACKing them?')
+			end
+		end
 	end
 
 	namespace.server_position = endpos
@@ -372,6 +396,14 @@ function net.Dispatch(ply)
 	}
 
 	namespace.server_datagrams_num = namespace.server_datagrams_num + 1
+
+	if namespace.server_datagrams_num > 101 and namespace.server_datagrams_num % 100 == 0 then
+		if CLIENT then
+			DLib.MessageWarning('DLib.net: Queued ', namespace.server_datagrams_num, ' datagrams for server! Is network overloaded or we have high ping?')
+		else
+			DLib.MessageWarning('DLib.net: Queued ', namespace.server_datagrams_num, ' datagrams for ', ply, '! This is not good!')
+		end
+	end
 end
 
 function net.DispatchChunk(ply)
@@ -520,6 +552,14 @@ _net.receive('dlib_net_datagram_ack', function(length, ply)
 		if namespace.server_datagrams[readid] then
 			namespace.server_datagrams[readid] = nil
 			namespace.server_datagrams_num = namespace.server_datagrams_num - 1
+		end
+	end
+
+	if namespace.server_datagrams_num > 101 and namespace.server_datagrams_num % 100 == 0 then
+		if CLIENT then
+			DLib.MessageWarning('DLib.net: STILL have queued ', namespace.server_datagrams_num, ' datagrams for server!')
+		else
+			DLib.MessageWarning('DLib.net: STILL have queued ', namespace.server_datagrams_num, ' datagrams for ', ply, '!')
 		end
 	end
 end)
