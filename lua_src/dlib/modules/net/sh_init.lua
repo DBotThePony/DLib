@@ -127,6 +127,7 @@ function net.Namespace(target)
 	target.server_chunks = target.server_chunks or {}
 	target.server_queued = target.server_queued or {}
 	target.server_datagrams = target.server_datagrams or {}
+	target.next_expected_datagram = target.next_expected_datagram or -1
 
 	if target.server_datagram_ack == nil then
 		target.server_datagram_ack = true
@@ -243,6 +244,13 @@ function net.ProcessIncomingQueue(namespace, ply)
 
 		if not fdgram then return end
 
+		if namespace.next_expected_datagram == -1 then
+			namespace.next_expected_datagram = fdgram
+			return
+		end
+
+		if fdgram ~= namespace.next_expected_datagram then return end
+
 		local stop = false
 
 		repeat
@@ -276,6 +284,8 @@ function net.ProcessIncomingQueue(namespace, ply)
 
 					net.TriggerEvent(fdata.readnetid, DLib.BytesBufferView(start, start + len, bdata.buffer), ply)
 
+					namespace.next_expected_datagram = namespace.next_expected_datagram + 1
+
 					break
 				end
 			end
@@ -299,6 +309,8 @@ function net.DiscardAndFire(namespace)
 			namespace.queued_datagrams[dgram_id] = nil
 		end
 	end
+
+	namespace.next_expected_datagram = -1
 
 	net.ProcessIncomingQueue(namespace)
 end

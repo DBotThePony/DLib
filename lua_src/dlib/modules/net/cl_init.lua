@@ -33,6 +33,8 @@ net.server_chunks = net.server_chunks or {}
 net.server_queued = net.server_queued or {}
 net.server_datagrams = net.server_datagrams or {}
 
+net.next_expected_datagram = net.next_expected_datagram or -1
+
 if net.server_datagram_ack == nil then
 	net.server_datagram_ack = true
 end
