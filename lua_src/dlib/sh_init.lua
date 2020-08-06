@@ -172,6 +172,8 @@ DLib.Loader.shmodule('predictedvars.lua')
 DLib.Loader.load('dlib/modules/net')
 DLib.MessageMaker(DLib, 'DLib')
 
+DLib.simpleInclude('util/debugoverlay.lua')
+
 DLib.Loader.start('nw')
 DLib.Loader.load('dlib/modules/nwvar')
 DLib.Loader.finish()
