@@ -20,7 +20,9 @@
 
 local _debugoverlay = debugoverlay
 DLib.debugoverlay = DLib.debugoverlay or {}
+DLib.debugoverlay2 = DLib.debugoverlay2 or {}
 local debugoverlay = DLib.debugoverlay
+local debugoverlay2 = DLib.debugoverlay2
 
 local DLib = DLib
 local net = DLib.net
@@ -169,7 +171,25 @@ for funcname, funcargs in pairs(funcs) do
 		end
 	end
 
-	debugoverlay[funcname] = debugfunc
+	local function debugfunc2(...)
+		if CLIENT then
+			upvalue(...)
+			return
+		end
+
+		local lastarg = select(#funcargs + 1, ...)
+
+		net.Start(nwname)
+		writefunc(...)
+
+		if isentity(lastarg) then
+			net.Send(lastarg)
+		else
+			net.Broadcast()
+		end
+	end
+
+	debugoverlay2[funcname] = debugfunc
 end
 
 function debugoverlay.BoxAABB(mins, maxs, lifetime, color)
@@ -192,4 +212,26 @@ function debugoverlay.BoxAnglesAABB(mins, maxs, ang, lifetime, color)
 	maxs = origin - maxs
 
 	return debugoverlay.BoxAngles(origin, mins, maxs, ang, lifetime, color)
+end
+
+function debugoverlay2.BoxAABB(mins, maxs, lifetime, color)
+	lifetime = lifetime or 1
+	color = color or color_white
+
+	local origin = DLib.vector.Centre(mins, maxs)
+	mins = origin - mins
+	maxs = origin - maxs
+
+	return debugoverlay2.Box(origin, mins, maxs, lifetime, color)
+end
+
+function debugoverlay2.BoxAnglesAABB(mins, maxs, ang, lifetime, color)
+	lifetime = lifetime or 1
+	color = color or color_white
+
+	local origin = DLib.vector.Centre(mins, maxs)
+	mins = origin - mins
+	maxs = origin - maxs
+
+	return debugoverlay2.BoxAngles(origin, mins, maxs, ang, lifetime, color)
 end
