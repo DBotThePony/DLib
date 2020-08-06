@@ -189,6 +189,7 @@ for funcname, funcargs in pairs(funcs) do
 		end
 	end
 
+	debugoverlay[funcname] = debugfunc
 	debugoverlay2[funcname] = debugfunc
 end
 
