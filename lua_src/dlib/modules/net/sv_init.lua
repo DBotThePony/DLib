@@ -26,6 +26,8 @@ local net = DLib.net
 net.pool = _net.pool
 net.pool('dlib_net_datagram')
 net.pool('dlib_net_datagram_ack')
+net.pool('dlib_net_ack1')
+net.pool('dlib_net_ack2')
 net.pool('dlib_net_chunk')
 net.pool('dlib_net_chunk_ack')
 
@@ -115,6 +117,8 @@ function net.SendOmit(data)
 end
 
 function net.Think()
+	local time = RealTime()
+
 	for _, ply in ipairs(player.GetHumans()) do
 		local namespace = net.Namespace(ply)
 
@@ -124,6 +128,14 @@ function net.Think()
 
 		if next(namespace.server_datagrams) and namespace.server_datagram_ack then
 			net.DispatchDatagram(ply)
+		end
+
+		if namespace.last_expected_ack ~= 0xFFFFFFFF and namespace.last_expected_ack < time then
+			-- can you hear me?
+			_net.Start('dlib_net_ack1')
+			_net.Send(ply)
+
+			namespace.last_expected_ack = time + 30
 		end
 	end
 end

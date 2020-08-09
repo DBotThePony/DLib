@@ -130,6 +130,8 @@ function net.Namespace(target)
 	target.server_datagrams_num = target.server_datagrams_num or 0
 	target.next_expected_datagram = target.next_expected_datagram or -1
 
+	target.last_expected_ack = target.last_expected_ack or 0xFFFFFFFF
+
 	target.next_datagram_id = target.next_datagram_id or 0
 
 	if target.server_datagram_ack == nil then
@@ -142,6 +144,29 @@ function net.Namespace(target)
 
 	return target
 end
+
+_net.receive('dlib_net_ack1', function(_, ply)
+	local namespace = net.Namespace(CLIENT and net or ply)
+	namespace.last_expected_ack = RealTime() + 30
+
+	namespace.server_chunk_ack = true
+	namespace.server_datagram_ack = true
+
+	_net.Start('dlib_net_ack2')
+
+	if CLIENT then
+		_net.SendToServer()
+	else
+		_net.Send(ply)
+	end
+end)
+
+_net.receive('dlib_net_ack2', function(_, ply)
+	local namespace = net.Namespace(CLIENT and net or ply)
+	namespace.last_expected_ack = RealTime() + 30
+	namespace.server_chunk_ack = true
+	namespace.server_datagram_ack = true
+end)
 
 _net.receive('dlib_net_chunk', function(_, ply)
 	local chunkid = _net.ReadUInt32()
@@ -346,6 +371,7 @@ function net.DiscardAndFire(namespace)
 	end
 
 	namespace.next_expected_datagram = -1
+	namespace.last_expected_ack = 0xFFFFFFFF
 
 	net.ProcessIncomingQueue(namespace)
 end
@@ -403,6 +429,10 @@ function net.Dispatch(ply)
 		else
 			DLib.MessageWarning('DLib.net: Queued ', namespace.server_datagrams_num, ' datagrams for ', ply, '! This is not good!')
 		end
+	end
+
+	if namespace.last_expected_ack == 0xFFFFFFFF then
+		namespace.last_expected_ack = RealTime() + 30
 	end
 end
 
@@ -469,10 +499,19 @@ function net.DispatchChunk(ply)
 	if not chunkNum then
 		table.remove(namespace.server_chunks, 1)
 		namespace.server_chunks_num = namespace.server_chunks_num - 1
+
+		if namespace.server_chunks_num == 0 and namespace.server_datagrams_num == 0 then
+			namespace.last_expected_ack = 0xFFFFFFFF
+		end
+
 		return net.DispatchChunk(ply)
 	end
 
 	namespace.server_chunk_ack = false
+
+	if namespace.last_expected_ack == 0xFFFFFFFF then
+		namespace.last_expected_ack = RealTime() + 30
+	end
 
 	_net.Start('dlib_net_chunk')
 	_net.WriteUInt32(data.chunkid)
@@ -504,6 +543,12 @@ _net.receive('dlib_net_chunk_ack', function(_, ply)
 		if data.chunkid == chunkid then
 			data.chunks[current_chunk] = nil
 		end
+	end
+
+	if namespace.server_chunks_num == 0 and namespace.server_datagrams_num == 0 then
+		namespace.last_expected_ack = 0xFFFFFFFF
+	else
+		namespace.last_expected_ack = RealTime() + 30
 	end
 end)
 
@@ -561,6 +606,12 @@ _net.receive('dlib_net_datagram_ack', function(length, ply)
 		else
 			DLib.MessageWarning('DLib.net: STILL have queued ', namespace.server_datagrams_num, ' datagrams for ', ply, '!')
 		end
+	end
+
+	if namespace.server_chunks_num == 0 and namespace.server_datagrams_num == 0 then
+		namespace.last_expected_ack = 0xFFFFFFFF
+	else
+		namespace.last_expected_ack = RealTime() + 30
 	end
 end)
 
