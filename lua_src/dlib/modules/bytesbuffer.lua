@@ -205,12 +205,17 @@ end
 
 --[[
 	@doc
-	@fname BytesBuffer:EndOfStream
+	@fname BytesBuffer:IsEOF
+	@alias BytesBuffer:EndOfStream
 
 	@returns
 	boolean
 ]]
 function meta:EndOfStream()
+	return self.pointer >= self.length
+end
+
+function meta:IsEOF()
 	return self.pointer >= self.length
 end
 
