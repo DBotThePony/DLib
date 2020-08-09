@@ -62,6 +62,8 @@ net.receive('DLib.friendsystem', function(len, ply)
 		end
 	end
 
+	hook.Run('DLib_FriendModified', ply, target)
+
 	net.Start('DLib.friendsystem')
 	net.WritePlayer(ply)
 	net.WriteUInt(namount, 8)
