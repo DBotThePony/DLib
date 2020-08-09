@@ -56,13 +56,12 @@ net.receive('DLib.friendsystem', function(len, ply)
 
 		if IsValid(rply) then
 			target[rply] = status
+			hook.Run('DLib_FriendModified', ply, status)
 			namount = namount + 1
 		else
 			break
 		end
 	end
-
-	hook.Run('DLib_FriendModified', ply, target)
 
 	net.Start('DLib.friendsystem')
 	net.WritePlayer(ply)
