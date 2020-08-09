@@ -86,8 +86,10 @@ function net.TriggerEvent(network_id, buffer, ply)
 		if not status then
 			ErrorNoHalt('DLib.net: Listener on network message ' .. string_id .. ' has failed!\n')
 		end
-	else
+	elseif CLIENT then
 		ErrorNoHalt('DLib.net: No network listener attached on network message ' .. string_id .. '\n')
+	else
+		ErrorNoHalt('DLib.net: No network listener attached on network message ' .. string_id .. '\n. Message sent by: ' .. string.format('%s<%s>', ply:Nick(), ply:SteamID()))
 	end
 end
 
