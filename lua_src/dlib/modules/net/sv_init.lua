@@ -23,6 +23,14 @@ local DLib = DLib
 local _net = net
 local net = DLib.net
 
+net.WINDOW_SIZE_LIMIT = CreateConVar('dlib_net_window_size', '16777216', {}, 'limit in bytes. Too high values weaken server\'s security, too low may impact addons depending on DLib.net')
+net.DGRAM_SIZE_LIMIT = CreateConVar('dlib_net_dgram_size', '65536', {}, 'limit in messages count. Too high values weaken server\'s security, too low may impact addons depending on DLib.net')
+
+net.UpdateWindowProperties()
+
+cvars.AddChangeCallback('dlib_net_window_size', net.UpdateWindowProperties, 'DLib.net')
+cvars.AddChangeCallback('dlib_net_dgram_size', net.UpdateWindowProperties, 'DLib.net')
+
 net.pool = _net.pool
 net.pool('dlib_net_datagram')
 net.pool('dlib_net_datagram_ack')

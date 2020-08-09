@@ -23,6 +23,14 @@ local DLib = DLib
 local _net = net
 local net = DLib.net
 
+net.WINDOW_SIZE_LIMIT = CreateConVar('dlib_net_window_size', '16777216', {}, 'limit in bytes. Too low may impact addons depending on DLib.net')
+net.DGRAM_SIZE_LIMIT = CreateConVar('dlib_net_dgram_size', '65536', {}, 'limit in messages count. Too low may impact addons depending on DLib.net')
+
+net.UpdateWindowProperties()
+
+cvars.AddChangeCallback('dlib_net_window_size', net.UpdateWindowProperties, 'DLib.net')
+cvars.AddChangeCallback('dlib_net_dgram_size', net.UpdateWindowProperties, 'DLib.net')
+
 net.network_position = net.network_position or 0
 net.queued_buffers = net.queued_buffers or {}
 net.queued_chunks = net.queued_chunks or {}
@@ -43,6 +51,7 @@ net.server_datagrams_num = net.server_datagrams_num or 0
 
 net.next_expected_datagram = net.next_expected_datagram or -1
 net.last_expected_ack = net.last_expected_ack or 0xFFFFFFFF
+net.server_queued_size = net.server_queued_size or 0
 
 net.next_datagram_id = net.next_datagram_id or 0
 

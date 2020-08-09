@@ -35,7 +35,14 @@ net.active_write_buffers = {}
 net.message_size_limit = 0x4000
 net.message_chunk_limit = 0x8000
 net.message_datagram_limit = 0x400
+net.datagram_queue_size_limit = 0x10000 -- idiot proofing from flooding server's memory with trash data
+net.window_size_limit = 0x1000000 -- idiot proofing from flooding server's memory with trash data
 net._next_chunk = net._next_chunk or 0
+
+function net.UpdateWindowProperties()
+	net.window_size_limit = net.WINDOW_SIZE_LIMIT:GetInt(0x1000000)
+	net.datagram_queue_size_limit = net.DGRAM_SIZE_LIMIT:GetInt(0x10000)
+end
 
 function net.Start(identifier)
 	local id = util.NetworkStringToID(assert(isstring(identifier) and identifier, 'Bad identifier given. typeof ' .. type(identifier)))
@@ -126,6 +133,7 @@ function net.Namespace(target)
 	target.server_chunks_num = target.server_chunks_num or 0
 	target.server_queued = target.server_queued or {}
 	target.server_queued_num = target.server_queued_num or 0
+	target.server_queued_size = target.server_queued_size or 0
 	target.server_datagrams = target.server_datagrams or {}
 	target.server_datagrams_num = target.server_datagrams_num or 0
 	target.next_expected_datagram = target.next_expected_datagram or -1
@@ -387,8 +395,14 @@ function net.Dispatch(ply)
 
 	local namespace = net.Namespace(CLIENT and net or ply)
 
+	if SERVER and (namespace.server_datagrams_num > net.datagram_queue_size_limit or namespace.server_queued_size > net.window_size_limit) then
+		return
+	end
+
 	local startpos = namespace.server_position
 	local endpos = namespace.server_position + data.buffer.length
+
+	namespace.server_queued_size = namespace.server_queued_size + data.buffer.length
 
 	if data.buffer.length ~= 0 then
 		table.insert(namespace.server_queued, {
@@ -470,6 +484,7 @@ function net.DispatchChunk(ply)
 			is_compressed = compressed ~= nil,
 			startpos = startpos,
 			endpos = endpos,
+			length = endpos - startpos,
 			chunkid = _next_chunk,
 			current_chunk = 1,
 		}
@@ -499,6 +514,7 @@ function net.DispatchChunk(ply)
 	if not chunkNum then
 		table.remove(namespace.server_chunks, 1)
 		namespace.server_chunks_num = namespace.server_chunks_num - 1
+		namespace.server_queued_size = namespace.server_queued_size - data.length
 
 		if namespace.server_chunks_num == 0 and namespace.server_datagrams_num == 0 then
 			namespace.last_expected_ack = 0xFFFFFFFF
