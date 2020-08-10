@@ -416,12 +416,8 @@ function net.Dispatch(ply)
 
 		namespace.server_queued_num = namespace.server_queued_num + 1
 
-		if namespace.server_queued_num > 101 and namespace.server_queued_num % 100 == 0 then
-			if CLIENT then
-				DLib.MessageWarning('DLib.net: Queued ', namespace.server_queued_num, ' message payloads for server! Is server not ACKing them?')
-			else
-				DLib.MessageWarning('DLib.net: Queued ', namespace.server_queued_num, ' message payloads for ', ply, '! Is client not ACKing them?')
-			end
+		if CLIENT and namespace.server_queued_num > 101 and namespace.server_queued_num % 100 == 0 then
+			DLib.MessageWarning('DLib.net: Queued ', namespace.server_queued_num, ' message payloads for server!')
 		end
 	end
 
@@ -439,12 +435,8 @@ function net.Dispatch(ply)
 
 	namespace.server_datagrams_num = namespace.server_datagrams_num + 1
 
-	if namespace.server_datagrams_num > 101 and namespace.server_datagrams_num % 100 == 0 then
-		if CLIENT then
-			DLib.MessageWarning('DLib.net: Queued ', namespace.server_datagrams_num, ' datagrams for server! Is network overloaded or we have high ping?')
-		else
-			DLib.MessageWarning('DLib.net: Queued ', namespace.server_datagrams_num, ' datagrams for ', ply, '! This is not good!')
-		end
+	if CLIENT and namespace.server_datagrams_num > 101 and namespace.server_datagrams_num % 100 == 0 then
+		DLib.MessageWarning('DLib.net: Queued ', namespace.server_datagrams_num, ' datagrams for server!')
 	end
 
 	if namespace.last_expected_ack == 0xFFFFFFFF then
