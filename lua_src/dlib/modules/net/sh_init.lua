@@ -262,20 +262,22 @@ _net.receive('dlib_net_datagram', function(_, ply)
 		local dgram_id = _net.ReadUInt32()
 		_net.WriteUInt32(dgram_id)
 
-		namespace.queued_datagrams[dgram_id] = {
-			readnetid = readnetid,
-			startpos = startpos,
-			endpos = endpos,
-			dgram_id = dgram_id,
-		}
+		if dgram_id >= namespace.next_expected_datagram then
+			namespace.queued_datagrams[dgram_id] = {
+				readnetid = readnetid,
+				startpos = startpos,
+				endpos = endpos,
+				dgram_id = dgram_id,
+			}
 
-		namespace.queued_datagrams_num = namespace.queued_datagrams_num + 1
+			namespace.queued_datagrams_num = namespace.queued_datagrams_num + 1
 
-		if namespace.queued_datagrams_num > 101 and namespace.queued_datagrams_num % 100 == 0 then
-			if CLIENT then
-				DLib.MessageWarning('DLib.net: Queued ', namespace.queued_datagrams_num, ' datagrams from server!')
-			else
-				DLib.MessageWarning('DLib.net: Queued ', namespace.queued_datagrams_num, ' datagrams from ', ply, '!')
+			if namespace.queued_datagrams_num > 101 and namespace.queued_datagrams_num % 100 == 0 then
+				if CLIENT then
+					DLib.MessageWarning('DLib.net: Queued ', namespace.queued_datagrams_num, ' datagrams from server!')
+				else
+					DLib.MessageWarning('DLib.net: Queued ', namespace.queued_datagrams_num, ' datagrams from ', ply, '!')
+				end
 			end
 		end
 
