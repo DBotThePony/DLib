@@ -25,12 +25,25 @@ local _net = net
 local net = DLib.net
 
 net.Receivers = net.Receivers or {}
+net.ReceiversAntispam = net.ReceiversAntispam or {}
 
 function net.Receive(identifier, callback)
 	net.Receivers[assert(isstring(identifier) and identifier:lower(), 'Bad identifier given. typeof ' .. type(identifier))] = assert(isfunction(callback) and callback, 'Bad callback given. typeof ' .. type(callback))
 end
 
+function net.ReceiveAntispam(identifier, cooldown, antispam_type)
+	cooldown = cooldown or 1
+	antispam_type = antispam_type == true
+
+	net.ReceiversAntispam[assert(isstring(identifier) and identifier:lower(), 'Bad identifier given. typeof ' .. type(identifier))] = {
+		cooldown = cooldown,
+		antispam_type = antispam_type,
+		func = antispam_type and CurTime or RealTime,
+	}
+end
+
 net.receive = net.Receive
+net.receiveAntispam = net.ReceiveAntispam
 net.active_write_buffers = {}
 net.message_size_limit = 0x4000
 net.message_chunk_limit = 0x8000
@@ -68,9 +81,36 @@ function net.TriggerEvent(network_id, buffer, ply)
 		return
 	end
 
-	local net_event_listener = net.Receivers[string_id:lower()]
+	string_id = string_id:lower()
+
+	local net_event_listener = net.Receivers[string_id]
 
 	if net_event_listener then
+		local antispam = net.ReceiversAntispam[string_id]
+
+		if antispam then
+			local target
+			local index = 'antispam_' .. string_id
+
+			if IsValid(ply) then
+				target = ply:GetTable()
+			else
+				target = net
+			end
+
+			local time = antispam.func()
+
+			if not target[index] then
+				target[index] = time + antispam.cooldown
+			end
+
+			if target[index] > time then
+				return
+			end
+
+			target[index] = time + antispam.cooldown
+		end
+
 		net.active_read = {
 			identifier = string_id,
 			id = network_id,
@@ -90,7 +130,7 @@ function net.TriggerEvent(network_id, buffer, ply)
 	elseif CLIENT then
 		ErrorNoHalt('DLib.net: No network listener attached on network message ' .. string_id .. '\n')
 	else
-		ErrorNoHalt('DLib.net: No network listener attached on network message ' .. string_id .. '\n. Message sent by: ' .. string.format('%s<%s>', ply:Nick(), ply:SteamID()))
+		ErrorNoHalt('DLib.net: No network listener attached on network message ' .. string_id .. '\n. Message sent by: ' .. string.format('%s<%s>\n', ply:Nick(), ply:SteamID()))
 	end
 end
 
