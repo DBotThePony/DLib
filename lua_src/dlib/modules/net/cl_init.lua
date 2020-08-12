@@ -25,13 +25,18 @@ local net = DLib.net
 
 net.WINDOW_SIZE_LIMIT = CreateConVar('dlib_net_window_size', '16777216', {}, 'limit in bytes. Too low may impact addons depending on DLib.net')
 net.DGRAM_SIZE_LIMIT = CreateConVar('dlib_net_dgram_size', '65536', {}, 'limit in messages count. Too low may impact addons depending on DLib.net')
+net.USE_COMPRESSION = CreateConVar('dlib_net_compress_cl', '1', {}, 'Use LZMA compression. Disable if net performance is low.')
+net.USE_COMPRESSION_SV = CreateConVar('dlib_net_compress', '1', {FCVAR_REPLICATED, FCVAR_NOTIFY}, 'Whenever server accept LZMA compressed payloads.')
+net.COMPRESSION_LIMIT = CreateConVar('dlib_net_compress_size', '16384', {}, 'Size in bytes >= of single chunk to compress. Too low or too high values can impact performance.')
 
 net.UpdateWindowProperties()
 
 cvars.AddChangeCallback('dlib_net_window_size', net.UpdateWindowProperties, 'DLib.net')
 cvars.AddChangeCallback('dlib_net_dgram_size', net.UpdateWindowProperties, 'DLib.net')
+cvars.AddChangeCallback('dlib_net_compress_size', net.UpdateWindowProperties, 'DLib.net')
 
 net.network_position = net.network_position or 0
+net.accumulated_size = net.accumulated_size or 0
 net.queued_buffers = net.queued_buffers or {}
 net.queued_chunks = net.queued_chunks or {}
 net.queued_datagrams = net.queued_datagrams or {}

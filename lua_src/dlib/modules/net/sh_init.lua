@@ -42,6 +42,7 @@ net._next_chunk = net._next_chunk or 0
 function net.UpdateWindowProperties()
 	net.window_size_limit = net.WINDOW_SIZE_LIMIT:GetInt(0x1000000)
 	net.datagram_queue_size_limit = net.DGRAM_SIZE_LIMIT:GetInt(0x10000)
+	net.message_size_limit = net.COMPRESSION_LIMIT:GetInt(0x4000)
 end
 
 function net.Start(identifier)
@@ -123,6 +124,7 @@ function net.Namespace(target)
 	if CLIENT then return target end
 
 	target.network_position = target.network_position or 0
+	target.accumulated_size = target.accumulated_size or 0
 	target.queued_buffers = target.queued_buffers or {}
 	target.queued_buffers_num = target.queued_buffers_num or 0
 	target.queued_chunks = target.queued_chunks or {}
@@ -224,13 +226,22 @@ _net.receive('dlib_net_chunk', function(_, ply)
 	data.endpos = endpos
 	data.chunks[current_chunk] = chunk
 	data.total_chunks = chunks
+	namespace.accumulated_size = namespace.accumulated_size + #chunk
 
 	if table.Count(data.chunks) == data.total_chunks then
 		local stringdata = table.concat(data.chunks, '')
 
+		namespace.accumulated_size = namespace.accumulated_size - #stringdata
+
 		if data.is_compressed then
-			stringdata = util.Decompress(stringdata)
+			if CLIENT or net.USE_COMPRESSION:GetBool() then
+				stringdata = util.Decompress(stringdata, net.window_size_limit - namespace.accumulated_size)
+			else
+				stringdata = ''
+			end
 		end
+
+		namespace.accumulated_size = namespace.accumulated_size + #stringdata
 
 		table.insert(namespace.queued_buffers, {
 			startpos = startpos,
@@ -325,6 +336,7 @@ function net.ProcessIncomingQueue(namespace, ply)
 			for i, bdata in pairs(namespace.queued_buffers) do
 				if bdata.endpos < fdata.startpos then
 					stop = false
+					namespace.accumulated_size = namespace.accumulated_size - bdata.buffer.length
 					namespace.queued_buffers[i] = nil
 					namespace.queued_buffers_num = namespace.queued_buffers_num - 1
 				end
@@ -346,6 +358,7 @@ function net.ProcessIncomingQueue(namespace, ply)
 					namespace.network_position = fdata.endpos
 
 					if fdata.endpos == bdata.endpos then
+						namespace.accumulated_size = namespace.accumulated_size - bdata.buffer.length
 						namespace.queued_buffers[i] = nil
 						namespace.queued_buffers_num = namespace.queued_buffers_num - 1
 					end
@@ -468,7 +481,7 @@ function net.DispatchChunk(ply)
 		local build = table.concat(stringbuilder, '')
 		local compressed
 
-		if #build > net.message_size_limit then
+		if #build > net.message_size_limit and net.USE_COMPRESSION:GetBool() and (SERVER or net.USE_COMPRESSION_SV:GetBool()) then
 			compressed = util.Compress(build)
 		end
 
