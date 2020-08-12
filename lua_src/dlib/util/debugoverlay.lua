@@ -64,7 +64,7 @@ local funcs = {
 	EntityTextAtPosition = {
 		{nil, net.WriteVectorDouble, net.ReadVectorDouble},
 		{nil, net.WriteUInt16, net.ReadUInt16},
-		{nil, net.WriteText, net.ReadText},
+		{nil, net.WriteString, net.ReadString},
 		{1, net.WriteDouble, net.ReadDouble}, -- lifetime
 		{color_white, net.WriteColor, net.ReadColor}, -- color
 	},
@@ -84,7 +84,7 @@ local funcs = {
 	ScreenText = {
 		{nil, net.WriteUInt16, net.ReadUInt16},
 		{nil, net.WriteUInt16, net.ReadUInt16},
-		{nil, net.WriteText, net.ReadText},
+		{nil, net.WriteString, net.ReadString},
 		{1, net.WriteDouble, net.ReadDouble}, -- lifetime
 		{color_white, net.WriteColor, net.ReadColor}, -- color
 	},
@@ -109,9 +109,9 @@ local funcs = {
 
 	Text = {
 		{nil, net.WriteVectorDouble, net.ReadVectorDouble},
-		{nil, net.WriteText, net.ReadText},
+		{nil, net.WriteString, net.ReadString},
 		{1, net.WriteDouble, net.ReadDouble}, -- lifetime
-		{color_white, net.WriteColor, net.ReadColor}, -- color
+		{false, net.WriteBool, net.ReadBool}, -- color
 	},
 
 	Triangle = {
