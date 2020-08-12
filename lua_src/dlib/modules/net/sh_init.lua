@@ -236,6 +236,11 @@ _net.receive('dlib_net_chunk', function(_, ply)
 		if data.is_compressed then
 			if CLIENT or net.USE_COMPRESSION:GetBool() then
 				stringdata = util.Decompress(stringdata, net.window_size_limit - namespace.accumulated_size)
+
+				if not stringdata then
+					namespace.queued_chunks[chunkid] = nil
+					return
+				end
 			else
 				stringdata = ''
 			end
