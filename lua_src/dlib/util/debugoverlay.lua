@@ -152,21 +152,24 @@ for funcname, funcargs in pairs(funcs) do
 	end
 
 	local function debugfunc(...)
-		if CLIENT then
+		if CLIENT or game.SinglePlayer() then
 			upvalue(...)
 			return
 		end
 
 		local lastarg = select(#funcargs + 1, ...)
 
-		if game.IsDedicated() and developer:GetBool() or lastarg == true or isentity(lastarg) then
+		if lastarg == true or isentity(lastarg) or (game.IsDedicated() or player.GetCount() ~= 1) and developer:GetBool() then
 			net.Start(nwname)
 			writefunc(...)
 
 			if isentity(lastarg) then
 				net.Send(lastarg)
-			else
+			elseif game.IsDedicated() then
 				net.Broadcast()
+			else
+				net.SendOmit(Entity(1))
+				upvalue(...)
 			end
 		end
 	end
