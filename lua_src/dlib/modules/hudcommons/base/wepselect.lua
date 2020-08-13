@@ -576,10 +576,8 @@ function meta:WeaponSelectionBind(ply, bind, pressed)
 	status = WheelBind(self, ply, bind, pressed, weapons)
 	if status then return status end
 
-	local prevsel = ply.GetPreviousWeapon and ply:GetPreviousWeapon() or self.PrevSelectWeapon or NULL
-
-	if bind == 'lastinv' and prevsel:IsValid() then
-		local next = prevsel
+	if bind == 'lastinv' and IsValid(ply:GetPreviousWeapon()) then
+		local next = ply:GetPreviousWeapon()
 		local prev = LocalWeapon()
 
 		self.PrevSelectWeapon = prev
