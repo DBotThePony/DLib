@@ -19,7 +19,7 @@
 -- DEALINGS IN THE SOFTWARE.
 
 
-HUDCommons = HUDCommons
+HUDCommons = DLib.HUDCommons
 util = util
 
 class HUDCommons.Pattern

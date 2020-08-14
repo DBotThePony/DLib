@@ -21,6 +21,9 @@
 -- TODO: Move all addons to NW2
 local entMeta = FindMetaTable('Entity')
 
+local nw = DLib.nw
+local DLib = DLib
+
 nw.NETWORK_DB = nw.NETWORK_DB or {}
 nw.NetworkVars = nw.NetworkVars or {}
 

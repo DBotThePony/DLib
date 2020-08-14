@@ -18,10 +18,12 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-
 net.pool('DLib.NetworkedVar')
 net.pool('DLib.NetworkedVarFull')
 net.pool('DLib.NetworkedRemove')
+
+local nw = DLib.nw
+local DLib = DLib
 
 local entMeta = FindMetaTable('Entity')
 

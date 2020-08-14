@@ -18,7 +18,7 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-
+local HUDCommons = DLib.HUDCommons
 local meta = DLib.FindMetaTable('HUDCommonsBase')
 local math = math
 local gmod_suit = GetConVar('gmod_suit')

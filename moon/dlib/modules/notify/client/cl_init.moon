@@ -19,7 +19,8 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-
+DLib = DLib
+Notify = DLib.Notify
 export Notify_SIDE_LEFT
 export Notify_SIDE_RIGHT
 export Notify_POS_TOP
@@ -150,38 +151,9 @@ NetHook = ->
 	elseif mode == HUD_PRINTCONSOLE or mode == HUD_PRINTNOTIFY
 		print(message)
 
-legacyColors = {
-	[NOTIFY_GENERIC]: color_white
-	[NOTIFY_ERROR]: Color(200, 120, 120)
-	[NOTIFY_UNDO]: Color(108, 166, 247)
-	[NOTIFY_HINT]: Color(147, 247, 108)
-	[NOTIFY_CLEANUP]: Color(108, 219, 247)
-}
-
-if false
-	notification.AddLegacy = (text, type, time) ->
-		time = math.Clamp(time or 4, 4, 60)
-		type = type or NOTIFY_GENERIC
-
-		notif = Notify.CreateLegacy({legacyColors[type], text})
-		notif\SetLength(time)
-		notif\SetNotifyInConsole(false)
-		notif\Start()
-
 hook.Add('HUDPaint', 'DLib.Notify', HUDPaint)
 net.Receive('DLib.Notify.PrintMessage', NetHook)
 hook.Add('Think', 'DLib.Notify', Think)
-
-include_ = include
-include = (fil) -> include_('dlib/modules/notify/client/' .. fil)
-include 'font_obj.lua'
-include 'base_class.lua'
-include 'templates.lua'
-include 'animated_base.lua'
-include 'slide_class.lua'
-include 'centered_class.lua'
-include 'badges.lua'
-include 'legacy.lua'
 
 timer.Simple(0, Notify.CreateDefaultDispatchers)
 

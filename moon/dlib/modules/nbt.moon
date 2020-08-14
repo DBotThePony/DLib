@@ -18,16 +18,12 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-
 import assert, error, DLib, table from _G
 type = luatype
 
 jit.on()
 
-if DLib.NBT
-	for k, v in pairs(DLib.NBT)
-		DLib.NBT[k] = nil
-
+table.Empty(DLib.NBT) if DLib.NBT
 DLib.NBT = DLib.NBT or {}
 
 -- names are deprecated

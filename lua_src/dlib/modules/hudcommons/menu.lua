@@ -19,8 +19,7 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-
-local HUDCommons = HUDCommons
+local HUDCommons = DLib.HUDCommons
 
 local function PopulateColors(Panel)
 	if not IsValid(Panel) then return end

@@ -20,7 +20,7 @@
 
 net.pool('dlib.clientlang')
 
-local i18n = i18n
+local i18n = DLib.i18n
 
 i18n.DEBUG_LANG_STRINGS = CreateConVar('gmod_language_dlib_dbg', '0', {FCVAR_ARCHIVE}, 'Debug language strings (do not localize them)')
 

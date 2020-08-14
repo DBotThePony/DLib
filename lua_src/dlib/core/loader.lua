@@ -32,7 +32,8 @@ function Loader.include(filIn)
 		local compiled = CompileFile(filIn)
 
 		if not compiled then
-			DLib.Message("Couldn't include file '" .. filIn .. "' (File not found) (<nowhere>)")
+			DLib.MessageError("Couldn't include file '" .. filIn .. "'. Look for errors above!")
+			ErrorNoHalt(debug.traceback("Couldn't include file '" .. filIn .. "'. Look for errors above!"))
 			return
 		end
 
@@ -60,6 +61,29 @@ function Loader.include(filIn)
 
 		return compiled()
 	end
+end
+
+Loader.Include = Loader.include
+
+function DLib.SharedInclude(fil)
+	if SERVER then AddCSLuaFile('dlib/' .. fil) end
+
+	return Loader.Include('dlib/' .. fil)
+end
+
+function DLib.ClientInclude(fil)
+	if SERVER then
+		AddCSLuaFile('dlib/' .. fil)
+		return
+	end
+
+	return Loader.Include('dlib/' .. fil)
+end
+
+function DLib.ServerInclude(fil)
+	if CLIENT then return end
+
+	return Loader.Include('dlib/' .. fil)
 end
 
 function Loader.findShared(inFiles)
@@ -90,31 +114,8 @@ function Loader.filter(inFiles)
 	return Loader.findShared(inFiles), Loader.findClient(inFiles), Loader.findServer(inFiles)
 end
 
-function Loader.shmodule(fil)
-	if SERVER then AddCSLuaFile('dlib/modules/' .. fil) end
-	return include('dlib/modules/' .. fil)
-end
-
-function Loader.clclass(fil)
-	if SERVER then
-		AddCSLuaFile('dlib/classes/' .. fil)
-		return {register = function() end}
-	end
-
-	return include('dlib/classes/' .. fil)
-end
-
-function Loader.shclass(fil)
-	if SERVER then AddCSLuaFile('dlib/classes/' .. fil) end
-	return include('dlib/classes/' .. fil)
-end
-
-function Loader.svmodule(fil)
-	if CLIENT then return end
-	return include('dlib/modules/' .. fil)
-end
-
 local loaderIsGlobal = false
+
 function Loader.start(moduleName, noGlobal)
 	currentModuleEnv = DLib[moduleName] or {}
 	loaderIsGlobal = not noGlobal
@@ -158,3 +159,6 @@ function Loader.finish(allowGlobal, renameHack)
 
 	return created
 end
+
+Loader.Start = Loader.start
+Loader.Finish = Loader.finish

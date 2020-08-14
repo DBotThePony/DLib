@@ -18,8 +18,7 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-
-local HUDCommons = HUDCommons
+local HUDCommons = DLib.HUDCommons
 local surface = surface
 local draw = draw
 

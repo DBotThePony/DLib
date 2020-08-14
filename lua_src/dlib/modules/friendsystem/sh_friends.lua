@@ -18,9 +18,9 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
+local friends = DLib.friends
 local DLib = DLib
 local util = util
-local friends = friends
 local net = net
 local error = error
 

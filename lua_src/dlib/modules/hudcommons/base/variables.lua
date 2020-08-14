@@ -18,7 +18,6 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-
 local meta = DLib.FindMetaTable('HUDCommonsBase')
 local pairs = pairs
 local ipairs = ipairs
@@ -422,5 +421,3 @@ function meta:RecordVariableState()
 
 	return vars
 end
-
-include('defaultvars.lua')

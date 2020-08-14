@@ -18,10 +18,9 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-
 local DLib = DLib
 local meta = DLib.CreateLuaObject('HUDCommonsBase', true)
-local HUDCommons = HUDCommons
+local HUDCommons = DLib.HUDCommons
 local pairs = pairs
 local hook = hook
 local table = table
@@ -1049,10 +1048,3 @@ function meta:Think()
 		end
 	end
 end
-
-include('functions.lua')
-include('variables.lua')
-include('logic.lua')
-include('wepselect.lua')
-include('crosshairs.lua')
-include('menus.lua')

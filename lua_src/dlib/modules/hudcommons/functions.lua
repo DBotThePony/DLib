@@ -21,7 +21,7 @@
 
 
 local LocalPlayer = LocalPlayer
-local HUDCommons = HUDCommons
+local HUDCommons = DLib.HUDCommons
 local IsValid = IsValid
 local math = math
 

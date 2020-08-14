@@ -19,7 +19,6 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-
 local ENABLE_SHIFTING = CreateConVar('dlib_hud_shift', '1', {FCVAR_ARCHIVE}, 'Enable HUD shifting')
 local ENABLE_SHIFTING_WEAPON = CreateConVar('dlib_hud_shift_wp', '1', {FCVAR_ARCHIVE}, 'Enable HUD shifting with weapons')
 local ENABLE_SHIFTING_SV = CreateConVar('sv_dlib_hud_shift', '1', {FCVAR_REPLICATED, FCVAR_NOTIFY}, 'SV Override: Enable HUD shifting')
@@ -35,7 +34,7 @@ local SHIFTING_AIR = CreateConVar('dlib_hud_shift_midair', '1', {FCVAR_ARCHIVE},
 
 local WEIGHTED = CreateConVar('dlib_hud_shift_weighted', '1', {FCVAR_ARCHIVE}, 'Shift of element is based on distance from screen center')
 
-local HUDCommons = HUDCommons
+local HUDCommons = DLib.HUDCommons
 local table = table
 local RealTimeL = RealTimeL
 local math = math

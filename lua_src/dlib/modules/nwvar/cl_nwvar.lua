@@ -18,8 +18,10 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-
 local entMeta = FindMetaTable('Entity')
+
+local nw = DLib.nw
+local DLib = DLib
 
 -- not even gonna document it
 -- full candidate to remove

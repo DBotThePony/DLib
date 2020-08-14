@@ -24,8 +24,24 @@ local DLib = DLib
 DLib.DEBUG_MODE = CreateConVar('dlib_debug', '0', {FCVAR_REPLICATED}, 'Enable debug mode. Setting this to 1 can help you solve weird bugs.')
 DLib.STRICT_MODE = CreateConVar('dlib_strict', '0', {FCVAR_REPLICATED}, 'Enable strict mode. Enabling this turns all ErrorNoHalts into execution halting errors. The best way to fix bad code.')
 
-function DLib.simpleInclude(fil)
+function DLib.SharedInclude(fil)
 	if SERVER then AddCSLuaFile('dlib/' .. fil) end
+
+	return include('dlib/' .. fil)
+end
+
+function DLib.ClientInclude(fil)
+	if SERVER then
+		AddCSLuaFile('dlib/' .. fil)
+		return
+	end
+
+	return include('dlib/' .. fil)
+end
+
+function DLib.ServerInclude(fil)
+	if CLIENT then return end
+
 	return include('dlib/' .. fil)
 end
 
@@ -84,16 +100,21 @@ local SysTime = SysTime
 local timeStart = SysTime()
 
 MsgC('---------------------------------------------------------------\n')
-MsgC('[DLib] Initializing DLib core ... ')
+MsgC('[DLib] Initializing DLib core stage 1 ... ')
 
-DLib.simpleInclude('core/core.lua')
-DLib.simpleInclude('core/luaify.lua')
-DLib.simpleInclude('core/funclib.lua')
-DLib.simpleInclude('modules/color.lua')
-DLib.MessageMaker = DLib.simpleInclude('util/message.lua')
+DLib.SharedInclude('core/core.lua')
+DLib.SharedInclude('core/luaify.lua')
+DLib.SharedInclude('core/funclib.lua')
+DLib.SharedInclude('modules/color.lua')
+
+MsgC(string.format('%.2f ms\n', (SysTime() - timeStart) * 1000))
+timeStart = SysTime()
+MsgC('[DLib] Initializing DLib core stage 2 ... ')
+
+DLib.MessageMaker = DLib.SharedInclude('util/message.lua')
 DLib.MessageMaker(DLib, 'DLib')
-DLib.simpleInclude('core/sandbox.lua')
-DLib.simpleInclude('core/promise.lua')
+DLib.SharedInclude('core/sandbox.lua')
+DLib.SharedInclude('core/promise.lua')
 
 if jit then
 	if SERVER then
@@ -114,98 +135,109 @@ end
 DLib.CMessage = DLib.MessageMaker
 DLib.ConstructMessage = DLib.MessageMaker
 
-DLib.simpleInclude('util/combathelper.lua')
-DLib.simpleInclude('util/util.lua')
-DLib.simpleInclude('util/vector.lua')
+DLib.SharedInclude('util/util.lua')
+DLib.SharedInclude('util/vector.lua')
 
-DLib.node = DLib.simpleInclude('util/node.lua')
+DLib.node = DLib.SharedInclude('util/node.lua')
 
-if CLIENT then
-	DLib.simpleInclude('util/client/localglobal.lua')
-end
-
-file.mkdir('dlib')
-
-DLib.simpleInclude('core/tableutil.lua')
-DLib.simpleInclude('core/fsutil.lua')
-DLib.simpleInclude('core/loader.lua')
-DLib.simpleInclude('core/loader_modes.lua')
+DLib.ClientInclude('util/client/localglobal.lua')
+DLib.SharedInclude('core/tableutil.lua')
+DLib.SharedInclude('core/fsutil.lua')
+DLib.SharedInclude('core/loader.lua')
+DLib.SharedInclude('core/loader_modes.lua')
 
 MsgC(string.format('%.2f ms\n', (SysTime() - timeStart) * 1000))
 timeStart = SysTime()
+
+file.mkdir('dlib')
+
 MsgC('[DLib] Initializing DLib GLua extensions ... ')
 
-DLib.Loader.shmodule('bitworker.lua')
+DLib.SharedInclude('util/combathelper.lua')
 
-DLib.simpleInclude('luabridge/luaify.lua')
+DLib.SharedInclude('modules/bitworker.lua')
+DLib.SharedInclude('luabridge/luaify.lua')
 
-DLib.simpleInclude('extensions/extensions.lua')
-DLib.simpleInclude('extensions/string.lua')
-DLib.simpleInclude('extensions/ctakedmg.lua')
-DLib.simpleInclude('extensions/cvar.lua')
-DLib.simpleInclude('extensions/entity.lua')
-DLib.simpleInclude('extensions/render.lua')
-DLib.simpleInclude('extensions/player.lua')
+DLib.SharedInclude('extensions/extensions.lua')
+DLib.SharedInclude('extensions/string.lua')
+DLib.SharedInclude('extensions/ctakedmg.lua')
+DLib.SharedInclude('extensions/cvar.lua')
+DLib.SharedInclude('extensions/entity.lua')
+DLib.SharedInclude('extensions/render.lua')
+DLib.SharedInclude('extensions/player.lua')
 
-DLib.Loader.shmodule('hook.lua')
-DLib.simpleInclude('luabridge/luaify2.lua')
-DLib.simpleInclude('luabridge/lobject.lua')
+DLib.SharedInclude('modules/hook.lua')
+DLib.SharedInclude('luabridge/luaify2.lua')
+DLib.SharedInclude('luabridge/lobject.lua')
 
-DLib.simpleInclude('util/http.lua')
-DLib.simpleInclude('util/httpclient.lua')
-DLib.simpleInclude('util/promisify.lua')
+DLib.SharedInclude('util/http.lua')
+DLib.SharedInclude('util/httpclient.lua')
+DLib.SharedInclude('util/promisify.lua')
 
 MsgC(string.format('%.2f ms\n', (SysTime() - timeStart) * 1000))
 timeStart = SysTime()
 MsgC('[DLib] Initializing DLib modules ... ')
 
-DLib.Loader.shmodule('luavector.lua')
-DLib.Loader.shmodule('net_ext.lua')
-DLib.Loader.shmodule('bytesbuffer.lua')
-DLib.Loader.shmodule('nbt.lua')
-DLib.Loader.shmodule('gobjectnotation.lua')
-DLib.Loader.shmodule('lerp.lua')
-DLib.Loader.shmodule('sh_cami.lua')
-DLib.Loader.shmodule('getinfo.lua')
-DLib.Loader.shmodule('predictedvars.lua')
+DLib.SharedInclude('modules/luavector.lua')
+DLib.SharedInclude('modules/net_ext.lua')
+DLib.SharedInclude('modules/bytesbuffer.lua')
+DLib.SharedInclude('modules/nbt.lua')
+DLib.SharedInclude('modules/gobjectnotation.lua')
+DLib.SharedInclude('modules/lerp.lua')
+DLib.SharedInclude('modules/sh_cami.lua')
+DLib.SharedInclude('modules/getinfo.lua')
+DLib.SharedInclude('modules/predictedvars.lua')
 
-DLib.Loader.load('dlib/modules/net')
+DLib.net = DLib.net or {}
+DLib.SharedInclude('modules/net/sh_init.lua')
+DLib.ClientInclude('modules/net/cl_init.lua')
+DLib.ServerInclude('modules/net/sv_init.lua')
+
 DLib.MessageMaker(DLib, 'DLib')
 
-DLib.simpleInclude('util/debugoverlay.lua')
+DLib.SharedInclude('util/debugoverlay.lua')
 
-DLib.Loader.start('nw')
-DLib.Loader.load('dlib/modules/nwvar')
-DLib.Loader.finish()
+DLib.nw = DLib.nw or {}
+DLib.SharedInclude('modules/nwvar/sh_nwvar.lua')
+DLib.ClientInclude('modules/nwvar/cl_nwvar.lua')
+DLib.ServerInclude('modules/nwvar/sv_nwvar.lua')
 
-DLib.simpleInclude('util/queue.lua')
+DLib.SharedInclude('util/queue.lua')
 
-DLib.Loader.loadPureSHTop('dlib/enums')
+DLib.SharedInclude('enums/gmod.lua')
+DLib.SharedInclude('enums/keymapping.lua')
+DLib.SharedInclude('enums/sdk.lua')
 
-DLib.Loader.start('i18n')
-DLib.Loader.load('dlib/modules/i18n')
-DLib.Loader.finish()
+DLib.i18n = DLib.i18n or {}
+DLib.SharedInclude('modules/i18n/sh_i18n.lua')
+DLib.SharedInclude('modules/i18n/sh_functions.lua')
+DLib.SharedInclude('modules/i18n/sh_units.lua')
+DLib.ClientInclude('modules/i18n/cl_i18n.lua')
+DLib.ServerInclude('modules/i18n/sv_i18n.lua')
+DLib.SharedInclude('modules/i18n/sh_loader.lua')
 
-DLib.Loader.start('friends', true)
-DLib.Loader.load('dlib/modules/friendsystem')
-DLib.Loader.finish()
+DLib.friends = DLib.friends or {}
+DLib.SharedInclude('modules/friendsystem/sh_friends.lua')
+DLib.ClientInclude('modules/friendsystem/cl_friends.lua')
+DLib.ClientInclude('modules/friendsystem/cl_gui.lua')
+DLib.ServerInclude('modules/friendsystem/sv_friends.lua')
 
 MsgC(string.format('%.2f ms\n', (SysTime() - timeStart) * 1000))
 timeStart = SysTime()
 MsgC('[DLib] Initializing DLib classes ... ')
 
-DLib.Loader.shclass('astar.lua')
-DLib.Loader.shclass('dmginfo.lua')
-DLib.Loader.shclass('collector.lua')
-DLib.Loader.shclass('set.lua')
-DLib.Loader.shclass('freespace.lua')
-DLib.Loader.shclass('cvars.lua')
-DLib.Loader.shclass('rainbow.lua')
-DLib.Loader.shclass('camiwatchdog.lua')
-DLib.Loader.shclass('measure.lua')
-DLib.Loader.shclass('bezier.lua')
-DLib.Loader.shclass('predictedvars.lua')
-DLib.Loader.clclass('keybinds.lua')
+DLib.SharedInclude('classes/astar.lua')
+DLib.SharedInclude('classes/dmginfo.lua')
+DLib.SharedInclude('classes/collector.lua')
+DLib.SharedInclude('classes/set.lua')
+DLib.SharedInclude('classes/freespace.lua')
+DLib.SharedInclude('classes/cvars.lua')
+DLib.SharedInclude('classes/rainbow.lua')
+DLib.SharedInclude('classes/camiwatchdog.lua')
+DLib.SharedInclude('classes/measure.lua')
+DLib.SharedInclude('classes/bezier.lua')
+DLib.SharedInclude('classes/predictedvars.lua')
+DLib.ClientInclude('classes/keybinds.lua')
 
 if CLIENT then
 	DLib.VGUI = DLib.VGUI or {}
@@ -213,15 +245,18 @@ end
 
 MsgC(string.format('%.2f ms\n', (SysTime() - timeStart) * 1000))
 timeStart = SysTime()
-MsgC('[DLib] Initializing DLib LuaBridge ... ')
+MsgC('[DLib] Initializing DLib general Lua additions ... ')
 
-DLib.simpleInclude('luabridge/luabridge.lua')
-DLib.simpleInclude('luabridge/physgunhandler.lua')
-DLib.simpleInclude('luabridge/loading_stages.lua')
-DLib.simpleInclude('luabridge/savetable.lua')
-DLib.Loader.loadPureSHTop('dlib/modules/workarounds')
+DLib.SharedInclude('luabridge/luabridge.lua')
+DLib.SharedInclude('luabridge/physgunhandler.lua')
+DLib.SharedInclude('luabridge/loading_stages.lua')
+DLib.SharedInclude('luabridge/savetable.lua')
 
-DLib.hl2wdata = DLib.simpleInclude('data/hl2sweps.lua')
+DLib.ClientInclude('modules/workarounds/entlang.lua')
+DLib.SharedInclude('modules/workarounds/killfeed.lua')
+DLib.SharedInclude('modules/workarounds/starfall.lua')
+
+DLib.hl2wdata = DLib.SharedInclude('data/hl2sweps.lua')
 
 DLib.__net_ext_export(DLib.net)
 

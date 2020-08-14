@@ -19,7 +19,7 @@
 -- DEALINGS IN THE SOFTWARE.
 
 
-local HUDCommons = HUDCommons
+local HUDCommons = DLib.HUDCommons
 local surface = surface
 local draw = draw
 local ipairs = ipairs

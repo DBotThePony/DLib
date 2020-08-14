@@ -18,9 +18,8 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-
 local filesLoad = {}
-local i18n = i18n
+local i18n = DLib.i18n
 local file = file
 local ipairs = ipairs
 local pairs = pairs

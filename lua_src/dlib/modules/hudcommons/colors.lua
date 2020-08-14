@@ -20,7 +20,7 @@
 -- DEALINGS IN THE SOFTWARE.
 
 
-local HUDCommons = HUDCommons
+local HUDCommons = DLib.HUDCommons
 local setmetatable = setmetatable
 local Color = Color
 local CreateConVar = CreateConVar

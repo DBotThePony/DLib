@@ -19,9 +19,8 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-
 local clippingStack = 0
-local HUDCommons = HUDCommons
+local HUDCommons = DLib.HUDCommons
 local cam = cam
 local surface = surface
 local Matrix = Matrix

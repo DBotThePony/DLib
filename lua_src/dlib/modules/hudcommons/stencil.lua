@@ -20,7 +20,7 @@
 
 -- idk
 
-local HUDCommons = HUDCommons
+local HUDCommons = DLib.HUDCommons
 local render = render
 HUDCommons.Stencil = {}
 local stencil = HUDCommons.Stencil

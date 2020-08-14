@@ -53,7 +53,7 @@ end)
 
 jit.on()
 
-local HUDCommons = HUDCommons
+local HUDCommons = DLib.HUDCommons
 local type = type
 local surface = surface
 

@@ -18,6 +18,10 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
+local i18n = DLib.i18n
+local math = math
+local string = string
+
 i18n.METRES_IN_HU = 0.0254
 
 local prefixL = {

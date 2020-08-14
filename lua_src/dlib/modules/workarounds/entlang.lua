@@ -18,9 +18,6 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-
-if SERVER then return end
-
 timer.Simple(0, function()
 	for k, info in pairs(scripted_ents.GetList()) do
 		if info.t and info.t.ClassName and info.t.PrintName and info.t.PrintName:sub(1, 1) ~= '#' then

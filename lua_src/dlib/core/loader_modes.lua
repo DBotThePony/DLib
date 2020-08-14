@@ -67,6 +67,8 @@ function Loader.load(targetDir)
 	return output
 end
 
+Loader.LoadRecursive = Loader.load
+
 function Loader.loadTop(targetDir)
 	local output = {}
 	local files = file.Find(targetDir .. '/*', 'LUA')
@@ -99,6 +101,8 @@ function Loader.loadTop(targetDir)
 	return output
 end
 
+Loader.Load = Loader.loadTop
+
 function Loader.loadCS(targetDir)
 	local output = {}
 	local files = file.FindRecursiveVisible(targetDir)
@@ -126,6 +130,8 @@ function Loader.loadCS(targetDir)
 	return output
 end
 
+Loader.MixedClientLoadRecursive = Loader.loadCS
+
 function Loader.loadPureCS(targetDir)
 	local output = {}
 	local files = file.FindRecursiveVisible(targetDir)
@@ -143,6 +149,8 @@ function Loader.loadPureCS(targetDir)
 	return output
 end
 
+Loader.ClientLoadRecursive = Loader.loadPureCS
+
 function Loader.loadPureSV(targetDir)
 	if CLIENT then return end
 	local output = {}
@@ -154,6 +162,8 @@ function Loader.loadPureSV(targetDir)
 
 	return output
 end
+
+Loader.ServerLoadRecursive = Loader.loadPureSV
 
 function Loader.loadPureSH(targetDir)
 	local output = {}
@@ -173,6 +183,8 @@ function Loader.loadPureSH(targetDir)
 	return output
 end
 
+Loader.SharedLoadRecursive = Loader.loadPureSH
+
 function Loader.loadPureCSTop(targetDir)
 	local output = {}
 	local files = file.FindVisiblePrepend(targetDir, 'LUA')
@@ -190,6 +202,7 @@ function Loader.loadPureCSTop(targetDir)
 	return output
 end
 
+Loader.ClientLoad = Loader.loadPureCSTop
 Loader.loadPureCLTop = Loader.loadPureCSTop
 
 function Loader.loadPureSVTop(targetDir)
@@ -203,6 +216,8 @@ function Loader.loadPureSVTop(targetDir)
 
 	return output
 end
+
+Loader.ServerLoad = Loader.loadPureSVTop
 
 function Loader.loadPureSHTop(targetDir)
 	local output = {}
@@ -222,6 +237,8 @@ function Loader.loadPureSHTop(targetDir)
 	return output
 end
 
+Loader.SharedLoad = Loader.loadPureSHTop
+
 function Loader.csModule(targetDir)
 	if CLIENT then return {} end
 
@@ -236,5 +253,7 @@ function Loader.csModule(targetDir)
 
 	return output
 end
+
+Loader.ClientModule = Loader.csModule
 
 return Loader

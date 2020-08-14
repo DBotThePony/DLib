@@ -19,8 +19,6 @@
 -- DEALINGS IN THE SOFTWARE.
 
 local DLib = DLib
-
-DLib.net = DLib.net or {}
 local _net = net
 local net = DLib.net
 

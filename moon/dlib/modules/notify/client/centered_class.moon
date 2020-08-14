@@ -19,7 +19,8 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-
+DLib = DLib
+Notify = DLib.Notify
 import insert, remove from table
 import newLines, allowedOrign, NotifyAnimated, NotifyDispatcherBase from Notify
 

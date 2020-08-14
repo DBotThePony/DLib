@@ -18,6 +18,11 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
+local friends = DLib.friends
+local DLib = DLib
+local sql = sql
+local string = string
+local net = net
 
 sql.EQuery([[
 	CREATE TABLE IF NOT EXISTS dlib_friends (

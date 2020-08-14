@@ -18,8 +18,10 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-
 net.pool('DLib.friendsystem')
+
+local friends = DLib.friends
+local DLib = DLib
 
 local plyMeta = FindMetaTable('Player')
 local IsValid = FindMetaTable('Entity').IsValid
