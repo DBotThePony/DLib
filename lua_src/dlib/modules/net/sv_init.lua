@@ -127,17 +127,23 @@ function net.SendOmit(data)
 	net.Send(filer)
 end
 
+local GetHumans = player.GetHumans
+local ipairs = ipairs
+local next = next
+
 function net.Think()
 	local time = RealTime()
+	local iter = GetHumans()
 
-	for _, ply in ipairs(player.GetHumans()) do
+	for i = 1, #iter do
+		local ply = iter[i]
 		local namespace = net.Namespace(ply)
 
-		if (#namespace.server_queued ~= 0 or #namespace.server_chunks ~= 0) and namespace.server_chunk_ack then
+		if namespace.server_chunk_ack and (#namespace.server_queued ~= 0 or #namespace.server_chunks ~= 0) then
 			net.DispatchChunk(ply)
 		end
 
-		if next(namespace.server_datagrams) and namespace.server_datagram_ack then
+		if namespace.server_datagram_ack and namespace.server_datagrams_num > 0 then
 			net.DispatchDatagram(ply)
 		end
 

@@ -77,12 +77,14 @@ function net.SendToServer()
 	table.remove(net.active_write_buffers)
 end
 
+local RealTime = RealTime
+
 function net.Think()
-	if (#net.server_queued ~= 0 or #net.server_chunks ~= 0) and net.server_chunk_ack then
+	if net.server_chunk_ack and (#net.server_queued ~= 0 or #net.server_chunks ~= 0) then
 		net.DispatchChunk()
 	end
 
-	if next(net.server_datagrams) and net.server_datagram_ack then
+	if net.server_datagram_ack and net.server_datagrams_num > 0 then
 		net.DispatchDatagram()
 	end
 
