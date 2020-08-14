@@ -551,6 +551,7 @@ local function Think()
 	local delta = time - lastThink
 	lastThink = time
 	if delta == 0 then return end
+	if #DefPositions == 0 then return end
 
 	UpdateShift(delta)
 	UpdateWeaponShift(delta)
