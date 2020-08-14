@@ -169,6 +169,8 @@ function DLib.TrackSaveTableVar(varname, vartype)
 		end
 	end
 
+	hook.EnableHook('PlayerPostThink', 'DLib.SaveTableTrack')
+
 	return true
 end
 
@@ -201,7 +203,16 @@ function plyMeta:LookupServerInternalVariable(varname, def)
 end
 
 if SERVER then
+	local ipairs = ipairs
+	local pairs = pairs
+	local net = net
+
 	local function PlayerPostThink(ply)
+		if #track == 0 then
+			hook.DisableHook('PlayerPostThink', 'DLib.SaveTableTrack')
+			return
+		end
+
 		local data = ply.__dlib_st_cache
 
 		if not data then

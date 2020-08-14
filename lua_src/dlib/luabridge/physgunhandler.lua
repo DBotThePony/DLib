@@ -26,6 +26,8 @@ end
 
 local ply, ent, holder, holderStatus
 
+local IsValid = FindMetaTable('Entity').IsValid
+
 local function PhysgunPickup(Uply, Uent)
 	if Uent:IsPlayer() and Uent:InVehicle() then
 		return false
@@ -35,7 +37,10 @@ local function PhysgunPickup(Uply, Uent)
 end
 
 local function PhysgunDrop(Uply, Uent)
-	local target = Uply.__dlibPhysgunHandler
+	local UplyT = Uply:GetTable()
+	local UentT = Uent:GetTable()
+
+	local target = UplyT.__dlibPhysgunHandler
 
 	if SERVER and IsValid(target) then
 		net.Start('DLib.physgun.player')
@@ -43,13 +48,13 @@ local function PhysgunDrop(Uply, Uent)
 		net.Send(target)
 	end
 
-	Uply.__dlibPhysgunHandler = nil
-	Uply.__dlibPhysgunHolder = nil
-	Uply.__dlibUpcomingEyeAngles = nil
+	UplyT.__dlibPhysgunHandler = nil
+	UplyT.__dlibPhysgunHolder = nil
+	UplyT.__dlibUpcomingEyeAngles = nil
 
-	Uent.__dlibPhysgunHandler = nil
-	Uent.__dlibPhysgunHolder = nil
-	Uent.__dlibUpcomingEyeAngles = nil
+	UentT.__dlibPhysgunHandler = nil
+	UentT.__dlibPhysgunHolder = nil
+	UentT.__dlibUpcomingEyeAngles = nil
 end
 
 -- Lets handle this mess by ourself
@@ -87,10 +92,13 @@ local function StartCommand(ply, cmd)
 		cmd:SetMouseY(0)
 	end
 
-	if SERVER and IsValid(ply.__dlibPhysgunHolder) then
+	local plyT = ply:GetTable()
+
+	if SERVER and IsValid(plyT.__dlibPhysgunHolder) then
 		cmd:SetMouseX(0)
 		cmd:SetMouseY(0)
-		local ang = ply.__dlibUpcomingEyeAngles or ply:EyeAngles()
+
+		local ang = plyT.__dlibUpcomingEyeAngles or ply:EyeAngles()
 		cmd:SetViewAngles(ang)
 
 		net.Start('DLib.physgun.playerAngles', true)
@@ -100,9 +108,8 @@ local function StartCommand(ply, cmd)
 		return
 	end
 
-	local target = ply.__dlibPhysgunHandler
-	if not IsValid(target) then return end
-	if not cmd:KeyDown(IN_USE) then return end
+	local target = plyT.__dlibPhysgunHandler
+	if not IsValid(target) or not cmd:KeyDown(IN_USE) then return end
 	local x, y = cmd:GetMouseX() / 4, cmd:GetMouseY() / 7
 
 	if x ~= 0 or y ~= 0 then
