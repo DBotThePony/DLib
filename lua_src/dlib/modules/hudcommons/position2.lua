@@ -53,16 +53,15 @@ local ipairs = ipairs
 HUDCommons.Position2 = HUDCommons.Position2 or {}
 local Pos2 = HUDCommons.Position2
 
-Pos2.ShiftX = 0
-Pos2.ShiftX_Ground = 0
-Pos2.ShiftX_Weapon = 0
-Pos2.ShiftY = 0
-Pos2.ShiftY_Ground = 0
-Pos2.ShiftY_Weapon = 0
-Pos2.LastAngle = Angle(0, 0, 0)
+local ShiftX = 0
+local ShiftX_Ground = 0
+local ShiftX_Weapon = 0
+local ShiftY = 0
+local ShiftY_Ground = 0
+local ShiftY_Weapon = 0
+local LastAngle = Angle(0, 0, 0)
 
-Pos2.XPositions = Pos2.XPositions or {}
-Pos2.YPositions = Pos2.YPositions or {}
+Pos2.DefPositions = Pos2.DefPositions or {}
 Pos2.XPositions_CVars = Pos2.XPositions_CVars or {}
 Pos2.YPositions_CVars = Pos2.YPositions_CVars or {}
 Pos2.XPositions_modified = Pos2.XPositions_modified or {}
@@ -73,17 +72,23 @@ Pos2.YPositions_original = Pos2.YPositions_original or {}
 Pos2.XPositions_mul = Pos2.XPositions_mul or {}
 Pos2.YPositions_mul = Pos2.YPositions_mul or {}
 
-for k, v in pairs(Pos2.XPositions) do
+for _, v in ipairs(Pos2.DefPositions) do
 	Pos2.XPositions_mul[v] = 1 - Pos2.XPositions_original[v]:progression(0, 1, 0.5) * 0.8
-end
-
-for k, v in pairs(Pos2.YPositions) do
 	Pos2.YPositions_mul[v] = 1 - Pos2.YPositions_original[v]:progression(0, 1, 0.5) * 0.8
 end
 
 Pos2.Positions_funcs = Pos2.Positions_funcs or {}
 
-local UpdatePositions
+local DefPositions = Pos2.DefPositions
+local XPositions_CVars = Pos2.XPositions_CVars
+local YPositions_CVars = Pos2.YPositions_CVars
+local XPositions_modified = Pos2.XPositions_modified
+local YPositions_modified = Pos2.YPositions_modified
+local XPositions_original = Pos2.XPositions_original
+local YPositions_original = Pos2.YPositions_original
+local XPositions_mul = Pos2.XPositions_mul
+local YPositions_mul = Pos2.YPositions_mul
+local Positions_funcs = Pos2.Positions_funcs
 
 --[[
 	@doc
@@ -127,54 +132,50 @@ function Pos2.DefinePosition(name, x, y, shouldShift)
 	local cvarX = CreateConVar('dlib_hpos_' .. name .. '_x', tostring(x), {FCVAR_ARCHIVE}, 'X position of corresponding HUD element')
 	local cvarY = CreateConVar('dlib_hpos_' .. name .. '_y', tostring(y), {FCVAR_ARCHIVE}, 'X position of corresponding HUD element')
 
-	Pos2.XPositions_original[name] = cvarX:GetFloat():clamp(0, 1)
-	Pos2.YPositions_original[name] = cvarY:GetFloat():clamp(0, 1)
+	XPositions_original[name] = cvarX:GetFloat():clamp(0, 1)
+	YPositions_original[name] = cvarY:GetFloat():clamp(0, 1)
 
-	Pos2.XPositions_mul[name] = 1 - Pos2.XPositions_original[name]:progression(0, 1, 0.5) * 0.8
-	Pos2.YPositions_mul[name] = 1 - Pos2.YPositions_original[name]:progression(0, 1, 0.5) * 0.8
+	XPositions_mul[name] = 1 - XPositions_original[name]:progression(0, 1, 0.5) * 0.8
+	YPositions_mul[name] = 1 - YPositions_original[name]:progression(0, 1, 0.5) * 0.8
 
-	Pos2.XPositions_modified[name] = x * ScrWL()
-	Pos2.YPositions_modified[name] = y * ScrHL()
+	XPositions_modified[name] = x * ScrWL()
+	YPositions_modified[name] = y * ScrHL()
 
 	cvars.AddChangeCallback('dlib_hpos_' .. name .. '_x', function()
-		local old = Pos2.XPositions_original[name]
-		Pos2.XPositions_original[name] = cvarX:GetFloat():clamp(0, 1)
-		Pos2.XPositions_mul[name] = 1 - Pos2.XPositions_original[name]:progression(0, 1, 0.5) * 0.8
-		hook.Run('HUDCommons_PositionSettingUpdatesX', name, old, Pos2.XPositions_original[name])
-		hook.Run('HUDCommons_PositionSettingUpdates', name, Pos2.XPositions_original[name], Pos2.YPositions_original[name])
+		local old = XPositions_original[name]
+		XPositions_original[name] = cvarX:GetFloat():clamp(0, 1)
+		XPositions_mul[name] = 1 - XPositions_original[name]:progression(0, 1, 0.5) * 0.8
+		hook.Run('HUDCommons_PositionSettingUpdatesX', name, old, XPositions_original[name])
+		hook.Run('HUDCommons_PositionSettingUpdates', name, XPositions_original[name], YPositions_original[name])
 	end, 'DLib.HUDCommons')
 
 	cvars.AddChangeCallback('dlib_hpos_' .. name .. '_y', function()
-		local old = Pos2.YPositions_original[name]
-		Pos2.YPositions_original[name] = cvarY:GetFloat():clamp(0, 1)
-		Pos2.YPositions_mul[name] = 1 - Pos2.YPositions_original[name]:progression(0, 1, 0.5) * 0.8
-		hook.Run('HUDCommons_PositionSettingUpdatesY', name, old, Pos2.YPositions_original[name])
-		hook.Run('HUDCommons_PositionSettingUpdates', name, Pos2.XPositions_original[name], Pos2.YPositions_original[name])
+		local old = YPositions_original[name]
+		YPositions_original[name] = cvarY:GetFloat():clamp(0, 1)
+		YPositions_mul[name] = 1 - YPositions_original[name]:progression(0, 1, 0.5) * 0.8
+		hook.Run('HUDCommons_PositionSettingUpdatesY', name, old, YPositions_original[name])
+		hook.Run('HUDCommons_PositionSettingUpdates', name, XPositions_original[name], YPositions_original[name])
 	end, 'DLib.HUDCommons')
 
-	Pos2.XPositions_CVars[name] = cvarX
-	Pos2.YPositions_CVars[name] = cvarY
+	XPositions_CVars[name] = cvarX
+	YPositions_CVars[name] = cvarY
 
-	if not table.HasValue(Pos2.XPositions, name) then
-		table.insert(Pos2.XPositions, name)
+	if not table.qhasValue(DefPositions, name) then
+		table.insert(DefPositions, name)
 	end
 
-	if not table.HasValue(Pos2.YPositions, name) then
-		table.insert(Pos2.YPositions, name)
-	end
-
-	Pos2.Positions_funcs[name] = shouldShift
+	Positions_funcs[name] = shouldShift
 
 	return function()
 		if shouldShift() then
-			return Pos2.XPositions_modified[name], Pos2.YPositions_modified[name]
+			return XPositions_modified[name], YPositions_modified[name]
 		else
-			return Pos2.XPositions_original[name] * ScrWL(), Pos2.YPositions_original[name] * ScrHL()
+			return XPositions_original[name] * ScrWL(), YPositions_original[name] * ScrHL()
 		end
 	end, cvarX, cvarY, function()
-		if Pos2.XPositions_original[name] < 0.33 then
+		if XPositions_original[name] < 0.33 then
 			return 'LEFT'
-		elseif Pos2.XPositions_original[name] > 0.66 then
+		elseif XPositions_original[name] > 0.66 then
 			return 'RIGHT'
 		else
 			return 'CENTER'
@@ -193,9 +194,9 @@ end
 	string: `"LEFT"`, `"RIGHT"` or `"CENTER"`
 ]]
 function Pos2.GetSide(name)
-	if Pos2.XPositions_original[name] < 0.33 then
+	if XPositions_original[name] < 0.33 then
 		return 'LEFT'
-	elseif Pos2.XPositions_original[name] > 0.66 then
+	elseif XPositions_original[name] > 0.66 then
 		return 'RIGHT'
 	else
 		return 'CENTER'
@@ -213,7 +214,7 @@ end
 	string: `"LEFT"` or `"RIGHT"`
 ]]
 function Pos2.GetSideStrict(name)
-	if Pos2.XPositions_original[name] < 0.5 then
+	if XPositions_original[name] < 0.5 then
 		return 'LEFT'
 	else
 		return 'RIGHT'
@@ -234,43 +235,37 @@ Pos2.CreatePosition = Pos2.DefinePosition
 	number: y
 ]]
 function Pos2.GetPos(elem)
-	if not Pos2.Positions_funcs[elem] or Pos2.Positions_funcs[elem]() then
-		return Pos2.XPositions_modified[elem] or 0, Pos2.YPositions_modified[elem] or 0
+	if not Positions_funcs[elem] or Positions_funcs[elem]() then
+		return XPositions_modified[elem] or 0, YPositions_modified[elem] or 0
 	else
-		return Pos2.XPositions_original[elem] or 0, Pos2.YPositions_original[elem] or 0
+		return XPositions_original[elem] or 0, YPositions_original[elem] or 0
 	end
 end
 
 Pos2.GetPosition = Pos2.GetPos
 
-function UpdatePositions()
+local function UpdatePositions()
 	local w, h = ScrWL(), ScrHL()
 
 	if ENABLE_SHIFTING:GetBool() and ENABLE_SHIFTING_SV:GetBool() then
 		if WEIGHTED:GetBool() then
-			for k, v in ipairs(Pos2.XPositions) do
-				Pos2.XPositions_modified[v] = Pos2.XPositions_original[v] * w + (Pos2.ShiftX + Pos2.ShiftX_Weapon + Pos2.ShiftX_Ground) * Pos2.XPositions_mul[v]
-			end
-
-			for k, v in ipairs(Pos2.YPositions) do
-				Pos2.YPositions_modified[v] = Pos2.YPositions_original[v] * h + (Pos2.ShiftY + Pos2.ShiftY_Weapon + Pos2.ShiftY_Ground) * Pos2.YPositions_mul[v]
+			for i = 1, #DefPositions do
+				local v = DefPositions[i]
+				XPositions_modified[v] = XPositions_original[v] * w + (ShiftX + ShiftX_Weapon + ShiftX_Ground) * XPositions_mul[v]
+				YPositions_modified[v] = YPositions_original[v] * h + (ShiftY + ShiftY_Weapon + ShiftY_Ground) * YPositions_mul[v]
 			end
 		else
-			for k, v in ipairs(Pos2.XPositions) do
-				Pos2.XPositions_modified[v] = Pos2.XPositions_original[v] * w + Pos2.ShiftX + Pos2.ShiftX_Weapon + Pos2.ShiftX_Ground
-			end
-
-			for k, v in ipairs(Pos2.YPositions) do
-				Pos2.YPositions_modified[v] = Pos2.YPositions_original[v] * h + Pos2.ShiftY + Pos2.ShiftY_Weapon + Pos2.ShiftY_Ground
+			for i = 1, #DefPositions do
+				local v = DefPositions[i]
+				XPositions_modified[v] = XPositions_original[v] * w + ShiftX + ShiftX_Weapon + ShiftX_Ground
+				YPositions_modified[v] = YPositions_original[v] * h + ShiftY + ShiftY_Weapon + ShiftY_Ground
 			end
 		end
 	else
-		for k, v in ipairs(Pos2.XPositions) do
-			Pos2.XPositions_modified[v] = Pos2.XPositions_original[v] * w
-		end
-
-		for k, v in ipairs(Pos2.YPositions) do
-			Pos2.YPositions_modified[v] = Pos2.YPositions_original[v] * h
+		for i = 1, #DefPositions do
+			local v = DefPositions[i]
+			XPositions_modified[v] = XPositions_original[v] * w
+			YPositions_modified[v] = YPositions_original[v] * h
 		end
 	end
 end
@@ -279,9 +274,14 @@ local LastOnGround = false
 local LastOnGroundIdle = 0
 local MOVETYPE_WALK = MOVETYPE_WALK
 
+local math_clamp = math.clamp
+local math_sin = math.sin
+local math_min = math.min
+local math_max = math.max
+local math_progression = math.progression
+
 local function UpdateShift(delta)
-	if not ENABLE_SHIFTING:GetBool() then return end
-	if not ENABLE_SHIFTING_SV:GetBool() then return end
+	if not ENABLE_SHIFTING:GetBool() or not ENABLE_SHIFTING_SV:GetBool() then return end
 
 	local ply = HUDCommons.SelectPlayer()
 	local ang = ply:EyeAngles()
@@ -296,46 +296,47 @@ local function UpdateShift(delta)
 		ground = true
 	end
 
-	local M1, M2 = ScreenScale(50) * SHIFTING_CLAMP_DEF:GetFloat():clamp(0, 10), ScreenSize(50) * SHIFTING_CLAMP_DEF:GetFloat():clamp(0, 10)
+	local M1, M2 = ScreenScale(math_clamp(SHIFTING_CLAMP_DEF:GetFloat(), 0, 10)), ScreenSize(math_clamp(SHIFTING_CLAMP_DEF:GetFloat(), 0, 10))
+	local rtime = RealTimeL()
 
 	if LastOnGround ~= ground then
 		LastOnGround = ground
 
 		if ground then
-			Pos2.ShiftX_Ground = 0
-			Pos2.ShiftY_Ground = -M1 * 4
+			ShiftX_Ground = 0
+			ShiftY_Ground = -M1 * 4
 		else
-			LastOnGroundIdle = RealTimeL() + 0.7
+			LastOnGroundIdle = rtime + 0.7
 		end
 	end
 
-	if not ground and LastOnGroundIdle < RealTimeL() and SHIFTING_AIR:GetBool() then
-		local anim = (RealTimeL() % math.pi) * (1 + RealTimeL():progression(LastOnGroundIdle, LastOnGroundIdle + 4)) * 5
-		Pos2.ShiftX_Ground = anim:sin() * (RealTimeL() - LastOnGroundIdle + 1):min(8) * ScreenSize(8)
-		Pos2.ShiftY_Ground = Pos2.ShiftY_Ground + M1 * delta * 5
+	if not ground and LastOnGroundIdle < rtime and SHIFTING_AIR:GetBool() then
+		local anim = (rtime % math.pi) * (1 + math_progression(rtime, LastOnGroundIdle, LastOnGroundIdle + 4)) * 5
+		ShiftX_Ground = math_sin(anim) * math_min(rtime - LastOnGroundIdle + 1, 8) * ScreenSize(8)
+		ShiftY_Ground = ShiftY_Ground + M1 * delta * 5
 	end
 
-	local changePitch = math.AngleDifference(ang.p, Pos2.LastAngle.p)
-	local changeYaw = math.AngleDifference(ang.y, Pos2.LastAngle.y)
+	local changePitch = math.AngleDifference(ang.p, LastAngle.p)
+	local changeYaw = math.AngleDifference(ang.y, LastAngle.y)
 
-	Pos2.LastAngle = LerpAngle(delta * 22, Pos2.LastAngle, ang)
-	Pos2.ShiftX = math.clamp(Pos2.ShiftX + changeYaw * 1.8, -M2, M2)
-	Pos2.ShiftX_Ground = math.clamp(Pos2.ShiftX_Ground, -M2 * 2, M2 * 2)
-	Pos2.ShiftY = math.clamp(Pos2.ShiftY - changePitch * 1.8, -M1, M1)
-	Pos2.ShiftY_Ground = math.clamp(Pos2.ShiftY_Ground, -M1 * 1.5, M1 * 3)
+	LastAngle = LerpAngle(delta * 22, LastAngle, ang)
+	ShiftX = math_clamp(ShiftX + changeYaw * 1.8, -M2, M2)
+	ShiftX_Ground = math_clamp(ShiftX_Ground, -M2 * 2, M2 * 2)
+	ShiftY = math_clamp(ShiftY - changePitch * 1.8, -M1, M1)
+	ShiftY_Ground = math_clamp(ShiftY_Ground, -M1 * 1.5, M1 * 3)
 
-	local oldX, oldY = Pos2.ShiftX, Pos2.ShiftY
+	local oldX, oldY = ShiftX, ShiftY
 
-	Pos2.ShiftX = Pos2.ShiftX - Pos2.ShiftX * delta * 11 * SHIFTING_MULT_DEF:GetFloat():clamp(0, 10)
-	Pos2.ShiftY = Pos2.ShiftY - Pos2.ShiftY * delta * 11 * SHIFTING_MULT_DEF:GetFloat():clamp(0, 10)
-	Pos2.ShiftY_Ground = Pos2.ShiftY_Ground - Pos2.ShiftY_Ground * delta * 4 * SHIFTING_MULT_DEF:GetFloat():clamp(0, 10)
+	ShiftX = ShiftX - ShiftX * delta * 11 * SHIFTING_MULT_DEF:GetFloat():clamp(0, 10)
+	ShiftY = ShiftY - ShiftY * delta * 11 * SHIFTING_MULT_DEF:GetFloat():clamp(0, 10)
+	ShiftY_Ground = ShiftY_Ground - ShiftY_Ground * delta * 4 * SHIFTING_MULT_DEF:GetFloat():clamp(0, 10)
 
-	if oldX > 0 and Pos2.ShiftX < 0 or oldX < 0 and Pos2.ShiftX > 0 then
-		Pos2.ShiftX = 0
+	if oldX > 0 and ShiftX < 0 or oldX < 0 and ShiftX > 0 then
+		ShiftX = 0
 	end
 
-	if oldY > 0 and Pos2.ShiftY < 0 or oldY < 0 and Pos2.ShiftY > 0 then
-		Pos2.ShiftY = 0
+	if oldY > 0 and ShiftY < 0 or oldY < 0 and ShiftY > 0 then
+		ShiftY = 0
 	end
 end
 
@@ -348,20 +349,23 @@ local Lerp = Lerp
 local LerpQuintic = LerpQuintic
 local RealFrameTime = RealFrameTime
 
-Pos2.Weapon_PosX_Change = 0
-Pos2.Weapon_PosY_Change = 0
-Pos2.Weapon_PosZ_Change = 0
+local Weapon_PosX_Change = 0
+local Weapon_PosY_Change = 0
+local Weapon_PosZ_Change = 0
 
-Pos2.Weapon_PosX_ChangeLerp = 0
-Pos2.Weapon_PosY_ChangeLerp = 0
-Pos2.Weapon_PosZ_ChangeLerp = 0
+local Weapon_PosX_ChangeLerp = 0
+local Weapon_PosY_ChangeLerp = 0
+local Weapon_PosZ_ChangeLerp = 0
+
+local math_abs = math.abs
 
 local function grabShiftOfEntity(plyPos, plyAng, view)
 	local xs, ys, zs = 0, 0, 0
 	local viewt = view:GetTable()
+	local private = viewt.__dlib_position2
 
-	if not viewt.__dlib_position2 then
-		viewt.__dlib_position2 = {
+	if not private then
+		private = {
 			multX = 0.25,
 			multY = 0.25,
 			multZ = 0.25,
@@ -376,46 +380,57 @@ local function grabShiftOfEntity(plyPos, plyAng, view)
 			weighedZ = 0.25,
 			weighedZLast = 0,
 		}
+
+		viewt.__dlib_position2 = private
 	end
 
-	local private = viewt.__dlib_position2
+	local bonesX, bonesY, bonesZ = private.bonesX, private.bonesY, private.bonesZ
+	local multX, multY, multZ = private.multX, private.multY, private.multZ
+
 	local rft = RealFrameTime()
 
 	local bones = view:GetBoneCount()
 
 	for bone = 0, bones - 1 do
+		-- this is damn slow
 		local bpos, bang = view:GetBonePosition(bone)
-		bang = bang + view:GetManipulateBoneAngles(bone)
-		bpos = bpos + view:GetManipulateBonePosition(bone)
-		local npos, nang = WorldToLocal(bpos, bang, plyPos, plyAng)
-		private.bonesX[bone + 1] = private.bonesX[bone + 1] or npos.x
-		private.bonesY[bone + 1] = private.bonesY[bone + 1] or npos.y
-		private.bonesZ[bone + 1] = private.bonesZ[bone + 1] or npos.z
 
-		local diffX, diffY, diffZ = (npos.x - private.bonesX[bone + 1]):abs(), (npos.y - private.bonesY[bone + 1]):abs(), (npos.z - private.bonesZ[bone + 1]):abs()
+		bang:Add(view:GetManipulateBoneAngles(bone))
+		bpos:Add(view:GetManipulateBonePosition(bone))
 
-		private.multX = math.max(Lerp(rft, private.multX, diffX), 0.1)
-		private.multY = math.max(Lerp(rft, private.multY, diffY), 0.1)
-		private.multZ = math.max(Lerp(rft, private.multZ, diffZ), 0.1)
+		local npos = WorldToLocal(bpos, bang, plyPos, plyAng)
+		local vX, vY, vZ = npos.x, npos.y, npos.z
 
-		xs = xs + npos.x / private.multX
-		ys = ys + npos.y / private.multY
-		zs = zs + npos.z / private.multZ
+		bonesX[bone + 1] = bonesX[bone + 1] or vX
+		bonesY[bone + 1] = bonesY[bone + 1] or vY
+		bonesZ[bone + 1] = bonesZ[bone + 1] or vZ
 
-		private.bonesX[bone + 1] = npos.x
-		private.bonesY[bone + 1] = npos.y
-		private.bonesZ[bone + 1] = npos.z
+		local diffX, diffY, diffZ = math_abs(vX - bonesX[bone + 1]), math_abs(vY - bonesY[bone + 1]), math_abs(vZ - bonesZ[bone + 1])
+
+		multX = math_max(Lerp(rft, multX, diffX), 0.1)
+		multY = math_max(Lerp(rft, multY, diffY), 0.1)
+		multZ = math_max(Lerp(rft, multZ, diffZ), 0.1)
+
+		xs = xs + vX / multX
+		ys = ys + vY / multY
+		zs = zs + vZ / multZ
+
+		bonesX[bone + 1] = vX
+		bonesY[bone + 1] = vY
+		bonesZ[bone + 1] = vZ
 	end
+
+	private.multX, private.multY, private.multZ = multX, multY, multZ
 
 	private.weighedXLast = private.weighedXLast or xs
 	private.weighedYLast = private.weighedYLast or ys
 	private.weighedZLast = private.weighedZLast or zs
 
-	local diffX, diffY, diffZ = (xs - private.weighedXLast):abs(), (ys - private.weighedYLast):abs(), (zs - private.weighedZLast):abs()
+	local diffX, diffY, diffZ = math_abs(xs - private.weighedXLast), math_abs(ys - private.weighedYLast), math_abs(zs - private.weighedZLast)
 
-	private.weighedX = math.max(Lerp(rft, private.weighedX, diffX), 0.1)
-	private.weighedY = math.max(Lerp(rft, private.weighedY, diffY), 0.1)
-	private.weighedZ = math.max(Lerp(rft, private.weighedZ, diffZ), 0.1)
+	private.weighedX = math_max(Lerp(rft, private.weighedX, diffX), 0.1)
+	private.weighedY = math_max(Lerp(rft, private.weighedY, diffY), 0.1)
+	private.weighedZ = math_max(Lerp(rft, private.weighedZ, diffZ), 0.1)
 
 	xs = xs / private.weighedX
 	ys = ys / private.weighedY
@@ -424,26 +439,28 @@ local function grabShiftOfEntity(plyPos, plyAng, view)
 	private.weighedXLast = xs
 	private.weighedYLast = ys
 	private.weighedZLast = zs
+
 	return bones, xs, ys, zs
 end
 
 local function UpdateWeaponShift(delta)
-	if not ENABLE_SHIFTING:GetBool() then return end
-	if not ENABLE_SHIFTING_WEAPON:GetBool() then return end
-	if not ENABLE_SHIFTING_SV:GetBool() then return end
-	if not ENABLE_SHIFTING_SV_WEAPON:GetBool() then return end
+	if not ENABLE_SHIFTING:GetBool() or not ENABLE_SHIFTING_WEAPON:GetBool() then return end
+	if not ENABLE_SHIFTING_SV:GetBool() or not ENABLE_SHIFTING_SV_WEAPON:GetBool() then return end
 
-	Pos2.ShiftX_Weapon = Lerp(delta * 7, Pos2.ShiftX_Weapon, 0)
-	Pos2.ShiftY_Weapon = Lerp(delta * 7, Pos2.ShiftY_Weapon, 0)
+	ShiftX_Weapon = Lerp(delta * 7, ShiftX_Weapon, 0)
+	ShiftY_Weapon = Lerp(delta * 7, ShiftY_Weapon, 0)
 
-	Pos2.Weapon_PosX_ChangeLerp = Lerp(delta, Pos2.Weapon_PosX_ChangeLerp, 0)
-	Pos2.Weapon_PosY_ChangeLerp = Lerp(delta, Pos2.Weapon_PosY_ChangeLerp, 0)
-	Pos2.Weapon_PosZ_ChangeLerp = Lerp(delta, Pos2.Weapon_PosZ_ChangeLerp, 0)
+	Weapon_PosX_ChangeLerp = Lerp(delta, Weapon_PosX_ChangeLerp, 0)
+	Weapon_PosY_ChangeLerp = Lerp(delta, Weapon_PosY_ChangeLerp, 0)
+	Weapon_PosZ_ChangeLerp = Lerp(delta, Weapon_PosZ_ChangeLerp, 0)
 
 	local ply = HUDCommons.SelectPlayer()
+
 	if ply:InVehicle() then return end
+
 	local wep = ply:GetActiveWeapon()
 	if not IsValid(wep) then return end
+
 	local plyPos = ply:EyePos()
 	local plyAng = ply:EyeAngles()
 	local xs, ys, zs = 0, 0, 0
@@ -474,7 +491,7 @@ local function UpdateWeaponShift(delta)
 	end
 
 	if amount <= 2 then return end
-	local div = ScreenSize(1) * SHIFTING_MULT_WEP:GetFloat():clamp(0, 10)
+	local div = ScreenSize(math_clamp(SHIFTING_MULT_WEP:GetFloat(), 0, 10))
 
 	amount = amount / 12
 	xs, ys, zs = xs / amount, ys / amount, zs / amount
@@ -483,11 +500,11 @@ local function UpdateWeaponShift(delta)
 	local changeZ = (zs - lastWeaponPosZ) * div
 	local nancheck = changeX ~= changeX or changeY ~= changeY or changeZ ~= changeZ
 
-	Pos2.Weapon_PosX_Change = changeX
-	Pos2.Weapon_PosY_Change = changeY
-	Pos2.Weapon_PosZ_Change = changeZ
-
 	if not nancheck then
+		Weapon_PosX_Change = changeX
+		Weapon_PosY_Change = changeY
+		Weapon_PosZ_Change = changeZ
+
 		lastChangeX = Lerp(delta * 11, lastChangeX, changeX)
 		lastChangeY = Lerp(delta * 11, lastChangeY, changeY)
 		lastChangeZ = Lerp(delta * 11, lastChangeZ, changeZ)
@@ -495,37 +512,35 @@ local function UpdateWeaponShift(delta)
 		lastWeaponPosY = Lerp(delta * 44, lastWeaponPosY, ys)
 		lastWeaponPosZ = Lerp(delta * 44, lastWeaponPosZ, zs)
 
-		Pos2.Weapon_PosX_ChangeLerp = Lerp(delta * 22, Pos2.Weapon_PosX_ChangeLerp, changeX)
-		Pos2.Weapon_PosY_ChangeLerp = Lerp(delta * 22, Pos2.Weapon_PosY_ChangeLerp, changeY)
-		Pos2.Weapon_PosZ_ChangeLerp = Lerp(delta * 22, Pos2.Weapon_PosZ_ChangeLerp, changeZ)
+		Weapon_PosX_ChangeLerp = Lerp(delta * 22, Weapon_PosX_ChangeLerp, changeX)
+		Weapon_PosY_ChangeLerp = Lerp(delta * 22, Weapon_PosY_ChangeLerp, changeY)
+		Weapon_PosZ_ChangeLerp = Lerp(delta * 22, Weapon_PosZ_ChangeLerp, changeZ)
 
-		if math.abs(changeX) > 100 or math.abs(changeY) > 100 or math.abs(changeY) > 100 then return end
+		if math_abs(changeX) > 100 or math_abs(changeY) > 100 or math_abs(changeY) > 100 then return end
 
 		--lastWeaponPosX = xs
 		--lastWeaponPosY = ys
 		--lastWeaponPosZ = zs
 
-		local M = ScreenSize(20) * SHIFTING_CLAMP_WEP:GetFloat():clamp(0, 10)
-		Pos2.ShiftX_Weapon = math.Clamp(Pos2.ShiftX_Weapon + ((lastChangeX / delta) - (lastChangeY / delta)) * 0.3, -M, M)
-		Pos2.ShiftY_Weapon = math.Clamp(Pos2.ShiftY_Weapon + ((lastChangeZ / delta)) * 0.3, -M, M)
+		local M = ScreenSize(math_abs(SHIFTING_CLAMP_WEP:GetFloat(), 0, 10))
+		ShiftX_Weapon = math.Clamp(ShiftX_Weapon + ((lastChangeX / delta) - (lastChangeY / delta)) * 0.3, -M, M)
+		ShiftY_Weapon = math.Clamp(ShiftY_Weapon + ((lastChangeZ / delta)) * 0.3, -M, M)
 	else
-		if DLib.DEBUG_MODE:GetBool() then
-			DLib.Message('Invalid position of weapon viewmodel')
-		end
+		DLib.Message('Invalid position of weapon viewmodel: ', changeX, ' ', changeY, ' ', changeZ, ' of ', ply:GetViewModel(), ' ', ply:GetHands())
 
-		Pos2.Weapon_PosX_Change = 0
-		Pos2.Weapon_PosY_Change = 0
-		Pos2.Weapon_PosZ_Change = 0
+		Weapon_PosX_Change = 0
+		Weapon_PosY_Change = 0
+		Weapon_PosZ_Change = 0
 
 		lastWeaponPosX, lastWeaponPosY, lastWeaponPosZ = 0, 0, 0
 		lastChangeX, lastChangeY, lastChangeZ = 0, 0, 0
 
-		Pos2.ShiftX_Weapon = 0
-		Pos2.ShiftY_Weapon = 0
+		ShiftX_Weapon = 0
+		ShiftY_Weapon = 0
 
-		Pos2.Weapon_PosX_ChangeLerp = 0
-		Pos2.Weapon_PosY_ChangeLerp = 0
-		Pos2.Weapon_PosZ_ChangeLerp = 0
+		Weapon_PosX_ChangeLerp = 0
+		Weapon_PosY_ChangeLerp = 0
+		Weapon_PosZ_ChangeLerp = 0
 	end
 end
 
@@ -536,6 +551,7 @@ local function Think()
 	local delta = time - lastThink
 	lastThink = time
 	if delta == 0 then return end
+
 	UpdateShift(delta)
 	UpdateWeaponShift(delta)
 	UpdatePositions()
