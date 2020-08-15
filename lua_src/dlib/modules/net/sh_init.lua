@@ -148,6 +148,10 @@ function net.AccessReadBuffer()
 	return assert(net.AccessReadData().buffer, 'Message is zero length')
 end
 
+function net.BytesWritten()
+	return net.AccessWriteBuffer().buffer.length
+end
+
 function net.Discard()
 	table.remove(net.active_write_buffers)
 end
