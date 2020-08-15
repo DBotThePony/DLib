@@ -149,7 +149,7 @@ function net.AccessReadBuffer()
 end
 
 function net.BytesWritten()
-	return net.AccessWriteBuffer().buffer.length
+	return net.AccessWriteBuffer().length
 end
 
 function net.Discard()
