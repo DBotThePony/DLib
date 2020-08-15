@@ -115,7 +115,7 @@ function net.SendOmit(data)
 	filter:AddAllPlayers()
 
 	if type(data) == 'Player' then
-		filer:RemovePlayer(data)
+		filter:RemovePlayer(data)
 	elseif type(data) == 'table' then
 		for _, ply in ipairs(data) do
 			if IsValid(ply) then
@@ -124,7 +124,7 @@ function net.SendOmit(data)
 		end
 	end
 
-	net.Send(filer)
+	net.Send(filter)
 end
 
 local GetHumans = player.GetHumans
