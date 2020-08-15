@@ -54,11 +54,14 @@ net.server_chunks_num = net.server_chunks_num or 0
 net.server_queued_num = net.server_queued_num or 0
 net.server_datagrams_num = net.server_datagrams_num or 0
 
-net.next_expected_datagram = net.next_expected_datagram or -1
+net.next_expected_datagram = net.next_expected_datagram or 0
+net.next_expected_chunk = net.next_expected_chunk or 0
+
 net.last_expected_ack = net.last_expected_ack or 0xFFFFFFFF
 net.server_queued_size = net.server_queued_size or 0
 
 net.next_datagram_id = net.next_datagram_id or 0
+net.next_chunk_id = net.next_chunk_id or 0
 
 if net.server_datagram_ack == nil then
 	net.server_datagram_ack = true
@@ -95,8 +98,12 @@ function net.Think()
 		_net.Start('dlib_net_ack1')
 		_net.SendToServer()
 
-		net.last_expected_ack = time + 30
+		net.last_expected_ack = time + 10
 	end
 end
 
 hook.Add('Think', 'DLib.Net.ThinkChunks', net.Think)
+
+function net.Namespace()
+	return net
+end

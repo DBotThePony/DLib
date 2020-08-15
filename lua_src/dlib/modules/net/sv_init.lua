@@ -131,6 +131,49 @@ local GetHumans = player.GetHumans
 local ipairs = ipairs
 local next = next
 
+function net.Namespace(target)
+	if type(target) == 'Player' then
+		if target.dlib_net ~= nil then return target.dlib_net end
+		target.dlib_net = {}
+		return net.Namespace(target.dlib_net)
+	end
+
+	target.network_position = target.network_position or 0
+	target.accumulated_size = target.accumulated_size or 0
+	target.queued_buffers = target.queued_buffers or {}
+	target.queued_buffers_num = target.queued_buffers_num or 0
+	target.queued_chunks = target.queued_chunks or {}
+	target.queued_chunks_num = target.queued_chunks_num or 0
+	target.queued_datagrams = target.queued_datagrams or {}
+	target.queued_datagrams_num = target.queued_datagrams_num or 0
+
+	target.server_position = target.server_position or 0
+	target.server_chunks = target.server_chunks or {}
+	target.server_chunks_num = target.server_chunks_num or 0
+	target.server_queued = target.server_queued or {}
+	target.server_queued_num = target.server_queued_num or 0
+	target.server_queued_size = target.server_queued_size or 0
+	target.server_datagrams = target.server_datagrams or {}
+	target.server_datagrams_num = target.server_datagrams_num or 0
+	target.next_expected_datagram = target.next_expected_datagram or 0
+	target.next_expected_chunk = target.next_expected_chunk or 0
+
+	target.last_expected_ack = target.last_expected_ack or 0xFFFFFFFF
+
+	target.next_datagram_id = target.next_datagram_id or 0
+	target.next_chunk_id = target.next_chunk_id or 0
+
+	if target.server_datagram_ack == nil then
+		target.server_datagram_ack = true
+	end
+
+	if target.server_chunk_ack == nil then
+		target.server_chunk_ack = true
+	end
+
+	return target
+end
+
 function net.Think()
 	local time = RealTime()
 	local iter = GetHumans()
@@ -152,7 +195,7 @@ function net.Think()
 			_net.Start('dlib_net_ack1')
 			_net.Send(ply)
 
-			namespace.last_expected_ack = time + 30
+			namespace.last_expected_ack = time + 10
 		end
 
 		if namespace.server_datagrams_num_warn ~= namespace.server_datagrams_num then

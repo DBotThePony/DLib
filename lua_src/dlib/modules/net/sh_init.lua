@@ -22,6 +22,10 @@ local DLib = DLib
 local _net = net
 local net = DLib.net
 
+local function debug(str)
+	--file.Append('dlib_net_debug.txt', str .. '\n')
+end
+
 net.Receivers = net.Receivers or {}
 net.ReceiversAntispam = net.ReceiversAntispam or {}
 
@@ -48,7 +52,6 @@ net.message_chunk_limit = 0x8000
 net.message_datagram_limit = 0x400
 net.datagram_queue_size_limit = 0x10000 -- idiot proofing from flooding server's memory with trash data
 net.window_size_limit = 0x1000000 -- idiot proofing from flooding server's memory with trash data
-net._next_chunk = net._next_chunk or 0
 
 function net.UpdateWindowProperties()
 	net.window_size_limit = net.WINDOW_SIZE_LIMIT:GetInt(0x1000000)
@@ -99,7 +102,7 @@ function net.TriggerEvent(network_id, buffer, ply)
 			local time = antispam.func()
 
 			if not target[index] then
-				target[index] = time + antispam.cooldown
+				target[index] = 0
 			end
 
 			if target[index] > time then
@@ -156,55 +159,14 @@ function net.Discard()
 	table.remove(net.active_write_buffers)
 end
 
-function net.Namespace(target)
-	if type(target) == 'Player' then
-		if target.dlib_net ~= nil then return target.dlib_net end
-		target.dlib_net = {}
-		return net.Namespace(target.dlib_net)
-	end
-
-	if CLIENT then return target end
-
-	target.network_position = target.network_position or 0
-	target.accumulated_size = target.accumulated_size or 0
-	target.queued_buffers = target.queued_buffers or {}
-	target.queued_buffers_num = target.queued_buffers_num or 0
-	target.queued_chunks = target.queued_chunks or {}
-	target.queued_chunks_num = target.queued_chunks_num or 0
-	target.queued_datagrams = target.queued_datagrams or {}
-	target.queued_datagrams_num = target.queued_datagrams_num or 0
-
-	target.server_position = target.server_position or 0
-	target.server_chunks = target.server_chunks or {}
-	target.server_chunks_num = target.server_chunks_num or 0
-	target.server_queued = target.server_queued or {}
-	target.server_queued_num = target.server_queued_num or 0
-	target.server_queued_size = target.server_queued_size or 0
-	target.server_datagrams = target.server_datagrams or {}
-	target.server_datagrams_num = target.server_datagrams_num or 0
-	target.next_expected_datagram = target.next_expected_datagram or -1
-
-	target.last_expected_ack = target.last_expected_ack or 0xFFFFFFFF
-
-	target.next_datagram_id = target.next_datagram_id or 0
-
-	if target.server_datagram_ack == nil then
-		target.server_datagram_ack = true
-	end
-
-	if target.server_chunk_ack == nil then
-		target.server_chunk_ack = true
-	end
-
-	return target
-end
-
 _net.receive('dlib_net_ack1', function(_, ply)
 	local namespace = net.Namespace(CLIENT and net or ply)
-	namespace.last_expected_ack = RealTime() + 30
+	namespace.last_expected_ack = RealTime() + 10
 
 	namespace.server_chunk_ack = true
 	namespace.server_datagram_ack = true
+
+	debug('Ask 1')
 
 	_net.Start('dlib_net_ack2')
 
@@ -216,8 +178,10 @@ _net.receive('dlib_net_ack1', function(_, ply)
 end)
 
 _net.receive('dlib_net_ack2', function(_, ply)
+	debug('Ask 2')
+
 	local namespace = net.Namespace(CLIENT and net or ply)
-	namespace.last_expected_ack = RealTime() + 30
+	namespace.last_expected_ack = RealTime() + 10
 	namespace.server_chunk_ack = true
 	namespace.server_datagram_ack = true
 end)
@@ -232,6 +196,10 @@ _net.receive('dlib_net_chunk', function(_, ply)
 	local length = _net.ReadUInt16()
 	local chunk = _net.ReadData(length)
 
+	debug(
+		string.format('Received chunk: Chunkid %d, current chunk number %d, total chunks %d, position: %d->%d, compressed: %s, lenght: %s',
+		chunkid, current_chunk, chunks, startpos, endpos, is_compressed and 'Yes' or 'No', length))
+
 	_net.Start('dlib_net_chunk_ack')
 	_net.WriteUInt32(chunkid)
 	_net.WriteUInt32(current_chunk)
@@ -243,6 +211,8 @@ _net.receive('dlib_net_chunk', function(_, ply)
 	end
 
 	local namespace = net.Namespace(CLIENT and net or ply)
+
+	if namespace.next_expected_chunk > chunkid then return end
 
 	local data = namespace.queued_chunks[chunkid]
 
@@ -271,7 +241,15 @@ _net.receive('dlib_net_chunk', function(_, ply)
 	namespace.accumulated_size = namespace.accumulated_size + #chunk
 
 	if table.Count(data.chunks) == data.total_chunks then
+		if namespace.next_expected_chunk == chunkid then
+			namespace.next_expected_chunk = chunkid + 1
+		end
+
 		local stringdata = table.concat(data.chunks, '')
+
+		debug(
+			string.format('Built up chunks! Chunkid %d, total chunks %d, position: %d->%d, compressed: %s, lenght: %s',
+			chunkid, current_chunk, chunks, startpos, endpos, is_compressed and 'Yes' or 'No', length))
 
 		namespace.accumulated_size = namespace.accumulated_size - #stringdata
 
@@ -319,6 +297,10 @@ _net.receive('dlib_net_datagram', function(_, ply)
 		local endpos = _net.ReadUInt32()
 		local dgram_id = _net.ReadUInt32()
 		_net.WriteUInt32(dgram_id)
+
+		debug(
+			string.format('Received datagram: ID: %d position: %d->%d, network string id: %d',
+			dgram_id, startpos, endpos, readnetid))
 
 		if dgram_id >= namespace.next_expected_datagram then
 			namespace.queued_datagrams[dgram_id] = {
@@ -383,6 +365,11 @@ function net.ProcessIncomingQueue(namespace, ply)
 			for i, bdata in pairs(namespace.queued_buffers) do
 				if bdata.endpos < fdata.startpos then
 					stop = false
+
+					debug(
+						string.format('[!] Discarding buffer %d position %d->%d because of datagram %d being at %d->%d',
+						i, bdata.startpos, bdata.endpos, fdgram, fdata.startpos, fdata.endpos))
+
 					namespace.accumulated_size = namespace.accumulated_size - bdata.buffer.length
 					namespace.queued_buffers[i] = nil
 					namespace.queued_buffers_num = namespace.queued_buffers_num - 1
@@ -395,6 +382,11 @@ function net.ProcessIncomingQueue(namespace, ply)
 			namespace.queued_datagrams_num = namespace.queued_datagrams_num - 1
 			namespace.next_expected_datagram = namespace.next_expected_datagram + 1
 			hit = true
+
+			debug(
+				string.format('Processed empty payload datagram %d',
+				fdgram))
+
 			net.TriggerEvent(fdata.readnetid, nil, ply)
 		else
 			for i, bdata in pairs(namespace.queued_buffers) do
@@ -405,6 +397,10 @@ function net.ProcessIncomingQueue(namespace, ply)
 					namespace.network_position = fdata.endpos
 
 					if fdata.endpos == bdata.endpos then
+						debug(
+							string.format('Removing buffer %d because it\'s bounds are finished %d->%d for datagram %d (%d->%d)',
+							i, fdata.startpos, fdata.endpos, fdgram, fdata.startpos, fdata.endpos))
+
 						namespace.accumulated_size = namespace.accumulated_size - bdata.buffer.length
 						namespace.queued_buffers[i] = nil
 						namespace.queued_buffers_num = namespace.queued_buffers_num - 1
@@ -412,6 +408,10 @@ function net.ProcessIncomingQueue(namespace, ply)
 
 					local len = fdata.endpos - fdata.startpos
 					local start = fdata.startpos - bdata.startpos
+
+					debug(
+						string.format('Processed datagram %d with position %d->%d and network id %d',
+						fdgram, fdata.startpos, fdata.endpos, fdata.readnetid))
 
 					net.TriggerEvent(fdata.readnetid, DLib.BytesBufferView(start, start + len, bdata.buffer), ply)
 
@@ -425,6 +425,7 @@ function net.ProcessIncomingQueue(namespace, ply)
 end
 
 function net.DiscardAndFire(namespace)
+	namespace = CLIENT and net or namespace
 	local discarded_num, discarded_bytes = 0, 0
 
 	local minimal = 0xFFFFFFFFF
@@ -438,9 +439,10 @@ function net.DiscardAndFire(namespace)
 	for dgram_id, data in pairs(namespace.queued_datagrams) do
 		if data.startpos < minimal then
 			namespace.queued_datagrams[dgram_id] = nil
-			namespace.queued_datagrams_num = namespace.queued_datagrams_num - 1
 		end
 	end
+
+	namespace.queued_datagrams_num = table.Count(namespace.queued_datagrams)
 
 	namespace.next_expected_datagram = -1
 	namespace.last_expected_ack = 0xFFFFFFFF
@@ -468,6 +470,9 @@ function net.Dispatch(ply)
 
 	namespace.server_queued_size = namespace.server_queued_size + data.buffer.length
 
+	local dgram_id = namespace.next_datagram_id
+	namespace.next_datagram_id = namespace.next_datagram_id + 1
+
 	if data.buffer.length ~= 0 then
 		table.insert(namespace.server_queued, {
 			buffer = data.buffer,
@@ -475,6 +480,10 @@ function net.Dispatch(ply)
 			startpos = startpos,
 			endpos = endpos,
 		})
+
+		debug(
+			string.format('Queueing message payload for %d with position %d->%d',
+			dgram_id, startpos, endpos))
 
 		namespace.server_queued_num = namespace.server_queued_num + 1
 
@@ -485,15 +494,16 @@ function net.Dispatch(ply)
 
 	namespace.server_position = endpos
 
-	local dgram_id = namespace.next_datagram_id
-	namespace.next_datagram_id = namespace.next_datagram_id + 1
-
 	namespace.server_datagrams[dgram_id] = {
 		id = data.id,
 		startpos = startpos,
 		endpos = endpos,
 		dgram_id = dgram_id,
 	}
+
+	debug(
+		string.format('Queueing datagram %d with position %d->%d',
+		dgram_id, startpos, endpos))
 
 	namespace.server_datagrams_num = namespace.server_datagrams_num + 1
 
@@ -502,7 +512,7 @@ function net.Dispatch(ply)
 	end
 
 	if namespace.last_expected_ack == 0xFFFFFFFF then
-		namespace.last_expected_ack = RealTime() + 30
+		namespace.last_expected_ack = RealTime() + 10
 	end
 end
 
@@ -532,8 +542,8 @@ function net.DispatchChunk(ply)
 			compressed = util.Compress(build)
 		end
 
-		local _next_chunk = net._next_chunk
-		net._next_chunk = net._next_chunk + 1
+		local next_chunk_id = namespace.next_chunk_id
+		namespace.next_chunk_id = namespace.next_chunk_id + 1
 
 		local data = {
 			chunks = {},
@@ -541,7 +551,7 @@ function net.DispatchChunk(ply)
 			startpos = startpos,
 			endpos = endpos,
 			length = endpos - startpos,
-			chunkid = _next_chunk,
+			chunkid = next_chunk_id,
 			current_chunk = 1,
 		}
 
@@ -568,6 +578,10 @@ function net.DispatchChunk(ply)
 	local chunkNum, chunkData = next(data.chunks)
 
 	if not chunkNum then
+		debug(
+			string.format('Chunk %d is fully dispatched to target!',
+			data.chunkid))
+
 		table.remove(namespace.server_chunks, 1)
 		namespace.server_chunks_num = namespace.server_chunks_num - 1
 		namespace.server_queued_size = namespace.server_queued_size - data.length
@@ -582,7 +596,7 @@ function net.DispatchChunk(ply)
 	namespace.server_chunk_ack = false
 
 	if namespace.last_expected_ack == 0xFFFFFFFF then
-		namespace.last_expected_ack = RealTime() + 30
+		namespace.last_expected_ack = RealTime() + 10
 	end
 
 	_net.Start('dlib_net_chunk')
@@ -611,6 +625,10 @@ _net.receive('dlib_net_chunk_ack', function(_, ply)
 	local chunkid = _net.ReadUInt32()
 	local current_chunk = _net.ReadUInt32()
 
+	debug(
+		string.format('ACKed chunk %d with position %d',
+		chunkid, current_chunk))
+
 	for _, data in ipairs(namespace.server_chunks) do
 		if data.chunkid == chunkid then
 			data.chunks[current_chunk] = nil
@@ -620,7 +638,7 @@ _net.receive('dlib_net_chunk_ack', function(_, ply)
 	if namespace.server_chunks_num == 0 and namespace.server_datagrams_num == 0 then
 		namespace.last_expected_ack = 0xFFFFFFFF
 	else
-		namespace.last_expected_ack = RealTime() + 30
+		namespace.last_expected_ack = RealTime() + 10
 	end
 end)
 
@@ -683,7 +701,7 @@ _net.receive('dlib_net_datagram_ack', function(length, ply)
 	if namespace.server_chunks_num == 0 and namespace.server_datagrams_num == 0 then
 		namespace.last_expected_ack = 0xFFFFFFFF
 	else
-		namespace.last_expected_ack = RealTime() + 30
+		namespace.last_expected_ack = RealTime() + 10
 	end
 end)
 
