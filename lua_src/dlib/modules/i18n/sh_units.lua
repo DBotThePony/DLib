@@ -267,6 +267,8 @@ for i, row in ipairs(units:split('\n')) do
 	end
 end
 
+i18n.FormatWeight = i18n.FormatForce
+
 i18n.TEMPERATURE_UNITS = CreateConVar('dlib_unit_system_temperature', 'C', {FCVAR_ARCHIVE}, 'C/K/F')
 i18n.TEMPERATURE_UNITS_TYPE_CELSIUS = 0
 i18n.TEMPERATURE_UNITS_TYPE_KELVIN = 1
@@ -481,14 +483,14 @@ end
 
 --[[
 	@doc
-	@fname DLib.i18n.FormatWeight
-	@args number grams
+	@fname DLib.i18n.FormatMass
+	@args number kilograms
 
 	@returns
 	string
 ]]
-function i18n.FormatWeight(numIn)
-	return string.format('%s%s', i18n.FormatNum(numIn), i18n.localize('info.dlib.si.units.gram.suffix'))
+function i18n.FormatMass(numIn)
+	return string.format('%s%s', i18n.FormatNum(numIn * 1000), i18n.localize('info.dlib.si.units.gram.suffix'))
 end
 
 --[[
