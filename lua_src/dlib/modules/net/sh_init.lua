@@ -188,7 +188,7 @@ end)
 
 _net.receive('dlib_net_chunk', function(_, ply)
 	local chunkid = _net.ReadUInt32()
-	local current_chunk = _net.ReadUInt32()
+	local current_chunk = _net.ReadUInt16()
 	local chunks = _net.ReadUInt16()
 	local startpos = _net.ReadUInt32()
 	local endpos = _net.ReadUInt32()
@@ -202,7 +202,7 @@ _net.receive('dlib_net_chunk', function(_, ply)
 
 	_net.Start('dlib_net_chunk_ack')
 	_net.WriteUInt32(chunkid)
-	_net.WriteUInt32(current_chunk)
+	_net.WriteUInt16(current_chunk)
 
 	if CLIENT then
 		_net.SendToServer()
@@ -601,7 +601,7 @@ function net.DispatchChunk(ply)
 
 	_net.Start('dlib_net_chunk')
 	_net.WriteUInt32(data.chunkid)
-	_net.WriteUInt32(chunkNum)
+	_net.WriteUInt16(chunkNum)
 	_net.WriteUInt16(data.total_chunks)
 	_net.WriteUInt32(data.startpos)
 	_net.WriteUInt32(data.endpos)
@@ -623,7 +623,7 @@ _net.receive('dlib_net_chunk_ack', function(_, ply)
 	namespace.server_chunk_ack = true
 
 	local chunkid = _net.ReadUInt32()
-	local current_chunk = _net.ReadUInt32()
+	local current_chunk = _net.ReadUInt16()
 
 	debug(
 		string.format('ACKed chunk %d with position %d',
