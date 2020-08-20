@@ -716,7 +716,7 @@ local function round_bits(bitsin)
 		error('Bit amount overflow')
 	end
 
-	local round = math.round(bitsin / 8)
+	local round = math.ceil(bitsin / 8)
 
 	if round > 0 and round <= 4 then
 		return round * 8
