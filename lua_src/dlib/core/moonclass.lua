@@ -90,7 +90,7 @@ function DLib.CreateMoonClassBare(classname, object_definition, class_definition
 		end
 	})
 
-	return classdef, classdef.__base, base
+	return classdef, classdef.__base, base, base.__base
 end
 
 function DLib.CreateMoonClass(...)
