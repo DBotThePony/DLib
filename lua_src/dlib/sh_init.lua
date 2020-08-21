@@ -114,6 +114,7 @@ MsgC('[DLib] Initializing DLib core stage 2 ... ')
 DLib.MessageMaker = DLib.SharedInclude('util/message.lua')
 DLib.MessageMaker(DLib, 'DLib')
 DLib.SharedInclude('core/sandbox.lua')
+DLib.SharedInclude('core/moonclass.lua')
 DLib.SharedInclude('core/promise.lua')
 
 if jit then
