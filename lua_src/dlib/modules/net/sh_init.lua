@@ -334,6 +334,7 @@ _net.receive('dlib_net_datagram', function(_, ply)
 end)
 
 function net.ProcessIncomingQueue(namespace, ply)
+	if CLIENT and not AreEntitiesAvailable() then return end
 	local hit = true
 
 	while hit do
