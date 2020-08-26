@@ -44,12 +44,22 @@ function PANEL:Init()
 	self.tapX, self.tapY = 0, 0
 	self.oldW, self.oldH = 0, 0
 	self.minW, self.minH = 100, 30
+	self.maxW, self.maxH = ScrW() * 1.5, ScrH() * 1.5
 	self.currX, self.currY = 0, 0
 	self.translucent = 0
 	self:SetCursor('sizenwse')
 
 	hook.Add('PostRenderVGUI', self, self.PostRenderVGUI)
 end
+
+AccessorFunc(PANEL, 'minW', 'MinimalWidth')
+AccessorFunc(PANEL, 'minW', 'MinimalWide')
+AccessorFunc(PANEL, 'minH', 'MinimalHeight')
+AccessorFunc(PANEL, 'minH', 'MinimalTall')
+AccessorFunc(PANEL, 'maxW', 'MaximalWidth')
+AccessorFunc(PANEL, 'maxW', 'MaximalWide')
+AccessorFunc(PANEL, 'maxH', 'MaximalHeight')
+AccessorFunc(PANEL, 'maxH', 'MaximalTall')
 
 function PANEL:Paint(w, h)
 	surface.SetDrawColor(140, 140, 140, 150)
@@ -95,7 +105,7 @@ end
 function PANEL:GetNewDimensions()
 	local x, y = input.GetCursorPos()
 	local diffX, diffY = x - self.tapX, y - self.tapY
-	return math.max(self.oldW + diffX, self.minW), math.max(self.oldH + diffY, self.minH)
+	return math.clamp(self.oldW + diffX, self.minW, self.maxW), math.clamp(self.oldH + diffY, self.minH, self.maxH)
 end
 
 function PANEL:OnMouseReleased()
