@@ -215,6 +215,18 @@ function PANEL:Label(text)
 	return panel
 end
 
+function PANEL:PerformLayout(...)
+	if DFrame.PerformLayout then
+		DFrame.PerformLayout(self, ...)
+	end
+
+	self:PerformLayout2(...)
+end
+
+function PANEL:PerformLayout2(w, h)
+	-- override
+end
+
 vgui.Register('DLib_Window', PANEL, 'DFrame')
 
 --[[
