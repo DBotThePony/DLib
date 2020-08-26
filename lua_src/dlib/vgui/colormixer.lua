@@ -437,8 +437,15 @@ do
 	end
 
 	function PANEL:OpenPaletteWindow()
-		local posX, posY = self:LocalToScreen(self:GetWide(), 0)
-		posX = posX + 14
+		local posX, posY = self:LocalToScreen(self:GetWide() + 14, 0)
+
+		if posX + 420 > ScrW() then
+			posX = posX - 440 - self:GetWide()
+		end
+
+		if posY + 450 > ScrH() then
+			posY = posY - 460
+		end
 
 		if IsValid(self.palette_frame) then
 			self.palette_frame:SetPos(posX, posY)
