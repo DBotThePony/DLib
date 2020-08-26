@@ -37,6 +37,8 @@ local input = input
 ]]
 local PANEL = {}
 
+local dlib_instant_resize = CreateConVar('dlib_instant_resize', '1', {FCVAR_ARCHIVE}, 'Instantly resize windows by default. If this cause performance issues, you can disable this.')
+
 function PANEL:Init()
 	self.tapped = false
 	self.target = NULL
@@ -47,6 +49,7 @@ function PANEL:Init()
 	self.maxW, self.maxH = ScrW() * 1.5, ScrH() * 1.5
 	self.currX, self.currY = 0, 0
 	self.translucent = 0
+	self.instant_resize = dlib_instant_resize:GetBool()
 	self:SetCursor('sizenwse')
 
 	hook.Add('PostRenderVGUI', self, self.PostRenderVGUI)
@@ -60,6 +63,7 @@ AccessorFunc(PANEL, 'maxW', 'MaximalWidth')
 AccessorFunc(PANEL, 'maxW', 'MaximalWide')
 AccessorFunc(PANEL, 'maxH', 'MaximalHeight')
 AccessorFunc(PANEL, 'maxH', 'MaximalTall')
+AccessorFunc(PANEL, 'instant_resize', 'InstantResize')
 
 function PANEL:Paint(w, h)
 	surface.SetDrawColor(140, 140, 140, 150)
@@ -73,12 +77,26 @@ end
 
 function PANEL:PostRenderVGUI()
 	if not self.tapped and not self.fadeout then return end
-	surface.SetDrawColor(self.translucent * 2.5, self.translucent * 2.5, self.translucent * 2.5, self.translucent)
-	surface.DrawRect(self.currX, self.currY, self:GetNewDimensions())
+	if self.instant_resize and not self.tapped then return end
+
+	local w, h = self:GetNewDimensions()
+	w, h = w:round(), h:round()
+
+	if self.instant_resize then
+		local w2, h2 = self.target:GetSize()
+
+		if w2 ~= w or h2 ~= h then
+			self.target:SetSize(w, h)
+		end
+	else
+		surface.SetDrawColor(self.translucent * 2.5, self.translucent * 2.5, self.translucent * 2.5, self.translucent)
+		surface.DrawRect(self.currX, self.currY, w, h)
+	end
 end
 
 function PANEL:OnMousePressed(key)
 	if key ~= MOUSE_LEFT then return end
+
 	self.tapped = true
 	self.tapX, self.tapY = input.GetCursorPos()
 	self.oldW, self.oldH = self.target:GetSize()
@@ -110,6 +128,8 @@ function PANEL:GetNewDimensions()
 end
 
 function PANEL:OnMouseReleased()
+	if not self.tapped then return end
+
 	self.tapped = false
 	self.fadeout = true
 	local w, h = self:GetNewDimensions()
