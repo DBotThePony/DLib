@@ -84,6 +84,7 @@ function PANEL:OnMousePressed(key)
 	self.oldW, self.oldH = self.target:GetSize()
 	self.translucent = 0
 	self.currX, self.currY = self.target:GetPos()
+	self.fadeout = false
 end
 
 function PANEL:Think()
@@ -93,11 +94,11 @@ function PANEL:Think()
 			return
 		end
 
-		self.translucent = Lerp(FrameTime() * 5, self.translucent, 100)
+		self.translucent = Lerp(RealFrameTime() * 5, self.translucent, 100)
 	end
 
 	if self.fadeout then
-		self.translucent = Lerp(FrameTime() * 8, self.translucent, 0)
+		self.translucent = Lerp(RealFrameTime() * 8, self.translucent, 0)
 		self.fadeout = self.translucent > 1
 	end
 end
