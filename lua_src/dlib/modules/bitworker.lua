@@ -276,6 +276,30 @@ function bitworker.NumberToMantiss(numberIn, bitsAllowed)
 		return bits
 	end
 
+	-- AMD / Intel precision difference fix
+	-- Basically, 1.1125369292536e-308 in Intel CPU is ~= 0
+	-- but it is == 0 on AMD CPU
+	-- and since e-308 is edge mantissa value in double precision number
+	-- lets assume it is zero
+
+	if numberIn < 1 and numberIn > 0 and numberIn < 1.0e-307 then
+		local bits = {}
+
+		for i = 1, bitsAllowed do
+			bits[i] = 0
+		end
+
+		return bits
+	elseif numberIn > -1 and numberIn < 0 and numberIn > -1.0e-307 then
+		local bits = {}
+
+		for i = 1, bitsAllowed do
+			bits[i] = 0
+		end
+
+		return bits
+	end
+
 	local exp = 0
 	numberIn = math.abs(numberIn)
 	local lastMult = numberIn % 1
@@ -329,20 +353,30 @@ end
 ]]
 function bitworker.NumberToMantissFast(numberIn, bitsAllowed)
 	if not isValidNumber(numberIn) then
-		return 0
+		return 0, 0, 0
+	end
+
+	-- AMD / Intel precision difference fix
+	-- Basically, 1.1125369292536e-308 in Intel CPU is ~= 0
+	-- but it is == 0 on AMD CPU
+	-- and since e-308 is edge mantissa value in double precision number
+	-- lets assume it is zero
+
+	if numberIn < 1 and numberIn > 0 and numberIn < 1.0e-307 then
+		return 0, 0, 0
+	elseif numberIn > -1 and numberIn < 0 and numberIn > -1.0e-307 then
+		return 0, 0, 0
 	end
 
 	local exp, numberOut1, numberOut2 = 0, 0, 0
 	numberIn = math.abs(numberIn)
 	local lastMult = numberIn % 1
 
-	if numberIn >= 2 then
-		-- try to normalize number to be less than 2
-		-- shift to right
-		while numberIn >= 2 do
-			numberIn = numberIn / 2
-			exp = exp + 1
-		end
+	-- try to normalize number to be less than 2
+	-- shift to right
+	while numberIn >= 2 do
+		numberIn = numberIn / 2
+		exp = exp + 1
 	end
 
 	-- if our number is less than one, shift to left
@@ -480,7 +514,7 @@ function bitworker.FastFloatToBinaryIEEE(numberIn)
 	end
 
 	local mantissa1, mantissa2, exp = bitworker.NumberToMantissFast(numberIn, 23)
-	return bor(lshift(numberIn >= 0 and 0 or 1, 31), lshift(exp + 127, 23), mantissa1)
+	return bor(lshift(numberIn >= 0 and 0 or 1, 31), lshift(math.clamp(exp, -127, 127) + 127, 23), mantissa1)
 end
 
 --[[
@@ -498,7 +532,7 @@ function bitworker.FastDoubleToBinaryIEEE(numberIn)
 	end
 
 	local mantissa1, mantissa2, exp = bitworker.NumberToMantissFast(numberIn, 52)
-	return bor(lshift(numberIn >= 0 and 0 or 1, 31), lshift(exp + 1023, 20), rshift(mantissa1, 12)), bor(lshift(band(mantissa1, 4095), 20), mantissa2)
+	return bor(lshift(numberIn >= 0 and 0 or 1, 31), lshift(math.clamp(exp, -1023, 1023) + 1023, 20), rshift(mantissa1, 12)), bor(lshift(band(mantissa1, 4095), 20), mantissa2)
 end
 
 --[[
