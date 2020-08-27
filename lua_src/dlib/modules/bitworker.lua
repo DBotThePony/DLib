@@ -554,7 +554,7 @@ function bitworker.FastDoubleToBinaryIEEE(numberIn)
 	end
 
 	if not isValidNumber(numberIn) or iszero then
-		return 0
+		return 0, 0
 	end
 
 	local mantissa1, mantissa2, exp = bitworker.NumberToMantissFast(numberIn, 52)
