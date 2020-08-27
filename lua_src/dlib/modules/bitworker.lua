@@ -276,30 +276,6 @@ function bitworker.NumberToMantiss(numberIn, bitsAllowed)
 		return bits
 	end
 
-	-- AMD / Intel precision difference fix
-	-- Basically, 1.1125369292536e-308 in Intel CPU is ~= 0
-	-- but it is == 0 on AMD CPU
-	-- and since e-308 is edge mantissa value in double precision number
-	-- lets assume it is zero
-
-	if numberIn < 1 and numberIn > 0 and numberIn < 1.0e-307 then
-		local bits = {}
-
-		for i = 1, bitsAllowed do
-			bits[i] = 0
-		end
-
-		return bits
-	elseif numberIn > -1 and numberIn < 0 and numberIn > -1.0e-307 then
-		local bits = {}
-
-		for i = 1, bitsAllowed do
-			bits[i] = 0
-		end
-
-		return bits
-	end
-
 	local exp = 0
 	numberIn = math.abs(numberIn)
 	local lastMult = numberIn % 1
@@ -365,6 +341,8 @@ function bitworker.NumberToMantissFast(numberIn, bitsAllowed)
 	if numberIn < 1 and numberIn > 0 and numberIn < 1.0e-307 then
 		return 0, 0, 0
 	elseif numberIn > -1 and numberIn < 0 and numberIn > -1.0e-307 then
+		return 0, 0, 0
+	elseif numberIn == 0 then
 		return 0, 0, 0
 	end
 
@@ -480,7 +458,23 @@ end
 -- final range is bitsExponent + bitsMantissa + 2
 -- where 2 is two bits which one forwards number sign and one forward exponent sign
 function bitworker.FloatToBinaryIEEE(numberIn, bitsExponent, bitsMantissa)
-	if not isValidNumber(numberIn) or numberIn == 0 then
+	local iszero = numberIn == 0
+
+	if not iszero then
+		-- AMD / Intel precision difference fix
+		-- Basically, 1.1125369292536e-308 in Intel CPU is ~= 0
+		-- but it is == 0 on AMD CPU
+		-- and since e-308 is edge mantissa value in double precision number
+		-- lets assume it is zero
+
+		if numberIn < 1 and numberIn > 0 and numberIn < 1.0e-307 then
+			iszero = true
+		elseif numberIn > -1 and numberIn < 0 and numberIn > -1.0e-307 then
+			iszero = true
+		end
+	end
+
+	if not isValidNumber(numberIn) or iszero then
 		local bits = {}
 
 		for i = 0, bitsExponent + bitsMantissa do
@@ -509,7 +503,23 @@ end
 	number: integer representation of float
 ]]
 function bitworker.FastFloatToBinaryIEEE(numberIn)
-	if not isValidNumber(numberIn) or numberIn == 0 then
+	local iszero = numberIn == 0
+
+	if not iszero then
+		-- AMD / Intel precision difference fix
+		-- Basically, 1.1125369292536e-308 in Intel CPU is ~= 0
+		-- but it is == 0 on AMD CPU
+		-- and since e-308 is edge mantissa value in double precision number
+		-- lets assume it is zero
+
+		if numberIn < 1 and numberIn > 0 and numberIn < 1.0e-307 then
+			iszero = true
+		elseif numberIn > -1 and numberIn < 0 and numberIn > -1.0e-307 then
+			iszero = true
+		end
+	end
+
+	if not isValidNumber(numberIn) or iszero then
 		return 0
 	end
 
@@ -527,8 +537,24 @@ end
 	number: integer representation of double (second part)
 ]]
 function bitworker.FastDoubleToBinaryIEEE(numberIn)
-	if not isValidNumber(numberIn) or numberIn == 0 then
-		return 0, 0
+	local iszero = numberIn == 0
+
+	if not iszero then
+		-- AMD / Intel precision difference fix
+		-- Basically, 1.1125369292536e-308 in Intel CPU is ~= 0
+		-- but it is == 0 on AMD CPU
+		-- and since e-308 is edge mantissa value in double precision number
+		-- lets assume it is zero
+
+		if numberIn < 1 and numberIn > 0 and numberIn < 1.0e-307 then
+			iszero = true
+		elseif numberIn > -1 and numberIn < 0 and numberIn > -1.0e-307 then
+			iszero = true
+		end
+	end
+
+	if not isValidNumber(numberIn) or iszero then
+		return 0
 	end
 
 	local mantissa1, mantissa2, exp = bitworker.NumberToMantissFast(numberIn, 52)
