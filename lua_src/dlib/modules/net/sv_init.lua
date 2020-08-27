@@ -190,6 +190,11 @@ function net.Think()
 			net.DispatchDatagram(ply)
 		end
 
+		if namespace.process_next and namespace.process_next < RealTime() then
+			namespace.process_next = nil
+			namespace.ProcessIncomingQueue(namespace, ply)
+		end
+
 		if namespace.last_expected_ack ~= 0xFFFFFFFF and namespace.last_expected_ack < time then
 			-- can you hear me?
 			_net.Start('dlib_net_ack1')

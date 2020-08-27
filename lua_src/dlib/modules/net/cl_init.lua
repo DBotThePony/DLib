@@ -100,6 +100,11 @@ function net.Think()
 
 		net.last_expected_ack = time + 10
 	end
+
+	if net.process_next and net.process_next < RealTime() then
+		net.process_next = nil
+		net.ProcessIncomingQueue(DLib.net)
+	end
 end
 
 hook.Add('Think', 'DLib.Net.ThinkChunks', net.Think)
