@@ -200,14 +200,16 @@ _net.receive('dlib_net_chunk', function(_, ply)
 		string.format('Received chunk: Chunkid %d, current chunk number %d, total chunks %d, position: %d->%d, compressed: %s, lenght: %s',
 		chunkid, current_chunk, chunks, startpos, endpos, is_compressed and 'Yes' or 'No', length))
 
-	_net.Start('dlib_net_chunk_ack')
-	_net.WriteUInt32(chunkid)
-	_net.WriteUInt16(current_chunk)
+	if CLIENT or not is_compressed or net.USE_COMPRESSION:GetBool() then
+		_net.Start('dlib_net_chunk_ack')
+		_net.WriteUInt32(chunkid)
+		_net.WriteUInt16(current_chunk)
 
-	if CLIENT then
-		_net.SendToServer()
-	else
-		_net.Send(ply)
+		if CLIENT then
+			_net.SendToServer()
+		else
+			_net.Send(ply)
+		end
 	end
 
 	local namespace = net.Namespace(CLIENT and net or ply)
@@ -292,6 +294,8 @@ _net.receive('dlib_net_datagram', function(_, ply)
 
 	_net.Start('dlib_net_datagram_ack')
 
+	local startread = SysTime()
+
 	while readnetid > 0 do
 		local startpos = _net.ReadUInt32()
 		local endpos = _net.ReadUInt32()
@@ -322,6 +326,16 @@ _net.receive('dlib_net_datagram', function(_, ply)
 		end
 
 		readnetid = _net.ReadUInt16()
+
+		if (SysTime() - startread) >= 0.1 then
+			if CLIENT then
+				DLib.MessageWarning('[!!!] DLib.net: Reading datagram list from server took more than 100 ms!')
+			else
+				DLib.MessageWarning('[!!!] DLib.net: Reading datagram list from ', ply, ' took more than 100 ms!')
+			end
+
+			break
+		end
 	end
 
 	if CLIENT then
@@ -337,7 +351,19 @@ function net.ProcessIncomingQueue(namespace, ply)
 	if CLIENT and not AreEntitiesAvailable() then return end
 	local hit = true
 
+	local startprocess = SysTime()
+
 	while hit do
+		if (SysTime() - startprocess) >= 0.4 then
+			if CLIENT then
+				DLib.MessageWarning('[!!!] DLib.net: net.ProcessIncomingQueue took 400 ms')
+			else
+				DLib.MessageWarning('[!!!] DLib.net: net.ProcessIncomingQueue for ', ply, ' took 400 ms')
+			end
+
+			break
+		end
+
 		hit = false
 
 		local fdgram, fdata
