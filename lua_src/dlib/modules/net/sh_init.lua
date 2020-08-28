@@ -316,7 +316,7 @@ _net.receive('dlib_net_datagram', function(_, ply)
 
 			namespace.queued_datagrams_num = namespace.queued_datagrams_num + 1
 
-			if namespace.queued_datagrams_num > 101 and namespace.queued_datagrams_num % 100 == 0 then
+			if namespace.queued_datagrams_num > 2001 and namespace.queued_datagrams_num % 100 == 0 then
 				if CLIENT then
 					DLib.MessageWarning('DLib.net: Queued ', namespace.queued_datagrams_num, ' datagrams from server!')
 				else
@@ -516,7 +516,7 @@ function net.Dispatch(ply)
 
 		namespace.server_queued_num = namespace.server_queued_num + 1
 
-		if CLIENT and namespace.server_queued_num > 101 and namespace.server_queued_num % 100 == 0 then
+		if CLIENT and namespace.server_queued_num > 2001 and namespace.server_queued_num % 400 == 0 then
 			DLib.MessageWarning('DLib.net: Queued ', namespace.server_queued_num, ' message payloads for server!')
 		end
 	end
@@ -536,7 +536,7 @@ function net.Dispatch(ply)
 
 	namespace.server_datagrams_num = namespace.server_datagrams_num + 1
 
-	if CLIENT and namespace.server_datagrams_num > 101 and namespace.server_datagrams_num % 100 == 0 then
+	if CLIENT and namespace.server_datagrams_num > 2001 and namespace.server_datagrams_num % 400 == 0 then
 		DLib.MessageWarning('DLib.net: Queued ', namespace.server_datagrams_num, ' datagrams for server!')
 	end
 
@@ -719,7 +719,7 @@ _net.receive('dlib_net_datagram_ack', function(length, ply)
 		end
 	end
 
-	if namespace.server_datagrams_num > 101 and namespace.server_datagrams_num % 100 == 0 then
+	if namespace.server_datagrams_num > 2001 then
 		if CLIENT then
 			DLib.MessageWarning('DLib.net: STILL have queued ', namespace.server_datagrams_num, ' datagrams for server!')
 		else

@@ -206,7 +206,7 @@ function net.Think()
 		if namespace.server_datagrams_num_warn ~= namespace.server_datagrams_num then
 			namespace.server_datagrams_num_warn = namespace.server_datagrams_num
 
-			if namespace.server_datagrams_num > 101 then
+			if namespace.server_datagrams_num > 2001 then
 				DLib.MessageWarning('DLib.net: Queued ', namespace.server_datagrams_num, ' datagrams for ', ply, '!')
 			end
 		end
@@ -214,7 +214,7 @@ function net.Think()
 		if namespace.server_queued_num_warn ~= namespace.server_queued_num then
 			namespace.server_queued_num_warn = namespace.server_queued_num
 
-			if namespace.server_queued_num > 101 then
+			if namespace.server_queued_num > 2001 then
 				DLib.MessageWarning('DLib.net: Queued ', namespace.server_queued_num, ' message payloads for ', ply, '!')
 			end
 		end
