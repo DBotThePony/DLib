@@ -199,8 +199,12 @@ class GON.Structure
 
 	WriteHeader: (bytesbuffer) =>
 		bytesbuffer\WriteBinary('\xF7\x7FDLib.GON\x00\x02')
-		bytesbuffer\WriteUByte(@next_reg_id - 1)
-		bytesbuffer\WriteString(@identity_registry[i]) for i = 0, @next_reg_id - 1
+
+		if @next_reg_id ~= 0
+			bytesbuffer\WriteUByte(@next_reg_id - 1)
+			bytesbuffer\WriteString(@identity_registry[i]) for i = 0, @next_reg_id - 1
+		else
+			bytesbuffer\WriteUShort(0)
 
 	WriteHeap: (bytesbuffer) =>
 		bytesbuffer\WriteUInt32(#@heap)
@@ -253,8 +257,13 @@ class GON.Structure
 
 			for i = 0, @next_reg_id - 1
 				read = bytesbuffer\ReadString()
-				@identity_registry[i] = read
-				@_identity_registry[read] = i
+
+				if read == '' and @next_reg_id == 0
+					-- file is empty
+					return
+				else
+					@identity_registry[i] = read
+					@_identity_registry[read] = i
 
 			return true
 
