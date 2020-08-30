@@ -503,6 +503,8 @@ end
 	number: integer representation of float
 ]]
 function bitworker.FastFloatToBinaryIEEE(numberIn)
+	if not isnumber(numberIn) then return 0x7FFFFFFF end
+
 	local iszero = numberIn == 0
 
 	if not iszero then
@@ -519,8 +521,20 @@ function bitworker.FastFloatToBinaryIEEE(numberIn)
 		end
 	end
 
-	if not isValidNumber(numberIn) or iszero then
+	if iszero then
 		return 0
+	end
+
+	if numberIn ~= numberIn then
+		return 0x7FFFFFFF
+	end
+
+	if numberIn == math.huge then
+		return 0x7F800000
+	end
+
+	if numberIn == -math.huge then
+		return 0x7FF80000
 	end
 
 	local mantissa1, mantissa2, exp = bitworker.NumberToMantissFast(numberIn, 23)
@@ -537,6 +551,8 @@ end
 	number: integer representation of double (second part)
 ]]
 function bitworker.FastDoubleToBinaryIEEE(numberIn)
+	if not isnumber(numberIn) then return 0x7FFFFFFF, 0xFFFFFFFF end
+
 	local iszero = numberIn == 0
 
 	if not iszero then
@@ -553,8 +569,20 @@ function bitworker.FastDoubleToBinaryIEEE(numberIn)
 		end
 	end
 
-	if not isValidNumber(numberIn) or iszero then
+	if iszero then
 		return 0, 0
+	end
+
+	if numberIn ~= numberIn then
+		return 0x7FFFFFFF, 0xFFFFFFFF
+	end
+
+	if numberIn == math.huge then
+		return 0x7F800000, 0x00000000
+	end
+
+	if numberIn == -math.huge then
+		return 0x7FF80000, 0x00000000
 	end
 
 	local mantissa1, mantissa2, exp = bitworker.NumberToMantissFast(numberIn, 52)
@@ -595,6 +623,8 @@ function bitworker.BinaryToFloatIEEE(bitsIn, bitsExponent, bitsMantissa)
 	return -value
 end
 
+local nan = 0 / 0
+
 --[[
 	@doc
 	@fname DLib.bitworker.FastBinaryToFloatIEEE
@@ -604,7 +634,12 @@ end
 	number: float
 ]]
 function bitworker.FastBinaryToFloatIEEE(numberIn)
-	if numberIn == 0 then return 0 end
+	if numberIn == 0x00000000 then return 0 end
+	if numberIn == 0x80000000 then return -0 end
+	if numberIn == 0x7FFFFFFF or numberIn == 0xFFFFFFFF then return nan end
+	if numberIn == 0x7F800000 then return math.huge end
+	if numberIn == 0x7FF80000 then return -math.huge end
+
 	local point = rshift(numberIn, 31)
 	local exp = band(rshift(numberIn, 23), 0xFF) - 127
 	local mantissa = band(numberIn, 0x7FFFFF)
@@ -623,7 +658,11 @@ end
 	number: double
 ]]
 function bitworker.FastBinaryToDoubleIEEE(numberIn1, numberIn2)
-	if numberIn == 0 then return 0 end
+	if (numberIn1 == 0x00000000 or numberIn1 == 0x80000000) and numberIn2 == 0x00000000 then return 0 end
+	if (numberIn1 == 0x7FFFFFFF or numberIn1 == 0xFFFFFFFF) and numberIn2 == 0xFFFFFFFF then return nan end
+	if numberIn1 == 0x7F800000 then return math.huge end
+	if numberIn1 == 0x7FF80000 then return -math.huge end
+
 	local point = rshift(numberIn1, 31)
 	local exp = band(rshift(numberIn1, 20), 0x7FF) - 1023
 	local mantissa1 = lshift(band(numberIn1, 0xFFFFF), 12)
