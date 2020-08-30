@@ -45,10 +45,9 @@ GON.RemoveProvider = (provider) ->
 			GON.Registry[i] = nil
 			return
 
-GON.RegisterProvider = (provider) ->
+GON.RegisterProvider = (provider, should_put) ->
 	identity = provider\GetIdentity()
 	identify = provider\LuaTypeIdentify()
-	should_put = provider\ShouldPutIntoMainRegistry()
 
 	GON.IdentityRegistry[identity] = provider
 
@@ -69,7 +68,6 @@ GON.RegisterProvider = (provider) ->
 
 class GON.IDataProvider
 	@LuaTypeIdentify = => @_IDENTIFY
-	@ShouldPutIntoMainRegistry = => @LuaTypeIdentify() == nil
 
 	@GetIdentity = => error('Not implemented')
 
@@ -137,6 +135,9 @@ class GON.Structure
 		return ret
 
 	FindInHeap: (value) =>
+		if isnumber(value) and value ~= value
+			return @nan_value or false
+
 		if @_heap
 			return @_heap[value] or false
 
@@ -150,7 +151,7 @@ class GON.Structure
 		_get = @_identity_registry[identity]
 		return _get if _get
 		_get = @next_reg_id
-		error('Too many types in a single file! 255 is the maximum!') if _get >= 0x100
+		error('Too many different types in a single file! 255 is the maximum!') if _get >= 0x100
 		@identity_registry[_get] = identity
 		@_identity_registry[identity] = _get
 		@next_reg_id += 1
@@ -162,6 +163,7 @@ class GON.Structure
 
 		ltype = luatype(value)
 		provider = GON.HashRegistry[ltype]
+		provider = nil if provider and not provider\Ask(value, ltype)
 
 		if not provider
 			for prov in *GON.Registry
@@ -178,7 +180,12 @@ class GON.Structure
 		serialized = provider(@, id)
 		serialized._identity_id = iid
 		@heap[id] = serialized
-		@_heap[value] = serialized if @_heap
+
+		if ltype == 'number' and value ~= value
+			@nan_value = serialized
+		else
+			@_heap[value] = serialized if @_heap
+
 		@root = serialized if not @root
 		serialized\SetValue(value)
 		return serialized
@@ -274,7 +281,15 @@ class GON.Structure
 				p = provider\Deserialize(bytesbuffer, @, heapid, len)
 				@heap[heapid] = p
 				p._identity_id = iid
-				@_heap[p\GetValue()] = p if @_heap and p\IsInstantValue()
+
+				realvalue = p\GetValue() if p\IsInstantValue()
+
+				if realvalue ~= nil
+					if isnumber(realvalue) and realvalue ~= realvalue
+						@nan_value = p
+					else
+						@_heap[realvalue] = p if @_heap
+
 				pos2 = bytesbuffer\Tell()
 				error('provider read more or less than required (' .. (pos2 - pos1) .. ' vs ' .. len .. ')') if (pos2 - pos1) ~= len
 
@@ -313,9 +328,20 @@ class GON.StringProvider extends GON.IDataProvider
 
 class GON.NumberProvider extends GON.IDataProvider
 	@_IDENTIFY = 'number'
+	@Ask = (value, ltype = luatype(value)) => ltype == 'number' and value == value
 	@GetIdentity = => 'builtin:number'
 	Serialize: (bytesbuffer) => bytesbuffer\WriteDouble(@value)
 	@Deserialize = (bytesbuffer, structure, heapid, length) => GON.NumberProvider(structure, heapid)\SetValue(bytesbuffer\ReadDouble())
+
+nan = 0 / 0
+
+class GON.NaNProvider extends GON.IDataProvider
+	@_IDENTIFY = 'nan'
+	@Ask = (value, ltype = luatype(value)) => ltype == 'number' and value ~= value
+	@GetIdentity = => 'builtin:nan'
+	Serialize: (bytesbuffer) =>
+	@Deserialize = (bytesbuffer, structure, heapid, length) => GON.NaNProvider(structure, heapid)
+	GetValue: => nan
 
 class GON.BooleanProvider extends GON.IDataProvider
 	@_IDENTIFY = 'boolean'
@@ -416,6 +442,7 @@ class GON.TableProvider extends GON.IDataProvider
 
 GON.RegisterProvider(GON.StringProvider)
 GON.RegisterProvider(GON.NumberProvider)
+GON.RegisterProvider(GON.NaNProvider, true)
 GON.RegisterProvider(GON.BooleanProvider)
 GON.RegisterProvider(GON.TableProvider)
 
