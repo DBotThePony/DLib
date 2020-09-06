@@ -298,23 +298,30 @@ local table = table
 local unpack = unpack
 local buffer = {}
 
+local bezier_lut = {}
+local bezier_lut2 = {}
+local bake_bezier, bake_bezier2
+
 local function tbezier(t, values, amount)
 	assert(type(t) == 'number', 'invalid T variable')
 	assert(t >= 0 and t <= 1, '0 <= t <= 1!')
-	assert(#values >= 2, 'at least two values must be provided')
-	local a, b = values[1], values[2]
+	assert(amount >= 2, 'at least two values must be provided')
 
 	-- linear
 	if amount == 2 then
 		return a + (b - a) * t
 	-- square
 	elseif amount == 3 then
-		return (1 - t):pow(2) * a + 2 * t * (1 - t) * b + t:pow(2) * values[3]
-	-- cube
+		return (1 - t) * (1 - t) * a + 2 * t * (1 - t) * b + t * t * values[3]
+	-- cubic
 	elseif amount == 4 then
-		return (1 - t):pow(3) * a + 3 * t * (1 - t):pow(2) * b + 3 * t:pow(2) * (1 - t) * values[3] + t:pow(3) * values[4]
+		return (1 - t) * (1 - t) * (1 - t) * a + 3 * t * (1 - t) * (1 - t) * b + 3 * t * t * (1 - t) * values[3] + t * t * t * values[4]
+	-- high prime, but not too high
+	elseif amount <= 200 then
+		return bake_bezier(amount)(t, values)
 	end
 
+	-- recursively construct lower prime
 	for point = 1, amount do
 		local point1 = values[point]
 		local point2 = values[point + 1]
@@ -325,6 +332,197 @@ local function tbezier(t, values, amount)
 	return tbezier(t, buffer, amount - 1)
 end
 
+local function bezier(t, a, b, c, d, ...)
+	assert(type(t) == 'number', 'invalid T variable')
+	assert(t >= 0 and t <= 1, '0 <= t <= 1!')
+	local amount = select('#', ...)
+	--assert(amount + 4 <= 200, 'Too many values! Use tbezier instead')
+
+	-- linear
+	if c == nil then
+		return a + (b - a) * t
+	-- square
+	elseif d == nil then
+		return (1 - t) * (1 - t) * a + 2 * t * (1 - t) * b + t * t * c
+	-- cubic
+	elseif amount == 0 then
+		return (1 - t) * (1 - t) * (1 - t) * a + 3 * t * (1 - t) * (1 - t) * b + 3 * t * t * (1 - t) * c + t * t * t * d
+	-- high prime, but not too high
+	elseif amount <= 196 then
+		return bake_bezier2(amount + 4)(t, a, b, c, d, ...)
+	end
+
+	-- fallback to slower method
+	return tbezier(t, {a, b, c, d, ...}, amount + 4)
+end
+
+do
+	local function pow(strin, times)
+		if times == 0 then return '1' end
+
+		if times > 4 then
+			return 'pow(' .. strin .. ', ' .. times .. ')'
+		end
+
+		local values2 = {}
+
+		for i2 = 1, times do
+			table.insert(values2, strin)
+		end
+
+		return table.concat(values2, ' * ')
+	end
+
+	local function factorial(numin)
+		if numin == 0 then return 1 end
+
+		local num = 1
+
+		for i = 1, numin do
+			num = num * i
+		end
+
+		return num
+	end
+
+	function bake_bezier(i)
+		local getfn = bezier_lut[i]
+		if getfn then return getfn end
+
+		local values = {}
+
+		for point = 0, i - 1 do
+			local compute = factorial(i - 1) / (factorial(point) * factorial(i - point - 1))
+			local str = pow('inv', i - 1 - point)
+
+			if str == '1' then str = '' end
+
+			local powt = pow('t', point)
+
+			if powt ~= '1' then
+				if str == '' then
+					str = powt
+				else
+					str = str .. ' * ' .. powt
+				end
+			end
+
+			if compute ~= 1 then
+				str = str .. ' * ' .. compute
+			end
+
+			if str == '' then
+				str = 'values[' .. (point + 1) .. ']'
+			else
+				str = str .. ' * values[' .. (point + 1) .. ']'
+			end
+
+			table.insert(values, str)
+		end
+
+		local lines = {}
+		local retstate = {}
+		local nextindex = 1
+
+		while #values ~= 0 do
+			local line = {}
+
+			for i = 1, 20 do
+				local dodel = table.remove(values, 1)
+				if not dodel then break end
+				table.insert(line, dodel)
+			end
+
+			table.insert(lines, 'local value_' .. nextindex .. ' = ' .. table.concat(line, ' + '))
+			table.insert(retstate, 'value_' .. nextindex)
+			nextindex = nextindex + 1
+		end
+
+		bezier_lut[i] = CompileString([[
+			local pow = math.pow
+
+			return function(t, values)
+				local inv = (1 - t)
+				]] .. table.concat(lines, '\n') .. [[
+				return ]] .. table.concat(retstate, ' + ') .. [[
+			end
+		]], 'DLib bezier curve N' .. i)()
+
+		return bezier_lut[i]
+	end
+
+	function bake_bezier2(i)
+		local getfn = bezier_lut2[i]
+		if getfn then return getfn end
+
+		local values = {}
+		local args = {}
+
+		for point = 0, i - 1 do
+			local compute = factorial(i - 1) / (factorial(point) * factorial(i - point - 1))
+			local str = pow('inv', i - 1 - point)
+
+			if str == '1' then str = '' end
+
+			local powt = pow('t', point)
+
+			if powt ~= '1' then
+				if str == '' then
+					str = powt
+				else
+					str = str .. ' * ' .. powt
+				end
+			end
+
+			if compute ~= 1 then
+				str = str .. ' * ' .. compute
+			end
+
+			if str == '' then
+				str = 'arg' .. (point + 1)
+			else
+				str = str .. ' * arg' .. (point + 1)
+			end
+
+			table.insert(args, 'arg' .. (point + 1))
+			table.insert(values, str)
+		end
+
+		local lines = {}
+		local retstate = {}
+		local nextindex = 1
+
+		while #values ~= 0 do
+			local line = {}
+
+			for i = 1, 20 do
+				local dodel = table.remove(values, 1)
+				if not dodel then break end
+				table.insert(line, dodel)
+			end
+
+			table.insert(lines, 'local value_' .. nextindex .. ' = ' .. table.concat(line, ' + '))
+			table.insert(retstate, 'value_' .. nextindex)
+			nextindex = nextindex + 1
+		end
+
+		bezier_lut2[i] = CompileString([[
+			local pow = math.pow
+
+			return function(t, ]] .. table.concat(args, ', ') .. [[)
+				local inv = (1 - t)
+				]] .. table.concat(lines, '\n') .. [[
+				return ]] .. table.concat(retstate, ' + ') .. [[
+			end
+		]], 'DLib bezier curve N' .. i)()
+
+		return bezier_lut2[i]
+	end
+end
+
+DLib.bezier_lut = bezier_lut
+DLib.bezier_lut2 = bezier_lut2
+
 --[[
 	@doc
 	@fname math.bezier
@@ -333,9 +531,7 @@ end
 	@returns
 	number
 ]]
-function math.bezier(t, ...)
-	return tbezier(t, {...}, select('#', ...))
-end
+math.bezier = bezier
 
 --[[
 	@doc
