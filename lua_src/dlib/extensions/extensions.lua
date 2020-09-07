@@ -309,13 +309,13 @@ local function tbezier(t, values, amount)
 
 	-- linear
 	if amount == 2 then
-		return a + (b - a) * t
+		return values[1] + (values[2] - values[1]) * t
 	-- square
 	elseif amount == 3 then
-		return (1 - t) * (1 - t) * a + 2 * t * (1 - t) * b + t * t * values[3]
+		return (1 - t) * (1 - t) * values[1] + 2 * t * (1 - t) * values[2] + t * t * values[3]
 	-- cubic
 	elseif amount == 4 then
-		return (1 - t) * (1 - t) * (1 - t) * a + 3 * t * (1 - t) * (1 - t) * b + 3 * t * t * (1 - t) * values[3] + t * t * t * values[4]
+		return (1 - t) * (1 - t) * (1 - t) * values[1] + 3 * t * (1 - t) * (1 - t) * values[2] + 3 * t * t * (1 - t) * values[3] + t * t * t * values[4]
 	-- high prime, but not too high
 	elseif amount <= 200 then
 		return bake_bezier(amount)(t, values)
