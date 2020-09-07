@@ -317,7 +317,7 @@ local function tbezier(t, values, amount)
 	elseif amount == 4 then
 		return (1 - t) * (1 - t) * (1 - t) * values[1] + 3 * t * (1 - t) * (1 - t) * values[2] + 3 * t * t * (1 - t) * values[3] + t * t * t * values[4]
 	-- high prime, but not too high
-	elseif amount <= 200 then
+	elseif amount <= 160 then
 		return bake_bezier(amount)(t, values)
 	end
 
@@ -348,7 +348,7 @@ local function bezier(t, a, b, c, d, ...)
 	elseif amount == 0 then
 		return (1 - t) * (1 - t) * (1 - t) * a + 3 * t * (1 - t) * (1 - t) * b + 3 * t * t * (1 - t) * c + t * t * t * d
 	-- high prime, but not too high
-	elseif amount <= 196 then
+	elseif amount <= 160 then
 		return bake_bezier2(amount + 4)(t, a, b, c, d, ...)
 	end
 
