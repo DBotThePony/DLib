@@ -458,3 +458,121 @@ function util.printflags(flagsIn, mnum)
 end
 
 util.printbits = DLib.printflags
+
+do
+	local sub = string.sub
+	local byte = string.byte
+	local char = string.char
+	local band = bit.band
+	local lshift = bit.lshift
+	local rshift = bit.rshift
+	local assert = assert
+	local concat = table.concat
+	local f4, f3, f2, f1 = 63, lshift(63, 6), lshift(63, 12), lshift(63, 18)
+
+	local lookup = string.split('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/', '')
+	local rlookup = {[61] = 0}
+
+	for i, char2 in ipairs(lookup) do
+		rlookup[byte(char2)] = i - 1
+	end
+
+	-- just for lulz Lua implementation
+	-- This is very slow
+	function util.Base64Encode(strIn, splitter)
+		assert(isstring(strIn), 'Input is not a string! typeof ' .. strIn)
+		splitter = splitter or 18
+
+		local lines = {}
+		local parts = 0
+		local i2 = 1
+		local str = ''
+
+		for i = 1, #strIn, 3 do
+			local a, b, c = byte(strIn, i, i + 3)
+
+			if b == nil then
+				local int = lshift(a, 16)
+				str = str .. lookup[rshift(band(int, f1), 18) + 1] .. lookup[rshift(band(int, f2), 12) + 1] .. '=='
+			elseif c == nil then
+				local int = lshift(b, 8) + lshift(a, 16)
+				str = str .. lookup[rshift(band(int, f1), 18) + 1] .. lookup[rshift(band(int, f2), 12) + 1] .. lookup[rshift(band(int, f3), 6) + 1] .. '='
+			else
+				local int = c + lshift(b, 8) + lshift(a, 16)
+				str = str .. lookup[rshift(band(int, f1), 18) + 1] .. lookup[rshift(band(int, f2), 12) + 1] .. lookup[rshift(band(int, f3), 6) + 1] .. lookup[band(int, f4) + 1]
+			end
+
+			parts = parts + 1
+
+			if parts >= splitter then
+				lines[i2] = str
+				i2 = i2 + 1
+				str = ''
+				parts = 0
+			end
+		end
+
+		if str ~= '' then
+			lines[i2] = str
+		end
+
+		return concat(lines, '\n')
+	end
+
+	local iA, iB, iC = 0xFF0000, 0xFF00, 0xFF
+	local gsub = string.gsub
+
+	function util.Base64Decode(strIn)
+		local buffer = {}
+		local str = ''
+		local size = 0
+		local point = 1
+		local bi = 1
+
+		strIn = gsub(strIn, '\n', '')
+		local len = #strIn
+
+		assert((len % 4) == 0, 'Unexpected end of base64 input')
+
+		while point <= len do
+			local a, b, c, d = byte(strIn, point, point + 4)
+			-- assert(a and b and c and d, 'Unexpected end of base64 input')
+
+			--[[if a == 10 then
+				point = point + 1
+				a, b, c, d = byte(strIn, point, point + 4)
+			elseif b == 10 then
+				local _
+				a, _, b, c, d = byte(strIn, point, point + 5)
+				point = point + 1
+			elseif c == 10 then
+				local _
+				a, b, _, c, d = byte(strIn, point, point + 5)
+				point = point + 1
+			elseif d == 10 then
+				local _
+				a, b, c, _, d = byte(strIn, point, point + 5)
+				point = point + 1
+			end]]
+
+			point = point + 4
+
+			local int = lshift(rlookup[a], 18) + lshift(rlookup[b], 12) + lshift(rlookup[c], 6) + rlookup[d]
+			str = str .. char(rshift(band(int, iA), 16), rshift(band(int, iB), 8), band(int, iC))
+			size = size + 1
+
+			if size > 200 then
+				size = 0
+				buffer[bi] = str
+				str = ''
+				bi = bi + 1
+			end
+		end
+
+		if str ~= '' then
+			buffer[bi] = str
+		end
+
+		return concat(buffer, '')
+	end
+end
