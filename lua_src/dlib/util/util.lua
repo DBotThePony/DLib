@@ -27,7 +27,7 @@ local vgui = vgui
 local type = luatype
 local ipairs = ipairs
 local IsValid = IsValid
-local LVector = LVector
+local LVector = DLib.LVector
 local Vector = Vector
 local Angle = Angle
 

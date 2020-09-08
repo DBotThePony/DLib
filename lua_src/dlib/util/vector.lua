@@ -83,21 +83,21 @@ function vector.LFindPlaneCentre(mins, maxs)
 		local y1 = mins.z
 		local y2 = maxs.z
 
-		return LVector((x2 - x1) * 0.5, mins.y, (y2 - y1) * 0.5)
+		return DLib.LVector((x2 - x1) * 0.5, mins.y, (y2 - y1) * 0.5)
 	elseif mins.x == maxs.x then
 		local x1 = mins.y
 		local x2 = maxs.y
 		local y1 = mins.z
 		local y2 = maxs.z
 
-		return LVector(mins.x, (x2 - x1) * 0.5, (y2 - y1) * 0.5)
+		return DLib.LVector(mins.x, (x2 - x1) * 0.5, (y2 - y1) * 0.5)
 	elseif mins.z == maxs.z then
 		local x1 = mins.x
 		local x2 = maxs.x
 		local y1 = mins.y
 		local y2 = maxs.y
 
-		return LVector((x2 - x1) * 0.5, (y2 - y1) * 0.5, mins.z)
+		return DLib.LVector((x2 - x1) * 0.5, (y2 - y1) * 0.5, mins.z)
 	end
 
 	error('One or both of arguments is not a 2D plane!')
@@ -182,46 +182,46 @@ end
 function vector.LExtractFaces(mins, maxs)
 	return {
 		{
-			LVector(mins.x, mins.y, mins.z),
-			LVector(mins.x, mins.y, maxs.z),
-			LVector(mins.x, maxs.y, maxs.z),
-			LVector(mins.x, maxs.y, mins.z),
-			LVector(-1, 0, 0)
+			DLib.LVector(mins.x, mins.y, mins.z),
+			DLib.LVector(mins.x, mins.y, maxs.z),
+			DLib.LVector(mins.x, maxs.y, maxs.z),
+			DLib.LVector(mins.x, maxs.y, mins.z),
+			DLib.LVector(-1, 0, 0)
 		},
 		{
-			LVector(mins.x, mins.y, mins.z),
-			LVector(maxs.x, mins.y, mins.z),
-			LVector(maxs.x, mins.y, maxs.z),
-			LVector(mins.x, mins.y, maxs.z),
-			LVector(0, -1, 0)
+			DLib.LVector(mins.x, mins.y, mins.z),
+			DLib.LVector(maxs.x, mins.y, mins.z),
+			DLib.LVector(maxs.x, mins.y, maxs.z),
+			DLib.LVector(mins.x, mins.y, maxs.z),
+			DLib.LVector(0, -1, 0)
 		},
 		{
-			LVector(mins.x, maxs.y, mins.z),
-			LVector(maxs.x, maxs.y, mins.z),
-			LVector(maxs.x, maxs.y, maxs.z),
-			LVector(mins.x, maxs.y, maxs.z),
-			LVector(0, 1, 0)
+			DLib.LVector(mins.x, maxs.y, mins.z),
+			DLib.LVector(maxs.x, maxs.y, mins.z),
+			DLib.LVector(maxs.x, maxs.y, maxs.z),
+			DLib.LVector(mins.x, maxs.y, maxs.z),
+			DLib.LVector(0, 1, 0)
 		},
 		{
-			LVector(maxs.x, mins.y, mins.z),
-			LVector(maxs.x, mins.y, maxs.z),
-			LVector(maxs.x, maxs.y, maxs.z),
-			LVector(maxs.x, maxs.y, mins.z),
-			LVector(1, 0, 0)
+			DLib.LVector(maxs.x, mins.y, mins.z),
+			DLib.LVector(maxs.x, mins.y, maxs.z),
+			DLib.LVector(maxs.x, maxs.y, maxs.z),
+			DLib.LVector(maxs.x, maxs.y, mins.z),
+			DLib.LVector(1, 0, 0)
 		},
 		{
-			LVector(mins.x, mins.y, maxs.z),
-			LVector(maxs.x, mins.y, maxs.z),
-			LVector(maxs.x, maxs.y, maxs.z),
-			LVector(mins.x, maxs.y, maxs.z),
-			LVector(0, 0, 1)
+			DLib.LVector(mins.x, mins.y, maxs.z),
+			DLib.LVector(maxs.x, mins.y, maxs.z),
+			DLib.LVector(maxs.x, maxs.y, maxs.z),
+			DLib.LVector(mins.x, maxs.y, maxs.z),
+			DLib.LVector(0, 0, 1)
 		},
 		{
-			LVector(mins.x, mins.y, mins.z),
-			LVector(maxs.x, mins.y, mins.z),
-			LVector(maxs.x, maxs.y, mins.z),
-			LVector(mins.x, maxs.y, mins.z),
-			LVector(0, 0, -1)
+			DLib.LVector(mins.x, mins.y, mins.z),
+			DLib.LVector(maxs.x, mins.y, mins.z),
+			DLib.LVector(maxs.x, maxs.y, mins.z),
+			DLib.LVector(mins.x, maxs.y, mins.z),
+			DLib.LVector(0, 0, -1)
 		},
 	}
 end
@@ -320,7 +320,7 @@ function vector.LCentre(mins, maxs)
 	local deltax = maxs.x - mins.x
 	local deltay = maxs.y - mins.y
 	local deltaz = maxs.z - mins.z
-	return LVector(mins.x + deltax * 0.5, mins.y + deltay * 0.5, mins.z + deltaz * 0.5)
+	return DLib.LVector(mins.x + deltax * 0.5, mins.y + deltay * 0.5, mins.z + deltaz * 0.5)
 end
 
 --[[
@@ -346,7 +346,7 @@ end
 	number: D
 ]]
 function vector.CalculateSurfaceFromTwoPoints(mins, maxs, zero)
-	zero = zero or LVector(0, 0, 0)
+	zero = zero or DLib.LVector(0, 0, 0)
 
 	local x0, y0, z0 = zero.x, zero.y, zero.z
 	local x1, y1, z1 = mins.x, mins.y, mins.z

@@ -83,7 +83,7 @@ end
 
 --[[
 	@doc
-	@fname LVector
+	@fname DLib.LVector
 	@args any x = 0, number y = 0, number z = 0
 
 	@desc
@@ -129,8 +129,8 @@ local function LVector(x, y, z)
 	return setmetatable(object, meta)
 end
 
-_G.LVector = LVector
-_G.LuaVector = LVector
+DLib.LVector = LVector
+DLib.LuaVector = LVector
 
 --[[
 	@doc
