@@ -349,6 +349,8 @@ function _G.PrintTable(tableIn)
 	MsgC(TABLE_TOKEN_COLOR, '}\n')
 end
 
+util.PrintTable = _G.PrintTable
+
 --[[
 	@doc
 	@fname PrintTableStrict
@@ -368,6 +370,8 @@ function _G.PrintTableStrict(tableIn)
 	InternalPrintLoop(tableIn, 1)
 	MsgC(TABLE_TOKEN_COLOR, '}\n')
 end
+
+util.PrintTableStrict = _G.PrintTableStrict
 
 local files = file.Find('scripts/weapons/*.txt', 'GAME')
 local wepdata = {}
@@ -428,7 +432,7 @@ end
 	@returns
 	string: formatted
 ]]
-function _G.printflags(flagsIn, mnum)
+function util.printflags(flagsIn, mnum)
 	assert(type(flagsIn) == 'number', 'flagsIn must be a number')
 	mnum = mnum or 0
 	local format = ''
@@ -452,3 +456,5 @@ function _G.printflags(flagsIn, mnum)
 	print(format)
 	return format
 end
+
+util.printbits = DLib.printflags
