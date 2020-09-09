@@ -470,7 +470,7 @@ do
 	local concat = table.concat
 	local f4, f3, f2, f1 = 63, lshift(63, 6), lshift(63, 12), lshift(63, 18)
 
-	local lookup = string.split('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/', '')
+	local lookup = string.Split('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/', '')
 	local rlookup = {[61] = 0}
 
 	for i, char2 in ipairs(lookup) do
