@@ -21,6 +21,51 @@
 
 local HUDCommons = DLib.HUDCommons
 
+function HUDCommons.AddColorPanel(Panel, k, v, alpha)
+	v = v or alpha and HUDCommons.ColorsVars[k] or not alpha and HUDCommons.ColorsVarsN[k]
+	local collapse = vgui.Create('DCollapsibleCategory', Panel)
+	Panel:AddItem(collapse)
+
+	collapse:SetExpanded(false)
+	collapse:SetLabel(v.name .. ' (' .. k .. ')')
+
+	if IsValid(collapse.Header) then
+		collapse.Header:SetTooltip(v.name .. ' (' .. k .. ')')
+	end
+
+	local canvas = vgui.Create('EditablePanel', collapse)
+	collapse:SetContents(canvas)
+
+	local reset = vgui.Create('DButton', canvas)
+	reset:Dock(TOP)
+	reset:SetText('gui.dlib.hudcommons.reset')
+
+	function reset.DoClick()
+		RunConsoleCommand(v.r:GetName(), v.r:GetDefault())
+		RunConsoleCommand(v.g:GetName(), v.g:GetDefault())
+		RunConsoleCommand(v.b:GetName(), v.b:GetDefault())
+
+		if alpha then
+			RunConsoleCommand(v.a:GetName(), v.a:GetDefault())
+		end
+	end
+
+	local picker = vgui.Create('DLibColorMixer', canvas)
+	picker:SetConVarR(v.r:GetName())
+	picker:SetConVarG(v.g:GetName())
+	picker:SetConVarB(v.b:GetName())
+
+	if alpha then
+		picker:SetConVarA(v.a:GetName())
+	else
+		picker:SetAllowAlpha(false)
+	end
+
+	picker:Dock(TOP)
+	picker:SetTallLayout(true)
+	-- picker:SetHeight(200)
+end
+
 local function PopulateColors(Panel)
 	if not IsValid(Panel) then return end
 	Panel:Clear()
@@ -32,38 +77,7 @@ local function PopulateColors(Panel)
 	end
 
 	for k, v in SortedPairsByMemberValue(HUDCommons.ColorsVars, 'name') do
-		local collapse = vgui.Create('DCollapsibleCategory', Panel)
-		Panel:AddItem(collapse)
-
-		collapse:SetExpanded(false)
-		collapse:SetLabel(v.name .. ' (' .. k .. ')')
-
-		if IsValid(collapse.Header) then
-			collapse.Header:SetTooltip(v.name .. ' (' .. k .. ')')
-		end
-
-		local canvas = vgui.Create('EditablePanel', collapse)
-		collapse:SetContents(canvas)
-
-		local reset = vgui.Create('DButton', canvas)
-		reset:Dock(TOP)
-		reset:SetText('gui.dlib.hudcommons.reset')
-		reset.DoClick = function()
-			RunConsoleCommand(v.r:GetName(), v.r:GetDefault())
-			RunConsoleCommand(v.g:GetName(), v.g:GetDefault())
-			RunConsoleCommand(v.b:GetName(), v.b:GetDefault())
-			RunConsoleCommand(v.a:GetName(), v.a:GetDefault())
-		end
-
-		local picker = vgui.Create('DLibColorMixer', canvas)
-		picker:SetConVarR(v.r:GetName())
-		picker:SetConVarG(v.g:GetName())
-		picker:SetConVarB(v.b:GetName())
-		picker:SetConVarA(v.a:GetName())
-
-		picker:Dock(TOP)
-		picker:SetTallLayout(true)
-		-- picker:SetHeight(200)
+		HUDCommons.AddColorPanel(Panel, k, v, true)
 	end
 end
 
@@ -78,37 +92,30 @@ local function PopulateColors2(Panel)
 	end
 
 	for k, v in SortedPairsByMemberValue(HUDCommons.ColorsVarsN, 'name') do
-		local collapse = vgui.Create('DCollapsibleCategory', Panel)
-		Panel:AddItem(collapse)
+		HUDCommons.AddColorPanel(Panel, k, v, false)
+	end
+end
 
-		collapse:SetExpanded(false)
-		collapse:SetLabel(v.name .. ' (' .. k .. ')')
+function HUDCommons.AddPositionPanel(Panel, name)
+	local collapse = vgui.Create('DCollapsibleCategory', Panel)
+	Panel:AddItem(collapse)
+	collapse:SetExpanded(false)
+	local cvarX = HUDCommons.Position2.XPositions_CVars[name]
+	local cvarY = HUDCommons.Position2.YPositions_CVars[name]
+	collapse:SetLabel(name)
 
-		if IsValid(collapse.Header) then
-			collapse.Header:SetTooltip(v.name .. ' (' .. k .. ')')
-		end
+	local parent = vgui.Create('EditablePanel', Panel)
+	collapse:SetContents(parent)
 
-		local canvas = vgui.Create('EditablePanel', collapse)
-		collapse:SetContents(canvas)
+	parent:Add(Panel:NumSlider('X', cvarX:GetName(), 0, 1, 3))
+	parent:Add(Panel:NumSlider('Y', cvarY:GetName(), 0, 1, 3))
+	local reset = Panel:Button('Reset')
 
-		local reset = vgui.Create('DButton', canvas)
-		reset:Dock(TOP)
-		reset:SetText('gui.dlib.hudcommons.reset')
-		reset.DoClick = function()
-			RunConsoleCommand(v.r:GetName(), v.r:GetDefault())
-			RunConsoleCommand(v.g:GetName(), v.g:GetDefault())
-			RunConsoleCommand(v.b:GetName(), v.b:GetDefault())
-		end
+	parent:Add(reset)
 
-		local picker = vgui.Create('DLibColorMixer', canvas)
-		picker:SetConVarR(v.r:GetName())
-		picker:SetConVarG(v.g:GetName())
-		picker:SetConVarB(v.b:GetName())
-		picker:SetAllowAlpha(false)
-
-		picker:Dock(TOP)
-		picker:SetTallLayout(true)
-		-- picker:SetHeight(200)
+	function reset.DoClick()
+		cvarX:Reset()
+		cvarY:Reset()
 	end
 end
 
@@ -133,27 +140,8 @@ local function PopulatePositions(Panel)
 		HUDCommons.EnterPositionEditMode()
 	end
 
-	for name, v in SortedPairs(HUDCommons.Position2.XPositions_CVars) do
-		local collapse = vgui.Create('DCollapsibleCategory', Panel)
-		Panel:AddItem(collapse)
-		collapse:SetExpanded(false)
-		local cvarX = HUDCommons.Position2.XPositions_CVars[name]
-		local cvarY = HUDCommons.Position2.YPositions_CVars[name]
-		collapse:SetLabel(name)
-
-		local parent = vgui.Create('EditablePanel', Panel)
-		collapse:SetContents(parent)
-
-		parent:Add(Panel:NumSlider('X', cvarX:GetName(), 0, 1, 3))
-		parent:Add(Panel:NumSlider('Y', cvarY:GetName(), 0, 1, 3))
-		local reset = Panel:Button('Reset')
-
-		parent:Add(reset)
-
-		reset.DoClick = function()
-			cvarX:Reset()
-			cvarY:Reset()
-		end
+	for name in SortedPairs(HUDCommons.Position2.XPositions_CVars) do
+		HUDCommons.AddPositionPanel(Panel, name)
 	end
 end
 
