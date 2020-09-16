@@ -1008,6 +1008,47 @@ function hook.CallStatic(event, hookTable, ...)
 	return gamemodeFunction(hookTable, ...)
 end
 
+local last_trace, last_error
+local getinfo = debug.getinfo
+local find = string.find
+local rep = string.rep
+local developer = ConVar('developer')
+
+local function catchError(err)
+	last_error = err
+	last_trace = ''
+
+	local i = 2
+	local l = 1
+	local info = getinfo(i)
+	local developer = developer:GetBool()
+	local prevdlib = false
+
+	while info do
+		if not developer and i ~= 3 then
+			local isdlib = not developer and (find(info.source, 'dlib/modules/hook.lua', 1, true) or info.name == 'dxpcall')
+			local fnname = info.name ~= '' and info.name or 'unknown'
+
+			if not isdlib then
+				if last_trace == '' then
+					last_trace = '  1. __event - ' .. info.short_src .. ':' .. info.currentline
+				else
+					last_trace = last_trace .. '\n' .. rep(' ', l + 1) .. l .. '. ' .. fnname .. ' - ' .. info.short_src .. ':' .. info.currentline
+				end
+
+				l = l + 1
+			end
+
+			::SKIP::
+		end
+
+		i = i + 1
+		info = getinfo(i)
+	end
+end
+
+local dxpcall = xpcall
+
 --[[
 	@doc
 	@fname hook.Call
@@ -1032,6 +1073,8 @@ function hook.Call2(event, hookTable, ...)
 	local post = __tableModifiersPostOptimized[event]
 	local events = __tableOptimized[event]
 
+	local state, Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M
+
 	if events == nil then
 		if hookTable == nil then
 			return
@@ -1047,7 +1090,7 @@ function hook.Call2(event, hookTable, ...)
 			return gamemodeFunction(hookTable, ...)
 		end
 
-		local Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M = gamemodeFunction(hookTable, ...)
+		Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M = gamemodeFunction(hookTable, ...)
 		local i = 1
 		local nextevent = post[i]
 
@@ -1068,7 +1111,12 @@ function hook.Call2(event, hookTable, ...)
 	local nextevent = events[i]
 
 	::loop::
-	local Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M = nextevent(...)
+	state, Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M = dxpcall(nextevent, catchError, ...)
+
+	if not state then
+		Q = nil
+		ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n' .. last_trace .. '\n')
+	end
 
 	if Q ~= nil then
 		if post == nil then
@@ -1109,10 +1157,23 @@ function hook.Call2(event, hookTable, ...)
 	end
 
 	if post == nil then
-		return gamemodeFunction(hookTable, ...)
+		state, Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M = dxpcall(gamemodeFunction, catchError, hookTable, ...)
+
+		if not state then
+			Q = nil
+			ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n' .. last_trace .. '\n')
+		end
+
+		return Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M
 	end
 
-	local Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M = gamemodeFunction(hookTable, ...)
+	state, Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M = dxpcall(gamemodeFunction, catchError, hookTable, ...)
+
+	if not state then
+		Q = nil
+		ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n' .. last_trace .. '\n')
+	end
+
 	local i = 1
 	local nextevent = post[i]
 
