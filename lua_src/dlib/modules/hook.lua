@@ -505,9 +505,7 @@ end
 ]]
 function hook.Add(event, stringID, funcToCall, priority)
 	if type(event) ~= 'string' then
-		--if DLib.DEBUG_MODE:GetBool() then
-			DLib.Message(traceback('hook.Add - event is not a string! ' .. type(event)))
-		--end
+		ErrorNoHalt(debug.traceback('[DLib] Bad argument #1 to hook.Add (string expected, got ' .. type(event) .. ')', 2) .. '\n')
 
 		return
 	end
@@ -515,9 +513,7 @@ function hook.Add(event, stringID, funcToCall, priority)
 	__table[event] = __table[event] or {}
 
 	if type(funcToCall) ~= 'function' then
-		--if DLib.DEBUG_MODE:GetBool() then
-			DLib.Message(traceback('hook.Add - function is not a function! ' .. type(funcToCall)))
-		--end
+		ErrorNoHalt(debug.traceback('[DLib] Bad argument #3 to hook.Add (function expected, got ' .. type(funcToCall) .. ')', 2) .. '\n')
 
 		return
 	end
