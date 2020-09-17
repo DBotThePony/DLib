@@ -1013,7 +1013,7 @@ local getinfo = debug.getinfo
 local find = string.find
 local rep = string.rep
 local developer = ConVar('developer')
-local hide_trace = CreateConVar('dlib_hide_hooktrace', '1', {FCVAR_ARCHIVE}, 'This bullshit exist solely for workshop hamsters (users)')
+local hide_trace = CreateConVar('dlib_hide_hooktrace', '1', {FCVAR_ARCHIVE}, 'This bullshit exists solely for workshop hamsters (users)')
 
 local function catchError(err)
 	last_error = err
