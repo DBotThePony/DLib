@@ -1025,9 +1025,13 @@ local function catchError(err)
 	local prevdlib = false
 
 	while info do
-		if not developer and i ~= 3 then
+		if developer or i ~= 3 then
 			local isdlib = not developer and (find(info.source, 'dlib/modules/hook.lua', 1, true) or info.name == 'dxpcall')
 			local fnname = info.name ~= '' and info.name or 'unknown'
+
+			if info.name == 'dxpcall' then
+				fnname = 'xpcall'
+			end
 
 			if not isdlib then
 				if last_trace == '' then
