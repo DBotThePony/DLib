@@ -1013,6 +1013,7 @@ local getinfo = debug.getinfo
 local find = string.find
 local rep = string.rep
 local developer = ConVar('developer')
+local hide_trace = CreateConVar('dlib_hide_hooktrace', '1', {FCVAR_ARCHIVE}, 'This bullshit exist solely for workshop hamsters (users)')
 
 local function catchError(err)
 	last_error = err
@@ -1021,7 +1022,7 @@ local function catchError(err)
 	local i = 2
 	local l = 1
 	local info = getinfo(i)
-	local developer = developer:GetBool()
+	local developer = not hide_trace:GetBool() or developer:GetBool()
 	local prevdlib = false
 
 	while info do
