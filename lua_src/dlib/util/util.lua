@@ -536,29 +536,20 @@ do
 
 		while point <= len do
 			local a, b, c, d = byte(strIn, point, point + 4)
-			-- assert(a and b and c and d, 'Unexpected end of base64 input')
-
-			--[[if a == 10 then
-				point = point + 1
-				a, b, c, d = byte(strIn, point, point + 4)
-			elseif b == 10 then
-				local _
-				a, _, b, c, d = byte(strIn, point, point + 5)
-				point = point + 1
-			elseif c == 10 then
-				local _
-				a, b, _, c, d = byte(strIn, point, point + 5)
-				point = point + 1
-			elseif d == 10 then
-				local _
-				a, b, c, _, d = byte(strIn, point, point + 5)
-				point = point + 1
-			end]]
 
 			point = point + 4
 
 			local int = lshift(rlookup[a], 18) + lshift(rlookup[b], 12) + lshift(rlookup[c], 6) + rlookup[d]
-			str = str .. char(rshift(band(int, iA), 16), rshift(band(int, iB), 8), band(int, iC))
+			local a, b, c = rshift(band(int, iA), 16), rshift(band(int, iB), 8), band(int, iC)
+
+			if b == 0 then
+				str = str .. char(a)
+			elseif c == 0 then
+				str = str .. char(a, b)
+			else
+				str = str .. char(a, b, c)
+			end
+
 			size = size + 1
 
 			if size > 200 then
