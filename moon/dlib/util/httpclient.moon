@@ -193,7 +193,7 @@ class http.DLibClient
 		elseif type(cookiejar) == 'table'
 			@cookiejar = cookiejar
 		else
-			@cookiejar = http.DLibCookie()
+			@cookiejar = http.DLibCookieJar()
 
 		@set_referer = true
 		@last_referer = false
