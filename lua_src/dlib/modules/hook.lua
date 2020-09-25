@@ -951,6 +951,61 @@ function hook.HasHooks(event)
 	return __tableOptimized[event] ~= nil and #__tableOptimized[event] ~= 0
 end
 
+local last_trace, last_error
+local getinfo = debug.getinfo
+local find = string.find
+local rep = string.rep
+local developer = ConVar('developer')
+local hide_trace = CreateConVar('dlib_hide_hooktrace', '1', {FCVAR_ARCHIVE}, 'This bullshit exists solely for workshop hamsters (users)')
+
+local function catchError(err)
+	last_error = err
+	last_trace = ''
+
+	local i = 2
+	local l = 1
+	local info = getinfo(i)
+	local inevent = 2
+
+	if info.short_src == '[C]' then
+		inevent = 3
+	end
+
+	local developer = not hide_trace:GetBool() or developer:GetBool()
+	local prevdlib = false
+
+	while info do
+		local isdlib = not developer and (find(info.source, 'dlib/modules/hook.lua', 1, true) or info.name == 'dlibxpcall')
+		local fnname = info.name ~= '' and info.name or 'unknown'
+
+		if i == inevent then
+			fnname = '__event'
+		end
+
+		if info.name == 'dlibxpcall' then
+			if not developer then goto SKIP end
+			fnname = 'xpcall'
+		end
+
+		if not isdlib then
+			if last_trace == '' then
+				last_trace = '  1. ' .. fnname .. ' - ' .. info.short_src .. ':' .. info.currentline
+			else
+				last_trace = last_trace .. '\n' .. rep(' ', l + 1) .. l .. '. ' .. fnname .. ' - ' .. info.short_src .. ':' .. info.currentline
+			end
+
+			l = l + 1
+		end
+
+		::SKIP::
+
+		i = i + 1
+		info = getinfo(i)
+	end
+end
+
+local dlibxpcall = xpcall
+
 --[[
 	@doc
 	@fname hook.CallStatic
@@ -980,14 +1035,25 @@ function hook.CallStatic(event, hookTable, ...)
 			return
 		end
 
-		return gamemodeFunction(hookTable, ...)
+		local state = dlibxpcall(gamemodeFunction, catchError, hookTable, ...)
+
+		if not state then
+			ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n' .. last_trace .. '\n')
+		end
+
+		return
 	end
 
 	local i = 1
 	local nextevent = events[i]
 
 	::loop::
-	nextevent(...)
+	local state = dlibxpcall(nextevent, catchError, ...)
+
+	if not state then
+		ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n' .. last_trace .. '\n')
+	end
+
 	i = i + 1
 	nextevent = events[i]
 
@@ -1005,54 +1071,12 @@ function hook.CallStatic(event, hookTable, ...)
 		return
 	end
 
-	return gamemodeFunction(hookTable, ...)
-end
+	local state = dlibxpcall(gamemodeFunction, catchError, hookTable, ...)
 
-local last_trace, last_error
-local getinfo = debug.getinfo
-local find = string.find
-local rep = string.rep
-local developer = ConVar('developer')
-local hide_trace = CreateConVar('dlib_hide_hooktrace', '1', {FCVAR_ARCHIVE}, 'This bullshit exists solely for workshop hamsters (users)')
-
-local function catchError(err)
-	last_error = err
-	last_trace = ''
-
-	local i = 2
-	local l = 1
-	local info = getinfo(i)
-	local developer = not hide_trace:GetBool() or developer:GetBool()
-	local prevdlib = false
-
-	while info do
-		if developer or i ~= 3 then
-			local isdlib = not developer and (find(info.source, 'dlib/modules/hook.lua', 1, true) or info.name == 'dxpcall')
-			local fnname = info.name ~= '' and info.name or 'unknown'
-
-			if info.name == 'dxpcall' then
-				fnname = 'xpcall'
-			end
-
-			if not isdlib then
-				if last_trace == '' then
-					last_trace = '  1. __event - ' .. info.short_src .. ':' .. info.currentline
-				else
-					last_trace = last_trace .. '\n' .. rep(' ', l + 1) .. l .. '. ' .. fnname .. ' - ' .. info.short_src .. ':' .. info.currentline
-				end
-
-				l = l + 1
-			end
-
-			::SKIP::
-		end
-
-		i = i + 1
-		info = getinfo(i)
+	if not state then
+		ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n' .. last_trace .. '\n')
 	end
 end
-
-local dxpcall = xpcall
 
 --[[
 	@doc
@@ -1116,7 +1140,7 @@ function hook.Call2(event, hookTable, ...)
 	local nextevent = events[i]
 
 	::loop::
-	state, Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M = dxpcall(nextevent, catchError, ...)
+	state, Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M = dlibxpcall(nextevent, catchError, ...)
 
 	if not state then
 		Q = nil
@@ -1162,7 +1186,7 @@ function hook.Call2(event, hookTable, ...)
 	end
 
 	if post == nil then
-		state, Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M = dxpcall(gamemodeFunction, catchError, hookTable, ...)
+		state, Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M = dlibxpcall(gamemodeFunction, catchError, hookTable, ...)
 
 		if not state then
 			Q = nil
@@ -1172,7 +1196,7 @@ function hook.Call2(event, hookTable, ...)
 		return Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M
 	end
 
-	state, Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M = dxpcall(gamemodeFunction, catchError, hookTable, ...)
+	state, Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M = dlibxpcall(gamemodeFunction, catchError, hookTable, ...)
 
 	if not state then
 		Q = nil
