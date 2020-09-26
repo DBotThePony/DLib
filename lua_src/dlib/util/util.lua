@@ -540,14 +540,14 @@ do
 			point = point + 4
 
 			local int = lshift(rlookup[a], 18) + lshift(rlookup[b], 12) + lshift(rlookup[c], 6) + rlookup[d]
-			local a, b, c = rshift(band(int, iA), 16), rshift(band(int, iB), 8), band(int, iC)
+			local a1, b1, c1 = rshift(band(int, iA), 16), rshift(band(int, iB), 8), band(int, iC)
 
-			if b == 0 then
-				str = str .. char(a)
-			elseif c == 0 then
-				str = str .. char(a, b)
-			else
-				str = str .. char(a, b, c)
+			if c == 61 then -- xx==
+				str = str .. char(a1)
+			elseif d == 61 then -- xxx=
+				str = str .. char(a1, b1)
+			else -- xxxx
+				str = str .. char(a1, b1, c1)
 			end
 
 			size = size + 1
