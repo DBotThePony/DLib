@@ -964,12 +964,7 @@ local function catchError(err)
 
 	local i = 2
 	local l = 1
-	local info = getinfo(i)
-	local inevent = 2
-
-	if info.short_src == '[C]' then
-		inevent = 3
-	end
+	local info, infoup = getinfo(i), getinfo(i + 1)
 
 	local developer = not hide_trace:GetBool() or developer:GetBool()
 	local prevdlib = false
@@ -978,7 +973,7 @@ local function catchError(err)
 		local isdlib = not developer and (find(info.source, 'dlib/modules/hook.lua', 1, true) or info.name == 'dlibxpcall')
 		local fnname = info.name ~= '' and info.name or 'unknown'
 
-		if i == inevent then
+		if infoup and infoup.name == 'dlibxpcall' then
 			fnname = '__event'
 		end
 
@@ -1000,7 +995,8 @@ local function catchError(err)
 		::SKIP::
 
 		i = i + 1
-		info = getinfo(i)
+		info = infoup
+		infoup = getinfo(i + 1)
 	end
 end
 
