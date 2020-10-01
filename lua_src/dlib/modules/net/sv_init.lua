@@ -192,7 +192,7 @@ function net.Think()
 
 		if namespace.process_next and namespace.process_next < RealTime() then
 			namespace.process_next = nil
-			namespace.ProcessIncomingQueue(namespace, ply)
+			net.ProcessIncomingQueue(namespace, ply)
 		end
 
 		if namespace.last_expected_ack ~= 0xFFFFFFFF and namespace.last_expected_ack < time then
