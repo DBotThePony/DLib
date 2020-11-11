@@ -481,7 +481,7 @@ else
 		local getname = self.PrintName
 
 		if not getname then
-			getname = VehicleListIterable[self:GetModel()] or self:GetClass()
+			getname = VehicleListIterable[self:GetModel()] and VehicleListIterable[self:GetModel()].Name or self:GetClass()
 		end
 
 		self.__dlibCachedName = getname
