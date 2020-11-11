@@ -254,33 +254,6 @@ end
 -- fuck https://github.com/Facepunch/garrysmod/pull/1176
 string.StartsWith = string.StartWith
 
-
---[[
-	@doc
-	@fname string.StartsWith
-	@args string self, string check
-
-	@desc
-	[alias](https://github.com/Facepunch/garrysmod/pull/1176) of !g:string.StartWith
-	@enddesc
-
-	@returns
-	boolean
-]]
-gstring.StartsWith = gstring.StartWith
-
-local funcs = {}
-
-for k, v in pairs(gstring) do
-	funcs[k:sub(1, 1):lower() .. k:sub(2)] = v
-end
-
-for k, v in pairs(funcs) do
-	if gstring[k] == nil then
-		gstring[k] = v
-	end
-end
-
 --[[
 	@doc
 	@fname DLib.string.bchar

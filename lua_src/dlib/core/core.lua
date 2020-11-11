@@ -67,6 +67,32 @@ debug.setmetatable(1, meta)
 
 --[[
 	@doc
+	@fname string.StartsWith
+	@args string self, string check
+
+	@desc
+	[alias](https://github.com/Facepunch/garrysmod/pull/1176) of !g:string.StartWith
+	@enddesc
+
+	@returns
+	boolean
+]]
+string.StartsWith = string.StartWith
+
+funcs = {}
+
+for k, v in pairs(string) do
+	funcs[k:sub(1, 1):lower() .. k:sub(2)] = v
+end
+
+for k, v in pairs(funcs) do
+	if string[k] == nil then
+		string[k] = v
+	end
+end
+
+--[[
+	@doc
 	@fname net.pool
 	@args string netname
 
