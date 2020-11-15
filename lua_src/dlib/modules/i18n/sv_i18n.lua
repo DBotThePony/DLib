@@ -171,7 +171,7 @@ function i18n.RegisterProxy(...)
 end
 
 local LANG_OVERRIDE = CreateConVar('gmod_language_dlib_sv', '', {FCVAR_ARCHIVE}, 'gmod_language override for DLib based addons')
-
+local gmod_language = GetConVar('gmod_language')
 
 --[[
 	@doc
@@ -179,8 +179,6 @@ local LANG_OVERRIDE = CreateConVar('gmod_language_dlib_sv', '', {FCVAR_ARCHIVE},
 ]]
 
 function i18n.UpdateLang()
-	gmod_language = gmod_language or GetConVar('gmod_language')
-	if not gmod_language then return end
 	local grablang = LANG_OVERRIDE:GetString():lower():trim()
 
 	if grablang ~= '' then
@@ -199,6 +197,17 @@ end
 
 cvars.AddChangeCallback('gmod_language', i18n.UpdateLang, 'DLib')
 cvars.AddChangeCallback('gmod_language_dlib_sv', i18n.UpdateLang, 'DLib')
+local value = gmod_language:GetString()
+
+hook.Add('Think', 'dlib_gmod_language_hack', function()
+	local value2 = gmod_language:GetString()
+
+	if value2 ~= value then
+		i18n.UpdateLang()
+		value = value2
+	end
+end)
+
 timer.Simple(0, i18n.UpdateLang)
 
 --[[
