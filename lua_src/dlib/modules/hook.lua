@@ -970,14 +970,14 @@ local function catchError(err)
 	local prevdlib = false
 
 	while info do
-		local isdlib = not developer and (find(info.source, 'dlib/modules/hook.lua', 1, true) or info.name == 'dlibxpcall')
+		local isdlib = not developer and (find(info.source, 'dlib/modules/hook.lua', 1, true) or info.name == 'dlib_has_nothing_to_do_with_this_traceback')
 		local fnname = info.name ~= '' and info.name or 'unknown'
 
-		if infoup and infoup.name == 'dlibxpcall' then
+		if infoup and infoup.name == 'dlib_has_nothing_to_do_with_this_traceback' then
 			fnname = '__event'
 		end
 
-		if info.name == 'dlibxpcall' then
+		if info.name == 'dlib_has_nothing_to_do_with_this_traceback' then
 			if not developer then goto SKIP end
 			fnname = 'xpcall'
 		end
@@ -1000,7 +1000,7 @@ local function catchError(err)
 	end
 end
 
-local dlibxpcall = xpcall
+local dlib_has_nothing_to_do_with_this_traceback = xpcall
 
 --[[
 	@doc
@@ -1031,7 +1031,7 @@ function hook.CallStatic(event, hookTable, ...)
 			return
 		end
 
-		local state = dlibxpcall(gamemodeFunction, catchError, hookTable, ...)
+		local state = dlib_has_nothing_to_do_with_this_traceback(gamemodeFunction, catchError, hookTable, ...)
 
 		if not state then
 			ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n' .. last_trace .. '\n')
@@ -1044,7 +1044,7 @@ function hook.CallStatic(event, hookTable, ...)
 	local nextevent = events[i]
 
 	::loop::
-	local state = dlibxpcall(nextevent, catchError, ...)
+	local state = dlib_has_nothing_to_do_with_this_traceback(nextevent, catchError, ...)
 
 	if not state then
 		ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n' .. last_trace .. '\n')
@@ -1067,7 +1067,7 @@ function hook.CallStatic(event, hookTable, ...)
 		return
 	end
 
-	local state = dlibxpcall(gamemodeFunction, catchError, hookTable, ...)
+	local state = dlib_has_nothing_to_do_with_this_traceback(gamemodeFunction, catchError, hookTable, ...)
 
 	if not state then
 		ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n' .. last_trace .. '\n')
@@ -1136,7 +1136,7 @@ function hook.Call2(event, hookTable, ...)
 	local nextevent = events[i]
 
 	::loop::
-	state, Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M = dlibxpcall(nextevent, catchError, ...)
+	state, Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M = dlib_has_nothing_to_do_with_this_traceback(nextevent, catchError, ...)
 
 	if not state then
 		Q = nil
@@ -1182,7 +1182,7 @@ function hook.Call2(event, hookTable, ...)
 	end
 
 	if post == nil then
-		state, Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M = dlibxpcall(gamemodeFunction, catchError, hookTable, ...)
+		state, Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M = dlib_has_nothing_to_do_with_this_traceback(gamemodeFunction, catchError, hookTable, ...)
 
 		if not state then
 			Q = nil
@@ -1192,7 +1192,7 @@ function hook.Call2(event, hookTable, ...)
 		return Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M
 	end
 
-	state, Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M = dlibxpcall(gamemodeFunction, catchError, hookTable, ...)
+	state, Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M = dlib_has_nothing_to_do_with_this_traceback(gamemodeFunction, catchError, hookTable, ...)
 
 	if not state then
 		Q = nil
