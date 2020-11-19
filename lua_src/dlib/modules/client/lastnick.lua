@@ -72,7 +72,7 @@ function DLib.LastNickFormatted(steamid)
 	if nick == name then
 		return nick
 	else
-		return nick .. '(' .. name .. ')'
+		return nick .. ' (' .. name .. ')'
 	end
 end
 
