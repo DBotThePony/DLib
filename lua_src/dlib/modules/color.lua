@@ -36,6 +36,7 @@ colorMeta.__index = colorMeta
 colorMeta.MetaName = 'Color'
 debug.getregistry().Color = colorMeta
 
+local min = math.min
 
 --[[
 	@doc
@@ -63,10 +64,10 @@ local function Color(r, g, b, a)
 		error('I think this is not something you want to do. Red is nil, Green is ' .. type(g) .. ', Blue is ' .. type(b))
 	end
 
-	r = (tonumber(r) or 255):clamp(0, 255):floor()
-	g = (tonumber(g) or 255):clamp(0, 255):floor()
-	b = (tonumber(b) or 255):clamp(0, 255):floor()
-	a = (tonumber(a) or 255):clamp(0, 255):floor()
+	r = min(tonumber(r) or 255, 255)
+	g = min(tonumber(g) or 255, 255)
+	b = min(tonumber(b) or 255, 255)
+	a = min(tonumber(a) or 255, 255)
 
 	local newObj = {
 		r = r,
