@@ -23,6 +23,8 @@ gui.misc.apply = 'Применить'
 gui.misc.cancel = 'Отмена'
 gui.misc.yes = 'Да'
 gui.misc.no = 'Нет'
+gui.misc.confirm = 'Подтвердить'
+gui.misc.decline = 'Отклонить'
 
 gui.entry.invalidsymbol = 'Символ не разрешён.'
 gui.entry.limit = 'Превышена максимальная длинна значения.'

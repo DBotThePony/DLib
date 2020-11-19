@@ -24,9 +24,11 @@ gui.misc.ok = 'OK'
 gui.misc.cancel = 'Cancel'
 gui.misc.yes = 'Yes'
 gui.misc.no = 'No'
+gui.misc.confirm = 'Confirm'
+gui.misc.decline = 'Decline'
 
-gui.entry.invalidsymbol = 'Symbol is not allowed.'
-gui.entry.limit = 'Field limit exceeded.'
+gui.entry.invalidsymbol = 'Symbol not allowed.'
+gui.entry.limit = 'Field symbol limit exceeded.'
 
 gui.dlib.hudcommons.reset = 'Reset'
 
