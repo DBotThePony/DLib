@@ -108,7 +108,7 @@ local function makeWindow()
 	end
 end
 
-local timelimit = 60 * 45
+local timelimit = 60 * 120
 
 local function Think()
 	if NEVER_ASK:GetBool() then return end
