@@ -18,11 +18,12 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-DLib.bitworker = DLib.bitworker or {}
+DLib.BitWorker = DLib.BitWorker or {}
+DLib.bitworker = DLib.BitWorker
 local table = table
 local DLib = DLib
 local math = math
-local bitworker = DLib.bitworker
+local BitWorker = DLib.BitWorker
 local type = type
 local ipairs = ipairs
 
@@ -45,7 +46,7 @@ end
 
 --[[
 	@doc
-	@fname DLib.bitworker.IntegerToBinary
+	@fname DLib.BitWorker.IntegerToBinary
 	@args number value, number bitsAmount
 
 	@desc
@@ -56,7 +57,7 @@ end
 	@returns
 	table: bits
 ]]
-function bitworker.IntegerToBinary(numberIn, bitsNum)
+function BitWorker.IntegerToBinary(numberIn, bitsNum)
 	if not isValidNumber(numberIn) then
 		local vr = {}
 
@@ -91,7 +92,7 @@ end
 
 --[[
 	@doc
-	@fname DLib.bitworker.IntegerToBinary2
+	@fname DLib.BitWorker.IntegerToBinary2
 	@args number value, number bitsAmount
 
 	@desc
@@ -102,7 +103,7 @@ end
 	@returns
 	table: bits
 ]]
-function bitworker.IntegerToBinary2(numberIn, bitsNum)
+function BitWorker.IntegerToBinary2(numberIn, bitsNum)
 	local max = math.pow(2, bitsNum)
 
 	if numberIn < 0 then
@@ -129,7 +130,7 @@ end
 
 --[[
 	@doc
-	@fname DLib.bitworker.BinaryToUInteger
+	@fname DLib.BitWorker.BinaryToUInteger
 	@args table bits
 
 	@desc
@@ -139,7 +140,7 @@ end
 	@returns
 	number
 ]]
-function bitworker.BinaryToUInteger(inputTable)
+function BitWorker.BinaryToUInteger(inputTable)
 	local amount = #inputTable
 	local output = 0
 
@@ -154,7 +155,7 @@ end
 
 --[[
 	@doc
-	@fname DLib.bitworker.BinaryToInteger
+	@fname DLib.BitWorker.BinaryToInteger
 	@args table bits
 
 	@desc
@@ -164,7 +165,7 @@ end
 	@returns
 	number
 ]]
-function bitworker.BinaryToInteger(inputTable)
+function BitWorker.BinaryToInteger(inputTable)
 	local direction = inputTable[1]
 	local amount = #inputTable
 	local output = 0
@@ -184,7 +185,7 @@ end
 
 --[[
 	@doc
-	@fname DLib.bitworker.BinaryToInteger2
+	@fname DLib.BitWorker.BinaryToInteger2
 	@args table bits
 
 	@desc
@@ -194,7 +195,7 @@ end
 	@returns
 	number
 ]]
-function bitworker.BinaryToInteger2(bits)
+function BitWorker.BinaryToInteger2(bits)
 	local bitsNum = #bits
 	local max = math.pow(2, bitsNum - 1) - 1
 	local output = 0
@@ -214,7 +215,7 @@ end
 
 --[[
 	@doc
-	@fname DLib.bitworker.UIntegerToBinary
+	@fname DLib.BitWorker.UIntegerToBinary
 	@args number value, number bitsAmount
 
 	@desc
@@ -225,7 +226,7 @@ end
 	@returns
 	table: bits
 ]]
-function bitworker.UIntegerToBinary(numberIn, bitsNum)
+function BitWorker.UIntegerToBinary(numberIn, bitsNum)
 	if not isValidNumber(numberIn) then
 		local vr = {}
 
@@ -258,14 +259,14 @@ end
 
 --[[
 	@doc
-	@fname DLib.bitworker.NumberToMantiss
+	@fname DLib.BitWorker.NumberToMantiss
 	@args number value, number bitsAllowed
 
 	@returns
 	table: bits
 	number: exponent
 ]]
-function bitworker.NumberToMantiss(numberIn, bitsAllowed)
+function BitWorker.NumberToMantiss(numberIn, bitsAllowed)
 	if not isValidNumber(numberIn) then
 		local bits = {}
 
@@ -319,7 +320,7 @@ end
 
 --[[
 	@doc
-	@fname DLib.bitworker.NumberToMantissFast
+	@fname DLib.BitWorker.NumberToMantissFast
 	@args number value, number bitsAllowed
 
 	@returns
@@ -327,7 +328,7 @@ end
 	number: second part of mantiss (32-bit integer)
 	number: exponent
 ]]
-function bitworker.NumberToMantissFast(numberIn, bitsAllowed)
+function BitWorker.NumberToMantissFast(numberIn, bitsAllowed)
 	if not isValidNumber(numberIn) then
 		return 0, 0, 0
 	end
@@ -394,13 +395,13 @@ end
 
 --[[
 	@doc
-	@fname DLib.bitworker.MantissToNumber
+	@fname DLib.BitWorker.MantissToNumber
 	@args table bits, number exponent
 
 	@returns
 	number
 ]]
-function bitworker.MantissToNumber(bitsIn, exp)
+function BitWorker.MantissToNumber(bitsIn, exp)
 	exp = exp or 0
 	local num = 0
 
@@ -415,13 +416,13 @@ end
 
 --[[
 	@doc
-	@fname DLib.bitworker.MantissToNumberFast
+	@fname DLib.BitWorker.MantissToNumberFast
 	@args number mantiss1, number mantiss2, number exponent, number bitsIn
 
 	@returns
 	number
 ]]
-function bitworker.MantissToNumberFast(numberIn1, numberIn2, exp, bitsIn)
+function BitWorker.MantissToNumberFast(numberIn1, numberIn2, exp, bitsIn)
 	exp = exp or 0
 	numberIn1 = numberIn1 or 0
 	numberIn2 = numberIn2 or 0
@@ -449,7 +450,7 @@ end
 
 --[[
 	@doc
-	@fname DLib.bitworker.FloatToBinaryIEEE
+	@fname DLib.BitWorker.FloatToBinaryIEEE
 	@args number value, number bitsForExponent, number bitsForMantissa
 
 	@returns
@@ -457,7 +458,7 @@ end
 ]]
 -- final range is bitsExponent + bitsMantissa + 2
 -- where 2 is two bits which one forwards number sign and one forward exponent sign
-function bitworker.FloatToBinaryIEEE(numberIn, bitsExponent, bitsMantissa)
+function BitWorker.FloatToBinaryIEEE(numberIn, bitsExponent, bitsMantissa)
 	local iszero = numberIn == 0
 
 	if not iszero then
@@ -485,8 +486,8 @@ function bitworker.FloatToBinaryIEEE(numberIn, bitsExponent, bitsMantissa)
 	end
 
 	local bits = {numberIn >= 0 and 0 or 1}
-	local mantissa, exp = bitworker.NumberToMantiss(numberIn, bitsMantissa)
-	local expBits = bitworker.UIntegerToBinary(exp + math.pow(2, bitsExponent - 1) - 1, bitsExponent)
+	local mantissa, exp = BitWorker.NumberToMantiss(numberIn, bitsMantissa)
+	local expBits = BitWorker.UIntegerToBinary(exp + math.pow(2, bitsExponent - 1) - 1, bitsExponent)
 
 	table.append(bits, expBits)
 	table.append(bits, mantissa)
@@ -496,13 +497,13 @@ end
 
 --[[
 	@doc
-	@fname DLib.bitworker.FastFloatToBinaryIEEE
+	@fname DLib.BitWorker.FastFloatToBinaryIEEE
 	@args number value
 
 	@returns
 	number: integer representation of float
 ]]
-function bitworker.FastFloatToBinaryIEEE(numberIn)
+function BitWorker.FastFloatToBinaryIEEE(numberIn)
 	if not isnumber(numberIn) then return 0x7FFFFFFF end
 
 	local iszero = numberIn == 0
@@ -537,20 +538,20 @@ function bitworker.FastFloatToBinaryIEEE(numberIn)
 		return 0x7FF80000
 	end
 
-	local mantissa1, mantissa2, exp = bitworker.NumberToMantissFast(numberIn, 23)
+	local mantissa1, mantissa2, exp = BitWorker.NumberToMantissFast(numberIn, 23)
 	return bor(lshift(numberIn >= 0 and 0 or 1, 31), lshift(math.clamp(exp, -127, 127) + 127, 23), mantissa1)
 end
 
 --[[
 	@doc
-	@fname DLib.bitworker.FastDoubleToBinaryIEEE
+	@fname DLib.BitWorker.FastDoubleToBinaryIEEE
 	@args number value
 
 	@returns
 	number: integer representation of double (first part)
 	number: integer representation of double (second part)
 ]]
-function bitworker.FastDoubleToBinaryIEEE(numberIn)
+function BitWorker.FastDoubleToBinaryIEEE(numberIn)
 	if not isnumber(numberIn) then return 0x7FFFFFFF, 0xFFFFFFFF end
 
 	local iszero = numberIn == 0
@@ -585,19 +586,19 @@ function bitworker.FastDoubleToBinaryIEEE(numberIn)
 		return 0x7FF80000, 0x00000000
 	end
 
-	local mantissa1, mantissa2, exp = bitworker.NumberToMantissFast(numberIn, 52)
+	local mantissa1, mantissa2, exp = BitWorker.NumberToMantissFast(numberIn, 52)
 	return bor(lshift(numberIn >= 0 and 0 or 1, 31), lshift(math.clamp(exp, -1023, 1023) + 1023, 20), rshift(mantissa1, 12)), bor(lshift(band(mantissa1, 4095), 20), mantissa2)
 end
 
 --[[
 	@doc
-	@fname DLib.bitworker.BinaryToFloatIEEE
+	@fname DLib.BitWorker.BinaryToFloatIEEE
 	@args table bits, number bitsExponent, number bitsMantissa
 
 	@returns
 	number
 ]]
-function bitworker.BinaryToFloatIEEE(bitsIn, bitsExponent, bitsMantissa)
+function BitWorker.BinaryToFloatIEEE(bitsIn, bitsExponent, bitsMantissa)
 	local valid = false
 
 	for i = 1, #bitsIn do
@@ -611,10 +612,10 @@ function bitworker.BinaryToFloatIEEE(bitsIn, bitsExponent, bitsMantissa)
 
 	local forward = bitsIn[1]
 	local exponent = table.gcopyRange(bitsIn, 2, 2 + bitsExponent - 1)
-	local exp = bitworker.BinaryToUInteger(exponent)
+	local exp = BitWorker.BinaryToUInteger(exponent)
 	local mantissa = table.gcopyRange(bitsIn, 2 + bitsExponent)
 
-	local value = bitworker.MantissToNumber(mantissa, exp - math.pow(2, bitsExponent - 1) + 1)
+	local value = BitWorker.MantissToNumber(mantissa, exp - math.pow(2, bitsExponent - 1) + 1)
 
 	if forward == 0 then
 		return value
@@ -627,13 +628,13 @@ local nan = 0 / 0
 
 --[[
 	@doc
-	@fname DLib.bitworker.FastBinaryToFloatIEEE
+	@fname DLib.BitWorker.FastBinaryToFloatIEEE
 	@args number integerRepresentation
 
 	@returns
 	number: float
 ]]
-function bitworker.FastBinaryToFloatIEEE(numberIn)
+function BitWorker.FastBinaryToFloatIEEE(numberIn)
 	if numberIn == 0x00000000 then return 0 end
 	if numberIn == 0x80000000 then return -0 end
 	if numberIn == 0x7FFFFFFF or numberIn == 0xFFFFFFFF then return nan end
@@ -643,7 +644,7 @@ function bitworker.FastBinaryToFloatIEEE(numberIn)
 	local point = rshift(numberIn, 31)
 	local exp = band(rshift(numberIn, 23), 0xFF) - 127
 	local mantissa = band(numberIn, 0x7FFFFF)
-	local value = bitworker.MantissToNumberFast(mantissa, 0, exp, 23)
+	local value = BitWorker.MantissToNumberFast(mantissa, 0, exp, 23)
 
 	if point == 0 then return value end
 	return -value
@@ -651,13 +652,13 @@ end
 
 --[[
 	@doc
-	@fname DLib.bitworker.FastBinaryToDoubleIEEE
+	@fname DLib.BitWorker.FastBinaryToDoubleIEEE
 	@args number integerRepresentation1, number integerRepresentation2
 
 	@returns
 	number: double
 ]]
-function bitworker.FastBinaryToDoubleIEEE(numberIn1, numberIn2)
+function BitWorker.FastBinaryToDoubleIEEE(numberIn1, numberIn2)
 	if (numberIn1 == 0x00000000 or numberIn1 == 0x80000000) and numberIn2 == 0x00000000 then return 0 end
 	if (numberIn1 == 0x7FFFFFFF or numberIn1 == 0xFFFFFFFF) and numberIn2 == 0xFFFFFFFF then return nan end
 	if numberIn1 == 0x7F800000 then return math.huge end
@@ -668,7 +669,7 @@ function bitworker.FastBinaryToDoubleIEEE(numberIn1, numberIn2)
 	local mantissa1 = lshift(band(numberIn1, 0xFFFFF), 12)
 	local mantissa2 = band(numberIn2, 0xFFFFF)
 	mantissa1 = bor(mantissa1, rshift(numberIn2, 20))
-	local value = bitworker.MantissToNumberFast(mantissa1, mantissa2, exp, 52)
+	local value = BitWorker.MantissToNumberFast(mantissa1, mantissa2, exp, 52)
 
 	if point == 0 then return value end
 	return -value
@@ -676,7 +677,7 @@ end
 
 --[[
 	@doc
-	@fname DLib.bitworker.BitsToBytes
+	@fname DLib.BitWorker.BitsToBytes
 	@args table bits
 
 	@desc
@@ -687,7 +688,7 @@ end
 	@returns
 	table: bytes
 ]]
-function bitworker.BitsToBytes(bitsIn)
+function BitWorker.BitsToBytes(bitsIn)
 	assert(#bitsIn % 8 == 0, 'Not full bytes')
 	local output = {}
 

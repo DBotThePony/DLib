@@ -25,7 +25,7 @@ local meta = FindMetaTable('LBytesBuffer') or {}
 debug.getregistry().LBytesBuffer = meta
 DLib.BytesBufferMeta = meta
 
-local bitworker = DLib.bitworker
+local BitWorker = DLib.BitWorker
 
 local type = type
 local math = math
@@ -756,8 +756,8 @@ meta.ReadULong = meta.ReadUInt32
 ]]
 function meta:WriteFloatSlow(valueIn)
 	assertType(valueIn, 'number', 'WriteFloat')
-	local bits = bitworker.FloatToBinaryIEEE(valueIn, 8, 23)
-	local bitsInNumber = bitworker.BinaryToUInteger(bits)
+	local bits = BitWorker.FloatToBinaryIEEE(valueIn, 8, 23)
+	local bitsInNumber = BitWorker.BinaryToUInteger(bits)
 	return self:WriteUInt32(bitsInNumber)
 end
 
@@ -775,7 +775,7 @@ end
 ]]
 function meta:WriteFloat(valueIn)
 	assertType(valueIn, 'number', 'WriteFloat')
-	return self:WriteInt32(bitworker.FastFloatToBinaryIEEE(valueIn))
+	return self:WriteInt32(BitWorker.FastFloatToBinaryIEEE(valueIn))
 end
 
 --[[
@@ -792,8 +792,8 @@ end
 ]]
 function meta:ReadFloatSlow()
 	local bitsInNumber = self:ReadUInt32()
-	local bits = bitworker.UIntegerToBinary(bitsInNumber, 32)
-	return bitworker.BinaryToFloatIEEE(bits, 8, 23)
+	local bits = BitWorker.UIntegerToBinary(bitsInNumber, 32)
+	return BitWorker.BinaryToFloatIEEE(bits, 8, 23)
 end
 
 --[[
@@ -808,7 +808,7 @@ end
 	number
 ]]
 function meta:ReadFloat()
-	return bitworker.FastBinaryToFloatIEEE(self:ReadUInt32())
+	return BitWorker.FastBinaryToFloatIEEE(self:ReadUInt32())
 end
 
 --[[
@@ -826,8 +826,8 @@ end
 ]]
 function meta:WriteDoubleSlow(valueIn)
 	assertType(valueIn, 'number', 'WriteDouble')
-	local bits = bitworker.FloatToBinaryIEEE(valueIn, 11, 52)
-	local bytes = bitworker.BitsToBytes(bits)
+	local bits = BitWorker.FloatToBinaryIEEE(valueIn, 11, 52)
+	local bytes = BitWorker.BitsToBytes(bits)
 
 	local bytes, pointer = self.bytes, self.pointer + 1
 
@@ -861,7 +861,7 @@ end
 function meta:WriteDouble(valueIn)
 	assertType(valueIn, 'number', 'WriteDouble')
 
-	local int1, int2 = bitworker.FastDoubleToBinaryIEEE(valueIn)
+	local int1, int2 = BitWorker.FastDoubleToBinaryIEEE(valueIn)
 	local bytes, pointer = self.bytes, self.pointer + 1
 
 	int1 = wrap(int1, 0x80000000)
@@ -899,9 +899,9 @@ function meta:ReadDoubleSlow()
 	local bytes1 = self:ReadUInt32()
 	local bytes2 = self:ReadUInt32()
 	local bits = {}
-	table.append(bits, bitworker.UIntegerToBinary(bytes1, 32))
-	table.append(bits, bitworker.UIntegerToBinary(bytes2, 32))
-	return bitworker.BinaryToFloatIEEE(bits, 11, 52)
+	table.append(bits, BitWorker.UIntegerToBinary(bytes1, 32))
+	table.append(bits, BitWorker.UIntegerToBinary(bytes2, 32))
+	return BitWorker.BinaryToFloatIEEE(bits, 11, 52)
 end
 
 --[[
@@ -916,7 +916,7 @@ end
 	number
 ]]
 function meta:ReadDouble()
-	return bitworker.FastBinaryToDoubleIEEE(self:ReadUInt32(), self:ReadUInt32())
+	return BitWorker.FastBinaryToDoubleIEEE(self:ReadUInt32(), self:ReadUInt32())
 end
 
 --[[
