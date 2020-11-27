@@ -436,7 +436,13 @@ function I18n._CompileExpression(unformatted)
 					counter = counter + 1
 					argsPos = argsPos + fcount
 				elseif frettype == 'table' then
-					table.append(output, fret)
+					counter = counter - 1
+
+					for i2 = 1, #fret do
+						output[counter + i2] = fret[i2]
+					end
+
+					counter = counter + #fret + 1
 
 					if not IsColor(fret[#fret]) then
 						output[counter] = defColor
@@ -544,7 +550,7 @@ function I18n._localizeByLangAdvanced(phrase, lang, colorDef, ...)
 		end
 	end
 
-	if not unformatted then return phrase end
+	if not unformatted then return {phrase}, 0 end
 
 	if isfunction(unformatted) then
 		local status, formatted, cnum = pcall(unformatted, colorDef, ...)
