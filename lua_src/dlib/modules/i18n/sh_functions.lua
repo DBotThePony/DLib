@@ -18,28 +18,28 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-local i18n = DLib.i18n
+local I18n = DLib.I18n
 local DLib = DLib
 local assert = assert
 local type = type
 
 --[[
 	@doc
-	@fname DLib.i18n.tformatByLang
+	@fname DLib.I18n.FormatTimeByLang
 	@args number time, string lang, boolean ago = false
 
 	@returns
 	string: formatted time in selected locale
 ]]
-function i18n.tformatByLang(time, lang, ago)
+function I18n.FormatTimeByLang(time, lang, ago)
 	assert(type(time) == 'number', 'Invalid time specified')
 
 	if time > 0xFFFFFFFFF then
-		return i18n.localizeByLang('info.dlib.tformat.long', lang)
+		return I18n.LocalizeByLang('info.dlib.tformat.long', lang)
 	elseif time <= 1 and time >= 0 then
-		return i18n.localizeByLang('info.dlib.tformat.now', lang)
+		return I18n.LocalizeByLang('info.dlib.tformat.now', lang)
 	--elseif time < 0 and not ago then
-	--  return i18n.localizeByLang('info.dlib.tformat.past', lang)
+	--  return I18n.LocalizeByLang('info.dlib.tformat.past', lang)
 	end
 
 	local str = ''
@@ -48,57 +48,59 @@ function i18n.tformatByLang(time, lang, ago)
 	local centuries, years, months, weeks, days, hours, minutes, seconds = math.tformatVararg(time:abs())
 
 	if seconds ~= 0 then
-		str = i18n.localizeByLang('info.dlib.tformat.countable' .. suffix .. '.second.' .. seconds, lang)
+		str = I18n.LocalizeByLang('info.dlib.tformat.countable' .. suffix .. '.second.' .. seconds, lang)
 	end
 
 	if minutes ~= 0 then
-		str = i18n.localizeByLang('info.dlib.tformat.countable' .. suffix .. '.minute.' .. minutes, lang) .. ' ' .. str
+		str = I18n.LocalizeByLang('info.dlib.tformat.countable' .. suffix .. '.minute.' .. minutes, lang) .. ' ' .. str
 	end
 
 	if hours ~= 0 then
-		str = i18n.localizeByLang('info.dlib.tformat.countable' .. suffix .. '.hour.' .. hours, lang) .. ' ' .. str
+		str = I18n.LocalizeByLang('info.dlib.tformat.countable' .. suffix .. '.hour.' .. hours, lang) .. ' ' .. str
 	end
 
 	if days ~= 0 then
-		str = i18n.localizeByLang('info.dlib.tformat.countable' .. suffix .. '.day.' .. days, lang) .. ' ' .. str
+		str = I18n.LocalizeByLang('info.dlib.tformat.countable' .. suffix .. '.day.' .. days, lang) .. ' ' .. str
 	end
 
 	if weeks ~= 0 then
-		str = i18n.localizeByLang('info.dlib.tformat.countable' .. suffix .. '.week.' .. weeks, lang) .. ' ' .. str
+		str = I18n.LocalizeByLang('info.dlib.tformat.countable' .. suffix .. '.week.' .. weeks, lang) .. ' ' .. str
 	end
 
 	if months ~= 0 then
-		str = i18n.localizeByLang('info.dlib.tformat.countable' .. suffix .. '.month.' .. months, lang) .. ' ' .. str
+		str = I18n.LocalizeByLang('info.dlib.tformat.countable' .. suffix .. '.month.' .. months, lang) .. ' ' .. str
 	end
 
 	if years ~= 0 then
-		str = i18n.localizeByLang('info.dlib.tformat.countable' .. suffix .. '.year.' .. years, lang) .. ' ' .. str
+		str = I18n.LocalizeByLang('info.dlib.tformat.countable' .. suffix .. '.year.' .. years, lang) .. ' ' .. str
 	end
 
 	if centuries ~= 0 then
-		str = i18n.localizeByLang('info.dlib.tformat.countable' .. suffix .. '.century.' .. centuries, lang) .. ' ' .. str
+		str = I18n.LocalizeByLang('info.dlib.tformat.countable' .. suffix .. '.century.' .. centuries, lang) .. ' ' .. str
 	end
 
-	return ago and i18n.localizeByLang('info.dlib.tformat.ago' .. (time < 0 and '_inv' or ''), lang, str) or time < 0 and ('-(' .. str .. ')') or str
+	return ago and I18n.LocalizeByLang('info.dlib.tformat.ago' .. (time < 0 and '_inv' or ''), lang, str) or time < 0 and ('-(' .. str .. ')') or str
 end
+
+I18n.tformatByLang = I18n.FormatTimeByLang
 
 --[[
 	@doc
-	@fname DLib.i18n.tformatTableByLang
+	@fname DLib.I18n.FormatTimeTableByLang
 	@args number time, string lang, boolean ago = false
 
 	@returns
 	table: array of formatted time in selected locale
 ]]
-function i18n.tformatTableByLang(time, lang, ago)
+function I18n.FormatTimeTableByLang(time, lang, ago)
 	assert(type(time) == 'number', 'Invalid time specified')
 
 	if time > 0xFFFFFFFFF then
-		return {i18n.localizeByLang('info.dlib.tformat.long', lang)}
+		return {I18n.LocalizeByLang('info.dlib.tformat.long', lang)}
 	elseif time <= 1 and time >= 0 then
-		return {i18n.localizeByLang('info.dlib.tformat.now', lang)}
+		return {I18n.LocalizeByLang('info.dlib.tformat.now', lang)}
 	elseif time < 0 then
-		return {i18n.localizeByLang('info.dlib.tformat.past', lang)}
+		return {I18n.LocalizeByLang('info.dlib.tformat.past', lang)}
 	end
 
 	local str = {}
@@ -107,49 +109,51 @@ function i18n.tformatTableByLang(time, lang, ago)
 	local centuries, years, months, weeks, days, hours, minutes, seconds = math.tformatVararg(time)
 
 	if seconds ~= 0 then
-		table.insert(str, i18n.localizeByLang('info.dlib.tformat.countable' .. suffix .. '.second.' .. seconds, lang))
+		table.insert(str, I18n.LocalizeByLang('info.dlib.tformat.countable' .. suffix .. '.second.' .. seconds, lang))
 	end
 
 	if minutes ~= 0 then
-		table.insert(str, i18n.localizeByLang('info.dlib.tformat.countable' .. suffix .. '.minute.' .. minutes, lang))
+		table.insert(str, I18n.LocalizeByLang('info.dlib.tformat.countable' .. suffix .. '.minute.' .. minutes, lang))
 	end
 
 	if hours ~= 0 then
-		table.insert(str, i18n.localizeByLang('info.dlib.tformat.countable' .. suffix .. '.hour.' .. hours, lang))
+		table.insert(str, I18n.LocalizeByLang('info.dlib.tformat.countable' .. suffix .. '.hour.' .. hours, lang))
 	end
 
 	if days ~= 0 then
-		table.insert(str, i18n.localizeByLang('info.dlib.tformat.countable' .. suffix .. '.day.' .. days, lang))
+		table.insert(str, I18n.LocalizeByLang('info.dlib.tformat.countable' .. suffix .. '.day.' .. days, lang))
 	end
 
 	if weeks ~= 0 then
-		table.insert(str, i18n.localizeByLang('info.dlib.tformat.countable' .. suffix .. '.week.' .. weeks, lang))
+		table.insert(str, I18n.LocalizeByLang('info.dlib.tformat.countable' .. suffix .. '.week.' .. weeks, lang))
 	end
 
 	if months ~= 0 then
-		table.insert(str, i18n.localizeByLang('info.dlib.tformat.countable' .. suffix .. '.month.' .. months, lang))
+		table.insert(str, I18n.LocalizeByLang('info.dlib.tformat.countable' .. suffix .. '.month.' .. months, lang))
 	end
 
 	if years ~= 0 then
-		table.insert(str, i18n.localizeByLang('info.dlib.tformat.countable' .. suffix .. '.year.' .. years, lang))
+		table.insert(str, I18n.LocalizeByLang('info.dlib.tformat.countable' .. suffix .. '.year.' .. years, lang))
 	end
 
 	if centuries ~= 0 then
-		table.insert(str, i18n.localizeByLang('info.dlib.tformat.countable' .. suffix .. '.century.' .. centuries, lang))
+		table.insert(str, I18n.LocalizeByLang('info.dlib.tformat.countable' .. suffix .. '.century.' .. centuries, lang))
 	end
 
 	return str
 end
 
+I18n.tformatTableByLang = I18n.FormatTimeTableByLang
+
 --[[
 	@doc
-	@fname DLib.i18n.tformatRawTable
+	@fname DLib.I18n.FormatTimeTableRaw
 	@args number time
 
 	@returns
-	table: for use in functions like DLib.LMessage/AddonSpace.LMessage/i18n.AddChat
+	table: for use in functions like DLib.LMessage/AddonSpace.LMessage/I18n.AddChat
 ]]
-function i18n.tformatRawTable(time, ago)
+function I18n.FormatTimeTableRaw(time, ago)
 	assert(type(time) == 'number', 'Invalid time specified')
 
 	if time > 0xFFFFFFFFF then
@@ -218,50 +222,60 @@ function i18n.tformatRawTable(time, ago)
 	return str
 end
 
+I18n.tformatRawTable = I18n.FormatTimeTableRaw
+
 --[[
 	@doc
-	@fname DLib.i18n.tformat
+	@fname DLib.I18n.FormatTime
 	@args number time, boolean ago = false
 
 	@returns
 	string: formatted time
 ]]
-function i18n.tformat(time, ago)
-	return i18n.tformatByLang(time, i18n.CURRENT_LANG, ago)
+function I18n.FormatTime(time, ago)
+	return I18n.FormatTimeByLang(time, I18n.CURRENT_LANG, ago)
 end
+
+I18n.tformat = I18n.FormatTime
 
 --[[
 	@doc
-	@fname DLib.i18n.tformatTable
+	@fname DLib.I18n.FormatTimeTable
 	@args number time, boolean ago = false
 
 	@returns
 	table: formatted time
 ]]
-function i18n.tformatTable(time, ago)
-	return i18n.tformatTableByLang(time, i18n.CURRENT_LANG, ago)
+function I18n.FormatTimeTable(time, ago)
+	return I18n.FormatTimeTableByLang(time, I18n.CURRENT_LANG, ago)
 end
+
+I18n.tformatTable = I18n.FormatTimeTable
 
 --[[
 	@doc
-	@fname DLib.i18n.tformatFor
+	@fname DLib.I18n.tformatFor
 	@args Player ply, number time, boolean ago = false
 
 	@returns
 	string: formatted time in player's locale
 ]]
-function i18n.tformatFor(ply, time, ago)
-	return i18n.tformatByLang(time, assert(type(ply) == 'Player' and ply, 'Invalid player provided').DLib_Lang or i18n.CURRENT_LANG)
+function I18n.FormatTimeForPlayer(ply, time, ago)
+	return I18n.FormatTimeByLang(time, assert(type(ply) == 'Player' and ply, 'Invalid player provided').DLib_Lang or I18n.CURRENT_LANG)
 end
+
+I18n.tformatFor = I18n.FormatTimeForPlayer
 
 --[[
 	@doc
-	@fname DLib.i18n.tformatTableFor
+	@fname DLib.I18n.FormatTimeTableForPlayer
 	@args Player ply, number time, boolean ago = false
 
 	@returns
 	table: formatted time in player's locale
 ]]
-function i18n.tformatTableFor(ply, time, ago)
-	return i18n.tformatTableByLang(time, assert(type(ply) == 'Player' and ply, 'Invalid player provided').DLib_Lang or i18n.CURRENT_LANG)
+function I18n.FormatTimeTableForPlayer(ply, time, ago)
+	return I18n.FormatTimeTableByLang(time, assert(type(ply) == 'Player' and ply, 'Invalid player provided').DLib_Lang or I18n.CURRENT_LANG)
 end
+
+I18n.tformatTableFor = I18n.FormatTimeTableForPlayer

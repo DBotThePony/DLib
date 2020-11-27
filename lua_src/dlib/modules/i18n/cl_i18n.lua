@@ -18,22 +18,22 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-local i18n = DLib.i18n
+local I18n = DLib.I18n
 local hook = hook
 local unpack = unpack
 
-i18n.DEBUG_LANG_STRINGS = CreateConVar('gmod_language_dlib_dbg_cl', '0', {FCVAR_ARCHIVE}, 'Debug language strings (do not localize them)')
+I18n.DEBUG_LANG_STRINGS = CreateConVar('gmod_language_dlib_dbg_cl', '0', {FCVAR_ARCHIVE}, 'Debug language strings (do not localize them)')
 
 local DefaultPanelCreated
 
 do
 	local function languageWatchdog(self)
-		self:_SetTextDLib(i18n.localize(self._DLibLocalize, unpack(self._DLibLocalizeArgs)))
+		self:_SetTextDLib(I18n.localize(self._DLibLocalize, unpack(self._DLibLocalizeArgs)))
 	end
 
 	local function SetText(self, text, ...)
 		if not text or not isstring(text) then
-			hook.Remove('DLib.i18n.LangUpdate5', self)
+			hook.Remove('DLib.I18n.LangUpdate5', self)
 			return self:_SetTextDLib(text, ...)
 		end
 
@@ -43,15 +43,15 @@ do
 			text2 = text2:sub(2)
 		end
 
-		if not i18n.exists(text2) then
-			hook.Remove('DLib.i18n.LangUpdate5', self)
+		if not I18n.exists(text2) then
+			hook.Remove('DLib.I18n.LangUpdate5', self)
 			return self:_SetTextDLib(text, ...)
 		end
 
-		hook.Add('DLib.i18n.LangUpdate5', self, languageWatchdog)
+		hook.Add('DLib.I18n.LangUpdate5', self, languageWatchdog)
 		self._DLibLocalize = text2
 		self._DLibLocalizeArgs = {...}
-		return self:_SetTextDLib(i18n.localize(text2, ...))
+		return self:_SetTextDLib(I18n.localize(text2, ...))
 	end
 
 	function DefaultPanelCreated(self)
@@ -66,19 +66,19 @@ local LabelPanelCreated
 
 do
 	local function languageWatchdog(self)
-		self:_SetLabelDLib(i18n.localize(self._DLibLocalize, unpack(self._DLibLocalizeArgs)))
+		self:_SetLabelDLib(I18n.localize(self._DLibLocalize, unpack(self._DLibLocalizeArgs)))
 	end
 
 	local function SetLabel(self, text, ...)
-		if not isstring(text) or not i18n.exists(text) then
-			hook.Remove('DLib.i18n.LangUpdate4', self)
+		if not isstring(text) or not I18n.exists(text) then
+			hook.Remove('DLib.I18n.LangUpdate4', self)
 			return self:_SetLabelDLib(text, ...)
 		end
 
-		hook.Add('DLib.i18n.LangUpdate4', self, languageWatchdog)
+		hook.Add('DLib.I18n.LangUpdate4', self, languageWatchdog)
 		self._DLibLocalize = text
 		self._DLibLocalizeArgs = {...}
-		return self:_SetLabelDLib(i18n.localize(text, ...))
+		return self:_SetLabelDLib(I18n.localize(text, ...))
 	end
 
 	function LabelPanelCreated(self)
@@ -93,19 +93,19 @@ local TooltipPanelCreated
 
 do
 	local function languageWatchdog(self)
-		self:_SetTooltipDLib(i18n.localize(self._DLibLocalize, unpack(self._DLibLocalizeArgs)))
+		self:_SetTooltipDLib(I18n.localize(self._DLibLocalize, unpack(self._DLibLocalizeArgs)))
 	end
 
 	local function SetTooltip(self, text, ...)
-		if not isstring(text) or not i18n.exists(text) then
-			hook.Remove('DLib.i18n.LangUpdate3', self)
+		if not isstring(text) or not I18n.exists(text) then
+			hook.Remove('DLib.I18n.LangUpdate3', self)
 			return self:_SetTooltipDLib(text, ...)
 		end
 
-		hook.Add('DLib.i18n.LangUpdate3', self, languageWatchdog)
+		hook.Add('DLib.I18n.LangUpdate3', self, languageWatchdog)
 		self._DLibLocalize = text
 		self._DLibLocalizeArgs = {...}
-		return self:_SetTooltipDLib(i18n.localize(text, ...))
+		return self:_SetTooltipDLib(I18n.localize(text, ...))
 	end
 
 	function TooltipPanelCreated(self)
@@ -120,19 +120,19 @@ local TitlePanelCreated
 
 do
 	local function languageWatchdog(self)
-		self:_SetTitleDLib(i18n.localize(self._DLibLocalize, unpack(self._DLibLocalizeArgs)))
+		self:_SetTitleDLib(I18n.localize(self._DLibLocalize, unpack(self._DLibLocalizeArgs)))
 	end
 
 	local function SetTitle(self, text, ...)
-		if not isstring(text) or not i18n.exists(text) then
-			hook.Remove('DLib.i18n.LangUpdate2', self)
+		if not isstring(text) or not I18n.exists(text) then
+			hook.Remove('DLib.I18n.LangUpdate2', self)
 			return self:_SetTitleDLib(text, ...)
 		end
 
-		hook.Add('DLib.i18n.LangUpdate2', self, languageWatchdog)
+		hook.Add('DLib.I18n.LangUpdate2', self, languageWatchdog)
 		self._DLibLocalize = text
 		self._DLibLocalizeArgs = {...}
-		return self:_SetTitleDLib(i18n.localize(text, ...))
+		return self:_SetTitleDLib(I18n.localize(text, ...))
 	end
 
 	function TitlePanelCreated(self)
@@ -147,19 +147,19 @@ local NamedPanelCreated
 
 do
 	local function languageWatchdog(self)
-		self:_SetNameDLib(i18n.localize(self._DLibLocalize, unpack(self._DLibLocalizeArgs)))
+		self:_SetNameDLib(I18n.localize(self._DLibLocalize, unpack(self._DLibLocalizeArgs)))
 	end
 
 	local function SetName(self, text, ...)
-		if not isstring(text) or not i18n.exists(text) then
-			hook.Remove('DLib.i18n.LangUpdate1', self)
+		if not isstring(text) or not I18n.exists(text) then
+			hook.Remove('DLib.I18n.LangUpdate1', self)
 			return self:_SetNameDLib(text, ...)
 		end
 
-		hook.Add('DLib.i18n.LangUpdate1', self, languageWatchdog)
+		hook.Add('DLib.I18n.LangUpdate1', self, languageWatchdog)
 		self._DLibLocalize = text
 		self._DLibLocalizeArgs = {...}
-		return self:_SetNameDLib(i18n.localize(text, ...))
+		return self:_SetNameDLib(I18n.localize(text, ...))
 	end
 
 	function NamedPanelCreated(self)
@@ -172,19 +172,19 @@ end
 
 -- lmao this way to workaround
 hook.Add('DLib.LanguageChanged2', 'DLib.i18nPanelsBridge', function(...)
-	hook.Run('DLib.i18n.LangUpdate1', ...)
-	hook.Run('DLib.i18n.LangUpdate2', ...)
-	hook.Run('DLib.i18n.LangUpdate3', ...)
-	hook.Run('DLib.i18n.LangUpdate4', ...)
-	hook.Run('DLib.i18n.LangUpdate5', ...)
+	hook.Run('DLib.I18n.LangUpdate1', ...)
+	hook.Run('DLib.I18n.LangUpdate2', ...)
+	hook.Run('DLib.I18n.LangUpdate3', ...)
+	hook.Run('DLib.I18n.LangUpdate4', ...)
+	hook.Run('DLib.I18n.LangUpdate5', ...)
 end)
 
 cvars.AddChangeCallback('gmod_language_dlib_dbg_cl', function()
-	hook.Run('DLib.i18n.LangUpdate1')
-	hook.Run('DLib.i18n.LangUpdate2')
-	hook.Run('DLib.i18n.LangUpdate3')
-	hook.Run('DLib.i18n.LangUpdate4')
-	hook.Run('DLib.i18n.LangUpdate5')
+	hook.Run('DLib.I18n.LangUpdate1')
+	hook.Run('DLib.I18n.LangUpdate2')
+	hook.Run('DLib.I18n.LangUpdate3')
+	hook.Run('DLib.I18n.LangUpdate4')
+	hook.Run('DLib.I18n.LangUpdate5')
 end, 'DLib')
 
 local function vguiPanelCreated(self)
@@ -201,21 +201,21 @@ end
 
 --[[
 	@doc
-	@fname DLib.i18n.AddChat
+	@fname DLib.I18n.AddChat
 	@args vararg arguments
 
 	@client
 ]]
-function i18n.AddChat(...)
-	local rebuild = i18n.rebuildTable({...})
+function I18n.AddChat(...)
+	local rebuild = I18n.RebuildTable({...})
 	return chat.AddText(unpack(rebuild))
 end
 
-i18n.WatchLegacyPhrases = i18n.WatchLegacyPhrases or {}
+I18n.WatchLegacyPhrases = I18n.WatchLegacyPhrases or {}
 
 --[[
 	@doc
-	@fname DLib.i18n.RegisterProxy
+	@fname DLib.I18n.RegisterProxy
 	@args string legacyName, string newName
 
 	@client
@@ -225,54 +225,54 @@ i18n.WatchLegacyPhrases = i18n.WatchLegacyPhrases or {}
 	allows you to do language.Add(legacyName, localized newName) easily
 	@enddesc
 ]]
-function i18n.RegisterProxy(legacyName, newName)
+function I18n.RegisterProxy(legacyName, newName)
 	newName = newName or legacyName
 
-	i18n.WatchLegacyPhrases[legacyName] = newName
-	language.Add(legacyName, i18n.localize(newName))
+	I18n.WatchLegacyPhrases[legacyName] = newName
+	language.Add(legacyName, I18n.localize(newName))
 end
 
-hook.Add('DLib.LanguageChanged', 'DLib.i18n.WatchLegacyPhrases', function(...)
-	for legacyName, newName in pairs(i18n.WatchLegacyPhrases) do
-		language.Add(legacyName, i18n.localize(newName))
+hook.Add('DLib.LanguageChanged', 'DLib.I18n.WatchLegacyPhrases', function(...)
+	for legacyName, newName in pairs(I18n.WatchLegacyPhrases) do
+		language.Add(legacyName, I18n.localize(newName))
 	end
 end)
 
 hook.Add('VGUIPanelCreated', 'DLib.I18n', vguiPanelCreated)
-chat.AddTextLocalized = i18n.AddChat
+chat.AddTextLocalized = I18n.AddChat
 
 local gmod_language, LastLanguage
 local LANG_OVERRIDE = CreateConVar('gmod_language_dlib_cl', '', {FCVAR_ARCHIVE}, 'gmod_language override for DLib based addons')
 
 --[[
 	@doc
-	@fname DLib.i18n.UpdateLang
+	@fname DLib.I18n.UpdateLang
 
 	@internal
 ]]
-function i18n.UpdateLang()
+function I18n.UpdateLang()
 	gmod_language = gmod_language or GetConVar('gmod_language')
 	if not gmod_language then return end
 	local grablang = LANG_OVERRIDE:GetString():lower():trim()
 
 	if grablang ~= '' then
-		i18n.CURRENT_LANG = grablang
+		I18n.CURRENT_LANG = grablang
 	else
-		i18n.CURRENT_LANG = gmod_language:GetString():lower():trim()
+		I18n.CURRENT_LANG = gmod_language:GetString():lower():trim()
 	end
 
-	if LastLanguage ~= i18n.CURRENT_LANG then
-		hook.Run('DLib.LanguageChanged', LastLanguage, i18n.CURRENT_LANG)
-		hook.Run('DLib.LanguageChanged2', LastLanguage, i18n.CURRENT_LANG)
+	if LastLanguage ~= I18n.CURRENT_LANG then
+		hook.Run('DLib.LanguageChanged', LastLanguage, I18n.CURRENT_LANG)
+		hook.Run('DLib.LanguageChanged2', LastLanguage, I18n.CURRENT_LANG)
 	end
 
-	LastLanguage = i18n.CURRENT_LANG
+	LastLanguage = I18n.CURRENT_LANG
 
 	net.Start('dlib.clientlang')
-	net.WriteString(i18n.CURRENT_LANG)
+	net.WriteString(I18n.CURRENT_LANG)
 	net.SendToServer()
 end
 
-cvars.AddChangeCallback('gmod_language', i18n.UpdateLang, 'DLib')
-cvars.AddChangeCallback('gmod_language_dlib_cl', i18n.UpdateLang, 'DLib')
-timer.Simple(0, i18n.UpdateLang)
+cvars.AddChangeCallback('gmod_language', I18n.UpdateLang, 'DLib')
+cvars.AddChangeCallback('gmod_language_dlib_cl', I18n.UpdateLang, 'DLib')
+timer.Simple(0, I18n.UpdateLang)

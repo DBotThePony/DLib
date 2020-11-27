@@ -18,11 +18,11 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-local i18n = DLib.i18n
+local I18n = DLib.I18n
 local math = math
 local string = string
 
-i18n.METRES_IN_HU = 0.0254
+I18n.METRES_IN_HU = 0.0254
 
 local prefixL = {
 	{math.pow(10, -24), 'yocto'},
@@ -45,7 +45,7 @@ local prefixL = {
 	{math.pow(10, 24), 'yotta'},
 }
 
-function i18n.FormatNumImperial(numIn)
+function I18n.FormatNumImperial(numIn)
 	if numIn >= -1000 and numIn <= 1000 then
 		return string.format('%.2f', numIn)
 	end
@@ -55,13 +55,13 @@ end
 
 --[[
 	@doc
-	@fname DLib.i18n.FormatNum
+	@fname DLib.I18n.FormatNum
 	@args number numIn
 
 	@returns
 	string
 ]]
-function i18n.FormatNum(numIn, minFormat)
+function I18n.FormatNum(numIn, minFormat)
 	local abs = numIn:abs()
 
 	if abs >= (minFormat or 1) and abs <= 1000 then
@@ -78,12 +78,12 @@ function i18n.FormatNum(numIn, minFormat)
 		end
 	end
 
-	return string.format('%.2f%s', numIn / lastNum, i18n.localize('info.dlib.si.prefix.' .. prefix .. '.prefix'))
+	return string.format('%.2f%s', numIn / lastNum, I18n.localize('info.dlib.si.prefix.' .. prefix .. '.prefix'))
 end
 
 --[[
 	@doc
-	@fname DLib.i18n.FormatFrequency
+	@fname DLib.I18n.FormatFrequency
 	@args number Hz
 
 	@returns
@@ -92,7 +92,7 @@ end
 
 --[[
 	@doc
-	@fname DLib.i18n.FormatForce
+	@fname DLib.I18n.FormatForce
 	@args number N
 
 	@returns
@@ -101,7 +101,7 @@ end
 
 --[[
 	@doc
-	@fname DLib.i18n.FormatPressure
+	@fname DLib.I18n.FormatPressure
 	@args number Pa
 
 	@returns
@@ -110,9 +110,9 @@ end
 
 --[[
 	@doc
-	@fname DLib.i18n.FormatWork
-	@alias DLib.i18n.FormatHeat
-	@alias DLib.i18n.FormatEnergy
+	@fname DLib.I18n.FormatWork
+	@alias DLib.I18n.FormatHeat
+	@alias DLib.I18n.FormatEnergy
 	@args number J
 
 	@returns
@@ -121,7 +121,7 @@ end
 
 --[[
 	@doc
-	@fname DLib.i18n.FormatPower
+	@fname DLib.I18n.FormatPower
 	@args number W
 
 	@returns
@@ -130,7 +130,7 @@ end
 
 --[[
 	@doc
-	@fname DLib.i18n.FormatVoltage
+	@fname DLib.I18n.FormatVoltage
 	@args number V
 
 	@returns
@@ -139,7 +139,7 @@ end
 
 --[[
 	@doc
-	@fname DLib.i18n.FormatElectricalCapacitance
+	@fname DLib.I18n.FormatElectricalCapacitance
 	@args number F
 
 	@returns
@@ -148,9 +148,9 @@ end
 
 --[[
 	@doc
-	@fname DLib.i18n.FormatElectricalResistance
-	@alias DLib.i18n.FormatImpedance
-	@alias DLib.i18n.FormatReactance
+	@fname DLib.I18n.FormatElectricalResistance
+	@alias DLib.I18n.FormatImpedance
+	@alias DLib.I18n.FormatReactance
 	@args number Ω
 
 	@returns
@@ -159,7 +159,7 @@ end
 
 --[[
 	@doc
-	@fname DLib.i18n.FormatElectricalConductance
+	@fname DLib.I18n.FormatElectricalConductance
 	@args number S
 
 	@returns
@@ -168,7 +168,7 @@ end
 
 --[[
 	@doc
-	@fname DLib.i18n.FormatMagneticFlux
+	@fname DLib.I18n.FormatMagneticFlux
 	@args number wb
 
 	@returns
@@ -177,8 +177,8 @@ end
 
 --[[
 	@doc
-	@fname DLib.i18n.FormatMagneticFluxDensity
-	@alias DLib.i18n.FormatMagneticInduction
+	@fname DLib.I18n.FormatMagneticFluxDensity
+	@alias DLib.I18n.FormatMagneticInduction
 	@args number T
 
 	@returns
@@ -187,7 +187,7 @@ end
 
 --[[
 	@doc
-	@fname DLib.i18n.FormatIlluminance
+	@fname DLib.I18n.FormatIlluminance
 	@args number lx
 
 	@returns
@@ -196,7 +196,7 @@ end
 
 --[[
 	@doc
-	@fname DLib.i18n.FormatRadioactivity
+	@fname DLib.I18n.FormatRadioactivity
 	@args number Bq
 
 	@returns
@@ -205,7 +205,7 @@ end
 
 --[[
 	@doc
-	@fname DLib.i18n.FormatAbsorbedDose
+	@fname DLib.I18n.FormatAbsorbedDose
 	@args number Gy
 
 	@returns
@@ -214,7 +214,7 @@ end
 
 --[[
 	@doc
-	@fname DLib.i18n.FormatEquivalentDose
+	@fname DLib.I18n.FormatEquivalentDose
 	@args number Sv
 
 	@returns
@@ -223,7 +223,7 @@ end
 
 --[[
 	@doc
-	@fname DLib.i18n.FormatCatalyticActivity
+	@fname DLib.I18n.FormatCatalyticActivity
 	@args number kat
 
 	@returns
@@ -259,54 +259,55 @@ for i, row in ipairs(units:split('\n')) do
 			ttype = ttype:match('(%S+)')
 
 			if ttype then
-				i18n['Format' .. ttype:formatname()] = function(numIn)
-					return string.format('%s%s', type(numIn) == 'number' and i18n.FormatNum(numIn) or numIn, i18n.localize('info.dlib.si.units.' .. measure .. '.suffix'))
+				I18n['Format' .. ttype:formatname()] = function(numIn)
+					return string.format('%s%s',
+						type(numIn) == 'number' and I18n.FormatNum(numIn) or numIn, I18n.Localize('info.dlib.si.units.' .. measure .. '.suffix'))
 				end
 			end
 		end
 	end
 end
 
-i18n.FormatWeight = i18n.FormatForce
+I18n.FormatWeight = I18n.FormatForce
 
-i18n.TEMPERATURE_UNITS = CreateConVar('dlib_unit_system_temperature', 'C', {FCVAR_ARCHIVE}, 'C/K/F')
-i18n.TEMPERATURE_UNITS_TYPE_CELSIUS = 0
-i18n.TEMPERATURE_UNITS_TYPE_KELVIN = 1
-i18n.TEMPERATURE_UNITS_TYPE_FAHRENHEIT = 2
+I18n.TEMPERATURE_UNITS = CreateConVar('dlib_unit_system_temperature', 'C', {FCVAR_ARCHIVE}, 'C/K/F')
+I18n.TEMPERATURE_UNITS_TYPE_CELSIUS = 0
+I18n.TEMPERATURE_UNITS_TYPE_KELVIN = 1
+I18n.TEMPERATURE_UNITS_TYPE_FAHRENHEIT = 2
 
 --[[
 	@doc
-	@fname DLib.i18n.FormatTemperature
+	@fname DLib.I18n.FormatTemperature
 	@args number numIn, number providedType
 
 	@desc
 	`providedType` define in whcih temp units `numIn` is
 	Valid values are:
-	`DLib.i18n.TEMPERATURE_UNITS_TYPE_CELSIUS` (default)
-	`DLib.i18n.TEMPERATURE_UNITS_TYPE_KELVIN`
-	`DLib.i18n.TEMPERATURE_UNITS_TYPE_FAHRENHEIT`
+	`DLib.I18n.TEMPERATURE_UNITS_TYPE_CELSIUS` (default)
+	`DLib.I18n.TEMPERATURE_UNITS_TYPE_KELVIN`
+	`DLib.I18n.TEMPERATURE_UNITS_TYPE_FAHRENHEIT`
 	@enddesc
 
 	@returns
 	string
 ]]
-function i18n.FormatTemperature(tempUnits, providedType)
-	providedType = providedType or i18n.TEMPERATURE_UNITS_TYPE_CELSIUS
+function I18n.FormatTemperature(tempUnits, providedType)
+	providedType = providedType or I18n.TEMPERATURE_UNITS_TYPE_CELSIUS
 
-	if providedType == i18n.TEMPERATURE_UNITS_TYPE_CELSIUS then
+	if providedType == I18n.TEMPERATURE_UNITS_TYPE_CELSIUS then
 		tempUnits = tempUnits + 273.15
-	elseif providedType == i18n.TEMPERATURE_UNITS_TYPE_FAHRENHEIT then
+	elseif providedType == I18n.TEMPERATURE_UNITS_TYPE_FAHRENHEIT then
 		tempUnits = (tempUnits - 32) * 5 / 9 + 273.15
 	end
 
-	local units = i18n.TEMPERATURE_UNITS:GetString()
+	local units = I18n.TEMPERATURE_UNITS:GetString()
 
 	if units == 'K' then
-		return string.format('%s°%s', i18n.FormatNum(tempUnits, 0.01), i18n.localize('info.dlib.si.units.kelvin.suffix'))
+		return string.format('%s°%s', I18n.FormatNum(tempUnits, 0.01), I18n.localize('info.dlib.si.units.kelvin.suffix'))
 	elseif units == 'F' then
-		return string.format('%s°%s', i18n.FormatNumImperial((tempUnits - 273.15) * 9 / 5 + 32), i18n.localize('info.dlib.si.units.fahrenheit.suffix'))
+		return string.format('%s°%s', I18n.FormatNumImperial((tempUnits - 273.15) * 9 / 5 + 32), I18n.localize('info.dlib.si.units.fahrenheit.suffix'))
 	else
-		return string.format('%s°%s', i18n.FormatNum(tempUnits - 273.15, 0.01), i18n.localize('info.dlib.si.units.celsius.suffix'))
+		return string.format('%s°%s', I18n.FormatNum(tempUnits - 273.15, 0.01), I18n.localize('info.dlib.si.units.celsius.suffix'))
 	end
 end
 
@@ -314,41 +315,41 @@ local sv_gravity = GetConVar('sv_gravity')
 
 --[[
 	@doc
-	@fname DLib.i18n.FreeFallAcceleration
+	@fname DLib.I18n.FreeFallAcceleration
 
 	@returns
 	number: for use with `FormatForce` or anything like that
 ]]
-function i18n.FreeFallAcceleration()
+function I18n.FreeFallAcceleration()
 	return 9.8066 * sv_gravity:GetFloat() / 600
 end
 
 --[[
 	@doc
-	@fname DLib.i18n.FormatDistance
+	@fname DLib.I18n.FormatDistance
 	@args number metresIn
 
 	@returns
 	string
 ]]
-function i18n.FormatDistance(numIn)
-	return string.format('%s%s', i18n.FormatNum(numIn), i18n.localize('info.dlib.si.units.metre.suffix'))
+function I18n.FormatDistance(numIn)
+	return string.format('%s%s', I18n.FormatNum(numIn), I18n.Localize('info.dlib.si.units.metre.suffix'))
 end
 
 --[[
 	@doc
-	@fname DLib.i18n.FormatHU
-	@alias DLib.i18n.FormatHammerUnits
+	@fname DLib.I18n.FormatHU
+	@alias DLib.I18n.FormatHammerUnits
 	@args number hammerUnitsIn
 
 	@returns
 	string
 ]]
-function i18n.FormatHU(numIn)
-	return i18n.FormatDistance(numIn * i18n.METRES_IN_HU)
+function I18n.FormatHU(numIn)
+	return I18n.FormatDistance(numIn * I18n.METRES_IN_HU)
 end
 
-i18n.FormatHammerUnits = i18n.FormatHU
+I18n.FormatHammerUnits = I18n.FormatHU
 
 do
 	local prefixL = table.Copy(prefixL)
@@ -359,13 +360,13 @@ do
 
 --[[
 	@doc
-	@fname DLib.i18n.FormatArea
+	@fname DLib.I18n.FormatArea
 	@args number squareMetresIn
 
 	@returns
 	string
 ]]
-	function i18n.FormatArea(numIn)
+	function I18n.FormatArea(numIn)
 		assert(numIn >= 0, 'Area can not be negative')
 
 		if numIn >= 1 and numIn <= 1000 then
@@ -389,23 +390,26 @@ do
 			lastNum, prefix = prefixL[index][1], prefixL[index][2]
 		end
 
-		return string.format('%.2f%s%s^2', numIn / lastNum, i18n.localize('info.dlib.si.prefix.' .. prefix .. '.prefix'), i18n.localize('info.dlib.si.units.metre.suffix'))
+		return string.format('%.2f%s%s^2',
+			numIn / lastNum,
+			I18n.Localize('info.dlib.si.prefix.' .. prefix .. '.prefix'),
+			I18n.Localize('info.dlib.si.units.metre.suffix'))
 	end
 
 --[[
 	@doc
-	@fname DLib.i18n.FormatAreaHU
-	@alias DLib.i18n.FormatAreaHammerUnits
+	@fname DLib.I18n.FormatAreaHU
+	@alias DLib.I18n.FormatAreaHammerUnits
 	@args number squareHammerUnitsIn
 
 	@returns
 	string
 ]]
-	function i18n.FormatAreaHU(numIn)
-		return i18n.FormatArea(numIn * i18n.METRES_IN_HU)
+	function I18n.FormatAreaHU(numIn)
+		return I18n.FormatArea(numIn * I18n.METRES_IN_HU)
 	end
 
-	i18n.FormatAreaHammerUnits = i18n.FormatAreaHU
+	I18n.FormatAreaHammerUnits = I18n.FormatAreaHU
 end
 
 do
@@ -415,20 +419,20 @@ do
 		row[1] = row[1]:pow(3)
 	end
 
-	i18n.VOLUME_UNITS = CreateConVar('dlib_unit_system_volume', 'L', {FCVAR_ARCHIVE}, 'L/m')
+	I18n.VOLUME_UNITS = CreateConVar('dlib_unit_system_volume', 'L', {FCVAR_ARCHIVE}, 'L/m')
 
 --[[
 	@doc
-	@fname DLib.i18n.FormatVolume
+	@fname DLib.I18n.FormatVolume
 	@args number litres
 
 	@returns
 	string
 ]]
-	function i18n.FormatVolume(litres)
+	function I18n.FormatVolume(litres)
 		assert(litres >= 0, 'Volume can not be negative')
 
-		if i18n.VOLUME_UNITS:GetString() == 'm' then
+		if I18n.VOLUME_UNITS:GetString() == 'm' then
 			local numIn = litres / 1000
 
 			if numIn >= 0.0001 and numIn <= 1000000 then
@@ -452,61 +456,61 @@ do
 				lastNum, prefix = prefixL[index][1], prefixL[index][2]
 			end
 
-			return string.format('%.4f%s%s^3', numIn / lastNum, i18n.localize('info.dlib.si.prefix.' .. prefix .. '.prefix'), i18n.localize('info.dlib.si.units.metre.suffix'))
+			return string.format('%.4f%s%s^3', numIn / lastNum, I18n.localize('info.dlib.si.prefix.' .. prefix .. '.prefix'), I18n.localize('info.dlib.si.units.metre.suffix'))
 		end
 
-		return string.format('%s%s', i18n.FormatNum(litres), i18n.localize('info.dlib.si.units.litre.suffix'))
+		return string.format('%s%s', I18n.FormatNum(litres), I18n.localize('info.dlib.si.units.litre.suffix'))
 	end
 
 --[[
 	@doc
-	@fname DLib.i18n.FormatVolumeHU
-	@alias DLib.i18n.FormatVolumeHammerUnits
+	@fname DLib.I18n.FormatVolumeHU
+	@alias DLib.I18n.FormatVolumeHammerUnits
 	@args number cubicHammerUnitsIn
 
 	@returns
 	string
 ]]
-	function i18n.FormatVolumeHU(numIn)
-		return i18n.FormatVolume(numIn * i18n.METRES_IN_HU * 0.2587786259)
+	function I18n.FormatVolumeHU(numIn)
+		return I18n.FormatVolume(numIn * I18n.METRES_IN_HU * 0.2587786259)
 	end
 
-	i18n.FormatVolumeHammerUnits = i18n.FormatVolumeHU
+	I18n.FormatVolumeHammerUnits = I18n.FormatVolumeHU
 
 	cvars.AddChangeCallback('dlib_unit_system_volume', function(self, old, new)
 		if new ~= 'L' and new ~= 'm' then
 			DLib.MessageError('Invalid value for dlib_unit_system_volume specified, reverting to L')
-			i18n.VOLUME_UNITS:Reset()
+			I18n.VOLUME_UNITS:Reset()
 		end
 	end, 'DLib')
 end
 
 --[[
 	@doc
-	@fname DLib.i18n.FormatMass
+	@fname DLib.I18n.FormatMass
 	@args number kilograms
 
 	@returns
 	string
 ]]
-function i18n.FormatMass(numIn)
-	return string.format('%s%s', i18n.FormatNum(numIn * 1000), i18n.localize('info.dlib.si.units.gram.suffix'))
+function I18n.FormatMass(numIn)
+	return string.format('%s%s', I18n.FormatNum(numIn * 1000), I18n.localize('info.dlib.si.units.gram.suffix'))
 end
 
 --[[
 	@doc
-	@fname DLib.i18n.GetNormalPressure
+	@fname DLib.I18n.GetNormalPressure
 
 	@returns
 	number: Pa
 ]]
-function i18n.GetNormalPressure()
+function I18n.GetNormalPressure()
 	return 101325
 end
 
 cvars.AddChangeCallback('dlib_unit_system_temperature', function(self, old, new)
 	if new ~= 'C' and new ~= 'K' and new ~= 'F' then
 		DLib.MessageError('Invalid value for dlib_unit_system_temperature specified, reverting to C')
-		i18n.TEMPERATURE_UNITS:Reset()
+		I18n.TEMPERATURE_UNITS:Reset()
 	end
 end, 'DLib')

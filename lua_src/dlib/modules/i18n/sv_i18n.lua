@@ -20,17 +20,18 @@
 
 net.pool('dlib.clientlang')
 
-local i18n = DLib.i18n
+local I18n = DLib.I18n
 
-i18n.DEBUG_LANG_STRINGS = CreateConVar('gmod_language_dlib_dbg', '0', {FCVAR_ARCHIVE}, 'Debug language strings (do not localize them)')
+I18n.DEBUG_LANG_STRINGS = CreateConVar('gmod_language_dlib_dbg', '0', {FCVAR_ARCHIVE}, 'Debug language strings (do not localize them)')
 
 --[[
 	@doc
-	@fname DLib.i18n.getPlayer
-	@alias DLib.i18n.getByPlayer
-	@alias DLib.i18n.localizePlayer
-	@alias DLib.i18n.localizebyPlayer
-	@alias DLib.i18n.byPlayer
+	@fname DLib.I18n.GetForPlayer
+	@alias DLib.I18n.GetPlayer
+	@alias DLib.I18n.GetByPlayer
+	@alias DLib.I18n.LocalizePlayer
+	@alias DLib.I18n.LocalizebyPlayer
+	@alias DLib.I18n.ByPlayer
 	@alias Player:LocalizePhrase
 	@alias Player:DLibPhrase
 	@alias Player:DLibLocalize
@@ -42,22 +43,24 @@ i18n.DEBUG_LANG_STRINGS = CreateConVar('gmod_language_dlib_dbg', '0', {FCVAR_ARC
 	@returns
 	string: formatted message
 ]]
-function i18n.getPlayer(ply, phrase, ...)
-	return i18n.localizeByLang(phrase, ply.DLib_Lang or 'en', ...)
+function I18n.GetForPlayer(ply, phrase, ...)
+	return I18n.LocalizeByLang(phrase, ply.DLib_Lang or 'en', ...)
 end
 
-i18n.getByPlayer = i18n.getPlayer
-i18n.localizePlayer = i18n.getPlayer
-i18n.localizebyPlayer = i18n.getPlayer
-i18n.byPlayer = i18n.getPlayer
+I18n.GetPlayer = I18n.GetForPlayer
+I18n.GetByPlayer = I18n.GetForPlayer
+I18n.LocalizePlayer = I18n.GetForPlayer
+I18n.LocalizebyPlayer = I18n.GetForPlayer
+I18n.ByPlayer = I18n.GetForPlayer
 
 --[[
 	@doc
-	@fname DLib.i18n.getPlayerAdvanced
-	@alias DLib.i18n.getByPlayerAdvanced
-	@alias DLib.i18n.localizePlayerAdvanced
-	@alias DLib.i18n.localizebyPlayerAdvanced
-	@alias DLib.i18n.byPlayerAdvanced
+	@fname DLib.I18n.GetForPlayerAdvanced
+	@alias DLib.I18n.GetPlayerAdvanced
+	@alias DLib.I18n.GetByPlayerAdvanced
+	@alias DLib.I18n.LocalizePlayerAdvanced
+	@alias DLib.I18n.LocalizebyPlayerAdvanced
+	@alias DLib.I18n.ByPlayerAdvanced
 	@alias Player:LocalizePhraseAdvanced
 	@alias Player:DLibPhraseAdvanced
 	@alias Player:DLibLocalizeAdvanced
@@ -76,14 +79,15 @@ i18n.byPlayer = i18n.getPlayer
 	table: formatted message
 	number: arguments "consumed"
 ]]
-function i18n.getPlayerAdvanced(ply, phrase, ...)
-	return i18n.localizeByLangAdvanced(phrase, ply.DLib_Lang or 'en', ...)
+function I18n.GetForPlayerAdvanced(ply, phrase, ...)
+	return I18n.LocalizeByLangAdvanced(phrase, ply.DLib_Lang or 'en', ...)
 end
 
-i18n.getByPlayerAdvanced = i18n.getPlayerAdvanced
-i18n.localizePlayerAdvanced = i18n.getPlayerAdvanced
-i18n.localizebyPlayerAdvanced = i18n.getPlayerAdvanced
-i18n.byPlayerAdvanced = i18n.getPlayerAdvanced
+I18n.GetPlayerAdvanced = I18n.GetForPlayerAdvanced
+I18n.GetByPlayerAdvanced = I18n.GetForPlayerAdvanced
+I18n.LocalizePlayerAdvanced = I18n.GetForPlayerAdvanced
+I18n.LocalizebyPlayerAdvanced = I18n.GetForPlayerAdvanced
+I18n.ByPlayerAdvanced = I18n.GetForPlayerAdvanced
 
 local plyMeta = FindMetaTable('Player')
 
@@ -101,7 +105,7 @@ local plyMeta = FindMetaTable('Player')
 	string: formatted message
 ]]
 function plyMeta:LocalizePhrase(phrase, ...)
-	return i18n.localizeByLang(phrase, self.DLib_Lang or 'en', ...)
+	return I18n.LocalizeByLang(phrase, self.DLib_Lang or 'en', ...)
 end
 
 plyMeta.DLibPhrase = plyMeta.LocalizePhrase
@@ -129,7 +133,7 @@ plyMeta.GetDLibPhrase = plyMeta.LocalizePhrase
 	number: arguments "consumed"
 ]]
 function plyMeta:LocalizePhraseAdvanced(phrase, ...)
-	return i18n.localizeByLangAdvanced(phrase, self.DLib_Lang or 'en', ...)
+	return I18n.LocalizeByLangAdvanced(phrase, self.DLib_Lang or 'en', ...)
 end
 
 plyMeta.DLibPhraseAdvanced = plyMeta.LocalizePhraseAdvanced
@@ -160,13 +164,13 @@ local function tickPlayers()
 
 		local nick = ply:Nick()
 
-		if nick == 'unnamed' or i18n.exists(nick) then
+		if nick == 'unnamed' or I18n.exists(nick) then
 			ply:Kick('[DLib/I18N] Invalid nickname')
 		end
 	end
 end
 
-function i18n.RegisterProxy(...)
+function I18n.RegisterProxy(...)
 	-- do nothing
 end
 
@@ -178,37 +182,38 @@ local gmod_language = GetConVar('gmod_language')
 	@hook DLib.LanguageChanged
 ]]
 
-function i18n.UpdateLang()
+function I18n.UpdateLang()
 	local grablang = LANG_OVERRIDE:GetString():lower():trim()
 
 	if grablang ~= '' then
-		i18n.CURRENT_LANG = grablang
+		I18n.CURRENT_LANG = grablang
 	else
-		i18n.CURRENT_LANG = gmod_language:GetString():lower():trim()
+		I18n.CURRENT_LANG = gmod_language:GetString():lower():trim()
 	end
 
-	if LastLanguage ~= i18n.CURRENT_LANG then
+	if LastLanguage ~= I18n.CURRENT_LANG then
 		hook.Call('DLib.LanguageChanged')
 		hook.Call('DLib.LanguageChanged2')
 	end
 
-	LastLanguage = i18n.CURRENT_LANG
+	LastLanguage = I18n.CURRENT_LANG
 end
 
-cvars.AddChangeCallback('gmod_language', i18n.UpdateLang, 'DLib')
-cvars.AddChangeCallback('gmod_language_dlib_sv', i18n.UpdateLang, 'DLib')
+cvars.AddChangeCallback('gmod_language', I18n.UpdateLang, 'DLib')
+cvars.AddChangeCallback('gmod_language_dlib_sv', I18n.UpdateLang, 'DLib')
+
 local value = gmod_language:GetString()
 
 hook.Add('Think', 'dlib_gmod_language_hack', function()
 	local value2 = gmod_language:GetString()
 
 	if value2 ~= value then
-		i18n.UpdateLang()
+		I18n.UpdateLang()
 		value = value2
 	end
 end)
 
-timer.Simple(0, i18n.UpdateLang)
+timer.Simple(0, I18n.UpdateLang)
 
 --[[
 	@doc

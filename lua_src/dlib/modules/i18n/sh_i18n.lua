@@ -18,7 +18,7 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-local i18n = DLib.i18n
+local I18n = DLib.I18n
 local string = string
 local type = type
 local error = error
@@ -27,12 +27,25 @@ local DLib = DLib
 local table = table
 local IsColor = IsColor
 
-i18n.hashed = i18n.hashed or {}
-i18n.hashedFunc = i18n.hashedFunc or {}
-i18n.hashedNoArgs = i18n.hashedNoArgs or {}
-i18n.hashedLang = i18n.hashedLang or {}
-i18n.hashedLangFunc = i18n.hashedLangFunc or {}
-i18n.hashedNoArgsLang = i18n.hashedNoArgsLang or {}
+I18n.hashed = I18n.hashed or {}
+I18n.Hashed = I18n.hashed
+I18n.hashedFunc = I18n.hashedFunc or {}
+I18n.HashedFunc = I18n.hashedFunc
+I18n.hashedNoArgs = I18n.hashedNoArgs or {}
+I18n.HashedNoArgs = I18n.hashedNoArgs
+I18n.hashedLang = I18n.hashedLang or {}
+I18n.HashedLang = I18n.hashedLang
+I18n.hashedLangFunc = I18n.hashedLangFunc or {}
+I18n.HashedLangFunc = I18n.hashedLangFunc
+I18n.hashedNoArgsLang = I18n.hashedNoArgsLang or {}
+I18n.HashedNoArgsLang = I18n.hashedNoArgsLang
+
+local Hashed = I18n.Hashed
+local HashedFunc = I18n.HashedFunc
+local HashedNoArgs = I18n.HashedNoArgs
+local HashedLang = I18n.HashedLang
+local HashedLangFunc = I18n.HashedLangFunc
+local HashedNoArgsLang = I18n.HashedNoArgsLang
 
 local formatters = {
 	['##'] = function(self)
@@ -209,14 +222,14 @@ local formatters = {
 
 --[[
 	@doc
-	@fname DLib.i18n.format
+	@fname DLib.I18n.Format
 	@args string unformatted, Color colorDef = nil, vararg format
 
 	@desc
 	Supports colors from custom format arguments
-	This is the same as creating i18n phrase with required arguments put in,
+	This is the same as creating I18n phrase with required arguments put in,
 	but slower due to `unformatted` being parsed each time on call, when
-	i18n phrase is parsed only once.
+	I18n phrase is parsed only once.
 	Available arguments are:
 	`#.0b`, `#b`, `#d`, `#u`, `#c`, `#o`, `#x`, `#.0x`, `#X`, `#.0X`, `#f`, `#.0f`, `#i`, `#.0i`, `#C` = Color, `#E` = Entity, `#e` = Command executor
 	As well as all `%` arguments !g:string.format accept
@@ -226,7 +239,7 @@ local formatters = {
 	table: formatted message
 	number: arguments "consumed"
 ]]
-function i18n.format(unformatted, defColor, ...)
+function I18n.Format(unformatted, defColor, ...)
 	local formatTable = luatype(defColor) == 'Color'
 	defColor = defColor or color_white
 	local argsPos = 1
@@ -256,7 +269,7 @@ function i18n.format(unformatted, defColor, ...)
 
 		if findBestFunc then
 			local slicePre = unformatted:sub(searchPos, findBest - 1)
-			local count = i18n.countExpressions(slicePre)
+			local count = I18n.countExpressions(slicePre)
 
 			if count ~= 0 then
 				table.insert(output, string.format(slicePre, unpack(args, argsPos, argsPos + count - 1)))
@@ -300,7 +313,7 @@ function i18n.format(unformatted, defColor, ...)
 
 	if searchPos ~= #unformatted then
 		local slice = unformatted:sub(searchPos)
-		local count = i18n.countExpressions(slice)
+		local count = I18n.countExpressions(slice)
 
 		if count ~= 0 then
 			table.insert(output, string.format(slice, unpack(args, argsPos, argsPos + count - 1)))
@@ -346,7 +359,7 @@ local function compileExpression(unformatted)
 
 		if findBestFunc then
 			local slicePre = unformatted:sub(searchPos, findBest - 1)
-			local count = i18n.countExpressions(slicePre)
+			local count = I18n.countExpressions(slicePre)
 
 			if count ~= 0 then
 				table.insert(funclist, function(...)
@@ -372,7 +385,7 @@ local function compileExpression(unformatted)
 
 	if searchPos ~= #unformatted then
 		local slice = unformatted:sub(searchPos)
-		local count = i18n.countExpressions(slice)
+		local count = I18n.countExpressions(slice)
 
 		if count ~= 0 then
 			table.insert(funclist, function(...)
@@ -419,24 +432,24 @@ end
 
 --[[
 	@doc
-	@fname DLib.i18n.localizeByLang
+	@fname DLib.I18n.LocalizeByLang
 	@args string phrase, string lang, vararg format
 
 	@returns
 	string: formatted message
 ]]
-function i18n.localizeByLang(phrase, lang, ...)
-	if not i18n.hashed[phrase] or i18n.DEBUG_LANG_STRINGS:GetBool() then
+function I18n.LocalizeByLang(phrase, lang, ...)
+	if not Hashed[phrase] or I18n.DEBUG_LANG_STRINGS:GetBool() then
 		return phrase
 	end
 
-	if i18n.hashedFunc[phrase] then
+	if HashedFunc[phrase] then
 		local unformatted
 
-		if lang == 'en' or not i18n.hashedLang[lang] then
-			unformatted = i18n.hashedFunc[phrase] or nil
+		if lang == 'en' or not HashedLang[lang] then
+			unformatted = HashedFunc[phrase] or nil
 		else
-			unformatted = i18n.hashedLangFunc[lang] and i18n.hashedLangFunc[lang][phrase] or i18n.hashedFunc[phrase] or nil
+			unformatted = HashedLangFunc[lang] and HashedLangFunc[lang][phrase] or HashedFunc[phrase] or nil
 		end
 
 		if not unformatted then
@@ -462,10 +475,10 @@ function i18n.localizeByLang(phrase, lang, ...)
 
 	local unformatted
 
-	if lang == 'en' or not i18n.hashedLang[lang] then
-		unformatted = i18n.hashed[phrase] or phrase
+	if lang == 'en' or not HashedLang[lang] then
+		unformatted = Hashed[phrase] or phrase
 	else
-		unformatted = i18n.hashedLang[lang][phrase] or i18n.hashed[phrase] or phrase
+		unformatted = HashedLang[lang][phrase] or Hashed[phrase] or phrase
 	end
 
 	local status, formatted = pcall(string.format, unformatted, ...)
@@ -479,7 +492,7 @@ end
 
 --[[
 	@doc
-	@fname DLib.i18n.localizeByLangAdvanced
+	@fname DLib.I18n.LocalizeByLangAdvanced
 	@args string phrase, string lang, Color colorDef = color_white, vararg format
 
 	@desc
@@ -492,26 +505,26 @@ end
 	table: formatted message
 	number: arguments "consumed"
 ]]
-function i18n.localizeByLangAdvanced(phrase, lang, colorDef, ...)
+function I18n.LocalizeByLangAdvanced(phrase, lang, colorDef, ...)
 	if luatype(colorDef) ~= 'Color' then
-		return i18n._localizeByLangAdvanced(phrase, lang, color_white, ...)
+		return I18n._localizeByLangAdvanced(phrase, lang, color_white, ...)
 	else
-		return i18n._localizeByLangAdvanced(phrase, lang, colorDef, ...)
+		return I18n._localizeByLangAdvanced(phrase, lang, colorDef, ...)
 	end
 end
 
-function i18n._localizeByLangAdvanced(phrase, lang, colorDef, ...)
-	if not i18n.hashed[phrase] or i18n.DEBUG_LANG_STRINGS:GetBool() then
+function I18n._localizeByLangAdvanced(phrase, lang, colorDef, ...)
+	if not Hashed[phrase] or I18n.DEBUG_LANG_STRINGS:GetBool() then
 		return {phrase}, 0
 	end
 
-	if i18n.hashedFunc[phrase] then
+	if HashedFunc[phrase] then
 		local unformatted
 
-		if lang == 'en' or not i18n.hashedLang[lang] then
-			unformatted = i18n.hashedFunc[phrase] or nil
+		if lang == 'en' or not HashedLang[lang] then
+			unformatted = HashedFunc[phrase] or nil
 		else
-			unformatted = i18n.hashedLangFunc[lang] and i18n.hashedLangFunc[lang][phrase] or i18n.hashedFunc[phrase] or nil
+			unformatted = HashedLangFunc[lang] and HashedLangFunc[lang][phrase] or HashedFunc[phrase] or nil
 		end
 
 		if not unformatted then
@@ -529,16 +542,16 @@ function i18n._localizeByLangAdvanced(phrase, lang, colorDef, ...)
 
 	local unformatted
 
-	if lang == 'en' or not i18n.hashedLang[lang] then
-		unformatted = i18n.hashed[phrase] or phrase
+	if lang == 'en' or not HashedLang[lang] then
+		unformatted = Hashed[phrase] or phrase
 	else
-		unformatted = i18n.hashedLang[lang][phrase] or i18n.hashed[phrase] or phrase
+		unformatted = HashedLang[lang][phrase] or Hashed[phrase] or phrase
 	end
 
 	local status, formatted, cnum = pcall(string.format, unformatted, ...)
 
 	if status then
-		return {formatted}, i18n.countExpressions(unformatted)
+		return {formatted}, I18n.CountExpressions(unformatted)
 	else
 		return {'Format error: ' .. phrase .. ' ' .. formatted}, 0
 	end
@@ -546,13 +559,13 @@ end
 
 --[[
 	@doc
-	@fname DLib.i18n.countExpressions
+	@fname DLib.I18n.CountExpressions
 	@args string str
 
 	@returns
 	number
 ]]
-function i18n.countExpressions(str)
+function I18n.CountExpressions(str)
 	local i = 0
 
 	for line in str:gmatch('[%%][^%%]') do
@@ -564,7 +577,7 @@ end
 
 --[[
 	@doc
-	@fname DLib.i18n.registerPhrase
+	@fname DLib.I18n.RegisterPhrase
 	@args string lang, string phrase, string unformatted
 
 	@deprecated
@@ -573,7 +586,7 @@ end
 	@returns
 	boolean: true
 ]]
-function i18n.registerPhrase(lang, phrase, unformatted)
+function I18n.RegisterPhrase(lang, phrase, unformatted)
 	local advanced = false
 
 	for formatter, funcCall in pairs(formatters) do
@@ -584,44 +597,44 @@ function i18n.registerPhrase(lang, phrase, unformatted)
 	end
 
 	if lang == 'en' then
-		i18n.hashed[phrase] = unformatted
+		Hashed[phrase] = unformatted
 	else
-		i18n.hashed[phrase] = i18n.hashed[phrase] or unformatted
-		i18n.hashedLang[lang] = i18n.hashedLang[lang] or {}
-		i18n.hashedLang[lang][phrase] = unformatted
+		Hashed[phrase] = Hashed[phrase] or unformatted
+		HashedLang[lang] = HashedLang[lang] or {}
+		HashedLang[lang][phrase] = unformatted
 	end
 
 	if advanced then
 		local fncompile = compileExpression(unformatted)
 
 		if lang == 'en' then
-			i18n.hashedFunc[phrase] = fncompile
+			HashedFunc[phrase] = fncompile
 		else
-			i18n.hashedLangFunc[lang] = i18n.hashedLangFunc[lang] or {}
-			i18n.hashedLangFunc[lang][phrase] = fncompile
+			HashedLangFunc[lang] = HashedLangFunc[lang] or {}
+			HashedLangFunc[lang][phrase] = fncompile
 		end
 	else
 		if lang == 'en' then
-			i18n.hashedFunc[phrase] = nil
+			HashedFunc[phrase] = nil
 		else
-			i18n.hashedLangFunc[lang] = i18n.hashedLangFunc[lang] or {}
-			i18n.hashedLangFunc[lang][phrase] = nil
+			HashedLangFunc[lang] = HashedLangFunc[lang] or {}
+			HashedLangFunc[lang][phrase] = nil
 		end
 	end
 
-	if i18n.countExpressions(phrase) == 0 then
+	if I18n.CountExpressions(phrase) == 0 then
 		if lang == 'en' then
-			i18n.hashedNoArgs[phrase] = unformatted
+			HashedNoArgs[phrase] = unformatted
 		else
-			i18n.hashedNoArgsLang[lang] = i18n.hashedNoArgsLang[lang] or {}
-			i18n.hashedNoArgsLang[lang][phrase] = unformatted
+			HashedNoArgsLang[lang] = HashedNoArgsLang[lang] or {}
+			HashedNoArgsLang[lang][phrase] = unformatted
 		end
 	else
 		if lang == 'en' then
-			i18n.hashedNoArgs[phrase] = nil
+			HashedNoArgs[phrase] = nil
 		else
-			i18n.hashedNoArgsLang[lang] = i18n.hashedNoArgsLang[lang] or {}
-			i18n.hashedNoArgsLang[lang][phrase] = nil
+			HashedNoArgsLang[lang] = HashedNoArgsLang[lang] or {}
+			HashedNoArgsLang[lang][phrase] = nil
 		end
 	end
 
@@ -630,19 +643,19 @@ end
 
 --[[
 	@doc
-	@fname DLib.i18n.localize
+	@fname DLib.I18n.Localize
 	@args string phrase, vararg format
 
 	@returns
 	string: formatted message
 ]]
-function i18n.localize(phrase, ...)
-	return i18n.localizeByLang(phrase, i18n.CURRENT_LANG, ...)
+function I18n.Localize(phrase, ...)
+	return I18n.LocalizeByLang(phrase, I18n.CURRENT_LANG, ...)
 end
 
 --[[
 	@doc
-	@fname DLib.i18n.localizeAdvanced
+	@fname DLib.I18n.LocalizeAdvanced
 	@args string phrase, Color colorDef = color_white, vararg format
 
 	@desc
@@ -655,136 +668,139 @@ end
 	table: formatted message
 	number: arguments "consumed"
 ]]
-function i18n.localizeAdvanced(phrase, colorDef, ...)
+function I18n.localizeAdvanced(phrase, colorDef, ...)
 	if luatype(colorDef) ~= 'Color' then
-		return i18n.localizeByLang(phrase, i18n.CURRENT_LANG, nil, ...)
+		return I18n.localizeByLang(phrase, I18n.CURRENT_LANG, nil, ...)
 	else
-		return i18n.localizeByLang(phrase, i18n.CURRENT_LANG, colorDef, ...)
+		return I18n.localizeByLang(phrase, I18n.CURRENT_LANG, colorDef, ...)
 	end
 end
 
 --[[
 	@doc
-	@fname DLib.i18n.getRaw
+	@fname DLib.I18n.GetRaw
 	@args string phrase
 
 	@returns
 	string: or nil
 ]]
-function i18n.getRaw(phrase)
-	return i18n.getRawByLang(phrase, i18n.CURRENT_LANG)
+function I18n.GetRaw(phrase)
+	return I18n.GetRawByLang(phrase, I18n.CURRENT_LANG)
 end
 
 --[[
 	@doc
-	@fname DLib.i18n.getRaw2
+	@fname DLib.I18n.GetRaw2
 	@args string phrase
 
 	@returns
 	string: or nil
 ]]
-function i18n.getRaw2(phrase)
-	return i18n.getRawByLang2(phrase, i18n.CURRENT_LANG)
+function I18n.GetRaw2(phrase)
+	return I18n.GetRawByLang2(phrase, I18n.CURRENT_LANG)
 end
-
 
 --[[
 	@doc
-	@fname DLib.i18n.getRawByLang
+	@fname DLib.I18n.GetRawByLang
 	@args string phrase, string lang
 
 	@returns
 	string: or nil
 ]]
-function i18n.getRawByLang(phrase, lang)
-	return i18n.hashedLang[lang] and i18n.hashedLang[lang][phrase] or i18n.hashed[phrase]
+function I18n.GetRawByLang(phrase, lang)
+	return HashedLang[lang] and HashedLang[lang][phrase] or Hashed[phrase]
 end
 
 --[[
 	@doc
-	@fname DLib.i18n.getRawByLang2
+	@fname DLib.I18n.GetRawByLang2
 	@args string phrase, string lang
 
 	@returns
 	string: or nil
 ]]
-function i18n.getRawByLang2(phrase, lang)
-	return i18n.hashedLang[lang] and i18n.hashedLang[lang][phrase] or i18n.hashedLang[phrase] and i18n.hashedLang[phrase][lang] or i18n.hashed[phrase]
+function I18n.GetRawByLang2(phrase, lang)
+	return HashedLang[lang] and HashedLang[lang][phrase] or HashedLang[phrase] and HashedLang[phrase][lang] or Hashed[phrase]
 end
 
 --[[
 	@doc
-	@fname DLib.i18n.phrasePresent
-	@alias DLib.i18n.exists
-	@alias DLib.i18n.phraseExists
+	@fname DLib.I18n.Exists
+	@alias DLib.I18n.PhrasePresent
+	@alias DLib.I18n.PhraseExists
 	@args string phrase
 
 	@returns
 	boolean
 ]]
-function i18n.phrasePresent(phrase)
-	return i18n.hashed[phrase] ~= nil
+function I18n.Exists(phrase)
+	return Hashed[phrase] ~= nil
 end
 
 --[[
 	@doc
-	@fname DLib.i18n.safePhrase
+	@fname DLib.I18n.SafePhrase
 	@args string phrase
 
 	@returns
 	boolean
 ]]
-function i18n.safePhrase(phrase)
-	return i18n.hashedNoArgs[phrase] ~= nil
+function I18n.SafePhrase(phrase)
+	return HashedNoArgs[phrase] ~= nil
 end
 
-i18n.exists = i18n.phrasePresent
-i18n.phraseExists = i18n.phrasePresent
+I18n.PhrasePresent = I18n.Exists
+I18n.PhraseExists = I18n.Exists
 
 local table = table
 local type = type
 
 --[[
 	@doc
-	@fname DLib.i18n.rebuildTable
+	@fname DLib.I18n.LocalizeTable
+	@alias DLib.I18n.RebuildTable
 	@args table args, Color colorDef = color_white, boolean backward = false
 
 	@desc
 	when `backward` is `true`, table will be constructed from it's end. This means that when a phrase require
 	format arguments, it's arguments can be localized too (recursive localization)
-	`'info.i18n.phrase_with_two_format_values', 'Player', 'info.i18n.phrase'`
-	will localize both `info.i18n.phrase_with_two_format_values` and `info.i18n.phrase`
-	in case if `info.i18n.phrase_with_two_format_values` hold two format values (e.g. `'%s was %s'`)
-	`false` = `'Player was info.i18n.phrase'`
+	`'info.I18n.phrase_with_two_format_values', 'Player', 'info.I18n.phrase'`
+	will localize both `info.I18n.phrase_with_two_format_values` and `info.I18n.phrase`
+	in case if `info.I18n.phrase_with_two_format_values` hold two format values (e.g. `'%s was %s'`)
+	`false` = `'Player was info.I18n.phrase'`
 	`true` = `'Player was looking at phrase'`
 	@enddesc
 
 	@returns
 	table: a table with localized strings. other types are untouched. does not modify original table
 ]]
-function i18n.rebuildTable(args, colorDef, backward)
-	return i18n.rebuildTableByLang(args, i18n.CURRENT_LANG, colorDef, backward)
+function I18n.LocalizeTable(args, colorDef, backward)
+	return I18n.RebuildTableByLang(args, I18n.CURRENT_LANG, colorDef, backward)
 end
+
+I18n.RebuildTable = I18n.LocalizeTable
 
 --[[
 	@doc
-	@fname DLib.i18n.rebuildTableByLang
+	@fname DLib.I18n.LocalizeTableByLang
+	@alias DLib.I18n.RebuildTableByLang
 	@args table args, string lang, Color colorDef = color_white, boolean backward = false
 
 	@desc
 	when `backward` is `true`, table will be constructed from it's end. This means that when a phrase require
 	format arguments, it's arguments can be localized too (recursive localization)
-	`'info.i18n.phrase_with_two_format_values', 'Player', 'info.i18n.phrase'`
-	will localize both `info.i18n.phrase_with_two_format_values` and `info.i18n.phrase`
-	in case if `info.i18n.phrase_with_two_format_values` hold two format values (e.g. `'%s was %s'`)
-	`false` = `'Player was info.i18n.phrase'`
+	`'info.I18n.phrase_with_two_format_values', 'Player', 'info.I18n.phrase'`
+	will localize both `info.I18n.phrase_with_two_format_values` and `info.I18n.phrase`
+	in case if `info.I18n.phrase_with_two_format_values` hold two format values (e.g. `'%s was %s'`)
+	`false` = `'Player was info.I18n.phrase'`
 	`true` = `'Player was looking at phrase'`
 	@enddesc
 
 	@returns
 	table: a table with localized strings. other types are untouched. does not modify original table
 ]]
-function i18n.rebuildTableByLang(args, lang, colorDef, backward)
+function I18n.LocalizeTableByLang(args, lang, colorDef, backward)
 	if backward == nil then backward = false end
 	local rebuild
 	local i = backward and #args or 1
@@ -796,10 +812,10 @@ function i18n.rebuildTableByLang(args, lang, colorDef, backward)
 			local arg = rebuild[i]
 			local index = #rebuild - i
 
-			if type(arg) ~= 'string' or not i18n.exists(arg) then
+			if not isstring(arg) or Hashed[arg] == nil then
 				i = i - 1
 			else
-				local phrase, consumed = i18n.localizeByLangAdvanced(arg, lang, colorDef, unpack(rebuild, i + 1, #rebuild))
+				local phrase, consumed = I18n.LocalizeByLangAdvanced(arg, lang, colorDef, unpack(rebuild, i + 1, #rebuild))
 				table.splice(rebuild, i, consumed + 1, unpack(phrase, 1, #phrase))
 				i = i - 1 - consumed
 			end
@@ -810,11 +826,11 @@ function i18n.rebuildTableByLang(args, lang, colorDef, backward)
 		while i <= #args do
 			local arg = args[i]
 
-			if type(arg) ~= 'string' or not i18n.exists(arg) then
+			if not isstring(arg) or not I18n.exists(arg) then
 				table.insert(rebuild, arg)
 				i = i + 1
 			else
-				local phrase, consumed = i18n.localizeByLangAdvanced(arg, lang, colorDef, unpack(args, i + 1, #args))
+				local phrase, consumed = I18n.LocalizeByLangAdvanced(arg, lang, colorDef, unpack(args, i + 1, #args))
 				i = i + 1 + consumed
 				table.append(rebuild, phrase)
 			end
@@ -823,3 +839,5 @@ function i18n.rebuildTableByLang(args, lang, colorDef, backward)
 
 	return rebuild
 end
+
+I18n.RebuildTableByLang = I18n.LocalizeTableByLang

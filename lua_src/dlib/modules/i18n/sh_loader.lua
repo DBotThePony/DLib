@@ -19,7 +19,7 @@
 -- DEALINGS IN THE SOFTWARE.
 
 local filesLoad = {}
-local i18n = DLib.i18n
+local I18n = DLib.I18n
 local file = file
 local ipairs = ipairs
 local pairs = pairs
@@ -29,15 +29,15 @@ local getfenv = getfenv
 
 --[[
 	@doc
-	@fname DLib.i18n.reload
+	@fname DLib.I18n.Reload
 	@internal
 ]]
-function i18n.reload(module)
+function I18n.Reload(module)
 	if not module then
 		local _, dirs = file.Find('dlib/i18n/*', 'LUA')
 
 		for i, dir in ipairs(dirs) do
-			i18n.reload(dir)
+			I18n.Reload(dir)
 		end
 
 		return
@@ -48,21 +48,21 @@ function i18n.reload(module)
 	for i2, luafile in ipairs(files) do
 		-- if luafile:sub(-4) == '.lua' then
 			AddCSLuaFile('dlib/i18n/' .. module .. '/' .. luafile)
-			i18n.executeFile(luafile:sub(1, -5), 'dlib/i18n/' .. module .. '/' .. luafile)
+			I18n.executeFile(luafile:sub(1, -5), 'dlib/i18n/' .. module .. '/' .. luafile)
 		-- end
 	end
 end
 
 --[[
 	@doc
-	@fname DLib.i18n.executeFile
+	@fname DLib.I18n.ExecuteFile
 	@args string langSpace, string filePath
 	@internal
 	@returns
 	boolean
 ]]
-function i18n.executeFile(langSpace, fileToRun)
-	return i18n.executeFunction(langSpace, CompileFile(fileToRun))
+function I18n.ExecuteFile(langSpace, fileToRun)
+	return I18n.ExecuteFunction(langSpace, CompileFile(fileToRun))
 end
 
 local createNamedTable
@@ -108,7 +108,7 @@ local tableMeta = {
 		end
 
 		rawset(self, key, value)
-		i18n.registerPhrase(mt(self).__lang, build, value)
+		I18n.registerPhrase(mt(self).__lang, build, value)
 	end
 }
 
@@ -119,7 +119,7 @@ function createNamedTable(tableName, parent)
 		__newindex = tableMeta.__newindex,
 		__parent = parent,
 		__name = tableName,
-		__lang = i18n.LANG_SPACE
+		__lang = I18n.LANG_SPACE
 	}
 
 	return setmetatable(output, meta)
@@ -191,17 +191,17 @@ end
 
 --[[
 	@doc
-	@fname DLib.i18n.executeFunction
+	@fname DLib.I18n.ExecuteFunction
 	@args string langSpace, function toRun
 	@internal
 
 	@returns
 	boolean
 ]]
-function i18n.executeFunction(langSpace, funcToRun)
-	i18n.LANG_SPACE = langSpace
+function I18n.ExecuteFunction(langSpace, funcToRun)
+	I18n.LANG_SPACE = langSpace
 	local status = ProtectedCall(protectedFunc:Wrap(langSpace, funcToRun))
-	i18n.LANG_SPACE = nil
+	I18n.LANG_SPACE = nil
 
 	return status
 end

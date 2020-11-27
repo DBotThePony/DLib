@@ -140,6 +140,7 @@ DLib.SharedInclude('util/util.lua')
 DLib.SharedInclude('util/vector.lua')
 
 DLib.node = DLib.SharedInclude('util/node.lua')
+DLib.Node = DLib.node
 
 DLib.ClientInclude('util/client/localglobal.lua')
 DLib.SharedInclude('core/tableutil.lua')
@@ -190,6 +191,7 @@ DLib.SharedInclude('modules/getinfo.lua')
 DLib.SharedInclude('modules/predictedvars.lua')
 
 DLib.net = DLib.net or {}
+DLib.Net = DLib.net
 DLib.SharedInclude('modules/net/sh_init.lua')
 DLib.ClientInclude('modules/net/cl_init.lua')
 DLib.ServerInclude('modules/net/sv_init.lua')
@@ -199,6 +201,7 @@ DLib.MessageMaker(DLib, 'DLib')
 DLib.SharedInclude('util/debugoverlay.lua')
 
 DLib.nw = DLib.nw or {}
+DLib.NW = DLib.nw
 DLib.SharedInclude('modules/nwvar/sh_nwvar.lua')
 DLib.ClientInclude('modules/nwvar/cl_nwvar.lua')
 DLib.ServerInclude('modules/nwvar/sv_nwvar.lua')
@@ -210,6 +213,7 @@ DLib.SharedInclude('enums/keymapping.lua')
 DLib.SharedInclude('enums/sdk.lua')
 
 DLib.i18n = DLib.i18n or {}
+DLib.I18n = DLib.i18n
 DLib.SharedInclude('modules/i18n/sh_i18n.lua')
 DLib.SharedInclude('modules/i18n/sh_functions.lua')
 DLib.SharedInclude('modules/i18n/sh_units.lua')
@@ -217,7 +221,22 @@ DLib.ClientInclude('modules/i18n/cl_i18n.lua')
 DLib.ServerInclude('modules/i18n/sv_i18n.lua')
 DLib.SharedInclude('modules/i18n/sh_loader.lua')
 
+do
+	local remap = {}
+
+	for k, v in pairs(DLib.I18n) do
+		if isfunction(v) and isstring(k) then
+			remap[k[1]:lower() .. k:sub(2)] = v
+		end
+	end
+
+	for k, v in pairs(remap) do
+		DLib.I18n[k] = v
+	end
+end
+
 DLib.friends = DLib.friends or {}
+DLib.Friends = DLib.friends
 DLib.SharedInclude('modules/friendsystem/sh_friends.lua')
 DLib.ClientInclude('modules/friendsystem/cl_friends.lua')
 DLib.ClientInclude('modules/friendsystem/cl_gui.lua')
@@ -259,6 +278,6 @@ DLib.SharedInclude('modules/workarounds/starfall.lua')
 
 DLib.hl2wdata = DLib.SharedInclude('data/hl2sweps.lua')
 
-DLib.__net_ext_export(DLib.net)
+DLib.__net_ext_export(DLib.Net)
 
 MsgC(string.format('%.2f ms\n', (SysTime() - timeStart) * 1000))
