@@ -197,7 +197,7 @@ function Net.Think()
 
 		if namespace.last_expected_ack ~= 0xFFFFFFFF and namespace.last_expected_ack < time then
 			-- can you hear me?
-			_net.Start('dlib_net_ack1')
+			_net.Start('dlib_net_ack1', true)
 			_net.Send(ply)
 
 			namespace.last_expected_ack = time + 10

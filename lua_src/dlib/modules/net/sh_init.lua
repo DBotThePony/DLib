@@ -168,7 +168,7 @@ _net.receive('dlib_net_ack1', function(_, ply)
 
 	debug('Ask 1')
 
-	_net.Start('dlib_net_ack2')
+	_net.Start('dlib_net_ack2', true)
 
 	if CLIENT then
 		_net.SendToServer()
@@ -292,7 +292,7 @@ _net.receive('dlib_net_datagram', function(_, ply)
 
 	local namespace = Net.Namespace(CLIENT and Net or ply)
 
-	_net.Start('dlib_net_datagram_ack')
+	_net.Start('dlib_net_datagram_ack', true)
 
 	local startread = SysTime()
 
@@ -628,7 +628,7 @@ function Net.DispatchChunk(ply)
 		namespace.last_expected_ack = RealTime() + 10
 	end
 
-	_net.Start('dlib_net_chunk')
+	_net.Start('dlib_net_chunk', true)
 	_net.WriteUInt32(data.chunkid)
 	_net.WriteUInt16(chunkNum)
 	_net.WriteUInt16(data.total_chunks)
@@ -677,7 +677,7 @@ function Net.DispatchDatagram(ply)
 
 	namespace.server_datagram_ack = false
 
-	_net.Start('dlib_net_datagram')
+	_net.Start('dlib_net_datagram', true)
 
 	local lastkey
 
