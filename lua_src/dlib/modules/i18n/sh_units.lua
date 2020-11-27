@@ -21,36 +21,38 @@
 local I18n = DLib.I18n
 local math = math
 local string = string
+local string_format = string.format
+local math_pow = math.pow
 
 I18n.METRES_IN_HU = 0.0254
 
 local prefixL = {
-	{math.pow(10, -24), 'yocto'},
-	{math.pow(10, -21), 'zepto'},
-	{math.pow(10, -18), 'atto'},
-	{math.pow(10, -15), 'femto'},
-	{math.pow(10, -12), 'pico'},
-	{math.pow(10, -9), 'nano'},
-	{math.pow(10, -6), 'micro'},
-	{math.pow(10, -3), 'milli'},
-	-- {math.pow(10, -2), 'centi', true},
-	-- {math.pow(10, -1), 'deci', true},
-	{math.pow(10, 3), 'kilo'},
-	{math.pow(10, 6), 'mega'},
-	{math.pow(10, 9), 'giga'},
-	{math.pow(10, 12), 'tera'},
-	{math.pow(10, 15), 'peta'},
-	{math.pow(10, 18), 'exa'},
-	{math.pow(10, 21), 'zetta'},
-	{math.pow(10, 24), 'yotta'},
+	{math_pow(10, -24), 'yocto'},
+	{math_pow(10, -21), 'zepto'},
+	{math_pow(10, -18), 'atto'},
+	{math_pow(10, -15), 'femto'},
+	{math_pow(10, -12), 'pico'},
+	{math_pow(10, -9), 'nano'},
+	{math_pow(10, -6), 'micro'},
+	{math_pow(10, -3), 'milli'},
+	-- {math_pow(10, -2), 'centi', true},
+	-- {math_pow(10, -1), 'deci', true},
+	{math_pow(10, 3), 'kilo'},
+	{math_pow(10, 6), 'mega'},
+	{math_pow(10, 9), 'giga'},
+	{math_pow(10, 12), 'tera'},
+	{math_pow(10, 15), 'peta'},
+	{math_pow(10, 18), 'exa'},
+	{math_pow(10, 21), 'zetta'},
+	{math_pow(10, 24), 'yotta'},
 }
 
 function I18n.FormatNumImperial(numIn)
 	if numIn >= -1000 and numIn <= 1000 then
-		return string.format('%.2f', numIn)
+		return string_format('%.2f', numIn)
 	end
 
-	return string.format('%.2fk', numIn / 1000)
+	return string_format('%.2fk', numIn / 1000)
 end
 
 --[[
@@ -65,7 +67,7 @@ function I18n.FormatNum(numIn, minFormat)
 	local abs = numIn:abs()
 
 	if abs >= (minFormat or 1) and abs <= 1000 then
-		return string.format('%.2f', numIn)
+		return string_format('%.2f', numIn)
 	end
 
 	local prefix, lastNum = prefixL[1][2], prefixL[1][1]
@@ -78,7 +80,7 @@ function I18n.FormatNum(numIn, minFormat)
 		end
 	end
 
-	return string.format('%.2f%s', numIn / lastNum, I18n.localize('info.dlib.si.prefix.' .. prefix .. '.prefix'))
+	return string_format('%.2f%s', numIn / lastNum, I18n.localize('info.dlib.si.prefix.' .. prefix .. '.prefix'))
 end
 
 --[[
@@ -260,8 +262,8 @@ for i, row in ipairs(units:split('\n')) do
 
 			if ttype then
 				I18n['Format' .. ttype:formatname()] = function(numIn)
-					return string.format('%s%s',
-						type(numIn) == 'number' and I18n.FormatNum(numIn) or numIn, I18n.Localize('info.dlib.si.units.' .. measure .. '.suffix'))
+					return string_format('%s%s',
+						isnumber(numIn) and I18n.FormatNum(numIn) or numIn, I18n.Localize('info.dlib.si.units.' .. measure .. '.suffix'))
 				end
 			end
 		end
@@ -303,11 +305,11 @@ function I18n.FormatTemperature(tempUnits, providedType)
 	local units = I18n.TEMPERATURE_UNITS:GetString()
 
 	if units == 'K' then
-		return string.format('%s°%s', I18n.FormatNum(tempUnits, 0.01), I18n.localize('info.dlib.si.units.kelvin.suffix'))
+		return string_format('%s°%s', I18n.FormatNum(tempUnits, 0.01), I18n.localize('info.dlib.si.units.kelvin.suffix'))
 	elseif units == 'F' then
-		return string.format('%s°%s', I18n.FormatNumImperial((tempUnits - 273.15) * 9 / 5 + 32), I18n.localize('info.dlib.si.units.fahrenheit.suffix'))
+		return string_format('%s°%s', I18n.FormatNumImperial((tempUnits - 273.15) * 9 / 5 + 32), I18n.localize('info.dlib.si.units.fahrenheit.suffix'))
 	else
-		return string.format('%s°%s', I18n.FormatNum(tempUnits - 273.15, 0.01), I18n.localize('info.dlib.si.units.celsius.suffix'))
+		return string_format('%s°%s', I18n.FormatNum(tempUnits - 273.15, 0.01), I18n.localize('info.dlib.si.units.celsius.suffix'))
 	end
 end
 
@@ -333,7 +335,15 @@ end
 	string
 ]]
 function I18n.FormatDistance(numIn)
-	return string.format('%s%s', I18n.FormatNum(numIn), I18n.Localize('info.dlib.si.units.metre.suffix'))
+	return string_format('%s%s', I18n.FormatNum(numIn), I18n.Localize('info.dlib.si.units.metre.suffix'))
+end
+
+function I18n.FormatSpeed(numIn)
+	return string_format('%s%s/%s', I18n.FormatNum(numIn), I18n.Localize('info.dlib.si.units.metre.suffix'), I18n.Localize('info.dlib.si.units.second.suffix'))
+end
+
+function I18n.FormatSpeedMundane(numIn)
+	return string_format('%d%s', numIn * 3.6, I18n.Localize('info.dlib.si.units.kmh.suffix'))
 end
 
 --[[
@@ -355,7 +365,7 @@ do
 	local prefixL = table.Copy(prefixL)
 
 	for i, row in ipairs(prefixL) do
-		row[1] = row[1]:pow(2)
+		row[1] = row[1] * row[1]
 	end
 
 --[[
@@ -370,7 +380,7 @@ do
 		assert(numIn >= 0, 'Area can not be negative')
 
 		if numIn >= 1 and numIn <= 1000 then
-			return string.format('%.2fm^2', numIn)
+			return string_format('%.2fm^2', numIn)
 		end
 
 		local index = 1
@@ -390,7 +400,7 @@ do
 			lastNum, prefix = prefixL[index][1], prefixL[index][2]
 		end
 
-		return string.format('%.2f%s%s^2',
+		return string_format('%.2f%s%s^2',
 			numIn / lastNum,
 			I18n.Localize('info.dlib.si.prefix.' .. prefix .. '.prefix'),
 			I18n.Localize('info.dlib.si.units.metre.suffix'))
@@ -416,7 +426,7 @@ do
 	local prefixL = table.Copy(prefixL)
 
 	for i, row in ipairs(prefixL) do
-		row[1] = row[1]:pow(3)
+		row[1] = row[1] * row[1] * row[1]
 	end
 
 	I18n.VOLUME_UNITS = CreateConVar('dlib_unit_system_volume', 'L', {FCVAR_ARCHIVE}, 'L/m')
@@ -436,7 +446,7 @@ do
 			local numIn = litres / 1000
 
 			if numIn >= 0.0001 and numIn <= 1000000 then
-				return string.format('%.4fm^3', numIn)
+				return string_format('%.4fm^3', numIn)
 			end
 
 			local index = 1
@@ -456,10 +466,10 @@ do
 				lastNum, prefix = prefixL[index][1], prefixL[index][2]
 			end
 
-			return string.format('%.4f%s%s^3', numIn / lastNum, I18n.localize('info.dlib.si.prefix.' .. prefix .. '.prefix'), I18n.localize('info.dlib.si.units.metre.suffix'))
+			return string_format('%.4f%s%s^3', numIn / lastNum, I18n.localize('info.dlib.si.prefix.' .. prefix .. '.prefix'), I18n.localize('info.dlib.si.units.metre.suffix'))
 		end
 
-		return string.format('%s%s', I18n.FormatNum(litres), I18n.localize('info.dlib.si.units.litre.suffix'))
+		return string_format('%s%s', I18n.FormatNum(litres), I18n.localize('info.dlib.si.units.litre.suffix'))
 	end
 
 --[[
@@ -494,7 +504,7 @@ end
 	string
 ]]
 function I18n.FormatMass(numIn)
-	return string.format('%s%s', I18n.FormatNum(numIn * 1000), I18n.localize('info.dlib.si.units.gram.suffix'))
+	return string_format('%s%s', I18n.FormatNum(numIn * 1000), I18n.localize('info.dlib.si.units.gram.suffix'))
 end
 
 --[[

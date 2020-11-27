@@ -145,27 +145,20 @@ local player = player
 local game = game
 local GetName = FindMetaTable('Entity').GetName
 local SetName = FindMetaTable('Entity').SetName
+local GetHumans = player.GetHumans
 
 local function tickPlayers()
-	if game.SinglePlayer() then
-		timer.Remove('DLib.TickPlayerNames')
-		hook.Remove('PlayerSpawn', 'DLib.TickPlayerNames')
-		hook.Remove('DoPlayerDeath', 'DLib.TickPlayerNames')
-		return
-	end
-
-	for i, ply in ipairs(player.GetAll()) do
+	for i, ply in ipairs(GetHumans()) do
 		local name = GetName(ply)
 
 		if #name < 4 then
-			--DLib.Message(ply, ' network name was considered as exploit, changing...')
 			SetName(ply, '_bad_playername_' .. ply:UserID())
 		end
 
 		local nick = ply:Nick()
 
-		if nick == 'unnamed' or I18n.exists(nick) then
-			ply:Kick('[DLib/I18N] Invalid nickname')
+		if I18n.exists(nick) then
+			ply:Kick('[DLib.I18n] Bad player name. Contact server\'s staff if you changed name to this using serverside nickname system by a mistake.')
 		end
 	end
 end
@@ -227,6 +220,8 @@ net.receive('dlib.clientlang', function(len, ply)
 	hook.Run('DLib.PlayerLanguageChanges', ply, old, ply.DLib_Lang)
 end)
 
-timer.Create('DLib.TickPlayerNames', 0.5, 0, tickPlayers)
-hook.Add('PlayerSpawn', 'DLib.TickPlayerNames', timer.Simple:Wrap(0, tickPlayers))
-hook.Add('DoPlayerDeath', 'DLib.TickPlayerNames', tickPlayers)
+if not game.SinglePlayer() then
+	timer.Create('DLib.TickPlayerNames', 0.5, 0, tickPlayers)
+	hook.Add('PlayerSpawn', 'DLib.TickPlayerNames', timer.Simple:Wrap(0, tickPlayers))
+	hook.Add('DoPlayerDeath', 'DLib.TickPlayerNames', tickPlayers)
+end

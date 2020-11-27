@@ -232,6 +232,12 @@ info.dlib.si.units.metre.suffix = 'm'
 info.dlib.si.units.litre.name = 'Litre'
 info.dlib.si.units.litre.suffix = 'L'
 
+info.dlib.si.units.second.name = 'Second'
+info.dlib.si.units.second.suffix = 's'
+
+info.dlib.si.units.kmh.name = 'Kilometres per hour'
+info.dlib.si.units.kmh.suffix = 'km/h'
+
 -- seems like that on server install required files are corrupted
 
 info.entity.ammo_357.name = "357 Ammo"

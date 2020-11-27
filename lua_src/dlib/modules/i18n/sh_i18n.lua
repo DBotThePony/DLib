@@ -26,6 +26,11 @@ local team = team
 local DLib = DLib
 local table = table
 local IsColor = IsColor
+local string_format = string.format
+local pcall = pcall
+local unpack = unpack
+local ipairs = ipairs
+local isstring = isstring
 
 I18n.hashed = I18n.hashed or {}
 I18n.Hashed = I18n.hashed
@@ -47,178 +52,187 @@ local HashedLang = I18n.HashedLang
 local HashedLangFunc = I18n.HashedLangFunc
 local HashedNoArgsLang = I18n.HashedNoArgsLang
 
-local formatters = {
-	['##'] = function(self)
-		return {'##'}, 0
-	end,
+local formatters
 
-	['#E'] = function(self, ent)
-		local ltype = type(ent)
+do
+	local string_rep = string.rep
+	local isnumber = isnumber
+	local tonumber = tonumber
+	local math_floor = math.floor
 
-		if ltype == 'Player' then
-			local nick = ent:Nick()
+	formatters = {
+		['##'] = function(self)
+			return {'##'}, 0
+		end,
 
-			if ent.SteamName and ent:SteamName() ~= nick then
-				nick = nick .. ' (' .. ent:SteamName() .. ')'
+		['#E'] = function(self, ent)
+			local ltype = type(ent)
+
+			if ltype == 'Player' then
+				local nick = ent:Nick()
+
+				if ent.SteamName and ent:SteamName() ~= nick then
+					nick = nick .. ' (' .. ent:SteamName() .. ')'
+				end
+
+				return {team.GetColor(ent:Team()) or Color(), nick, color_white, string_format('<%s>', ent:SteamID())}
+			elseif ltype == 'Entity' then
+				return {DLib.ENTITY_COLOR:Copy(), tostring(ent)}
+			elseif ltype == 'NPC' then
+				return {DLib.NPC_COLOR:Copy(), tostring(ent)}
+			elseif ltype == 'Vehicle' then
+				return {DLib.VEHICLE_COLOR:Copy(), tostring(ent)}
+			elseif ltype == 'NextBot' then
+				return {DLib.NEXTBOT_COLOR:Copy(), tostring(ent)}
+			elseif ltype == 'Weapon' then
+				return {DLib.WEAPON_COLOR:Copy(), tostring(ent)}
+			else
+				error('Invalid argument to #E: ' .. ltype)
+			end
+		end,
+
+		-- executor
+		['#e'] = function(self, ent)
+			local ltype = type(ent)
+
+			if ltype == 'Player' then
+				local nick = ent:Nick()
+
+				if ent.SteamName and ent:SteamName() ~= nick then
+					nick = nick .. ' (' .. ent:SteamName() .. ')'
+				end
+
+				return {team.GetColor(ent:Team()) or Color(), nick, color_white, string_format('<%s>', ent:SteamID())}
+			elseif ltype == 'Entity' and not IsValid(ent) then
+				return {Color(126, 63, 255), 'Console'}
+			else
+				error('Invalid argument to #e (executor) - ' .. ltype .. ' (' .. tostring(ent)  .. ')')
+			end
+		end,
+
+		['#C'] = function(self, color)
+			if not IsColor(color) then
+				error('#C must be a color! ' .. type(color) .. ' given.')
 			end
 
-			return {team.GetColor(ent:Team()) or Color(), nick, color_white, string.format('<%s>', ent:SteamID())}
-		elseif ltype == 'Entity' then
-			return {DLib.ENTITY_COLOR:Copy(), tostring(ent)}
-		elseif ltype == 'NPC' then
-			return {DLib.NPC_COLOR:Copy(), tostring(ent)}
-		elseif ltype == 'Vehicle' then
-			return {DLib.VEHICLE_COLOR:Copy(), tostring(ent)}
-		elseif ltype == 'NextBot' then
-			return {DLib.NEXTBOT_COLOR:Copy(), tostring(ent)}
-		elseif ltype == 'Weapon' then
-			return {DLib.WEAPON_COLOR:Copy(), tostring(ent)}
-		else
-			error('Invalid argument to #E: ' .. ltype)
-		end
-	end,
+			return {color}
+		end,
 
-	-- executor
-	['#e'] = function(self, ent)
-		local ltype = type(ent)
-
-		if ltype == 'Player' then
-			local nick = ent:Nick()
-
-			if ent.SteamName and ent:SteamName() ~= nick then
-				nick = nick .. ' (' .. ent:SteamName() .. ')'
+		['#%.%d+i'] = function(self, val)
+			if not isnumber(val) then
+				error('Invalid argument to custom #i: ' .. type(val))
 			end
 
-			return {team.GetColor(ent:Team()) or Color(), nick, color_white, string.format('<%s>', ent:SteamID())}
-		elseif ltype == 'Entity' and not IsValid(ent) then
-			return {Color(126, 63, 255), 'Console'}
-		else
-			error('Invalid argument to #e (executor) - ' .. ltype .. ' (' .. tostring(ent)  .. ')')
-		end
-	end,
+			return {DLib.NUMBER_COLOR:Copy(), string_format('%' .. self:sub(2, #self - 1) ..'i', val)}
+		end,
 
-	['#C'] = function(self, color)
-		if not IsColor(color) then
-			error('#C must be a color! ' .. type(color) .. ' given.')
-		end
+		['#i'] = function(self, val)
+			if not isnumber(val) then
+				error('Invalid argument to #i: ' .. type(val))
+			end
 
-		return {color}
-	end,
+			return {DLib.NUMBER_COLOR:Copy(), string_format('%i', val)}
+		end,
 
-	['#%.%d+i'] = function(self, val)
-		if type(val) ~= 'number' then
-			error('Invalid argument to custom #i: ' .. type(val))
-		end
+		['#%.%d+f'] = function(self, val)
+			if not isnumber(val) then
+				error('Invalid argument to custom #f: ' .. type(val))
+			end
 
-		return {DLib.NUMBER_COLOR:Copy(), string.format('%' .. self:sub(2, #self - 1) ..'i', val)}
-	end,
+			return {DLib.NUMBER_COLOR:Copy(), string_format('%' .. self:sub(2, #self - 1) ..'f', val)}
+		end,
 
-	['#i'] = function(self, val)
-		if type(val) ~= 'number' then
-			error('Invalid argument to #i: ' .. type(val))
-		end
+		['#f'] = function(self, val)
+			if not isnumber(val) then
+				error('Invalid argument to #f: ' .. type(val))
+			end
 
-		return {DLib.NUMBER_COLOR:Copy(), string.format('%i', val)}
-	end,
+			return {DLib.NUMBER_COLOR:Copy(), string_format('%f', val)}
+		end,
 
-	['#%.%d+f'] = function(self, val)
-		if type(val) ~= 'number' then
-			error('Invalid argument to custom #f: ' .. type(val))
-		end
+		['#%.%d+[xX]'] = function(self, val)
+			if not isnumber(val) then
+				error('Invalid argument to custom #x/#X: ' .. type(val))
+			end
 
-		return {DLib.NUMBER_COLOR:Copy(), string.format('%' .. self:sub(2, #self - 1) ..'f', val)}
-	end,
+			if self[#self] == 'x' then
+				return {DLib.NUMBER_COLOR:Copy(), string_format('%' .. self:sub(2, #self - 1) ..'x', val)}
+			else
+				return {DLib.NUMBER_COLOR:Copy(), string_format('%' .. self:sub(2, #self - 1) ..'X', val)}
+			end
+		end,
 
-	['#f'] = function(self, val)
-		if type(val) ~= 'number' then
-			error('Invalid argument to #f: ' .. type(val))
-		end
+		['#[xX]'] = function(self, val)
+			if not isnumber(val) then
+				error('Invalid argument to #x/#X: ' .. type(val))
+			end
 
-		return {DLib.NUMBER_COLOR:Copy(), string.format('%f', val)}
-	end,
+			if self[2] == 'x' then
+				return {DLib.NUMBER_COLOR:Copy(), string_format('%x', val)}
+			else
+				return {DLib.NUMBER_COLOR:Copy(), string_format('%X', val)}
+			end
+		end,
 
-	['#%.%d+[xX]'] = function(self, val)
-		if type(val) ~= 'number' then
-			error('Invalid argument to custom #x/#X: ' .. type(val))
-		end
+		['#[duco]'] = function(self, val)
+			if not isnumber(val) then
+				error('Invalid argument to #[duco]: ' .. type(val))
+			end
 
-		if self[#self] == 'x' then
-			return {DLib.NUMBER_COLOR:Copy(), string.format('%' .. self:sub(2, #self - 1) ..'x', val)}
-		else
-			return {DLib.NUMBER_COLOR:Copy(), string.format('%' .. self:sub(2, #self - 1) ..'X', val)}
-		end
-	end,
+			return {DLib.NUMBER_COLOR:Copy(), string_format('%' .. self[2], val)}
+		end,
 
-	['#[xX]'] = function(self, val)
-		if type(val) ~= 'number' then
-			error('Invalid argument to #x/#X: ' .. type(val))
-		end
+		['#b'] = function(self, val)
+			if not isnumber(val) then
+				error('Invalid argument to #b: ' .. type(val))
+			end
 
-		if self[2] == 'x' then
-			return {DLib.NUMBER_COLOR:Copy(), string.format('%x', val)}
-		else
-			return {DLib.NUMBER_COLOR:Copy(), string.format('%X', val)}
-		end
-	end,
+			local format = ''
 
-	['#[duco]'] = function(self, val)
-		if type(val) ~= 'number' then
-			error('Invalid argument to #[duco]: ' .. type(val))
-		end
+			if val < 0 then
+				val = val + 0xFFFFFFFF
+			end
 
-		return {DLib.NUMBER_COLOR:Copy(), string.format('%' .. self[2], val)}
-	end,
+			val = math_floor(val)
 
-	['#b'] = function(self, val)
-		if type(val) ~= 'number' then
-			error('Invalid argument to #b: ' .. type(val))
-		end
+			while val > 0 do
+				local div = val % 2
+				val = (val - div) / 2
+				format = div .. format
+			end
 
-		local format = ''
+			return {DLib.NUMBER_COLOR:Copy(), format}
+		end,
 
-		if val < 0 then
-			val = val + 0xFFFFFFFF
-		end
+		['#%.%d+b'] = function(self, val)
+			if not isnumber(val) then
+				error('Invalid argument to custom #b: ' .. type(val))
+			end
 
-		val = val:floor()
+			local format = ''
 
-		while val > 0 do
-			local div = val % 2
-			val = (val - div) / 2
-			format = div .. format
-		end
+			if val < 0 then
+				val = val + 0xFFFFFFFF
+			end
 
-		return {DLib.NUMBER_COLOR:Copy(), format}
-	end,
+			val = math_floor(val)
 
-	['#%.%d+b'] = function(self, val)
-		if type(val) ~= 'number' then
-			error('Invalid argument to custom #b: ' .. type(val))
-		end
+			while val > 0 do
+				local div = val % 2
+				val = (val - div) / 2
+				format = div .. format
+			end
 
-		local format = ''
+			local num = tonumber(self:sub(3, #self - 1))
 
-		if val < 0 then
-			val = val + 0xFFFFFFFF
-		end
+			if #format < num then
+				format = string_rep('0', num - #format) .. format
+			end
 
-		val = val:floor()
-
-		while val > 0 do
-			local div = val % 2
-			val = (val - div) / 2
-			format = div .. format
-		end
-
-		local num = tonumber(self:sub(3, #self - 1))
-
-		if #format < num then
-			format = string.rep('0', num - #format) .. format
-		end
-
-		return {DLib.NUMBER_COLOR:Copy(), format}
-	end,
-}
+			return {DLib.NUMBER_COLOR:Copy(), format}
+		end,
+	}
+end
 
 --[[
 	@doc
@@ -272,7 +286,7 @@ function I18n.Format(unformatted, defColor, ...)
 			local count = I18n.countExpressions(slicePre)
 
 			if count ~= 0 then
-				table.insert(output, string.format(slicePre, unpack(args, argsPos, argsPos + count - 1)))
+				table.insert(output, string_format(slicePre, unpack(args, argsPos, argsPos + count - 1)))
 				argsPos = argsPos + count
 			else
 				table.insert(output, slicePre)
@@ -301,7 +315,7 @@ function I18n.Format(unformatted, defColor, ...)
 				local build = ''
 
 				for i, arg in ipairs(output) do
-					if type(arg) == 'string' then
+					if isstring(arg) then
 						build = build .. arg
 					end
 				end
@@ -316,7 +330,7 @@ function I18n.Format(unformatted, defColor, ...)
 		local count = I18n.countExpressions(slice)
 
 		if count ~= 0 then
-			table.insert(output, string.format(slice, unpack(args, argsPos, argsPos + count - 1)))
+			table.insert(output, string_format(slice, unpack(args, argsPos, argsPos + count - 1)))
 			argsPos = argsPos + count
 		else
 			table.insert(output, slice)
@@ -330,7 +344,7 @@ function I18n.Format(unformatted, defColor, ...)
 	local build = ''
 
 	for i, arg in ipairs(output) do
-		if type(arg) == 'string' then
+		if isstring(arg) then
 			build = build .. arg
 		end
 	end
@@ -338,7 +352,7 @@ function I18n.Format(unformatted, defColor, ...)
 	return build, argsPos - 1
 end
 
-local function compileExpression(unformatted)
+function I18n._CompileExpression(unformatted)
 	local searchPos = 1
 	local funclist = {}
 	local hit = true
@@ -363,7 +377,7 @@ local function compileExpression(unformatted)
 
 			if count ~= 0 then
 				table.insert(funclist, function(...)
-					return string.format(slicePre, ...), count
+					return string_format(slicePre, ...), count
 				end)
 			else
 				table.insert(funclist, slicePre)
@@ -389,11 +403,17 @@ local function compileExpression(unformatted)
 
 		if count ~= 0 then
 			table.insert(funclist, function(...)
-				return string.format(slice, ...), count
+				return string_format(slice, ...), count
 			end)
 		else
 			table.insert(funclist, slice)
 		end
+	end
+
+	local funclist_types = {}
+
+	for i, func in ipairs(funclist) do
+		funclist_types[i] = type(func)
 	end
 
 	return function(defColor, ...)
@@ -401,24 +421,28 @@ local function compileExpression(unformatted)
 		local output = {}
 		local argsPos = 1
 		local args = {...}
+		local counter = 1
 
 		for i, func in ipairs(funclist) do
-			local ftype = type(func)
+			local ftype = funclist_types[i]
 
 			if ftype == 'string' then
-				table.insert(output, func)
+				output[counter] = func
+				counter = counter + 1
 			else
 				local fret, fcount = func(unpack(args, argsPos, #args))
 				local frettype = type(fret)
 
 				if frettype == 'string' then
-					table.insert(output, fret)
+					output[counter] = fret
+					counter = counter + 1
 					argsPos = argsPos + fcount
 				elseif frettype == 'table' then
 					table.append(output, fret)
 
 					if not IsColor(fret[#fret]) then
-						table.insert(output, defColor)
+						output[counter] = defColor
+						counter = counter + 1
 					end
 
 					argsPos = argsPos + fcount
@@ -462,7 +486,7 @@ function I18n.LocalizeByLang(phrase, lang, ...)
 			local output = ''
 
 			for i, value in ipairs(formatted) do
-				if type(value) == 'string' then
+				if isstring(value) then
 					output = output .. value
 				end
 			end
@@ -481,7 +505,7 @@ function I18n.LocalizeByLang(phrase, lang, ...)
 		unformatted = HashedLang[lang][phrase] or Hashed[phrase] or phrase
 	end
 
-	local status, formatted = pcall(string.format, unformatted, ...)
+	local status, formatted = pcall(string_format, unformatted, ...)
 
 	if status then
 		return formatted
@@ -506,7 +530,7 @@ end
 	number: arguments "consumed"
 ]]
 function I18n.LocalizeByLangAdvanced(phrase, lang, colorDef, ...)
-	if luatype(colorDef) ~= 'Color' then
+	if not IsColor(colorDef) then
 		return I18n._localizeByLangAdvanced(phrase, lang, color_white, ...)
 	else
 		return I18n._localizeByLangAdvanced(phrase, lang, colorDef, ...)
@@ -548,7 +572,7 @@ function I18n._localizeByLangAdvanced(phrase, lang, colorDef, ...)
 		unformatted = HashedLang[lang][phrase] or Hashed[phrase] or phrase
 	end
 
-	local status, formatted, cnum = pcall(string.format, unformatted, ...)
+	local status, formatted, cnum = pcall(string_format, unformatted, ...)
 
 	if status then
 		return {formatted}, I18n.CountExpressions(unformatted)
@@ -556,6 +580,8 @@ function I18n._localizeByLangAdvanced(phrase, lang, colorDef, ...)
 		return {'Format error: ' .. phrase .. ' ' .. formatted}, 0
 	end
 end
+
+local string_gmatch = string.gmatch
 
 --[[
 	@doc
@@ -567,8 +593,9 @@ end
 ]]
 function I18n.CountExpressions(str)
 	local i = 0
+	local fn = string_gmatch(str, '[%%][^%%]')
 
-	for line in str:gmatch('[%%][^%%]') do
+	while fn() do
 		i = i + 1
 	end
 
@@ -605,7 +632,7 @@ function I18n.RegisterPhrase(lang, phrase, unformatted)
 	end
 
 	if advanced then
-		local fncompile = compileExpression(unformatted)
+		local fncompile = I18n._CompileExpression(unformatted)
 
 		if lang == 'en' then
 			HashedFunc[phrase] = fncompile
@@ -754,7 +781,6 @@ I18n.PhrasePresent = I18n.Exists
 I18n.PhraseExists = I18n.Exists
 
 local table = table
-local type = type
 
 --[[
 	@doc
@@ -800,44 +826,49 @@ I18n.RebuildTable = I18n.LocalizeTable
 	@returns
 	table: a table with localized strings. other types are untouched. does not modify original table
 ]]
-function I18n.LocalizeTableByLang(args, lang, colorDef, backward)
-	if backward == nil then backward = false end
-	local rebuild
-	local i = backward and #args or 1
 
-	if backward then
-		rebuild = table.qcopy(args)
+do
+	local isstring = isstring
 
-		while i > 0 do
-			local arg = rebuild[i]
-			local index = #rebuild - i
+	function I18n.LocalizeTableByLang(args, lang, colorDef, backward)
+		if backward == nil then backward = false end
+		local rebuild
+		local i = backward and #args or 1
 
-			if not isstring(arg) or Hashed[arg] == nil then
-				i = i - 1
-			else
-				local phrase, consumed = I18n.LocalizeByLangAdvanced(arg, lang, colorDef, unpack(rebuild, i + 1, #rebuild))
-				table.splice(rebuild, i, consumed + 1, unpack(phrase, 1, #phrase))
-				i = i - 1 - consumed
+		if backward then
+			rebuild = table.qcopy(args)
+
+			while i > 0 do
+				local arg = rebuild[i]
+				local index = #rebuild - i
+
+				if not isstring(arg) or Hashed[arg] == nil then
+					i = i - 1
+				else
+					local phrase, consumed = I18n.LocalizeByLangAdvanced(arg, lang, colorDef, unpack(rebuild, i + 1, #rebuild))
+					table.splice(rebuild, i, consumed + 1, unpack(phrase, 1, #phrase))
+					i = i - 1 - consumed
+				end
+			end
+		else
+			rebuild = {}
+
+			while i <= #args do
+				local arg = args[i]
+
+				if not isstring(arg) or not Hashed[arg] ~= nil then
+					table.insert(rebuild, arg)
+					i = i + 1
+				else
+					local phrase, consumed = I18n.LocalizeByLangAdvanced(arg, lang, colorDef, unpack(args, i + 1, #args))
+					i = i + 1 + consumed
+					table.append(rebuild, phrase)
+				end
 			end
 		end
-	else
-		rebuild = {}
 
-		while i <= #args do
-			local arg = args[i]
-
-			if not isstring(arg) or not I18n.exists(arg) then
-				table.insert(rebuild, arg)
-				i = i + 1
-			else
-				local phrase, consumed = I18n.LocalizeByLangAdvanced(arg, lang, colorDef, unpack(args, i + 1, #args))
-				i = i + 1 + consumed
-				table.append(rebuild, phrase)
-			end
-		end
+		return rebuild
 	end
-
-	return rebuild
 end
 
 I18n.RebuildTableByLang = I18n.LocalizeTableByLang

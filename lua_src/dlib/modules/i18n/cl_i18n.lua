@@ -241,7 +241,8 @@ end)
 hook.Add('VGUIPanelCreated', 'DLib.I18n', vguiPanelCreated)
 chat.AddTextLocalized = I18n.AddChat
 
-local gmod_language, LastLanguage
+local gmod_language = GetConVar('gmod_language')
+local LastLanguage
 local LANG_OVERRIDE = CreateConVar('gmod_language_dlib_cl', '', {FCVAR_ARCHIVE}, 'gmod_language override for DLib based addons')
 
 --[[
@@ -251,8 +252,6 @@ local LANG_OVERRIDE = CreateConVar('gmod_language_dlib_cl', '', {FCVAR_ARCHIVE},
 	@internal
 ]]
 function I18n.UpdateLang()
-	gmod_language = gmod_language or GetConVar('gmod_language')
-	if not gmod_language then return end
 	local grablang = LANG_OVERRIDE:GetString():lower():trim()
 
 	if grablang ~= '' then

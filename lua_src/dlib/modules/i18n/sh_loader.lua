@@ -68,10 +68,14 @@ end
 local createNamedTable
 local setmetatable = setmetatable
 local mt = getmetatable
+local rawget = rawget
+local rawset = rawset
+local isstring = isstring
+local tostring = tostring
 
 local tableMeta = {
 	__index = function(self, key)
-		if type(key) ~= 'string' then
+		if not isstring(key) then
 			error('You can only use strings as indexes')
 		end
 
@@ -87,20 +91,22 @@ local tableMeta = {
 			error("You don't have to define tables!")
 		end
 
-		if type(key) ~= 'string' then
-			error('You can only use strings as indexes')
+		if not isstring(key) then
+			error('table[typeof key != string]!')
 		end
 
-		if type(value) == 'number' then
-			value = value:tostring()
+		if isnumber(key) then
+			value = tostring(value)
 		end
 
-		if type(value) ~= 'string' then
-			error('You can only define strings')
+		if not isstring(value) then
+			error('table[] = typeof value != string!')
 		end
 
-		local parent = mt(self).__parent
-		local build = mt(self).__name .. '.' .. key
+		local mtSelf = mt(self)
+
+		local parent = mtSelf.__parent
+		local build = mtSelf.__name .. '.' .. key
 
 		while parent do
 			build = mt(parent).__name .. '.' .. build
@@ -108,7 +114,8 @@ local tableMeta = {
 		end
 
 		rawset(self, key, value)
-		I18n.registerPhrase(mt(self).__lang, build, value)
+
+		I18n.RegisterPhrase(mtSelf.__lang, build, value)
 	end
 }
 
