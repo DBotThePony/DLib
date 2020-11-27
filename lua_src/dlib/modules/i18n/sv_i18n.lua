@@ -164,49 +164,8 @@ local function tickPlayers()
 end
 
 function I18n.RegisterProxy(...)
-	-- do nothing
+	-- do nothing, since there is no `language` library present serverside
 end
-
-local LANG_OVERRIDE = CreateConVar('gmod_language_dlib_sv', '', {FCVAR_ARCHIVE}, 'gmod_language override for DLib based addons')
-local gmod_language = GetConVar('gmod_language')
-
---[[
-	@doc
-	@hook DLib.LanguageChanged
-]]
-
-function I18n.UpdateLang()
-	local grablang = LANG_OVERRIDE:GetString():lower():trim()
-
-	if grablang ~= '' then
-		I18n.CURRENT_LANG = grablang
-	else
-		I18n.CURRENT_LANG = gmod_language:GetString():lower():trim()
-	end
-
-	if LastLanguage ~= I18n.CURRENT_LANG then
-		hook.Call('DLib.LanguageChanged')
-		hook.Call('DLib.LanguageChanged2')
-	end
-
-	LastLanguage = I18n.CURRENT_LANG
-end
-
-cvars.AddChangeCallback('gmod_language', I18n.UpdateLang, 'DLib')
-cvars.AddChangeCallback('gmod_language_dlib_sv', I18n.UpdateLang, 'DLib')
-
-local value = gmod_language:GetString()
-
-hook.Add('Think', 'dlib_gmod_language_hack', function()
-	local value2 = gmod_language:GetString()
-
-	if value2 ~= value then
-		I18n.UpdateLang()
-		value = value2
-	end
-end)
-
-timer.Simple(0, I18n.UpdateLang)
 
 --[[
 	@doc
@@ -216,7 +175,7 @@ timer.Simple(0, I18n.UpdateLang)
 
 net.receive('dlib.clientlang', function(len, ply)
 	local old = ply.DLib_Lang
-	ply.DLib_Lang = net.ReadString()
+	ply.DLib_Lang = net.ReadStringArray()
 	hook.Run('DLib.PlayerLanguageChanges', ply, old, ply.DLib_Lang)
 end)
 

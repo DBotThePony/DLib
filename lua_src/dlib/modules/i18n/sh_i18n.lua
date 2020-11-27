@@ -32,12 +32,10 @@ local unpack = unpack
 local ipairs = ipairs
 local isstring = isstring
 
-I18n.hashed = I18n.hashed or {}
-I18n.Hashed = I18n.hashed
+I18n._Exists = I18n._Exists or {}
+I18n._ExistsNoArgs = I18n._ExistsNoArgs or {}
 I18n.hashedFunc = I18n.hashedFunc or {}
 I18n.HashedFunc = I18n.hashedFunc
-I18n.hashedNoArgs = I18n.hashedNoArgs or {}
-I18n.HashedNoArgs = I18n.hashedNoArgs
 I18n.hashedLang = I18n.hashedLang or {}
 I18n.HashedLang = I18n.hashedLang
 I18n.hashedLangFunc = I18n.hashedLangFunc or {}
@@ -45,9 +43,9 @@ I18n.HashedLangFunc = I18n.hashedLangFunc
 I18n.hashedNoArgsLang = I18n.hashedNoArgsLang or {}
 I18n.HashedNoArgsLang = I18n.hashedNoArgsLang
 
-local Hashed = I18n.Hashed
+local _Exists = I18n._Exists
+local _ExistsNoArgs = I18n._ExistsNoArgs
 local HashedFunc = I18n.HashedFunc
-local HashedNoArgs = I18n.HashedNoArgs
 local HashedLang = I18n.HashedLang
 local HashedLangFunc = I18n.HashedLangFunc
 local HashedNoArgsLang = I18n.HashedNoArgsLang
@@ -457,29 +455,30 @@ end
 --[[
 	@doc
 	@fname DLib.I18n.LocalizeByLang
-	@args string phrase, string lang, vararg format
+	@args string phrase, any lang, vararg format
 
 	@returns
 	string: formatted message
 ]]
 function I18n.LocalizeByLang(phrase, lang, ...)
-	if not Hashed[phrase] or I18n.DEBUG_LANG_STRINGS:GetBool() then
+	if not _Exists[phrase] or I18n.DEBUG_LANG_STRINGS:GetBool() then
 		return phrase
 	end
 
-	if HashedFunc[phrase] then
-		local unformatted
+	local unformatted
 
-		if lang == 'en' or not HashedLang[lang] then
-			unformatted = HashedFunc[phrase] or nil
-		else
-			unformatted = HashedLangFunc[lang] and HashedLangFunc[lang][phrase] or HashedFunc[phrase] or nil
+	if isstring(lang) then
+		unformatted = HashedLangFunc[lang] and HashedLangFunc[lang][phrase] or HashedLang[lang] and HashedLang[phrase]
+	else
+		for i, langIn in ipairs(lang) do
+			unformatted = HashedLangFunc[langIn] and HashedLangFunc[langIn][phrase] or HashedLang[langIn] and HashedLang[langIn][phrase]
+			if unformatted then break end
 		end
+	end
 
-		if not unformatted then
-			return phrase
-		end
+	if not unformatted then return phrase end
 
+	if isfunction(unformatted) then
 		local status, formatted = pcall(unformatted, nil, ...)
 
 		if status then
@@ -492,26 +491,18 @@ function I18n.LocalizeByLang(phrase, lang, ...)
 			end
 
 			return output
-		else
-			return 'Format error: ' .. phrase .. ' ' .. formatted
 		end
-	end
 
-	local unformatted
-
-	if lang == 'en' or not HashedLang[lang] then
-		unformatted = Hashed[phrase] or phrase
-	else
-		unformatted = HashedLang[lang][phrase] or Hashed[phrase] or phrase
+		return 'Format error: ' .. phrase .. ' ' .. formatted
 	end
 
 	local status, formatted = pcall(string_format, unformatted, ...)
 
 	if status then
 		return formatted
-	else
-		return 'Format error: ' .. phrase .. ' ' .. formatted
 	end
+
+	return 'Format error: ' .. phrase .. ' ' .. formatted
 end
 
 --[[
@@ -538,47 +529,40 @@ function I18n.LocalizeByLangAdvanced(phrase, lang, colorDef, ...)
 end
 
 function I18n._localizeByLangAdvanced(phrase, lang, colorDef, ...)
-	if not Hashed[phrase] or I18n.DEBUG_LANG_STRINGS:GetBool() then
+	if not _Exists[phrase] or I18n.DEBUG_LANG_STRINGS:GetBool() then
 		return {phrase}, 0
-	end
-
-	if HashedFunc[phrase] then
-		local unformatted
-
-		if lang == 'en' or not HashedLang[lang] then
-			unformatted = HashedFunc[phrase] or nil
-		else
-			unformatted = HashedLangFunc[lang] and HashedLangFunc[lang][phrase] or HashedFunc[phrase] or nil
-		end
-
-		if not unformatted then
-			return phrase
-		end
-
-		local status, formatted, cnum = pcall(unformatted, colorDef, ...)
-
-		if status then
-			return formatted, cnum
-		else
-			return {'Format error: ' .. phrase .. ' ' .. formatted}, 0
-		end
 	end
 
 	local unformatted
 
-	if lang == 'en' or not HashedLang[lang] then
-		unformatted = Hashed[phrase] or phrase
+	if isstring(lang) then
+		unformatted = HashedLangFunc[lang] and HashedLangFunc[lang][phrase] or HashedLang[lang] and HashedLang[phrase]
 	else
-		unformatted = HashedLang[lang][phrase] or Hashed[phrase] or phrase
+		for i, langIn in ipairs(lang) do
+			unformatted = HashedLangFunc[langIn] and HashedLangFunc[langIn][phrase] or HashedLang[langIn] and HashedLang[langIn][phrase]
+			if unformatted then break end
+		end
+	end
+
+	if not unformatted then return phrase end
+
+	if isfunction(unformatted) then
+		local status, formatted, cnum = pcall(unformatted, colorDef, ...)
+
+		if status then
+			return formatted, cnum
+		end
+
+		return {'Format error: ' .. phrase .. ' ' .. formatted}, 0
 	end
 
 	local status, formatted, cnum = pcall(string_format, unformatted, ...)
 
 	if status then
 		return {formatted}, I18n.CountExpressions(unformatted)
-	else
-		return {'Format error: ' .. phrase .. ' ' .. formatted}, 0
 	end
+
+	return {'Format error: ' .. phrase .. ' ' .. formatted}, 0
 end
 
 local string_gmatch = string.gmatch
@@ -623,46 +607,29 @@ function I18n.RegisterPhrase(lang, phrase, unformatted)
 		end
 	end
 
-	if lang == 'en' then
-		Hashed[phrase] = unformatted
-	else
-		Hashed[phrase] = Hashed[phrase] or unformatted
-		HashedLang[lang] = HashedLang[lang] or {}
-		HashedLang[lang][phrase] = unformatted
-	end
+	_Exists[phrase] = true
+
+	HashedLang[lang] = HashedLang[lang] or {}
+	HashedLang[lang][phrase] = unformatted
 
 	if advanced then
 		local fncompile = I18n._CompileExpression(unformatted)
 
-		if lang == 'en' then
-			HashedFunc[phrase] = fncompile
-		else
-			HashedLangFunc[lang] = HashedLangFunc[lang] or {}
-			HashedLangFunc[lang][phrase] = fncompile
-		end
+		HashedLangFunc[lang] = HashedLangFunc[lang] or {}
+		HashedLangFunc[lang][phrase] = fncompile
 	else
-		if lang == 'en' then
-			HashedFunc[phrase] = nil
-		else
-			HashedLangFunc[lang] = HashedLangFunc[lang] or {}
-			HashedLangFunc[lang][phrase] = nil
-		end
+		HashedLangFunc[lang] = HashedLangFunc[lang] or {}
+		HashedLangFunc[lang][phrase] = nil
 	end
 
 	if I18n.CountExpressions(phrase) == 0 then
-		if lang == 'en' then
-			HashedNoArgs[phrase] = unformatted
-		else
-			HashedNoArgsLang[lang] = HashedNoArgsLang[lang] or {}
-			HashedNoArgsLang[lang][phrase] = unformatted
-		end
+		_ExistsNoArgs[phrase] = true
+		HashedNoArgsLang[lang] = HashedNoArgsLang[lang] or {}
+		HashedNoArgsLang[lang][phrase] = unformatted
 	else
-		if lang == 'en' then
-			HashedNoArgs[phrase] = nil
-		else
-			HashedNoArgsLang[lang] = HashedNoArgsLang[lang] or {}
-			HashedNoArgsLang[lang][phrase] = nil
-		end
+		_ExistsNoArgs[phrase] = nil
+		HashedNoArgsLang[lang] = HashedNoArgsLang[lang] or {}
+		HashedNoArgsLang[lang][phrase] = nil
 	end
 
 	return true
@@ -715,14 +682,6 @@ function I18n.GetRaw(phrase)
 	return I18n.GetRawByLang(phrase, I18n.CURRENT_LANG)
 end
 
---[[
-	@doc
-	@fname DLib.I18n.GetRaw2
-	@args string phrase
-
-	@returns
-	string: or nil
-]]
 function I18n.GetRaw2(phrase)
 	return I18n.GetRawByLang2(phrase, I18n.CURRENT_LANG)
 end
@@ -736,19 +695,12 @@ end
 	string: or nil
 ]]
 function I18n.GetRawByLang(phrase, lang)
-	return HashedLang[lang] and HashedLang[lang][phrase] or Hashed[phrase]
+	return HashedLang[lang] and HashedLang[lang][phrase]
 end
 
---[[
-	@doc
-	@fname DLib.I18n.GetRawByLang2
-	@args string phrase, string lang
-
-	@returns
-	string: or nil
-]]
+-- why it is here
 function I18n.GetRawByLang2(phrase, lang)
-	return HashedLang[lang] and HashedLang[lang][phrase] or HashedLang[phrase] and HashedLang[phrase][lang] or Hashed[phrase]
+	return HashedLang[lang] and HashedLang[lang][phrase] or HashedLang[phrase] and HashedLang[phrase][lang]
 end
 
 --[[
@@ -762,7 +714,7 @@ end
 	boolean
 ]]
 function I18n.Exists(phrase)
-	return Hashed[phrase] ~= nil
+	return _Exists[phrase] ~= nil
 end
 
 --[[
@@ -774,7 +726,7 @@ end
 	boolean
 ]]
 function I18n.SafePhrase(phrase)
-	return HashedNoArgs[phrase] ~= nil
+	return _ExistsNoArgs[phrase] ~= nil
 end
 
 I18n.PhrasePresent = I18n.Exists
@@ -842,7 +794,7 @@ do
 				local arg = rebuild[i]
 				local index = #rebuild - i
 
-				if not isstring(arg) or Hashed[arg] == nil then
+				if not isstring(arg) or _Exists[arg] == nil then
 					i = i - 1
 				else
 					local phrase, consumed = I18n.LocalizeByLangAdvanced(arg, lang, colorDef, unpack(rebuild, i + 1, #rebuild))
@@ -856,7 +808,7 @@ do
 			while i <= #args do
 				local arg = args[i]
 
-				if not isstring(arg) or not Hashed[arg] ~= nil then
+				if not isstring(arg) or _Exists[arg] == nil then
 					table.insert(rebuild, arg)
 					i = i + 1
 				else
@@ -872,3 +824,73 @@ do
 end
 
 I18n.RebuildTableByLang = I18n.LocalizeTableByLang
+
+local gmod_language = GetConVar('gmod_language')
+local LastLanguage, LastLanguageList, LANG_OVERRIDE
+
+if CLIENT then
+	LANG_OVERRIDE = CreateConVar('gmod_language_dlib_cl', 'gmod,en', {FCVAR_ARCHIVE}, 'Specifies lanuages to use, comma separated.')
+else
+	LANG_OVERRIDE = CreateConVar('gmod_language_dlib_sv', 'gmod,en', {FCVAR_ARCHIVE}, 'Specifies lanuages to use, comma separated.')
+end
+
+if LANG_OVERRIDE:GetString() == '' then
+	LANG_OVERRIDE:SetString('gmod,en')
+end
+
+--[[
+	@doc
+	@fname DLib.I18n.UpdateLang
+
+	@internal
+]]
+function I18n.UpdateLang()
+	local grablang = LANG_OVERRIDE:GetString():lower():trim():split(',')
+
+	for i = #grablang, 1, -1 do
+		grablang[i] = grablang[i]:trim()
+
+		if grablang[i] == '' then
+			table.remove(grablang, i)
+		elseif grablang[i] == 'gmod' then
+			grablang[i] = gmod_language:GetString():lower():trim()
+		end
+	end
+
+	I18n.CURRENT_LANG = grablang
+	local recombine = table.concat(grablang, ',')
+
+	if LastLanguage ~= table.concat(grablang, ',') then
+		hook.Run('DLib.LanguageChanged', LastLanguageList, grablang)
+		hook.Run('DLib.LanguageChanged2', LastLanguageList, grablang)
+
+		LastLanguageList = grablang
+		LastLanguage = recombine
+	end
+
+	if CLIENT then
+		net.Start('dlib.clientlang')
+		net.WriteStringArray(grablang)
+		net.SendToServer()
+	end
+end
+
+if CLIENT then
+	cvars.AddChangeCallback('gmod_language', I18n.UpdateLang, 'DLib')
+	cvars.AddChangeCallback('gmod_language_dlib_cl', I18n.UpdateLang, 'DLib')
+else
+	cvars.AddChangeCallback('gmod_language_dlib_sv', I18n.UpdateLang, 'DLib')
+
+	local value = gmod_language:GetString()
+
+	hook.Add('Think', 'dlib_gmod_language_hack', function()
+		local value2 = gmod_language:GetString()
+
+		if value2 ~= value then
+			I18n.UpdateLang()
+			value = value2
+		end
+	end)
+end
+
+timer.Simple(0, I18n.UpdateLang)
