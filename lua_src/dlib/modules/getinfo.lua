@@ -18,7 +18,6 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-
 local DLib = DLib
 local util = util
 local pairs = pairs
@@ -31,21 +30,21 @@ local IsValid = IsValid
 local LocalPlayer = LocalPlayer
 
 if SERVER then
-	net.pool('DLib.getinfo.replicate')
+	net.pool('DLib.GetInfo.replicate')
 end
 
 local plyMeta = FindMetaTable('Player')
 local entMeta = FindMetaTable('Entity')
-DLib.getinfo = DLib.getinfo or {}
-local getinfo = DLib.getinfo
+DLib.GetInfo = DLib.GetInfo or {}
+local GetInfo = DLib.GetInfo
 
-getinfo.bank = getinfo.bank or {}
-getinfo.bankCRC = getinfo.bankCRC or {}
-getinfo.bankOptimized = {}
+GetInfo.Bank = GetInfo.Bank or {}
+GetInfo.BankCRC = GetInfo.BankCRC or {}
+GetInfo.BankOptimized = {}
 
 --[[
 	@doc
-	@fname DLib.getinfo.Replicate
+	@fname DLib.GetInfo.Replicate
 	@args string cvarname, string valueType = 'string', any default
 
 	@desc
@@ -58,7 +57,7 @@ getinfo.bankOptimized = {}
 	`'string'` (by default, if type is invalid or missing)
 	@enddesc
 ]]
-function getinfo.Replicate(cvarname, valuetype, default)
+function GetInfo.Replicate(cvarname, valuetype, default)
 	valuetype = valuetype or 'boolean'
 	local crc = util.CRC(cvarname)
 	local writeFunc, readFunc, nwGet, nwSet
@@ -96,7 +95,7 @@ function getinfo.Replicate(cvarname, valuetype, default)
 		error('Missing NW Set for ' .. cvarname .. '! This should never happen')
 	end
 
-	getinfo.bank[cvarname] = {
+	GetInfo.Bank[cvarname] = {
 		crc = crc,
 		uid = tonumber(crc),
 		created = RealTimeL(),
@@ -112,50 +111,50 @@ function getinfo.Replicate(cvarname, valuetype, default)
 	}
 
 	if CLIENT then
-		cvars.AddChangeCallback(cvarname, getinfo.ReplicateNow, 'DLib.getinfo')
+		cvars.AddChangeCallback(cvarname, GetInfo.ReplicateNow, 'DLib.GetInfo')
 	end
 
-	getinfo.bankCRC[crc] = getinfo.bank[cvarname]
-	getinfo.bankCRC[getinfo.bank[cvarname].uid] = getinfo.bank[cvarname]
+	GetInfo.BankCRC[crc] = GetInfo.Bank[cvarname]
+	GetInfo.BankCRC[GetInfo.Bank[cvarname].uid] = GetInfo.Bank[cvarname]
 
-	getinfo.Rebuild()
+	GetInfo.Rebuild()
 end
 
-getinfo.Register = getinfo.Replicate
+GetInfo.Register = GetInfo.Replicate
 
 --[[
 	@doc
-	@fname DLib.getinfo.Rebuild
+	@fname DLib.GetInfo.Rebuild
 
 	@internal
 
 	@returns
 	table: optimized list for ipairs iteration
 ]]
-function getinfo.Rebuild()
-	getinfo.bankOptimized = {}
+function GetInfo.Rebuild()
+	GetInfo.BankOptimized = {}
 
-	for cvar, data in pairs(getinfo.bank) do
-		table.insert(getinfo.bankOptimized, data)
+	for cvar, data in pairs(GetInfo.Bank) do
+		table.insert(GetInfo.BankOptimized, data)
 	end
 
-	return getinfo.bankOptimized
+	return GetInfo.BankOptimized
 end
 
-getinfo.Rebuild()
+GetInfo.Rebuild()
 
 if CLIENT then
-	timer.Create('DLib.getinfo.replication', 10, 0, function()
-		getinfo.ReplicateNow()
+	timer.Create('DLib.GetInfo.replication', 10, 0, function()
+		GetInfo.ReplicateNow()
 	end)
 
-	function getinfo.ReplicateNow()
+	function GetInfo.ReplicateNow()
 		local ply = LocalPlayer()
 		if not IsValid(ply) then return end
 
-		net.Start('DLib.getinfo.replicate')
+		net.Start('DLib.GetInfo.replicate')
 
-		for i, data in ipairs(getinfo.bankOptimized) do
+		for i, data in ipairs(GetInfo.BankOptimized) do
 			data.cvar = data.cvar or GetConVar(data.id)
 			local val = data.cvar:GetByType(data.valuetype)
 
@@ -173,12 +172,12 @@ if CLIENT then
 		net.SendToServer()
 	end
 else
-	net.receive('DLib.getinfo.replicate', function(len, ply)
+	net.receive('DLib.GetInfo.replicate', function(len, ply)
 		if not IsValid(ply) then return end
 		local nextID = net.ReadUInt(32)
 
-		while nextID ~= 0 and getinfo.bankCRC[nextID] do
-			local bank = getinfo.bankCRC[nextID]
+		while nextID ~= 0 and GetInfo.BankCRC[nextID] do
+			local bank = GetInfo.BankCRC[nextID]
 
 			local val = bank.readFunc()
 			bank.nwSet(ply, bank.id, val)
@@ -201,8 +200,8 @@ local GetConVar_Internal = GetConVar_Internal
 	string: or nil
 ]]
 function plyMeta:GetInfoDLib(cvarname)
-	if getinfo.bank[cvarname] then
-		return getinfo.bank[cvarname].nwGet(self, cvarname)
+	if GetInfo.Bank[cvarname] then
+		return GetInfo.Bank[cvarname].nwGet(self, cvarname)
 	elseif SERVER then
 		return self:GetInfo(cvarname)
 	else
@@ -223,4 +222,4 @@ function plyMeta:GetInfoDLib(cvarname)
 	end
 end
 
-return getinfo
+return GetInfo

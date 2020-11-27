@@ -27,8 +27,6 @@ local table = table
 local net = net
 local DLib = DLib
 
-DLib.getinfo.Replicate('cl_dlib_steamfriends')
-
 local function friendstatus(len, ply)
 	if not IsValid(ply) then return end
 	local amount = net.ReadUInt(8)
