@@ -18,7 +18,7 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-local friends = DLib.friends
+local Friend = DLib.Friend
 local DLib = DLib
 local sql = sql
 local string = string
@@ -36,28 +36,27 @@ sql.EQuery([[
 local plyMeta = FindMetaTable('Player')
 local IsValid = FindMetaTable('Entity').IsValid
 
-friends.currentStatus = {}
-friends.currentCount = 0
-
+Friend.CurrentStatus = {}
+Friend.CurrentCount = 0
 
 --[[
 	@doc
-	@fname DLib.friends.FillGaps
+	@fname DLib.Friend.FillGaps
 	@args string statusID
 
 	@client
 
 	@desc
-	fills missing entries in friends table with specified friend string ID
+	fills missing entries in Friend table with specified friend string ID
 	@enddesc
 
 	@returns
 	table: of steamids which was affected
 ]]
-function friends.FillGaps(statusID)
-	if not friends.typesCache[statusID] then return false end
+function Friend.FillGaps(statusID)
+	if not Friend.typesCache[statusID] then return false end
 
-	local defToInsert = friends.typesCache[statusID].def and '1' or '0'
+	local defToInsert = Friend.typesCache[statusID].def and '1' or '0'
 	local steamids = sql.EQuery("SELECT steamid FROM dlib_friends WHERE " .. SQLStr(statusID) .. " NOT IN (SELECT friendid FROM dlib_friends WHERE steamid = steamid) GROUP BY steamid")
 
 	if steamids then
@@ -86,7 +85,7 @@ function plyMeta:IsDLibFriend(target)
 	if not IsValid(target) then return false end
 
 	if self == LocalPlayer() then
-		local tab = friends.currentStatus
+		local tab = Friend.CurrentStatus
 		if not tab[target] then return false end
 		return tab[target].isFriend
 	else
@@ -110,7 +109,7 @@ function plyMeta:IsDLibFriendType(target, tp)
 	if not tp then return false end
 
 	if self == LocalPlayer() then
-		local tab = friends.currentStatus
+		local tab = Friend.CurrentStatus
 		if not tab[target] then return false end
 		return tab[target].status[tp] or false
 	else
@@ -123,11 +122,11 @@ end
 
 plyMeta.IsDLibFriendIn = plyMeta.IsDLibFriendType
 
-function friends.LoadPlayer(steamid, returnIfNothing, withCreation)
+function Friend.LoadPlayer(steamid, returnIfNothing, withCreation)
 	local ply = player.GetBySteamID(steamid)
 
-	if ply and friends.currentStatus[ply] and friends.currentStatus[ply].isFriend then
-		return friends.currentStatus[ply]
+	if ply and Friend.CurrentStatus[ply] and Friend.CurrentStatus[ply].isFriend then
+		return Friend.CurrentStatus[ply]
 	end
 
 	local data = sql.EQuery('SELECT friendid, status FROM dlib_friends WHERE steamid = ' .. SQLStr(steamid))
@@ -142,7 +141,7 @@ function friends.LoadPlayer(steamid, returnIfNothing, withCreation)
 			else
 				local build = {}
 
-				for id, data in pairs(friends.typesCache) do
+				for id, data in pairs(Friend.typesCache) do
 					build[id] = data.def
 				end
 
@@ -170,7 +169,7 @@ end
 
 --[[
 	@doc
-	@fname DLib.friends.ModifyFriend
+	@fname DLib.Friend.ModifyFriend
 	@args string steamid, table savedata
 
 	@desc
@@ -182,23 +181,23 @@ end
 	@internal
 	@client
 ]]
-function friends.ModifyFriend(steamid, savedata)
+function Friend.ModifyFriend(steamid, savedata)
 	local ply = player.GetBySteamID(steamid)
 
 	if ply then
-		friends.currentStatus[ply] = savedata
+		Friend.CurrentStatus[ply] = savedata
 		hook.Run('DLib_FriendModified', ply, savedata)
-		friends.SendToServer()
+		Friend.SendToServer()
 	end
 
-	friends.SaveDataFor(steamid, savedata)
+	Friend.SaveDataFor(steamid, savedata)
 end
 
 local steamidsCache = {}
 
 --[[
 	@doc
-	@fname DLib.friends.UpdateFriendType
+	@fname DLib.Friend.UpdateFriendType
 	@args string steamid, string statusID, boolean newstatus
 
 	@desc
@@ -210,8 +209,8 @@ local steamidsCache = {}
 	@returns
 	table: new savedata (you don't have to save it manually)
 ]]
-function friends.UpdateFriendType(steamid, ftype, fnew)
-	steamidsCache[steamid] = steamidsCache[steamid] or friends.LoadPlayer(steamid, true, true)
+function Friend.UpdateFriendType(steamid, ftype, fnew)
+	steamidsCache[steamid] = steamidsCache[steamid] or Friend.LoadPlayer(steamid, true, true)
 	steamidsCache[steamid].status[ftype] = fnew
 
 	local isFriend = false
@@ -232,7 +231,7 @@ end
 
 --[[
 	@doc
-	@fname DLib.friends.Flush
+	@fname DLib.Friend.Flush
 	@args string steamid, string statusID, boolean newstatus
 
 	@desc
@@ -241,9 +240,9 @@ end
 
 	@client
 ]]
-function friends.Flush()
+function Friend.Flush()
 	for steamid, data in pairs(steamidsCache) do
-		friends.SaveDataFor(steamid, data)
+		Friend.SaveDataFor(steamid, data)
 	end
 
 	steamidsCache = {}
@@ -251,15 +250,15 @@ end
 
 --[[
 	@doc
-	@fname DLib.friends.SaveDataFor
+	@fname DLib.Friend.SaveDataFor
 	@args string steamid, table savedata
 
 	@client
 	@internal
 ]]
-function friends.SaveDataFor(steamid, savedata)
+function Friend.SaveDataFor(steamid, savedata)
 	if not savedata.isFriend then
-		friends.RemoveFriend(steamid)
+		Friend.RemoveFriend(steamid)
 		return
 	end
 
@@ -279,7 +278,7 @@ end
 
 --[[
 	@doc
-	@fname DLib.friends.RemoveFriend
+	@fname DLib.Friend.RemoveFriend
 	@args string steamid
 
 	@client
@@ -291,7 +290,7 @@ end
 	@returns
 	boolean: was operation successful or not
 ]]
-function friends.RemoveFriend(steamid)
+function Friend.RemoveFriend(steamid)
 	sql.EQuery('DELETE FROM dlib_friends WHERE steamid = ' .. SQLStr(steamid))
 
 	local ply = player.GetBySteamID(steamid)
@@ -299,16 +298,16 @@ function friends.RemoveFriend(steamid)
 	if ply then
 		local build = {}
 
-		for id, data in pairs(friends.typesCache) do
+		for id, data in pairs(Friend.typesCache) do
 			build[id] = false
 		end
 
-		friends.currentStatus[ply] = {
+		Friend.CurrentStatus[ply] = {
 			isFriend = false,
 			status = build
 		}
 
-		friends.SendToServer()
+		Friend.SendToServer()
 
 		hook.Run('DLib_FriendRemoved', steamid, ply)
 
@@ -322,7 +321,7 @@ end
 
 --[[
 	@doc
-	@fname DLib.friends.CreateFriend
+	@fname DLib.Friend.CreateFriend
 	@args string steamid, boolean doSave = false
 
 	@client
@@ -337,11 +336,11 @@ end
 	@returns
 	table: new savedata
 ]]
-function friends.CreateFriend(steamid, doSave)
+function Friend.CreateFriend(steamid, doSave)
 	local ply = player.GetBySteamID(steamid)
 	local build = {}
 
-	for id, data in pairs(friends.typesCache) do
+	for id, data in pairs(Friend.typesCache) do
 		build[id] = data.def
 	end
 
@@ -351,10 +350,10 @@ function friends.CreateFriend(steamid, doSave)
 	}
 
 	if doSave then
-		friends.SaveDataFor(steamid, data)
+		Friend.SaveDataFor(steamid, data)
 
 		if ply then
-			friends.currentStatus[ply] = data
+			Friend.CurrentStatus[ply] = data
 		end
 
 		hook.Run('DLib_FriendCreated', steamid)
@@ -365,15 +364,15 @@ end
 
 --[[
 	@doc
-	@fname DLib.friends.GetIDsString
+	@fname DLib.Friend.GetIDsString
 
 	@client
 
 	@returns
 	table: sql strings of statusIDs
 ]]
-function friends.GetIDsString()
-	local keys = table.GetKeys(friends.typesCache)
+function Friend.GetIDsString()
+	local keys = table.GetKeys(Friend.typesCache)
 
 	for i, val in ipairs(keys) do
 		keys[i] = SQLStr(val)
@@ -384,13 +383,13 @@ end
 
 --[[
 	@doc
-	@fname DLib.friends.Reload
+	@fname DLib.Friend.Reload
 
 	@client
 ]]
-function friends.Reload()
-	friends.currentStatus = {}
-	friends.currentCount = player.GetCount()
+function Friend.Reload()
+	Friend.CurrentStatus = {}
+	Friend.CurrentCount = player.GetCount()
 	local lply = LocalPlayer()
 
 	local targets = {}
@@ -405,16 +404,16 @@ function friends.Reload()
 			local sq = SQLStr(steamid)
 			table.insert(targets, sq)
 
-			friends.currentStatus[ply] = {
+			Friend.CurrentStatus[ply] = {
 				isFriend = false,
 				status = {}
 			}
 
-			local d = friends.currentStatus[ply].status
+			local d = Friend.CurrentStatus[ply].status
 			targetsH[steamid] = d
-			targetsH2[steamid] = friends.currentStatus[ply]
+			targetsH2[steamid] = Friend.CurrentStatus[ply]
 
-			for id, data in pairs(friends.typesCache) do
+			for id, data in pairs(Friend.typesCache) do
 				d[id] = false
 			end
 		end
@@ -439,27 +438,27 @@ function friends.Reload()
 		end
 	end
 
-	friends.SendToServer()
+	Friend.SendToServer()
 
 	hook.Run('DLib_FriendsReloaded')
 
-	return friends.currentStatus
+	return Friend.CurrentStatus
 end
 
 --[[
 	@doc
-	@fname DLib.friends.SendToServer
+	@fname DLib.Friend.SendToServer
 
 	@client
 ]]
-function friends.SendToServer()
+function Friend.SendToServer()
 	net.Start('DLib.friendsystem')
 
-	net.WriteUInt(table.Count(friends.currentStatus), 8)
+	net.WriteUInt(table.Count(Friend.CurrentStatus), 8)
 
-	for ply, status in pairs(friends.currentStatus) do
+	for ply, status in pairs(Friend.CurrentStatus) do
 		net.WritePlayer(ply)
-		friends.Serealize(status)
+		Friend.Serealize(status)
 	end
 
 	net.SendToServer()
@@ -474,7 +473,7 @@ net.receive('DLib.friendsystem', function(len)
 	local target = ply.DLib_Friends_currentStatus
 
 	for i = 1, amount do
-		local rply, status = friends.Read()
+		local rply, status = Friend.Read()
 
 		if IsValid(rply) then
 			target[rply] = status
@@ -485,7 +484,7 @@ end)
 timer.Create('DLib.updateFriendList', 1, 0, function()
 	if not IsValid(LocalPlayer()) then return end
 
-	if friends.currentCount ~= player.GetCount() then
-		friends.Reload()
+	if Friend.CurrentCount ~= player.GetCount() then
+		Friend.Reload()
 	end
 end)

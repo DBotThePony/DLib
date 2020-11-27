@@ -18,19 +18,19 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-local friends = DLib.friends
+local Friend = DLib.Friend
 local DLib = DLib
 local util = util
 local net = net
 local error = error
 
-friends.typesCache = friends.typesCache or {}
-friends.typesCacheUID = friends.typesCacheUID or {}
-friends.typesCacheCRC = friends.typesCacheCRC or {}
+Friend.typesCache = Friend.typesCache or {}
+Friend.typesCacheUID = Friend.typesCacheUID or {}
+Friend.typesCacheCRC = Friend.typesCacheCRC or {}
 
 --[[
 	@doc
-	@fname DLib.friends.Register
+	@fname DLib.Friend.Register
 	@args string statusID, string statusName, boolean defaultValue = true
 
 	@desc
@@ -41,7 +41,7 @@ friends.typesCacheCRC = friends.typesCacheCRC or {}
 	or for steam friends
 	@enddesc
 ]]
-function friends.Register(statusID, statusName, defaultValue)
+function Friend.Register(statusID, statusName, defaultValue)
 	assert(type(statusID) == 'string', 'Invalid status id were provided. typeof ' .. type(statusID))
 
 	statusName = statusName or statusID
@@ -49,7 +49,7 @@ function friends.Register(statusID, statusName, defaultValue)
 	statusID = statusID:lower()
 	if defaultValue == nil then defaultValue = true end
 
-	local data = friends.typesCache[statusID]
+	local data = Friend.typesCache[statusID]
 
 	if not data then
 		data = {
@@ -59,12 +59,12 @@ function friends.Register(statusID, statusName, defaultValue)
 			def = defaultValue
 		}
 
-		friends.typesCacheUID[data.uid] = data
-		friends.typesCacheCRC[data.crc] = data
-		friends.typesCache[statusID] = data
+		Friend.typesCacheUID[data.uid] = data
+		Friend.typesCacheCRC[data.crc] = data
+		Friend.typesCache[statusID] = data
 
 		if CLIENT then
-			friends.FillGaps(statusID)
+			Friend.FillGaps(statusID)
 		end
 	end
 
@@ -75,19 +75,19 @@ end
 
 --[[
 	@doc
-	@fname DLib.friends.IsRegistered
+	@fname DLib.Friend.IsRegistered
 	@args string statusID
 
 	@returns
 	boolean
 ]]
-function friends.IsRegistered(statusID)
-	return friends.typesCache[statusID] ~= nil or friends.typesCacheUID[statusID] ~= nil or friends.typesCacheCRC[statusID] ~= nil
+function Friend.IsRegistered(statusID)
+	return Friend.typesCache[statusID] ~= nil or Friend.typesCacheUID[statusID] ~= nil or Friend.typesCacheCRC[statusID] ~= nil
 end
 
 --[[
 	@doc
-	@fname DLib.friends.Serealize
+	@fname DLib.Friend.Serealize
 	@args table savedata
 
 	@desc
@@ -96,11 +96,11 @@ end
 
 	@internal
 ]]
-function friends.Serealize(status)
+function Friend.Serealize(status)
 	net.WriteBool(status.isFriend)
 
 	for fID, fVal in pairs(status.status) do
-		local uid = friends.typesCache[fID]
+		local uid = Friend.typesCache[fID]
 
 		if uid then
 			net.WriteUInt(uid.uid, 32)
@@ -113,7 +113,7 @@ end
 
 --[[
 	@doc
-	@fname DLib.friends.Read
+	@fname DLib.Friend.Read
 
 	@desc
 	from current network message
@@ -125,7 +125,7 @@ end
 	Player: read player
 	table: savedata
 ]]
-function friends.Read()
+function Friend.Read()
 	local rply = net.ReadPlayer()
 
 	local readData = {
@@ -140,7 +140,7 @@ function friends.Read()
 		local nextfriendID = net.ReadUInt(32)
 		if nextfriendID == 0 then break end
 		local nfriendstatus = net.ReadBool()
-		local readID = friends.typesCacheUID[nextfriendID]
+		local readID = Friend.typesCacheUID[nextfriendID]
 
 		if readID then
 			readData.status[readID.id] = nfriendstatus
@@ -198,7 +198,7 @@ function plyMeta:GetAllFriends()
 end
 
 hook.Add('DLib.LanguageChanged', 'FriendsTableUpdate', function()
-	for k, data in pairs(friends.typesCache) do
+	for k, data in pairs(Friend.typesCache) do
 		data.localizedName = DLib.i18n.localize(data.name)
 	end
 end)

@@ -18,23 +18,23 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-local friends = DLib.friends
+local Friend = DLib.Friend
 local DLib = DLib
 
 --[[
 	@doc
-	@fname DLib.friends.OpenGUIForPlayer
+	@fname DLib.Friend.OpenGUIForPlayer
 	@args string steamid
 
 	@client
 ]]
-function friends.OpenGUIForPlayer(steamid)
+function Friend.OpenGUIForPlayer(steamid)
 	local nick = DLib.LastNickFormatted(steamid)
-	local getData = friends.LoadPlayer(steamid)
+	local getData = Friend.LoadPlayer(steamid)
 	local wasfriend = getData and getData.isFriend
 
 	if not getData then
-		getData = friends.CreateFriend(steamid, false)
+		getData = Friend.CreateFriend(steamid, false)
 		wasfriend = false
 	end
 
@@ -52,8 +52,8 @@ function friends.OpenGUIForPlayer(steamid)
 	local boxes = {}
 
 	for stringID, status in pairs(getData.status) do
-		local name = friends.typesCache[stringID] and
-			friends.typesCache[stringID].localizedName or
+		local name = Friend.typesCache[stringID] and
+			Friend.typesCache[stringID].localizedName or
 			(DLib.i18n.localize('gui.dlib.friends.settings.foreign') .. stringID)
 
 		local box = vgui.Create('DCheckBoxLabel', canvas)
@@ -83,12 +83,12 @@ function friends.OpenGUIForPlayer(steamid)
 		end
 
 		if hitvalid then
-			friends.ModifyFriend(steamid, {
+			Friend.ModifyFriend(steamid, {
 				isFriend = true,
 				status = newdata
 			})
 		else
-			friends.RemoveFriend(steamid)
+			Friend.RemoveFriend(steamid)
 		end
 
 		frame:Close()
@@ -100,7 +100,7 @@ function friends.OpenGUIForPlayer(steamid)
 		button:Dock(BOTTOM)
 
 		function button.DoClick()
-			friends.RemoveFriend(steamid)
+			Friend.RemoveFriend(steamid)
 			frame:Close()
 		end
 	end
@@ -124,11 +124,11 @@ surface.CreateFont('DLib.FriendsTooltip', {
 
 --[[
 	@doc
-	@fname DLib.friends.OpenGUI
+	@fname DLib.Friend.OpenGUI
 
 	@client
 ]]
-function friends.OpenGUI()
+function Friend.OpenGUI()
 	local frame = vgui.Create('DLib_Window')
 	frame:SetTitle('gui.dlib.friends.title')
 
@@ -139,7 +139,7 @@ function friends.OpenGUI()
 
 	function steamidInput:OnEnter(value)
 		if DLib.util.ValidateSteamID(value) then
-			friends.OpenGUIForPlayer(value)
+			Friend.OpenGUIForPlayer(value)
 		else
 			Derma_Message(DLib.i18n.localize('gui.dlib.friends.invalid.desc', value), 'gui.dlib.friends.invalid.title', 'gui.dlib.friends.invalid.ok')
 		end
@@ -199,7 +199,7 @@ function friends.OpenGUI()
 		for i, ply in ipairs(player.GetHumans()) do
 			if ply ~= lply then
 				local steamid = ply:SteamID()
-				local cfriend = friends.currentStatus[ply]
+				local cfriend = Friend.CurrentStatus[ply]
 
 				if not steamids[steamid] and (not cfriend or not cfriend.isFriend) then
 					local button = DLib.VCreate('DLib_PlayerButton', serverplayers)
@@ -207,7 +207,7 @@ function friends.OpenGUI()
 					serverplayers:AddButton(button)
 
 					function button.DoClick()
-						friends.OpenGUIForPlayer(steamid)
+						Friend.OpenGUIForPlayer(steamid)
 					end
 				elseif cfriend and cfriend.isFriend then
 					steamids[steamid] = steamid
@@ -222,7 +222,7 @@ function friends.OpenGUI()
 			myfriends:AddButton(button)
 
 			function button.DoClick()
-				friends.OpenGUIForPlayer(steamid)
+				Friend.OpenGUIForPlayer(steamid)
 			end
 		end
 	end
@@ -237,7 +237,7 @@ function friends.OpenGUI()
 	return frame
 end
 
-concommand.Add('dlib_friends', friends.OpenGUI)
+concommand.Add('dlib_friends', Friend.OpenGUI)
 
 local function PopulateToolMenu()
 	spawnmenu.AddToolMenuOption('Utilities', 'User', 'DLib.Friends', 'DLib Friends', 'dlib_friends', '', function(self)

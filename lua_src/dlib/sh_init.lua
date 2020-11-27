@@ -236,7 +236,7 @@ do
 end
 
 DLib.friends = DLib.friends or {}
-DLib.Friends = DLib.friends
+DLib.Friend = DLib.friends
 DLib.SharedInclude('modules/friendsystem/sh_friends.lua')
 DLib.ClientInclude('modules/friendsystem/cl_friends.lua')
 DLib.ClientInclude('modules/friendsystem/cl_gui.lua')

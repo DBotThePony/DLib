@@ -20,7 +20,7 @@
 
 net.pool('DLib.friendsystem')
 
-local friends = DLib.friends
+local Friend = DLib.Friend
 local DLib = DLib
 
 local plyMeta = FindMetaTable('Player')
@@ -54,7 +54,7 @@ net.receive('DLib.friendsystem', function(len, ply)
 	local target = ply.DLib_Friends_currentStatus
 
 	for i = 1, amount do
-		local rply, status = friends.Read()
+		local rply, status = Friend.Read()
 
 		if IsValid(rply) then
 			target[rply] = status
@@ -71,7 +71,7 @@ net.receive('DLib.friendsystem', function(len, ply)
 
 	for ply2, status in pairs(target) do
 		net.WritePlayer(ply2)
-		friends.Serealize(status)
+		Friend.Serealize(status)
 	end
 
 	net.SendOmit(ply)
