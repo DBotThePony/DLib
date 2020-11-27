@@ -20,74 +20,74 @@
 
 local DLib = DLib
 local _net = net
-local net = DLib.net
+local Net = DLib.Net
 
 local function debug(str)
 	--file.Append('dlib_net_debug.txt', str .. '\n')
 end
 
-net.Receivers = net.Receivers or {}
-net.ReceiversAntispam = net.ReceiversAntispam or {}
+Net.Receivers = Net.Receivers or {}
+Net.ReceiversAntispam = Net.ReceiversAntispam or {}
 
-function net.Receive(identifier, callback)
-	net.Receivers[assert(isstring(identifier) and identifier:lower(), 'Bad identifier given. typeof ' .. type(identifier))] = assert(isfunction(callback) and callback, 'Bad callback given. typeof ' .. type(callback))
+function Net.Receive(identifier, callback)
+	Net.Receivers[assert(isstring(identifier) and identifier:lower(), 'Bad identifier given. typeof ' .. type(identifier))] = assert(isfunction(callback) and callback, 'Bad callback given. typeof ' .. type(callback))
 end
 
-function net.ReceiveAntispam(identifier, cooldown, antispam_type)
+function Net.ReceiveAntispam(identifier, cooldown, antispam_type)
 	cooldown = cooldown or 1
 	antispam_type = antispam_type == true
 
-	net.ReceiversAntispam[assert(isstring(identifier) and identifier:lower(), 'Bad identifier given. typeof ' .. type(identifier))] = {
+	Net.ReceiversAntispam[assert(isstring(identifier) and identifier:lower(), 'Bad identifier given. typeof ' .. type(identifier))] = {
 		cooldown = cooldown,
 		antispam_type = antispam_type,
 		func = antispam_type and CurTime or RealTime,
 	}
 end
 
-net.receive = net.Receive
-net.receiveAntispam = net.ReceiveAntispam
-net.active_write_buffers = {}
-net.message_size_limit = 0x4000
-net.message_chunk_limit = 0x8000
-net.message_datagram_limit = 0x400
-net.datagram_queue_size_limit = 0x10000 -- idiot proofing from flooding server's memory with trash data
-net.window_size_limit = 0x1000000 -- idiot proofing from flooding server's memory with trash data
+Net.receive = Net.Receive
+Net.receiveAntispam = Net.ReceiveAntispam
+Net.active_write_buffers = {}
+Net.message_size_limit = 0x4000
+Net.message_chunk_limit = 0x8000
+Net.message_datagram_limit = 0x400
+Net.datagram_queue_size_limit = 0x10000 -- idiot proofing from flooding server's memory with trash data
+Net.window_size_limit = 0x1000000 -- idiot proofing from flooding server's memory with trash data
 
-function net.UpdateWindowProperties()
-	net.window_size_limit = net.WINDOW_SIZE_LIMIT:GetInt(0x1000000)
-	net.datagram_queue_size_limit = net.DGRAM_SIZE_LIMIT:GetInt(0x10000)
-	net.message_size_limit = net.COMPRESSION_LIMIT:GetInt(0x4000)
+function Net.UpdateWindowProperties()
+	Net.window_size_limit = Net.WINDOW_SIZE_LIMIT:GetInt(0x1000000)
+	Net.datagram_queue_size_limit = Net.DGRAM_SIZE_LIMIT:GetInt(0x10000)
+	Net.message_size_limit = Net.COMPRESSION_LIMIT:GetInt(0x4000)
 end
 
-function net.Start(identifier)
+function Net.Start(identifier)
 	local id = util.NetworkStringToID(assert(isstring(identifier) and identifier, 'Bad identifier given. typeof ' .. type(identifier)))
-	assert(id > 0, 'Identifier ' .. identifier .. ' is not pooled by net.pool/util.AddNetworkString!')
+	assert(id > 0, 'Identifier ' .. identifier .. ' is not pooled by Net.pool/util.AddNetworkString!')
 
-	table.insert(net.active_write_buffers, {
+	table.insert(Net.active_write_buffers, {
 		identifier = identifier,
 		id = id,
 		buffer = DLib.BytesBuffer(),
 	})
 
-	if #net.active_write_buffers > 20 then
-		DLib.MessageWarning('Net message send queue might got leaked. Currently ', #net.active_write_buffers, ' net messages are awaiting send.')
+	if #Net.active_write_buffers > 20 then
+		DLib.MessageWarning('Network message send queue might got leaked. Currently ', #Net.active_write_buffers, ' network messages are awaiting send.')
 	end
 end
 
-function net.TriggerEvent(network_id, buffer, ply)
+function Net.TriggerEvent(network_id, buffer, ply)
 	local string_id = util.NetworkIDToString(network_id)
 
 	if not string_id then
-		ErrorNoHalt('DLib.net: Trying to trigger network event with ID ' .. network_id .. ' but util.NetworkIDToString returned nothing. Is this newly added network string?\n')
+		ErrorNoHalt('DLib.Net: Trying to trigger network event with ID ' .. network_id .. ' but util.NetworkIDToString returned nothing. Is this newly added network string?\n')
 		return
 	end
 
 	string_id = string_id:lower()
 
-	local net_event_listener = net.Receivers[string_id]
+	local net_event_listener = Net.Receivers[string_id]
 
 	if net_event_listener then
-		local antispam = net.ReceiversAntispam[string_id]
+		local antispam = Net.ReceiversAntispam[string_id]
 
 		if antispam then
 			local target
@@ -96,7 +96,7 @@ function net.TriggerEvent(network_id, buffer, ply)
 			if IsValid(ply) then
 				target = ply:GetTable()
 			else
-				target = net
+				target = Net
 			end
 
 			local time = antispam.func()
@@ -112,7 +112,7 @@ function net.TriggerEvent(network_id, buffer, ply)
 			target[index] = time + antispam.cooldown
 		end
 
-		net.active_read = {
+		Net.active_read = {
 			identifier = string_id,
 			id = network_id,
 			buffer = buffer,
@@ -123,44 +123,44 @@ function net.TriggerEvent(network_id, buffer, ply)
 			net_event_listener(buffer and buffer.length * 8 or 0, ply, buffer)
 		end)
 
-		net.active_read = nil
+		Net.active_read = nil
 
 		if not status then
-			ErrorNoHalt('DLib.net: Listener on network message ' .. string_id .. ' has failed!\n')
+			ErrorNoHalt('DLib.Net: Listener on network message ' .. string_id .. ' has failed!\n')
 		end
 	elseif CLIENT then
-		ErrorNoHalt('DLib.net: No network listener attached on network message ' .. string_id .. '\n')
+		ErrorNoHalt('DLib.Net: No network listener attached on network message ' .. string_id .. '\n')
 	else
-		ErrorNoHalt('DLib.net: No network listener attached on network message ' .. string_id .. '\n. Message sent by: ' .. string.format('%s<%s>\n', ply:Nick(), ply:SteamID()))
+		ErrorNoHalt('DLib.Net: No network listener attached on network message ' .. string_id .. '\n. Message sent by: ' .. string.format('%s<%s>\n', ply:Nick(), ply:SteamID()))
 	end
 end
 
-function net.AccessWriteData()
-	return assert(net.active_write_buffers[#net.active_write_buffers], 'Currently not constructing a network message')
+function Net.AccessWriteData()
+	return assert(Net.active_write_buffers[#Net.active_write_buffers], 'Currently not constructing a network message')
 end
 
-function net.AccessWriteBuffer()
-	return net.AccessWriteData().buffer
+function Net.AccessWriteBuffer()
+	return Net.AccessWriteData().buffer
 end
 
-function net.AccessReadData()
-	return assert(net.active_read, 'Currently not reading a network message')
+function Net.AccessReadData()
+	return assert(Net.active_read, 'Currently not reading a network message')
 end
 
-function net.AccessReadBuffer()
-	return assert(net.AccessReadData().buffer, 'Message is zero length')
+function Net.AccessReadBuffer()
+	return assert(Net.AccessReadData().buffer, 'Message is zero length')
 end
 
-function net.BytesWritten()
-	return net.AccessWriteBuffer().length
+function Net.BytesWritten()
+	return Net.AccessWriteBuffer().length
 end
 
-function net.Discard()
-	table.remove(net.active_write_buffers)
+function Net.Discard()
+	table.remove(Net.active_write_buffers)
 end
 
 _net.receive('dlib_net_ack1', function(_, ply)
-	local namespace = net.Namespace(CLIENT and net or ply)
+	local namespace = Net.Namespace(CLIENT and Net or ply)
 	namespace.last_expected_ack = RealTime() + 10
 
 	namespace.server_chunk_ack = true
@@ -180,7 +180,7 @@ end)
 _net.receive('dlib_net_ack2', function(_, ply)
 	debug('Ask 2')
 
-	local namespace = net.Namespace(CLIENT and net or ply)
+	local namespace = Net.Namespace(CLIENT and Net or ply)
 	namespace.last_expected_ack = RealTime() + 10
 	namespace.server_chunk_ack = true
 	namespace.server_datagram_ack = true
@@ -200,7 +200,7 @@ _net.receive('dlib_net_chunk', function(_, ply)
 		string.format('Received chunk: Chunkid %d, current chunk number %d, total chunks %d, position: %d->%d, compressed: %s, lenght: %s',
 		chunkid, current_chunk, chunks, startpos, endpos, is_compressed and 'Yes' or 'No', length))
 
-	if CLIENT or not is_compressed or net.USE_COMPRESSION:GetBool() then
+	if CLIENT or not is_compressed or Net.USE_COMPRESSION:GetBool() then
 		_net.Start('dlib_net_chunk_ack')
 		_net.WriteUInt32(chunkid)
 		_net.WriteUInt16(current_chunk)
@@ -212,7 +212,7 @@ _net.receive('dlib_net_chunk', function(_, ply)
 		end
 	end
 
-	local namespace = net.Namespace(CLIENT and net or ply)
+	local namespace = Net.Namespace(CLIENT and Net or ply)
 
 	if namespace.next_expected_chunk > chunkid then return end
 
@@ -228,9 +228,9 @@ _net.receive('dlib_net_chunk', function(_, ply)
 
 		if namespace.queued_chunks_num > 21 and namespace.queued_chunks_num % 20 == 0 then
 			if CLIENT then
-				DLib.MessageWarning('DLib.net: Queued ', namespace.queued_chunks_num, ' chunks from server!')
+				DLib.MessageWarning('DLib.Net: Queued ', namespace.queued_chunks_num, ' chunks from server!')
 			else
-				DLib.MessageWarning('DLib.net: Queued ', namespace.queued_chunks_num, ' chunks from ', ply, '!')
+				DLib.MessageWarning('DLib.Net: Queued ', namespace.queued_chunks_num, ' chunks from ', ply, '!')
 			end
 		end
 	end
@@ -256,8 +256,8 @@ _net.receive('dlib_net_chunk', function(_, ply)
 		namespace.accumulated_size = namespace.accumulated_size - #stringdata
 
 		if data.is_compressed then
-			if CLIENT or net.USE_COMPRESSION:GetBool() then
-				stringdata = util.Decompress(stringdata, net.window_size_limit - namespace.accumulated_size)
+			if CLIENT or Net.USE_COMPRESSION:GetBool() then
+				stringdata = util.Decompress(stringdata, Net.window_size_limit - namespace.accumulated_size)
 
 				if not stringdata then
 					namespace.queued_chunks[chunkid] = nil
@@ -280,7 +280,7 @@ _net.receive('dlib_net_chunk', function(_, ply)
 		namespace.queued_chunks_num = namespace.queued_chunks_num - 1
 		namespace.queued_buffers_num = namespace.queued_buffers_num + 1
 
-		net.ProcessIncomingQueue(namespace, ply)
+		Net.ProcessIncomingQueue(namespace, ply)
 	end
 end)
 
@@ -290,7 +290,7 @@ _net.receive('dlib_net_datagram', function(_, ply)
 	if SERVER and not IsValid(ply) then return end
 	local readnetid = _net.ReadUInt16()
 
-	local namespace = net.Namespace(CLIENT and net or ply)
+	local namespace = Net.Namespace(CLIENT and Net or ply)
 
 	_net.Start('dlib_net_datagram_ack')
 
@@ -318,9 +318,9 @@ _net.receive('dlib_net_datagram', function(_, ply)
 
 			if namespace.queued_datagrams_num > 2001 and namespace.queued_datagrams_num % 100 == 0 then
 				if CLIENT then
-					DLib.MessageWarning('DLib.net: Queued ', namespace.queued_datagrams_num, ' datagrams from server!')
+					DLib.MessageWarning('DLib.Net: Queued ', namespace.queued_datagrams_num, ' datagrams from server!')
 				else
-					DLib.MessageWarning('DLib.net: Queued ', namespace.queued_datagrams_num, ' datagrams from ', ply, '!')
+					DLib.MessageWarning('DLib.Net: Queued ', namespace.queued_datagrams_num, ' datagrams from ', ply, '!')
 				end
 			end
 		end
@@ -329,9 +329,9 @@ _net.receive('dlib_net_datagram', function(_, ply)
 
 		if (SysTime() - startread) >= 0.1 then
 			if CLIENT then
-				DLib.MessageWarning('[!!!] DLib.net: Reading datagram list from server took more than 100 ms!')
+				DLib.MessageWarning('[!!!] DLib.Net: Reading datagram list from server took more than 100 ms!')
 			else
-				DLib.MessageWarning('[!!!] DLib.net: Reading datagram list from ', ply, ' took more than 100 ms!')
+				DLib.MessageWarning('[!!!] DLib.Net: Reading datagram list from ', ply, ' took more than 100 ms!')
 			end
 
 			break
@@ -344,10 +344,10 @@ _net.receive('dlib_net_datagram', function(_, ply)
 		_net.Send(ply)
 	end
 
-	net.ProcessIncomingQueue(namespace, SERVER and ply or NULL)
+	Net.ProcessIncomingQueue(namespace, SERVER and ply or NULL)
 end)
 
-function net.ProcessIncomingQueue(namespace, ply)
+function Net.ProcessIncomingQueue(namespace, ply)
 	if CLIENT and not AreEntitiesAvailable() then return end
 	local hit = true
 
@@ -356,9 +356,9 @@ function net.ProcessIncomingQueue(namespace, ply)
 	while hit do
 		if (SysTime() - startprocess) >= 0.4 then
 			if CLIENT then
-				DLib.MessageWarning('[!!!] DLib.net: net.ProcessIncomingQueue took ', string.format('%.2f', (SysTime() - startprocess) * 1000), ' ms!')
+				DLib.MessageWarning('[!!!] DLib.Net: Net.ProcessIncomingQueue took ', string.format('%.2f', (SysTime() - startprocess) * 1000), ' ms!')
 			else
-				DLib.MessageWarning('[!!!] DLib.net: net.ProcessIncomingQueue for ', ply, ' took ', string.format('%.2f', (SysTime() - startprocess) * 1000), ' ms!')
+				DLib.MessageWarning('[!!!] DLib.Net: Net.ProcessIncomingQueue for ', ply, ' took ', string.format('%.2f', (SysTime() - startprocess) * 1000), ' ms!')
 			end
 
 			namespace.process_next = RealTime() + 0.5
@@ -416,7 +416,7 @@ function net.ProcessIncomingQueue(namespace, ply)
 				string.format('Processed empty payload datagram %d',
 				fdgram))
 
-			net.TriggerEvent(fdata.readnetid, nil, ply)
+			Net.TriggerEvent(fdata.readnetid, nil, ply)
 		else
 			for i, bdata in pairs(namespace.queued_buffers) do
 				if bdata.startpos <= fdata.startpos and bdata.endpos >= fdata.endpos then
@@ -442,7 +442,7 @@ function net.ProcessIncomingQueue(namespace, ply)
 						string.format('Processed datagram %d with position %d->%d and network id %d',
 						fdgram, fdata.startpos, fdata.endpos, fdata.readnetid))
 
-					net.TriggerEvent(fdata.readnetid, DLib.BytesBufferView(start, start + len, bdata.buffer), ply)
+					Net.TriggerEvent(fdata.readnetid, DLib.BytesBufferView(start, start + len, bdata.buffer), ply)
 
 					namespace.next_expected_datagram = namespace.next_expected_datagram + 1
 
@@ -453,8 +453,8 @@ function net.ProcessIncomingQueue(namespace, ply)
 	end
 end
 
-function net.DiscardAndFire(namespace)
-	namespace = CLIENT and net or namespace
+function Net.DiscardAndFire(namespace)
+	namespace = CLIENT and Net or namespace
 	local discarded_num, discarded_bytes = 0, 0
 
 	local minimal = 0xFFFFFFFFF
@@ -476,21 +476,21 @@ function net.DiscardAndFire(namespace)
 	namespace.next_expected_datagram = -1
 	namespace.last_expected_ack = 0xFFFFFFFF
 
-	net.ProcessIncomingQueue(namespace)
+	Net.ProcessIncomingQueue(namespace)
 end
 
-function net.Dispatch(ply)
-	local namespace = net.Namespace(CLIENT and net or ply)
+function Net.Dispatch(ply)
+	local namespace = Net.Namespace(CLIENT and Net or ply)
 
-	local data = net.active_write_buffers[#net.active_write_buffers]
+	local data = Net.active_write_buffers[#Net.active_write_buffers]
 
 	if not data.string and data.buffer.length then
 		data.string = data.buffer:ToString()
 	end
 
-	local namespace = net.Namespace(CLIENT and net or ply)
+	local namespace = Net.Namespace(CLIENT and Net or ply)
 
-	if SERVER and (namespace.server_datagrams_num > net.datagram_queue_size_limit or namespace.server_queued_size > net.window_size_limit) then
+	if SERVER and (namespace.server_datagrams_num > Net.datagram_queue_size_limit or namespace.server_queued_size > Net.window_size_limit) then
 		return
 	end
 
@@ -517,7 +517,7 @@ function net.Dispatch(ply)
 		namespace.server_queued_num = namespace.server_queued_num + 1
 
 		if CLIENT and namespace.server_queued_num > 2001 and namespace.server_queued_num % 400 == 0 then
-			DLib.MessageWarning('DLib.net: Queued ', namespace.server_queued_num, ' message payloads for server!')
+			DLib.MessageWarning('DLib.Net: Queued ', namespace.server_queued_num, ' message payloads for server!')
 		end
 	end
 
@@ -537,7 +537,7 @@ function net.Dispatch(ply)
 	namespace.server_datagrams_num = namespace.server_datagrams_num + 1
 
 	if CLIENT and namespace.server_datagrams_num > 2001 and namespace.server_datagrams_num % 400 == 0 then
-		DLib.MessageWarning('DLib.net: Queued ', namespace.server_datagrams_num, ' datagrams for server!')
+		DLib.MessageWarning('DLib.Net: Queued ', namespace.server_datagrams_num, ' datagrams for server!')
 	end
 
 	if namespace.last_expected_ack == 0xFFFFFFFF then
@@ -545,8 +545,8 @@ function net.Dispatch(ply)
 	end
 end
 
-function net.DispatchChunk(ply)
-	local namespace = net.Namespace(CLIENT and net or ply)
+function Net.DispatchChunk(ply)
+	local namespace = Net.Namespace(CLIENT and Net or ply)
 
 	if #namespace.server_queued ~= 0 and #namespace.server_chunks == 0 then
 		local stringbuilder = {}
@@ -567,7 +567,7 @@ function net.DispatchChunk(ply)
 		local build = table.concat(stringbuilder, '')
 		local compressed
 
-		if #build > net.message_size_limit and net.USE_COMPRESSION:GetBool() and (SERVER or net.USE_COMPRESSION_SV:GetBool()) then
+		if #build > Net.message_size_limit and Net.USE_COMPRESSION:GetBool() and (SERVER or Net.USE_COMPRESSION_SV:GetBool()) then
 			compressed = util.Compress(build)
 		end
 
@@ -591,7 +591,7 @@ function net.DispatchChunk(ply)
 		local written = 1
 
 		repeat
-			local length = math.min(#writedata - written + 1, net.message_chunk_limit)
+			local length = math.min(#writedata - written + 1, Net.message_chunk_limit)
 			table.insert(data.chunks, writedata:sub(written, written + length))
 			written = written + length + 1
 		until written >= #writedata
@@ -619,7 +619,7 @@ function net.DispatchChunk(ply)
 			namespace.last_expected_ack = 0xFFFFFFFF
 		end
 
-		return net.DispatchChunk(ply)
+		return Net.DispatchChunk(ply)
 	end
 
 	namespace.server_chunk_ack = false
@@ -647,7 +647,7 @@ end
 
 _net.receive('dlib_net_chunk_ack', function(_, ply)
 	if SERVER and not IsValid(ply) then return end
-	local namespace = net.Namespace(CLIENT and net or ply)
+	local namespace = Net.Namespace(CLIENT and Net or ply)
 
 	namespace.server_chunk_ack = true
 
@@ -671,9 +671,9 @@ _net.receive('dlib_net_chunk_ack', function(_, ply)
 	end
 end)
 
-function net.DispatchDatagram(ply)
+function Net.DispatchDatagram(ply)
 	if SERVER and not IsValid(ply) then return end
-	local namespace = net.Namespace(CLIENT and net or ply)
+	local namespace = Net.Namespace(CLIENT and Net or ply)
 
 	namespace.server_datagram_ack = false
 
@@ -681,7 +681,7 @@ function net.DispatchDatagram(ply)
 
 	local lastkey
 
-	for i = 0, net.message_datagram_limit - 1 do
+	for i = 0, Net.message_datagram_limit - 1 do
 		local index, data = next(namespace.server_datagrams, lastkey)
 
 		if not index then
@@ -706,7 +706,7 @@ end
 
 _net.receive('dlib_net_datagram_ack', function(length, ply)
 	if SERVER and not IsValid(ply) then return end
-	local namespace = net.Namespace(CLIENT and net or ply)
+	local namespace = Net.Namespace(CLIENT and Net or ply)
 
 	namespace.server_datagram_ack = true
 
@@ -721,9 +721,9 @@ _net.receive('dlib_net_datagram_ack', function(length, ply)
 
 	if namespace.server_datagrams_num > 2001 then
 		if CLIENT then
-			DLib.MessageWarning('DLib.net: STILL have queued ', namespace.server_datagrams_num, ' datagrams for server!')
+			DLib.MessageWarning('DLib.Net: STILL have queued ', namespace.server_datagrams_num, ' datagrams for server!')
 		else
-			DLib.MessageWarning('DLib.net: STILL have queued ', namespace.server_datagrams_num, ' datagrams for ', ply, '!')
+			DLib.MessageWarning('DLib.Net: STILL have queued ', namespace.server_datagrams_num, ' datagrams for ', ply, '!')
 		end
 	end
 
@@ -755,12 +755,12 @@ local function round_bits(bitsin)
 end
 
 -- Default GMod functions
-function net.WriteUInt(numberin, bitsin)
+function Net.WriteUInt(numberin, bitsin)
 	bitsin = assert(round_bits(bitsin), 'Bit amount is not a number')
 	assert(isnumber(numberin), 'Input is not a number')
 	assert(numberin >= 0, 'Input is lesser than zero')
 
-	local buffer = net.AccessWriteBuffer()
+	local buffer = Net.AccessWriteBuffer()
 
 	if bitsin == 8 then
 		buffer:WriteUByte(numberin)
@@ -778,10 +778,10 @@ function net.WriteUInt(numberin, bitsin)
 	end
 end
 
-function net.ReadUInt(bitsin)
+function Net.ReadUInt(bitsin)
 	bitsin = assert(round_bits(bitsin), 'Bit amount is not a number')
 
-	local buffer = net.AccessReadBuffer()
+	local buffer = Net.AccessReadBuffer()
 
 	if bitsin == 8 then
 		return buffer:ReadUByte()
@@ -798,11 +798,11 @@ function net.ReadUInt(bitsin)
 	end
 end
 
-function net.WriteInt(numberin, bitsin)
+function Net.WriteInt(numberin, bitsin)
 	bitsin = assert(round_bits(bitsin), 'Bit amount is not a number')
 	assert(isnumber(numberin), 'Input is not a number')
 
-	local buffer = net.AccessWriteBuffer()
+	local buffer = Net.AccessWriteBuffer()
 
 	if bitsin == 8 then
 		buffer:WriteByte(numberin)
@@ -825,10 +825,10 @@ function net.WriteInt(numberin, bitsin)
 	end
 end
 
-function net.ReadInt(bitsin)
+function Net.ReadInt(bitsin)
 	bitsin = assert(round_bits(bitsin), 'Bit amount is not a number')
 
-	local buffer = net.AccessReadBuffer()
+	local buffer = Net.AccessReadBuffer()
 
 	if bitsin == 8 then
 		return buffer:ReadByte()
@@ -851,83 +851,83 @@ function net.ReadInt(bitsin)
 	end
 end
 
-function net.WriteBit(bitin)
-	net.AccessWriteBuffer():WriteUByte(bitin:band(1))
+function Net.WriteBit(bitin)
+	Net.AccessWriteBuffer():WriteUByte(bitin:band(1))
 end
 
-function net.ReadBit()
-	return net.AccessReadBuffer():ReadUByte()
+function Net.ReadBit()
+	return Net.AccessReadBuffer():ReadUByte()
 end
 
-function net.WriteBool(boolin)
-	net.AccessWriteBuffer():WriteUByte(boolin and 1 or 0)
+function Net.WriteBool(boolin)
+	Net.AccessWriteBuffer():WriteUByte(boolin and 1 or 0)
 end
 
-function net.ReadBool()
-	return net.AccessReadBuffer():ReadUByte() >= 1
+function Net.ReadBool()
+	return Net.AccessReadBuffer():ReadUByte() >= 1
 end
 
-function net.WriteData(data, length)
-	net.AccessWriteBuffer():WriteData(length and data:sub(1, length) or data)
+function Net.WriteData(data, length)
+	Net.AccessWriteBuffer():WriteData(length and data:sub(1, length) or data)
 end
 
-function net.ReadData(length)
-	return net.AccessReadBuffer():ReadData(length)
+function Net.ReadData(length)
+	return Net.AccessReadBuffer():ReadData(length)
 end
 
-function net.WriteString(data)
-	net.AccessWriteBuffer():WriteString(data)
+function Net.WriteString(data)
+	Net.AccessWriteBuffer():WriteString(data)
 end
 
-function net.ReadString()
-	return net.AccessReadBuffer():ReadString()
+function Net.ReadString()
+	return Net.AccessReadBuffer():ReadString()
 end
 
-function net.WriteFloat(data)
-	net.AccessWriteBuffer():WriteFloat(data)
+function Net.WriteFloat(data)
+	Net.AccessWriteBuffer():WriteFloat(data)
 end
 
-function net.ReadFloat()
-	return net.AccessReadBuffer():ReadFloat()
+function Net.ReadFloat()
+	return Net.AccessReadBuffer():ReadFloat()
 end
 
-function net.WriteDouble(data)
-	net.AccessWriteBuffer():WriteDouble(data)
+function Net.WriteDouble(data)
+	Net.AccessWriteBuffer():WriteDouble(data)
 end
 
-function net.ReadDouble()
-	return net.AccessReadBuffer():ReadDouble()
+function Net.ReadDouble()
+	return Net.AccessReadBuffer():ReadDouble()
 end
 
-function net.WriteAngle(data)
-	local buffer = net.AccessWriteBuffer()
+function Net.WriteAngle(data)
+	local buffer = Net.AccessWriteBuffer()
 
 	buffer:WriteFloat(data.p)
 	buffer:WriteFloat(data.y)
 	buffer:WriteFloat(data.r)
 end
 
-function net.ReadAngle()
-	local buffer = net.AccessReadBuffer()
+function Net.ReadAngle()
+	local buffer = Net.AccessReadBuffer()
 
 	return Angle(buffer:ReadFloat(), buffer:ReadFloat(), buffer:ReadFloat())
 end
 
-function net.WriteVector(data)
-	local buffer = net.AccessWriteBuffer()
+function Net.WriteVector(data)
+	local buffer = Net.AccessWriteBuffer()
 
 	buffer:WriteFloat(data.x)
 	buffer:WriteFloat(data.y)
 	buffer:WriteFloat(data.z)
 end
 
-function net.ReadVector()
-	local buffer = net.AccessReadBuffer()
+function Net.ReadVector()
+	local buffer = Net.AccessReadBuffer()
 	return Vector(buffer:ReadFloat(), buffer:ReadFloat(), buffer:ReadFloat())
 end
 
-function net.WriteColor(data)
-	local buffer = net.AccessWriteBuffer()
+function Net.WriteColor(data)
+	local buffer = Net.AccessWriteBuffer()
 
 	buffer:WriteUByte(data.r)
 	buffer:WriteUByte(data.g)
@@ -935,21 +935,21 @@ function net.WriteColor(data)
 	buffer:WriteUByte(data.a)
 end
 
-function net.ReadColor()
-	local buffer = net.AccessReadBuffer()
+function Net.ReadColor()
+	local buffer = Net.AccessReadBuffer()
 	return Color(buffer:ReadUByte(), buffer:ReadUByte(), buffer:ReadUByte(), buffer:ReadUByte())
 end
 
-function net.WriteNormal(data)
-	local buffer = net.AccessWriteBuffer()
+function Net.WriteNormal(data)
+	local buffer = Net.AccessWriteBuffer()
 
 	buffer:WriteInt16(math.floor(data.x * 0x3fff):clamp(-0x3fff, 0x3fff))
 	buffer:WriteInt16(math.floor(data.y * 0x3fff):clamp(-0x3fff, 0x3fff))
 	buffer:WriteInt16(math.floor(data.z * 0x3fff):clamp(-0x3fff, 0x3fff))
 end
 
-function net.ReadNormal(data)
-	local buffer = net.AccessReadBuffer()
+function Net.ReadNormal(data)
+	local buffer = Net.AccessReadBuffer()
 
 	local x = buffer:ReadInt16() / 0x3fff
 	local y = buffer:ReadInt16() / 0x3fff
@@ -958,12 +958,12 @@ function net.ReadNormal(data)
 	return Vector(x, y, z)
 end
 
-function net.WriteEntity(data)
-	net.AccessWriteBuffer():WriteUInt16(IsValid(data) and data:EntIndex() > 0 and data:EntIndex() or 0)
+function Net.WriteEntity(data)
+	Net.AccessWriteBuffer():WriteUInt16(IsValid(data) and data:EntIndex() > 0 and data:EntIndex() or 0)
 end
 
-function net.ReadEntity(data)
-	local int = net.AccessReadBuffer():ReadUInt16()
+function Net.ReadEntity(data)
+	local int = Net.AccessReadBuffer():ReadUInt16()
 
 	if int <= 0 then
 		return NULL
@@ -972,8 +972,8 @@ function net.ReadEntity(data)
 	return Entity(int)
 end
 
-function net.WriteMatrix(data)
-	local buffer = net.AccessWriteBuffer()
+function Net.WriteMatrix(data)
+	local buffer = Net.AccessWriteBuffer()
 
 	for i, row in ipairs(data:ToTable()) do
 		for i2 = 1, 4 do
@@ -982,8 +982,8 @@ function net.WriteMatrix(data)
 	end
 end
 
-function net.ReadMatrix(data)
-	local buffer = net.AccessReadBuffer()
+function Net.ReadMatrix(data)
+	local buffer = Net.AccessReadBuffer()
 	local tab = {}
 
 	for i = 1, 4 do
@@ -999,24 +999,24 @@ function net.ReadMatrix(data)
 end
 
 -- copy pasted from gmod code LULW
-function net.WriteTable(tab)
+function Net.WriteTable(tab)
 	for k, v in pairs(tab) do
-		net.WriteType(k)
-		net.WriteType(v)
+		Net.WriteType(k)
+		Net.WriteType(v)
 	end
 
 	-- End of table
-	net.WriteType()
+	Net.WriteType()
 end
 
-function net.ReadTable()
+function Net.ReadTable()
 	local tab = {}
 
 	while true do
-		local k = net.ReadType()
+		local k = Net.ReadType()
 		if k == nil then return tab end
 
-		tab[k] = net.ReadType()
+		tab[k] = Net.ReadType()
 	end
 end
 
@@ -1030,37 +1030,37 @@ local TYPE_FLOAT = TYPE_NSHORT + 6
 local TYPE_ULONG = TYPE_NSHORT + 7
 local TYPE_NLONG = TYPE_NSHORT + 8
 
-net.WriteVars = {
-	[TYPE_NIL]			= function(typeid, value) end,
-	[TYPE_STRING]		= function(typeid, value) net.WriteString(value)	end,
-	[TYPE_NUMBER]		= function(typeid, value) net.WriteDouble(value)	end,
-	[TYPE_TABLE]		= function(typeid, value) net.WriteTable(value)		end,
-	[TYPE_BOOL]			= function(typeid, value) net.WriteBool(value)		end,
-	[TYPE_ENTITY]		= function(typeid, value) net.WriteEntity(value)	end,
-	[TYPE_VECTOR]		= function(typeid, value) net.WriteVector(value)	end,
-	[TYPE_ANGLE]		= function(typeid, value) net.WriteAngle(value)		end,
-	[TYPE_MATRIX]		= function(typeid, value) net.WriteMatrix(value)	end,
-	[TYPE_COLOR]		= function(typeid, value) net.WriteColor(value)		end,
+Net.WriteVars = {
+	[TYPE_NIL]          = function(typeid, value) end,
+	[TYPE_STRING]       = function(typeid, value) Net.WriteString(value)    end,
+	[TYPE_NUMBER]       = function(typeid, value) Net.WriteDouble(value)    end,
+	[TYPE_TABLE]        = function(typeid, value) Net.WriteTable(value)     end,
+	[TYPE_BOOL]         = function(typeid, value) Net.WriteBool(value)      end,
+	[TYPE_ENTITY]       = function(typeid, value) Net.WriteEntity(value)    end,
+	[TYPE_VECTOR]       = function(typeid, value) Net.WriteVector(value)    end,
+	[TYPE_ANGLE]        = function(typeid, value) Net.WriteAngle(value)     end,
+	[TYPE_MATRIX]       = function(typeid, value) Net.WriteMatrix(value)    end,
+	[TYPE_COLOR]        = function(typeid, value) Net.WriteColor(value)     end,
 
-	[TYPE_NSHORT]		= function(typeid, value) net.AccessWriteBuffer():WriteUShort(value:abs())		end,
-	[TYPE_USHORT]		= function(typeid, value) net.AccessWriteBuffer():WriteUShort(value)		end,
+	[TYPE_NSHORT]       = function(typeid, value) Net.AccessWriteBuffer():WriteUShort(value:abs())      end,
+	[TYPE_USHORT]       = function(typeid, value) Net.AccessWriteBuffer():WriteUShort(value)        end,
 
-	[TYPE_NBYTE]		= function(typeid, value) net.AccessWriteBuffer():WriteUByte(value:abs())		end,
-	[TYPE_UBYTE]		= function(typeid, value) net.AccessWriteBuffer():WriteUByte(value)		end,
+	[TYPE_NBYTE]        = function(typeid, value) Net.AccessWriteBuffer():WriteUByte(value:abs())       end,
+	[TYPE_UBYTE]        = function(typeid, value) Net.AccessWriteBuffer():WriteUByte(value)     end,
 
-	[TYPE_NINT]		= function(typeid, value) net.AccessWriteBuffer():WriteUInt(value:abs())		end,
-	[TYPE_UINT]		= function(typeid, value) net.AccessWriteBuffer():WriteUInt(value)		end,
+	[TYPE_NINT]     = function(typeid, value) Net.AccessWriteBuffer():WriteUInt(value:abs())        end,
+	[TYPE_UINT]     = function(typeid, value) Net.AccessWriteBuffer():WriteUInt(value)      end,
 
-	[TYPE_NINT]		= function(typeid, value) net.AccessWriteBuffer():WriteUInt(value:abs())		end,
-	[TYPE_UINT]		= function(typeid, value) net.AccessWriteBuffer():WriteUInt(value)		end,
+	[TYPE_NINT]     = function(typeid, value) Net.AccessWriteBuffer():WriteUInt(value:abs())        end,
+	[TYPE_UINT]     = function(typeid, value) Net.AccessWriteBuffer():WriteUInt(value)      end,
 
-	[TYPE_NLONG]		= function(typeid, value) net.AccessWriteBuffer():WriteULong(value:abs())		end,
-	[TYPE_ULONG]		= function(typeid, value) net.AccessWriteBuffer():WriteULong(value)		end,
+	[TYPE_NLONG]        = function(typeid, value) Net.AccessWriteBuffer():WriteULong(value:abs())       end,
+	[TYPE_ULONG]        = function(typeid, value) Net.AccessWriteBuffer():WriteULong(value)     end,
 
-	[TYPE_FLOAT]		= function(typeid, value) net.WriteFloat(value)		end,
+	[TYPE_FLOAT]        = function(typeid, value) Net.WriteFloat(value)     end,
 }
 
-function net.WriteType(v)
+function Net.WriteType(v)
 	local typeid
 
 	if IsColor(v) then
@@ -1099,103 +1099,103 @@ function net.WriteType(v)
 		end
 	end
 
-	local writecallback = net.WriteVars[typeid]
+	local writecallback = Net.WriteVars[typeid]
 
 	if writecallback then
-		net.AccessWriteBuffer():WriteUByte(typeid)
+		Net.AccessWriteBuffer():WriteUByte(typeid)
 		return writecallback(typeid, v)
 	end
 
-	error('net.WriteType: Can\'t write ' .. type( v ) .. ' (type ' .. typeid .. ') because there is no function assigned to that type')
+	error('Net.WriteType: Can\'t write ' .. type( v ) .. ' (type ' .. typeid .. ') because there is no function assigned to that type')
 end
 
-net.ReadVars = {
-	[TYPE_NIL]		= function ()	return nil end,
-	[TYPE_STRING]	= function ()	return net.ReadString() end,
-	[TYPE_NUMBER]	= function ()	return net.ReadDouble() end,
-	[TYPE_TABLE]	= function ()	return net.ReadTable() end,
-	[TYPE_BOOL]		= function ()	return net.ReadBool() end,
-	[TYPE_ENTITY]	= function ()	return net.ReadEntity() end,
-	[TYPE_VECTOR]	= function ()	return net.ReadVector() end,
-	[TYPE_ANGLE]	= function ()	return net.ReadAngle() end,
-	[TYPE_MATRIX]	= function ()	return net.ReadMatrix() end,
-	[TYPE_COLOR]	= function ()	return net.ReadColor() end,
+Net.ReadVars = {
+	[TYPE_NIL]      = function ()   return nil end,
+	[TYPE_STRING]   = function ()   return Net.ReadString() end,
+	[TYPE_NUMBER]   = function ()   return Net.ReadDouble() end,
+	[TYPE_TABLE]    = function ()   return Net.ReadTable() end,
+	[TYPE_BOOL]     = function ()   return Net.ReadBool() end,
+	[TYPE_ENTITY]   = function ()   return Net.ReadEntity() end,
+	[TYPE_VECTOR]   = function ()   return Net.ReadVector() end,
+	[TYPE_ANGLE]    = function ()   return Net.ReadAngle() end,
+	[TYPE_MATRIX]   = function ()   return Net.ReadMatrix() end,
+	[TYPE_COLOR]    = function ()   return Net.ReadColor() end,
 
-	[TYPE_NSHORT]		= function() return -net.AccessReadBuffer():ReadUShort()		end,
-	[TYPE_USHORT]		= function() return net.AccessReadBuffer():ReadUShort()		end,
+	[TYPE_NSHORT]       = function() return -Net.AccessReadBuffer():ReadUShort()        end,
+	[TYPE_USHORT]       = function() return Net.AccessReadBuffer():ReadUShort()     end,
 
-	[TYPE_NBYTE]		= function() return -net.AccessReadBuffer():ReadUByte()		end,
-	[TYPE_UBYTE]		= function() return net.AccessReadBuffer():ReadUByte()		end,
+	[TYPE_NBYTE]        = function() return -Net.AccessReadBuffer():ReadUByte()     end,
+	[TYPE_UBYTE]        = function() return Net.AccessReadBuffer():ReadUByte()      end,
 
-	[TYPE_NINT]		= function() return -net.AccessReadBuffer():ReadUInt()		end,
-	[TYPE_UINT]		= function() return net.AccessReadBuffer():ReadUInt()		end,
+	[TYPE_NINT]     = function() return -Net.AccessReadBuffer():ReadUInt()      end,
+	[TYPE_UINT]     = function() return Net.AccessReadBuffer():ReadUInt()       end,
 
-	[TYPE_NINT]		= function() return -net.AccessReadBuffer():ReadUInt()		end,
-	[TYPE_UINT]		= function() return net.AccessReadBuffer():ReadUInt()		end,
+	[TYPE_NINT]     = function() return -Net.AccessReadBuffer():ReadUInt()      end,
+	[TYPE_UINT]     = function() return Net.AccessReadBuffer():ReadUInt()       end,
 
-	[TYPE_NLONG]		= function() return -net.AccessReadBuffer():ReadULong()		end,
-	[TYPE_ULONG]		= function() return net.AccessReadBuffer():ReadULong()		end,
+	[TYPE_NLONG]        = function() return -Net.AccessReadBuffer():ReadULong()     end,
+	[TYPE_ULONG]        = function() return Net.AccessReadBuffer():ReadULong()      end,
 
-	[TYPE_FLOAT]		= function() return net.ReadFloat()		end,
+	[TYPE_FLOAT]        = function() return Net.ReadFloat()     end,
 }
 
-function net.ReadType(typeid)
-	typeid = typeid or net.AccessReadBuffer():ReadUByte()
+function Net.ReadType(typeid)
+	typeid = typeid or Net.AccessReadBuffer():ReadUByte()
 
-	local readcallback = net.ReadVars[typeid]
+	local readcallback = Net.ReadVars[typeid]
 
 	if readcallback then
 		return readcallback()
 	end
 
-	error('net.ReadType: Can\'t read type ' .. typeid .. ' since it has no function assigned to that type')
+	error('Net.ReadType: Can\'t read type ' .. typeid .. ' since it has no function assigned to that type')
 end
 
 -- DLib extended functions
-function net.WriteAngleDouble(data)
-	local buffer = net.AccessWriteBuffer()
+function Net.WriteAngleDouble(data)
+	local buffer = Net.AccessWriteBuffer()
 
 	buffer:WriteDouble(data.p)
 	buffer:WriteDouble(data.y)
 	buffer:WriteDouble(data.r)
 end
 
-function net.ReadAngleDouble()
-	local buffer = net.AccessReadBuffer()
+function Net.ReadAngleDouble()
+	local buffer = Net.AccessReadBuffer()
 	return Angle(buffer:ReadDouble(), buffer:ReadDouble(), buffer:ReadDouble())
 end
 
-function net.WriteVectorDouble(data)
-	local buffer = net.AccessWriteBuffer()
+function Net.WriteVectorDouble(data)
+	local buffer = Net.AccessWriteBuffer()
 
 	buffer:WriteDouble(data.x)
 	buffer:WriteDouble(data.y)
 	buffer:WriteDouble(data.z)
 end
 
-function net.ReadVectorDouble()
-	local buffer = net.AccessReadBuffer()
+function Net.ReadVectorDouble()
+	local buffer = Net.AccessReadBuffer()
 	return Vector(buffer:ReadDouble(), buffer:ReadDouble(), buffer:ReadDouble())
 end
 
-function net.WriteBigInt(value)
-	net.AccessWriteBuffer():WriteInt64(value)
+function Net.WriteBigInt(value)
+	Net.AccessWriteBuffer():WriteInt64(value)
 end
 
-function net.ReadBigInt()
-	return net.AccessReadBuffer():ReadInt64()
+function Net.ReadBigInt()
+	return Net.AccessReadBuffer():ReadInt64()
 end
 
-function net.WriteBigUInt(value)
-	net.AccessWriteBuffer():WriteUInt64(value)
+function Net.WriteBigUInt(value)
+	Net.AccessWriteBuffer():WriteUInt64(value)
 end
 
-function net.ReadBigUInt()
-	return net.AccessReadBuffer():ReadUInt64()
+function Net.ReadBigUInt()
+	return Net.AccessReadBuffer():ReadUInt64()
 end
 
-net.WriteUInt64 = net.WriteBigUInt
-net.WriteInt64 = net.WriteBigInt
+Net.WriteUInt64 = Net.WriteBigUInt
+Net.WriteInt64 = Net.WriteBigInt
 
-net.ReadUInt64 = net.ReadBigUInt
-net.ReadInt64 = net.ReadBigInt
+Net.ReadUInt64 = Net.ReadBigUInt
+Net.ReadInt64 = Net.ReadBigInt

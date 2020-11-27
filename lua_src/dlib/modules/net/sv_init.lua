@@ -21,72 +21,72 @@
 local DLib = DLib
 
 local _net = net
-local net = DLib.net
+local Net = DLib.Net
 
-net.WINDOW_SIZE_LIMIT = CreateConVar('dlib_net_window_size', '16777216', {}, 'limit in bytes. Too high values weaken server\'s security, too low may impact addons depending on DLib.net')
-net.DGRAM_SIZE_LIMIT = CreateConVar('dlib_net_dgram_size', '65536', {}, 'limit in messages count. Too high values weaken server\'s security, too low may impact addons depending on DLib.net')
-net.USE_COMPRESSION = CreateConVar('dlib_net_compress', '1', {FCVAR_REPLICATED, FCVAR_NOTIFY}, 'Use LZMA compression. Keep in mind source engine got one builtin serverside! Disable if net performance is low.')
-net.COMPRESSION_LIMIT = CreateConVar('dlib_net_compress_size', '16384', {}, 'Size in bytes >= of single chunk to compress. Too low or too high values can impact performance.')
+Net.WINDOW_SIZE_LIMIT = CreateConVar('dlib_net_window_size', '16777216', {}, 'limit in bytes. Too high values weaken server\'s security, too low may impact addons depending on DLib.Net')
+Net.DGRAM_SIZE_LIMIT = CreateConVar('dlib_net_dgram_size', '65536', {}, 'limit in messages count. Too high values weaken server\'s security, too low may impact addons depending on DLib.Net')
+Net.USE_COMPRESSION = CreateConVar('dlib_net_compress', '1', {FCVAR_REPLICATED, FCVAR_NOTIFY}, 'Use LZMA compression. Keep in mind source engine got one builtin serverside! Disable if DLib.Net performance is low.')
+Net.COMPRESSION_LIMIT = CreateConVar('dlib_net_compress_size', '16384', {}, 'Size in bytes >= of single chunk to compress. Too low or too high values can impact performance.')
 
-net.UpdateWindowProperties()
+Net.UpdateWindowProperties()
 
-cvars.AddChangeCallback('dlib_net_window_size', net.UpdateWindowProperties, 'DLib.net')
-cvars.AddChangeCallback('dlib_net_dgram_size', net.UpdateWindowProperties, 'DLib.net')
-cvars.AddChangeCallback('dlib_net_compress_size', net.UpdateWindowProperties, 'DLib.net')
+cvars.AddChangeCallback('dlib_net_window_size', Net.UpdateWindowProperties, 'DLib.Net')
+cvars.AddChangeCallback('dlib_net_dgram_size', Net.UpdateWindowProperties, 'DLib.Net')
+cvars.AddChangeCallback('dlib_net_compress_size', Net.UpdateWindowProperties, 'DLib.Net')
 
-net.pool = _net.pool
-net.pool('dlib_net_datagram')
-net.pool('dlib_net_datagram_ack')
-net.pool('dlib_net_ack1')
-net.pool('dlib_net_ack2')
-net.pool('dlib_net_chunk')
-net.pool('dlib_net_chunk_ack')
+Net.pool = _net.pool
+Net.pool('dlib_net_datagram')
+Net.pool('dlib_net_datagram_ack')
+Net.pool('dlib_net_ack1')
+Net.pool('dlib_net_ack2')
+Net.pool('dlib_net_chunk')
+Net.pool('dlib_net_chunk_ack')
 
-function net.Send(target)
-	if #net.active_write_buffers == 0 then
-		error('No net message active to be sent')
+function Net.Send(target)
+	if #Net.active_write_buffers == 0 then
+		error('No network message active to be sent')
 	end
 
 	if target == nil then
-		table.remove(net.active_write_buffers)
+		table.remove(Net.active_write_buffers)
 
 		error('Target is nil')
 	end
 
 	if type(target) == 'Player' then
 		if target:IsBot() then
-			table.remove(net.active_write_buffers)
+			table.remove(Net.active_write_buffers)
 			return
 		end
 
-		net.Dispatch(target)
-		table.remove(net.active_write_buffers)
+		Net.Dispatch(target)
+		table.remove(Net.active_write_buffers)
 		return
 	end
 
 	if not istable(target) and type(target) ~= 'CRecipientFilter' then
-		table.remove(net.active_write_buffers)
+		table.remove(Net.active_write_buffers)
 		error('Target is not a table and is not a CRecipientFilter')
 	end
 
 	if istable(target) then
 		for _, ply in pairs(target) do
 			if IsValid(ply) and type(ply) == 'Player' and not ply:IsBot() then
-				net.Dispatch(ply)
+				Net.Dispatch(ply)
 			end
 		end
 
-		table.remove(net.active_write_buffers)
+		table.remove(Net.active_write_buffers)
 
 		return
 	elseif type(target) == 'CRecipientFilter' then
 		for _, ply in pairs(target:GetPlayers()) do
 			if IsValid(ply) and type(ply) == 'Player' and not ply:IsBot() then
-				net.Dispatch(ply)
+				Net.Dispatch(ply)
 			end
 		end
 
-		table.remove(net.active_write_buffers)
+		table.remove(Net.active_write_buffers)
 
 		return
 	end
@@ -94,23 +94,23 @@ function net.Send(target)
 	error('yo dude what the fuck')
 end
 
-function net.SendPVS(position)
+function Net.SendPVS(position)
 	local filter = RecipientFilter()
 	filter:AddPVS(position)
-	net.Send(filter)
+	Net.Send(filter)
 end
 
-function net.SendPAS(position)
+function Net.SendPAS(position)
 	local filter = RecipientFilter()
 	filter:AddPAS(position)
-	net.Send(filter)
+	Net.Send(filter)
 end
 
-function net.Broadcast(position)
-	net.Send(player.GetHumans())
+function Net.Broadcast(position)
+	Net.Send(player.GetHumans())
 end
 
-function net.SendOmit(data)
+function Net.SendOmit(data)
 	local filter = RecipientFilter()
 	filter:AddAllPlayers()
 
@@ -124,18 +124,18 @@ function net.SendOmit(data)
 		end
 	end
 
-	net.Send(filter)
+	Net.Send(filter)
 end
 
 local GetHumans = player.GetHumans
 local ipairs = ipairs
 local next = next
 
-function net.Namespace(target)
+function Net.Namespace(target)
 	if type(target) == 'Player' then
 		if target.dlib_net ~= nil then return target.dlib_net end
 		target.dlib_net = {}
-		return net.Namespace(target.dlib_net)
+		return Net.Namespace(target.dlib_net)
 	end
 
 	target.network_position = target.network_position or 0
@@ -174,25 +174,25 @@ function net.Namespace(target)
 	return target
 end
 
-function net.Think()
+function Net.Think()
 	local time = RealTime()
 	local iter = GetHumans()
 
 	for i = 1, #iter do
 		local ply = iter[i]
-		local namespace = net.Namespace(ply)
+		local namespace = Net.Namespace(ply)
 
 		if namespace.server_chunk_ack and (#namespace.server_queued ~= 0 or #namespace.server_chunks ~= 0) then
-			net.DispatchChunk(ply)
+			Net.DispatchChunk(ply)
 		end
 
 		if namespace.server_datagram_ack and namespace.server_datagrams_num > 0 then
-			net.DispatchDatagram(ply)
+			Net.DispatchDatagram(ply)
 		end
 
 		if namespace.process_next and namespace.process_next < RealTime() then
 			namespace.process_next = nil
-			net.ProcessIncomingQueue(namespace, ply)
+			Net.ProcessIncomingQueue(namespace, ply)
 		end
 
 		if namespace.last_expected_ack ~= 0xFFFFFFFF and namespace.last_expected_ack < time then
@@ -207,7 +207,7 @@ function net.Think()
 			namespace.server_datagrams_num_warn = namespace.server_datagrams_num
 
 			if namespace.server_datagrams_num > 2001 then
-				DLib.MessageWarning('DLib.net: Queued ', namespace.server_datagrams_num, ' datagrams for ', ply, '!')
+				DLib.MessageWarning('DLib.Net: Queued ', namespace.server_datagrams_num, ' datagrams for ', ply, '!')
 			end
 		end
 
@@ -215,10 +215,10 @@ function net.Think()
 			namespace.server_queued_num_warn = namespace.server_queued_num
 
 			if namespace.server_queued_num > 2001 then
-				DLib.MessageWarning('DLib.net: Queued ', namespace.server_queued_num, ' message payloads for ', ply, '!')
+				DLib.MessageWarning('DLib.Net: Queued ', namespace.server_queued_num, ' message payloads for ', ply, '!')
 			end
 		end
 	end
 end
 
-hook.Add('Think', 'DLib.Net.ThinkChunks', net.Think)
+hook.Add('Think', 'DLib.Net.ThinkChunks', Net.Think)

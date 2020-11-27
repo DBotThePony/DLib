@@ -21,94 +21,94 @@
 local DLib = DLib
 
 local _net = net
-local net = DLib.net
+local Net = DLib.Net
 
-net.WINDOW_SIZE_LIMIT = CreateConVar('dlib_net_window_size', '16777216', {}, 'limit in bytes. Too low may impact addons depending on DLib.net')
-net.DGRAM_SIZE_LIMIT = CreateConVar('dlib_net_dgram_size', '65536', {}, 'limit in messages count. Too low may impact addons depending on DLib.net')
-net.USE_COMPRESSION = CreateConVar('dlib_net_compress_cl', '1', {}, 'Use LZMA compression. Disable if net performance is low.')
-net.USE_COMPRESSION_SV = CreateConVar('dlib_net_compress', '1', {FCVAR_REPLICATED, FCVAR_NOTIFY}, 'Whenever server accept LZMA compressed payloads.')
-net.COMPRESSION_LIMIT = CreateConVar('dlib_net_compress_size', '16384', {}, 'Size in bytes >= of single chunk to compress. Too low or too high values can impact performance.')
+Net.WINDOW_SIZE_LIMIT = CreateConVar('dlib_net_window_size', '16777216', {}, 'limit in bytes. Too low may impact addons depending on DLib.Net')
+Net.DGRAM_SIZE_LIMIT = CreateConVar('dlib_net_dgram_size', '65536', {}, 'limit in messages count. Too low may impact addons depending on DLib.Net')
+Net.USE_COMPRESSION = CreateConVar('dlib_net_compress_cl', '1', {}, 'Use LZMA compression. Disable if Net performance is low.')
+Net.USE_COMPRESSION_SV = CreateConVar('dlib_net_compress', '1', {FCVAR_REPLICATED, FCVAR_NOTIFY}, 'Whenever server accept LZMA compressed payloads.')
+Net.COMPRESSION_LIMIT = CreateConVar('dlib_net_compress_size', '16384', {}, 'Size in bytes >= of single chunk to compress. Too low or too high values can impact performance.')
 
-net.UpdateWindowProperties()
+Net.UpdateWindowProperties()
 
-cvars.AddChangeCallback('dlib_net_window_size', net.UpdateWindowProperties, 'DLib.net')
-cvars.AddChangeCallback('dlib_net_dgram_size', net.UpdateWindowProperties, 'DLib.net')
-cvars.AddChangeCallback('dlib_net_compress_size', net.UpdateWindowProperties, 'DLib.net')
+cvars.AddChangeCallback('dlib_net_window_size', Net.UpdateWindowProperties, 'DLib.Net')
+cvars.AddChangeCallback('dlib_net_dgram_size', Net.UpdateWindowProperties, 'DLib.Net')
+cvars.AddChangeCallback('dlib_net_compress_size', Net.UpdateWindowProperties, 'DLib.Net')
 
-net.network_position = net.network_position or 0
-net.accumulated_size = net.accumulated_size or 0
-net.queued_buffers = net.queued_buffers or {}
-net.queued_chunks = net.queued_chunks or {}
-net.queued_datagrams = net.queued_datagrams or {}
+Net.network_position = Net.network_position or 0
+Net.accumulated_size = Net.accumulated_size or 0
+Net.queued_buffers = Net.queued_buffers or {}
+Net.queued_chunks = Net.queued_chunks or {}
+Net.queued_datagrams = Net.queued_datagrams or {}
 
-net.server_position = net.server_position or 0
-net.server_chunks = net.server_chunks or {}
-net.server_queued = net.server_queued or {}
-net.server_datagrams = net.server_datagrams or {}
+Net.server_position = Net.server_position or 0
+Net.server_chunks = Net.server_chunks or {}
+Net.server_queued = Net.server_queued or {}
+Net.server_datagrams = Net.server_datagrams or {}
 
-net.queued_buffers_num = net.queued_buffers_num or 0
-net.queued_chunks_num = net.queued_chunks_num or 0
-net.queued_datagrams_num = net.queued_datagrams_num or 0
+Net.queued_buffers_num = Net.queued_buffers_num or 0
+Net.queued_chunks_num = Net.queued_chunks_num or 0
+Net.queued_datagrams_num = Net.queued_datagrams_num or 0
 
-net.server_chunks_num = net.server_chunks_num or 0
-net.server_queued_num = net.server_queued_num or 0
-net.server_datagrams_num = net.server_datagrams_num or 0
+Net.server_chunks_num = Net.server_chunks_num or 0
+Net.server_queued_num = Net.server_queued_num or 0
+Net.server_datagrams_num = Net.server_datagrams_num or 0
 
-net.next_expected_datagram = net.next_expected_datagram or 0
-net.next_expected_chunk = net.next_expected_chunk or 0
+Net.next_expected_datagram = Net.next_expected_datagram or 0
+Net.next_expected_chunk = Net.next_expected_chunk or 0
 
-net.last_expected_ack = net.last_expected_ack or 0xFFFFFFFF
-net.server_queued_size = net.server_queued_size or 0
+Net.last_expected_ack = Net.last_expected_ack or 0xFFFFFFFF
+Net.server_queued_size = Net.server_queued_size or 0
 
-net.next_datagram_id = net.next_datagram_id or 0
-net.next_chunk_id = net.next_chunk_id or 0
+Net.next_datagram_id = Net.next_datagram_id or 0
+Net.next_chunk_id = Net.next_chunk_id or 0
 
-if net.server_datagram_ack == nil then
-	net.server_datagram_ack = true
+if Net.server_datagram_ack == nil then
+	Net.server_datagram_ack = true
 end
 
-if net.server_chunk_ack == nil then
-	net.server_chunk_ack = true
+if Net.server_chunk_ack == nil then
+	Net.server_chunk_ack = true
 end
 
-function net.SendToServer()
-	if #net.active_write_buffers == 0 then
-		error('No net message active to be sent')
+function Net.SendToServer()
+	if #Net.active_write_buffers == 0 then
+		error('No Net message active to be sent')
 	end
 
-	net.Dispatch()
-	table.remove(net.active_write_buffers)
+	Net.Dispatch()
+	table.remove(Net.active_write_buffers)
 end
 
 local RealTime = RealTime
 
-function net.Think()
-	if net.server_chunk_ack and (#net.server_queued ~= 0 or #net.server_chunks ~= 0) then
-		net.DispatchChunk()
+function Net.Think()
+	if Net.server_chunk_ack and (#Net.server_queued ~= 0 or #Net.server_chunks ~= 0) then
+		Net.DispatchChunk()
 	end
 
-	if net.server_datagram_ack and net.server_datagrams_num > 0 then
-		net.DispatchDatagram()
+	if Net.server_datagram_ack and Net.server_datagrams_num > 0 then
+		Net.DispatchDatagram()
 	end
 
 	local time = RealTime()
 
-	if net.last_expected_ack ~= 0xFFFFFFFF and net.last_expected_ack < time then
+	if Net.last_expected_ack ~= 0xFFFFFFFF and Net.last_expected_ack < time then
 		-- can you hear me?
 		_net.Start('dlib_net_ack1')
 		_net.SendToServer()
 
-		net.last_expected_ack = time + 10
+		Net.last_expected_ack = time + 10
 	end
 
-	if net.process_next and net.process_next < RealTime() then
-		net.process_next = nil
-		net.ProcessIncomingQueue(DLib.net)
+	if Net.process_next and Net.process_next < RealTime() then
+		Net.process_next = nil
+		Net.ProcessIncomingQueue(DLib.Net)
 	end
 end
 
-hook.Add('Think', 'DLib.Net.ThinkChunks', net.Think)
+hook.Add('Think', 'DLib.Net.ThinkChunks', Net.Think)
 
-function net.Namespace()
-	return net
+function Net.Namespace()
+	return Net
 end
