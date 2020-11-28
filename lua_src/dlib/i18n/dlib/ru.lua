@@ -133,3 +133,109 @@ gui.dlib.donate.text = [[Привет! Как я вижу, Вы были дол�
 DLib%s]]
 
 gui.dlib.donate.more = ' и еще %i аддонов!..'
+
+gui.dlib.hudcommons.positions = '%s похиций'
+gui.dlib.hudcommons.fonts = '%s шрифтов'
+gui.dlib.hudcommons.colors = '%s цветов'
+gui.dlib.hudcommons.font = 'Шрифт'
+gui.dlib.hudcommons.font_label = 'Настройки %s'
+gui.dlib.hudcommons.save_hint = 'Не забудьте написать host_writeconfig в\nконсоле после любых изменений!'
+gui.dlib.hudcommons.weight = 'Вес'
+gui.dlib.hudcommons.size = 'Размер'
+
+gui.dlib.notify.families_loading = 'Возможны подвисания, DLib печёт тортик\n(поиск установленных шрифтов)'
+
+local prefix = {
+	{'yocto',   'и',     'Иокто'},
+	{'zepto',   'з',     'Зепто'},
+	{'atto',    'а',     'Аптр'},
+	{'femto',   'ф',     'Фемто'},
+	{'pico',    'п',     'Пико'},
+	{'nano',    'н',     'Нано'},
+	{'micro',   'мк',    'Микро'},
+	{'milli',   'м',     'Милли'},
+	{'centi',   'с',     'Санти'},
+	{'deci',    'д',     'Деци'},
+	{'kilo',    'к',     'Кило'},
+	{'mega',    'М',     'Мега'},
+	{'giga',    'Г',     'Гига'},
+	{'tera',    'Т',     'Тера'},
+	{'peta',    'П',     'Пета'},
+	{'exa',     'Э',     'Экза'},
+	{'zetta',   'З',     'Зетта'},
+	{'yotta',   'И',     'Иотта'},
+}
+
+for i, row in ipairs(prefix) do
+	info.dlib.si.prefix[row[1]].name = row[3] or row[1]:formatname()
+	info.dlib.si.prefix[row[1]].prefix = row[2]
+end
+
+info.dlib.si.units.hertz.name = "Герц"
+info.dlib.si.units.hertz.suffix = "Гц"
+info.dlib.si.units.radian.name = "Радиан"
+info.dlib.si.units.radian.suffix = "рад"
+info.dlib.si.units.steradian.name = "Стерадиан"
+info.dlib.si.units.steradian.suffix = "ср"
+info.dlib.si.units.newton.name = "Ньютон"
+info.dlib.si.units.newton.suffix = "Н"
+info.dlib.si.units.pascal.name = "Паскаль"
+info.dlib.si.units.pascal.suffix = "Па"
+info.dlib.si.units.joule.name = "Джоуль"
+info.dlib.si.units.joule.suffix = "Дж"
+info.dlib.si.units.watt.name = "Ватт"
+info.dlib.si.units.watt.suffix = "Вт"
+info.dlib.si.units.coulomb.name = "Кулон"
+info.dlib.si.units.coulomb.suffix = "Кл"
+info.dlib.si.units.volt.name = "Вольт"
+info.dlib.si.units.volt.suffix = "В"
+info.dlib.si.units.farad.name = "Фарад"
+info.dlib.si.units.farad.suffix = "Ф"
+info.dlib.si.units.ohm.name = "Ом"
+info.dlib.si.units.ohm.suffix = "Ом"
+info.dlib.si.units.siemens.name = "Сименс"
+info.dlib.si.units.siemens.suffix = "См"
+info.dlib.si.units.weber.name = "Вебер"
+info.dlib.si.units.weber.suffix = "Вб"
+info.dlib.si.units.tesla.name = "Тесла"
+info.dlib.si.units.tesla.suffix = "Тл"
+info.dlib.si.units.henry.name = "Генри"
+info.dlib.si.units.henry.suffix = "Гн"
+info.dlib.si.units.degree.name = "Градус Цельсия"
+info.dlib.si.units.degree.suffix = "°C"
+info.dlib.si.units.lumen.name = "Люмен"
+info.dlib.si.units.lumen.suffix = "лм"
+info.dlib.si.units.lux.name = "Люкс"
+info.dlib.si.units.lux.suffix = "лк"
+info.dlib.si.units.becquerel.name = "Беккерель"
+info.dlib.si.units.becquerel.suffix = "Бк"
+info.dlib.si.units.gray.name = "Грей"
+info.dlib.si.units.gray.suffix = "Гр"
+info.dlib.si.units.sievert.name = "Зиверт"
+info.dlib.si.units.sievert.suffix = "Зв"
+info.dlib.si.units.katal.name = "Катал"
+info.dlib.si.units.katal.suffix = "кат"
+
+info.dlib.si.units.kelvin.name = 'Кельвины'
+info.dlib.si.units.kelvin.suffix = 'К'
+
+info.dlib.si.units.celsius.name = 'Цельсиус'
+info.dlib.si.units.celsius.suffix = 'С'
+
+info.dlib.si.units.fahrenheit.name = 'Фаренгейт'
+info.dlib.si.units.fahrenheit.suffix = 'F'
+
+info.dlib.si.units.gram.name = 'Грам'
+info.dlib.si.units.gram.suffix = 'г'
+
+info.dlib.si.units.metre.name = 'Метр'
+info.dlib.si.units.metre.suffix = 'м'
+
+info.dlib.si.units.litre.name = 'Литр'
+info.dlib.si.units.litre.suffix = 'л'
+
+info.dlib.si.units.second.name = 'Секунда'
+info.dlib.si.units.second.suffix = 'с'
+
+info.dlib.si.units.kmh.name = 'Километров в час'
+info.dlib.si.units.kmh.suffix = 'км/ч'

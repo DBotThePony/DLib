@@ -169,26 +169,32 @@ gui.dlib.notify.families_loading = 'Expect lag, DLib is baking a cake\n(searchin
 -- yocto    y    1000−8      10−24  0.000000000000000000000001   septillionth    quadrillionth  1991
 
 local prefix = {
-	{'yocto', 'y'},
-	{'zepto', 'z'},
-	{'atto', 'a'},
-	{'femto', 'f'},
-	{'pico', 'p'},
-	{'nano', 'n'},
-	{'micro', 'μ'},
-	{'milli', 'm'},
-	{'centi', 'c'},
-	{'deci', 'd'},
-	{'kilo', 'k'},
-	{'mega', 'M'},
-	{'giga', 'G'},
-	{'tera', 'T'},
-	{'peta', 'P'},
-	{'exa', 'E'},
-	{'zetta', 'Z'},
-	{'yotta', 'Y'},
+	{'yocto',    'y'},
+	{'zepto',    'z'},
+	{'atto',     'a'},
+	{'femto',    'f'},
+	{'pico',     'p'},
+	{'nano',     'n'},
+	{'micro',    'μ'},
+	{'milli',    'm'},
+	{'centi',    'c'},
+	{'deci',     'd'},
+	{'kilo',     'k'},
+	{'mega',     'M'},
+	{'giga',     'G'},
+	{'tera',     'T'},
+	{'peta',     'P'},
+	{'exa',      'E'},
+	{'zetta',    'Z'},
+	{'yotta',    'Y'},
 }
 
+for i, row in ipairs(prefix) do
+	info.dlib.si.prefix[row[1]].name = row[3] or row[1]:formatname()
+	info.dlib.si.prefix[row[1]].prefix = row[2]
+end
+
+--[==[
 local units = [[hertz    Hz  frequency   1/s     s−1
 radian   rad     angle   m/m     1
 steradian    sr  solid angle     m2/m2   1
@@ -212,19 +218,62 @@ gray     Gy  absorbed dose (of ionizing radiation)   J/kg    m2⋅s−2
 sievert  Sv  equivalent dose (of ionizing radiation)     J/kg    m2⋅s−2
 katal    kat     catalytic activity  mol/s   s−1⋅mol]]
 
-for i, row in ipairs(prefix) do
-	info.dlib.si.prefix[row[1]].name = row[3] or row[1]:formatname()
-	info.dlib.si.prefix[row[1]].prefix = row[2]
-end
-
 for i, row in ipairs(units:split('\n')) do
 	local measure, NaM = row:match('(%S+)%s+(%S+)')
 
 	if measure and NaM then
+		print('info.dlib.si.units.' .. measure .. '.name = "' .. measure:formatname() .. '"')
+		print('info.dlib.si.units.' .. measure .. '.suffix = "' .. NaM .. '"')
 		info.dlib.si.units[measure].name = measure:formatname()
 		info.dlib.si.units[measure].suffix = NaM
 	end
 end
+]==]
+
+info.dlib.si.units.hertz.name = "Hertz"
+info.dlib.si.units.hertz.suffix = "Hz"
+info.dlib.si.units.radian.name = "Radian"
+info.dlib.si.units.radian.suffix = "rad"
+info.dlib.si.units.steradian.name = "Steradian"
+info.dlib.si.units.steradian.suffix = "sr"
+info.dlib.si.units.newton.name = "Newton"
+info.dlib.si.units.newton.suffix = "N"
+info.dlib.si.units.pascal.name = "Pascal"
+info.dlib.si.units.pascal.suffix = "Pa"
+info.dlib.si.units.joule.name = "Joule"
+info.dlib.si.units.joule.suffix = "J"
+info.dlib.si.units.watt.name = "Watt"
+info.dlib.si.units.watt.suffix = "W"
+info.dlib.si.units.coulomb.name = "Coulomb"
+info.dlib.si.units.coulomb.suffix = "C"
+info.dlib.si.units.volt.name = "Volt"
+info.dlib.si.units.volt.suffix = "V"
+info.dlib.si.units.farad.name = "Farad"
+info.dlib.si.units.farad.suffix = "F"
+info.dlib.si.units.ohm.name = "Ohm"
+info.dlib.si.units.ohm.suffix = "Ω"
+info.dlib.si.units.siemens.name = "Siemens"
+info.dlib.si.units.siemens.suffix = "S"
+info.dlib.si.units.weber.name = "Weber"
+info.dlib.si.units.weber.suffix = "Wb"
+info.dlib.si.units.tesla.name = "Tesla"
+info.dlib.si.units.tesla.suffix = "T"
+info.dlib.si.units.henry.name = "Henry"
+info.dlib.si.units.henry.suffix = "H"
+info.dlib.si.units.degree.name = "Degree Celsius"
+info.dlib.si.units.degree.suffix = "°C"
+info.dlib.si.units.lumen.name = "Lumen"
+info.dlib.si.units.lumen.suffix = "lm"
+info.dlib.si.units.lux.name = "Lux"
+info.dlib.si.units.lux.suffix = "lx"
+info.dlib.si.units.becquerel.name = "Becquerel"
+info.dlib.si.units.becquerel.suffix = "Bq"
+info.dlib.si.units.gray.name = "Gray"
+info.dlib.si.units.gray.suffix = "Gy"
+info.dlib.si.units.sievert.name = "Sievert"
+info.dlib.si.units.sievert.suffix = "Sv"
+info.dlib.si.units.katal.name = "Katal"
+info.dlib.si.units.katal.suffix = "kat"
 
 info.dlib.si.units.kelvin.name = 'Kelvin'
 info.dlib.si.units.kelvin.suffix = 'K'
