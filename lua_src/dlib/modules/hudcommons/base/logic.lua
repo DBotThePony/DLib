@@ -18,8 +18,9 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-local meta = DLib.FindMetaTable('HUDCommonsBase')
 local DLib = DLib
+local HUDCommons = DLib.HUDCommons
+local meta = HUDCommons.BaseMetaObj
 local HUDCommons = DLib.HUDCommons
 local LocalPlayer = LocalPlayer
 local NULL = NULL

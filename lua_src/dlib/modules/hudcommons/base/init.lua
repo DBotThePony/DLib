@@ -19,8 +19,12 @@
 -- DEALINGS IN THE SOFTWARE.
 
 local DLib = DLib
-local meta = DLib.CreateLuaObject('HUDCommonsBase', true)
 local HUDCommons = DLib.HUDCommons
+
+local meta_, meta = DLib.CreateMoonClassBare('HUDCommonsBase', {}, {}, nil, HUDCommons.BaseMeta)
+HUDCommons.BaseMeta = meta_
+HUDCommons.BaseMetaObj = meta
+
 local pairs = pairs
 local hook = hook
 local table = table
@@ -31,7 +35,7 @@ local RealTimeL = RealTimeL
 
 --[[
 	@doc
-	@fname HUDCommonsBase:__construct
+	@fname HUDCommonsBase:ctor
 
 	@client
 	@internal
@@ -50,8 +54,9 @@ local RealTimeL = RealTimeL
 	@returns
 	table: Newly created HUD.
 ]]
-function meta:__construct(hudID, hudName)
+function meta:ctor(hudID, hudName)
 	DLib.CMessage(self, hudName)
+
 	self.id = hudID
 	self.hudID = hudID
 	self.name = hudName

@@ -170,7 +170,6 @@ DLib.SharedInclude('extensions/player.lua')
 
 DLib.SharedInclude('modules/hook.lua')
 DLib.SharedInclude('luabridge/luaify2.lua')
-DLib.SharedInclude('luabridge/lobject.lua')
 
 DLib.SharedInclude('util/http.lua')
 DLib.SharedInclude('util/httpclient.lua')

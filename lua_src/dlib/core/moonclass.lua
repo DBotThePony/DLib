@@ -19,11 +19,30 @@
 -- DEALINGS IN THE SOFTWARE.
 
 local DLib = DLib
+local setmetatable = setmetatable
 
 local function empty()
 
 end
 
+--[[
+	@doc
+	@fname DLib.CreateMoonClassBare
+	@args string objectName, table object_definition = {}, table class_definition = {}, table base = nil, table original = nil, boolean originalInheritMode = false
+
+	@desc
+	Creates moonscript compatible class, inheriting from (moonscript compatbile) base,
+	as well as specifying already defined same class (for Lua autorefresh) `original`
+	merged using `originalInheritMode` strategy (false - table.Merge, true - smart copy)
+	This does not call `__inherited` on parent class, there is `DLib.CreateMoonClass` with that
+	@enddesc
+
+	@returns
+	table: meta with constructor metamethod
+	table: object definition
+	table: parent
+	table: parent object definition
+]]
 function DLib.CreateMoonClassBare(classname, object_definition, class_definition, base, original, originalInheritMode)
 	object_definition = object_definition or {}
 	class_definition = class_definition or {}
@@ -93,14 +112,29 @@ function DLib.CreateMoonClassBare(classname, object_definition, class_definition
 	return classdef, classdef.__base, base, base and base.__base or nil
 end
 
+--[[
+	@doc
+	@fname DLib.CreateMoonClass
+	@args string objectName, table object_definition = {}, table class_definition = {}, table base = nil, table original = nil, boolean originalInheritMode = false
+
+	@desc
+	Same as `DLib.CreateMoonClassBare`, except it call `__inherited` metamethod on parent
+	@enddesc
+
+	@returns
+	table: meta with constructor metamethod
+	table: object definition
+	table: parent
+	table: parent object definition
+]]
 function DLib.CreateMoonClass(...)
-	local classdef, classbase, base = DLib.CreateMoonClassBare(...)
+	local classdef, classbase, base, baseDef = DLib.CreateMoonClassBare(...)
 
 	if istable(base) and base.__inherited then
 		base:__inherited(classdef)
 	end
 
-	return classdef, classbase, base
+	return classdef, classbase, base, baseDef
 end
 
 local baseclass = {}
@@ -130,4 +164,13 @@ DLib.baseclass = DLib.CreateMoonClassBare('baseclass', baseclass, nil, nil, DLib
 
 if not DLib.baseclass.INSTANCE then
 	DLib.baseclass.INSTANCE = DLib.baseclass()
+end
+
+function DLib.ConsturctClass(classIn, ...)
+	if classIn == 'HUDCommonsBase' then
+		ErrorNoHalt(debug.traceback('DLib.ConsturctClass is deprecated, use DLib.CreateMoonClass/DLib.CreateMoonClassBare instead') .. '\n')
+		return DLib.HUDCommons.BaseMeta(...)
+	end
+
+	error('DLib.ConsturctClass is deprecated, use DLib.CreateMoonClass/DLib.CreateMoonClassBare instead')
 end
