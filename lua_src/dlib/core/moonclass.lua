@@ -79,6 +79,11 @@ function DLib.CreateMoonClassBare(classname, object_definition, class_definition
 	classdef.__name = classname
 	classdef.__parent = base
 	classdef.__base = object_definition
+
+	if base and base.__base then
+		setmetatable(classdef.__base, base.__base)
+	end
+
 	object_definition.__index = object_definition
 	object_definition.__class = classdef
 
