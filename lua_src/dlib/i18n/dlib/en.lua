@@ -103,6 +103,7 @@ gui.dlib.friends.settings.server = 'Server players ->'
 gui.dlib.friends.settings.foreign = '[Foreign] '
 
 gui.dlib.menu.i18n.settings = 'DLib Language'
+gui.dlib.menu.i18n.debug_convar = 'Debug language strings'
 gui.dlib.menu.i18n.tooltip = "Preferred language list for DLib.I18n based addons.\nDid you knew that almost every DLib based addon can be translated into any language? Help translating mods by submitting Merge Requests on mod's GitLab repository"
 gui.dlib.menu.i18n.iso_name = 'ISO Language code'
 gui.dlib.menu.i18n.lang_column = 'Language'

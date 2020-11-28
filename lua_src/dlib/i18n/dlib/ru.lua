@@ -101,6 +101,7 @@ gui.dlib.friends.settings.server = 'Игроки на сервере ->'
 gui.dlib.friends.settings.foreign = '[Внешний] '
 
 gui.dlib.menu.i18n.settings = 'Настройка языка DLib'
+gui.dlib.menu.i18n.debug_convar = 'Режим отладки'
 gui.dlib.menu.i18n.tooltip = "Предпочительный язык интерфейса аддонов использующих DLib.I18n\nПочти каждый аддон на DLib можно перевести на любой язык! Помогите в переводе путем присылания Merge Request'ов на GitLab соотвествующего мода"
 gui.dlib.menu.i18n.iso_name = 'Код языка в ISO'
 gui.dlib.menu.i18n.lang_column = 'Язык'

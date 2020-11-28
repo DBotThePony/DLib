@@ -710,6 +710,8 @@ function I18n.PopulateMenu(self)
 
 	hook.Add('DLib.LanguageChanged', self, resize)
 
+	self:CheckBox('gui.dlib.menu.i18n.debug_convar', 'gmod_language_dlib_dbg_cl')
+
 	resize()
 	funcCallback()
 end
