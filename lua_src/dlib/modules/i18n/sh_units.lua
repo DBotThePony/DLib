@@ -433,7 +433,7 @@ do
 
 	if I18n.VOLUME_UNITS:GetString() == 'L' then
 		I18n.VOLUME_UNITS:SetString('0')
-	else
+	elseif I18n.VOLUME_UNITS:GetString() == 'm' then
 		I18n.VOLUME_UNITS:SetString('1')
 	end
 
