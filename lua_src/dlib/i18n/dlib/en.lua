@@ -150,6 +150,11 @@ gui.dlib.hudcommons.color_menu = 'HUDCommons colors'
 gui.dlib.hudcommons.color_menu2 = 'HUDCommons colors 2'
 gui.dlib.hudcommons.positions_menu = 'HUDCommons positions 2'
 
+gui.dlib.hudcommons.menu.reset_all = 'Reset all'
+gui.dlib.hudcommons.menu.no_cvars_registered = 'No convars registered!'
+gui.dlib.hudcommons.menu.nothing_to_edit = 'Nothing to edit.'
+gui.dlib.hudcommons.menu.interactive_mode = 'Enter interactive mode'
+
 gui.dlib.notify.families_loading = 'Expect lag, DLib is baking a cake\n(searching for installed font families)'
 
 -- yotta    Y    10008      1024   1000000000000000000000000    septillion      quadrillion    1991

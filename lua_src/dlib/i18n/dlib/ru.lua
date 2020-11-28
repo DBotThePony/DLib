@@ -149,6 +149,11 @@ gui.dlib.hudcommons.color_menu = 'HUDCommons цвета'
 gui.dlib.hudcommons.color_menu2 = 'HUDCommons цвета 2'
 gui.dlib.hudcommons.positions_menu = 'HUDCommons позиции 2'
 
+gui.dlib.hudcommons.menu.reset_all = 'Сбросить все'
+gui.dlib.hudcommons.menu.no_cvars_registered = 'Нет зарегистрированных элементов!'
+gui.dlib.hudcommons.menu.nothing_to_edit = 'Нечего менять.'
+gui.dlib.hudcommons.menu.interactive_mode = 'Запустить интерактивный режим'
+
 gui.dlib.notify.families_loading = 'Возможны подвисания, DLib печёт тортик\n(поиск установленных шрифтов)'
 
 local prefix = {

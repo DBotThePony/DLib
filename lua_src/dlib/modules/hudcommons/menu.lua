@@ -71,8 +71,8 @@ local function PopulateColors(Panel)
 	Panel:Clear()
 
 	if table.Count(HUDCommons.ColorsVars) == 0 then
-		Panel:Help('No convars registered!')
-		Panel:Help('Nothing to edit.')
+		Panel:Help('gui.dlib.hudcommons.menu.no_cvars_registered')
+		Panel:Help('gui.dlib.hudcommons.menu.nothing_to_edit')
 		return
 	end
 
@@ -86,8 +86,8 @@ local function PopulateColors2(Panel)
 	Panel:Clear()
 
 	if table.Count(HUDCommons.ColorsVarsN) == 0 then
-		Panel:Help('No convars registered!')
-		Panel:Help('Nothing to edit.')
+		Panel:Help('gui.dlib.hudcommons.menu.no_cvars_registered')
+		Panel:Help('gui.dlib.hudcommons.menu.nothing_to_edit')
 		return
 	end
 
@@ -109,7 +109,7 @@ function HUDCommons.AddPositionPanel(Panel, name)
 
 	parent:Add(Panel:NumSlider('X', cvarX:GetName(), 0, 1, 3))
 	parent:Add(Panel:NumSlider('Y', cvarY:GetName(), 0, 1, 3))
-	local reset = Panel:Button('Reset')
+	local reset = Panel:Button('gui.dlib.hudcommons.reset')
 
 	parent:Add(reset)
 
@@ -123,20 +123,20 @@ local function PopulatePositions(Panel)
 	if not IsValid(Panel) then return end
 	Panel:Clear()
 
-	if #HUDCommons.Position2.XPositions == 0 then
-		Panel:Help('No convars registered!')
-		Panel:Help('Nothing to edit.')
+	if table.Count(HUDCommons.Position2.XPositions_original) == 0 then
+		Panel:Help('gui.dlib.hudcommons.menu.no_cvars_registered')
+		Panel:Help('gui.dlib.hudcommons.menu.nothing_to_edit')
 		return
 	end
 
-	Panel:Button('Reset all').DoClick = function()
+	Panel:Button('gui.dlib.hudcommons.menu.reset_all').DoClick = function()
 		for name, v in pairs(HUDCommons.Position2.XPositions_CVars) do
 			v:Reset()
 			HUDCommons.Position2.YPositions_CVars[name]:Reset()
 		end
 	end
 
-	Panel:Button('Enter interactive mode').DoClick = function()
+	Panel:Button('gui.dlib.hudcommons.menu.interactive_mode').DoClick = function()
 		HUDCommons.EnterPositionEditMode()
 	end
 
