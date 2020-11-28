@@ -145,6 +145,10 @@ gui.dlib.hudcommons.save_hint = 'Не забудьте написать host_wri
 gui.dlib.hudcommons.weight = 'Вес'
 gui.dlib.hudcommons.size = 'Размер'
 
+gui.dlib.hudcommons.color_menu = 'HUDCommons цвета'
+gui.dlib.hudcommons.color_menu2 = 'HUDCommons цвета 2'
+gui.dlib.hudcommons.positions_menu = 'HUDCommons позиции 2'
+
 gui.dlib.notify.families_loading = 'Возможны подвисания, DLib печёт тортик\n(поиск установленных шрифтов)'
 
 local prefix = {

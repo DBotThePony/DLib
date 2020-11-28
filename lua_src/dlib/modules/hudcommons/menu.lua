@@ -450,7 +450,7 @@ end
 	@client
 ]]
 hook.Add('PopulateToolMenu', 'HUDCommons.PopulateMenus', function()
-	spawnmenu.AddToolMenuOption('Utilities', 'User', 'HUDCommons.Populate', 'HUDCommons Colors', '', '', PopulateColors)
-	spawnmenu.AddToolMenuOption('Utilities', 'User', 'HUDCommons.Populate2', 'HUDCommons Colors 2', '', '', PopulateColors2)
-	spawnmenu.AddToolMenuOption('Utilities', 'User', 'HUDCommons.Positions2', 'HUDCommons Positions 2', '', '', PopulatePositions)
+	spawnmenu.AddToolMenuOption('Utilities', 'User', 'HUDCommons.Populate', 'gui.dlib.hudcommons.color_menu', '', '', PopulateColors)
+	spawnmenu.AddToolMenuOption('Utilities', 'User', 'HUDCommons.Populate2', 'gui.dlib.hudcommons.color_menu2', '', '', PopulateColors2)
+	spawnmenu.AddToolMenuOption('Utilities', 'User', 'HUDCommons.Positions2', 'gui.dlib.hudcommons.positions_menu', '', '', PopulatePositions)
 end)

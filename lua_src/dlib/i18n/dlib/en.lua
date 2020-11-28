@@ -146,6 +146,10 @@ gui.dlib.hudcommons.save_hint = 'Don\'t forget to host_writeconfig in\nconsole a
 gui.dlib.hudcommons.weight = 'Weight'
 gui.dlib.hudcommons.size = 'Size'
 
+gui.dlib.hudcommons.color_menu = 'HUDCommons colors'
+gui.dlib.hudcommons.color_menu2 = 'HUDCommons colors 2'
+gui.dlib.hudcommons.positions_menu = 'HUDCommons positions 2'
+
 gui.dlib.notify.families_loading = 'Expect lag, DLib is baking a cake\n(searching for installed font families)'
 
 -- yotta    Y    10008      1024   1000000000000000000000000    septillion      quadrillion    1991
