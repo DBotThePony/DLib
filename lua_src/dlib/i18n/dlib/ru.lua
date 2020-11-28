@@ -136,9 +136,9 @@ DLib%s]]
 
 gui.dlib.donate.more = ' и еще %i аддонов!..'
 
-gui.dlib.hudcommons.positions = '%s похиций'
-gui.dlib.hudcommons.fonts = '%s шрифтов'
-gui.dlib.hudcommons.colors = '%s цветов'
+gui.dlib.hudcommons.positions = '%s позиции'
+gui.dlib.hudcommons.fonts = '%s шрифты'
+gui.dlib.hudcommons.colors = '%s цвета'
 gui.dlib.hudcommons.font = 'Шрифт'
 gui.dlib.hudcommons.font_label = 'Настройки %s'
 gui.dlib.hudcommons.save_hint = 'Не забудьте написать host_writeconfig в\nконсоле после любых изменений!'
