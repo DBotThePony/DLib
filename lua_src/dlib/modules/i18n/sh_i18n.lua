@@ -867,8 +867,8 @@ function I18n.UpdateLang()
 	local recombine = table.concat(grablang, ',')
 
 	if LastLanguage ~= table.concat(grablang, ',') then
-		hook.Run('DLib.LanguageChanged', LastLanguageList, grablang)
 		hook.Run('DLib.LanguageChanged2', LastLanguageList, grablang)
+		hook.Run('DLib.LanguageChanged', LastLanguageList, grablang)
 
 		LastLanguageList = grablang
 		LastLanguage = recombine

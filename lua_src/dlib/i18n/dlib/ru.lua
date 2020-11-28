@@ -25,6 +25,8 @@ gui.misc.yes = 'Да'
 gui.misc.no = 'Нет'
 gui.misc.confirm = 'Подтвердить'
 gui.misc.decline = 'Отклонить'
+gui.misc.add = 'Добавить'
+gui.misc.delete = 'Удалить'
 
 gui.entry.invalidsymbol = 'Символ не разрешён.'
 gui.entry.limit = 'Превышена максимальная длинна значения.'
@@ -97,6 +99,15 @@ gui.dlib.friends.settings.your = 'Ваши друзья ->'
 gui.dlib.friends.settings.server = 'Игроки на сервере ->'
 
 gui.dlib.friends.settings.foreign = '[Внешний] '
+
+gui.dlib.menu.i18n.settings = 'Настройка языка DLib'
+gui.dlib.menu.i18n.tooltip = "Предпочительный язык интерфейса аддонов использующих DLib.I18n\nПочти каждый аддон на DLib можно перевести на любой язык! Помогите в переводе путем присылания Merge Request'ов на GitLab соотвествующего мода"
+gui.dlib.menu.i18n.iso_name = 'Код языка в ISO'
+gui.dlib.menu.i18n.lang_column = 'Язык'
+gui.dlib.menu.i18n.name_english = 'Имя на Английском'
+gui.dlib.menu.i18n.name_self = 'Эндоэтноним'
+gui.dlib.menu.i18n.move_up = 'Выше'
+gui.dlib.menu.i18n.move_down = 'Ниже'
 
 gui.dlib.donate.top = 'DLib: Сделаете пожертвование?'
 gui.dlib.donate.button.yes = 'Так и сделать (Яндекс.Деньги)!'

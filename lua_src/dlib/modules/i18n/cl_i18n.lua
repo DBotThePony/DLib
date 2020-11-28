@@ -240,3 +240,484 @@ end)
 
 hook.Add('VGUIPanelCreated', 'DLib.I18n', vguiPanelCreated)
 chat.AddTextLocalized = I18n.AddChat
+
+local LANG_OVERRIDE = ConVar('gmod_language_dlib_cl')
+local funcCallback
+
+local language_codes = {
+	['ab'] = {'Abkhazian', 'аҧсуа бызшәа, аҧсшәа'},
+	['aa'] = {'Afar', 'Afaraf'},
+	['af'] = {'Afrikaans', 'Afrikaans'},
+	['ak'] = {'Akan', 'Akan'},
+	['sq'] = {'Albanian', 'Shqip'},
+	['am'] = {'Amharic', 'አማርኛ'},
+	['ar'] = {'Arabic', 'العربية'},
+	['an'] = {'Aragonese', 'aragonés'},
+	['hy'] = {'Armenian', 'Հայերեն'},
+	['as'] = {'Assamese', 'অসমীয়া'},
+	['av'] = {'Avaric', 'авар мацӀ, магӀарул мацӀ'},
+	['ae'] = {'Avestan', 'avesta'},
+	['ay'] = {'Aymara', 'aymar aru'},
+	['az'] = {'Azerbaijani', 'azərbaycan dili'},
+	['bm'] = {'Bambara', 'bamanankan'},
+	['ba'] = {'Bashkir', 'башҡорт теле'},
+	['eu'] = {'Basque', 'euskara, euskera'},
+	['be'] = {'Belarusian', 'беларуская мова'},
+	['bn'] = {'Bengali', 'বাংলা'},
+	['bh'] = {'Bihari', 'भोजपुरी'},
+	['bi'] = {'Bislama', 'Bislama'},
+	['bs'] = {'Bosnian', 'bosanski jezik'},
+	['br'] = {'Breton', 'brezhoneg'},
+	['bg'] = {'Bulgarian', 'български език'},
+	['my'] = {'Burmese', 'ဗမာစာ'},
+	['ca'] = {'Catalan', 'català, valencià'},
+	['ch'] = {'Chamorro', 'Chamoru'},
+	['ce'] = {'Chechen', 'нохчийн мотт'},
+	['ny'] = {'Chichewa', 'chiCheŵa, chinyanja'},
+	['zh'] = {'Chinese', '中文 (Zhōngwén), 汉语, 漢語'},
+	['cv'] = {'Chuvash', 'чӑваш чӗлхи'},
+	['kw'] = {'Cornish', 'Kernewek'},
+	['co'] = {'Corsican', 'corsu, lingua corsa'},
+	['cr'] = {'Cree', 'ᓀᐦᐃᔭᐍᐏᐣ'},
+	['hr'] = {'Croatian', 'hrvatski jezik'},
+	['cs'] = {'Czech', 'čeština, český jazyk'},
+	['da'] = {'Danish', 'dansk'},
+	['dv'] = {'Divehi', 'ދިވެހި'},
+	['nl'] = {'Dutch', 'Nederlands, Vlaams'},
+	['dz'] = {'Dzongkha', 'རྫོང་ཁ'},
+	['en'] = {'English', 'English'},
+	['eo'] = {'Esperanto', 'Esperanto'},
+	['et'] = {'Estonian', 'eesti, eesti keel'},
+	['ee'] = {'Ewe', 'Eʋegbe'},
+	['fo'] = {'Faroese', 'føroyskt'},
+	['fj'] = {'Fijian', 'vosa Vakaviti'},
+	['fi'] = {'Finnish', 'suomi, suomen kieli'},
+	['fr'] = {'French', 'français, langue française'},
+	['ff'] = {'Fulah', 'Fulfulde, Pulaar, Pular'},
+	['gl'] = {'Galician', 'Galego'},
+	['ka'] = {'Georgian', 'ქართული'},
+	['de'] = {'German', 'Deutsch'},
+	['el'] = {'Greek', 'ελληνικά'},
+	['gn'] = {'Guarani', "Avañe'ẽ"},
+	['gu'] = {'Gujarati', 'ગુજરાતી'},
+	['ht'] = {'Haitian', 'Kreyòl ayisyen'},
+	['ha'] = {'Hausa', 'هَوُسَ (Hausa)'},
+	['he'] = {'Hebrew', 'עברית'},
+	['hz'] = {'Herero', 'Otjiherero'},
+	['hi'] = {'Hindi', 'हिन्दी, हिंदी'},
+	['ho'] = {'Hiri Motu', 'Hiri Motu'},
+	['hu'] = {'Hungarian', 'magyar'},
+	['ia'] = {'Interlingua', 'Interlingua'},
+	['id'] = {'Indonesian', 'Bahasa Indonesia'},
+	['ie'] = {'Interlingue', 'Interlingue'},
+	['ga'] = {'Irish', 'Gaeilge'},
+	['ig'] = {'Igbo', 'Asụsụ Igbo'},
+	['ik'] = {'Inupiaq', 'Iñupiaq, Iñupiatun'},
+	['io'] = {'Ido', 'Ido'},
+	['is'] = {'Icelandic', 'Íslenska'},
+	['it'] = {'Italian', 'Italiano'},
+	['iu'] = {'Inuktitut', 'ᐃᓄᒃᑎᑐᑦ'},
+	['ja'] = {'Japanese', '日本語 (にほんご)'},
+	['jv'] = {'Javanese', 'ꦧꦱꦗꦮ, Basa Jawa'},
+	['kl'] = {'Kalaallisut', 'kalaallisut, kalaallit oqaasii'},
+	['kn'] = {'Kannada', 'ಕನ್ನಡ'},
+	['kr'] = {'Kanuri', 'Kanuri'},
+	['ks'] = {'Kashmiri', 'कश्मीरी, كشميري'},
+	['kk'] = {'Kazakh', 'қазақ тілі'},
+	['km'] = {'Central Khmer', 'ខ្មែរ, ខេមរភាសា, ភាសាខ្មែរ'},
+	['ki'] = {'Kikuyu', 'Gĩkũyũ'},
+	['rw'] = {'Kinyarwanda', 'Ikinyarwanda'},
+	['ky'] = {'Kirghiz', 'Кыргызча, Кыргыз тили'},
+	['kv'] = {'Komi', 'коми кыв'},
+	['kg'] = {'Kongo', 'Kikongo'},
+	['ko'] = {'Korean', 'ko-Hang|한국어}} <!-- ideograph is used in Korea-->'},
+	['ku'] = {'Kurdish', 'ku-Latn|Kurdî}}, {{rtl-lang|ku-Arab|کوردی}}'},
+	['kj'] = {'Kuanyama', 'Kuanyama'},
+	['la'] = {'Latin', 'latine, lingua latina'},
+	['lb'] = {'Luxembourgish', 'Lëtzebuergesch'},
+	['lg'] = {'Ganda', 'Luganda'},
+	['li'] = {'Limburgan', 'Limburgs'},
+	['ln'] = {'Lingala', 'Lingála'},
+	['lo'] = {'Lao', 'ພາສາລາວ'},
+	['lt'] = {'Lithuanian', 'lietuvių kalba'},
+	['lu'] = {'Luba-Katanga', 'Kiluba'},
+	['lv'] = {'Latvian', 'latviešu valoda'},
+	['gv'] = {'Manx', 'Gaelg, Gailck'},
+	['mk'] = {'Macedonian', 'македонски јазик'},
+	['mg'] = {'Malagasy', 'fiteny malagasy'},
+	['ms'] = {'Malay', 'Bahasa Melayu, بهاس ملايو'},
+	['ml'] = {'Malayalam', 'മലയാളം'},
+	['mt'] = {'Maltese', 'Malti'},
+	['mi'] = {'Maori', 'te reo Māori'},
+	['mr'] = {'Marathi', 'मराठी'},
+	['mh'] = {'Marshallese', 'Kajin M̧ajeļ'},
+	['mn'] = {'Mongolian', 'Монгол хэл'},
+	['na'] = {'Nauru', 'Dorerin Naoero'},
+	['nv'] = {'Navajo', 'Diné bizaad'},
+	['nd'] = {'North Ndebele', 'isiNdebele'},
+	['ne'] = {'Nepali', 'नेपाली'},
+	['ng'] = {'Ndonga', 'Owambo'},
+	['nb'] = {'Norwegian Bokmål', 'Norsk Bokmål'},
+	['nn'] = {'Norwegian Nynorsk', 'Norsk Nynorsk'},
+	['no'] = {'Norwegian', 'Norsk'},
+	['ii'] = {'Sichuan Yi', 'ꆈꌠ꒿ Nuosuhxop'},
+	['nr'] = {'South Ndebele', 'isiNdebele'},
+	['oc'] = {'Occitan', "occitan, lenga d'òc"},
+	['oj'] = {'Ojibwa', 'ᐊᓂᔑᓈᐯᒧᐎᓐ'},
+	['cu'] = {'Church&nbsp;Slavic', 'ѩзыкъ словѣньскъ'},
+	['om'] = {'Oromo', 'Afaan Oromoo'},
+	['or'] = {'Oriya', 'ଓଡ଼ିଆ'},
+	['os'] = {'Ossetian', 'ирон æвзаг'},
+	['pa'] = {'Punjabi', 'ਪੰਜਾਬੀ, پنجابی'},
+	['pi'] = {'Pali', 'पालि, पाळि'},
+	['fa'] = {'Persian', 'فارسی'},
+	['pl'] = {'Polish', 'język polski, polszczyzna'},
+	['ps'] = {'Pashto', 'پښتو'},
+	['pt'] = {'Portuguese', 'Português'},
+	['qu'] = {'Quechua', 'Runa Simi, Kichwa'},
+	['rm'] = {'Romansh', 'Rumantsch Grischun'},
+	['rn'] = {'Rundi', 'Ikirundi'},
+	['ro'] = {'Romanian', 'Română'},
+	['ru'] = {'Russian', 'русский'},
+	['sa'] = {'Sanskrit', 'संस्कृतम्'},
+	['sc'] = {'Sardinian', 'sardu'},
+	['sd'] = {'Sindhi', 'सिन्धी, سنڌي، سندھی'},
+	['se'] = {'Northern Sami', 'Davvisámegiella'},
+	['sm'] = {'Samoan', "gagana fa'a Samoa"},
+	['sg'] = {'Sango', 'yângâ tî sängö'},
+	['sr'] = {'Serbian', 'српски језик'},
+	['gd'] = {'Gaelic', 'Gàidhlig'},
+	['sn'] = {'Shona', 'chiShona'},
+	['si'] = {'Sinhala', 'සිංහල'},
+	['sk'] = {'Slovak', 'Slovenčina, Slovenský Jazyk'},
+	['sl'] = {'Slovenian', 'Slovenski Jezik, Slovenščina'},
+	['so'] = {'Somali', 'Soomaaliga, af Soomaali'},
+	['st'] = {'Southern Sotho', 'Sesotho'},
+	['es'] = {'Spanish', 'Español'},
+	['su'] = {'Sundanese', 'Basa Sunda'},
+	['sw'] = {'Swahili', 'Kiswahili'},
+	['ss'] = {'Swati', 'SiSwati'},
+	['sv'] = {'Swedish', 'Svenska'},
+	['ta'] = {'Tamil', 'தமிழ்'},
+	['te'] = {'Telugu', 'తెలుగు'},
+	['tg'] = {'Tajik', 'тоҷикӣ, toçikī, تاجیکی'},
+	['th'] = {'Thai', 'ไทย'},
+	['ti'] = {'Tigrinya', 'ትግርኛ'},
+	['bo'] = {'Tibetan', 'བོད་ཡིག'},
+	['tk'] = {'Turkmen', 'Türkmen, Түркмен'},
+	['tl'] = {'Tagalog', 'Wikang Tagalog'},
+	['tn'] = {'Tswana', 'Setswana'},
+	['to'] = {'Tonga', 'Faka Tonga'},
+	['tr'] = {'Turkish', 'Türkçe'},
+	['ts'] = {'Tsonga', 'Xitsonga'},
+	['tt'] = {'Tatar', 'татар теле, tatar tele'},
+	['tw'] = {'Twi', 'Twi'},
+	['ty'] = {'Tahitian', 'Reo Tahiti'},
+	['ug'] = {'Uighur', 'ئۇيغۇرچە, Uyghurche'},
+	['uk'] = {'Ukrainian', 'Українська'},
+	['ur'] = {'Urdu', 'اردو'},
+	['uz'] = {'Uzbek', 'Oʻzbek, Ўзбек, أۇزبېك'},
+	['ve'] = {'Venda', 'Tshivenḓa'},
+	['vi'] = {'Vietnamese', 'Tiếng Việt'},
+	['vo'] = {'Volapük', 'Volapük'},
+	['wa'] = {'Walloon', 'Walon'},
+	['cy'] = {'Welsh', 'Cymraeg'},
+	['wo'] = {'Wolof', 'Wollof'},
+	['fy'] = {'Western Frisian', 'Frysk'},
+	['xh'] = {'Xhosa', 'isiXhosa'},
+	['yi'] = {'Yiddish', 'ייִדיש'},
+	['yo'] = {'Yoruba', 'Yorùbá'},
+	['za'] = {'Zhuang', 'Saɯ cueŋƅ, Saw cuengh'},
+	['zu'] = {'Zulu', 'isiZulu'},
+
+	['gmod'] = {"Garry's mod language", '-'},
+}
+
+function I18n.PopulateMenu(self)
+	if not IsValid(self) then return end
+
+	self:SetSkin('DLib_Black')
+
+	self:Help('gui.dlib.menu.i18n.tooltip')
+
+	local langlist = vgui.Create('DListView', self)
+
+	langlist:AddColumn('gui.dlib.menu.i18n.lang_column')
+	langlist:AddColumn('gui.dlib.menu.i18n.name_english')
+	langlist:AddColumn('gui.dlib.menu.i18n.name_self')
+	langlist:Dock(TOP)
+	langlist:DockMargin(0, 5, 0, 0)
+
+	langlist:SetTall(600)
+
+	local known_languages, combobox, moveup, movedown, delete
+	local ignore = false
+
+	function funcCallback()
+		if ignore then return end
+		known_languages = LANG_OVERRIDE:GetString():lower():trim():split(',')
+
+		for i = #known_languages, 1, -1 do
+			known_languages[i] = known_languages[i]:trim()
+
+			if known_languages[i] == '' then
+				table.remove(known_languages, i)
+			end
+		end
+
+		langlist:Clear()
+
+		for i, lang in ipairs(known_languages) do
+			local linedata = language_codes[lang]
+
+			if linedata then
+				langlist:AddLine(lang, linedata[1], linedata[2])
+			else
+				langlist:AddLine(lang, '-', '-')
+			end
+		end
+
+		if combobox then
+			combobox:Clear()
+
+			for name, data in pairs(language_codes) do
+				if not table.qhasValue(known_languages, name) then
+					combobox:AddChoice(string.format('%s (%s)', data[1], data[2]), name)
+				end
+			end
+		end
+
+		if moveup then
+			moveup:SetEnabled(false)
+		end
+
+		if movedown then
+			movedown:SetEnabled(false)
+		end
+
+		if delete then
+			delete:SetEnabled(false)
+		end
+	end
+
+	local controls = vgui.Create('EditablePanel', self)
+	controls:Dock(TOP)
+	controls:DockMargin(0, 5, 0, 5)
+
+	moveup = vgui.Create('DButton', controls)
+	movedown = vgui.Create('DButton', controls)
+	delete = vgui.Create('DButton', controls)
+
+	moveup:SetEnabled(false)
+	movedown:SetEnabled(false)
+	delete:SetEnabled(false)
+
+	function langlist.OnRowSelected(_, index, rowPanel)
+		if #known_languages <= 1 then
+			moveup:SetEnabled(false)
+			movedown:SetEnabled(false)
+		else
+			local realIndex = index
+			local langText = rowPanel:GetColumnText(1)
+
+			for i, lang in ipairs(known_languages) do
+				if lang == langText then
+					realIndex = i
+					break
+				end
+			end
+
+			moveup:SetEnabled(realIndex > 1)
+			movedown:SetEnabled(realIndex < #known_languages)
+		end
+
+		delete:SetEnabled(true)
+	end
+
+	function delete.DoClick()
+		local _, line = langlist:GetSelectedLine()
+		if not IsValid(line) then return end
+
+		for i, lang in ipairs(known_languages) do
+			if lang == line:GetColumnText(1) then
+				table.remove(known_languages, i)
+				break
+			end
+		end
+
+		LANG_OVERRIDE:SetString(table.concat(known_languages, ','))
+	end
+
+	function moveup.DoClick()
+		local _, line = langlist:GetSelectedLine()
+
+		if not IsValid(line) then return end
+		local lineText = line:GetColumnText(1)
+
+		for i2, panel2 in ipairs(langlist.Sorted) do
+			if panel2 == line then
+				local a, b = langlist.Sorted[i2 - 1], line
+				langlist.Sorted[i2 - 1] = b
+				langlist.Sorted[i2] = a
+
+				langlist:SetDirty(true)
+				langlist:InvalidateLayout()
+
+				break
+			end
+		end
+
+		table.Empty(known_languages)
+
+		for i2, panel2 in ipairs(langlist.Sorted) do
+			table.insert(known_languages, panel2:GetColumnText(1))
+		end
+
+		ignore = true
+		LANG_OVERRIDE:SetString(table.concat(known_languages, ','))
+		ignore = false
+
+		langlist.OnRowSelected(_, -1, line)
+	end
+
+	function movedown.DoClick()
+		local _, line = langlist:GetSelectedLine()
+
+		if not IsValid(line) then return end
+		local lineText = line:GetColumnText(1)
+
+		for i2, panel2 in ipairs(langlist.Sorted) do
+			if panel2 == line then
+				local a, b = langlist.Sorted[i2 + 1], line
+				langlist.Sorted[i2 + 1] = b
+				langlist.Sorted[i2] = a
+
+				langlist:SetDirty(true)
+				langlist:InvalidateLayout()
+
+				break
+			end
+		end
+
+		table.Empty(known_languages)
+
+		for i2, panel2 in ipairs(langlist.Sorted) do
+			table.insert(known_languages, panel2:GetColumnText(1))
+		end
+
+		ignore = true
+		LANG_OVERRIDE:SetString(table.concat(known_languages, ','))
+		ignore = false
+
+		langlist.OnRowSelected(_, -1, line)
+	end
+
+	moveup:Dock(LEFT)
+	moveup:SetZPos(1)
+
+	movedown:Dock(LEFT)
+	movedown:SetZPos(2)
+
+	delete:Dock(FILL)
+	delete:SetZPos(3)
+
+	moveup:SetImage('icon16/arrow_up.png')
+	movedown:SetImage('icon16/arrow_down.png')
+	moveup:SetText('gui.dlib.menu.i18n.move_up')
+	movedown:SetText('gui.dlib.menu.i18n.move_down')
+	delete:SetText('gui.misc.delete')
+
+	moveup:DockMargin(0, 0, 2, 0)
+	movedown:DockMargin(2, 0, 2, 0)
+	delete:DockMargin(2, 0, 0, 0)
+
+	controls:SetTall(30)
+
+	local controls_add1 = vgui.Create('EditablePanel', self)
+	controls_add1:Dock(TOP)
+	controls_add1:DockMargin(0, 0, 0, 5)
+
+	local controls_add2 = vgui.Create('EditablePanel', self)
+	controls_add2:Dock(TOP)
+	controls_add2:DockMargin(0, 0, 0, 5)
+
+	combobox = vgui.Create('DComboBox', controls_add1)
+	local add_combobox = vgui.Create('DButton', controls_add1)
+
+	add_combobox:Dock(RIGHT)
+	add_combobox:DockMargin(2, 0, 0, 0)
+	combobox:Dock(FILL)
+
+	add_combobox:SetText('gui.misc.add')
+
+	local textfield = vgui.Create('DTextEntry', controls_add2)
+	local add_textfield = vgui.Create('DButton', controls_add2)
+
+	add_textfield:Dock(RIGHT)
+	add_textfield:DockMargin(2, 0, 0, 0)
+
+	textfield:Dock(FILL)
+	textfield:SetPlaceholderText(I18n.Localize('gui.dlib.menu.i18n.iso_name'))
+	textfield:SetUpdateOnType(true)
+
+	add_textfield:SetText('gui.misc.add')
+
+	add_combobox:SetEnabled(false)
+	add_textfield:SetEnabled(false)
+
+	function combobox.OnSelect(_, index, value, data)
+		add_combobox:SetEnabled(true)
+	end
+
+	function add_combobox.DoClick()
+		if LANG_OVERRIDE:GetString():trim() == '' then
+			LANG_OVERRIDE:SetString(select(2, combobox:GetSelected()))
+		else
+			LANG_OVERRIDE:SetString(LANG_OVERRIDE:GetString() .. ',' .. select(2, combobox:GetSelected()))
+		end
+	end
+
+	function textfield.OnValueChange(_, value)
+		add_textfield:SetEnabled(value and value:trim() ~= '')
+	end
+
+	function add_textfield.DoClick()
+		local getlang = textfield:GetValue():trim():lower()
+
+		if LANG_OVERRIDE:GetString():trim() == '' then
+			LANG_OVERRIDE:SetString(textfield:GetValue())
+		elseif not table.qhasValue(known_languages, getlang) then
+			LANG_OVERRIDE:SetString(LANG_OVERRIDE:GetString() .. ',' .. getlang)
+		end
+
+		textfield:SetValue('')
+	end
+
+	local function resize()
+		add_combobox:SizeToContents()
+		add_textfield:SizeToContents()
+
+		add_combobox:SetWide(add_combobox:GetWide() + 30)
+		add_textfield:SetWide(add_textfield:GetWide() + 30)
+
+		moveup:SizeToContents()
+		movedown:SizeToContents()
+
+		local wide = math.max(moveup:GetWide(), movedown:GetWide()) + 20
+		moveup:SetWide(wide)
+		movedown:SetWide(wide)
+	end
+
+	hook.Add('DLib.LanguageChanged', self, resize)
+
+	resize()
+	funcCallback()
+end
+
+hook.Add('PopulateToolMenu', 'DLib.I18n.Settings', function()
+	spawnmenu.AddToolMenuOption('Utilities', 'User', 'DLib.I18n.Settings', 'gui.dlib.menu.i18n.settings', '', '', I18n.PopulateMenu)
+end)
+
+cvars.AddChangeCallback('gmod_language_dlib_cl', function()
+	if funcCallback then funcCallback() end
+end, 'DLib Menu')

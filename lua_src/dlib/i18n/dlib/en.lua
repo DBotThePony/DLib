@@ -26,6 +26,8 @@ gui.misc.yes = 'Yes'
 gui.misc.no = 'No'
 gui.misc.confirm = 'Confirm'
 gui.misc.decline = 'Decline'
+gui.misc.add = 'Add'
+gui.misc.delete = 'Delete'
 
 gui.entry.invalidsymbol = 'Symbol not allowed.'
 gui.entry.limit = 'Field symbol limit exceeded.'
@@ -99,6 +101,15 @@ gui.dlib.friends.settings.your = 'Your friends ->'
 gui.dlib.friends.settings.server = 'Server players ->'
 
 gui.dlib.friends.settings.foreign = '[Foreign] '
+
+gui.dlib.menu.i18n.settings = 'DLib Language'
+gui.dlib.menu.i18n.tooltip = "Preferred language list for DLib.I18n based addons.\nDid you knew that almost every DLib based addon can be translated into any language? Help translating mods by submitting Merge Requests on mod's GitLab repository"
+gui.dlib.menu.i18n.iso_name = 'ISO Language code'
+gui.dlib.menu.i18n.lang_column = 'Language'
+gui.dlib.menu.i18n.name_english = 'English name'
+gui.dlib.menu.i18n.name_self = 'Self name'
+gui.dlib.menu.i18n.move_up = 'Up'
+gui.dlib.menu.i18n.move_down = 'Down'
 
 gui.dlib.donate.top = 'DLib: Make a donation?'
 gui.dlib.donate.button.yes = 'Make a donation!'
