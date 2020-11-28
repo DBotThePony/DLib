@@ -710,6 +710,15 @@ function I18n.PopulateMenu(self)
 
 	hook.Add('DLib.LanguageChanged', self, resize)
 
+	self:CheckBox('gui.dlib.menu.i18n.volume_convar', 'dlib_unit_system_volume')
+	local temperature_box = self:ComboBox('gui.dlib.menu.i18n.temperature_convar', 'dlib_unit_system_temperature')
+
+	temperature_box:AddChoice('info.dlib.si.units.kelvin.name', 'K', I18n.TEMPERATURE_UNITS:GetString() == 'K')
+	temperature_box:AddChoice('info.dlib.si.units.celsius.name', 'C', I18n.TEMPERATURE_UNITS:GetString() == 'C')
+	temperature_box:AddChoice('info.dlib.si.units.fahrenheit.name', 'F', I18n.TEMPERATURE_UNITS:GetString() == 'F')
+
+	temperature_box:GetParent():SetTall(temperature_box:GetParent():GetTall() + 10)
+
 	self:CheckBox('gui.dlib.menu.i18n.debug_convar', 'gmod_language_dlib_dbg_cl')
 
 	resize()

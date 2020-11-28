@@ -103,6 +103,8 @@ gui.dlib.friends.settings.server = 'Server players ->'
 gui.dlib.friends.settings.foreign = '[Foreign] '
 
 gui.dlib.menu.i18n.settings = 'DLib Language'
+gui.dlib.menu.i18n.volume_convar = 'Volume in cubic metres instead of Litres'
+gui.dlib.menu.i18n.temperature_convar = 'Temperature type'
 gui.dlib.menu.i18n.debug_convar = 'Debug language strings'
 gui.dlib.menu.i18n.tooltip = "Preferred language list for DLib.I18n based addons.\nDid you knew that almost every DLib based addon can be translated into any language? Help translating mods by submitting Merge Requests on mod's GitLab repository"
 gui.dlib.menu.i18n.iso_name = 'ISO Language code'

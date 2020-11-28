@@ -429,7 +429,13 @@ do
 		row[1] = row[1] * row[1] * row[1]
 	end
 
-	I18n.VOLUME_UNITS = CreateConVar('dlib_unit_system_volume', 'L', {FCVAR_ARCHIVE}, 'L/m')
+	I18n.VOLUME_UNITS = CreateConVar('dlib_unit_system_volume', '0', {FCVAR_ARCHIVE}, 'L/m')
+
+	if I18n.VOLUME_UNITS:GetString() == 'L' then
+		I18n.VOLUME_UNITS:SetString('0')
+	else
+		I18n.VOLUME_UNITS:SetString('1')
+	end
 
 --[[
 	@doc
@@ -442,7 +448,7 @@ do
 	function I18n.FormatVolume(litres)
 		assert(litres >= 0, 'Volume can not be negative')
 
-		if I18n.VOLUME_UNITS:GetString() == 'm' then
+		if I18n.VOLUME_UNITS:GetBool() then
 			local numIn = litres / 1000
 
 			if numIn >= 0.0001 and numIn <= 1000000 then
@@ -488,8 +494,8 @@ do
 	I18n.FormatVolumeHammerUnits = I18n.FormatVolumeHU
 
 	cvars.AddChangeCallback('dlib_unit_system_volume', function(self, old, new)
-		if new ~= 'L' and new ~= 'm' then
-			DLib.MessageError('Invalid value for dlib_unit_system_volume specified, reverting to L')
+		if new ~= '0' and new ~= '1' then
+			DLib.MessageError('Invalid value for dlib_unit_system_volume specified, reverting to L (0)')
 			I18n.VOLUME_UNITS:Reset()
 		end
 	end, 'DLib')

@@ -101,6 +101,8 @@ gui.dlib.friends.settings.server = 'Игроки на сервере ->'
 gui.dlib.friends.settings.foreign = '[Внешний] '
 
 gui.dlib.menu.i18n.settings = 'Настройка языка DLib'
+gui.dlib.menu.i18n.volume_convar = 'Отображать объем в кубических метрах вместо литров'
+gui.dlib.menu.i18n.temperature_convar = 'Температура'
 gui.dlib.menu.i18n.debug_convar = 'Режим отладки'
 gui.dlib.menu.i18n.tooltip = "Предпочительный язык интерфейса аддонов использующих DLib.I18n\nПочти каждый аддон на DLib можно перевести на любой язык! Помогите в переводе путем присылания Merge Request'ов на GitLab соотвествующего мода"
 gui.dlib.menu.i18n.iso_name = 'Код языка в ISO'
@@ -216,10 +218,10 @@ info.dlib.si.units.sievert.suffix = "Зв"
 info.dlib.si.units.katal.name = "Катал"
 info.dlib.si.units.katal.suffix = "кат"
 
-info.dlib.si.units.kelvin.name = 'Кельвины'
+info.dlib.si.units.kelvin.name = 'Кельвин'
 info.dlib.si.units.kelvin.suffix = 'К'
 
-info.dlib.si.units.celsius.name = 'Цельсиус'
+info.dlib.si.units.celsius.name = 'Цельсий'
 info.dlib.si.units.celsius.suffix = 'С'
 
 info.dlib.si.units.fahrenheit.name = 'Фаренгейт'
