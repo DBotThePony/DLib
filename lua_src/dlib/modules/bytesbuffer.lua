@@ -18,15 +18,12 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-
 jit.on()
+
 local DLib = DLib
-local meta = FindMetaTable('LBytesBuffer') or {}
-debug.getregistry().LBytesBuffer = meta
-DLib.BytesBufferMeta = meta
+local meta, metaclass = {}, {}
 
 local BitWorker = DLib.BitWorker
-
 local type = type
 local math = math
 local assert = assert
@@ -62,10 +59,8 @@ meta.__index = meta
 	@returns
 	BytesBuffer: newly created object
 ]]
-DLib.BytesBuffer = setmetatable({proto = meta, meta = meta}, {__call = function(self, stringIn)
-	local obj = setmetatable({}, meta)
-
-	obj.pointer = 0
+function meta:ctor(stringIn)
+	self.pointer = 0
 
 	if isstring(stringIn) then
 		local bytes = {}
@@ -74,15 +69,13 @@ DLib.BytesBuffer = setmetatable({proto = meta, meta = meta}, {__call = function(
 			bytes[i] = string_byte(stringIn, i)
 		end
 
-		obj.bytes = bytes
-		obj.length = #bytes
+		self.bytes = bytes
+		self.length = #bytes
 	else
-		obj.bytes = {}
-		obj.length = 0
+		self.bytes = {}
+		self.length = 0
 	end
-
-	return obj
-end})
+end
 
 --[[
 	@doc
@@ -1134,7 +1127,7 @@ end
 	@returns
 	function: a function to pass `BytesBuffer` to get readed structure
 ]]
-function DLib.BytesBuffer.CompileStructure(structureDef, callbacks)
+function metaclass.CompileStructure(structureDef, callbacks)
 	local output = {}
 
 	for i, line in ipairs(structureDef:split('\n')) do
@@ -1209,6 +1202,10 @@ function meta:ReadStructure(structureDef, callbacks)
 	return DLib.BytesBuffer.CompileStructure(structureDef, callbacks)(self)
 end
 
+local real_buff_meta
+DLib.BytesBuffer, real_buff_meta = DLib.CreateMoonClassBare('LBytesBuffer', meta, metaclass, nil, DLib.BytesBuffer, true)
+debug.getregistry().LBytesBuffer = DLib.BytesBuffer
+
 local meta_view = {}
 local meta_bytes = {}
 
@@ -1253,7 +1250,7 @@ function meta_view:__index(key)
 		return meta_view.CalculateLength(self)
 	end]]
 
-	return meta_view[key] or meta[key]
+	return meta_view[key] or real_buff_meta[key]
 end
 
 function meta_bytes:__index(key)
