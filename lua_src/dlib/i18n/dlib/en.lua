@@ -301,6 +301,29 @@ info.dlib.si.units.second.suffix = 's'
 info.dlib.si.units.kmh.name = 'Kilometres per hour'
 info.dlib.si.units.kmh.suffix = 'km/h'
 
+gui.dlib.menu.settings.name = 'DLib'
+
+gui.dlib.menu.settings.blur_enable = 'Enable Blur'
+gui.dlib.menu.settings.blur_new = 'Better Blur'
+gui.dlib.menu.settings.blur_passes = 'Blur passes'
+gui.dlib.menu.settings.blur_x = 'Blur X bias'
+gui.dlib.menu.settings.blur_y = 'Blur Y bias'
+gui.dlib.menu.settings.vgui_blur = 'Enable VGUI Blur'
+gui.dlib.menu.settings.screenscale = 'Use H/scale instead of W/scale'
+gui.dlib.menu.settings.screenscale_mul = 'Scale multiplier'
+gui.dlib.menu.settings.strict = 'Strict execution mode'
+gui.dlib.menu.settings.debug = 'Enable debugging'
+gui.dlib.menu.settings.donation_never = 'Never show donation window'
+gui.dlib.menu.settings.profile_hooks_tip = 'To see profile results open console'
+gui.dlib.menu.settings.profile_hooks = 'Profile hooks'
+gui.dlib.menu.settings.print_profile_hooks = 'Print last profile results'
+gui.dlib.menu.settings.reload_materials = 'Reload DLib materials'
+gui.dlib.menu.settings.replace_missing_textures = 'Replace missing textures'
+gui.dlib.menu.settings.replace_missing_textures_sugar = 'sugarrush'
+gui.dlib.menu.settings.oldalpha = 'Enable old alpha bar'
+gui.dlib.menu.settings.oldhue = 'Enable old hue bar'
+gui.dlib.menu.settings.wangbars = 'Enable color wangs'
+
 -- seems like that on server install required files are corrupted
 
 info.entity.ammo_357.name = "357 Ammo"

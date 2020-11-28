@@ -93,6 +93,7 @@ DLib.ClientInclude('util/client/donate.lua')
 DLib.ClientInclude('util/client/ttfreader.lua')
 DLib.ClientInclude('util/client/matnotify.lua')
 DLib.ClientInclude('util/client/blur.lua')
+DLib.ClientInclude('util/client/menu.lua')
 
 DLib.ClientInclude('modules/client/friendstatus.lua')
 DLib.ClientInclude('modules/client/lastnick.lua')

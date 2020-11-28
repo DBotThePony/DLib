@@ -238,15 +238,3 @@ function Friend.OpenGUI()
 end
 
 concommand.Add('dlib_friends', Friend.OpenGUI)
-
-local function PopulateToolMenu()
-	spawnmenu.AddToolMenuOption('Utilities', 'User', 'DLib.Friends', 'DLib Friends', 'dlib_friends', '', function(self)
-		if not IsValid(self) then return end
-		self:Clear()
-		self:SetSkin('DLib_Black')
-		self:Button('gui.dlib.friends.open', 'dlib_friends')
-		self:CheckBox('gui.dlib.friends.settings.steam', 'cl_dlib_steamfriends')
-	end)
-end
-
-hook.Add('PopulateToolMenu', 'DLib.FriendsGUI', PopulateToolMenu)
