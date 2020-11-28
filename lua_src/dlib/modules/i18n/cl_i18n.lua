@@ -431,6 +431,7 @@ local language_codes = {
 	['zu'] = {'Zulu', 'isiZulu'},
 
 	['gmod'] = {"Garry's mod language", '-'},
+	['en-pt'] = {"Piratespeak", "Lingo of yer crew"},
 }
 
 function I18n.PopulateMenu(self)
