@@ -446,7 +446,7 @@ function I18n.PopulateMenu(self)
 	langlist:AddColumn('gui.dlib.menu.i18n.name_english')
 	langlist:AddColumn('gui.dlib.menu.i18n.name_self')
 	langlist:Dock(TOP)
-	langlist:DockMargin(0, 5, 0, 0)
+	langlist:DockMargin(5, 5, 5, 0)
 
 	langlist:SetTall(600)
 
@@ -502,7 +502,7 @@ function I18n.PopulateMenu(self)
 
 	local controls = vgui.Create('EditablePanel', self)
 	controls:Dock(TOP)
-	controls:DockMargin(0, 5, 0, 5)
+	controls:DockMargin(5, 5, 5, 5)
 
 	moveup = vgui.Create('DButton', controls)
 	movedown = vgui.Create('DButton', controls)
@@ -635,11 +635,11 @@ function I18n.PopulateMenu(self)
 
 	local controls_add1 = vgui.Create('EditablePanel', self)
 	controls_add1:Dock(TOP)
-	controls_add1:DockMargin(0, 0, 0, 5)
+	controls_add1:DockMargin(5, 0, 5, 5)
 
 	local controls_add2 = vgui.Create('EditablePanel', self)
 	controls_add2:Dock(TOP)
-	controls_add2:DockMargin(0, 0, 0, 5)
+	controls_add2:DockMargin(5, 0, 5, 5)
 
 	combobox = vgui.Create('DComboBox', controls_add1)
 	local add_combobox = vgui.Create('DButton', controls_add1)
