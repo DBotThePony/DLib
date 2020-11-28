@@ -473,7 +473,7 @@ function I18n.LocalizeByLang(phrase, lang, ...)
 
 	local unformatted
 
-	if isstring(lang) then
+	if not istable(lang) then
 		unformatted = HashedLangFunc[lang] and HashedLangFunc[lang][phrase] or HashedLang[lang] and HashedLang[phrase]
 	else
 		for i, langIn in ipairs(lang) do
@@ -541,7 +541,7 @@ function I18n._localizeByLangAdvanced(phrase, lang, colorDef, ...)
 
 	local unformatted
 
-	if isstring(lang) then
+	if not istable(lang) then
 		unformatted = HashedLangFunc[lang] and HashedLangFunc[lang][phrase] or HashedLang[lang] and HashedLang[phrase]
 	else
 		for i, langIn in ipairs(lang) do
