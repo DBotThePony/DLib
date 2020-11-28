@@ -441,6 +441,7 @@ function I18n.PopulateMenu(self)
 	self:Help('gui.dlib.menu.i18n.tooltip')
 
 	local langlist = vgui.Create('DListView', self)
+	langlist:SetSortable(false)
 
 	langlist:AddColumn('gui.dlib.menu.i18n.lang_column')
 	langlist:AddColumn('gui.dlib.menu.i18n.name_english')
