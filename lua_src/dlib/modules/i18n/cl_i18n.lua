@@ -682,6 +682,12 @@ function I18n.PopulateMenu(self)
 		add_textfield:SetEnabled(value and value:trim() ~= '')
 	end
 
+	function textfield.OnEnter(_, value)
+		if add_textfield:IsEnabled() then
+			timer.Simple(0, add_textfield.DoClick)
+		end
+	end
+
 	function add_textfield.DoClick()
 		local getlang = textfield:GetValue():trim():lower()
 
