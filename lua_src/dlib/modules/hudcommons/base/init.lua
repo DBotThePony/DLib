@@ -171,7 +171,7 @@ function meta:ctor(hudID, hudName)
 	end)
 end
 
-meta, meta_ = DLib.CreateMoonClassBare('HUDCommonsBase', meta_, meta, nil, HUDCommons.BaseMeta)
+meta_, meta = DLib.CreateMoonClassBare('HUDCommonsBase', meta, meta_, nil, HUDCommons.BaseMeta)
 HUDCommons.BaseMeta, HUDCommons.BaseMetaObj = meta_, meta
 
 --[[
