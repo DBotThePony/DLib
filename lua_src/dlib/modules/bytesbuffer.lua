@@ -43,8 +43,6 @@ local string_char = string.char
 local table_insert = table.insert
 local math_floor = math.floor
 
-meta.__index = meta
-
 --[[
 	@doc
 	@fname DLib.BytesBuffer

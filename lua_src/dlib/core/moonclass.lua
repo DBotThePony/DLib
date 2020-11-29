@@ -109,7 +109,9 @@ function DLib.CreateMoonClassBare(classname, object_definition, class_definition
 
 		__call = function(self, ...)
 			local obj = setmetatable({}, object_definition)
+
 			classdef.__init(obj, ...)
+
 			return obj
 		end
 	})

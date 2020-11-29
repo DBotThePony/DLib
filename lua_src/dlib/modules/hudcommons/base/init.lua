@@ -21,9 +21,7 @@
 local DLib = DLib
 local HUDCommons = DLib.HUDCommons
 
-local meta_, meta = DLib.CreateMoonClassBare('HUDCommonsBase', {}, {}, nil, HUDCommons.BaseMeta)
-HUDCommons.BaseMeta = meta_
-HUDCommons.BaseMetaObj = meta
+local meta_, meta = {}, {}
 
 local pairs = pairs
 local hook = hook
@@ -172,6 +170,9 @@ function meta:ctor(hudID, hudName)
 		self:ResetFontsBare()
 	end)
 end
+
+meta, meta_ = DLib.CreateMoonClassBare('HUDCommonsBase', meta_, meta, nil, HUDCommons.BaseMeta)
+HUDCommons.BaseMeta, HUDCommons.BaseMetaObj = meta_, meta
 
 --[[
 	@doc
