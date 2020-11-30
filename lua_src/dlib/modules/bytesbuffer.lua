@@ -1200,6 +1200,8 @@ function meta:ReadStructure(structureDef, callbacks)
 	return DLib.BytesBuffer.CompileStructure(structureDef, callbacks)(self)
 end
 
+if DLib.BytesBuffer and not DLib.BytesBuffer.__base then DLib.BytesBuffer = nil end
+
 local real_buff_meta
 DLib.BytesBuffer, real_buff_meta = DLib.CreateMoonClassBare('LBytesBuffer', meta, metaclass, nil, DLib.BytesBuffer, true)
 debug.getregistry().LBytesBuffer = DLib.BytesBuffer
