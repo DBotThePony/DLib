@@ -1134,7 +1134,7 @@ local TYPE_FLOAT = TYPE_NSHORT + 6
 local TYPE_ULONG = TYPE_NSHORT + 7
 local TYPE_NLONG = TYPE_NSHORT + 8
 
-local math_abs = abs
+local math_abs = math.abs
 
 Net.WriteVars = {
 	[TYPE_NIL]          = function(typeid, value) end,
