@@ -354,14 +354,14 @@ function Net.ProcessIncomingQueue(namespace, ply)
 	local startprocess = SysTime()
 
 	while hit do
-		if (SysTime() - startprocess) >= 0.4 then
+		if (SysTime() - startprocess) >= 0.05 then
 			if CLIENT then
 				DLib.MessageWarning('[!!!] DLib.Net: Net.ProcessIncomingQueue took ', string.format('%.2f', (SysTime() - startprocess) * 1000), ' ms!')
 			else
 				DLib.MessageWarning('[!!!] DLib.Net: Net.ProcessIncomingQueue for ', ply, ' took ', string.format('%.2f', (SysTime() - startprocess) * 1000), ' ms!')
 			end
 
-			namespace.process_next = RealTime() + 0.5
+			namespace.process_next = RealTime() + 0.25
 
 			break
 		end
