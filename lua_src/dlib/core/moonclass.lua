@@ -20,6 +20,13 @@
 
 local DLib = DLib
 local setmetatable = setmetatable
+local istable = istable
+local table_Merge = table.Merge
+local pairs = pairs
+local isstring = isstring
+local isfunction = isfunction
+local table_Copy = table.Copy
+local rawget = rawget
 
 local function empty()
 
@@ -51,7 +58,7 @@ function DLib.CreateMoonClassBare(classname, object_definition, class_definition
 	if istable(original) then
 		if originalInheritMode ~= true then
 			classdef = original
-			table.Merge(original.__base, object_definition)
+			table_Merge(original.__base, object_definition)
 			object_definition = original.__base
 		else
 			classdef = {}
@@ -65,17 +72,17 @@ function DLib.CreateMoonClassBare(classname, object_definition, class_definition
 			for k, v in pairs(original) do
 				if not isstring(k) or k ~= '__name' and k ~= '__parent' and k ~= '__base' and k ~= '__class' then
 					if istable(v) then
-						classdef[k] = table.Copy(v)
+						classdef[k] = table_Copy(v)
 					else
 						classdef[k] = v
 					end
 				end
 			end
 
-			table.Merge(classdef, class_definition)
+			table_Merge(classdef, class_definition)
 		end
 	else
-		classdef = table.Copy(class_definition)
+		classdef = table_Copy(class_definition)
 	end
 
 	classdef.__name = classname
@@ -164,7 +171,7 @@ function baseclass:Set(name, tab)
 	if not self.classes[name] then
 		self.classes[name] = tab
 	else
-		table.Merge(self.classes[name], tab)
+		table_Merge(self.classes[name], tab)
 		setmetatable(self.classes[name], getmetatable(tab))
 	end
 end
@@ -174,6 +181,8 @@ DLib.baseclass = DLib.CreateMoonClassBare('baseclass', baseclass, nil, nil, DLib
 if not DLib.baseclass.INSTANCE then
 	DLib.baseclass.INSTANCE = DLib.baseclass()
 end
+
+local error = error
 
 function DLib.ConsturctClass(classIn, ...)
 	if classIn == 'HUDCommonsBase' then

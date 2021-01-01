@@ -164,6 +164,8 @@ function fnlib:SingleWrap(...)
 	end
 end
 
+fnlib.singleWrap = fnlib.SingleWrap
+
 --[[
 	@doc
 	@fname function:Wrap
@@ -192,6 +194,8 @@ end
 -- ???
 fnlib.fp = fnlib.Wrap
 fnlib.Partial = fnlib.Wrap
+fnlib.wrap = fnlib.Wrap
+fnlib.partial = fnlib.Wrap
 
 --[[
 	@doc
@@ -215,6 +219,8 @@ function fnlib:FlipFull(...)
 	end
 end
 
+fnlib.flipFull = fnlib.FlipFull
+
 --[[
 	@doc
 	@fname function:Flip
@@ -232,6 +238,8 @@ function fnlib:Flip()
 	end
 end
 
+fnlib.flip = fnlib.Flip
+
 --[[
 	@doc
 	@fname function:Id
@@ -245,16 +253,18 @@ function fnlib:Id(...)
 	return self, ...
 end
 
+fnlib.identity = fnlib.Id
+
 -- func:Compose(func2, func3, func4) ->
 -- func(func2(func3(func4(...))))
 
 local select = select
 local type = type
 
-local function Compose(currentFunc, nextFunc, ...)
+local function compose(currentFunc, nextFunc, ...)
 	if nextFunc == nil then return currentFunc end
 
-	nextFunc = Compose(nextFunc, ...)
+	nextFunc = compose(nextFunc, ...)
 
 	return function(...)
 		return currentFunc(nextFunc(...))
@@ -277,14 +287,14 @@ end
 ]]
 function fnlib:Compose(funcList, ...)
 	if type(funcList) == 'table' then
-		return Compose(self, unpack(funcList))
+		return compose(self, unpack(funcList))
 	else
-		return Compose(self, funcList, ...)
+		return compose(self, funcList, ...)
 	end
 end
 
 fnlib.fc = fnlib.Compose
-
+fnlib.compose = fnlib.Compose
 
 --[[
 	@doc
@@ -298,6 +308,9 @@ function fnlib:ReverseArgs(...)
 	return unpack(table.flip({...}))
 end
 
+fnlib.reverseArgs = fnlib.ReverseArgs
+fnlib.reverse = fnlib.ReverseArgs
+
 --[[
 	@doc
 	@fname function:Apply
@@ -309,6 +322,8 @@ end
 function fnlib:Apply(...)
 	return self(...)
 end
+
+fnlib.apply = fnlib.Apply
 
 for k, v in pairs(fnlib) do
 	fnlib[k:sub(1, 1):lower() .. k:sub(2)] = v

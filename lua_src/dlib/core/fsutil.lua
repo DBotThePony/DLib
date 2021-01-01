@@ -24,13 +24,20 @@ local files, dirs = {}, {}
 local endfix = '/*'
 local searchIn = 'LUA'
 
+local file_Find = file.Find
+local table_prependString = table.prependString
+local table_append = table.append
+local table_filter = table.filter
+local table_sort = table.sort
+
 local function findRecursive(dirTarget)
-	local findFiles = file.Find(dirTarget .. endfix, searchIn)
-	local _, findDirs = file.Find(dirTarget .. '/*', searchIn)
-	table.prependString(findFiles, dirTarget .. '/')
-	table.prependString(findDirs, dirTarget .. '/')
-	table.append(files, findFiles)
-	table.append(dirs, findDirs)
+	local findFiles = file_Find(dirTarget .. endfix, searchIn)
+	local _, findDirs = file_Find(dirTarget .. '/*', searchIn)
+
+	table_prependString(findFiles, dirTarget .. '/')
+	table_prependString(findDirs, dirTarget .. '/')
+	table_append(files, findFiles)
+	table_append(dirs, findDirs)
 
 	for i, dir in ipairs(findDirs) do
 		findRecursive(dirTarget .. '/' .. dir)
@@ -44,10 +51,10 @@ local function findRecursiveVisible(dirTarget)
 		findRecursiveVisible(dirTarget .. '/' .. dir)
 	end
 
-	table.prependString(findFiles, dirTarget .. '/')
-	table.prependString(findDirs, dirTarget .. '/')
-	table.append(files, findFiles)
-	table.append(dirs, findDirs)
+	table_prependString(findFiles, dirTarget .. '/')
+	table_prependString(findDirs, dirTarget .. '/')
+	table_append(files, findFiles)
+	table_append(dirs, findDirs)
 end
 
 --[[
@@ -61,10 +68,12 @@ end
 ]]
 function file.FindVisible(dir, searchIn)
 	local fileFind, dirFind = file.Find(dir .. '/*', searchIn or 'LUA')
-	table.filter(fileFind, function(key, val) return val:sub(1, 1) ~= '.' end)
-	table.filter(dirFind, function(key, val) return val:sub(1, 1) ~= '.' end)
+	table_filter(fileFind, function(key, val) return val:sub(1, 1) ~= '.' end)
+	table_filter(dirFind, function(key, val) return val:sub(1, 1) ~= '.' end)
 	return fileFind, dirFind
 end
+
+local file_FindVisible = file.FindVisible
 
 --[[
 	@doc
@@ -76,9 +85,11 @@ end
 	table: found dirs (full paths)
 ]]
 function file.FindVisiblePrepend(dir, searchIn)
-	local fileFind, dirFind = file.FindVisible(dir, searchIn)
-	table.prependString(fileFind, dir .. '/')
-	table.prependString(dirFind, dir .. '/')
+	local fileFind, dirFind = file_FindVisible(dir, searchIn)
+
+	table_prependString(fileFind, dir .. '/')
+	table_prependString(dirFind, dir .. '/')
+
 	return fileFind, dirFind
 end
 
@@ -99,8 +110,8 @@ function file.FindRecursive(dir, endfixTo, searchIn2)
 	files, dirs = {}, {}
 
 	findRecursive(dir)
-	table.sort(files)
-	table.sort(dirs)
+	table_sort(files)
+	table_sort(dirs)
 
 	return files, dirs
 end
@@ -120,8 +131,8 @@ function file.FindRecursiveVisible(dir, searchIn2)
 	files, dirs = {}, {}
 
 	findRecursiveVisible(dir)
-	table.sort(files)
-	table.sort(dirs)
+	table_sort(files)
+	table_sort(dirs)
 
 	return files, dirs
 end

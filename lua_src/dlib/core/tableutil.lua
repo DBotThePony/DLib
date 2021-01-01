@@ -22,7 +22,9 @@ local ipairs = ipairs
 local pairs = pairs
 local table = table
 local select = select
+local error = error
 local remove = table.remove
+
 local insert = function(self, val)
 	local newIndex = #self + 1
 	self[newIndex] = val
@@ -91,6 +93,8 @@ function table.appendString(destination, append)
 	return destination
 end
 
+local isnumber = isnumber
+
 --[[
 	@doc
 	@fname table.filter
@@ -108,13 +112,18 @@ function table.filter(target, filterFunc)
 	if not filterFunc then error('table.filter - missing filter function') end
 
 	local toRemove = {}
+	local index = 0
+	local indexR = 0
 
 	for key, value in pairs(target) do
 		local status = filterFunc(key, value, target)
+
 		if not status then
-			if type(key) == 'number' then
-				insert(filtered, value)
-				insert(toRemove, key)
+			if isnumber(key) then
+				index = index + 1
+
+				filtered[index] = value
+				toRemove[index] = key
 			else
 				filtered[key] = value
 				target[key] = nil
@@ -149,6 +158,8 @@ function table.qfilter(target, filterFunc)
 	local filtered = {}
 	local toRemove = {}
 
+	local index = 0
+
 	local i = 1
 	local nextelement = target[i]
 
@@ -157,8 +168,9 @@ function table.qfilter(target, filterFunc)
 	local status = filterFunc(i, nextelement, target)
 
 	if not status then
-		filtered[#filtered + 1] = nextelement
-		toRemove[#toRemove + 1] = i
+		index = index + 1
+		filtered[index] = nextelement
+		toRemove[index] = i
 	end
 
 	i = i + 1
@@ -203,11 +215,14 @@ function table.filterNew(target, filterFunc)
 	if not filterFunc then error('table.filterNew - missing filter function') end
 
 	local filtered = {}
+	local index = 0
 
 	for key, value in pairs(target) do
 		local status = filterFunc(key, value, target)
+
 		if status then
-			insert(filtered, value)
+			index = index + 1
+			filtered[index] = value
 		end
 	end
 
@@ -231,11 +246,14 @@ function table.qfilterNew(target, filterFunc)
 	if not filterFunc then error('table.qfilterNew - missing filter function') end
 
 	local filtered = {}
+	local index = 0
 
 	for key, value in ipairs(target) do
 		local status = filterFunc(key, value, target)
+
 		if status then
-			insert(filtered, value)
+			index = index + 1
+			filtered[index] = value
 		end
 	end
 
@@ -396,6 +414,8 @@ function table.construct(input, funcToCall, times, ...)
 	return input
 end
 
+local math_random = math.random
+
 --[[
 	@doc
 	@fname table.frandom
@@ -409,7 +429,7 @@ end
 	any: returned value from array
 ]]
 function table.frandom(tableIn)
-	return tableIn[math.random(1, #tableIn)]
+	return tableIn[math_random(1, #tableIn)]
 end
 
 
@@ -511,6 +531,8 @@ function table.sortedFind(findIn, findWhat, ifNone)
 	return ifNone
 end
 
+local istable = istable
+
 --[[
 	@doc
 	@fname table.removeValues
@@ -528,21 +550,26 @@ function table.removeValues(tableIn, ...)
 	local first = select(1, ...)
 	local args
 
-	if type(first) == 'table' then
+	if istable(first) then
 		args = first
 	else
 		args = {...}
 	end
 
 	local removed = {}
+	local index = 0
 
 	for i = #args, 1, -1 do
-		insert(removed, tableIn[args[i]])
+		index = index + 1
+		removed[index] = tableIn[args[i]]
+
 		remove(tableIn, args[i])
 	end
 
 	return removed
 end
+
+local removeValues = table.removeValues
 
 --[[
 	@doc
@@ -561,14 +588,12 @@ function table.removeByMember(tableIn, memberID, memberValue)
 
 	for i = 1, #tableIn do
 		local v = tableIn[i]
-		if type(v) == 'table' and v[memberID] == memberValue then
-			table.remove(tableIn, i)
-			removed = v
-			break
+
+		if istable(v) and v[memberID] == memberValue then
+			remove(tableIn, i)
+			return v
 		end
 	end
-
-	return removed
 end
 
 --[[
@@ -587,16 +612,18 @@ end
 function table.deduplicate(tableIn)
 	local values = {}
 	local toremove = {}
+	local index = 0
 
 	for i, v in ipairs(tableIn) do
 		if values[v] then
-			insert(toremove, i)
+			index = index + 1
+			toremove[index] = i
 		else
 			values[v] = true
 		end
 	end
 
-	table.removeValues(tableIn, toremove)
+	removeValues(tableIn, toremove)
 	return tableIn
 end
 
@@ -618,6 +645,7 @@ function table.splice(tableIn, start, deleteCount, ...)
 	end
 
 	local removed = {}
+	local index = 0
 	local inserts = select('#', ...)
 	local actuallyMove = inserts - deleteCount
 
@@ -630,7 +658,8 @@ function table.splice(tableIn, start, deleteCount, ...)
 
 		for i = start, start + inserts - 1 do
 			if i < start + deleteCount and tableIn[i] ~= nil then
-				table.insert(removed, tableIn[i])
+				index = index + 1
+				removed[index] = tableIn[i]
 			end
 
 			tableIn[i] = select(i - start + 1, ...)
@@ -639,7 +668,8 @@ function table.splice(tableIn, start, deleteCount, ...)
 	elseif actuallyMove == 0 then
 		for i = start, start + deleteCount - 1 do
 			if tableIn[i] ~= nil then
-				table.insert(removed, tableIn[i])
+				index = index + 1
+				removed[index] = tableIn[i]
 			end
 
 			tableIn[i] = select(i - start + 1, ...)
@@ -649,7 +679,8 @@ function table.splice(tableIn, start, deleteCount, ...)
 		local sizeof = #tableIn
 		for i = start, start + inserts do
 			if tableIn[i] ~= nil then
-				table.insert(removed, tableIn[i])
+				index = index + 1
+				removed[index] = tableIn[i]
 			end
 
 			tableIn[i] = select(i - start + 1, ...)
@@ -657,7 +688,8 @@ function table.splice(tableIn, start, deleteCount, ...)
 
 		for i = start + inserts, sizeof do
 			if i - (start + inserts) < -actuallyMove and tableIn[i] ~= nil then
-				table.insert(removed, tableIn[i])
+				index = index + 1
+				removed[index] = tableIn[i]
 			end
 
 			tableIn[i] = tableIn[i - actuallyMove]

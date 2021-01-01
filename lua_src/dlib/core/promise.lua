@@ -33,6 +33,8 @@ meta.MetaName = 'Promise'
 meta.__index = meta
 
 local coroutine = coroutine
+local assert = assert
+local debug_traceback = debug.traceback
 
 --[[
 	@doc
@@ -52,7 +54,10 @@ local coroutine = coroutine
 ]]
 local function constructor(handler)
 	local mtype = type(handler)
-	assert(mtype == 'function' or mtype ~= 'thread', 'Promise handler were not provided (function/thread); got ' .. mtype)
+
+	if mtype ~= 'function' and mtype ~= 'thread' then
+		error('Promise handler were not provided (function/thread); got ' .. mtype, 2)
+	end
 
 	local self = setmetatable({}, meta)
 
@@ -62,7 +67,7 @@ local function constructor(handler)
 	self.executed = false
 	self.executed_finish = false
 	self.failure = false
-	self.traceback = debug.traceback(nil, 2)
+	self.traceback = debug_traceback(nil, 2)
 
 	self:execute()
 
@@ -72,6 +77,12 @@ end
 DLib.Promise = constructor
 _G.Promise = constructor
 
+local hook = hook
+local coroutine_status = coroutine.status
+local coroutine_resume = coroutine.resume
+local table_remove = table.remove
+local unpack = unpack
+
 function meta:execute()
 	if self.executed then error('wtf dude') end
 
@@ -79,12 +90,12 @@ function meta:execute()
 
 	if self.handlerType == 'function' then
 		xpcall(self.handler, function(err)
-			self.errors = {debug.traceback(err, 2)}
+			self.errors = {debug_traceback(err, 2)}
 			self.failure = true
 			self.executed_finish = true
 
 			if self.reject then
-				self.reject(debug.traceback(err, 2))
+				self.reject(debug_traceback(err, 2))
 			end
 		end, function(...)
 			self.returns = {...}
@@ -105,7 +116,7 @@ function meta:execute()
 		end)
 	else
 		hook.Add('Think', self, function()
-			local args = {coroutine.resume(self.handler)}
+			local args = {coroutine_resume(self.handler)}
 
 			if not args[1] then
 				self.errors = {args[2]}
@@ -119,10 +130,10 @@ function meta:execute()
 				return
 			end
 
-			local status = coroutine.status(status)
+			local status = coroutine_status(status)
 
 			if status == 'dead' then
-				table.remove(args, 1)
+				table_remove(args, 1)
 
 				self.returns = args
 				self.success = true
@@ -138,9 +149,11 @@ function meta:execute()
 	return self
 end
 
+local isfunction = isfunction
+
 function meta:catch(handler)
-	if type(handler) ~= 'function' then
-		error('Invalid handler; got ' .. type(handler))
+	if not isfunction(handler) then
+		error('Invalid handler; typeof ' .. type(handler))
 	end
 
 	self.reject = handler
@@ -153,8 +166,8 @@ function meta:catch(handler)
 end
 
 function meta:reslv(handler)
-	if type(handler) ~= 'function' then
-		error('Invalid handler; got ' .. type(handler))
+	if not isfunction(handler) then
+		error('Invalid handler; typeof ' .. type(handler))
 	end
 
 	self.resolve = handler
@@ -170,25 +183,28 @@ function meta:IsValid()
 	return not self.executed_finish
 end
 
+local coroutine_running = coroutine.running
+local coroutine_yield = coroutine.yield
+
 function meta:Await(...)
-	local thread = assert(coroutine.running(), 'not in a coroutine thread')
+	local thread = assert(coroutine_running(), 'not in a coroutine thread')
 
 	local fulfilled = false
 	local err
 
 	self:reslv(function()
 		fulfilled = true
-		coroutine.resume(thread)
+		coroutine_resume(thread)
 	end)
 
 	self:catch(function(err2)
 		err = err2
 		fulfilled = true
-		coroutine.resume(thread)
+		coroutine_resume(thread)
 	end)
 
 	while not fulfilled do
-		coroutine.yield(...)
+		coroutine_yield(...)
 	end
 
 	if err then
