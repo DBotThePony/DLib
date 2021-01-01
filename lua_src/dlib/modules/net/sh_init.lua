@@ -29,15 +29,24 @@ end
 Net.Receivers = Net.Receivers or {}
 Net.ReceiversAntispam = Net.ReceiversAntispam or {}
 
+local Receivers = Net.Receivers
+local ReceiversAntispam = Net.ReceiversAntispam
+
+local assert = assert
+local isstring = isstring
+local string_lower = string.lower
+local type = type
+local isfunction = isfunction
+
 function Net.Receive(identifier, callback)
-	Net.Receivers[assert(isstring(identifier) and identifier:lower(), 'Bad identifier given. typeof ' .. type(identifier))] = assert(isfunction(callback) and callback, 'Bad callback given. typeof ' .. type(callback))
+	Net.Receivers[assert(isstring(identifier) and string_lower(identifier), 'Bad identifier given. typeof ' .. type(identifier))] = assert(isfunction(callback) and callback, 'Bad callback given. typeof ' .. type(callback))
 end
 
 function Net.ReceiveAntispam(identifier, cooldown, antispam_type)
 	cooldown = cooldown or 1
 	antispam_type = antispam_type == true
 
-	Net.ReceiversAntispam[assert(isstring(identifier) and identifier:lower(), 'Bad identifier given. typeof ' .. type(identifier))] = {
+	Net.ReceiversAntispam[assert(isstring(identifier) and string_lower(identifier), 'Bad identifier given. typeof ' .. type(identifier))] = {
 		cooldown = cooldown,
 		antispam_type = antispam_type,
 		func = antispam_type and CurTime or RealTime,
@@ -59,35 +68,53 @@ function Net.UpdateWindowProperties()
 	Net.message_size_limit = Net.COMPRESSION_LIMIT:GetInt(0x4000)
 end
 
+local util_NetworkStringToID = util.NetworkStringToID
+local error = error
+
 function Net.Start(identifier)
-	local id = util.NetworkStringToID(assert(isstring(identifier) and identifier, 'Bad identifier given. typeof ' .. type(identifier)))
+	if not isstring(identifier) then
+		error('Bad network string identifier given. typeof ' .. type(identifier), 2)
+	end
+
+	local id = util_NetworkStringToID(identifier)
 	assert(id > 0, 'Identifier ' .. identifier .. ' is not pooled by Net.pool/util.AddNetworkString!')
 
-	table.insert(Net.active_write_buffers, {
+	local num = #Net.active_write_buffers
+
+	Net.active_write_buffers[num + 1] = {
 		identifier = identifier,
 		id = id,
 		buffer = DLib.BytesBuffer(),
-	})
+	}
 
-	if #Net.active_write_buffers > 20 then
-		DLib.MessageWarning('Network message send queue might got leaked. Currently ', #Net.active_write_buffers, ' network messages are awaiting send.')
+	if num > 19 then
+		DLib.MessageWarning('Network message send queue might got leaked. Currently ', num, ' network messages are awaiting send.')
 	end
 end
 
+local util_NetworkIDToString = util.NetworkIDToString
+local IsValid = IsValid
+local coroutine_create = coroutine.create
+local coroutine_resume = coroutine.resume
+local coroutine_status = coroutine.status
+local ErrorNoHalt = ErrorNoHalt
+local CLIENT = CLIENT
+local SERVER = SERVER
+
 function Net.TriggerEvent(network_id, buffer, ply)
-	local string_id = util.NetworkIDToString(network_id)
+	local string_id = util_NetworkIDToString(network_id)
 
 	if not string_id then
 		ErrorNoHalt('DLib.Net: Trying to trigger network event with ID ' .. network_id .. ' but util.NetworkIDToString returned nothing. Is this newly added network string?\n')
 		return
 	end
 
-	string_id = string_id:lower()
+	string_id = string_lower(string_id)
 
-	local net_event_listener = Net.Receivers[string_id]
+	local net_event_listener = Receivers[string_id]
 
 	if net_event_listener then
-		local antispam = Net.ReceiversAntispam[string_id]
+		local antispam = ReceiversAntispam[string_id]
 
 		if antispam then
 			local target
@@ -112,7 +139,7 @@ function Net.TriggerEvent(network_id, buffer, ply)
 			target[index] = time + antispam.cooldown
 		end
 
-		local thread = coroutine.create(net_event_listener)
+		local thread = coroutine_create(net_event_listener)
 
 		local read_def = {
 			identifier = string_id,
@@ -124,7 +151,7 @@ function Net.TriggerEvent(network_id, buffer, ply)
 		}
 
 		Net.active_read = read_def
-		local status, error_msg = coroutine.resume(thread, read_def._length, ply, buffer)
+		local status, error_msg = coroutine_resume(thread, read_def._length, ply, buffer)
 		Net.active_read = nil
 
 		if not status then
@@ -132,7 +159,7 @@ function Net.TriggerEvent(network_id, buffer, ply)
 			ErrorNoHalt('DLib.Net: ' .. error_msg .. '\n')
 		end
 
-		if coroutine.status(thread) ~= 'dead' then
+		if coroutine_status(thread) ~= 'dead' then
 			return read_def
 		end
 	elseif CLIENT then
@@ -162,9 +189,13 @@ function Net.BytesWritten()
 	return Net.AccessWriteBuffer().length
 end
 
+local table_remove = table.remove
+
 function Net.Discard()
-	table.remove(Net.active_write_buffers)
+	table_remove(Net.active_write_buffers)
 end
+
+local RealTime = RealTime
 
 _net.receive('dlib_net_ack1', function(_, ply)
 	local namespace = Net.Namespace(CLIENT and Net or ply)
@@ -193,6 +224,12 @@ _net.receive('dlib_net_ack2', function(_, ply)
 	namespace.server_datagram_ack = true
 end)
 
+local string_format = string.format
+local table_Count = table.Count
+local table_concat = table.concat
+local util_Decompress = util.Decompress
+local table_insert = table.insert
+
 _net.receive('dlib_net_chunk', function(_, ply)
 	local chunkid = _net.ReadUInt32()
 	local current_chunk = _net.ReadUInt16()
@@ -204,7 +241,7 @@ _net.receive('dlib_net_chunk', function(_, ply)
 	local chunk = _net.ReadData(length)
 
 	debug(
-		string.format('Received chunk: Chunkid %d, current chunk number %d, total chunks %d, position: %d->%d, compressed: %s, lenght: %s',
+		string_format('Received chunk: Chunkid %d, current chunk number %d, total chunks %d, position: %d->%d, compressed: %s, lenght: %s',
 		chunkid, current_chunk, chunks, startpos, endpos, is_compressed and 'Yes' or 'No', length))
 
 	if CLIENT or not is_compressed or Net.USE_COMPRESSION:GetBool() then
@@ -249,22 +286,22 @@ _net.receive('dlib_net_chunk', function(_, ply)
 	data.total_chunks = chunks
 	namespace.accumulated_size = namespace.accumulated_size + #chunk
 
-	if table.Count(data.chunks) == data.total_chunks then
+	if table_Count(data.chunks) == data.total_chunks then
 		if namespace.next_expected_chunk == chunkid then
 			namespace.next_expected_chunk = chunkid + 1
 		end
 
-		local stringdata = table.concat(data.chunks, '')
+		local stringdata = table_concat(data.chunks, '')
 
 		debug(
-			string.format('Built up chunks! Chunkid %d, total chunks %d, position: %d->%d, compressed: %s, lenght: %s',
+			string_format('Built up chunks! Chunkid %d, total chunks %d, position: %d->%d, compressed: %s, lenght: %s',
 			chunkid, current_chunk, chunks, startpos, endpos, is_compressed and 'Yes' or 'No', length))
 
 		namespace.accumulated_size = namespace.accumulated_size - #stringdata
 
 		if data.is_compressed then
 			if CLIENT or Net.USE_COMPRESSION:GetBool() then
-				stringdata = util.Decompress(stringdata, Net.window_size_limit - namespace.accumulated_size)
+				stringdata = util_Decompress(stringdata, Net.window_size_limit - namespace.accumulated_size)
 
 				if not stringdata then
 					namespace.queued_chunks[chunkid] = nil
@@ -277,7 +314,7 @@ _net.receive('dlib_net_chunk', function(_, ply)
 
 		namespace.accumulated_size = namespace.accumulated_size + #stringdata
 
-		table.insert(namespace.queued_buffers, {
+		table_insert(namespace.queued_buffers, {
 			startpos = startpos,
 			endpos = endpos,
 			buffer = DLib.BytesBuffer(stringdata ~= '' and stringdata or nil),
@@ -290,6 +327,8 @@ _net.receive('dlib_net_chunk', function(_, ply)
 		Net.ProcessIncomingQueue(namespace, ply)
 	end
 end)
+
+local SysTime = SysTime
 
 _net.receive('dlib_net_datagram', function(_, ply)
 	-- TODO: Too many datagrams at once can create unordered execution, causing undefined behvaior
@@ -310,7 +349,7 @@ _net.receive('dlib_net_datagram', function(_, ply)
 		_net.WriteUInt32(dgram_id)
 
 		debug(
-			string.format('Received datagram: ID: %d position: %d->%d, network string id: %d',
+			string_format('Received datagram: ID: %d position: %d->%d, network string id: %d',
 			dgram_id, startpos, endpos, readnetid))
 
 		if dgram_id >= namespace.next_expected_datagram then
@@ -354,6 +393,8 @@ _net.receive('dlib_net_datagram', function(_, ply)
 	Net.ProcessIncomingQueue(namespace, SERVER and ply or NULL)
 end)
 
+local pairs = pairs
+
 function Net.ProcessIncomingQueue(namespace, ply)
 	if CLIENT and not AreEntitiesAvailable() then return end
 
@@ -384,7 +425,7 @@ function Net.ProcessIncomingQueue(namespace, ply)
 
 		if read_def then
 			Net.active_read = read_def
-			local status, error_msg = coroutine.resume(read_def.thread)
+			local status, error_msg = coroutine_resume(read_def.thread)
 			Net.active_read = nil
 
 			if not status then
@@ -392,7 +433,7 @@ function Net.ProcessIncomingQueue(namespace, ply)
 				ErrorNoHalt('DLib.Net: ' .. error_msg .. '\n')
 			end
 
-			if coroutine.status(read_def.thread) == 'dead' then
+			if coroutine_status(read_def.thread) == 'dead' then
 				namespace.current_read_def = nil
 			end
 
@@ -429,7 +470,7 @@ function Net.ProcessIncomingQueue(namespace, ply)
 					stop = false
 
 					debug(
-						string.format('[!] Discarding buffer %d position %d->%d because of datagram %d being at %d->%d',
+						string_format('[!] Discarding buffer %d position %d->%d because of datagram %d being at %d->%d',
 						i, bdata.startpos, bdata.endpos, fdgram, fdata.startpos, fdata.endpos))
 
 					namespace.accumulated_size = namespace.accumulated_size - bdata.buffer.length
@@ -446,7 +487,7 @@ function Net.ProcessIncomingQueue(namespace, ply)
 			should_continue = true
 
 			debug(
-				string.format('Processed empty payload datagram %d',
+				string_format('Processed empty payload datagram %d',
 				fdgram))
 
 			local read_def = Net.TriggerEvent(fdata.readnetid, nil, ply)
@@ -468,7 +509,7 @@ function Net.ProcessIncomingQueue(namespace, ply)
 
 				if fdata.endpos == bdata.endpos then
 					debug(
-						string.format('Removing buffer %d because it\'s bounds are finished %d->%d for datagram %d (%d->%d)',
+						string_format('Removing buffer %d because it\'s bounds are finished %d->%d for datagram %d (%d->%d)',
 						i, fdata.startpos, fdata.endpos, fdgram, fdata.startpos, fdata.endpos))
 
 					namespace.accumulated_size = namespace.accumulated_size - bdata.buffer.length
@@ -480,7 +521,7 @@ function Net.ProcessIncomingQueue(namespace, ply)
 				local start = fdata.startpos - bdata.startpos
 
 				debug(
-					string.format('Processed datagram %d with position %d->%d and network id %d',
+					string_format('Processed datagram %d with position %d->%d and network id %d',
 					fdgram, fdata.startpos, fdata.endpos, fdata.readnetid))
 
 				local read_def = Net.TriggerEvent(fdata.readnetid, DLib.BytesBufferView(start, start + len, bdata.buffer), ply)
@@ -498,6 +539,8 @@ function Net.ProcessIncomingQueue(namespace, ply)
 
 	return false
 end
+
+local ipairs = ipairs
 
 function Net.DiscardAndFire(namespace)
 	namespace = CLIENT and Net or namespace
@@ -517,7 +560,7 @@ function Net.DiscardAndFire(namespace)
 		end
 	end
 
-	namespace.queued_datagrams_num = table.Count(namespace.queued_datagrams)
+	namespace.queued_datagrams_num = table_Count(namespace.queued_datagrams)
 
 	namespace.next_expected_datagram = -1
 	namespace.last_expected_ack = 0xFFFFFFFF
@@ -549,7 +592,7 @@ function Net.Dispatch(ply)
 	namespace.next_datagram_id = namespace.next_datagram_id + 1
 
 	if data.buffer.length ~= 0 then
-		table.insert(namespace.server_queued, {
+		table_insert(namespace.server_queued, {
 			buffer = data.buffer,
 			string = data.string,
 			startpos = startpos,
@@ -557,7 +600,7 @@ function Net.Dispatch(ply)
 		})
 
 		debug(
-			string.format('Queueing message payload for %d with position %d->%d',
+			string_format('Queueing message payload for %d with position %d->%d',
 			dgram_id, startpos, endpos))
 
 		namespace.server_queued_num = namespace.server_queued_num + 1
@@ -577,7 +620,7 @@ function Net.Dispatch(ply)
 	}
 
 	debug(
-		string.format('Queueing datagram %d with position %d->%d',
+		string_format('Queueing datagram %d with position %d->%d',
 		dgram_id, startpos, endpos))
 
 	namespace.server_datagrams_num = namespace.server_datagrams_num + 1
@@ -591,6 +634,10 @@ function Net.Dispatch(ply)
 	end
 end
 
+local util_Compress = util.Compress
+local math_min = math.min
+local next = next
+
 function Net.DispatchChunk(ply)
 	local namespace = Net.Namespace(CLIENT and Net or ply)
 
@@ -598,7 +645,7 @@ function Net.DispatchChunk(ply)
 		local stringbuilder = {}
 		local startpos, endpos = 0xFFFFFFFFF, 0
 
-		for _, data in ipairs(namespace.server_queued) do
+		for i, data in ipairs(namespace.server_queued) do
 			if data.startpos < startpos then
 				startpos = data.startpos
 			end
@@ -607,14 +654,14 @@ function Net.DispatchChunk(ply)
 				endpos = data.endpos
 			end
 
-			table.insert(stringbuilder, data.string)
+			stringbuilder[i] = data.string
 		end
 
-		local build = table.concat(stringbuilder, '')
+		local build = table_concat(stringbuilder, '')
 		local compressed
 
 		if #build > Net.message_size_limit and Net.USE_COMPRESSION:GetBool() and (SERVER or Net.USE_COMPRESSION_SV:GetBool()) then
-			compressed = util.Compress(build)
+			compressed = util_Compress(build)
 		end
 
 		local next_chunk_id = namespace.next_chunk_id
@@ -630,15 +677,15 @@ function Net.DispatchChunk(ply)
 			current_chunk = 1,
 		}
 
-		table.insert(namespace.server_chunks, data)
+		table_insert(namespace.server_chunks, data)
 		namespace.server_chunks_num = namespace.server_chunks_num + 1
 
 		local writedata = compressed or build
 		local written = 1
 
 		repeat
-			local length = math.min(#writedata - written + 1, Net.message_chunk_limit)
-			table.insert(data.chunks, writedata:sub(written, written + length))
+			local length = math_min(#writedata - written + 1, Net.message_chunk_limit)
+			table_insert(data.chunks, writedata:sub(written, written + length))
 			written = written + length + 1
 		until written >= #writedata
 
@@ -654,10 +701,10 @@ function Net.DispatchChunk(ply)
 
 	if not chunkNum then
 		debug(
-			string.format('Chunk %d is fully dispatched to target!',
+			string_format('Chunk %d is fully dispatched to target!',
 			data.chunkid))
 
-		table.remove(namespace.server_chunks, 1)
+		table_remove(namespace.server_chunks, 1)
 		namespace.server_chunks_num = namespace.server_chunks_num - 1
 		namespace.server_queued_size = namespace.server_queued_size - data.length
 
@@ -701,7 +748,7 @@ _net.receive('dlib_net_chunk_ack', function(_, ply)
 	local current_chunk = _net.ReadUInt16()
 
 	debug(
-		string.format('ACKed chunk %d with position %d',
+		string_format('ACKed chunk %d with position %d',
 		chunkid, current_chunk))
 
 	for _, data in ipairs(namespace.server_chunks) do
@@ -780,15 +827,17 @@ _net.receive('dlib_net_datagram_ack', function(length, ply)
 	end
 end)
 
+local isnumber = isnumber
+
 local function round_bits(bitsin)
 	if not isnumber(bitsin) then return end
 
 	if bitsin <= 0 then
-		error('Bit amount is lower than zero')
+		error('Bit amount is lower than zero', 3)
 	end
 
 	if bitsin > 64 then
-		error('Bit amount overflow')
+		error('Bit amount overflow', 3)
 	end
 
 	local round = math.ceil(bitsin / 8)
@@ -799,6 +848,10 @@ local function round_bits(bitsin)
 
 	return 64
 end
+
+local rshift = bit.rshift
+local band = bit.band
+local lshift = bit.lshift
 
 -- Default GMod functions
 function Net.WriteUInt(numberin, bitsin)
@@ -813,8 +866,8 @@ function Net.WriteUInt(numberin, bitsin)
 	elseif bitsin == 16 then
 		buffer:WriteUInt16(numberin)
 	elseif bitsin == 24 then
-		buffer:WriteUInt16(numberin:rshift(8))
-		buffer:WriteUByte(numberin:band(255))
+		buffer:WriteUInt16(rshift(numberin, 8))
+		buffer:WriteUByte(band(numberin, 255))
 	elseif bitsin == 32 then
 		buffer:WriteUInt32(numberin)
 	elseif bitsin == 64 then
@@ -834,7 +887,7 @@ function Net.ReadUInt(bitsin)
 	elseif bitsin == 16 then
 		return buffer:ReadUInt16()
 	elseif bitsin == 24 then
-		return buffer:WriteUInt16():lshift(8) + buffer:ReadUByte()
+		return lshift(buffer:WriteUInt16(), 8) + buffer:ReadUByte()
 	elseif bitsin == 32 then
 		return buffer:ReadUInt32()
 	elseif bitsin == 64 then
@@ -856,11 +909,11 @@ function Net.WriteInt(numberin, bitsin)
 		buffer:WriteInt16(numberin)
 	elseif bitsin == 24 then
 		if numberin >= 0 then
-			buffer:WriteInt16(numberin:rshift(8))
-			buffer:WriteByte(numberin:band(255))
+			buffer:WriteInt16(rshift(numberin, 8))
+			buffer:WriteByte(band(numberin, 255))
 		else
-			buffer:WriteInt16(-(-numberin):rshift(8))
-			buffer:WriteUByte((-numberin):band(255))
+			buffer:WriteInt16(-rshift((-numberin), 8))
+			buffer:WriteUByte(band((-numberin), 255))
 		end
 	elseif bitsin == 32 then
 		buffer:WriteInt32(numberin)
@@ -881,7 +934,7 @@ function Net.ReadInt(bitsin)
 	elseif bitsin == 16 then
 		return buffer:ReadInt16()
 	elseif bitsin == 24 then
-		local num = buffer:WriteInt16():lshift(8)
+		local num = lshift(buffer:WriteInt16(), 8)
 
 		if num >= 0 then
 			return num + buffer:ReadUByte()
@@ -898,7 +951,7 @@ function Net.ReadInt(bitsin)
 end
 
 function Net.WriteBit(bitin)
-	Net.AccessWriteBuffer():WriteUByte(bitin:band(1))
+	Net.AccessWriteBuffer():WriteUByte(band(bitin, 1))
 end
 
 function Net.ReadBit()
@@ -913,8 +966,10 @@ function Net.ReadBool()
 	return Net.AccessReadBuffer():ReadUByte() >= 1
 end
 
+local string_sub = string.sub
+
 function Net.WriteData(data, length)
-	Net.AccessWriteBuffer():WriteData(length and data:sub(1, length) or data)
+	Net.AccessWriteBuffer():WriteData(length and string_sub(data, 1, length) or data)
 end
 
 function Net.ReadData(length)
@@ -986,12 +1041,15 @@ function Net.ReadColor()
 	return Color(buffer:ReadUByte(), buffer:ReadUByte(), buffer:ReadUByte(), buffer:ReadUByte())
 end
 
+local clamp = math.clamp
+local floor = math.floor
+
 function Net.WriteNormal(data)
 	local buffer = Net.AccessWriteBuffer()
 
-	buffer:WriteInt16(math.floor(data.x * 0x3fff):clamp(-0x3fff, 0x3fff))
-	buffer:WriteInt16(math.floor(data.y * 0x3fff):clamp(-0x3fff, 0x3fff))
-	buffer:WriteInt16(math.floor(data.z * 0x3fff):clamp(-0x3fff, 0x3fff))
+	buffer:WriteInt16(clamp(floor(data.x * 0x3fff), -0x3fff, 0x3fff))
+	buffer:WriteInt16(clamp(floor(data.y * 0x3fff), -0x3fff, 0x3fff))
+	buffer:WriteInt16(clamp(floor(data.z * 0x3fff), -0x3fff, 0x3fff))
 end
 
 function Net.ReadNormal(data)
@@ -1076,6 +1134,8 @@ local TYPE_FLOAT = TYPE_NSHORT + 6
 local TYPE_ULONG = TYPE_NSHORT + 7
 local TYPE_NLONG = TYPE_NSHORT + 8
 
+local math_abs = abs
+
 Net.WriteVars = {
 	[TYPE_NIL]          = function(typeid, value) end,
 	[TYPE_STRING]       = function(typeid, value) Net.WriteString(value)    end,
@@ -1088,23 +1148,26 @@ Net.WriteVars = {
 	[TYPE_MATRIX]       = function(typeid, value) Net.WriteMatrix(value)    end,
 	[TYPE_COLOR]        = function(typeid, value) Net.WriteColor(value)     end,
 
-	[TYPE_NSHORT]       = function(typeid, value) Net.AccessWriteBuffer():WriteUShort(value:abs())      end,
+	[TYPE_NSHORT]       = function(typeid, value) Net.AccessWriteBuffer():WriteUShort(math_abs(value))      end,
 	[TYPE_USHORT]       = function(typeid, value) Net.AccessWriteBuffer():WriteUShort(value)        end,
 
-	[TYPE_NBYTE]        = function(typeid, value) Net.AccessWriteBuffer():WriteUByte(value:abs())       end,
+	[TYPE_NBYTE]        = function(typeid, value) Net.AccessWriteBuffer():WriteUByte(math_abs(value))       end,
 	[TYPE_UBYTE]        = function(typeid, value) Net.AccessWriteBuffer():WriteUByte(value)     end,
 
-	[TYPE_NINT]     = function(typeid, value) Net.AccessWriteBuffer():WriteUInt(value:abs())        end,
+	[TYPE_NINT]     = function(typeid, value) Net.AccessWriteBuffer():WriteUInt(math_abs(value))        end,
 	[TYPE_UINT]     = function(typeid, value) Net.AccessWriteBuffer():WriteUInt(value)      end,
 
-	[TYPE_NINT]     = function(typeid, value) Net.AccessWriteBuffer():WriteUInt(value:abs())        end,
+	[TYPE_NINT]     = function(typeid, value) Net.AccessWriteBuffer():WriteUInt(math_abs(value))        end,
 	[TYPE_UINT]     = function(typeid, value) Net.AccessWriteBuffer():WriteUInt(value)      end,
 
-	[TYPE_NLONG]        = function(typeid, value) Net.AccessWriteBuffer():WriteULong(value:abs())       end,
+	[TYPE_NLONG]        = function(typeid, value) Net.AccessWriteBuffer():WriteULong(math_abs(value))       end,
 	[TYPE_ULONG]        = function(typeid, value) Net.AccessWriteBuffer():WriteULong(value)     end,
 
 	[TYPE_FLOAT]        = function(typeid, value) Net.WriteFloat(value)     end,
 }
+
+local IsColor = IsColor
+local TypeID = TypeID
 
 function Net.WriteType(v)
 	local typeid
@@ -1128,7 +1191,7 @@ function Net.WriteType(v)
 					typeid = TYPE_ULONG
 				end
 			else
-				local abs = math.abs(v)
+				local abs = math_abs(v)
 
 				if abs < 0xFF then
 					typeid = TYPE_NBYTE
@@ -1141,7 +1204,7 @@ function Net.WriteType(v)
 				end
 			end
 		else
-			typeid = math.abs(v) <= 262144 and TYPE_FLOAT or TYPE_NUMBER
+			typeid = math_abs(v) <= 262144 and TYPE_FLOAT or TYPE_NUMBER
 		end
 	end
 

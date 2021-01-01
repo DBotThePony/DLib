@@ -71,16 +71,18 @@ if Net.server_chunk_ack == nil then
 	Net.server_chunk_ack = true
 end
 
+local table_remove = table.remove
+
 function Net.SendToServer()
 	if #Net.active_write_buffers == 0 then
 		error('No Net message active to be sent')
 	end
 
 	Net.Dispatch()
-	table.remove(Net.active_write_buffers)
+	table_remove(Net.active_write_buffers)
 end
 
-local RealTime = RealTime
+local SysTime = SysTime
 
 function Net.Think()
 	if Net.server_chunk_ack and (#Net.server_queued ~= 0 or #Net.server_chunks ~= 0) then

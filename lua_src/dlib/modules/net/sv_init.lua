@@ -42,13 +42,20 @@ Net.pool('dlib_net_ack2')
 Net.pool('dlib_net_chunk')
 Net.pool('dlib_net_chunk_ack')
 
+local error = error
+local type = type
+local istable = istable
+local table_remove = table.remove
+local pairs = pairs
+local IsValid = IsValid
+
 function Net.Send(target)
 	if #Net.active_write_buffers == 0 then
 		error('No network message active to be sent')
 	end
 
 	if target == nil then
-		table.remove(Net.active_write_buffers)
+		table_remove(Net.active_write_buffers)
 
 		error('Target is nil')
 	end
@@ -60,12 +67,12 @@ function Net.Send(target)
 		end
 
 		Net.Dispatch(target)
-		table.remove(Net.active_write_buffers)
+		table_remove(Net.active_write_buffers)
 		return
 	end
 
 	if not istable(target) and type(target) ~= 'CRecipientFilter' then
-		table.remove(Net.active_write_buffers)
+		table_remove(Net.active_write_buffers)
 		error('Target is not a table and is not a CRecipientFilter')
 	end
 
@@ -76,7 +83,7 @@ function Net.Send(target)
 			end
 		end
 
-		table.remove(Net.active_write_buffers)
+		table_remove(Net.active_write_buffers)
 
 		return
 	elseif type(target) == 'CRecipientFilter' then
@@ -86,13 +93,15 @@ function Net.Send(target)
 			end
 		end
 
-		table.remove(Net.active_write_buffers)
+		table_remove(Net.active_write_buffers)
 
 		return
 	end
 
 	error('yo dude what the fuck')
 end
+
+local RecipientFilter = RecipientFilter
 
 function Net.SendPVS(position)
 	local filter = RecipientFilter()
@@ -106,9 +115,13 @@ function Net.SendPAS(position)
 	Net.Send(filter)
 end
 
+local player_GetHumans = player.GetHumans
+
 function Net.Broadcast(position)
-	Net.Send(player.GetHumans())
+	Net.Send(player_GetHumans())
 end
+
+local ipairs = ipairs
 
 function Net.SendOmit(data)
 	local filter = RecipientFilter()
@@ -126,10 +139,6 @@ function Net.SendOmit(data)
 
 	Net.Send(filter)
 end
-
-local GetHumans = player.GetHumans
-local ipairs = ipairs
-local next = next
 
 function Net.Namespace(target)
 	if type(target) == 'Player' then
@@ -174,9 +183,11 @@ function Net.Namespace(target)
 	return target
 end
 
+local SysTime = SysTime
+
 function Net.Think()
 	local time = SysTime()
-	local iter = GetHumans()
+	local iter = player_GetHumans()
 
 	for i = 1, #iter do
 		local ply = iter[i]
