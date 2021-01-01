@@ -112,21 +112,28 @@ function Net.TriggerEvent(network_id, buffer, ply)
 			target[index] = time + antispam.cooldown
 		end
 
-		Net.active_read = {
+		local thread = coroutine.create(net_event_listener)
+
+		local read_def = {
 			identifier = string_id,
 			id = network_id,
 			buffer = buffer,
 			ply = ply,
+			thread = thread,
+			_length = buffer and buffer.length * 8 or 0
 		}
 
-		local status = ProtectedCall(function()
-			net_event_listener(buffer and buffer.length * 8 or 0, ply, buffer)
-		end)
-
+		Net.active_read = read_def
+		local status, error_msg = coroutine.resume(thread, read_def._length, ply, buffer)
 		Net.active_read = nil
 
 		if not status then
 			ErrorNoHalt('DLib.Net: Listener on network message ' .. string_id .. ' has failed!\n')
+			ErrorNoHalt('DLib.Net: ' .. error_msg .. '\n')
+		end
+
+		if coroutine.status(thread) ~= 'dead' then
+			return read_def
 		end
 	elseif CLIENT then
 		ErrorNoHalt('DLib.Net: No network listener attached on network message ' .. string_id .. '\n')
@@ -349,24 +356,51 @@ end)
 
 function Net.ProcessIncomingQueue(namespace, ply)
 	if CLIENT and not AreEntitiesAvailable() then return end
-	local hit = true
 
 	local startprocess = SysTime()
+	if namespace.process_next and namespace.process_next > startprocess then return false end
 
-	while hit do
-		if (SysTime() - startprocess) >= 0.05 then
-			if CLIENT then
-				DLib.MessageWarning('[!!!] DLib.Net: Net.ProcessIncomingQueue took ', string.format('%.2f', (SysTime() - startprocess) * 1000), ' ms!')
-			else
-				DLib.MessageWarning('[!!!] DLib.Net: Net.ProcessIncomingQueue for ', ply, ' took ', string.format('%.2f', (SysTime() - startprocess) * 1000), ' ms!')
+	local should_continue = false
+	local everhit = false
+
+	repeat
+		::RESTART::
+		local entry_time = SysTime()
+
+		if (entry_time - startprocess) >= 0.05 then
+			if (entry_time - startprocess) >= 0.1 then
+				if CLIENT then
+					DLib.MessageWarning('[!!!] DLib.Net: Net.ProcessIncomingQueue took ', string.format('%.2f', (entry_time - startprocess) * 1000), ' ms!')
+				else
+					DLib.MessageWarning('[!!!] DLib.Net: Net.ProcessIncomingQueue for ', ply, ' took ', string.format('%.2f', (entry_time - startprocess) * 1000), ' ms!')
+				end
 			end
 
-			namespace.process_next = RealTime() + 0.25
-
-			break
+			namespace.process_next = entry_time + 0.25
+			return false
 		end
 
-		hit = false
+		local read_def = namespace.current_read_def
+
+		if read_def then
+			Net.active_read = read_def
+			local status, error_msg = coroutine.resume(read_def.thread)
+			Net.active_read = nil
+
+			if not status then
+				ErrorNoHalt('DLib.Net: coroutine listener on network message ' .. string_id .. ' has failed!\n')
+				ErrorNoHalt('DLib.Net: ' .. error_msg .. '\n')
+			end
+
+			if coroutine.status(read_def.thread) == 'dead' then
+				namespace.current_read_def = nil
+			end
+
+			should_continue = true
+			goto RESTART
+		end
+
+		should_continue = false
 
 		local fdgram, fdata
 
@@ -377,11 +411,10 @@ function Net.ProcessIncomingQueue(namespace, ply)
 			end
 		end
 
-		if not fdgram then return end
+		if not fdgram then return false end
 
 		if namespace.next_expected_datagram == -1 then
 			namespace.next_expected_datagram = fdgram
-			return
 		end
 
 		if fdgram ~= namespace.next_expected_datagram then return end
@@ -410,47 +443,60 @@ function Net.ProcessIncomingQueue(namespace, ply)
 			namespace.queued_datagrams[fdgram] = nil
 			namespace.queued_datagrams_num = namespace.queued_datagrams_num - 1
 			namespace.next_expected_datagram = namespace.next_expected_datagram + 1
-			hit = true
+			should_continue = true
 
 			debug(
 				string.format('Processed empty payload datagram %d',
 				fdgram))
 
-			Net.TriggerEvent(fdata.readnetid, nil, ply)
-		else
-			for i, bdata in pairs(namespace.queued_buffers) do
-				if bdata.startpos <= fdata.startpos and bdata.endpos >= fdata.endpos then
-					hit = true
-					namespace.queued_datagrams[fdgram] = nil
-					namespace.queued_datagrams_num = namespace.queued_datagrams_num - 1
-					namespace.network_position = fdata.endpos
+			local read_def = Net.TriggerEvent(fdata.readnetid, nil, ply)
 
-					if fdata.endpos == bdata.endpos then
-						debug(
-							string.format('Removing buffer %d because it\'s bounds are finished %d->%d for datagram %d (%d->%d)',
-							i, fdata.startpos, fdata.endpos, fdgram, fdata.startpos, fdata.endpos))
-
-						namespace.accumulated_size = namespace.accumulated_size - bdata.buffer.length
-						namespace.queued_buffers[i] = nil
-						namespace.queued_buffers_num = namespace.queued_buffers_num - 1
-					end
-
-					local len = fdata.endpos - fdata.startpos
-					local start = fdata.startpos - bdata.startpos
-
-					debug(
-						string.format('Processed datagram %d with position %d->%d and network id %d',
-						fdgram, fdata.startpos, fdata.endpos, fdata.readnetid))
-
-					Net.TriggerEvent(fdata.readnetid, DLib.BytesBufferView(start, start + len, bdata.buffer), ply)
-
-					namespace.next_expected_datagram = namespace.next_expected_datagram + 1
-
-					break
-				end
+			-- message yield!
+			if read_def then
+				namespace.current_read_def = read_def
+				goto CONTINUE
 			end
 		end
-	end
+
+		for i, bdata in pairs(namespace.queued_buffers) do
+			if bdata.startpos <= fdata.startpos and bdata.endpos >= fdata.endpos then
+				should_continue = true
+
+				namespace.queued_datagrams[fdgram] = nil
+				namespace.queued_datagrams_num = namespace.queued_datagrams_num - 1
+				namespace.network_position = fdata.endpos
+
+				if fdata.endpos == bdata.endpos then
+					debug(
+						string.format('Removing buffer %d because it\'s bounds are finished %d->%d for datagram %d (%d->%d)',
+						i, fdata.startpos, fdata.endpos, fdgram, fdata.startpos, fdata.endpos))
+
+					namespace.accumulated_size = namespace.accumulated_size - bdata.buffer.length
+					namespace.queued_buffers[i] = nil
+					namespace.queued_buffers_num = namespace.queued_buffers_num - 1
+				end
+
+				local len = fdata.endpos - fdata.startpos
+				local start = fdata.startpos - bdata.startpos
+
+				debug(
+					string.format('Processed datagram %d with position %d->%d and network id %d',
+					fdgram, fdata.startpos, fdata.endpos, fdata.readnetid))
+
+				local read_def = Net.TriggerEvent(fdata.readnetid, DLib.BytesBufferView(start, start + len, bdata.buffer), ply)
+
+				namespace.next_expected_datagram = namespace.next_expected_datagram + 1
+
+				-- message yield!
+				if read_def then namespace.current_read_def = read_def end
+				break
+			end
+		end
+
+		::CONTINUE::
+	until not should_continue
+
+	return false
 end
 
 function Net.DiscardAndFire(namespace)

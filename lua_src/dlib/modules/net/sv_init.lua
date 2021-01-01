@@ -175,7 +175,7 @@ function Net.Namespace(target)
 end
 
 function Net.Think()
-	local time = RealTime()
+	local time = SysTime()
 	local iter = GetHumans()
 
 	for i = 1, #iter do
@@ -190,7 +190,7 @@ function Net.Think()
 			Net.DispatchDatagram(ply)
 		end
 
-		if namespace.process_next and namespace.process_next < RealTime() then
+		if namespace.process_next and namespace.process_next < time then
 			namespace.process_next = nil
 			Net.ProcessIncomingQueue(namespace, ply)
 		end

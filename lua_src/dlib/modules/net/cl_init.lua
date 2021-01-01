@@ -91,7 +91,7 @@ function Net.Think()
 		Net.DispatchDatagram()
 	end
 
-	local time = RealTime()
+	local time = SysTime()
 
 	if Net.last_expected_ack ~= 0xFFFFFFFF and Net.last_expected_ack < time then
 		-- can you hear me?
@@ -101,7 +101,7 @@ function Net.Think()
 		Net.last_expected_ack = time + 10
 	end
 
-	if Net.process_next and Net.process_next < RealTime() then
+	if Net.process_next and Net.process_next < time then
 		Net.process_next = nil
 		Net.ProcessIncomingQueue(DLib.Net)
 	end
