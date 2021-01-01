@@ -433,12 +433,20 @@ function Net.ProcessIncomingQueue(namespace, ply)
 				ErrorNoHalt('DLib.Net: ' .. error_msg .. '\n')
 			end
 
-			if coroutine_status(read_def.thread) == 'dead' then
+			local state = coroutine_status(read_def.thread)
+
+			if state == 'dead' then
 				namespace.current_read_def = nil
 			end
 
 			should_continue = true
-			goto RESTART
+
+			if state ~= 'dead' and error_msg then
+				goto RESTART
+			elseif state ~= 'dead' and not error_msg then
+				namespace.process_next = entry_time
+				return true
+			end
 		end
 
 		should_continue = false
