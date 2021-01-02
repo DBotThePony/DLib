@@ -463,6 +463,31 @@ function plyMeta:DLibGetPDataString(index, ifNotFound)
 	return data[1].value
 end
 
+function plyMeta:DLibRemovePDataString(index)
+	if not isstring(index) then
+		error('Bad index, it must be a string. typeof ' .. type(index), 2)
+	end
+
+	if string_find(index, '\x00', 1, true) then
+		error('Index contain NUL byte')
+	end
+
+	if IsBot(self) then
+		local data = self.dlib_pdata_string
+		if not data then return end
+
+		data[index] = nil
+
+		return
+	end
+
+	local data = Query(string_format('DELETE FROM `dlib_pdata_string` WHERE `steamid` = %s AND `key` = %s', SQLStr(SteamID64(self)), SQLStr(index)))
+
+	if data == false then
+		error(sql.LastError())
+	end
+end
+
 function plyMeta:DLibGetPDataInt(index, ifNotFound)
 	if not isstring(index) then
 		error('Bad index, it must be a string. typeof ' .. type(index), 2)
@@ -493,6 +518,31 @@ function plyMeta:DLibGetPDataInt(index, ifNotFound)
 	end
 
 	return tonumber(data[1].value)
+end
+
+function plyMeta:DLibRemovePDataInt(index)
+	if not isstring(index) then
+		error('Bad index, it must be a string. typeof ' .. type(index), 2)
+	end
+
+	if string_find(index, '\x00', 1, true) then
+		error('Index contain NUL byte')
+	end
+
+	if IsBot(self) then
+		local data = self.dlib_pdata_integer
+		if not data then return end
+
+		data[index] = nil
+
+		return
+	end
+
+	local data = Query(string_format('DELETE FROM `dlib_pdata_integer` WHERE `steamid` = %s AND `key` = %s', SQLStr(SteamID64(self)), SQLStr(index)))
+
+	if data == false then
+		error(sql.LastError())
+	end
 end
 
 function plyMeta:DLibGetPDataFloat(index, ifNotFound)
@@ -527,6 +577,31 @@ function plyMeta:DLibGetPDataFloat(index, ifNotFound)
 	return tonumber(data[1].value)
 end
 
+function plyMeta:DLibRemovePDataFloat(index)
+	if not isstring(index) then
+		error('Bad index, it must be a string. typeof ' .. type(index), 2)
+	end
+
+	if string_find(index, '\x00', 1, true) then
+		error('Index contain NUL byte')
+	end
+
+	if IsBot(self) then
+		local data = self.dlib_pdata_real
+		if not data then return end
+
+		data[index] = nil
+
+		return
+	end
+
+	local data = Query(string_format('DELETE FROM `dlib_pdata_real` WHERE `steamid` = %s AND `key` = %s', SQLStr(SteamID64(self)), SQLStr(index)))
+
+	if data == false then
+		error(sql.LastError())
+	end
+end
+
 function plyMeta:DLibGetPDataBoolean(index, ifNotFound)
 	if not isstring(index) then
 		error('Bad index, it must be a string. typeof ' .. type(index), 2)
@@ -557,6 +632,31 @@ function plyMeta:DLibGetPDataBoolean(index, ifNotFound)
 	end
 
 	return data[1].value == "1"
+end
+
+function plyMeta:DLibRemovePDataBoolean(index)
+	if not isstring(index) then
+		error('Bad index, it must be a string. typeof ' .. type(index), 2)
+	end
+
+	if string_find(index, '\x00', 1, true) then
+		error('Index contain NUL byte')
+	end
+
+	if IsBot(self) then
+		local data = self.dlib_pdata_boolean
+		if not data then return end
+
+		data[index] = nil
+
+		return
+	end
+
+	local data = Query(string_format('DELETE FROM `dlib_pdata_boolean` WHERE `steamid` = %s AND `key` = %s', SQLStr(SteamID64(self)), SQLStr(index)))
+
+	if data == false then
+		error(sql.LastError())
+	end
 end
 
 function plyMeta:DLibGetPDataVector(index, ifNotFound)
@@ -592,6 +692,31 @@ function plyMeta:DLibGetPDataVector(index, ifNotFound)
 	return Vector(row.x, row.y, row.z)
 end
 
+function plyMeta:DLibRemovePDataVector(index)
+	if not isstring(index) then
+		error('Bad index, it must be a string. typeof ' .. type(index), 2)
+	end
+
+	if string_find(index, '\x00', 1, true) then
+		error('Index contain NUL byte')
+	end
+
+	if IsBot(self) then
+		local data = self.dlib_pdata_vector
+		if not data then return end
+
+		data[index] = nil
+
+		return
+	end
+
+	local data = Query(string_format('DELETE FROM `dlib_pdata_vector` WHERE `steamid` = %s AND `key` = %s', SQLStr(SteamID64(self)), SQLStr(index)))
+
+	if data == false then
+		error(sql.LastError())
+	end
+end
+
 function plyMeta:DLibGetPDataAngle(index, ifNotFound)
 	if not isstring(index) then
 		error('Bad index, it must be a string. typeof ' .. type(index), 2)
@@ -625,6 +750,31 @@ function plyMeta:DLibGetPDataAngle(index, ifNotFound)
 	return Angle(row.p, row.y, row.r)
 end
 
+function plyMeta:DLibRemovePDataAngle(index)
+	if not isstring(index) then
+		error('Bad index, it must be a string. typeof ' .. type(index), 2)
+	end
+
+	if string_find(index, '\x00', 1, true) then
+		error('Index contain NUL byte')
+	end
+
+	if IsBot(self) then
+		local data = self.dlib_pdata_angle
+		if not data then return end
+
+		data[index] = nil
+
+		return
+	end
+
+	local data = Query(string_format('DELETE FROM `dlib_pdata_angle` WHERE `steamid` = %s AND `key` = %s', SQLStr(SteamID64(self)), SQLStr(index)))
+
+	if data == false then
+		error(sql.LastError())
+	end
+end
+
 function plyMeta:DLibGetPDataColor(index, ifNotFound)
 	if not isstring(index) then
 		error('Bad index, it must be a string. typeof ' .. type(index), 2)
@@ -656,6 +806,31 @@ function plyMeta:DLibGetPDataColor(index, ifNotFound)
 
 	local row = data[1]
 	return Color(row.r, row.g, row.b, row.a)
+end
+
+function plyMeta:DLibRemovePDataColor(index)
+	if not isstring(index) then
+		error('Bad index, it must be a string. typeof ' .. type(index), 2)
+	end
+
+	if string_find(index, '\x00', 1, true) then
+		error('Index contain NUL byte')
+	end
+
+	if IsBot(self) then
+		local data = self.dlib_pdata_color
+		if not data then return end
+
+		data[index] = nil
+
+		return
+	end
+
+	local data = Query(string_format('DELETE FROM `dlib_pdata_color` WHERE `steamid` = %s AND `key` = %s', SQLStr(SteamID64(self)), SQLStr(index)))
+
+	if data == false then
+		error(sql.LastError())
+	end
 end
 
 local function replaceHex(value)
@@ -696,7 +871,33 @@ function plyMeta:DLibGetPDataBinary(index, ifNotFound)
 	return CompileString(string_format('return "%s"', string_gsub(data[1].value, '..', replaceHex)), 'Player:DLibGetPDataBinary')()
 end
 
+function plyMeta:DLibRemovePDataBinary(index)
+	if not isstring(index) then
+		error('Bad index, it must be a string. typeof ' .. type(index), 2)
+	end
+
+	if string_find(index, '\x00', 1, true) then
+		error('Index contain NUL byte')
+	end
+
+	if IsBot(self) then
+		local data = self.dlib_pdata_blob
+		if not data then return end
+
+		data[index] = nil
+
+		return
+	end
+
+	local data = Query(string_format('DELETE FROM `dlib_pdata_blob` WHERE `steamid` = %s AND `key` = %s', SQLStr(SteamID64(self)), SQLStr(index)))
+
+	if data == false then
+		error(sql.LastError())
+	end
+end
+
 plyMeta.DLibGetPDataBlob = plyMeta.DLibGetPDataBinary
+plyMeta.DLibRemovePDataBlob = plyMeta.DLibRemovePDataBinary
 
 function plyMeta:DLibSetPData(index, value)
 	self:DLibSetPDataBlob(index, DLib.GON.Serialize(value):ToString())
