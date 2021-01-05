@@ -898,6 +898,7 @@ end
 
 plyMeta.DLibGetPDataBlob = plyMeta.DLibGetPDataBinary
 plyMeta.DLibRemovePDataBlob = plyMeta.DLibRemovePDataBinary
+plyMeta.DLibRemovePData = plyMeta.DLibRemovePDataBinary
 
 function plyMeta:DLibSetPData(index, value)
 	self:DLibSetPDataBlob(index, DLib.GON.Serialize(value):ToString())
