@@ -434,6 +434,11 @@ local language_codes = {
 	['en-pt'] = {"Piratespeak", "Lingo of yer crew"},
 }
 
+local force_langs = {
+	gmod = true,
+	['en-pt'] = true
+}
+
 function I18n.PopulateMenu(self)
 	if not IsValid(self) then return end
 
@@ -483,7 +488,7 @@ function I18n.PopulateMenu(self)
 			combobox:Clear()
 
 			for name, data in pairs(language_codes) do
-				if not table.qhasValue(known_languages, name) and (I18n.HashedLang[name] and table.Count(I18n.HashedLang[name]) > 0 or I18n.HashedFunc[name] and table.Count(I18n.HashedFunc[name]) > 0) then
+				if not table.qhasValue(known_languages, name) and (force_langs[name] or I18n.HashedLang[name] and table.Count(I18n.HashedLang[name]) > 0 or I18n.HashedFunc[name] and table.Count(I18n.HashedFunc[name]) > 0) then
 					combobox:AddChoice(string.format('%s (%s)', data[1], data[2]), name)
 				end
 			end
