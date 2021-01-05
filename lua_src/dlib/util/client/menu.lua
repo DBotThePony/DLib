@@ -60,8 +60,8 @@ local function populate(self)
 	self:Button('gui.dlib.menu.settings.reload_materials', 'dlib_reload_materials')
 
 	self:Help('')
-	self:Button('gui.dlib.menu.settings.replace_missing_textures', 'dlib_replace_missing_textures')
-	self:Button('gui.dlib.menu.settings.replace_missing_textures_sugar', 'dlib_replace_missing_textures_sugar')
+	self:CheckBox('gui.dlib.menu.settings.replace_missing_textures', 'dlib_replace_missing_textures')
+	self:CheckBox('gui.dlib.menu.settings.replace_missing_textures_sugar', 'dlib_replace_missing_textures_sugar')
 end
 
 hook.Add('PopulateToolMenu', 'DLib.Settings', function()
