@@ -503,8 +503,9 @@ function Net.ProcessIncomingQueue(namespace, ply)
 			-- message yield!
 			if read_def then
 				namespace.current_read_def = read_def
-				goto CONTINUE
 			end
+
+			goto CONTINUE
 		end
 
 		for i, bdata in pairs(namespace.queued_buffers) do
@@ -538,7 +539,7 @@ function Net.ProcessIncomingQueue(namespace, ply)
 
 				-- message yield!
 				if read_def then namespace.current_read_def = read_def end
-				break
+				goto CONTINUE
 			end
 		end
 
