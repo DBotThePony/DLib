@@ -23,12 +23,13 @@ local IsValid = FindMetaTable('Entity').IsValid
 local type = type
 local NULL = NULL
 local table = table
-DLib.combat = DLib.combat or {}
-local combat = DLib.combat
+DLib.Combat = DLib.Combat or {}
+local combat = DLib.Combat
+DLib.combat = DLib.Combat
 
 --[[
 	@doc
-	@fname DLib.combat.findWeapon
+	@fname DLib.Combat.FindWeapon
 	@args CTakeDamageInfo dmginfo
 
 	@returns
@@ -36,7 +37,7 @@ local combat = DLib.combat
 	Entity: attacker
 	Entity: inflictor
 ]]
-function combat.findWeapon(dmginfo)
+function Combat.FindWeapon(dmginfo)
 	local attacker, inflictor = dmginfo:GetAttacker(), dmginfo:GetInflictor()
 	if not IsValid(attacker) or not IsValid(inflictor) then return NULL, attacker, inflictor end
 	if type(attacker) ~= 'Player' or not (type(inflictor) == 'Weapon' or attacker == inflictor) then return end
@@ -44,13 +45,15 @@ function combat.findWeapon(dmginfo)
 	return weapon, attacker, inflictor
 end
 
+Combat.findWeapon = Combat.FindWeapon
+
 local function interval(val, min, max)
 	return val > min and val <= max
 end
 
 --[[
 	@doc
-	@fname DLib.combat.inPVS
+	@fname DLib.Combat.InPVS
 	@args Entity pointFrom, Entity pointTo, Angle eyes = pointFrom:EyeAnglesFixed(), number yawLimit = 60, number pitchLimit = 60
 
 	@desc
@@ -61,7 +64,7 @@ end
 	@returns
 	boolean
 ]]
-function combat.inPVS(point1, point2, eyes, yawLimit, pitchLimit)
+function Combat.inPVS(point1, point2, eyes, yawLimit, pitchLimit)
 	if type(point1) ~= 'Vector' then
 		if point1.EyeAnglesFixed then
 			eyes = eyes or point1:EyeAnglesFixed()
@@ -86,16 +89,18 @@ function combat.inPVS(point1, point2, eyes, yawLimit, pitchLimit)
 	return interval(diffYaw, -yawLimit, yawLimit) and interval(diffPith, -pitchLimit, pitchLimit)
 end
 
+Combat.InPVS = Combat.inPVS
+
 --[[
 	@doc
-	@fname DLib.combat.turnAngle
+	@fname DLib.Combat.TurnAngle
 	@args Entity pointFrom, Entity pointTo, Angle eyes = pointFrom:EyeAnglesFixed()
 
 	@returns
 	number: pitch delta
 	number: yaw delta
 ]]
-function combat.turnAngle(point1, point2, eyes)
+function Combat.turnAngle(point1, point2, eyes)
 	if type(point1) ~= 'Vector' then
 		if point1.EyeAnglesFixed then
 			eyes = eyes or point1:EyeAnglesFixed()
@@ -114,9 +119,11 @@ function combat.turnAngle(point1, point2, eyes)
 	return ang.p:AngleDifference(eyes.p), ang.y:AngleDifference(eyes.y)
 end
 
+Combat.TurnAngle = Combat.turnAngle
+
 --[[
 	@doc
-	@fname DLib.combat.findWeaponAlt
+	@fname DLib.Combat.FindWeaponAlt
 	@args CTakeDamageInfo dmginfo
 
 	@returns
@@ -124,7 +131,7 @@ end
 	Entity: attacker
 	Entity: inflictor
 ]]
-function combat.findWeaponAlt(dmginfo)
+function Combat.findWeaponAlt(dmginfo)
 	local attacker, inflictor = dmginfo:GetAttacker(), dmginfo:GetInflictor()
 	local weapon = inflictor
 
@@ -145,9 +152,11 @@ function combat.findWeaponAlt(dmginfo)
 	return weapon, attacker, inflictor
 end
 
+Combat.FindWeaponAlt = Combat.findWeaponAlt
+
 --[[
 	@doc
-	@fname DLib.combat.detect
+	@fname DLib.Combat.Detect
 	@args CTakeDamageInfo dmginfo
 
 	@returns
@@ -155,8 +164,8 @@ end
 	Entity: weapon or inflictor
 	Entity: inflictor
 ]]
-function combat.detect(dmginfo)
-	local weapon, attacker, inflictor = combat.findWeapon(dmginfo)
+function Combat.detect(dmginfo)
+	local weapon, attacker, inflictor = Combat.findWeapon(dmginfo)
 
 	if not IsValid(weapon) then
 		weapon = inflictor
@@ -165,9 +174,11 @@ function combat.detect(dmginfo)
 	return attacker, weapon, inflictor
 end
 
+Combat.Detect = Combat.detect
+
 --[[
 	@doc
-	@fname DLib.combat.findPlayers
+	@fname DLib.Combat.FindPlayers
 	@args Entity self
 
 	@desc
@@ -179,7 +190,7 @@ end
 	@returns
 	table: of players found or false, if self is NULL
 ]]
-function combat.findPlayers(self)
+function Combat.findPlayers(self)
 	if not IsValid(self) then
 		return false
 	end
@@ -239,3 +250,5 @@ function combat.findPlayers(self)
 
 	return #specs ~= 0 and table.deduplicate(specs) or false
 end
+
+Combat.FindPlayers = Combat.findPlayers
