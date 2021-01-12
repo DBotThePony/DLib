@@ -52,7 +52,7 @@ local debug_traceback = debug.traceback
 	@returns
 	Promise: created promise
 ]]
-local function constructor(handler)
+local function constructor(handler, ...)
 	local mtype = type(handler)
 
 	if mtype ~= 'function' and mtype ~= 'thread' then
@@ -69,7 +69,7 @@ local function constructor(handler)
 	self.failure = false
 	self.traceback = debug_traceback(nil, 2)
 
-	self:execute()
+	self:execute(...)
 
 	return self
 end
@@ -83,7 +83,7 @@ local coroutine_resume = coroutine.resume
 local table_remove = table.remove
 local unpack = unpack
 
-function meta:execute()
+function meta:execute(...)
 	if self.executed then error('wtf dude') end
 
 	self.executed = true
@@ -113,38 +113,70 @@ function meta:execute()
 			if self.reject then
 				self.reject(...)
 			end
-		end)
-	else
-		hook.Add('Think', self, function()
-			local args = {coroutine_resume(self.handler)}
+		end, ...)
 
-			if not args[1] then
-				self.errors = {args[2]}
-				self.failure = true
-				self.executed_finish = true
-
-				if self.reject then
-					self.reject(err)
-				end
-
-				return
-			end
-
-			local status = coroutine_status(status)
-
-			if status == 'dead' then
-				table_remove(args, 1)
-
-				self.returns = args
-				self.success = true
-				self.executed_finish = true
-
-				if self.resolve then
-					self.resolve(unpack(args, 1, #args))
-				end
-			end
-		end)
+		return
 	end
+
+	local args = {coroutine_resume(self.handler, ...)}
+
+	if not args[1] then
+		self.errors = {args[2]}
+		self.failure = true
+		self.executed_finish = true
+
+		if self.reject then
+			self.reject(args[2])
+		end
+
+		return
+	end
+
+	local status = coroutine_status(status)
+
+	if status == 'dead' then
+		table_remove(args, 1)
+
+		self.returns = args
+		self.success = true
+		self.executed_finish = true
+
+		if self.resolve then
+			self.resolve(unpack(args, 1, #args))
+		end
+
+		return
+	end
+
+	hook.Add('Think', self, function()
+		args = {coroutine_resume(self.handler)}
+
+		if not args[1] then
+			self.errors = {args[2]}
+			self.failure = true
+			self.executed_finish = true
+
+			if self.reject then
+				self.reject(args[2])
+			end
+
+			return
+		end
+
+		status = coroutine_status(status)
+
+		if status == 'dead' then
+			table_remove(args, 1)
+
+			self.returns = args
+			self.success = true
+			self.executed_finish = true
+
+			if self.resolve then
+				self.resolve(unpack(args, 1, #args))
+			end
+		end
+	end)
 
 	return self
 end
