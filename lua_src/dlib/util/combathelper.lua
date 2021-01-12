@@ -24,7 +24,7 @@ local type = type
 local NULL = NULL
 local table = table
 DLib.Combat = DLib.Combat or {}
-local combat = DLib.Combat
+local Combat = DLib.Combat
 DLib.combat = DLib.Combat
 
 --[[
