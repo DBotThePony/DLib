@@ -844,62 +844,31 @@ if CLIENT then
 	end, 'DLib')
 end
 
-local threads1T = {}
-local threads1C = {}
-local threads2T = {}
-local threads2C = {}
 local SysTime = SysTime
 local coroutine = coroutine
-local maximal = 0
+local coroutine_yield = coroutine.yield
+local coroutine_running = coroutine.running
 
 --[[
 	@doc
 	@fname coroutine.syswait
-	@args number seconds
+	@args number seconds, vararg yield
 
 	@desc
 	like !g:coroutine.wait but use `SysTime()`
 	@enddesc
 ]]
-function coroutine.syswait(seconds)
-	if type(seconds) ~= 'number'then
-		error('Invalid seconds amount provided')
+function coroutine.syswait(seconds, ...)
+	if not isnumber(seconds) then
+		error('coroutine.syswait: bad argument #1 (expected number, got ' .. type(seconds) .. ')')
 	end
 
-	local thread = assert(coroutine.running(), 'Not inside coroutine!')
+	local thread = assert(coroutine_running(), 'Not inside coroutine!')
 
 	if seconds < 0 then return end
+	local target = SysTime() + seconds
 
-	table.insert(threads1C, thread)
-	table.insert(threads1T, SysTime() + seconds)
-	coroutine.yield()
-end
-
-hook.Add(SERVER and 'Tick' or 'Think', 'DLib.coroutine.syswait', function()
-	local stime = SysTime()
-
-	for i = 1, #threads2C do
-		local thread = threads2C[i]
-		local time = threads2T[i]
-
-		if time and time <= stime then
-			threads2C[i] = nil
-			threads2T[i] = nil
-
-			if coroutine.status(thread) == 'suspended' then
-				local status, err = coroutine.resume(thread)
-
-				if not status then
-					DLib.MessageError('Error executing thread:')
-					ErrorNoHalt(err .. '\n')
-				end
-			end
-		end
+	while target > SysTime() do
+		coroutine_yield(...)
 	end
-
-	local sw1t, sw2t, sw1c, sw2c = threads1T, threads2T, threads1C, threads2C
-	threads2T = sw1t
-	threads1T = sw2t
-	threads2C = sw1c
-	threads1C = sw2c
-end, 3)
+end

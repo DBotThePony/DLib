@@ -132,7 +132,7 @@ function meta:execute(...)
 		return
 	end
 
-	local status = coroutine_status(status)
+	local status = coroutine_status(self.handler)
 
 	if status == 'dead' then
 		table_remove(args, 1)
@@ -163,7 +163,7 @@ function meta:execute(...)
 			return
 		end
 
-		status = coroutine_status(status)
+		status = coroutine_status(self.handler)
 
 		if status == 'dead' then
 			table_remove(args, 1)

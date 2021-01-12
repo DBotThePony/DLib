@@ -245,14 +245,27 @@ function DLib.ttf.ASyncSearchFamilies()
 		return concurrentRunning
 	end
 
-	concurrentRunning = DLib.Promise(function(resolve, reject)
-		local thread = coroutine.create(function()
-			local files = file.Find('resource/fonts/*.ttf', 'GAME')
-			local files2 = file.Find('cache/workshop/resource/fonts/*.ttf', 'GAME')
-			local output = {}
+	concurrentRunning = DLib.Promise(coroutine.create(function(resolve, reject)
+		local files = file.Find('resource/fonts/*.ttf', 'GAME')
+		local files2 = file.Find('cache/workshop/resource/fonts/*.ttf', 'GAME')
+		local output = {}
 
-			for i, mfile in ipairs(files) do
-				local ttf = DLib.ttf.Open(DLib.BytesBuffer(file.Read('resource/fonts/' .. mfile, 'GAME')))
+		for i, mfile in ipairs(files) do
+			local ttf = DLib.ttf.Open(DLib.BytesBuffer(file.Read('resource/fonts/' .. mfile, 'GAME')))
+			coroutine.syswait(0.1)
+
+			if ttf:HasName() then
+				local getName = ttf:GetFamily()
+
+				if getName and getName ~= '' then
+					table.insert(output, getName)
+				end
+			end
+		end
+
+		for i, mfile in ipairs(files2) do
+			if not table.qhasValue(files, mfile) then
+				local ttf = DLib.ttf.Open(DLib.BytesBuffer(file.Read('cache/workshop/resource/fonts/' .. mfile, 'GAME')))
 				coroutine.syswait(0.1)
 
 				if ttf:HasName() then
@@ -263,28 +276,11 @@ function DLib.ttf.ASyncSearchFamilies()
 					end
 				end
 			end
+		end
 
-			for i, mfile in ipairs(files2) do
-				if not table.qhasValue(files, mfile) then
-					local ttf = DLib.ttf.Open(DLib.BytesBuffer(file.Read('cache/workshop/resource/fonts/' .. mfile, 'GAME')))
-					coroutine.syswait(0.1)
-
-					if ttf:HasName() then
-						local getName = ttf:GetFamily()
-
-						if getName and getName ~= '' then
-							table.insert(output, getName)
-						end
-					end
-				end
-			end
-
-			concurrentRunning = nil
-			return resolve(table.deduplicate(output))
-		end)
-
-		coroutine.resume(thread)
-	end)
+		concurrentRunning = nil
+		return table.deduplicate(output)
+	end))
 
 	return concurrentRunning
 end
