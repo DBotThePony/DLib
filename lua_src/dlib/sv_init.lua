@@ -117,14 +117,14 @@ MsgC(string.format('[DLib] Addons were initialized in %.2f ms\n', (SysTime() - t
 timeStart = SysTime()
 MsgC('[DLib] Loading translations for i18n ... ')
 
-DLib.i18n.reload()
+DLib.I18n.Reload()
 
 concommand.Add('dlib_reload_i18n', function(ply)
 	if IsValid(ply) then return end
 	timeStart = SysTime()
 
 	DLib.Message('Reloading translations for i18n ... ')
-	DLib.i18n.reload()
+	DLib.I18n.Reload()
 	hook.Run('DLib.TranslationsReloaded')
 	DLib.Message(string.format('i18n reload took %.2f ms', (SysTime() - timeStart) * 1000))
 end)

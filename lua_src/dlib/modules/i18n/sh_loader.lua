@@ -48,7 +48,7 @@ function I18n.Reload(module)
 	for i2, luafile in ipairs(files) do
 		-- if luafile:sub(-4) == '.lua' then
 			AddCSLuaFile('dlib/i18n/' .. module .. '/' .. luafile)
-			I18n.executeFile(luafile:sub(1, -5), 'dlib/i18n/' .. module .. '/' .. luafile)
+			I18n.ExecuteFile(luafile:sub(1, -5), 'dlib/i18n/' .. module .. '/' .. luafile)
 		-- end
 	end
 end
