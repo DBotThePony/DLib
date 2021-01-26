@@ -272,3 +272,17 @@ gui.dlib.menu.settings.replace_missing_textures = 'Подменять отсут
 gui.dlib.menu.settings.oldalpha = 'Старый ползунок альфа канала'
 gui.dlib.menu.settings.oldhue = 'Старый ползунок цвета'
 gui.dlib.menu.settings.wangbars = 'Ползунки цвета'
+
+info.dlib.si.bytes_short.bytes = '%d Б'
+info.dlib.si.bytes_short.kilo = '%.2f КБ'
+info.dlib.si.bytes_short.mega = '%.2f МБ'
+info.dlib.si.bytes_short.giga = '%.2f ГБ'
+info.dlib.si.bytes_short.tera = '%.2f ТБ'
+info.dlib.si.bytes_short.peta = '%.2f ПБ'
+
+info.dlib.si.bytes.bytes = '%s байт'
+info.dlib.si.bytes.kilo = '%.2f килобайт'
+info.dlib.si.bytes.mega = '%.2f мегабайт'
+info.dlib.si.bytes.giga = '%.2f гигабайт'
+info.dlib.si.bytes.tera = '%.2f терабайт'
+info.dlib.si.bytes.peta = '%.2f петабайт'

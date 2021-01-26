@@ -85,6 +85,115 @@ end
 
 --[[
 	@doc
+	@fname DLib.I18n.FormatAnyBytes
+	@args number numIn
+
+	@returns
+	string
+]]
+
+do
+	local kb = 1024
+	local mb = math.pow(1024, 2)
+	local gb = math.pow(1024, 3)
+	local tb = math.pow(1024, 4)
+	local pb = math.pow(1024, 5)
+
+	function I18n.FormatAnyBytes(numIn)
+		local abs = numIn:abs()
+
+		if abs <= 1023 then
+			return I18n.localize('info.dlib.si.bytes_short.bytes', numIn)
+		end
+
+		if abs >= pb then
+			return I18n.Localize('info.dlib.si.bytes_short.peta', numIn / (pb))
+		elseif abs >= tb then
+			return I18n.Localize('info.dlib.si.bytes_short.tera', numIn / (tb))
+		elseif abs >= gb then
+			return I18n.Localize('info.dlib.si.bytes_short.giga', numIn / (gb))
+		elseif abs >= mb then
+			return I18n.Localize('info.dlib.si.bytes_short.mega', numIn / (mb))
+		end
+
+		return I18n.Localize('info.dlib.si.bytes_short.kilo', numIn / (kb))
+	end
+
+	function I18n.FormatAnyBytesLong(numIn)
+		local abs = numIn:abs()
+
+		if abs <= 1023 then
+			return I18n.localize('info.dlib.si.bytes.bytes', numIn)
+		end
+
+		if abs >= pb then
+			return I18n.Localize('info.dlib.si.bytes.peta', numIn / (pb))
+		elseif abs >= tb then
+			return I18n.Localize('info.dlib.si.bytes.tera', numIn / (tb))
+		elseif abs >= gb then
+			return I18n.Localize('info.dlib.si.bytes.giga', numIn / (gb))
+		elseif abs >= mb then
+			return I18n.Localize('info.dlib.si.bytes.mega', numIn / (mb))
+		end
+
+		return I18n.Localize('info.dlib.si.bytes.kilo', numIn / (kb))
+	end
+
+	function I18n.FormatBytes(numIn)
+		local str = numIn:abs():tostring()
+		local div = #str % 3
+
+		if div ~= 0 then
+			str = (div == 1 and '  ' or ' ') .. str
+		end
+
+		if numIn < 0 then
+			return '-' .. I18n.localize('info.dlib.si.bytes_short.bytes', str:gsub('(...)', '%1 '):match('^%s*(.-)%s*$'))
+		end
+
+		return I18n.localize('info.dlib.si.bytes_short.bytes', str:gsub('(...)', '%1 '):match('^%s*(.-)%s*$'))
+	end
+
+	function I18n.FormatBytesLong(numIn)
+		local str = numIn:abs():tostring()
+		local div = #str % 3
+
+		if div ~= 0 then
+			str = (div == 1 and '  ' or ' ') .. str
+		end
+
+		if numIn < 0 then
+			return '-' .. I18n.localize('info.dlib.si.bytes.bytes', str:gsub('(...)', '%1 '):match('^%s*(.-)%s*$'))
+		end
+
+		return I18n.localize('info.dlib.si.bytes.bytes', str:gsub('(...)', '%1 '):match('^%s*(.-)%s*$'))
+	end
+
+	local divs = {
+		{kb, 'kilo', 'Kilobytes'},
+		{mb, 'mega', 'Megabytes'},
+		{gb, 'giga', 'Gigabytes'},
+		{tb, 'tera', 'Terabytes'},
+		{pb, 'peta', 'Petabytes'},
+	}
+
+	for i, _data in ipairs(divs) do
+		local prefix1 = 'info.dlib.si.bytes_short.' .. _data[2]
+		local prefix2 = 'info.dlib.si.bytes.' .. _data[2]
+		local div = _data[1]
+
+		I18n['Format' .. _data[3]] = function(numIn)
+			return I18n.localize(prefix1, numIn / div)
+		end
+
+		I18n['Format' .. _data[3] .. 'Long'] = function(numIn)
+			return I18n.localize(prefix2, numIn / div)
+		end
+	end
+end
+
+--[[
+	@doc
 	@fname DLib.I18n.FormatFrequency
 	@args number Hz
 

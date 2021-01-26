@@ -205,6 +205,20 @@ for i, row in ipairs(prefix) do
 	info.dlib.si.prefix[row[1]].prefix = row[2]
 end
 
+info.dlib.si.bytes_short.bytes = '%d B'
+info.dlib.si.bytes_short.kilo = '%.2f KB'
+info.dlib.si.bytes_short.mega = '%.2f MB'
+info.dlib.si.bytes_short.giga = '%.2f GB'
+info.dlib.si.bytes_short.tera = '%.2f TB'
+info.dlib.si.bytes_short.peta = '%.2f PB'
+
+info.dlib.si.bytes.bytes = '%s bytes'
+info.dlib.si.bytes.kilo = '%.2f kilobytes'
+info.dlib.si.bytes.mega = '%.2f megabytes'
+info.dlib.si.bytes.giga = '%.2f gigabytes'
+info.dlib.si.bytes.tera = '%.2f terabytes'
+info.dlib.si.bytes.peta = '%.2f petabytes'
+
 --[==[
 local units = [[hertz    Hz  frequency   1/s     s−1
 radian   rad     angle   m/m     1
