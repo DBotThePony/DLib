@@ -353,14 +353,16 @@ _net.receive('dlib_net_datagram', function(_, ply)
 			dgram_id, startpos, endpos, readnetid))
 
 		if dgram_id >= namespace.next_expected_datagram then
+			if not namespace.queued_datagrams[dgram_id] then
+				namespace.queued_datagrams_num = namespace.queued_datagrams_num + 1
+			end
+
 			namespace.queued_datagrams[dgram_id] = {
 				readnetid = readnetid,
 				startpos = startpos,
 				endpos = endpos,
 				dgram_id = dgram_id,
 			}
-
-			namespace.queued_datagrams_num = namespace.queued_datagrams_num + 1
 
 			if namespace.queued_datagrams_num > 2001 and namespace.queued_datagrams_num % 100 == 0 then
 				if CLIENT then
@@ -468,26 +470,6 @@ function Net.ProcessIncomingQueue(namespace, ply)
 
 		if fdgram ~= namespace.next_expected_datagram then return end
 
-		local stop = false
-
-		repeat
-			stop = true
-
-			for i, bdata in pairs(namespace.queued_buffers) do
-				if bdata.endpos < fdata.startpos then
-					stop = false
-
-					debug(
-						string_format('[!] Discarding buffer %d position %d->%d because of datagram %d being at %d->%d',
-						i, bdata.startpos, bdata.endpos, fdgram, fdata.startpos, fdata.endpos))
-
-					namespace.accumulated_size = namespace.accumulated_size - bdata.buffer.length
-					namespace.queued_buffers[i] = nil
-					namespace.queued_buffers_num = namespace.queued_buffers_num - 1
-				end
-			end
-		until stop
-
 		if fdata.startpos == fdata.endpos then
 			namespace.queued_datagrams[fdgram] = nil
 			namespace.queued_datagrams_num = namespace.queued_datagrams_num - 1
@@ -507,6 +489,26 @@ function Net.ProcessIncomingQueue(namespace, ply)
 
 			goto CONTINUE
 		end
+
+		local stop = false
+
+		repeat
+			stop = true
+
+			for i, bdata in pairs(namespace.queued_buffers) do
+				if bdata.endpos < fdata.startpos then
+					stop = false
+
+					debug(
+						string_format('[!] Discarding buffer %d position %d->%d because of datagram %d being at %d->%d',
+						i, bdata.startpos, bdata.endpos, fdgram, fdata.startpos, fdata.endpos))
+
+					namespace.accumulated_size = namespace.accumulated_size - bdata.buffer.length
+					namespace.queued_buffers[i] = nil
+					namespace.queued_buffers_num = namespace.queued_buffers_num - 1
+				end
+			end
+		until stop
 
 		for i, bdata in pairs(namespace.queued_buffers) do
 			if bdata.startpos <= fdata.startpos and bdata.endpos >= fdata.endpos then
