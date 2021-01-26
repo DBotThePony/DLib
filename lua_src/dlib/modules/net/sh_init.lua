@@ -404,7 +404,7 @@ function Net.ProcessIncomingQueue(namespace, ply)
 	local startprocess = SysTime()
 	if namespace.process_next and namespace.process_next > startprocess then return false end
 
-	local should_continue = false
+	local should_continue, stop = false, false
 	local everhit = false
 
 	repeat
@@ -490,7 +490,7 @@ function Net.ProcessIncomingQueue(namespace, ply)
 			goto CONTINUE
 		end
 
-		local stop = false
+		stop = false
 
 		repeat
 			stop = true
