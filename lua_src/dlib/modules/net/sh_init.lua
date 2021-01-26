@@ -451,19 +451,18 @@ function Net.ProcessIncomingQueue(namespace, ply)
 
 		should_continue = false
 
-		local fdgram, fdata
-
-		for dgram_id, data in pairs(namespace.queued_datagrams) do
-			if not fdgram or fdgram > dgram_id then
-				fdgram = dgram_id
-				fdata = data
-			end
-		end
-
+		local fdgram, fdata = next(namespace.queued_datagrams)
 		if not fdgram then return false end
 
 		if namespace.next_expected_datagram == -1 then
 			namespace.next_expected_datagram = fdgram
+		else
+			for dgram_id, data in pairs(namespace.queued_datagrams) do
+				if fdgram > dgram_id then
+					fdgram = dgram_id
+					fdata = data
+				end
+			end
 		end
 
 		if fdgram ~= namespace.next_expected_datagram then return end
