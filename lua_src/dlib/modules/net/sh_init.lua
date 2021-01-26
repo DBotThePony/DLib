@@ -394,6 +394,7 @@ _net.receive('dlib_net_datagram', function(_, ply)
 end)
 
 local pairs = pairs
+local next = next
 
 function Net.ProcessIncomingQueue(namespace, ply)
 	if CLIENT and not AreEntitiesAvailable() then return end
@@ -456,7 +457,7 @@ function Net.ProcessIncomingQueue(namespace, ply)
 
 		if namespace.next_expected_datagram == -1 then
 			namespace.next_expected_datagram = fdgram
-		else
+		elseif namespace.next_expected_datagram ~= fdgram then
 			for dgram_id, data in pairs(namespace.queued_datagrams) do
 				if fdgram > dgram_id then
 					fdgram = dgram_id
@@ -644,7 +645,6 @@ end
 
 local util_Compress = util.Compress
 local math_min = math.min
-local next = next
 
 function Net.DispatchChunk(ply)
 	local namespace = Net.Namespace(CLIENT and Net or ply)
