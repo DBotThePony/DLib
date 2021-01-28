@@ -282,6 +282,16 @@ end
 
 DLib.Util.MD5 = DLib.CreateMoonClassBare('MD5', meta, {})
 
+local jit_status = jit.status
+local jit_off = jit.off
+local jit_on = jit.on
+
 function DLib.Util.QuickMD5(str)
-	return DLib.Util.MD5():Update(str):Digest()
+	local j = jit_status()
+
+	jit_off()
+	local hash =  DLib.Util.MD5():Update(str):Digest()
+	if j then jit_on() end
+
+	return hash
 end
