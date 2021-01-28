@@ -272,6 +272,10 @@ do
 	local W = {}
 
 	function metasha1:_Inner(cc)
+		local j = jit_status()
+
+		jit_off()
+
 		-- 512 bit block
 		for i = 1, math_floor(#cc / 64) do
 			self.blocks = self.blocks + 1
@@ -403,6 +407,8 @@ do
 			self.H3 = (self.H3 + D) % 4294967296
 			self.H4 = (self.H4 + E) % 4294967296
 		end
+
+		if j then jit_on() end
 	end
 end
 
@@ -546,9 +552,14 @@ do
 	K[0] = table.remove(K, 1)
 
 	local function _Inner(self, cc)
+		local j = jit_status()
+
+		jit_off()
+
 		-- 512 bit block
 		for i = 1, math_floor(#cc / 64) do
 			self.blocks = self.blocks + 1
+			local N, N1 = self.blocks, self.blocks + 1
 
 			-- separated as ubytes (8 bit)
 			local bytes = {string_byte(cc, (i - 1) * 64 + 1, i * 64)}
@@ -571,39 +582,33 @@ do
 
 			-- working variables
 			local a, b, c, d, e, f, g, h =
-				self.H0[self.blocks],
-				self.H1[self.blocks],
-				self.H2[self.blocks],
-				self.H3[self.blocks],
-				self.H4[self.blocks],
-				self.H5[self.blocks],
-				self.H6[self.blocks],
-				self.H7[self.blocks]
+				self.H0[N],
+				self.H1[N],
+				self.H2[N],
+				self.H3[N],
+				self.H4[N],
+				self.H5[N],
+				self.H6[N],
+				self.H7[N]
 
 			for t = 0, 63 do
 				local T1 = (h + overflow(BSIG1(e)) + overflow(CH(e, f, g)) + K[t] + W[t]) % 4294967296
 				local T2 = (overflow(BSIG0(a)) + overflow(MAJ(a, b, c))) % 4294967296
-				--h, g, f, e, d, c, b, a = g, f, e, (d + T1) % 4294967296, c, b, a, (T1 + T2) % 4294967296
-				h = g
-				g = f
-				f = e
-				e = (d + T1) % 4294967296
-				d = c
-				c = b
-				b = a
-				a = (T1 + T2) % 4294967296
+				h, g, f, e, d, c, b, a = g, f, e, (d + T1) % 4294967296, c, b, a, (T1 + T2) % 4294967296
 			end
 
 			-- compute intermediate hash value
-			self.H0[self.blocks + 1] = (a + self.H0[self.blocks]) % 4294967296
-			self.H1[self.blocks + 1] = (b + self.H1[self.blocks]) % 4294967296
-			self.H2[self.blocks + 1] = (c + self.H2[self.blocks]) % 4294967296
-			self.H3[self.blocks + 1] = (d + self.H3[self.blocks]) % 4294967296
-			self.H4[self.blocks + 1] = (e + self.H4[self.blocks]) % 4294967296
-			self.H5[self.blocks + 1] = (f + self.H5[self.blocks]) % 4294967296
-			self.H6[self.blocks + 1] = (g + self.H6[self.blocks]) % 4294967296
-			self.H7[self.blocks + 1] = (h + self.H7[self.blocks]) % 4294967296
+			self.H0[N1] = (a + self.H0[N]) % 4294967296
+			self.H1[N1] = (b + self.H1[N]) % 4294967296
+			self.H2[N1] = (c + self.H2[N]) % 4294967296
+			self.H3[N1] = (d + self.H3[N]) % 4294967296
+			self.H4[N1] = (e + self.H4[N]) % 4294967296
+			self.H5[N1] = (f + self.H5[N]) % 4294967296
+			self.H6[N1] = (g + self.H6[N]) % 4294967296
+			self.H7[N1] = (h + self.H7[N]) % 4294967296
 		end
+
+		if j then jit_on() end
 	end
 
 	metasha224._Inner = _Inner
@@ -646,29 +651,33 @@ do
 	function metasha224:_Digest()
 		_Digest(self)
 
+		local N = self.blocks + 1
+
 		self.digest_hex = string.format('%08x%08x%08x%08x%08x%08x%08x',
-			overflow(self.H0[self.blocks + 1]),
-			overflow(self.H1[self.blocks + 1]),
-			overflow(self.H2[self.blocks + 1]),
-			overflow(self.H3[self.blocks + 1]),
-			overflow(self.H4[self.blocks + 1]),
-			overflow(self.H5[self.blocks + 1]),
-			overflow(self.H6[self.blocks + 1])
+			overflow(self.H0[N]),
+			overflow(self.H1[N]),
+			overflow(self.H2[N]),
+			overflow(self.H3[N]),
+			overflow(self.H4[N]),
+			overflow(self.H5[N]),
+			overflow(self.H6[N])
 		)
 	end
 
 	function metasha256:_Digest()
 		_Digest(self)
 
+		local N = self.blocks + 1
+
 		self.digest_hex = string.format('%08x%08x%08x%08x%08x%08x%08x%08x',
-			overflow(self.H0[self.blocks + 1]),
-			overflow(self.H1[self.blocks + 1]),
-			overflow(self.H2[self.blocks + 1]),
-			overflow(self.H3[self.blocks + 1]),
-			overflow(self.H4[self.blocks + 1]),
-			overflow(self.H5[self.blocks + 1]),
-			overflow(self.H6[self.blocks + 1]),
-			overflow(self.H7[self.blocks + 1])
+			overflow(self.H0[N]),
+			overflow(self.H1[N]),
+			overflow(self.H2[N]),
+			overflow(self.H3[N]),
+			overflow(self.H4[N]),
+			overflow(self.H5[N]),
+			overflow(self.H6[N]),
+			overflow(self.H7[N])
 		)
 	end
 end
