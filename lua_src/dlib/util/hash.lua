@@ -271,36 +271,6 @@ end
 do
 	local W = {}
 
-	local function F(t, B, C, D)
-		if t <= 19 then
-			return bor(band(B, C), band(bnot(B), D))
-		elseif t <= 39 then
-			return bxor(B, C, D)
-		elseif t <= 59 then
-			return bor(band(B, C), band(B, D), band(C, D))
-		end
-
-		return bxor(B, C, D)
-	end
-
-	local K = {}
-
-	for i = 0, 19 do
-		K[i] = 0x5A827999
-	end
-
-	for i = 20, 39 do
-		K[i] = 0x6ED9EBA1
-	end
-
-	for i = 40, 59 do
-		K[i] = 0x8F1BBCDC
-	end
-
-	for i = 60, 79 do
-		K[i] = 0xCA62C1D6
-	end
-
 	function metasha1:_Inner(cc)
 		-- 512 bit block
 		for i = 1, math_floor(#cc / 64) do
@@ -327,8 +297,35 @@ do
 
 			local A, B, C, D, E = self.H0, self.H1, self.H2, self.H3, self.H4
 
-			for t = 0, 79 do
-				local TEMP = overflow(rotate(A, 5)) + overflow(F(t, B, C, D)) + E + W[t] + K[t]
+			for t = 0, 19 do
+				local TEMP = overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(bnot(B), D))) + E + W[t] + 0x5A827999
+				E = D
+				D = C
+				C = overflow(rotate(B, 30))
+				B = A
+				A = TEMP % 4294967296
+			end
+
+			for t = 20, 39 do
+				local TEMP = overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[t] + 0x6ED9EBA1
+				E = D
+				D = C
+				C = overflow(rotate(B, 30))
+				B = A
+				A = TEMP % 4294967296
+			end
+
+			for t = 40, 59 do
+				local TEMP = overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(B, D), band(C, D))) + E + W[t] + 0x8F1BBCDC
+				E = D
+				D = C
+				C = overflow(rotate(B, 30))
+				B = A
+				A = TEMP % 4294967296
+			end
+
+			for t = 60, 79 do
+				local TEMP = overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[t] + 0xCA62C1D6
 				E = D
 				D = C
 				C = overflow(rotate(B, 30))
