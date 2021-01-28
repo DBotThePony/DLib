@@ -18,6 +18,10 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
+local jit_status = jit.status
+local jit_off = jit.off
+local jit_on = jit.on
+
 local bor = bit.bor
 local band = bit.band
 local bxor = bit.bxor
@@ -76,6 +80,10 @@ do
 	local S44 = 21
 
 	function meta:_Inner(cc)
+		local j = jit_status()
+
+		jit_off()
+
 		-- 512 bit block
 		for i = 1, math_floor(#cc / 64) do
 			self.blocks = self.blocks + 1
@@ -172,6 +180,8 @@ do
 			self.C = (self.C + overflow(c)) % 4294967296
 			self.D = (self.D + overflow(d)) % 4294967296
 		end
+
+		if j then jit_on() end
 	end
 end
 
@@ -237,16 +247,6 @@ end
 
 DLib.Util.MD5 = DLib.CreateMoonClassBare('MD5', meta, {})
 
-local jit_status = jit.status
-local jit_off = jit.off
-local jit_on = jit.on
-
 function DLib.Util.QuickMD5(str)
-	local j = jit_status()
-
-	jit_off()
-	local hash =  DLib.Util.MD5():Update(str):Digest()
-	if j then jit_on() end
-
-	return hash
+	return DLib.Util.MD5():Update(str):Digest()
 end
