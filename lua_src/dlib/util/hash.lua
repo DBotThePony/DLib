@@ -297,41 +297,105 @@ do
 
 			local A, B, C, D, E = self.H0, self.H1, self.H2, self.H3, self.H4
 
-			for t = 0, 19 do
-				local TEMP = overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(bnot(B), D))) + E + W[t] + 0x5A827999
-				E = D
-				D = C
-				C = overflow(rotate(B, 30))
-				B = A
-				A = TEMP % 4294967296
-			end
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(bnot(B), D))) + E + W[0] + 0x5A827999) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(bnot(B), D))) + E + W[1] + 0x5A827999) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(bnot(B), D))) + E + W[2] + 0x5A827999) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(bnot(B), D))) + E + W[3] + 0x5A827999) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(bnot(B), D))) + E + W[4] + 0x5A827999) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(bnot(B), D))) + E + W[5] + 0x5A827999) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(bnot(B), D))) + E + W[6] + 0x5A827999) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(bnot(B), D))) + E + W[7] + 0x5A827999) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(bnot(B), D))) + E + W[8] + 0x5A827999) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(bnot(B), D))) + E + W[9] + 0x5A827999) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(bnot(B), D))) + E + W[10] + 0x5A827999) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(bnot(B), D))) + E + W[11] + 0x5A827999) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(bnot(B), D))) + E + W[12] + 0x5A827999) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(bnot(B), D))) + E + W[13] + 0x5A827999) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(bnot(B), D))) + E + W[14] + 0x5A827999) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(bnot(B), D))) + E + W[15] + 0x5A827999) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(bnot(B), D))) + E + W[16] + 0x5A827999) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(bnot(B), D))) + E + W[17] + 0x5A827999) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(bnot(B), D))) + E + W[18] + 0x5A827999) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(bnot(B), D))) + E + W[19] + 0x5A827999) % 4294967296
 
-			for t = 20, 39 do
-				local TEMP = overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[t] + 0x6ED9EBA1
-				E = D
-				D = C
-				C = overflow(rotate(B, 30))
-				B = A
-				A = TEMP % 4294967296
-			end
+			--[[for t = 0, 19 do
+				E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(bnot(B), D))) + E + W[t] + 0x5A827999) % 4294967296
+			end]]
 
-			for t = 40, 59 do
-				local TEMP = overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(B, D), band(C, D))) + E + W[t] + 0x8F1BBCDC
-				E = D
-				D = C
-				C = overflow(rotate(B, 30))
-				B = A
-				A = TEMP % 4294967296
-			end
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[20] + 0x6ED9EBA1) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[21] + 0x6ED9EBA1) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[22] + 0x6ED9EBA1) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[23] + 0x6ED9EBA1) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[24] + 0x6ED9EBA1) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[25] + 0x6ED9EBA1) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[26] + 0x6ED9EBA1) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[27] + 0x6ED9EBA1) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[28] + 0x6ED9EBA1) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[29] + 0x6ED9EBA1) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[30] + 0x6ED9EBA1) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[31] + 0x6ED9EBA1) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[32] + 0x6ED9EBA1) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[33] + 0x6ED9EBA1) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[34] + 0x6ED9EBA1) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[35] + 0x6ED9EBA1) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[36] + 0x6ED9EBA1) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[37] + 0x6ED9EBA1) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[38] + 0x6ED9EBA1) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[39] + 0x6ED9EBA1) % 4294967296
 
-			for t = 60, 79 do
-				local TEMP = overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[t] + 0xCA62C1D6
-				E = D
-				D = C
-				C = overflow(rotate(B, 30))
-				B = A
-				A = TEMP % 4294967296
-			end
+			--[[for t = 20, 39 do
+				E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[t] + 0x6ED9EBA1) % 4294967296
+			end]]
+
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(B, D), band(C, D))) + E + W[40] + 0x8F1BBCDC) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(B, D), band(C, D))) + E + W[41] + 0x8F1BBCDC) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(B, D), band(C, D))) + E + W[42] + 0x8F1BBCDC) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(B, D), band(C, D))) + E + W[43] + 0x8F1BBCDC) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(B, D), band(C, D))) + E + W[44] + 0x8F1BBCDC) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(B, D), band(C, D))) + E + W[45] + 0x8F1BBCDC) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(B, D), band(C, D))) + E + W[46] + 0x8F1BBCDC) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(B, D), band(C, D))) + E + W[47] + 0x8F1BBCDC) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(B, D), band(C, D))) + E + W[48] + 0x8F1BBCDC) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(B, D), band(C, D))) + E + W[49] + 0x8F1BBCDC) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(B, D), band(C, D))) + E + W[50] + 0x8F1BBCDC) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(B, D), band(C, D))) + E + W[51] + 0x8F1BBCDC) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(B, D), band(C, D))) + E + W[52] + 0x8F1BBCDC) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(B, D), band(C, D))) + E + W[53] + 0x8F1BBCDC) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(B, D), band(C, D))) + E + W[54] + 0x8F1BBCDC) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(B, D), band(C, D))) + E + W[55] + 0x8F1BBCDC) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(B, D), band(C, D))) + E + W[56] + 0x8F1BBCDC) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(B, D), band(C, D))) + E + W[57] + 0x8F1BBCDC) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(B, D), band(C, D))) + E + W[58] + 0x8F1BBCDC) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(B, D), band(C, D))) + E + W[59] + 0x8F1BBCDC) % 4294967296
+
+			--[[for t = 40, 59 do
+				E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(B, D), band(C, D))) + E + W[t] + 0x8F1BBCDC) % 4294967296
+			end]]
+
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[60] + 0xCA62C1D6) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[61] + 0xCA62C1D6) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[62] + 0xCA62C1D6) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[63] + 0xCA62C1D6) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[64] + 0xCA62C1D6) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[65] + 0xCA62C1D6) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[66] + 0xCA62C1D6) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[67] + 0xCA62C1D6) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[68] + 0xCA62C1D6) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[69] + 0xCA62C1D6) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[70] + 0xCA62C1D6) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[71] + 0xCA62C1D6) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[72] + 0xCA62C1D6) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[73] + 0xCA62C1D6) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[74] + 0xCA62C1D6) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[75] + 0xCA62C1D6) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[76] + 0xCA62C1D6) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[77] + 0xCA62C1D6) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[78] + 0xCA62C1D6) % 4294967296
+			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[79] + 0xCA62C1D6) % 4294967296
+
+			--[[for t = 60, 79 do
+				E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[t] + 0xCA62C1D6) % 4294967296
+			end]]
 
 			self.H0 = (self.H0 + A) % 4294967296
 			self.H1 = (self.H1 + B) % 4294967296
