@@ -561,7 +561,7 @@ function HUDCommons.DrawAmmoIcon(ammotype, x, y, width, height, color, xalign, y
 	end
 
 	if not data then return end
-	local wepdata = DLib.util.GetWeaponScript(data.wepclass)
+	local wepdata = DLib.Util.GetWeaponScript(data.wepclass)
 	if not wepdata then return end
 	if not wepdata.texturedata then return end
 
@@ -612,7 +612,7 @@ local function InternalDrawIcon(self, x, y, width, height, alpha, selected, colo
 	assert(type(height) == 'number', 'height must be a number')
 	-- assert(type(alpha) == 'number', 'alpha must be a number')
 
-	local data = DLib.util.GetWeaponScript(self)
+	local data = DLib.Util.GetWeaponScript(self)
 
 	if not data or not data.texturedata or not data.texturedata.weapon then
 		local fcall = self.DrawWeaponSelection

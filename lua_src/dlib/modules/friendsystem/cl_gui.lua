@@ -138,7 +138,7 @@ function Friend.OpenGUI()
 	steamidInput:SetText('STEAMID')
 
 	function steamidInput:OnEnter(value)
-		if DLib.util.ValidateSteamID(value) then
+		if DLib.Util.ValidateSteamID(value) then
 			Friend.OpenGUIForPlayer(value)
 		else
 			Derma_Message(DLib.i18n.localize('gui.dlib.friends.invalid.desc', value), 'gui.dlib.friends.invalid.title', 'gui.dlib.friends.invalid.ok')

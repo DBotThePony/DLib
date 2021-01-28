@@ -49,7 +49,7 @@ class DLib.Convars
 
 	create: (name, defvalue = '0', flags = 0, desc = '') =>
 		error('_set is reserved') if name == 'set'
-		flags = DLib.util.composeEnums(flags, FCVAR_ARCHIVE, FCVAR_REPLICATED)
+		flags = DLib.Util.composeEnums(flags, FCVAR_ARCHIVE, FCVAR_REPLICATED)
 		@convars[name] = CreateConVar('sv_' .. @namespace .. '_' .. name, defvalue, flags, desc)
 		@help[name] = desc
 		@defaults[name] = defvalue

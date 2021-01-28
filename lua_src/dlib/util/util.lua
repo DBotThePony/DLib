@@ -20,7 +20,7 @@
 
 jit.on()
 
-local util = setmetatable(DLib.util or {}, {__index = util})
+local util = setmetatable(DLib.Util or {}, {__index = util})
 DLib.util = util
 DLib.Util = util
 local DLib = DLib
@@ -61,7 +61,7 @@ end
 
 --[[
 	@doc
-	@fname DLib.util.Clone
+	@fname DLib.Util.Clone
 	@args any variable
 
 	@desc
@@ -101,8 +101,8 @@ util.Copy = util.copy
 
 --[[
 	@doc
-	@fname DLib.util.VectorRand
-	@alias DLib.util.RandomVector
+	@fname DLib.Util.VectorRand
+	@alias DLib.Util.RandomVector
 	@args number x, number y, number z
 
 	@desc
@@ -121,7 +121,7 @@ util.VectorRand = util.randomVector
 
 --[[
 	@doc
-	@fname DLib.util.ComposeEnums
+	@fname DLib.Util.ComposeEnums
 	@args table input, vararg ...numbers
 
 	@desc
@@ -149,7 +149,7 @@ util.ComposeEnums = util.composeEnums
 
 --[[
 	@doc
-	@fname DLib.util.ValidateSteamID
+	@fname DLib.Util.ValidateSteamID
 	@args string steamid
 
 	@returns
@@ -162,7 +162,7 @@ end
 
 --[[
 	@doc
-	@fname DLib.util.SteamLink
+	@fname DLib.Util.SteamLink
 	@args string steamid
 
 	@desc
@@ -182,7 +182,7 @@ end
 
 --[[
 	@doc
-	@fname DLib.util.CreateSharedConvar
+	@fname DLib.Util.CreateSharedConvar
 	@args string cvarname, string cvardef, string description
 
 	@desc
@@ -409,13 +409,13 @@ end
 
 --[[
 	@doc
-	@fname DLib.util.GetWeaponScript
+	@fname DLib.Util.GetWeaponScript
 	@args Weapon weaponIn
 
 	@returns
 	table: or nil, if no script present
 ]]
-function DLib.util.GetWeaponScript(weaponIn)
+function DLib.Util.GetWeaponScript(weaponIn)
 	if isstring(weaponIn) then
 		return wepdata[weaponIn]
 	elseif type(weaponIn) == 'Weapon' then

@@ -125,7 +125,7 @@ end
 function PANEL:SetSteamID(steamid, size)
 	local steamid64
 
-	if DLib.util.ValidateSteamID(steamid) then
+	if DLib.Util.ValidateSteamID(steamid) then
 		steamid64 = util.SteamIDTo64(steamid)
 	else
 		steamid64 = steamid

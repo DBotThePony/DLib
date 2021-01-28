@@ -73,13 +73,13 @@ function DLib.WrappedQueueFunction(funcIn)
 	end
 end
 
-hook.Add('Think', 'DLib.util.QueuedFunction', function()
+hook.Add('Think', 'DLib.Util.QueuedFunction', function()
 	local data = table.remove(QUQUED_CALLS, 1)
 	if not data then return end
 	data.nextevent(unpack(data.args, 1, data.argsNum))
 end)
 
-hook.Add('Think', 'DLib.util.WrappedQueueFunction', function()
+hook.Add('Think', 'DLib.Util.WrappedQueueFunction', function()
 	local data = table.remove(QUQUED_CALLS_WRAPPED, 1)
 	if not data then return end
 	data.nextevent(unpack(data.args, 1, data.argsNum))
