@@ -56,11 +56,11 @@ function meta:ctor(stringIn)
 	self.length = 0
 end
 
-do
-	local function rotate(x, n)
-		return (bor(lshift(x, n), rshift(x, 32 - n)))
-	end
+local function rotate(x, n)
+	return (bor(lshift(x, n), rshift(x, 32 - n)))
+end
 
+do
 	local x = {}
 	local S11 = 7
 	local S12 = 12
@@ -93,6 +93,7 @@ do
 
 			-- copy as 4 byte uint blocks
 			for i = 0, 15 do
+				-- BIG-ENDIAN blocks!
 				x[i] = overflow(bor(
 					bytes[i * 4 + 1],
 					lshift(bytes[i * 4 + 2], 8),
@@ -249,4 +250,145 @@ DLib.Util.MD5 = DLib.CreateMoonClassBare('MD5', meta, {})
 
 function DLib.Util.QuickMD5(str)
 	return DLib.Util.MD5():Update(str):Digest()
+end
+
+local metasha1 = {}
+
+function metasha1:ctor(stringIn)
+	self.H0 = 0x67452301
+	self.H1 = 0xEFCDAB89
+	self.H2 = 0x98BADCFE
+	self.H3 = 0x10325476
+	self.H4 = 0xC3D2E1F0
+
+	self.digested = false
+
+	self.current_block = ''
+	self.blocks = 0
+	self.length = 0
+end
+
+do
+	local W = {}
+
+	local function F(t, B, C, D)
+		if t <= 19 then
+			return bor(band(B, C), band(bnot(B), D))
+		elseif t <= 39 then
+			return bxor(B, C, D)
+		elseif t <= 59 then
+			return bor(band(B, C), band(B, D), band(C, D))
+		end
+
+		return bxor(B, C, D)
+	end
+
+	local K = {}
+
+	for i = 0, 19 do
+		K[i] = 0x5A827999
+	end
+
+	for i = 20, 39 do
+		K[i] = 0x6ED9EBA1
+	end
+
+	for i = 40, 59 do
+		K[i] = 0x8F1BBCDC
+	end
+
+	for i = 60, 79 do
+		K[i] = 0xCA62C1D6
+	end
+
+	function metasha1:_Inner(cc)
+		-- 512 bit block
+		for i = 1, math_floor(#cc / 64) do
+			self.blocks = self.blocks + 1
+
+			-- separated as ubytes (8 bit)
+			local bytes = {string_byte(cc, (i - 1) * 64 + 1, i * 64)}
+
+			-- copy as 4 byte uint blocks
+			for i = 0, 15 do
+				-- LITTLE-ENDIAN blocks!
+				W[i] = overflow(bor(
+					bytes[i * 4 + 4],
+					lshift(bytes[i * 4 + 3], 8),
+					lshift(bytes[i * 4 + 2], 16),
+					lshift(bytes[i * 4 + 1], 24)
+				))
+			end
+
+			-- process extra
+			for t = 16, 79 do
+				W[t] = overflow(rotate(bxor(W[t - 3], W[t - 8], W[t - 14], W[t - 16]), 1))
+			end
+
+			local A, B, C, D, E = self.H0, self.H1, self.H2, self.H3, self.H4
+
+			for t = 0, 79 do
+				local TEMP = overflow(rotate(A, 5)) + overflow(F(t, B, C, D)) + E + W[t] + K[t]
+				E = D
+				D = C
+				C = overflow(rotate(B, 30))
+				B = A
+				A = TEMP % 4294967296
+			end
+
+			self.H0 = (self.H0 + A) % 4294967296
+			self.H1 = (self.H1 + B) % 4294967296
+			self.H2 = (self.H2 + C) % 4294967296
+			self.H3 = (self.H3 + D) % 4294967296
+			self.H4 = (self.H4 + E) % 4294967296
+		end
+	end
+end
+
+metasha1.Update = meta.Update
+metasha1.Digest = meta.Digest
+
+function metasha1:_Digest()
+	self.digested = true
+
+	local mod = self.length % 64
+
+	if mod < 56 then
+		-- append 128, then 0
+		self.current_block = self.current_block .. '\x80' .. string.rep('\x00', 55 - mod)
+	elseif mod > 56 then
+		-- too long
+		self.current_block = self.current_block ..
+			'\x80' ..
+			string.rep('\x00', 119 - mod)
+	end
+
+	local realLength = self.length * 8
+	local modLen = realLength % 4294967296
+	local div = (realLength - modLen) / 4294967296
+
+	self:_Inner(self.current_block .. string.char(
+		band(rshift(div, 24), 0xFF),
+		band(rshift(div, 16), 0xFF),
+		band(rshift(div, 8), 0xFF),
+		band(rshift(div, 0), 0xFF),
+
+		band(rshift(modLen, 24), 0xFF),
+		band(rshift(modLen, 16), 0xFF),
+		band(rshift(modLen, 8), 0xFF),
+		band(rshift(modLen, 0), 0xFF)
+	))
+
+	self.digest_hex = string.format('%08x%08x%08x%08x%08x',
+		overflow(self.H0),
+		overflow(self.H1),
+		overflow(self.H2),
+		overflow(self.H3),
+		overflow(self.H4))
+end
+
+DLib.Util.SHA1 = DLib.CreateMoonClassBare('SHA1', metasha1, {})
+
+function DLib.Util.QuickSHA1(str)
+	return DLib.Util.SHA1():Update(str):Digest()
 end
