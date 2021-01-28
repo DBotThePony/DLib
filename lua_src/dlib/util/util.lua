@@ -22,6 +22,7 @@ jit.on()
 
 local util = setmetatable(DLib.util or {}, {__index = util})
 DLib.util = util
+DLib.Util = util
 local DLib = DLib
 local vgui = vgui
 local type = luatype

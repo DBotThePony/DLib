@@ -1205,6 +1205,7 @@ if DLib.BytesBuffer and not DLib.BytesBuffer.__base then DLib.BytesBuffer = nil 
 local real_buff_meta
 DLib.BytesBuffer, real_buff_meta = DLib.CreateMoonClassBare('LBytesBuffer', meta, metaclass, nil, DLib.BytesBuffer, true)
 debug.getregistry().LBytesBuffer = DLib.BytesBuffer
+DLib.BytesBufferBase = real_buff_meta
 
 local meta_view = {}
 local meta_bytes = {}
