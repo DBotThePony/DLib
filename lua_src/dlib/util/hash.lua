@@ -18,21 +18,6 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-local meta = {}
-
-function meta:ctor(stringIn)
-	self.A = 0x67452301
-	self.B = 0xEFCDAB89
-	self.C = 0x98BADCFE
-	self.D = 0x10325476
-
-	self.digested = false
-
-	self.current_block = ''
-	self.blocks = 0
-	self.length = 0
-end
-
 local bor = bit.bor
 local band = bit.band
 local bxor = bit.bxor
@@ -48,47 +33,62 @@ local function overflow(a)
 	return a % 4294967296
 end
 
-local function F(x, y, z)
-	return (bor(band(x, y), band(z, bnot(x))))
-end
+local meta = {}
 
-local function G(x, y, z)
-	return (bor(band(x, z), band(y, bnot(z))))
-end
+function meta:ctor(stringIn)
+	self.A = 0x67452301
+	self.B = 0xEFCDAB89
+	self.C = 0x98BADCFE
+	self.D = 0x10325476
 
-local function H(x, y, z)
-	return (bxor(x, y, z))
-end
+	self.digested = false
 
-local function I(x, y, z)
-	return (bxor(y, bor(x, bnot(z))))
-end
-
-local function rotate(x, n)
-	return (bor(lshift(x, n), rshift(x, 32 - n)))
-end
-
-local function FF(a, b, c, d, x, s, ac)
-	a = (overflow(a) + overflow(F(b, c, d)) + overflow(x) + ac) % 4294967296
-	return (overflow(rotate(a, s)) + overflow(b)) % 4294967296
-end
-
-local function GG(a, b, c, d, x, s, ac)
-	a = (overflow(a) + overflow(G(b, c, d)) + overflow(x) + ac) % 4294967296
-	return (overflow(rotate(a, s)) + overflow(b)) % 4294967296
-end
-
-local function HH(a, b, c, d, x, s, ac)
-	a = (overflow(a) + overflow(H(b, c, d)) + overflow(x) + ac) % 4294967296
-	return (overflow(rotate(a, s)) + overflow(b)) % 4294967296
-end
-
-local function II(a, b, c, d, x, s, ac)
-	a = (overflow(a) + overflow(I(b, c, d)) + overflow(x) + ac) % 4294967296
-	return (overflow(rotate(a, s)) + overflow(b)) % 4294967296
+	self.current_block = ''
+	self.blocks = 0
+	self.length = 0
 end
 
 do
+	local function F(x, y, z)
+		return (bor(band(x, y), band(z, bnot(x))))
+	end
+
+	local function G(x, y, z)
+		return (bor(band(x, z), band(y, bnot(z))))
+	end
+
+	local function H(x, y, z)
+		return (bxor(x, y, z))
+	end
+
+	local function I(x, y, z)
+		return (bxor(y, bor(x, bnot(z))))
+	end
+
+	local function rotate(x, n)
+		return (bor(lshift(x, n), rshift(x, 32 - n)))
+	end
+
+	local function FF(a, b, c, d, x, s, ac)
+		a = (overflow(a) + overflow(F(b, c, d)) + overflow(x) + ac) % 4294967296
+		return (overflow(rotate(a, s)) + overflow(b)) % 4294967296
+	end
+
+	local function GG(a, b, c, d, x, s, ac)
+		a = (overflow(a) + overflow(G(b, c, d)) + overflow(x) + ac) % 4294967296
+		return (overflow(rotate(a, s)) + overflow(b)) % 4294967296
+	end
+
+	local function HH(a, b, c, d, x, s, ac)
+		a = (overflow(a) + overflow(H(b, c, d)) + overflow(x) + ac) % 4294967296
+		return (overflow(rotate(a, s)) + overflow(b)) % 4294967296
+	end
+
+	local function II(a, b, c, d, x, s, ac)
+		a = (overflow(a) + overflow(I(b, c, d)) + overflow(x) + ac) % 4294967296
+		return (overflow(rotate(a, s)) + overflow(b)) % 4294967296
+	end
+
 	local x = {}
 	local S11 = 7
 	local S12 = 12
