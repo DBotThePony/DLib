@@ -577,7 +577,8 @@ do
 
 			-- prepare
 			for t = 16, 63 do
-				W[t] = (overflow(SSIG1(W[t - 2])) + W[t - 7] + overflow(SSIG0(W[t - 15])) + W[t - 16]) % 4294967296
+				local a, b = W[t - 2], W[t - 15]
+				W[t] = (overflow(bxor(ROTR(a, 17), ROTR(a, 19), rshift(a, 10))) + W[t - 7] + overflow(bxor(ROTR(b, 7), ROTR(b, 18), rshift(b, 3))) + W[t - 16]) % 4294967296
 			end
 
 			-- working variables
@@ -591,9 +592,19 @@ do
 				self.H6[N],
 				self.H7[N]
 
+			local T1, T2
+
 			for t = 0, 63 do
-				local T1 = (h + overflow(BSIG1(e)) + overflow(CH(e, f, g)) + K[t] + W[t]) % 4294967296
-				local T2 = (overflow(BSIG0(a)) + overflow(MAJ(a, b, c))) % 4294967296
+				T1 = (
+					h +
+					overflow(bxor(ROTR(e, 6), ROTR(e, 11), ROTR(e, 25))) +
+					overflow(bxor(band(e, f), band(bnot(e), g))) +
+					K[t] +
+					W[t]) % 4294967296
+
+				T2 = (overflow(bxor(ROTR(a, 2), ROTR(a, 13), ROTR(a, 22))) +
+					overflow(bxor(band(a, b), band(a, c), band(b, c)))) % 4294967296
+
 				h, g, f, e, d, c, b, a = g, f, e, (d + T1) % 4294967296, c, b, a, (T1 + T2) % 4294967296
 			end
 
