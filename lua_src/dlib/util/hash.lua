@@ -212,7 +212,7 @@ function meta:_Digest()
 	if mod < 56 then
 		-- append 128, then 0
 		self.current_block = self.current_block .. '\x80' .. string.rep('\x00', 55 - mod)
-	elseif mod > 56 then
+	else
 		-- too long
 		self.current_block = self.current_block ..
 			'\x80' ..
@@ -417,7 +417,7 @@ function metasha1:_Digest()
 	if mod < 56 then
 		-- append 128, then 0
 		self.current_block = self.current_block .. '\x80' .. string.rep('\x00', 55 - mod)
-	elseif mod > 56 then
+	else
 		-- too long
 		self.current_block = self.current_block ..
 			'\x80' ..
