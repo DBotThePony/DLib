@@ -471,6 +471,10 @@ do
 	local concat = table.concat
 	local f4, f3, f2, f1 = 63, lshift(63, 6), lshift(63, 12), lshift(63, 18)
 
+	local jit_status = jit.status
+	local jit_off = jit.off
+	local jit_on = jit.on
+
 	local lookup = string.Split('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/', '')
 	local rlookup = {[61] = 0}
 
@@ -488,6 +492,10 @@ do
 		local parts = 0
 		local i2 = 1
 		local str = ''
+
+		local j = jit_status()
+
+		jit_off()
 
 		for i = 1, #strIn, 3 do
 			local a, b, c = byte(strIn, i, i + 3)
@@ -517,6 +525,10 @@ do
 			lines[i2] = str
 		end
 
+		if j then
+			jit_on()
+		end
+
 		return concat(lines, '\n')
 	end
 
@@ -534,6 +546,10 @@ do
 		local len = #strIn
 
 		assert((len % 4) == 0, 'Unexpected end of base64 input')
+
+		local j = jit_status()
+
+		jit_off()
 
 		while point <= len do
 			local a, b, c, d = byte(strIn, point, point + 4)
@@ -563,6 +579,10 @@ do
 
 		if str ~= '' then
 			buffer[bi] = str
+		end
+
+		if j then
+			jit_on()
 		end
 
 		return concat(buffer, '')
