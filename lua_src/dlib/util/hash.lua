@@ -133,9 +133,7 @@ do
 
 			-- /* Round 1 */
 			a = FF (a, b, c, d, x[ 0], S11, 0xd76aa478); -- /* 1 */
-			--print('f', a, b, c, d, x[ 0], S11, 0xd76aa478)
 			d = FF (d, a, b, c, x[ 1], S12, 0xe8c7b756); -- /* 2 */
-			--print('f2', d, a, b, c, x[ 1], S12, 0xe8c7b756)
 			c = FF (c, d, a, b, x[ 2], S13, 0x242070db); -- /* 3 */
 			b = FF (b, c, d, a, x[ 3], S14, 0xc1bdceee); -- /* 4 */
 			a = FF (a, b, c, d, x[ 4], S11, 0xf57c0faf); -- /* 5 */
@@ -147,11 +145,9 @@ do
 			c = FF (c, d, a, b, x[10], S13, 0xffff5bb1); -- /* 11 */
 			b = FF (b, c, d, a, x[11], S14, 0x895cd7be); -- /* 12 */
 			a = FF (a, b, c, d, x[12], S11, 0x6b901122); -- /* 13 */
-			--print('pre', a, b, c, d)
 			d = FF (d, a, b, c, x[13], S12, 0xfd987193); -- /* 14 */
 			c = FF (c, d, a, b, x[14], S13, 0xa679438e); -- /* 15 */
 			b = FF (b, c, d, a, x[15], S14, 0x49b40821); -- /* 16 */
-			--print(1, a, b, c, d)
 
 			-- /* Round 2 */
 			a = GG (a, b, c, d, x[ 1], S21, 0xf61e2562); -- /* 17 */
@@ -170,7 +166,6 @@ do
 			d = GG (d, a, b, c, x[ 2], S22, 0xfcefa3f8); -- /* 30 */
 			c = GG (c, d, a, b, x[ 7], S23, 0x676f02d9); -- /* 31 */
 			b = GG (b, c, d, a, x[12], S24, 0x8d2a4c8a); -- /* 32 */
-			--print(2, a, b, c, d)
 
 			-- /* Round 3 */
 			a = HH (a, b, c, d, x[ 5], S31, 0xfffa3942); -- /* 33 */
@@ -189,7 +184,6 @@ do
 			d = HH (d, a, b, c, x[12], S32, 0xe6db99e5); -- /* 46 */
 			c = HH (c, d, a, b, x[15], S33, 0x1fa27cf8); -- /* 47 */
 			b = HH (b, c, d, a, x[ 2], S34, 0xc4ac5665); -- /* 48 */
-			-- print(3, a, b, c, d)
 
 			-- /* Round 4 */
 			a = II (a, b, c, d, x[ 0], S41, 0xf4292244); -- /* 49 */
@@ -208,14 +202,11 @@ do
 			d = II (d, a, b, c, x[11], S42, 0xbd3af235); -- /* 62 */
 			c = II (c, d, a, b, x[ 2], S43, 0x2ad7d2bb); -- /* 63 */
 			b = II (b, c, d, a, x[ 9], S44, 0xeb86d391); -- /* 64 */
-			-- print(4, a, b, c, d)
 
 			self.A = (self.A + overflow(a)) % 4294967296
 			self.B = (self.B + overflow(b)) % 4294967296
 			self.C = (self.C + overflow(c)) % 4294967296
 			self.D = (self.D + overflow(d)) % 4294967296
-
-			-- print('A', self.A, self.B, self.C, self.D)
 		end
 	end
 end
