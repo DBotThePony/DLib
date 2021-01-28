@@ -33,6 +33,9 @@ local string_byte = string.byte
 local string_sub = string.sub
 local math_floor = math.floor
 
+local assert = assert
+local isnumber = isnumber
+
 local function overflow(a)
 	if a < 0 then
 		return a + 4294967296
@@ -43,11 +46,21 @@ end
 
 local meta = {}
 
-function meta:ctor(stringIn)
-	self.A = 0x67452301
-	self.B = 0xEFCDAB89
-	self.C = 0x98BADCFE
-	self.D = 0x10325476
+function meta:ctor(a, b, c, d)
+	if a == nil then a = 0x67452301 end
+	if b == nil then b = 0xEFCDAB89 end
+	if c == nil then c = 0x98BADCFE end
+	if d == nil then d = 0x10325476 end
+
+	assert(isnumber(a), 'A is not a number')
+	assert(isnumber(b), 'A is not a number')
+	assert(isnumber(c), 'A is not a number')
+	assert(isnumber(d), 'A is not a number')
+
+	self.A = a
+	self.B = b
+	self.C = c
+	self.D = d
 
 	self.digested = false
 
@@ -267,12 +280,24 @@ end
 
 local metasha1 = {}
 
-function metasha1:ctor(stringIn)
-	self.H0 = 0x67452301
-	self.H1 = 0xEFCDAB89
-	self.H2 = 0x98BADCFE
-	self.H3 = 0x10325476
-	self.H4 = 0xC3D2E1F0
+function metasha1:ctor(a, b, c, d, e)
+	if a == nil then a = 0x67452301 end
+	if b == nil then b = 0xEFCDAB89 end
+	if c == nil then c = 0x98BADCFE end
+	if d == nil then d = 0x10325476 end
+	if e == nil then e = 0xC3D2E1F0 end
+
+	assert(isnumber(a), 'H0 is not a number')
+	assert(isnumber(b), 'H1 is not a number')
+	assert(isnumber(c), 'H2 is not a number')
+	assert(isnumber(d), 'H3 is not a number')
+	assert(isnumber(e), 'H4 is not a number')
+
+	self.H0 = a
+	self.H1 = b
+	self.H2 = c
+	self.H3 = d
+	self.H4 = e
 
 	self.digested = false
 
@@ -489,15 +514,33 @@ end
 local metasha224 = {}
 local metasha256 = {}
 
-function metasha224:ctor(stringIn)
-	self.H0 = {0xc1059ed8}
-	self.H1 = {0x367cd507}
-	self.H2 = {0x3070dd17}
-	self.H3 = {0xf70e5939}
-	self.H4 = {0xffc00b31}
-	self.H5 = {0x68581511}
-	self.H6 = {0x64f98fa7}
-	self.H7 = {0xbefa4fa4}
+function metasha224:ctor(a, b, c, d, e, f, g, h)
+	if a == nil then a = 0xc1059ed8 end
+	if b == nil then b = 0x367cd507 end
+	if c == nil then c = 0x3070dd17 end
+	if d == nil then d = 0xf70e5939 end
+	if e == nil then e = 0xffc00b31 end
+	if f == nil then f = 0x68581511 end
+	if g == nil then g = 0x64f98fa7 end
+	if h == nil then h = 0xbefa4fa4 end
+
+	assert(isnumber(a), 'H[0]0 is not a number')
+	assert(isnumber(b), 'H[0]1 is not a number')
+	assert(isnumber(c), 'H[0]2 is not a number')
+	assert(isnumber(d), 'H[0]3 is not a number')
+	assert(isnumber(e), 'H[0]4 is not a number')
+	assert(isnumber(f), 'H[0]5 is not a number')
+	assert(isnumber(g), 'H[0]6 is not a number')
+	assert(isnumber(h), 'H[0]7 is not a number')
+
+	self.H0 = {a}
+	self.H1 = {b}
+	self.H2 = {c}
+	self.H3 = {d}
+	self.H4 = {e}
+	self.H5 = {f}
+	self.H6 = {g}
+	self.H7 = {h}
 
 	self.digested = false
 
@@ -506,15 +549,33 @@ function metasha224:ctor(stringIn)
 	self.length = 0
 end
 
-function metasha256:ctor(stringIn)
-	self.H0 = {0x6a09e667}
-	self.H1 = {0xbb67ae85}
-	self.H2 = {0x3c6ef372}
-	self.H3 = {0xa54ff53a}
-	self.H4 = {0x510e527f}
-	self.H5 = {0x9b05688c}
-	self.H6 = {0x1f83d9ab}
-	self.H7 = {0x5be0cd19}
+function metasha256:ctor(a, b, c, d, e, f, g, h)
+	if a == nil then a = 0x6a09e667 end
+	if b == nil then b = 0xbb67ae85 end
+	if c == nil then c = 0x3c6ef372 end
+	if d == nil then d = 0xa54ff53a end
+	if e == nil then e = 0x510e527f end
+	if f == nil then f = 0x9b05688c end
+	if g == nil then g = 0x1f83d9ab end
+	if h == nil then h = 0x5be0cd19 end
+
+	assert(isnumber(a), 'H[0]0 is not a number')
+	assert(isnumber(b), 'H[0]1 is not a number')
+	assert(isnumber(c), 'H[0]2 is not a number')
+	assert(isnumber(d), 'H[0]3 is not a number')
+	assert(isnumber(e), 'H[0]4 is not a number')
+	assert(isnumber(f), 'H[0]5 is not a number')
+	assert(isnumber(g), 'H[0]6 is not a number')
+	assert(isnumber(h), 'H[0]7 is not a number')
+
+	self.H0 = {a}
+	self.H1 = {b}
+	self.H2 = {c}
+	self.H3 = {d}
+	self.H4 = {e}
+	self.H5 = {f}
+	self.H6 = {g}
+	self.H7 = {h}
 
 	self.digested = false
 
