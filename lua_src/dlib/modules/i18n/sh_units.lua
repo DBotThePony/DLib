@@ -88,6 +88,49 @@ end
 	@fname DLib.I18n.FormatAnyBytes
 	@args number numIn
 
+	@desc
+	Returns user-friendly human readable format (kb, mb, gb, ...)
+	@enddesc
+
+	@returns
+	string
+]]
+
+--[[
+	@doc
+	@fname DLib.I18n.FormatAnyBytesLong
+	@args number numIn
+
+	@desc
+	Returns user-friendly human readable format (kilobytes, megabytes, gigabytes, ...)
+	@enddesc
+
+	@returns
+	string
+]]
+
+--[[
+	@doc
+	@fname DLib.I18n.FormatBytes
+	@args number numIn
+
+	@desc
+	Returns human-readable bytes string (1 000 000 B)
+	@enddesc
+
+	@returns
+	string
+]]
+
+--[[
+	@doc
+	@fname DLib.I18n.FormatBytesLong
+	@args number numIn
+
+	@desc
+	Returns human-readable bytes string (1 000 000 bytes)
+	@enddesc
+
 	@returns
 	string
 ]]
