@@ -74,23 +74,23 @@ do
 	end
 
 	local function FF(a, b, c, d, x, s, ac)
-		a = (overflow(a) + overflow(F(b, c, d)) + overflow(x) + ac) % 4294967296
-		return (overflow(rotate(a, s)) + overflow(b)) % 4294967296
+		a = ((a) + overflow(F(b, c, d)) + (x) + ac) % 4294967296
+		return (overflow(rotate(a, s)) + (b)) % 4294967296
 	end
 
 	local function GG(a, b, c, d, x, s, ac)
-		a = (overflow(a) + overflow(G(b, c, d)) + overflow(x) + ac) % 4294967296
-		return (overflow(rotate(a, s)) + overflow(b)) % 4294967296
+		a = ((a) + overflow(G(b, c, d)) + (x) + ac) % 4294967296
+		return (overflow(rotate(a, s)) + (b)) % 4294967296
 	end
 
 	local function HH(a, b, c, d, x, s, ac)
-		a = (overflow(a) + overflow(H(b, c, d)) + overflow(x) + ac) % 4294967296
-		return (overflow(rotate(a, s)) + overflow(b)) % 4294967296
+		a = ((a) + overflow(H(b, c, d)) + (x) + ac) % 4294967296
+		return (overflow(rotate(a, s)) + (b)) % 4294967296
 	end
 
 	local function II(a, b, c, d, x, s, ac)
-		a = (overflow(a) + overflow(I(b, c, d)) + overflow(x) + ac) % 4294967296
-		return (overflow(rotate(a, s)) + overflow(b)) % 4294967296
+		a = ((a) + overflow(I(b, c, d)) + (x) + ac) % 4294967296
+		return (overflow(rotate(a, s)) + (b)) % 4294967296
 	end
 
 	local x = {}
