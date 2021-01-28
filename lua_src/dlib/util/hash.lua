@@ -248,6 +248,19 @@ end
 
 DLib.Util.MD5 = DLib.CreateMoonClassBare('MD5', meta, {})
 
+--[[
+	@doc
+	@fname DLib.Util.QuickMD5
+	@args string data
+
+	@desc
+	Equals to `return DLib.Util.MD5():Update(str):Digest()`
+	@enddesc
+
+	@returns
+	string: hex representation of hash string
+]]
+
 function DLib.Util.QuickMD5(str)
 	return DLib.Util.MD5():Update(str):Digest()
 end
@@ -455,6 +468,19 @@ function metasha1:_Digest()
 end
 
 DLib.Util.SHA1 = DLib.CreateMoonClassBare('SHA1', metasha1, {})
+
+--[[
+	@doc
+	@fname DLib.Util.QuickSHA1
+	@args string data
+
+	@desc
+	Equals to `return DLib.Util.SHA1():Update(str):Digest()`
+	@enddesc
+
+	@returns
+	string: hex representation of hash string
+]]
 
 function DLib.Util.QuickSHA1(str)
 	return DLib.Util.SHA1():Update(str):Digest()
@@ -702,9 +728,35 @@ metasha224.Digest = meta.Digest
 DLib.Util.SHA256 = DLib.CreateMoonClassBare('SHA256', metasha256, {})
 DLib.Util.SHA224 = DLib.CreateMoonClassBare('SHA224', metasha224, {})
 
+--[[
+	@doc
+	@fname DLib.Util.QuickSHA256
+	@args string data
+
+	@desc
+	Equals to `return DLib.Util.SHA256():Update(str):Digest()`
+	@enddesc
+
+	@returns
+	string: hex representation of hash string
+]]
+
 function DLib.Util.QuickSHA256(str)
 	return DLib.Util.SHA256():Update(str):Digest()
 end
+
+--[[
+	@doc
+	@fname DLib.Util.QuickSHA224
+	@args string data
+
+	@desc
+	Equals to `return DLib.Util.SHA224():Update(str):Digest()`
+	@enddesc
+
+	@returns
+	string: hex representation of hash string
+]]
 
 function DLib.Util.QuickSHA224(str)
 	return DLib.Util.SHA224():Update(str):Digest()
