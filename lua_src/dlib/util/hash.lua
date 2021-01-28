@@ -24,6 +24,10 @@ local bxor = bit.bxor
 local rshift = bit.rshift
 local bnot = bit.bnot
 local lshift = bit.lshift
+local string = string
+local string_byte = string.byte
+local string_sub = string.sub
+local math_floor = math.floor
 
 local function overflow(a)
 	if a < 0 then
@@ -109,19 +113,19 @@ do
 
 	function meta:_Inner(cc)
 		-- 512 bit block
-		for i = 1, math.floor(#cc / 64) do
+		for i = 1, math_floor(#cc / 64) do
 			self.blocks = self.blocks + 1
 
 			-- separated as ubytes (8 bit)
-			local bytes = {string.byte(cc, (i - 1) * 64 + 1, i * 64)}
+			local bytes = {string_byte(cc, (i - 1) * 64 + 1, i * 64)}
 
 			-- copy as 4 byte uint blocks
 			for i = 0, 15 do
-				x[i] = overflow(bit.bor(
+				x[i] = overflow(bor(
 					bytes[i * 4 + 1],
-					bit.lshift(bytes[i * 4 + 2], 8),
-					bit.lshift(bytes[i * 4 + 3], 16),
-					bit.lshift(bytes[i * 4 + 4], 24)
+					lshift(bytes[i * 4 + 2], 8),
+					lshift(bytes[i * 4 + 3], 16),
+					lshift(bytes[i * 4 + 4], 24)
 				))
 			end
 
@@ -228,7 +232,7 @@ function meta:Update(data)
 		return self
 	end
 
-	self.current_block = string.sub(cc, #cc - #cc % 64 + 1, #cc)
+	self.current_block = string_sub(cc, #cc - #cc % 64 + 1, #cc)
 	self:_Inner(cc)
 
 	return self
