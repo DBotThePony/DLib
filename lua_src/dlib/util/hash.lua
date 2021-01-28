@@ -46,6 +46,23 @@ end
 
 local meta = {}
 
+--[[
+	@doc
+	@fname DLib.Util.MD5
+	@args number A = 0x67452301, number B = 0xEFCDAB89, number C = 0x98BADCFE, number D = 0x10325476
+
+	@desc
+	Returns MD5 object, which has `:Update(data)` and `:Digest()` methods
+	Arguments to this function allow to re-define standard initialization vector
+	Don't touch them if you want MD5 hash to match hashes created by other programs
+	MD5 is not secure and should not be utilized for such
+	This is not actually a function (but still can be called), but a Moonscript compatible class table
+	@enddesc
+
+	@returns
+	table: class representing MD5 hash
+]]
+
 function meta:ctor(a, b, c, d)
 	if a == nil then a = 0x67452301 end
 	if b == nil then b = 0xEFCDAB89 end
@@ -279,6 +296,23 @@ function DLib.Util.QuickMD5(str)
 end
 
 local metasha1 = {}
+
+--[[
+	@doc
+	@fname DLib.Util.SHA1
+	@args number H0 = 0x67452301, number H1 = 0xEFCDAB89, number H2 = 0x98BADCFE, number H3 = 0x10325476, number H4 = 0xC3D2E1F0
+
+	@desc
+	Returns MD5 object, which has `:Update(data)` and `:Digest()` methods
+	Arguments to this function allow to re-define standard initialization vector
+	Don't touch them if you want SHA1 hash to match hashes created by other programs
+	SHA1 is not secure and should not be utilized for such
+	This is not actually a function (but still can be called), but a Moonscript compatible class table
+	@enddesc
+
+	@returns
+	table: class representing SHA1 hash
+]]
 
 function metasha1:ctor(a, b, c, d, e)
 	if a == nil then a = 0x67452301 end
@@ -514,15 +548,32 @@ end
 local metasha224 = {}
 local metasha256 = {}
 
+--[[
+	@doc
+	@fname DLib.Util.SHA224
+	@args number H0 = 0xC1059ED8, number H1 = 0x367CD507, number H2 = 0x3070DD17, number H3 = 0xF70E5939, number H4 = 0xFFC00B31, number H5 = 0x68581511, number H6 = 0x64F98FA7, number H7 = 0xBEFA4FA4
+
+	@desc
+	Returns SHA224 object, which has `:Update(data)` and `:Digest()` methods
+	Arguments to this function allow to re-define standard initialization vector
+	Don't touch them if you want SHA224 hash to match hashes created by other programs
+	SHA224 is not very secure and should be avoided when security is a priority
+	This is not actually a function (but still can be called), but a Moonscript compatible class table
+	@enddesc
+
+	@returns
+	table: class representing SHA224 hash
+]]
+
 function metasha224:ctor(a, b, c, d, e, f, g, h)
-	if a == nil then a = 0xc1059ed8 end
-	if b == nil then b = 0x367cd507 end
-	if c == nil then c = 0x3070dd17 end
-	if d == nil then d = 0xf70e5939 end
-	if e == nil then e = 0xffc00b31 end
+	if a == nil then a = 0xC1059ED8 end
+	if b == nil then b = 0x367CD507 end
+	if c == nil then c = 0x3070DD17 end
+	if d == nil then d = 0xF70E5939 end
+	if e == nil then e = 0xFFC00B31 end
 	if f == nil then f = 0x68581511 end
-	if g == nil then g = 0x64f98fa7 end
-	if h == nil then h = 0xbefa4fa4 end
+	if g == nil then g = 0x64F98FA7 end
+	if h == nil then h = 0xBEFA4FA4 end
 
 	assert(isnumber(a), 'H[0]0 is not a number')
 	assert(isnumber(b), 'H[0]1 is not a number')
@@ -549,15 +600,32 @@ function metasha224:ctor(a, b, c, d, e, f, g, h)
 	self.length = 0
 end
 
+--[[
+	@doc
+	@fname DLib.Util.SHA256
+	@args number H0 = 0x6A09E667, number H1 = 0xBB67AE85, number H2 = 0x3C6EF372, number H3 = 0xA54FF53A, number H4 = 0x510E527F, number H5 = 0x9B05688C, number H6 = 0x1F83D9AB, number H7 = 0x5BE0CD19
+
+	@desc
+	Returns SHA256 object, which has `:Update(data)` and `:Digest()` methods
+	Arguments to this function allow to re-define standard initialization vector
+	Don't touch them if you want SHA256 hash to match hashes created by other programs
+	SHA256 is not very secure and should be avoided when security is a priority
+	This is not actually a function (but still can be called), but a Moonscript compatible class table
+	@enddesc
+
+	@returns
+	table: class representing SHA256 hash
+]]
+
 function metasha256:ctor(a, b, c, d, e, f, g, h)
-	if a == nil then a = 0x6a09e667 end
-	if b == nil then b = 0xbb67ae85 end
-	if c == nil then c = 0x3c6ef372 end
-	if d == nil then d = 0xa54ff53a end
-	if e == nil then e = 0x510e527f end
-	if f == nil then f = 0x9b05688c end
-	if g == nil then g = 0x1f83d9ab end
-	if h == nil then h = 0x5be0cd19 end
+	if a == nil then a = 0x6A09E667 end
+	if b == nil then b = 0xBB67AE85 end
+	if c == nil then c = 0x3C6EF372 end
+	if d == nil then d = 0xA54FF53A end
+	if e == nil then e = 0x510E527F end
+	if f == nil then f = 0x9B05688C end
+	if g == nil then g = 0x1F83D9AB end
+	if h == nil then h = 0x5BE0CD19 end
 
 	assert(isnumber(a), 'H[0]0 is not a number')
 	assert(isnumber(b), 'H[0]1 is not a number')
