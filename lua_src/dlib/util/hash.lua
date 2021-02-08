@@ -575,23 +575,23 @@ function metasha224:ctor(a, b, c, d, e, f, g, h)
 	if g == nil then g = 0x64F98FA7 end
 	if h == nil then h = 0xBEFA4FA4 end
 
-	assert(isnumber(a), 'H[0]0 is not a number')
-	assert(isnumber(b), 'H[0]1 is not a number')
-	assert(isnumber(c), 'H[0]2 is not a number')
-	assert(isnumber(d), 'H[0]3 is not a number')
-	assert(isnumber(e), 'H[0]4 is not a number')
-	assert(isnumber(f), 'H[0]5 is not a number')
-	assert(isnumber(g), 'H[0]6 is not a number')
-	assert(isnumber(h), 'H[0]7 is not a number')
+	assert(isnumber(a), 'H0 is not a number')
+	assert(isnumber(b), 'H1 is not a number')
+	assert(isnumber(c), 'H2 is not a number')
+	assert(isnumber(d), 'H3 is not a number')
+	assert(isnumber(e), 'H4 is not a number')
+	assert(isnumber(f), 'H5 is not a number')
+	assert(isnumber(g), 'H6 is not a number')
+	assert(isnumber(h), 'H7 is not a number')
 
-	self.H0 = {a}
-	self.H1 = {b}
-	self.H2 = {c}
-	self.H3 = {d}
-	self.H4 = {e}
-	self.H5 = {f}
-	self.H6 = {g}
-	self.H7 = {h}
+	self.H0 = a
+	self.H1 = b
+	self.H2 = c
+	self.H3 = d
+	self.H4 = e
+	self.H5 = f
+	self.H6 = g
+	self.H7 = h
 
 	self.digested = false
 
@@ -627,23 +627,23 @@ function metasha256:ctor(a, b, c, d, e, f, g, h)
 	if g == nil then g = 0x1F83D9AB end
 	if h == nil then h = 0x5BE0CD19 end
 
-	assert(isnumber(a), 'H[0]0 is not a number')
-	assert(isnumber(b), 'H[0]1 is not a number')
-	assert(isnumber(c), 'H[0]2 is not a number')
-	assert(isnumber(d), 'H[0]3 is not a number')
-	assert(isnumber(e), 'H[0]4 is not a number')
-	assert(isnumber(f), 'H[0]5 is not a number')
-	assert(isnumber(g), 'H[0]6 is not a number')
-	assert(isnumber(h), 'H[0]7 is not a number')
+	assert(isnumber(a), 'H0 is not a number')
+	assert(isnumber(b), 'H1 is not a number')
+	assert(isnumber(c), 'H2 is not a number')
+	assert(isnumber(d), 'H3 is not a number')
+	assert(isnumber(e), 'H4 is not a number')
+	assert(isnumber(f), 'H5 is not a number')
+	assert(isnumber(g), 'H6 is not a number')
+	assert(isnumber(h), 'H7 is not a number')
 
-	self.H0 = {a}
-	self.H1 = {b}
-	self.H2 = {c}
-	self.H3 = {d}
-	self.H4 = {e}
-	self.H5 = {f}
-	self.H6 = {g}
-	self.H7 = {h}
+	self.H0 = a
+	self.H1 = b
+	self.H2 = c
+	self.H3 = d
+	self.H4 = e
+	self.H5 = f
+	self.H6 = g
+	self.H7 = h
 
 	self.digested = false
 
@@ -714,7 +714,6 @@ do
 		-- 512 bit block
 		for i = 1, math_floor(#cc / 64) do
 			self.blocks = self.blocks + 1
-			local N, N1 = self.blocks, self.blocks + 1
 
 			-- separated as ubytes (8 bit)
 			local bytes = {string_byte(cc, (i - 1) * 64 + 1, i * 64)}
@@ -738,14 +737,14 @@ do
 
 			-- working variables
 			local a, b, c, d, e, f, g, h =
-				self.H0[N],
-				self.H1[N],
-				self.H2[N],
-				self.H3[N],
-				self.H4[N],
-				self.H5[N],
-				self.H6[N],
-				self.H7[N]
+				self.H0,
+				self.H1,
+				self.H2,
+				self.H3,
+				self.H4,
+				self.H5,
+				self.H6,
+				self.H7
 
 			local T1, T2
 
@@ -764,14 +763,14 @@ do
 			end
 
 			-- compute intermediate hash value
-			self.H0[N1] = (a + self.H0[N]) % 4294967296
-			self.H1[N1] = (b + self.H1[N]) % 4294967296
-			self.H2[N1] = (c + self.H2[N]) % 4294967296
-			self.H3[N1] = (d + self.H3[N]) % 4294967296
-			self.H4[N1] = (e + self.H4[N]) % 4294967296
-			self.H5[N1] = (f + self.H5[N]) % 4294967296
-			self.H6[N1] = (g + self.H6[N]) % 4294967296
-			self.H7[N1] = (h + self.H7[N]) % 4294967296
+			self.H0 = (a + self.H0) % 4294967296
+			self.H1 = (b + self.H1) % 4294967296
+			self.H2 = (c + self.H2) % 4294967296
+			self.H3 = (d + self.H3) % 4294967296
+			self.H4 = (e + self.H4) % 4294967296
+			self.H5 = (f + self.H5) % 4294967296
+			self.H6 = (g + self.H6) % 4294967296
+			self.H7 = (h + self.H7) % 4294967296
 		end
 
 		if j then jit_on() end
@@ -817,16 +816,14 @@ do
 	function metasha224:_Digest()
 		_Digest(self)
 
-		local N = self.blocks + 1
-
 		self.digest_hex = string.format('%08x%08x%08x%08x%08x%08x%08x',
-			overflow(self.H0[N]),
-			overflow(self.H1[N]),
-			overflow(self.H2[N]),
-			overflow(self.H3[N]),
-			overflow(self.H4[N]),
-			overflow(self.H5[N]),
-			overflow(self.H6[N])
+			overflow(self.H0),
+			overflow(self.H1),
+			overflow(self.H2),
+			overflow(self.H3),
+			overflow(self.H4),
+			overflow(self.H5),
+			overflow(self.H6)
 		)
 	end
 
@@ -836,14 +833,14 @@ do
 		local N = self.blocks + 1
 
 		self.digest_hex = string.format('%08x%08x%08x%08x%08x%08x%08x%08x',
-			overflow(self.H0[N]),
-			overflow(self.H1[N]),
-			overflow(self.H2[N]),
-			overflow(self.H3[N]),
-			overflow(self.H4[N]),
-			overflow(self.H5[N]),
-			overflow(self.H6[N]),
-			overflow(self.H7[N])
+			overflow(self.H0),
+			overflow(self.H1),
+			overflow(self.H2),
+			overflow(self.H3),
+			overflow(self.H4),
+			overflow(self.H5),
+			overflow(self.H6),
+			overflow(self.H7)
 		)
 	end
 end
