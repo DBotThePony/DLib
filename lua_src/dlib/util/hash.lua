@@ -303,7 +303,7 @@ local metasha1 = {}
 	@args number H0 = 0x67452301, number H1 = 0xEFCDAB89, number H2 = 0x98BADCFE, number H3 = 0x10325476, number H4 = 0xC3D2E1F0
 
 	@desc
-	Returns MD5 object, which has `:Update(data)` and `:Digest()` methods
+	Returns SHA1 object, which has `:Update(data)` and `:Digest()` methods
 	Arguments to this function allow to re-define standard initialization vector
 	Don't touch them if you want SHA1 hash to match hashes created by other programs
 	SHA1 is not secure and should not be utilized for such
