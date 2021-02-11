@@ -70,9 +70,9 @@ function meta:ctor(a, b, c, d)
 	if d == nil then d = 0x10325476 end
 
 	assert(isnumber(a), 'A is not a number')
-	assert(isnumber(b), 'A is not a number')
-	assert(isnumber(c), 'A is not a number')
-	assert(isnumber(d), 'A is not a number')
+	assert(isnumber(b), 'B is not a number')
+	assert(isnumber(c), 'C is not a number')
+	assert(isnumber(d), 'D is not a number')
 
 	self.A = a
 	self.B = b
