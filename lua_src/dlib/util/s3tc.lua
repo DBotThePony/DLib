@@ -205,3 +205,138 @@ function DXT3:GetBlock(x, y)
 end
 
 DLib.DXT3 = DLib.CreateMoonClassBare('DXT3', DXT3, DXT3Object)
+
+local DXT5 = {}
+local DXT5Object = {}
+
+function DXT5Object.CountBytes(w, h)
+	return math.ceil(w * h):max(16)
+end
+
+function DXT5:ctor(bytes, width, height)
+	self.bytes = bytes
+	self.width = width
+	self.height = height
+	self.width_blocks = width / 4
+	self.height_blocks = height / 4
+
+	self.cache = {}
+end
+
+function DXT5:GetBlock(x, y)
+	assert(x >= 0, '!x >= 0')
+	assert(y >= 0, '!y >= 0')
+	assert(x <= self.width_blocks, '!x <= self.width_blocks')
+	assert(y <= self.height_blocks, '!y <= self.height_blocks')
+
+	local pixel = y * self.width_blocks + x
+	local block = pixel * 16
+
+	if self.cache[block] then
+		return self.cache[block]
+	end
+
+	self.bytes:Seek(block)
+
+	local alpha0 = self.bytes:ReadUByte() / 255
+	local alpha1 = self.bytes:ReadUByte() / 255
+
+	local readalpha0 = self.bytes:ReadUByte()
+	local readalpha1 = self.bytes:ReadUByte()
+	local readalpha2 = self.bytes:ReadUByte()
+
+	local readalpha3 = self.bytes:ReadUByte()
+	local readalpha4 = self.bytes:ReadUByte()
+	local readalpha5 = self.bytes:ReadUByte()
+
+	local alphacode0 = readalpha0:bor(readalpha1:lshift(8), readalpha2:lshift(16))
+	local alphacode1 = readalpha3:bor(readalpha4:lshift(8), readalpha5:lshift(16))
+
+	local color0 = self.bytes:ReadUInt16():bswap():rshift(16)
+	local color1 = self.bytes:ReadUInt16():bswap():rshift(16)
+
+	local color0_d = to_color_5_6_5(color0)
+	local color1_d = to_color_5_6_5(color1)
+
+	local describe = self.bytes:ReadUInt32():bswap()
+
+	local decoded = {}
+
+	for i = 1, 16 do
+		local code = describe:rshift((16 - i) * 2):band(0x3)
+
+		if i <= 8 then
+			alphacode = alphacode1:rshift((8 - i) * 3):band(0x7)
+		else
+			alphacode = alphacode0:rshift((16 - i) * 3):band(0x7)
+		end
+
+		local alpha
+
+		if alpha0 > alpha1 then
+			if alphacode == 0 then
+				alpha = alpha0
+			elseif alphacode == 1 then
+				alpha = alpha1
+			elseif alphacode == 2 then
+				alpha = (6*alpha0 + 1*alpha1)/7
+			elseif alphacode == 3 then
+				alpha = (5*alpha0 + 2*alpha1)/7
+			elseif alphacode == 4 then
+				alpha = (4*alpha0 + 3*alpha1)/7
+			elseif alphacode == 5 then
+				alpha = (3*alpha0 + 4*alpha1)/7
+			elseif alphacode == 6 then
+				alpha = (2*alpha0 + 5*alpha1)/7
+			else
+				alpha = (1*alpha0 + 6*alpha1)/7
+			end
+		else
+			if alphacode == 0 then
+				alpha = alpha0
+			elseif alphacode == 1 then
+				alpha = alpha1
+			elseif alphacode == 2 then
+				alpha = (4*alpha0 + 1*alpha1)/5
+			elseif alphacode == 3 then
+				alpha = (3*alpha0 + 2*alpha1)/5
+			elseif alphacode == 4 then
+				alpha = (2*alpha0 + 3*alpha1)/5
+			elseif alphacode == 5 then
+				alpha = (1*alpha0 + 4*alpha1)/5
+			elseif alphacode == 6 then
+				alpha = 0
+			else
+				alpha = 1
+			end
+		end
+
+		alpha = math.floor(alpha * 255)
+
+		if code == 0 then
+			decoded[17 - i] = color0_d:ModifyAlpha(alpha)
+		elseif code == 1 then
+			decoded[17 - i] = color1_d:ModifyAlpha(alpha)
+		elseif code == 2 then
+			decoded[17 - i] = Color(
+				(color0_d.r * 2 + color1_d.r) / 3,
+				(color0_d.g * 2 + color1_d.g) / 3,
+				(color0_d.b * 2 + color1_d.b) / 3,
+				alpha
+			)
+		else
+			decoded[17 - i] = Color(
+				(color0_d.r + color1_d.r * 2) / 3,
+				(color0_d.g + color1_d.g * 2) / 3,
+				(color0_d.b + color1_d.b * 2) / 3,
+				alpha
+			)
+		end
+	end
+
+	self.cache[block] = decoded
+
+	return decoded
+end
+
+DLib.DXT5 = DLib.CreateMoonClassBare('DXT5', DXT5, DXT5Object)

@@ -62,6 +62,7 @@ end
 VTFObject.Readers = {}
 VTFObject.Readers.IMAGE_FORMAT_DXT1 = DLib.DXT1
 VTFObject.Readers.IMAGE_FORMAT_DXT3 = DLib.DXT3
+VTFObject.Readers.IMAGE_FORMAT_DXT5 = DLib.DXT5
 
 function VTF:ctor(bytes)
 	self.pointer = bytes:Tell()
