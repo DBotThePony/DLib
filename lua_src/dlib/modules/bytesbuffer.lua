@@ -1125,62 +1125,160 @@ end
 	@returns
 	function: a function to pass `BytesBuffer` to get readed structure
 ]]
-function metaclass.CompileStructure(structureDef, callbacks)
-	local output = {}
 
-	for i, line in ipairs(structureDef:split('\n')) do
-		line = line:trim()
-		--assert(line ~= '', 'Invalid line definition at ' .. i)
+do
+	local function readArray(num, fn)
+		if isnumber(num) then
+			return function(self, struct)
+				local array = {}
 
-		if line ~= '' then
-			local findSpace = assert(line:find('%s'), 'Can\'t find variable name at line ' .. i)
-			local rtype2 = line:sub(1, findSpace):trim()
-			local rtype = rtype2:lower()
-			local rname = line:sub(findSpace + 1):trim()
-			local findCommentary = rname:find('%s//')
+				for i = 1, num do
+					array[i] = fn(self, struct)
+				end
 
-			if findCommentary then
-				rname = rname:sub(1, findCommentary):trim()
+				return array
 			end
+		else
+			return function(self, struct)
+				local array = {}
 
-			if rtype == 'int8' or rtype == 'byte' then
-				table_insert(output, {rname, meta.ReadByte})
-			elseif rtype == 'int16' or rtype == 'short' then
-				table_insert(output, {rname, meta.ReadInt16})
-			elseif rtype == 'int32' or rtype == 'long' or rtype == 'int' then
-				table_insert(output, {rname, meta.ReadInt32})
-			elseif rtype == 'int64' or rtype == 'longlong' or rtype == 'bigint' then
-				table_insert(output, {rname, meta.ReadInt64})
-			elseif rtype == 'uint8' or rtype == 'ubyte' then
-				table_insert(output, {rname, meta.ReadUByte})
-			elseif rtype == 'uint16' or rtype == 'ushort' then
-				table_insert(output, {rname, meta.ReadUInt16})
-			elseif rtype == 'uint32' or rtype == 'ulong' or rtype == 'uint' then
-				table_insert(output, {rname, meta.ReadUInt32})
-			elseif rtype == 'uint64' or rtype == 'ulong64' or rtype == 'biguint' or rtype == 'ubigint' then
-				table_insert(output, {rname, meta.ReadUInt64})
-			elseif rtype == 'float' then
-				table_insert(output, {rname, meta.ReadFloat})
-			elseif rtype == 'double' then
-				table_insert(output, {rname, meta.ReadDouble})
-			elseif rtype == 'variable' or rtype == 'string' then
-				table_insert(output, {rname, meta.ReadString})
-			elseif callbacks and callbacks[rtype2] then
-				table_insert(output, {rname, callbacks[rtype2]})
-			else
-				DLib.MessageError(debug.traceback('Undefined type: ' .. rtype))
+				for i = 1, struct[num] do
+					array[i] = fn(self, struct)
+				end
+
+				return array
 			end
 		end
 	end
 
-	return function(self)
-		local read = {}
+	local function readChar(self, struct)
+		return string.char(self:ReadUByte())
+	end
 
-		for i, data in ipairs(output) do
-			read[data[1]] = data[2](self, read)
+	local function readCharLE(self, struct)
+		return string.char(self:ReadUByte():bswap():rshift(24))
+	end
+
+	function metaclass.CompileStructure(structureDef, callbacks)
+		local output = {}
+
+		for i, line in ipairs(structureDef:split('\n')) do
+			line = line:trim()
+			--assert(line ~= '', 'Invalid line definition at ' .. i)
+
+			if line ~= '' and not line:startsWith('//') then
+				line = line
+					:gsub('unsigned%s+int', 'uint32')
+					:gsub('unsigned%s+short', 'uint16')
+					:gsub('unsigned%s+char', 'uint8')
+
+				local findLE, findLE_ = line:lower():find('^le%s+')
+				local findLE2, findLE2_ = line:lower():find('^little endian%s+')
+
+				local isLE = false
+
+				if findLE then
+					isLE = true
+					line = line:sub(findLE_ + 1)
+				end
+
+				if findLE2 then
+					isLE = true
+					line = line:sub(findLE2_ + 1)
+				end
+
+				local findSpace = assert(line:find('%s'), 'Can\'t find variable name at line ' .. i)
+				local rtype2 = line:sub(1, findSpace):trim()
+				local rtype = rtype2:lower()
+				local rname = line:sub(findSpace + 1):trim()
+				local findCommentary = rname:find('%s//')
+
+				if findCommentary then
+					rname = rname:sub(1, findCommentary):trim()
+				end
+
+				if rname[#rname] == ';' then
+					rname = rname:sub(1, #rname - 1)
+				end
+
+				local findIndex = string.match(rname, '%[.-%]$')
+
+				if findIndex then
+					rname = rname:sub(1, #rname - #findIndex)
+				end
+
+				local limit = 0x0
+
+				if rtype == 'int8' or rtype == 'byte' then
+					table_insert(output, {rname, meta.ReadByte})
+					limit = 24
+				elseif rtype == 'char' then
+					local addfn = readChar
+					limit = 24
+
+					if isLE then
+						isLE = false
+						addfn = readCharLE
+					end
+
+					table_insert(output, {rname, addfn})
+				elseif rtype == 'int16' or rtype == 'short' then
+					table_insert(output, {rname, meta.ReadInt16})
+					limit = 16
+				elseif rtype == 'int32' or rtype == 'long' or rtype == 'int' then
+					table_insert(output, {rname, meta.ReadInt32})
+					limit = 0
+				elseif rtype == 'int64' or rtype == 'longlong' or rtype == 'bigint' then
+					table_insert(output, {rname, meta.ReadInt64})
+					limit = 0 -- unsupported by bit library
+				elseif rtype == 'uint8' or rtype == 'ubyte' then
+					table_insert(output, {rname, meta.ReadUByte})
+					limit = 24
+				elseif rtype == 'uint16' or rtype == 'ushort' then
+					table_insert(output, {rname, meta.ReadUInt16})
+					limit = 16
+				elseif rtype == 'uint32' or rtype == 'ulong' or rtype == 'uint' then
+					table_insert(output, {rname, meta.ReadUInt32})
+					limit = 0
+				elseif rtype == 'uint64' or rtype == 'ulong64' or rtype == 'biguint' or rtype == 'ubigint' then
+					table_insert(output, {rname, meta.ReadUInt64})
+					limit = 0 -- unsupported by bit library
+				elseif rtype == 'float' then
+					table_insert(output, {rname, meta.ReadFloat})
+				elseif rtype == 'double' then
+					table_insert(output, {rname, meta.ReadDouble})
+				elseif rtype == 'variable' or rtype == 'string' then
+					table_insert(output, {rname, meta.ReadString})
+				elseif callbacks and callbacks[rtype2] then
+					table_insert(output, {rname, callbacks[rtype2]})
+				else
+					DLib.MessageError(debug.traceback('Undefined type: ' .. rtype))
+				end
+
+				if isLE then
+					local fn = output[#output][2]
+
+					output[#output][2] = function(self, struct)
+						return fn(self, struct):bswap():rshift(limit)
+					end
+				end
+
+				if findIndex then
+					local index = findIndex:sub(2, #findIndex - 1)
+					output[#output][2] = readArray(tonumber(index) or index, output[#output][2])
+				end
+			end
 		end
 
-		return read
+		return function(self)
+			local read = {}
+
+			for i, data in ipairs(output) do
+				read[data[1]] = data[2](self, read)
+			end
+
+			return read
+		end
 	end
 end
 

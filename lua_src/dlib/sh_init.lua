@@ -208,6 +208,8 @@ DLib.ServerInclude('modules/nwvar/sv_nwvar.lua')
 
 DLib.SharedInclude('util/queue.lua')
 DLib.SharedInclude('util/pdata.lua')
+DLib.SharedInclude('util/s3tc.lua')
+DLib.SharedInclude('util/vtf.lua')
 
 DLib.SharedInclude('enums/gmod.lua')
 DLib.SharedInclude('enums/keymapping.lua')
