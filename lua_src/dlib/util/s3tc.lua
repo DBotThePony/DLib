@@ -76,17 +76,17 @@ function DXT1:GetBlock(x, y)
 			local code = describe:rshift((16 - i) * 2):band(0x3)
 
 			if code == 0 then
-				decoded[i] = color0_d
+				decoded[17 - i] = color0_d
 			elseif code == 1 then
-				decoded[i] = color1_d
+				decoded[17 - i] = color1_d
 			elseif code == 2 then
-				decoded[i] = Color(
+				decoded[17 - i] = Color(
 					(color0_d.r * 2 + color1_d.r) / 3,
 					(color0_d.g * 2 + color1_d.g) / 3,
 					(color0_d.b * 2 + color1_d.b) / 3
 				)
 			else
-				decoded[i] = Color(
+				decoded[17 - i] = Color(
 					(color0_d.r + color1_d.r * 2) / 3,
 					(color0_d.g + color1_d.g * 2) / 3,
 					(color0_d.b + color1_d.b * 2) / 3
@@ -98,11 +98,11 @@ function DXT1:GetBlock(x, y)
 			local code = describe:rshift((16 - i) * 2):band(0x3)
 
 			if code == 0 then
-				decoded[i] = color0_d
+				decoded[17 - i] = color0_d
 			elseif code == 1 then
-				decoded[i] = color1_d
+				decoded[17 - i] = color1_d
 			elseif code == 2 then
-				decoded[i] = Color(
+				decoded[17 - i] = Color(
 					(color0_d.r + color1_d.r) / 2,
 					(color0_d.g + color1_d.g) / 2,
 					(color0_d.b + color1_d.b) / 2
@@ -113,36 +113,95 @@ function DXT1:GetBlock(x, y)
 		end
 	end
 
-	self.cache[block] = {color0, color1, describe, decoded}
-	return self.cache[block]
-end
+	self.cache[block] = decoded
 
-function DXT1:GetPixel(x, y)
-	local block = self:GetBlock(math.floor(x / 4), math.floor(y / 4))
-	local color0, color1, describe, decoded = block[1], block[2], block[3], block[4]
-
-	if color0 > color1 then
-
-	end
+	return decoded
 end
 
 DLib.DXT1 = DLib.CreateMoonClassBare('DXT1', DXT1, DXT1Object)
 
-local DXT5 = {}
+local DXT3 = {}
+local DXT3Object = {}
 
-function DXT5:ctor(bytes, width, height)
+function DXT3Object.CountBytes(w, h)
+	return math.ceil(w * h):max(16)
+end
+
+function DXT3:ctor(bytes, width, height)
 	self.bytes = bytes
 	self.width = width
 	self.height = height
 	self.width_blocks = width / 4
 	self.height_blocks = height / 4
+
+	self.cache = {}
 end
 
-function DXT5:GetBlock(x, y)
+function DXT3:GetBlock(x, y)
 	assert(x >= 0, '!x >= 0')
 	assert(y >= 0, '!y >= 0')
 	assert(x <= self.width_blocks, '!x <= self.width_blocks')
 	assert(y <= self.height_blocks, '!y <= self.height_blocks')
+
+	local pixel = y * self.width_blocks + x
+	local block = pixel * 16
+
+	if self.cache[block] then
+		return self.cache[block]
+	end
+
+	self.bytes:Seek(block)
+
+	local alpha0 = self.bytes:ReadUInt32():bswap()
+	local alpha1 = self.bytes:ReadUInt32():bswap()
+
+	local color0 = self.bytes:ReadUInt16():bswap():rshift(16)
+	local color1 = self.bytes:ReadUInt16():bswap():rshift(16)
+
+	local color0_d = to_color_5_6_5(color0)
+	local color1_d = to_color_5_6_5(color1)
+
+	local describe = self.bytes:ReadUInt32():bswap()
+
+	local decoded = {}
+
+	-- https://www.khronos.org/opengl/wiki/S3_Texture_Compression
+	-- state that:
+	-- compressed almost as in the DXT1 case; the difference being that color0 is
+	-- always assumed to be less than color1 in terms of determining how to use the
+	-- codes to extract the color value
+
+	-- which seems to be not the case with source engine
+
+	-- it appears that source engine actually assume that color0 is always *bigger* than color1
+	for i = 1, 16 do
+		local code = describe:rshift((16 - i) * 2):band(0x3)
+		local alpha = (i <= 8 and alpha1 or alpha0):rshift(((16 - i) % 8) * 4):band(0xF) * 0x11
+
+		if code == 0 then
+			decoded[17 - i] = color0_d:ModifyAlpha(alpha)
+		elseif code == 1 then
+			decoded[17 - i] = color1_d:ModifyAlpha(alpha)
+		elseif code == 2 then
+			decoded[17 - i] = Color(
+				(color0_d.r * 2 + color1_d.r) / 3,
+				(color0_d.g * 2 + color1_d.g) / 3,
+				(color0_d.b * 2 + color1_d.b) / 3,
+				alpha
+			)
+		else
+			decoded[17 - i] = Color(
+				(color0_d.r + color1_d.r * 2) / 3,
+				(color0_d.g + color1_d.g * 2) / 3,
+				(color0_d.b + color1_d.b * 2) / 3,
+				alpha
+			)
+		end
+	end
+
+	self.cache[block] = decoded
+
+	return decoded
 end
 
-DLib.DXT5 = DLib.CreateMoonClassBare('DXT5', DXT5)
+DLib.DXT3 = DLib.CreateMoonClassBare('DXT3', DXT3, DXT3Object)
