@@ -52,7 +52,7 @@ local math_floor = math.floor
 	entry point of BytesBuffer creation
 	you can pass a string to it to construct bytes array from it
 	**BUFFER ONLY WORK WITH BIG ENDIAN BYTES**
-	@descdesc
+	@enddesc
 
 	@returns
 	BytesBuffer: newly created object
@@ -1401,7 +1401,7 @@ end
 	Keep in mind that this is generally slower to work with big slices since there is a cost at translating
 	byte index to corresponding buffers
 	This object expose every property and method regular `BytesBuffer` has
-	@descdesc
+	@enddesc
 
 	@returns
 	BytesBufferView: newly created object

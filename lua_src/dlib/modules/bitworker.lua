@@ -683,7 +683,7 @@ end
 	@desc
 	a table consist of `{1, 1, 1, 0, 0, 0, 1, 0}` turns into `{226}` for example
 	`{1, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 1}` turns into `{226, 225}`
-	@descdesc
+	@enddesc
 
 	@returns
 	table: bytes
