@@ -561,6 +561,46 @@ function hook.Add(event, stringID, funcToCall, priority)
 	return
 end
 
+--[[
+	@doc
+	@fname hook.SetPriority
+	@args string event, any stringID, number priority
+
+	@desc
+	Sets priority of already registered hook
+	@enddesc
+
+	@returns
+	boolean: whenever priority was set
+]]
+function hook.SetPriority(event, stringID, priority)
+	if not isstring(event) then
+		error('Bad argument #1 to hook.SetPriority (string expected, got ' .. type(event) .. ')', 2)
+	end
+
+	if not isnumber(priority) then
+		error('Bad argument #3 to hook.SetPriority (number expected, got ' .. type(priority) .. ')', 2)
+	end
+
+	if not __table[event] then
+		return false
+	end
+
+	stringID = transformStringID(stringID, event)
+
+	for priority = maximalPriority, minimalPriority do
+		local eventsTable = __table[event][priority]
+
+		if eventsTable and eventsTable[stringID] then
+			eventsTable[stringID].priority = priority
+			hook.Reconstruct(event)
+			return true
+		end
+	end
+
+	return false
+end
+
 hook._O_SALT = hook._O_SALT or -0xFFFFFFF
 
 --[[
