@@ -1300,6 +1300,10 @@ end
 
 if DLib.BytesBuffer and not DLib.BytesBuffer.__base then DLib.BytesBuffer = nil end
 
+function metaclass.Allocate(length)
+	return DLib.BytesBuffer(string.rep('\x00', length))
+end
+
 local real_buff_meta
 DLib.BytesBuffer, real_buff_meta = DLib.CreateMoonClassBare('LBytesBuffer', meta, metaclass, nil, DLib.BytesBuffer, true)
 debug.getregistry().LBytesBuffer = DLib.BytesBuffer
