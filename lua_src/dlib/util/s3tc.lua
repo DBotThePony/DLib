@@ -43,9 +43,9 @@ end
 
 -- encode 5, 6, 5 color as big endian
 local function encode_color_5_6_5(r, g, b)
-	local r = floor(r * 0.12156862745098)
-	local g = floor(g * 0.24705882352941)
-	local b = floor(b * 0.12156862745098)
+	local r = floor(r:clamp(0, 1) * 31)
+	local g = floor(g:clamp(0, 1) * 63)
+	local b = floor(b:clamp(0, 1) * 31)
 
 	return bit.bor(bit.lshift(r, 11), bit.lshift(g, 5), b):max(0)
 end
@@ -63,6 +63,7 @@ function DXT1:ctor(bytes, width, height)
 	self.height = height
 	self.width_blocks = width / 4
 	self.height_blocks = height / 4
+	self.advanced_dither = true
 
 	self.cache = {}
 end
@@ -78,7 +79,7 @@ function DXT1:SetBlockSolid(x, y, color)
 
 	self.bytes:Seek(block)
 
-	local color0 = encode_color_5_6_5(color.r, color.g, color.b):bswap():rshift(16)
+	local color0 = encode_color_5_6_5(color.r / 255, color.g / 255, color.b / 255):bswap():rshift(16)
 	self.bytes:WriteUInt16(color0)
 	self.bytes:WriteUInt16(color0)
 	self.bytes:WriteUInt32(0)
@@ -95,6 +96,9 @@ do
 	]]
 
 	-- but indexing start from 1
+
+	local luma_r, luma_g, luma_b, luma_a = 0.2125 / 0.7154, 1.0, 0.0721 / 0.7154, 1.0
+	local luma_inv_r, luma_inv_g, luma_inv_b, luma_inv_a = 1 / luma_r, 1 / luma_g, 1 / luma_b, 1 / luma_a
 
 	local error_buffer = {}
 	local encoded565_buffer = {}
@@ -163,8 +167,8 @@ do
 		palette_colors_buffer[i] = {0, 0, 0}
 	end
 
-	local function SolveColorBlock(block)
-		local color0_r, color0_g, color0_b = 1, 1, 1
+	local function SolveColorBlock(block, encode_luma)
+		local color0_r, color0_g, color0_b = encode_luma and luma_r or 1, encode_luma and luma_g or 1, encode_luma and luma_b or 1
 		local color1_r, color1_g, color1_b = 0, 0, 0
 
 		for i = 1, 16 do
@@ -346,16 +350,21 @@ do
 		-- this could return values below zero or above one due to dithering above
 		-- but we will clamp it
 
-		return color0_r:clamp(0, 1), color0_g:clamp(0, 1), color0_b:clamp(0, 1), color1_r:clamp(0, 1), color1_g:clamp(0, 1), color1_b:clamp(0, 1)
+		return color0_r, color0_g, color0_b, color1_r, color1_g, color1_b
 	end
 
 	local palette_bits = {0, 2, 3, 1}
+
+	AccessorFunc(DXT1, 'encode_luma', 'EncodeInLuma')
+	AccessorFunc(DXT1, 'advanced_dither', 'AdvancedDither')
 
 	function DXT1:SetBlock(x, y, pixels)
 		assert(x >= 0, '!x >= 0')
 		assert(y >= 0, '!y >= 0')
 		assert(x < self.width_blocks, '!x <= self.width_blocks')
 		assert(y < self.height_blocks, '!y <= self.height_blocks')
+
+		local encode_luma = self.encode_luma or false
 
 		-- clear buffer
 		for i = 1, 16 do
@@ -377,20 +386,59 @@ do
 			local pixel = pixels[i]
 			local encoded = encoded565_buffer[i]
 			local _error = error_buffer[i]
-			encoded[1], encoded[2], encoded[3], r_error, g_error, b_error = encode_color_5_6_5_error(pixel.r + _error[1], pixel.g + _error[2], pixel.b + _error[3])
-			--encoded[1], encoded[2], encoded[3], r_error, g_error, b_error = encode_color_5_6_5_error(pixel.r, pixel.g, pixel.b)
+			local r, g, b, r_error, g_error, b_error = encode_color_5_6_5_error(pixel.r + _error[1], pixel.g + _error[2], pixel.b + _error[3])
 			local dither = precompute[i]
 
-			for i2 = 1, #dither do
-				local _error2 = error_buffer[dither[i2][1]]
-				local mult = dither[i2][2]
-				_error2[1] = _error2[1] + r_error * mult
-				_error2[2] = _error2[2] + g_error * mult
-				_error2[3] = _error2[3] + b_error * mult
+			if encode_luma then
+				encoded[1], encoded[2], encoded[3] = r * luma_r, g * luma_g, b * luma_b
+			else
+				encoded[1], encoded[2], encoded[3] = r, g, b
+			end
+
+			if self.advanced_dither then
+				for i2 = 1, #dither do
+					local _error2 = error_buffer[dither[i2][1]]
+					local mult = dither[i2][2]
+					_error2[1] = _error2[1] + r_error * mult
+					_error2[2] = _error2[2] + g_error * mult
+					_error2[3] = _error2[3] + b_error * mult
+				end
+			else
+				if bit.band(i - 1, 3) ~= 3 then
+					_error = error_buffer[i + 1]
+					_error[1] = _error[1] + r_error * 0.4375
+					_error[2] = _error[2] + g_error * 0.4375
+					_error[3] = _error[3] + b_error * 0.4375
+				end
+
+				if i < 13 then
+					if bit.band(i - 1, 3) ~= 0 then
+						_error = error_buffer[i + 3]
+						_error[1] = _error[1] + r_error * 0.1875
+						_error[2] = _error[2] + g_error * 0.1875
+						_error[3] = _error[3] + b_error * 0.1875
+					end
+
+					_error = error_buffer[i + 4]
+					_error[1] = _error[1] + r_error * 0.3125
+					_error[2] = _error[2] + g_error * 0.3125
+					_error[3] = _error[3] + b_error * 0.3125
+
+					if bit.band(i - 1, 3) ~= 3 then
+						_error = error_buffer[i + 5]
+						_error[1] = _error[1] + r_error * 0.0625
+						_error[2] = _error[2] + g_error * 0.0625
+						_error[3] = _error[3] + b_error * 0.0625
+					end
+				end
 			end
 		end
 
-		local color0_r, color0_g, color0_b, color1_r, color1_g, color1_b = SolveColorBlock(encoded565_buffer)
+		local color0_r, color0_g, color0_b, color1_r, color1_g, color1_b = SolveColorBlock(encoded565_buffer, encode_luma)
+
+		if encode_luma then
+			color0_r, color0_g, color0_b, color1_r, color1_g, color1_b = color0_r * luma_inv_r, color0_g * luma_inv_g, color0_b * luma_inv_b, color1_r * luma_inv_r, color1_g * luma_inv_g, color1_b * luma_inv_b
+		end
 
 		if
 			color0_r == color1_r and
@@ -402,7 +450,7 @@ do
 		end
 
 		-- encoded colors
-		local wColor0, wColor1 = encode_color_5_6_5(color0_r * 255, color0_g * 255, color0_b * 255), encode_color_5_6_5(color1_r * 255, color1_g * 255, color1_b * 255)
+		local wColor0, wColor1 = encode_color_5_6_5(color0_r, color0_g, color0_b), encode_color_5_6_5(color1_r, color1_g, color1_b)
 
 		if wColor0 == wColor1 then
 			self:SetBlockSolid(x, y, Color(color0_r * 255, color0_g * 255, color0_b * 255))
@@ -453,22 +501,71 @@ do
 
 		local written = 0
 
-		--[[for i = 1, 16 do
+		for i = 1, 16 do
 			local a = error_buffer[i]
 			a[1] = 0
 			a[2] = 0
 			a[3] = 0
-		end]]
+		end
 
 		for i = 1, 16 do
 			local pixel = pixels[i]
-			local dot_product = (pixel.r * 0.003921568627451 - palette_colors_buffer[1][1]) * direction_r +
-				(pixel.g * 0.003921568627451 - palette_colors_buffer[1][2]) * direction_g +
-				(pixel.b * 0.003921568627451 - palette_colors_buffer[1][3]) * direction_b
+			local _error = error_buffer[i]
+
+			local pixel_r, pixel_g, pixel_b = pixel.r * 0.003921568627451 + _error[1], pixel.g * 0.003921568627451 + _error[2], pixel.b * 0.003921568627451 + _error[3]
+
+			local dot_product = (pixel_r - palette_colors_buffer[1][1]) * direction_r +
+				(pixel_g - palette_colors_buffer[1][2]) * direction_g +
+				(pixel_b - palette_colors_buffer[1][3]) * direction_b
 
 			local palette_index = dot_product < 0 and 0 or dot_product > 3 and 1 or palette_bits[ceil(dot_product + 1)]
+			local chosen_color = palette_colors_buffer[palette_index + 1]
+
+			local encoded = encoded565_buffer[i]
+
+			local r_error, g_error, b_error = pixel_r - chosen_color[1], pixel_g - chosen_color[2], pixel_b - chosen_color[3]
 
 			written = written:rshift(2):bor(palette_index:lshift(30))
+
+			if self.advanced_dither then
+				local dither = precompute[i]
+
+				for i2 = 1, #dither do
+					local _error2 = error_buffer[dither[i2][1]]
+					local mult = dither[i2][2]
+					_error2[1] = _error2[1] + r_error * mult
+					_error2[2] = _error2[2] + g_error * mult
+					_error2[3] = _error2[3] + b_error * mult
+				end
+			else
+				if bit.band(i - 1, 3) ~= 3 then
+					_error = error_buffer[i + 1]
+					_error[1] = _error[1] + r_error * 0.4375
+					_error[2] = _error[2] + g_error * 0.4375
+					_error[3] = _error[3] + b_error * 0.4375
+				end
+
+				if i < 13 then
+					if bit.band(i - 1, 3) ~= 0 then
+						_error = error_buffer[i + 3]
+						_error[1] = _error[1] + r_error * 0.1875
+						_error[2] = _error[2] + g_error * 0.1875
+						_error[3] = _error[3] + b_error * 0.1875
+					end
+
+					_error = error_buffer[i + 4]
+					_error[1] = _error[1] + r_error * 0.3125
+					_error[2] = _error[2] + g_error * 0.3125
+					_error[3] = _error[3] + b_error * 0.3125
+
+					if bit.band(i - 1, 3) ~= 3 then
+						_error = error_buffer[i + 5]
+						_error[1] = _error[1] + r_error * 0.0625
+						_error[2] = _error[2] + g_error * 0.0625
+						_error[3] = _error[3] + b_error * 0.0625
+					end
+				end
+			end
 		end
 
 		local pixel = y * self.width_blocks + x
@@ -478,6 +575,10 @@ do
 		self.bytes:WriteUInt16(fColor0:bswap():rshift(16))
 		self.bytes:WriteUInt16(fColor1:bswap():rshift(16))
 		self.bytes:WriteInt32(written:bswap())
+		--[[self.bytes:WriteUByte(written:band(0xFF))
+		self.bytes:WriteUByte(written:rshift(8):band(0xFF))
+		self.bytes:WriteUByte(written:rshift(16):band(0xFF))
+		self.bytes:WriteUByte(written:rshift(24):band(0xFF))]]
 
 		self.cache[pixel] = nil
 	end
