@@ -226,7 +226,7 @@ function meta:WriteUByte(valueIn)
 
 	self.bytes[self.pointer + 1] = valueIn
 	self.pointer = self.pointer + 1
-	self.length = #self.bytes
+	self.length = self._length or #self.bytes
 
 	return self
 end
@@ -348,7 +348,7 @@ function meta:WriteUInt16(valueIn)
 	bytes[pointer] = band(rshift(valueIn, 8), 0xFF)
 	bytes[pointer + 1] = band(valueIn, 0xFF)
 	self.pointer = pointer + 1
-	self.length = #bytes
+	self.length = self._length or #bytes
 
 	return self
 end
@@ -418,7 +418,7 @@ function meta:WriteUInt32(valueIn)
 	bytes[pointer + 3] = band(valueIn, 0xFF)
 
 	self.pointer = pointer + 3
-	self.length = #bytes
+	self.length = self._length or #bytes
 
 	return self
 end
@@ -832,7 +832,7 @@ function meta:WriteDoubleSlow(valueIn)
 	bytes[pointer + 7] = bytes[8]
 
 	self.pointer = pointer + 7
-	self.length = #bytes
+	self.length = self._length or #bytes
 
 	return self
 end
@@ -869,7 +869,7 @@ function meta:WriteDouble(valueIn)
 	bytes[pointer + 7] = band(int2, 0xFF)
 
 	self.pointer = pointer + 7
-	self.length = #bytes
+	self.length = self._length or #bytes
 
 	return self
 end
@@ -947,7 +947,7 @@ function meta:WriteString(stringIn)
 		end
 	end
 
-	self.length = #bytes
+	self.length = self._length or #bytes
 	self.pointer = pointer - 1
 
 	self:WriteUByte(0)
@@ -1007,7 +1007,7 @@ function meta:WriteBinary(binaryString)
 		pointer = pointer + 1
 	end
 
-	self.length = #bytes
+	self.length = self._length or #bytes
 	self.pointer = pointer - 1
 
 	return self
@@ -1417,6 +1417,7 @@ DLib.BytesBufferView = setmetatable({proto = meta_view, meta = meta_view}, {__ca
 	local obj = setmetatable({}, meta_view)
 	obj.pointer = 0
 	obj.length = slice_end - slice_start
+	obj._length = slice_end - slice_start
 	obj.slice_start = slice_start
 	obj.slice_end = slice_end
 	obj.buffers = {...}

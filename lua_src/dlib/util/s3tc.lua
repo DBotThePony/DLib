@@ -1,5 +1,5 @@
 
--- Copyright (C) 2017-2020 DBotThePony
+-- Copyright (C) 2017-2021 DBotThePony
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -18,6 +18,38 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
+-- Block-compression (BC) functionality for BC1, BC2, BC3 (orginal DXTn formats)
+
+-- THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY OF
+-- ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+-- THE IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
+-- PARTICULAR PURPOSE.
+
+-- Copyright (c) Microsoft Corporation. All rights reserved.
+
+-- http://go.microsoft.com/fwlink/?LinkId=248926
+
+local color_black = Color(0, 0, 0)
+local floor = math.floor
+
+-- decode byte swapped (big endian ready) 5, 6, 5 color
+local function to_color_5_6_5(value)
+	local b = floor(value:band(31) * 8.2258064516129)
+	local g = floor(value:rshift(5):band(63) * 4.047619047619)
+	local r = floor(value:rshift(11):band(31) * 8.2258064516129)
+
+	return Color(r, g, b)
+end
+
+-- encode 5, 6, 5 color as big endian
+local function encode_color_5_6_5(r, g, b)
+	local r = floor(r * 0.12156862745098)
+	local g = floor(g * 0.24705882352941)
+	local b = floor(b * 0.12156862745098)
+
+	return bit.bor(bit.lshift(r, 11), bit.lshift(g, 5), b):max(0)
+end
+
 local DXT1 = {}
 local DXT1Object = {}
 
@@ -35,15 +67,421 @@ function DXT1:ctor(bytes, width, height)
 	self.cache = {}
 end
 
-local function to_color_5_6_5(value)
-	local b = math.floor(value:band(31) * 8.2258064516129)
-	local g = math.floor(value:rshift(5):band(63) * 4.047619047619)
-	local r = math.floor(value:rshift(11):band(31) * 8.2258064516129)
+function DXT1:SetBlockSolid(x, y, color)
+	assert(x >= 0, '!x >= 0')
+	assert(y >= 0, '!y >= 0')
+	assert(x < self.width_blocks, '!x <= self.width_blocks')
+	assert(y < self.height_blocks, '!y <= self.height_blocks')
 
-	return Color(r, g, b)
+	local pixel = y * self.width_blocks + x
+	local block = pixel * 8
+
+	self.bytes:Seek(block)
+
+	local color0 = encode_color_5_6_5(color.r, color.g, color.b):bswap():rshift(16)
+	self.bytes:WriteUInt16(color0)
+	self.bytes:WriteUInt16(color0)
+	self.bytes:WriteUInt32(0)
+
+	self.cache[pixel] = nil
 end
 
-local color_black = Color(0, 0, 0)
+do
+	--[[
+		(0, 0) (1, 0) (2, 0) (3, 0)
+		(0, 1) (1, 1) (2, 1) (3, 1)
+		(0, 2) (1, 2) (2, 2) (3, 2)
+		(0, 3) (1, 3) (2, 3) (3, 3)
+	]]
+
+	-- but indexing start from 1
+
+	local error_buffer = {}
+	local encoded565_buffer = {}
+
+	for i = 1, 16 do
+		error_buffer[i] = {0, 0, 0}
+		encoded565_buffer[i] = {0, 0, 0}
+	end
+
+	-- 255, 255, 255 rgb encoded to 5 6 5 palette as floats
+	local function encode_color_5_6_5_error(r, g, b)
+		local _r = floor(r * 0.12156862745098)
+		local _g = floor(g * 0.24705882352941)
+		local _b = floor(b * 0.12156862745098)
+
+		return _r * 0.032258064516129, _g * 0.015873015873016, _b * 0.032258064516129, r - _r * 8.2258064516129, g - _g * 4.047619047619, b - _b * 8.2258064516129
+	end
+
+	--[[
+				X   7   5
+		3   5   7   5   3
+		1   3   5   3   1
+
+		      (1/48)
+	]]
+
+	local precompute = {}
+	local _compute = {
+		{1, 0, 7 / 48},
+		{2, 0, 5 / 48},
+
+		{-2, 1, 3 / 48},
+		{-1, 1, 5 / 48},
+		{0, 1, 7 / 48},
+		{1, 1, 5 / 48},
+		{2, 1, 3 / 48},
+
+		{-2, 2, 1 / 48},
+		{-1, 2, 3 / 48},
+		{0, 2, 5 / 48},
+		{1, 2, 3 / 48},
+		{2, 2, 1 / 48},
+	}
+
+	for X = 0, 3 do
+		for Y = 0, 3 do
+			local compute = {}
+			precompute[1 + X + Y * 4] = compute
+
+			for _, data in ipairs(_compute) do
+				local x, y, dither = data[1] + X, data[2] + Y, data[3]
+
+				if x < 4 and x > -1 and y < 4 and y > -1 then
+					table.insert(compute, {1 + x + y * 4, dither})
+				end
+			end
+		end
+	end
+
+	local min, max, ceil = math.min, math.max, math.ceil
+	local palette_colors_buffer = {}
+	local palette_const_lowkey = {3 / 3, 2 / 3, 1 / 3, 0 / 3}
+	local palette_const_highkey = {0 / 3, 1 / 3, 2 / 3, 3 / 3}
+
+	for i = 1, 4 do
+		palette_colors_buffer[i] = {0, 0, 0}
+	end
+
+	local function SolveColorBlock(block)
+		local color0_r, color0_g, color0_b = 1, 1, 1
+		local color1_r, color1_g, color1_b = 0, 0, 0
+
+		for i = 1, 16 do
+			local pixel = block[i]
+
+			if pixel[1] < color0_r then
+				color0_r = pixel[1]
+			end
+
+			if pixel[2] < color0_g then
+				color0_g = pixel[2]
+			end
+
+			if pixel[3] < color0_b then
+				color0_b = pixel[3]
+			end
+
+			if pixel[1] > color1_r then
+				color1_r = pixel[1]
+			end
+
+			if pixel[2] > color1_g then
+				color1_g = pixel[2]
+			end
+
+			if pixel[3] > color1_b then
+				color1_b = pixel[3]
+			end
+		end
+
+		if color0_r == color1_r and color0_g == color1_g and color0_b == color0_b then
+			return color0_r, color0_g, color0_b, color0_r, color0_g, color0_b
+		end
+
+		-- diagonal axis
+		-- e.g. we go "diagonally" over pixels (x -> X, y -> Y)
+		local diag_r, diag_g, diag_b = color1_r - color0_r, color1_g - color0_g, color1_b - color0_b
+
+		local diag_f = 1 / (diag_r * diag_r + diag_g * diag_g + diag_b * diag_b)
+
+		local direction_r, direction_g, direction_b = diag_r * diag_f, diag_g * diag_f, diag_b * diag_f
+		local middle_r, middle_g, middle_b = (color0_r + color1_r) * 0.5, (color0_g + color1_g) * 0.5, (color0_b + color1_b) * 0.5
+
+		local computed_dir_1, computed_dir_2, computed_dir_3, computed_dir_4 = 0, 0, 0, 0
+
+		-- determine direction which match us the best
+		for i = 1, 16 do
+			local pixel = block[i]
+			local per_r, per_g, per_b = (pixel[1] - middle_r) * direction_r, (pixel[2] - middle_g) * direction_g, (pixel[3] - middle_b) * direction_b
+
+			local compute = per_r + per_g + per_b
+			computed_dir_1 = computed_dir_1 + compute * compute
+
+			compute = per_r + per_g - per_b
+			computed_dir_2 = computed_dir_2 + compute * compute
+
+			compute = per_r - per_g + per_b
+			computed_dir_3 = computed_dir_3 + compute * compute
+
+			compute = per_r - per_g - per_b
+			computed_dir_4 = computed_dir_4 + compute * compute
+		end
+
+		-- find out the best direction
+		local chosen_direction = 0
+		local chosen_direction_max = computed_dir_1
+
+		if computed_dir_2 > chosen_direction_max then
+			chosen_direction = 1
+			chosen_direction_max = computed_dir_2
+		end
+
+		if computed_dir_3 > chosen_direction_max then
+			chosen_direction = 2
+			chosen_direction_max = computed_dir_3
+		end
+
+		if computed_dir_4 > chosen_direction_max then
+			chosen_direction = 3
+			chosen_direction_max = computed_dir_4
+		end
+
+		-- depending on direction, swap initial vector colors channels
+		if chosen_direction == 2 or chosen_direction == 3 then
+			-- swap green color
+			color0_g, color1_g = color1_g, color0_g
+		end
+
+		if chosen_direction == 1 or chosen_direction == 3 then
+			-- swap blue color
+			color0_b, color1_b = color1_b, color0_b
+		end
+
+		-- print('pre process', color0_r, color0_g, color0_b, color1_r, color1_g, color1_b)
+
+		-- amount of samples (iterations) only define accuracy of calculation
+		for sample = 1, 8 do
+			-- calculate colors of palette for each 4 bit value
+			for palette_index = 1, 4 do
+				palette_colors_buffer[palette_index][1] = color0_r * palette_const_lowkey[palette_index] + color1_r * palette_const_highkey[palette_index]
+				palette_colors_buffer[palette_index][2] = color0_g * palette_const_lowkey[palette_index] + color1_g * palette_const_highkey[palette_index]
+				palette_colors_buffer[palette_index][3] = color0_b * palette_const_lowkey[palette_index] + color1_b * palette_const_highkey[palette_index]
+			end
+
+			direction_r, direction_g, direction_b = color1_r - color0_r, color1_g - color0_g, color1_b - color0_b
+
+			-- color vector length (unsquared)
+			local length = direction_r * direction_r + direction_g * direction_g + direction_b * direction_b
+
+			-- no way we can get closer to what we want
+			if length < 0.000244140625 then
+				-- print('break length')
+				break
+			end
+
+			local scale = 3 / length
+			-- normalize?????
+			direction_r, direction_g, direction_b = direction_r * scale, direction_g * scale, direction_b * scale
+			-- print('direction', direction_r, direction_g, direction_b, length, scale)
+
+			local dither0_r, dither0_g, dither0_b = 0, 0, 0
+			local dither1_r, dither1_g, dither1_b = 0, 0, 0
+			local dither0, dither1 = 0, 0
+
+			for i = 1, 16 do
+				local pixel = block[i]
+
+				local dot_product =
+					(pixel[1] - color0_r) * direction_r +
+					(pixel[2] - color0_g) * direction_g +
+					(pixel[3] - color0_b) * direction_b
+
+				local palette_index = dot_product < 0 and 1 or dot_product > 3 and 4 or floor(dot_product + 1.5)
+
+				-- we got our color, calculate dither
+				local getcolor = palette_colors_buffer[palette_index]
+				local error_r, error_g, error_b = getcolor[1] - pixel[1], getcolor[2] - pixel[2], getcolor[3] - pixel[3]
+
+				local low, high = palette_const_lowkey[palette_index] * 0.125, palette_const_highkey[palette_index] * 0.125
+
+				dither0 = dither0 + palette_const_lowkey[palette_index] * low
+				dither0_r = dither0_r + error_r * low
+				dither0_g = dither0_g + error_g * low
+				dither0_b = dither0_b + error_b * low
+
+				dither1 = dither1 + palette_const_highkey[palette_index] * high
+				dither1_r = dither1_r + error_r * high
+				dither1_g = dither1_g + error_g * high
+				dither1_b = dither1_b + error_b * high
+			end
+
+			if dither0 > 0 then
+				local inv = -1 / dither0
+				-- print('dither0', dither0, dither0_r * inv, dither0_g * inv, dither0_b * inv)
+				color0_r = color0_r + dither0_r * inv
+				color0_g = color0_g + dither0_g * inv
+				color0_b = color0_b + dither0_b * inv
+			end
+
+			if dither1 > 0 then
+				local inv = -1 / dither1
+				color1_r = color1_r + dither1_r * inv
+				color1_g = color1_g + dither1_g * inv
+				color1_b = color1_b + dither1_b * inv
+			end
+
+			if
+				dither0_r * dither0_r < 1.52587890625e-05 and
+				dither0_g * dither0_g < 1.52587890625e-05 and
+				dither0_b * dither0_b < 1.52587890625e-05 and
+				dither1_r * dither1_r < 1.52587890625e-05 and
+				dither1_g * dither1_g < 1.52587890625e-05 and
+				dither1_b * dither1_b < 1.52587890625e-05
+			then
+				break
+			end
+		end
+
+		-- this could return values below zero or above one due to dithering above
+		-- but we will clamp it
+
+		return color0_r:clamp(0, 1), color0_g:clamp(0, 1), color0_b:clamp(0, 1), color1_r:clamp(0, 1), color1_g:clamp(0, 1), color1_b:clamp(0, 1)
+	end
+
+	local palette_bits = {0, 2, 3, 1}
+
+	function DXT1:SetBlock(x, y, pixels)
+		assert(x >= 0, '!x >= 0')
+		assert(y >= 0, '!y >= 0')
+		assert(x < self.width_blocks, '!x <= self.width_blocks')
+		assert(y < self.height_blocks, '!y <= self.height_blocks')
+
+		-- clear buffer
+		for i = 1, 16 do
+			local a = error_buffer[i]
+			a[1] = 0
+			a[2] = 0
+			a[3] = 0
+
+			a = encoded565_buffer[i]
+			a[1] = 0
+			a[2] = 0
+			a[3] = 0
+		end
+
+		local r, g, b, r_error, g_error, b_error
+
+		-- encode and dither
+		for i = 1, 16 do
+			local pixel = pixels[i]
+			local encoded = encoded565_buffer[i]
+			local _error = error_buffer[i]
+			encoded[1], encoded[2], encoded[3], r_error, g_error, b_error = encode_color_5_6_5_error(pixel.r + _error[1], pixel.g + _error[2], pixel.b + _error[3])
+			--encoded[1], encoded[2], encoded[3], r_error, g_error, b_error = encode_color_5_6_5_error(pixel.r, pixel.g, pixel.b)
+			local dither = precompute[i]
+
+			for i2 = 1, #dither do
+				local _error2 = error_buffer[dither[i2][1]]
+				local mult = dither[i2][2]
+				_error2[1] = _error2[1] + r_error * mult
+				_error2[2] = _error2[2] + g_error * mult
+				_error2[3] = _error2[3] + b_error * mult
+			end
+		end
+
+		local color0_r, color0_g, color0_b, color1_r, color1_g, color1_b = SolveColorBlock(encoded565_buffer)
+
+		if
+			color0_r == color1_r and
+			color0_g == color1_g and
+			color0_b == color1_b
+		then
+			self:SetBlockSolid(x, y, Color(color0_r * 255, color0_g * 255, color0_b * 255))
+			return
+		end
+
+		-- encoded colors
+		local wColor0, wColor1 = encode_color_5_6_5(color0_r * 255, color0_g * 255, color0_b * 255), encode_color_5_6_5(color1_r * 255, color1_g * 255, color1_b * 255)
+
+		if wColor0 == wColor1 then
+			self:SetBlockSolid(x, y, Color(color0_r * 255, color0_g * 255, color0_b * 255))
+			return
+		end
+
+		-- final colors
+		local fColor0, fColor1
+
+		if wColor0 > wColor1 then
+			fColor0, fColor1 = wColor0, wColor1
+
+			palette_colors_buffer[1][1] = color0_r
+			palette_colors_buffer[1][2] = color0_g
+			palette_colors_buffer[1][3] = color0_b
+
+			palette_colors_buffer[2][1] = color1_r
+			palette_colors_buffer[2][2] = color1_g
+			palette_colors_buffer[2][3] = color1_b
+		else
+			fColor0, fColor1 = wColor1, wColor0
+
+			palette_colors_buffer[1][1] = color1_r
+			palette_colors_buffer[1][2] = color1_g
+			palette_colors_buffer[1][3] = color1_b
+
+			palette_colors_buffer[2][1] = color0_r
+			palette_colors_buffer[2][2] = color0_g
+			palette_colors_buffer[2][3] = color0_b
+		end
+
+		palette_colors_buffer[3][1] = palette_colors_buffer[1][1] * 0.666666667 + palette_colors_buffer[2][1] * 0.333333334
+		palette_colors_buffer[3][2] = palette_colors_buffer[1][2] * 0.666666667 + palette_colors_buffer[2][2] * 0.333333334
+		palette_colors_buffer[3][3] = palette_colors_buffer[1][3] * 0.666666667 + palette_colors_buffer[2][3] * 0.333333334
+
+		palette_colors_buffer[4][1] = palette_colors_buffer[1][1] * 0.333333334 + palette_colors_buffer[2][1] * 0.666666667
+		palette_colors_buffer[4][2] = palette_colors_buffer[1][2] * 0.333333334 + palette_colors_buffer[2][2] * 0.666666667
+		palette_colors_buffer[4][3] = palette_colors_buffer[1][3] * 0.333333334 + palette_colors_buffer[2][3] * 0.666666667
+
+		local direction_r, direction_g, direction_b =
+			palette_colors_buffer[2][1] - palette_colors_buffer[1][1],
+			palette_colors_buffer[2][2] - palette_colors_buffer[1][2],
+			palette_colors_buffer[2][3] - palette_colors_buffer[1][3]
+
+		local fSteps = 3
+		local scale = 3 / (direction_r * direction_r + direction_g * direction_g + direction_b * direction_b)
+		direction_r, direction_g, direction_b = direction_r * scale, direction_g * scale, direction_b * scale
+
+		local written = 0
+
+		--[[for i = 1, 16 do
+			local a = error_buffer[i]
+			a[1] = 0
+			a[2] = 0
+			a[3] = 0
+		end]]
+
+		for i = 1, 16 do
+			local pixel = pixels[i]
+			local dot_product = (pixel.r * 0.003921568627451 - palette_colors_buffer[1][1]) * direction_r +
+				(pixel.g * 0.003921568627451 - palette_colors_buffer[1][2]) * direction_g +
+				(pixel.b * 0.003921568627451 - palette_colors_buffer[1][3]) * direction_b
+
+			local palette_index = dot_product < 0 and 0 or dot_product > 3 and 1 or palette_bits[ceil(dot_product + 1)]
+
+			written = written:rshift(2):bor(palette_index:lshift(30))
+		end
+
+		local pixel = y * self.width_blocks + x
+		local block = pixel * 8
+
+		self.bytes:Seek(block)
+		self.bytes:WriteUInt16(fColor0:bswap():rshift(16))
+		self.bytes:WriteUInt16(fColor1:bswap():rshift(16))
+		self.bytes:WriteInt32(written:bswap())
+
+		self.cache[pixel] = nil
+	end
+end
 
 function DXT1:GetBlock(x, y)
 	assert(x >= 0, '!x >= 0')
@@ -54,8 +492,8 @@ function DXT1:GetBlock(x, y)
 	local pixel = y * self.width_blocks + x
 	local block = pixel * 8
 
-	if self.cache[block] then
-		return self.cache[block]
+	if self.cache[pixel] then
+		return self.cache[pixel]
 	end
 
 	self.bytes:Seek(block)
@@ -108,14 +546,15 @@ function DXT1:GetBlock(x, y)
 					(color0_d.b + color1_d.b) / 2
 				)
 			else
-				decoded[i] = color_black
+				--print('black', x, y)
+				decoded[17 - i] = color_black
 			end
 		end
 	end
 
-	self.cache[block] = decoded
+	self.cache[pixel] = decoded
 
-	return decoded
+	return decoded, color0, color1, describe
 end
 
 DLib.DXT1 = DLib.CreateMoonClassBare('DXT1', DXT1, DXT1Object)
@@ -146,8 +585,8 @@ function DXT3:GetBlock(x, y)
 	local pixel = y * self.width_blocks + x
 	local block = pixel * 16
 
-	if self.cache[block] then
-		return self.cache[block]
+	if self.cache[pixel] then
+		return self.cache[pixel]
 	end
 
 	self.bytes:Seek(block)
@@ -199,7 +638,7 @@ function DXT3:GetBlock(x, y)
 		end
 	end
 
-	self.cache[block] = decoded
+	self.cache[pixel] = decoded
 
 	return decoded
 end
@@ -232,8 +671,8 @@ function DXT5:GetBlock(x, y)
 	local pixel = y * self.width_blocks + x
 	local block = pixel * 16
 
-	if self.cache[block] then
-		return self.cache[block]
+	if self.cache[pixel] then
+		return self.cache[pixel]
 	end
 
 	self.bytes:Seek(block)
@@ -334,7 +773,7 @@ function DXT5:GetBlock(x, y)
 		end
 	end
 
-	self.cache[block] = decoded
+	self.cache[pixel] = decoded
 
 	return decoded
 end
