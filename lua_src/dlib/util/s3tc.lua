@@ -30,6 +30,7 @@
 -- http://go.microsoft.com/fwlink/?LinkId=248926
 
 local color_black = Color(0, 0, 0)
+local color_white = Color()
 local floor = math.floor
 
 -- decode byte swapped (big endian ready) 5, 6, 5 color
@@ -55,6 +56,21 @@ local DXT1Object = {}
 
 function DXT1Object.CountBytes(w, h)
 	return math.ceil(w * h / 2):max(8)
+end
+
+function DXT1Object.Create(width, height, fill)
+	assert(width > 0, 'width <= 0')
+	assert(height > 0, 'height <= 0')
+
+	assert(width % 4 == 0, 'width % 4 ~= 0')
+	assert(height % 4 == 0, 'height % 4 ~= 0')
+
+	fill = fill or color_white
+
+	local color0 = encode_color_5_6_5(fill.r / 255, fill.g / 255, fill.b / 255)
+	local filler = string.char(color0:band(255), color0:rshift(8):band(255), color0:band(255), color0:rshift(8):band(255)) .. '\x00\x00\x00\x00'
+
+	return DLib.DXT1(DLib.BytesBuffer(string.rep(filler, width * height / 16)), width, height)
 end
 
 function DXT1:ctor(bytes, width, height)
@@ -575,10 +591,6 @@ do
 		self.bytes:WriteUInt16(fColor0:bswap():rshift(16))
 		self.bytes:WriteUInt16(fColor1:bswap():rshift(16))
 		self.bytes:WriteInt32(written:bswap())
-		--[[self.bytes:WriteUByte(written:band(0xFF))
-		self.bytes:WriteUByte(written:rshift(8):band(0xFF))
-		self.bytes:WriteUByte(written:rshift(16):band(0xFF))
-		self.bytes:WriteUByte(written:rshift(24):band(0xFF))]]
 
 		self.cache[pixel] = nil
 	end
