@@ -65,7 +65,9 @@ function DLib.CreateMoonClassBare(classname, object_definition, class_definition
 
 			if original.__base then
 				for k, v in pairs(original.__base) do
-					object_definition[k] = v
+					if object_definition[k] == nil then
+						object_definition[k] = v
+					end
 				end
 			end
 
