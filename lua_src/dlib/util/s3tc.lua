@@ -108,6 +108,8 @@ function DXT1:SetBlockSolid(x, y, color)
 	self.cache[pixel] = nil
 end
 
+local SolveColorBlock, EncodeBCColorBlock
+
 do
 	--[[
 		(0, 0) (1, 0) (2, 0) (3, 0)
@@ -188,7 +190,7 @@ do
 		palette_colors_buffer[i] = {0, 0, 0}
 	end
 
-	local function SolveColorBlock(block, encode_luma)
+	function SolveColorBlock(block, encode_luma)
 		local color0_r, color0_g, color0_b = encode_luma and luma_r or 1, encode_luma and luma_g or 1, encode_luma and luma_b or 1
 		local color1_r, color1_g, color1_b = 0, 0, 0
 
@@ -376,17 +378,7 @@ do
 
 	local palette_bits = {0, 2, 3, 1}
 
-	AccessorFunc(DXT1, 'encode_luma', 'EncodeInLuma')
-	AccessorFunc(DXT1, 'advanced_dither', 'AdvancedDither')
-
-	function DXT1:SetBlock(x, y, pixels)
-		assert(x >= 0, '!x >= 0')
-		assert(y >= 0, '!y >= 0')
-		assert(x < self.width_blocks, '!x <= self.width_blocks')
-		assert(y < self.height_blocks, '!y <= self.height_blocks')
-
-		local encode_luma = self.encode_luma or false
-
+	function EncodeBCColorBlock(pixels, encode_luma, advanced_dither)
 		-- clear buffer
 		for i = 1, 16 do
 			local a = error_buffer[i]
@@ -416,7 +408,7 @@ do
 				encoded[1], encoded[2], encoded[3] = r, g, b
 			end
 
-			if self.advanced_dither then
+			if advanced_dither then
 				for i2 = 1, #dither do
 					local _error2 = error_buffer[dither[i2][1]]
 					local mult = dither[i2][2]
@@ -461,21 +453,12 @@ do
 			color0_r, color0_g, color0_b, color1_r, color1_g, color1_b = color0_r * luma_inv_r, color0_g * luma_inv_g, color0_b * luma_inv_b, color1_r * luma_inv_r, color1_g * luma_inv_g, color1_b * luma_inv_b
 		end
 
-		if
-			color0_r == color1_r and
-			color0_g == color1_g and
-			color0_b == color1_b
-		then
-			self:SetBlockSolid(x, y, Color(color0_r * 255, color0_g * 255, color0_b * 255))
-			return
-		end
-
 		-- encoded colors
 		local wColor0, wColor1 = encode_color_5_6_5(color0_r, color0_g, color0_b), encode_color_5_6_5(color1_r, color1_g, color1_b)
 
 		if wColor0 == wColor1 then
-			self:SetBlockSolid(x, y, Color(color0_r * 255, color0_g * 255, color0_b * 255))
-			return
+			-- self:SetBlockSolid(x, y, Color(color0_r * 255, color0_g * 255, color0_b * 255))
+			return wColor0, wColor0, 0
 		end
 
 		-- final colors
@@ -548,7 +531,7 @@ do
 
 			written = written:rshift(2):bor(palette_index:lshift(30))
 
-			if self.advanced_dither then
+			if advanced_dither then
 				local dither = precompute[i]
 
 				for i2 = 1, #dither do
@@ -589,16 +572,32 @@ do
 			end
 		end
 
-		local pixel = y * self.width_blocks + x
-		local block = pixel * 8
-
-		self.bytes:Seek(block)
-		self.bytes:WriteUInt16(fColor0:bswap():rshift(16))
-		self.bytes:WriteUInt16(fColor1:bswap():rshift(16))
-		self.bytes:WriteInt32(written:bswap())
-
-		self.cache[pixel] = nil
+		return fColor0, fColor1, written
 	end
+end
+
+AccessorFunc(DXT1, 'encode_luma', 'EncodeInLuma')
+AccessorFunc(DXT1, 'advanced_dither', 'AdvancedDither')
+
+function DXT1:SetBlock(x, y, pixels)
+	assert(x >= 0, '!x >= 0')
+	assert(y >= 0, '!y >= 0')
+	assert(x < self.width_blocks, '!x <= self.width_blocks')
+	assert(y < self.height_blocks, '!y <= self.height_blocks')
+
+	local encode_luma = self.encode_luma or false
+
+	local fColor0, fColor1, written = EncodeBCColorBlock(pixels, self.encode_luma or false, self.advanced_dither)
+
+	local pixel = y * self.width_blocks + x
+	local block = pixel * 8
+
+	self.bytes:Seek(block)
+	self.bytes:WriteUInt16(fColor0:bswap():rshift(16))
+	self.bytes:WriteUInt16(fColor1:bswap():rshift(16))
+	self.bytes:WriteInt32(written:bswap())
+
+	self.cache[pixel] = nil
 end
 
 function DXT1:GetBlock(x, y)
