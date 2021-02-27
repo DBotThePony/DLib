@@ -51,7 +51,8 @@ local math_floor = math.floor
 	@desc
 	entry point of BytesBuffer creation
 	you can pass a string to it to construct bytes array from it
-	**BUFFER ONLY WORK WITH BIG ENDIAN BYTES**
+	**BUFFER BY DEFAULT WORK WITH BIG ENDIAN BYTES**
+	To work with Little Endian bytes, use appropriate functions
 	@enddesc
 
 	@returns
@@ -306,8 +307,36 @@ end
 
 --[[
 	@doc
+	@fname BytesBuffer:WriteShortLE_2
+	@alias BytesBuffer:WriteInt16LE_2
+	@args number value
+
+	@desc
+	with value shift
+	@enddesc
+
+	@returns
+	BytesBuffer: self
+]]
+
+--[[
+	@doc
 	@fname BytesBuffer:WriteShort
 	@alias BytesBuffer:WriteInt16
+	@args number value
+
+	@desc
+	with negative number overflow
+	@enddesc
+
+	@returns
+	BytesBuffer: self
+]]
+
+--[[
+	@doc
+	@fname BytesBuffer:WriteShortLE
+	@alias BytesBuffer:WriteInt16LE
 	@args number value
 
 	@desc
@@ -327,6 +356,16 @@ end
 	@returns
 	BytesBuffer: self
 ]]
+
+--[[
+	@doc
+	@fname BytesBuffer:WriteUShortLE
+	@alias BytesBuffer:WriteUInt16LE
+	@args number value
+
+	@returns
+	BytesBuffer: self
+]]
 function meta:WriteInt16_2(valueIn)
 	assertType(valueIn, 'number', 'WriteInt16')
 	assertRange(valueIn, -0x8000, 0x7FFF, 'WriteInt16')
@@ -337,6 +376,18 @@ function meta:WriteInt16(valueIn)
 	assertType(valueIn, 'number', 'WriteInt16')
 	assertRange(valueIn, -0x8000, 0x7FFF, 'WriteInt16')
 	return self:WriteUInt16(wrap(math_floor(valueIn), 0x8000))
+end
+
+function meta:WriteInt16LE_2(valueIn)
+	assertType(valueIn, 'number', 'WriteInt16LE')
+	assertRange(valueIn, -0x8000, 0x7FFF, 'WriteInt16LE')
+	return self:WriteUInt16LE(math_floor(valueIn) + 0x8000)
+end
+
+function meta:WriteInt16LE(valueIn)
+	assertType(valueIn, 'number', 'WriteInt16LE')
+	assertRange(valueIn, -0x8000, 0x7FFF, 'WriteInt16LE')
+	return self:WriteUInt16LE(wrap(math_floor(valueIn), 0x8000))
 end
 
 function meta:WriteUInt16(valueIn)
@@ -353,9 +404,26 @@ function meta:WriteUInt16(valueIn)
 	return self
 end
 
+function meta:WriteUInt16LE(valueIn)
+	assertType(valueIn, 'number', 'WriteUInt16LE')
+	assertRange(valueIn, 0, 0xFFFF, 'WriteUInt16LE')
+
+	local bytes, pointer = self.bytes, self.pointer + 1
+
+	bytes[pointer] = band(valueIn, 0xFF)
+	bytes[pointer + 1] = band(rshift(valueIn, 8), 0xFF)
+	self.pointer = pointer + 1
+	self.length = self._length or #bytes
+
+	return self
+end
+
 meta.WriteShort = meta.WriteInt16
+meta.WriteShortLE = meta.WriteInt16LE
 meta.WriteShort_2 = meta.WriteInt16_2
+meta.WriteShortLE_2 = meta.WriteInt16LE_2
 meta.WriteUShort = meta.WriteUInt16
+meta.WriteUShortLE = meta.WriteUInt16LE
 
 --[[
 	@doc
@@ -394,6 +462,44 @@ meta.WriteUShort = meta.WriteUInt16
 	@returns
 	BytesBuffer: self
 ]]
+
+--[[
+	@doc
+	@fname BytesBuffer:WriteIntLE_2
+	@alias BytesBuffer:WriteInt32LE_2
+	@args number value
+
+	@desc
+	with value shift
+	@enddesc
+
+	@returns
+	BytesBuffer: self
+]]
+
+--[[
+	@doc
+	@fname BytesBuffer:WriteIntLE
+	@alias BytesBuffer:WriteInt32LE
+	@args number value
+
+	@desc
+	with negative number overflow
+	@enddesc
+
+	@returns
+	BytesBuffer: self
+]]
+
+--[[
+	@doc
+	@fname BytesBuffer:WriteUIntLE
+	@alias BytesBuffer:WriteUInt32LE
+	@args number value
+
+	@returns
+	BytesBuffer: self
+]]
 function meta:WriteInt32_2(valueIn)
 	assertType(valueIn, 'number', 'WriteInt32')
 	assertRange(valueIn, -0x80000000, 0x7FFFFFFF, 'WriteInt32')
@@ -423,9 +529,42 @@ function meta:WriteUInt32(valueIn)
 	return self
 end
 
+function meta:WriteInt32LE_2(valueIn)
+	assertType(valueIn, 'number', 'WriteInt32LE')
+	assertRange(valueIn, -0x80000000, 0x7FFFFFFF, 'WriteInt32LE')
+	return self:WriteUInt32LE(math_floor(valueIn) + 0x80000000)
+end
+
+function meta:WriteInt32LE(valueIn)
+	assertType(valueIn, 'number', 'WriteInt32LE')
+	assertRange(valueIn, -0x80000000, 0x7FFFFFFF, 'WriteInt32LE')
+	return self:WriteUInt32LE(wrap(math_floor(valueIn), 0x80000000))
+end
+
+function meta:WriteUInt32LE(valueIn)
+	assertType(valueIn, 'number', 'WriteUInt32')
+	assertRange(valueIn, 0, 0xFFFFFFFF, 'WriteUInt32')
+
+	local bytes, pointer = self.bytes, self.pointer + 1
+
+	bytes[pointer + 3] = band(rshift(valueIn, 24), 0xFF)
+	bytes[pointer + 2] = band(rshift(valueIn, 16), 0xFF)
+	bytes[pointer + 1] = band(rshift(valueIn, 8), 0xFF)
+	bytes[pointer] = band(valueIn, 0xFF)
+
+	self.pointer = pointer + 3
+	self.length = self._length or #bytes
+
+	return self
+end
+
 meta.WriteInt = meta.WriteInt32
 meta.WriteInt_2 = meta.WriteInt32_2
 meta.WriteUInt = meta.WriteUInt32
+
+meta.WriteIntLE = meta.WriteInt32LE
+meta.WriteIntLE_2 = meta.WriteInt32LE_2
+meta.WriteUIntLE = meta.WriteUInt32LE
 
 --[[
 	@doc
@@ -470,6 +609,50 @@ meta.WriteUInt = meta.WriteUInt32
 	@returns
 	BytesBuffer: self
 ]]
+
+--[[
+	@doc
+	@fname BytesBuffer:WriteLongLE_2
+	@alias BytesBuffer:WriteInt64LE_2
+	@args number value
+
+	@desc
+	with value shift
+	due to precision errors, this not actually accurate operation
+	@enddesc
+
+	@returns
+	BytesBuffer: self
+]]
+
+--[[
+	@doc
+	@fname BytesBuffer:WriteLongLE
+	@alias BytesBuffer:WriteInt64LE
+	@args number value
+
+	@desc
+	with negative number overflow
+	due to precision errors, this not actually accurate operation
+	@enddesc
+
+	@returns
+	BytesBuffer: self
+]]
+
+--[[
+	@doc
+	@fname BytesBuffer:WriteULongLE
+	@alias BytesBuffer:WriteUInt64LE
+	@args number value
+
+	@desc
+	due to precision errors, this not actually accurate operation
+	@enddesc
+
+	@returns
+	BytesBuffer: self
+]]
 function meta:WriteInt64_2(valueIn)
 	self:WriteUInt64(valueIn + 0x100000000)
 	return self
@@ -493,9 +676,36 @@ function meta:CheckOverflow(name, moveBy)
 	end
 end
 
+function meta:WriteInt64LE_2(valueIn)
+	self:WriteUInt64LE(valueIn + 0x100000000)
+	return self
+end
+
+function meta:WriteInt64(valueIn)
+	self:WriteUInt64LE(wrap(valueIn, 0x100000000))
+	return self
+end
+
+function meta:WriteUInt64LE(valueIn)
+	local div = valueIn % 0xFFFFFFFF
+	self:WriteUInt32(div)
+	self:WriteUInt32((valueIn - div) / 0xFFFFFFFF)
+	return self
+end
+
+function meta:CheckOverflow(name, moveBy)
+	if self.pointer + moveBy > self.length then
+		error('Read' .. name .. ' - bytes amount overflow (' .. self.pointer .. ' + ' .. moveBy .. ' vs ' .. self.length .. ')', 3)
+	end
+end
+
 meta.WriteLong = meta.WriteInt64
 meta.WriteLong_2 = meta.WriteInt64_2
 meta.WriteULong = meta.WriteUInt64
+
+meta.WriteLongLE = meta.WriteInt64LE
+meta.WriteLongLE_2 = meta.WriteInt64LE_2
+meta.WriteULongLE = meta.WriteUInt64LE
 
 --[[
 	@doc
@@ -578,6 +788,38 @@ meta.ReadUInt8 = meta.ReadUByte
 	@returns
 	number
 ]]
+
+--[[
+	@doc
+	@fname BytesBuffer:ReadInt16LE_2
+
+	@desc
+	with value shift
+	@enddesc
+
+	@returns
+	number
+]]
+
+--[[
+	@doc
+	@fname BytesBuffer:ReadInt16LE
+
+	@desc
+	with negative number overflow
+	@enddesc
+
+	@returns
+	number
+]]
+
+--[[
+	@doc
+	@fname BytesBuffer:ReadUInt16LE
+
+	@returns
+	number
+]]
 function meta:ReadInt16_2()
 	return self:ReadUInt16() - 0x8000
 end
@@ -600,9 +842,35 @@ function meta:ReadUInt16()
 	return value
 end
 
+function meta:ReadInt16LE_2()
+	return self:ReadUInt16LE() - 0x8000
+end
+
+function meta:ReadInt16LE()
+	return unwrap(self:ReadUInt16LE(), 0x8000)
+end
+
+function meta:ReadUInt16LE()
+	self:CheckOverflow('UInt16LE', 2)
+
+	local bytes, pointer = self.bytes, self.pointer + 1
+
+	local value =
+		lshift(bytes[pointer + 1], 8) +
+		bytes[pointer]
+
+	self.pointer = pointer + 1
+
+	return value
+end
+
 meta.ReadShort = meta.ReadInt16
 meta.ReadShort_2 = meta.ReadInt16_2
 meta.ReadUShort = meta.ReadUInt16
+
+meta.ReadShortLE = meta.ReadInt16LE
+meta.ReadShortLE_2 = meta.ReadInt16LE_2
+meta.ReadUShortLE = meta.ReadUInt16LE
 
 --[[
 	@doc
@@ -635,24 +903,56 @@ meta.ReadUShort = meta.ReadUInt16
 	@returns
 	number
 ]]
-function meta:ReadInt32_2()
-	return self:ReadUInt32() - 0x80000000
+
+--[[
+	@doc
+	@fname BytesBuffer:ReadInt32LE_2
+
+	@desc
+	with value shift
+	@enddesc
+
+	@returns
+	number
+]]
+
+--[[
+	@doc
+	@fname BytesBuffer:ReadInt32LE
+
+	@desc
+	with negative number overflow
+	@enddesc
+
+	@returns
+	number
+]]
+
+--[[
+	@doc
+	@fname BytesBuffer:ReadUInt32LE
+
+	@returns
+	number
+]]
+function meta:ReadInt32LE_2()
+	return self:ReadUInt32LE() - 0x80000000
 end
 
-function meta:ReadInt32()
-	return unwrap(self:ReadUInt32(), 0x80000000)
+function meta:ReadInt32LE()
+	return unwrap(self:ReadUInt32LE(), 0x80000000)
 end
 
-function meta:ReadUInt32()
-	self:CheckOverflow('UInt32', 4)
+function meta:ReadUInt32LE()
+	self:CheckOverflow('UInt32LE', 4)
 
 	local bytes, pointer = self.bytes, self.pointer + 1
 
 	local value =
-		lshift(bytes[pointer], 24) +
-		lshift(bytes[pointer + 1], 16) +
-		lshift(bytes[pointer + 2], 8) +
-		bytes[pointer + 3]
+		lshift(bytes[pointer + 3], 24) +
+		lshift(bytes[pointer + 2], 16) +
+		lshift(bytes[pointer + 1], 8) +
+		bytes[pointer]
 
 	self.pointer = pointer + 3
 
@@ -662,6 +962,10 @@ end
 meta.ReadInt = meta.ReadInt32
 meta.ReadInt_2 = meta.ReadInt32_2
 meta.ReadUInt = meta.ReadUInt32
+
+meta.ReadIntLE = meta.ReadInt32LE
+meta.ReadIntLE_2 = meta.ReadInt32LE_2
+meta.ReadUIntLE = meta.ReadUInt32LE
 
 --[[
 	@doc
@@ -700,6 +1004,44 @@ meta.ReadUInt = meta.ReadUInt32
 	@returns
 	number
 ]]
+
+--[[
+	@doc
+	@fname BytesBuffer:ReadInt64LE_2
+
+	@desc
+	with value shift
+	due to precision errors, this not actually accurate operation
+	@enddesc
+
+	@returns
+	number
+]]
+
+--[[
+	@doc
+	@fname BytesBuffer:ReadInt64LE
+
+	@desc
+	with negative number overflow
+	due to precision errors, this not actually accurate operation
+	@enddesc
+
+	@returns
+	number
+]]
+
+--[[
+	@doc
+	@fname BytesBuffer:ReadUInt64LE
+
+	@desc
+	due to precision errors, this not actually accurate operation
+	@enddesc
+
+	@returns
+	number
+]]
 function meta:ReadInt64_2()
 	return self:ReadUInt64() - 0x100000000
 end
@@ -728,9 +1070,41 @@ function meta:ReadUInt64()
 	return value
 end
 
+function meta:ReadInt64LE_2()
+	return self:ReadUInt64LE() - 0x100000000
+end
+
+function meta:ReadInt64()
+	return unwrap(self:ReadUInt64LE(), 0x100000000)
+end
+
+function meta:ReadUInt64LE()
+	self:CheckOverflow('UInt64LE', 8)
+
+	local bytes, pointer = self.bytes, self.pointer + 1
+
+	local value =
+		bytes[pointer + 7] * 0x100000000000000 +
+		bytes[pointer + 6] * 0x1000000000000 +
+		bytes[pointer + 5] * 0x10000000000 +
+		bytes[pointer + 4] * 0x100000000 +
+		lshift(bytes[pointer + 3], 24) +
+		lshift(bytes[pointer + 2], 16) +
+		lshift(bytes[pointer + 1], 8) +
+		bytes[pointer]
+
+	self.pointer = pointer + 7
+
+	return value
+end
+
 meta.ReadLong = meta.ReadInt32
 meta.ReadLong_2 = meta.ReadInt32_2
 meta.ReadULong = meta.ReadUInt32
+
+meta.ReadLongLE = meta.ReadInt32LE
+meta.ReadLongLE_2 = meta.ReadInt32LE_2
+meta.ReadULongLE = meta.ReadUInt32LE
 
 --[[
 	@doc
@@ -764,9 +1138,27 @@ end
 	@returns
 	BytesBuffer: self
 ]]
+
+--[[
+	@doc
+	@fname BytesBuffer:WriteFloatLE
+	@args number float
+
+	@desc
+	due to precision errors, this is a slightly inaccurate operation
+	@enddesc
+
+	@returns
+	BytesBuffer: self
+]]
 function meta:WriteFloat(valueIn)
 	assertType(valueIn, 'number', 'WriteFloat')
 	return self:WriteInt32(BitWorker.FastFloatToBinaryIEEE(valueIn))
+end
+
+function meta:WriteFloatLE(valueIn)
+	assertType(valueIn, 'number', 'WriteFloatLE')
+	return self:WriteInt32LE(BitWorker.FastFloatToBinaryIEEE(valueIn))
 end
 
 --[[
@@ -798,8 +1190,24 @@ end
 	@returns
 	number
 ]]
+
+--[[
+	@doc
+	@fname BytesBuffer:ReadFloatLE
+
+	@desc
+	due to precision errors, this is a slightly inaccurate operation
+	@enddesc
+
+	@returns
+	number
+]]
 function meta:ReadFloat()
 	return BitWorker.FastBinaryToFloatIEEE(self:ReadUInt32())
+end
+
+function meta:ReadFloatLE()
+	return BitWorker.FastBinaryToFloatIEEE(self:ReadUInt32LE())
 end
 
 --[[
@@ -849,6 +1257,19 @@ end
 	@returns
 	BytesBuffer: self
 ]]
+
+--[[
+	@doc
+	@fname BytesBuffer:WriteDoubleLE
+	@args number double
+
+	@desc
+	due to precision errors, this is a inaccurate operation
+	@enddesc
+
+	@returns
+	BytesBuffer: self
+]]
 function meta:WriteDouble(valueIn)
 	assertType(valueIn, 'number', 'WriteDouble')
 
@@ -867,6 +1288,31 @@ function meta:WriteDouble(valueIn)
 	bytes[pointer + 5] = band(rshift(int2, 16), 0xFF)
 	bytes[pointer + 6] = band(rshift(int2, 8), 0xFF)
 	bytes[pointer + 7] = band(int2, 0xFF)
+
+	self.pointer = pointer + 7
+	self.length = self._length or #bytes
+
+	return self
+end
+
+function meta:WriteDoubleLE(valueIn)
+	assertType(valueIn, 'number', 'WriteDouble')
+
+	local int1, int2 = BitWorker.FastDoubleToBinaryIEEE(valueIn)
+	local bytes, pointer = self.bytes, self.pointer + 1
+
+	int1 = wrap(int1, 0x80000000)
+	int2 = wrap(int2, 0x80000000)
+
+	bytes[pointer + 7] = band(rshift(int2, 24), 0xFF)
+	bytes[pointer + 6] = band(rshift(int2, 16), 0xFF)
+	bytes[pointer + 5] = band(rshift(int2, 8), 0xFF)
+	bytes[pointer + 4] = band(int2, 0xFF)
+
+	bytes[pointer + 3] = band(rshift(int1, 24), 0xFF)
+	bytes[pointer + 2] = band(rshift(int1, 16), 0xFF)
+	bytes[pointer + 1] = band(rshift(int1, 8), 0xFF)
+	bytes[pointer] = band(int1, 0xFF)
 
 	self.pointer = pointer + 7
 	self.length = self._length or #bytes
@@ -910,6 +1356,21 @@ function meta:ReadDouble()
 	return BitWorker.FastBinaryToDoubleIEEE(self:ReadUInt32(), self:ReadUInt32())
 end
 
+--[[
+	@doc
+	@fname BytesBuffer:ReadDoubleLE
+
+	@desc
+	due to precision errors, this is a slightly inaccurate operation
+	@enddesc
+
+	@returns
+	number
+]]
+function meta:ReadDoubleLE()
+	local a, b = self:ReadUInt32LE(), self:ReadUInt32LE()
+	return BitWorker.FastBinaryToDoubleIEEE(b, a)
+end
 --[[
 	@doc
 	@fname BytesBuffer:WriteString
@@ -999,16 +1460,16 @@ function meta:WriteBinary(binaryString)
 	if #binaryString == 0 then return self end
 
 	local bytes = self.bytes
-	local pointer = self.pointer + 1
+	local pointer = self.pointer
+	local length = #binaryString
 
 	-- LuaJIT optimize such loop so it is pretty fast
-	for i = 1, #binaryString do
-		bytes[pointer] = string_byte(binaryString, i)
-		pointer = pointer + 1
+	for i = 1, length do
+		bytes[pointer + i] = string_byte(binaryString, i)
 	end
 
 	self.length = self._length or #bytes
-	self.pointer = pointer - 1
+	self.pointer = pointer + length
 
 	return self
 end
@@ -1244,9 +1705,19 @@ do
 					table_insert(output, {rname, meta.ReadUInt64})
 					limit = 0 -- unsupported by bit library
 				elseif rtype == 'float' then
-					table_insert(output, {rname, meta.ReadFloat})
+					if isLE then
+						isLE = false
+						table_insert(output, {rname, meta.ReadFloatLE})
+					else
+						table_insert(output, {rname, meta.ReadFloat})
+					end
 				elseif rtype == 'double' then
-					table_insert(output, {rname, meta.ReadDouble})
+					if isLE then
+						isLE = false
+						table_insert(output, {rname, meta.ReadDoubleLE})
+					else
+						table_insert(output, {rname, meta.ReadDouble})
+					end
 				elseif rtype == 'variable' or rtype == 'string' then
 					table_insert(output, {rname, meta.ReadString})
 				elseif callbacks and callbacks[rtype2] then

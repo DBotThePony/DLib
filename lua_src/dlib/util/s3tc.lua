@@ -58,7 +58,7 @@ function DXT1Object.CountBytes(w, h)
 	return math.ceil(w * h / 2):max(8)
 end
 
-function DXT1Object.Create(width, height, fill)
+function DXT1Object.Create(width, height, fill, bytes)
 	assert(width > 0, 'width <= 0')
 	assert(height > 0, 'height <= 0')
 
@@ -70,7 +70,12 @@ function DXT1Object.Create(width, height, fill)
 	local color0 = encode_color_5_6_5(fill.r / 255, fill.g / 255, fill.b / 255)
 	local filler = string.char(color0:band(255), color0:rshift(8):band(255), color0:band(255), color0:rshift(8):band(255)) .. '\x00\x00\x00\x00'
 
-	return DLib.DXT1(DLib.BytesBuffer(string.rep(filler, width * height / 16)), width, height)
+	if not bytes then
+		return DLib.DXT1(DLib.BytesBuffer(string.rep(filler, width * height / 16)), width, height)
+	end
+
+	bytes:WriteBinary(string.rep(filler, width * height / 16))
+	DLib.DXT1(bytes, width, height)
 end
 
 function DXT1:ctor(bytes, width, height)
