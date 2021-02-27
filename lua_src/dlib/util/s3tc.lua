@@ -31,31 +31,36 @@
 
 local color_black = Color(0, 0, 0)
 local color_white = Color()
-local min, max, ceil, floor = math.min, math.max, math.ceil, math.floor
+local min, max, ceil, floor, clamp = math.min, math.max, math.ceil, math.floor, math.clamp
+local band, bor, rshift, lshift = bit.band, bit.bor, bit.rshift, bit.lshift
+local assert = assert
+local Color = Color
+local DLib = DLib
+local string = string
 
 -- decode byte swapped (big endian ready) 5, 6, 5 color
 local function to_color_5_6_5(value)
-	local b = floor(value:band(31) * 8.2258064516129)
-	local g = floor(value:rshift(5):band(63) * 4.047619047619)
-	local r = floor(value:rshift(11):band(31) * 8.2258064516129)
+	local b = floor(band(value, 31) * 8.2258064516129)
+	local g = floor(band(rshift(value, 5), 63) * 4.047619047619)
+	local r = floor(band(rshift(value, 11), 31) * 8.2258064516129)
 
 	return Color(r, g, b)
 end
 
 -- encode 5, 6, 5 color as big endian
 local function encode_color_5_6_5(r, g, b)
-	local r = floor(r:clamp(0, 1) * 31)
-	local g = floor(g:clamp(0, 1) * 63)
-	local b = floor(b:clamp(0, 1) * 31)
+	local r = floor(clamp(r, 0, 1) * 31)
+	local g = floor(clamp(g, 0, 1) * 63)
+	local b = floor(clamp(b, 0, 1) * 31)
 
-	return bit.bor(bit.lshift(r, 11), bit.lshift(g, 5), b):max(0)
+	return max(0, bor(lshift(r, 11), lshift(g, 5), b))
 end
 
 local DXT1 = {}
 local DXT1Object = {}
 
 function DXT1Object.CountBytes(w, h)
-	return ceil(w * h / 2):max(8)
+	return max(8, ceil(w * h / 2))
 end
 
 function DXT1Object.Create(width, height, fill, bytes)
@@ -67,8 +72,8 @@ function DXT1Object.Create(width, height, fill, bytes)
 
 	fill = fill or color_white
 
-	local color0 = encode_color_5_6_5(fill.r / 255, fill.g / 255, fill.b / 255)
-	local filler = string.char(color0:band(255), color0:rshift(8):band(255), color0:band(255), color0:rshift(8):band(255)) .. '\x00\x00\x00\x00'
+	local color0 = encode_color_5_6_5(fill.r * 0.003921568627451, fill.g * 0.003921568627451, fill.b * 0.003921568627451)
+	local filler = string.char(band(color0, 255), band(rshift(color0, 8), 255), band(color0, 255), band(rshift(color0, 8), 255)) .. '\x00\x00\x00\x00'
 
 	if not bytes then
 		return DLib.DXT1(DLib.BytesBuffer(string.rep(filler, width * height / 16)), width, height)
@@ -88,25 +93,6 @@ function DXT1:ctor(bytes, width, height)
 	self.encode_luma = false
 
 	self.cache = {}
-end
-
-function DXT1:SetBlockSolid(x, y, color)
-	assert(x >= 0, '!x >= 0')
-	assert(y >= 0, '!y >= 0')
-	assert(x < self.width_blocks, '!x <= self.width_blocks')
-	assert(y < self.height_blocks, '!y <= self.height_blocks')
-
-	local pixel = y * self.width_blocks + x
-	local block = pixel * 8
-
-	self.bytes:Seek(block)
-
-	local color0 = encode_color_5_6_5(color.r * 0.003921568627451, color.g * 0.003921568627451, color.b * 0.003921568627451):bswap():rshift(16)
-	self.bytes:WriteUInt16(color0)
-	self.bytes:WriteUInt16(color0)
-	self.bytes:WriteUInt32(0)
-
-	self.cache[pixel] = nil
 end
 
 local SolveColorBlock, EncodeBCColorBlock
@@ -418,7 +404,7 @@ do
 					_error2[3] = _error2[3] + b_error * mult
 				end
 			else
-				if bit.band(i - 1, 3) ~= 3 then
+				if band(i - 1, 3) ~= 3 then
 					_error = error_buffer[i + 1]
 					_error[1] = _error[1] + r_error * 0.4375
 					_error[2] = _error[2] + g_error * 0.4375
@@ -426,7 +412,7 @@ do
 				end
 
 				if i < 13 then
-					if bit.band(i - 1, 3) ~= 0 then
+					if band(i - 1, 3) ~= 0 then
 						_error = error_buffer[i + 3]
 						_error[1] = _error[1] + r_error * 0.1875
 						_error[2] = _error[2] + g_error * 0.1875
@@ -438,7 +424,7 @@ do
 					_error[2] = _error[2] + g_error * 0.3125
 					_error[3] = _error[3] + b_error * 0.3125
 
-					if bit.band(i - 1, 3) ~= 3 then
+					if band(i - 1, 3) ~= 3 then
 						_error = error_buffer[i + 5]
 						_error[1] = _error[1] + r_error * 0.0625
 						_error[2] = _error[2] + g_error * 0.0625
@@ -543,7 +529,7 @@ do
 					_error2[3] = _error2[3] + b_error * mult
 				end
 			else
-				if bit.band(i - 1, 3) ~= 3 then
+				if band(i - 1, 3) ~= 3 then
 					_error = error_buffer[i + 1]
 					_error[1] = _error[1] + r_error * 0.4375
 					_error[2] = _error[2] + g_error * 0.4375
@@ -551,7 +537,7 @@ do
 				end
 
 				if i < 13 then
-					if bit.band(i - 1, 3) ~= 0 then
+					if band(i - 1, 3) ~= 0 then
 						_error = error_buffer[i + 3]
 						_error[1] = _error[1] + r_error * 0.1875
 						_error[2] = _error[2] + g_error * 0.1875
@@ -563,7 +549,7 @@ do
 					_error[2] = _error[2] + g_error * 0.3125
 					_error[3] = _error[3] + b_error * 0.3125
 
-					if bit.band(i - 1, 3) ~= 3 then
+					if band(i - 1, 3) ~= 3 then
 						_error = error_buffer[i + 5]
 						_error[1] = _error[1] + r_error * 0.0625
 						_error[2] = _error[2] + g_error * 0.0625
@@ -590,11 +576,12 @@ function DXT1:SetBlock(x, y, pixels)
 
 	local pixel = y * self.width_blocks + x
 	local block = pixel * 8
+	local bytes = self.bytes
 
-	self.bytes:Seek(block)
-	self.bytes:WriteUInt16LE(fColor0)
-	self.bytes:WriteUInt16LE(fColor1)
-	self.bytes:WriteInt32LE(written)
+	bytes:Seek(block)
+	bytes:WriteUInt16LE(fColor0)
+	bytes:WriteUInt16LE(fColor1)
+	bytes:WriteInt32LE(written)
 
 	self.cache[pixel] = nil
 end
@@ -612,22 +599,24 @@ function DXT1:GetBlock(x, y)
 		return self.cache[pixel]
 	end
 
-	self.bytes:Seek(block)
+	local bytes = self.bytes
+
+	bytes:Seek(block)
 
 	-- they are little endians
-	local color0 = self.bytes:ReadUInt16LE()
-	local color1 = self.bytes:ReadUInt16LE()
+	local color0 = bytes:ReadUInt16LE()
+	local color1 = bytes:ReadUInt16LE()
 
 	local color0_d = to_color_5_6_5(color0)
 	local color1_d = to_color_5_6_5(color1)
 
-	local describe = self.bytes:ReadUInt32LE()
+	local describe = bytes:ReadUInt32LE()
 
 	local decoded = {}
 
 	if color0 > color1 then
 		for i = 1, 16 do
-			local code = describe:rshift((16 - i) * 2):band(0x3)
+			local code = band(rshift(describe, (16 - i) * 2), 0x3)
 
 			if code == 0 then
 				decoded[17 - i] = color0_d
@@ -702,10 +691,10 @@ function DXT3Object.Create(width, height, fill, bytes)
 		alpha,
 		alpha,
 		alpha,
-		color0:band(255),
-		color0:rshift(8):band(255),
-		color0:band(255),
-		color0:rshift(8):band(255)) .. '\x00\x00\x00\x00'
+		band(color0, 255),
+		band(rshift(color0, 8), 255),
+		band(color0, 255),
+		band(rshift(color0, 8), 255)) .. '\x00\x00\x00\x00'
 
 	if not bytes then
 		return DLib.DXT3(DLib.BytesBuffer(string.rep(filler, width * height / 16)), width, height)
@@ -775,14 +764,12 @@ do
 		local alpha0 = 0
 		local alpha1 = 0
 
-		--for i = 8, 1, -1 do
 		for i = 1, 8 do
-			alpha0 = alpha0:rshift(4):bor(alpha_buffer[i]:lshift(28))
+			alpha0 = bor(rshift(alpha0, 4), lshift(alpha_buffer[i], 28))
 		end
 
-		--for i = 16, 9, -1 do
 		for i = 9, 16 do
-			alpha1 = alpha1:rshift(4):bor(alpha_buffer[i]:lshift(28))
+			alpha1 = bor(rshift(alpha1, 4), lshift(alpha_buffer[i], 28))
 		end
 
 		bytes:WriteInt32LE(alpha0)
@@ -812,18 +799,20 @@ function DXT3:GetBlock(x, y)
 		return self.cache[pixel]
 	end
 
-	self.bytes:Seek(block)
+	local bytes = self.bytes
 
-	local alpha0 = self.bytes:ReadUInt32LE()
-	local alpha1 = self.bytes:ReadUInt32LE()
+	bytes:Seek(block)
 
-	local color0 = self.bytes:ReadUInt16LE()
-	local color1 = self.bytes:ReadUInt16LE()
+	local alpha0 = bytes:ReadUInt32LE()
+	local alpha1 = bytes:ReadUInt32LE()
+
+	local color0 = bytes:ReadUInt16LE()
+	local color1 = bytes:ReadUInt16LE()
 
 	local color0_d = to_color_5_6_5(color0)
 	local color1_d = to_color_5_6_5(color1)
 
-	local describe = self.bytes:ReadUInt32LE()
+	local describe = bytes:ReadUInt32LE()
 
 	local decoded = {}
 
@@ -837,8 +826,8 @@ function DXT3:GetBlock(x, y)
 
 	-- it appears that source engine actually assume that color0 is always *bigger* than color1
 	for i = 1, 16 do
-		local code = describe:rshift((16 - i) * 2):band(0x3)
-		local alpha = (i <= 8 and alpha1 or alpha0):rshift(((16 - i) % 8) * 4):band(0xF) * 0x11
+		local code = band(rshift(describe, (16 - i) * 2), 0x3)
+		local alpha = band(rshift((i <= 8 and alpha1 or alpha0), ((16 - i) % 8) * 4), 0xF) * 0x11
 
 		if code == 0 then
 			decoded[17 - i] = color0_d:ModifyAlpha(alpha)
@@ -905,10 +894,10 @@ function DXT5Object.Create(width, height, fill, bytes)
 		0,
 		0,
 		0,
-		color0:band(255),
-		color0:rshift(8):band(255),
-		color0:band(255),
-		color0:rshift(8):band(255)) .. '\x00\x00\x00\x00'
+		band(color0, 255),
+		band(rshift(color0, 8), 255),
+		band(color0, 255),
+		band(rshift(color0, 8), 255)) .. '\x00\x00\x00\x00'
 
 	if not bytes then
 		return DLib.DXT5(DLib.BytesBuffer(string.rep(filler, width * height / 16)), width, height)
@@ -1033,7 +1022,7 @@ do
 						palette_index = dot_product < 0 and 0 or dot_product > 7 and 7 or palette_bits_long[floor(dot_product + 1.5)]
 					end
 
-					written = written:rshift(3):bor(palette_index:lshift(21))
+					written = bor(rshift(written, 3), lshift(palette_index, 21))
 
 					local chosen_alpha = alpha_palette[palette_index + 1]
 					local error_a = alpha - chosen_alpha
@@ -1075,39 +1064,41 @@ function DXT5:GetBlock(x, y)
 		return self.cache[pixel]
 	end
 
-	self.bytes:Seek(block)
+	local bytes = self.bytes
 
-	local alpha0 = self.bytes:ReadUByte() / 255
-	local alpha1 = self.bytes:ReadUByte() / 255
+	bytes:Seek(block)
 
-	local readalpha0 = self.bytes:ReadUByte()
-	local readalpha1 = self.bytes:ReadUByte()
-	local readalpha2 = self.bytes:ReadUByte()
+	local alpha0 = bytes:ReadUByte() * 0.003921568627451
+	local alpha1 = bytes:ReadUByte() * 0.003921568627451
 
-	local readalpha3 = self.bytes:ReadUByte()
-	local readalpha4 = self.bytes:ReadUByte()
-	local readalpha5 = self.bytes:ReadUByte()
+	local readalpha0 = bytes:ReadUByte()
+	local readalpha1 = bytes:ReadUByte()
+	local readalpha2 = bytes:ReadUByte()
 
-	local alphacode0 = readalpha0:bor(readalpha1:lshift(8), readalpha2:lshift(16))
-	local alphacode1 = readalpha3:bor(readalpha4:lshift(8), readalpha5:lshift(16))
+	local readalpha3 = bytes:ReadUByte()
+	local readalpha4 = bytes:ReadUByte()
+	local readalpha5 = bytes:ReadUByte()
 
-	local color0 = self.bytes:ReadUInt16LE()
-	local color1 = self.bytes:ReadUInt16LE()
+	local alphacode0 = bor(readalpha0, lshift(readalpha1, 8), lshift(readalpha2, 16))
+	local alphacode1 = bor(readalpha3, lshift(readalpha4, 8), lshift(readalpha5, 16))
+
+	local color0 = bytes:ReadUInt16LE()
+	local color1 = bytes:ReadUInt16LE()
 
 	local color0_d = to_color_5_6_5(color0)
 	local color1_d = to_color_5_6_5(color1)
 
-	local describe = self.bytes:ReadUInt32LE()
+	local describe = bytes:ReadUInt32LE()
 
 	local decoded = {}
 
 	for i = 1, 16 do
-		local code = describe:rshift((16 - i) * 2):band(0x3)
+		local code = band(rshift(describe, (16 - i) * 2), 0x3)
 
 		if i <= 8 then
-			alphacode = alphacode1:rshift((8 - i) * 3):band(0x7)
+			alphacode = band(rshift(alphacode1, (8 - i) * 3), 0x7)
 		else
-			alphacode = alphacode0:rshift((16 - i) * 3):band(0x7)
+			alphacode = band(rshift(alphacode0, (16 - i) * 3), 0x7)
 		end
 
 		local alpha
@@ -1150,7 +1141,7 @@ function DXT5:GetBlock(x, y)
 			end
 		end
 
-		alpha = math.floor(alpha * 255)
+		alpha = floor(alpha * 255)
 
 		if code == 0 then
 			decoded[17 - i] = color0_d:ModifyAlpha(alpha)
