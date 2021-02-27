@@ -616,13 +616,13 @@ function DXT1:GetBlock(x, y)
 	self.bytes:Seek(block)
 
 	-- they are little endians
-	local color0 = self.bytes:ReadUInt16():bswap():rshift(16)
-	local color1 = self.bytes:ReadUInt16():bswap():rshift(16)
+	local color0 = self.bytes:ReadUInt16LE()
+	local color1 = self.bytes:ReadUInt16LE()
 
 	local color0_d = to_color_5_6_5(color0)
 	local color1_d = to_color_5_6_5(color1)
 
-	local describe = self.bytes:ReadUInt32():bswap()
+	local describe = self.bytes:ReadUInt32LE()
 
 	local decoded = {}
 
