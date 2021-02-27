@@ -31,7 +31,7 @@
 
 local color_black = Color(0, 0, 0)
 local color_white = Color()
-local floor = math.floor
+local min, max, ceil, floor = math.min, math.max, math.ceil, math.floor
 
 -- decode byte swapped (big endian ready) 5, 6, 5 color
 local function to_color_5_6_5(value)
@@ -55,7 +55,7 @@ local DXT1 = {}
 local DXT1Object = {}
 
 function DXT1Object.CountBytes(w, h)
-	return math.ceil(w * h / 2):max(8)
+	return ceil(w * h / 2):max(8)
 end
 
 function DXT1Object.Create(width, height, fill, bytes)
@@ -182,7 +182,6 @@ do
 		end
 	end
 
-	local min, max, ceil = math.min, math.max, math.ceil
 	local palette_colors_buffer = {}
 	local palette_const_lowkey = {3 / 3, 2 / 3, 1 / 3, 0 / 3}
 	local palette_const_highkey = {0 / 3, 1 / 3, 2 / 3, 3 / 3}
@@ -680,7 +679,7 @@ local DXT3 = {}
 local DXT3Object = {}
 
 function DXT3Object.CountBytes(w, h)
-	return math.ceil(w * h):max(16)
+	return ceil(w * h):max(16)
 end
 
 function DXT3Object.Create(width, height, fill, bytes)
@@ -873,7 +872,7 @@ local DXT5 = {}
 local DXT5Object = {}
 
 function DXT5Object.CountBytes(w, h)
-	return math.ceil(w * h):max(16)
+	return ceil(w * h):max(16)
 end
 
 function DXT5:ctor(bytes, width, height)
@@ -884,6 +883,183 @@ function DXT5:ctor(bytes, width, height)
 	self.height_blocks = height / 4
 
 	self.cache = {}
+end
+
+function DXT5Object.Create(width, height, fill, bytes)
+	assert(width > 0, 'width <= 0')
+	assert(height > 0, 'height <= 0')
+
+	assert(width % 4 == 0, 'width % 4 ~= 0')
+	assert(height % 4 == 0, 'height % 4 ~= 0')
+
+	fill = fill or color_white
+
+	local alpha = floor(fill.a)
+	local color0 = encode_color_5_6_5(fill.r * 0.003921568627451, fill.g * 0.003921568627451, fill.b * 0.003921568627451)
+	local filler = string.char(
+		alpha,
+		alpha,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		color0:band(255),
+		color0:rshift(8):band(255),
+		color0:band(255),
+		color0:rshift(8):band(255)) .. '\x00\x00\x00\x00'
+
+	if not bytes then
+		return DLib.DXT5(DLib.BytesBuffer(string.rep(filler, width * height / 16)), width, height)
+	end
+
+	bytes:WriteBinary(string.rep(filler, width * height / 16))
+	return DLib.DXT5(bytes, width, height)
+end
+
+
+do
+	local error_buffer = {}
+
+	for i = 1, 16 do
+		error_buffer[i] = 0
+	end
+
+	local palette_bits_short = {0, 2, 3, 4, 5, 1}
+	local palette_bits_long = {0, 2, 3, 4, 5, 6, 7, 1}
+	local alpha_palette = {}
+
+	for i = 1, 8 do
+		alpha_palette[i] = 0
+	end
+
+	function DXT5:SetBlock(x, y, pixels)
+		assert(x >= 0, '!x >= 0')
+		assert(y >= 0, '!y >= 0')
+		assert(x < self.width_blocks, '!x <= self.width_blocks')
+		assert(y < self.height_blocks, '!y <= self.height_blocks')
+
+		local pixel = y * self.width_blocks + x
+		local block = pixel * 16
+
+		local bytes = self.bytes
+		bytes:Seek(block)
+
+		-- encode alpha
+		-- find minimum (alpha0) and maximum (alpha1)
+		local alpha0, alpha1 = 255, 0
+
+		for i = 1, 16 do
+			local alpha = pixels[i].a
+
+			if alpha0 > alpha then
+				alpha0 = alpha
+			end
+
+			if alpha1 < alpha then
+				alpha1 = alpha
+			end
+		end
+
+		-- entire block is fully transparent forsenCD
+		if alpha1 == 0 then
+			bytes:WriteUInt32(0)
+			bytes:WriteUInt32(0)
+
+		-- entire block has one alpha
+		elseif alpha1 == alpha0 then
+			bytes:WriteUByte(alpha0)
+			bytes:WriteUByte(alpha0)
+			bytes:WriteUInt32(0)
+			bytes:WriteUInt16(0)
+		else
+			local max_palette_steps = (alpha0 == 0 or alpha1 == 255) and 6 or 8
+			local short = max_palette_steps == 6
+			local fAlpha0, fAlpha1
+
+			if short then
+				fAlpha0, fAlpha1 = alpha0, alpha1
+
+				alpha_palette[1] = fAlpha0
+				alpha_palette[2] = fAlpha1
+				alpha_palette[3] = (4 * fAlpha0 +     fAlpha1) * 0.2
+				alpha_palette[4] = (3 * fAlpha0 + 2 * fAlpha1) * 0.2
+				alpha_palette[5] = (2 * fAlpha0 + 3 * fAlpha1) * 0.2
+				alpha_palette[6] = (    fAlpha0 + 4 * fAlpha1) * 0.2
+				alpha_palette[7] = 0
+				alpha_palette[8] = 1
+			else
+				fAlpha0, fAlpha1 = alpha1, alpha0
+
+				alpha_palette[1] = fAlpha0
+				alpha_palette[2] = fAlpha1
+				alpha_palette[3] = (6 * fAlpha0 +     fAlpha1) * 0.14285714285714
+				alpha_palette[4] = (5 * fAlpha0 + 2 * fAlpha1) * 0.14285714285714
+				alpha_palette[5] = (4 * fAlpha0 + 3 * fAlpha1) * 0.14285714285714
+				alpha_palette[6] = (3 * fAlpha0 + 4 * fAlpha1) * 0.14285714285714
+				alpha_palette[7] = (2 * fAlpha0 + 5 * fAlpha1) * 0.14285714285714
+				alpha_palette[8] = (    fAlpha0 + 6 * fAlpha1) * 0.14285714285714
+			end
+
+			bytes:WriteUByte(fAlpha0)
+			bytes:WriteUByte(fAlpha1)
+
+			local scale = ((max_palette_steps - 1) / (fAlpha1 - fAlpha0))
+
+			for i = 1, 16 do
+				error_buffer[i] = 0
+			end
+
+			for iteration = 0, 1 do
+				local written = 0
+
+				for i = iteration * 8 + 1, iteration * 8 + 8 do
+					local alpha = pixels[i].a + error_buffer[i]
+					local dot_product = (alpha - fAlpha0) * scale
+
+					local palette_index
+
+					if short then
+						palette_index =
+							dot_product < 0 and
+							(alpha <= fAlpha0 * 0.5 and 6 or 0) or
+
+							dot_product > 5 and
+							(alpha >= (fAlpha1 + 255) * 0.5 and 7 or 1) or
+
+							palette_bits_short[floor(dot_product + 1.5)]
+					else
+						palette_index = dot_product < 0 and 0 or dot_product > 7 and 7 or palette_bits_long[floor(dot_product + 1.5)]
+					end
+
+					written = written:rshift(3):bor(palette_index:lshift(21))
+
+					local chosen_alpha = alpha_palette[palette_index + 1]
+					local error_a = alpha - chosen_alpha
+					local dither = dither_precompute[i]
+
+					for i2 = 1, #dither do
+						local index = dither[i2][1]
+						error_buffer[index] = error_buffer[index] + error_a * dither[i2][2]
+					end
+				end
+
+				bytes:WriteUByte(written:band(0xFF))
+				bytes:WriteUByte(written:rshift(8):band(0xFF))
+				bytes:WriteUByte(written:rshift(16):band(0xFF))
+			end
+		end
+
+		-- encode RGB part
+		local fColor0, fColor1, written = EncodeBCColorBlock(pixels, self.encode_luma or false, self.advanced_dither)
+
+		bytes:WriteUInt16LE(fColor0)
+		bytes:WriteUInt16LE(fColor1)
+		bytes:WriteInt32LE(written)
+
+		self.cache[pixel] = nil
+	end
 end
 
 function DXT5:GetBlock(x, y)
@@ -915,13 +1091,13 @@ function DXT5:GetBlock(x, y)
 	local alphacode0 = readalpha0:bor(readalpha1:lshift(8), readalpha2:lshift(16))
 	local alphacode1 = readalpha3:bor(readalpha4:lshift(8), readalpha5:lshift(16))
 
-	local color0 = self.bytes:ReadUInt16():bswap():rshift(16)
-	local color1 = self.bytes:ReadUInt16():bswap():rshift(16)
+	local color0 = self.bytes:ReadUInt16LE()
+	local color1 = self.bytes:ReadUInt16LE()
 
 	local color0_d = to_color_5_6_5(color0)
 	local color1_d = to_color_5_6_5(color1)
 
-	local describe = self.bytes:ReadUInt32():bswap()
+	local describe = self.bytes:ReadUInt32LE()
 
 	local decoded = {}
 
@@ -942,17 +1118,17 @@ function DXT5:GetBlock(x, y)
 			elseif alphacode == 1 then
 				alpha = alpha1
 			elseif alphacode == 2 then
-				alpha = (6*alpha0 + 1*alpha1)/7
+				alpha = (6*alpha0 + 1*alpha1) * 0.14285714285714
 			elseif alphacode == 3 then
-				alpha = (5*alpha0 + 2*alpha1)/7
+				alpha = (5*alpha0 + 2*alpha1) * 0.14285714285714
 			elseif alphacode == 4 then
-				alpha = (4*alpha0 + 3*alpha1)/7
+				alpha = (4*alpha0 + 3*alpha1) * 0.14285714285714
 			elseif alphacode == 5 then
-				alpha = (3*alpha0 + 4*alpha1)/7
+				alpha = (3*alpha0 + 4*alpha1) * 0.14285714285714
 			elseif alphacode == 6 then
-				alpha = (2*alpha0 + 5*alpha1)/7
+				alpha = (2*alpha0 + 5*alpha1) * 0.14285714285714
 			else
-				alpha = (1*alpha0 + 6*alpha1)/7
+				alpha = (1*alpha0 + 6*alpha1) * 0.14285714285714
 			end
 		else
 			if alphacode == 0 then
@@ -960,13 +1136,13 @@ function DXT5:GetBlock(x, y)
 			elseif alphacode == 1 then
 				alpha = alpha1
 			elseif alphacode == 2 then
-				alpha = (4*alpha0 + 1*alpha1)/5
+				alpha = (4*alpha0 + 1*alpha1) * 0.2
 			elseif alphacode == 3 then
-				alpha = (3*alpha0 + 2*alpha1)/5
+				alpha = (3*alpha0 + 2*alpha1) * 0.2
 			elseif alphacode == 4 then
-				alpha = (2*alpha0 + 3*alpha1)/5
+				alpha = (2*alpha0 + 3*alpha1) * 0.2
 			elseif alphacode == 5 then
-				alpha = (1*alpha0 + 4*alpha1)/5
+				alpha = (1*alpha0 + 4*alpha1) * 0.2
 			elseif alphacode == 6 then
 				alpha = 0
 			else
