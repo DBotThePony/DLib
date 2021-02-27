@@ -557,7 +557,6 @@ do
 	-- if supersample, then it sample biggest mip and as current mip become smaller, more texels are sampled
 	function VTF:AutoGenerateMips(supersample)
 		if self.mipmap_count == 1 then return false end
-		if supersample == nil then supersample = true end
 
 		local sampling = 0
 		local encoding = 0
