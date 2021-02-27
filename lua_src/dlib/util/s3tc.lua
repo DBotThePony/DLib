@@ -75,7 +75,7 @@ function DXT1Object.Create(width, height, fill, bytes)
 	end
 
 	bytes:WriteBinary(string.rep(filler, width * height / 16))
-	DLib.DXT1(bytes, width, height)
+	return DLib.DXT1(bytes, width, height)
 end
 
 function DXT1:ctor(bytes, width, height)
@@ -85,6 +85,7 @@ function DXT1:ctor(bytes, width, height)
 	self.width_blocks = width / 4
 	self.height_blocks = height / 4
 	self.advanced_dither = true
+	self.encode_luma = false
 
 	self.cache = {}
 end
@@ -100,7 +101,7 @@ function DXT1:SetBlockSolid(x, y, color)
 
 	self.bytes:Seek(block)
 
-	local color0 = encode_color_5_6_5(color.r / 255, color.g / 255, color.b / 255):bswap():rshift(16)
+	local color0 = encode_color_5_6_5(color.r * 0.003921568627451, color.g * 0.003921568627451, color.b * 0.003921568627451):bswap():rshift(16)
 	self.bytes:WriteUInt16(color0)
 	self.bytes:WriteUInt16(color0)
 	self.bytes:WriteUInt32(0)
@@ -109,6 +110,7 @@ function DXT1:SetBlockSolid(x, y, color)
 end
 
 local SolveColorBlock, EncodeBCColorBlock
+local dither_precompute = {}
 
 do
 	--[[
@@ -148,7 +150,6 @@ do
 		      (1/48)
 	]]
 
-	local precompute = {}
 	local _compute = {
 		{1, 0, 7 / 48},
 		{2, 0, 5 / 48},
@@ -169,7 +170,7 @@ do
 	for X = 0, 3 do
 		for Y = 0, 3 do
 			local compute = {}
-			precompute[1 + X + Y * 4] = compute
+			dither_precompute[1 + X + Y * 4] = compute
 
 			for _, data in ipairs(_compute) do
 				local x, y, dither = data[1] + X, data[2] + Y, data[3]
@@ -400,7 +401,6 @@ do
 			local encoded = encoded565_buffer[i]
 			local _error = error_buffer[i]
 			local r, g, b, r_error, g_error, b_error = encode_color_5_6_5_error(pixel.r + _error[1], pixel.g + _error[2], pixel.b + _error[3])
-			local dither = precompute[i]
 
 			if encode_luma then
 				encoded[1], encoded[2], encoded[3] = r * luma_r, g * luma_g, b * luma_b
@@ -409,6 +409,8 @@ do
 			end
 
 			if advanced_dither then
+				local dither = dither_precompute[i]
+
 				for i2 = 1, #dither do
 					local _error2 = error_buffer[dither[i2][1]]
 					local mult = dither[i2][2]
@@ -532,7 +534,7 @@ do
 			written = written:rshift(2):bor(palette_index:lshift(30))
 
 			if advanced_dither then
-				local dither = precompute[i]
+				local dither = dither_precompute[i]
 
 				for i2 = 1, #dither do
 					local _error2 = error_buffer[dither[i2][1]]
@@ -585,17 +587,15 @@ function DXT1:SetBlock(x, y, pixels)
 	assert(x < self.width_blocks, '!x <= self.width_blocks')
 	assert(y < self.height_blocks, '!y <= self.height_blocks')
 
-	local encode_luma = self.encode_luma or false
-
 	local fColor0, fColor1, written = EncodeBCColorBlock(pixels, self.encode_luma or false, self.advanced_dither)
 
 	local pixel = y * self.width_blocks + x
 	local block = pixel * 8
 
 	self.bytes:Seek(block)
-	self.bytes:WriteUInt16(fColor0:bswap():rshift(16))
-	self.bytes:WriteUInt16(fColor1:bswap():rshift(16))
-	self.bytes:WriteInt32(written:bswap())
+	self.bytes:WriteUInt16LE(fColor0)
+	self.bytes:WriteUInt16LE(fColor1)
+	self.bytes:WriteInt32LE(written)
 
 	self.cache[pixel] = nil
 end
@@ -683,14 +683,121 @@ function DXT3Object.CountBytes(w, h)
 	return math.ceil(w * h):max(16)
 end
 
+function DXT3Object.Create(width, height, fill, bytes)
+	assert(width > 0, 'width <= 0')
+	assert(height > 0, 'height <= 0')
+
+	assert(width % 4 == 0, 'width % 4 ~= 0')
+	assert(height % 4 == 0, 'height % 4 ~= 0')
+
+	fill = fill or color_white
+
+	local alpha = floor(fill.a * 0.058823529411765 + 0.5) + floor(fill.a * 0.058823529411765 + 0.5):lshift(4)
+	local color0 = encode_color_5_6_5(fill.r * 0.003921568627451, fill.g * 0.003921568627451, fill.b * 0.003921568627451)
+	local filler = string.char(
+		alpha,
+		alpha,
+		alpha,
+		alpha,
+		alpha,
+		alpha,
+		alpha,
+		alpha,
+		color0:band(255),
+		color0:rshift(8):band(255),
+		color0:band(255),
+		color0:rshift(8):band(255)) .. '\x00\x00\x00\x00'
+
+	if not bytes then
+		return DLib.DXT3(DLib.BytesBuffer(string.rep(filler, width * height / 16)), width, height)
+	end
+
+	bytes:WriteBinary(string.rep(filler, width * height / 16))
+	return DLib.DXT3(bytes, width, height)
+end
+
+AccessorFunc(DXT3, 'encode_luma', 'EncodeInLuma')
+AccessorFunc(DXT3, 'advanced_dither', 'AdvancedDither')
+
 function DXT3:ctor(bytes, width, height)
 	self.bytes = bytes
 	self.width = width
 	self.height = height
 	self.width_blocks = width / 4
 	self.height_blocks = height / 4
+	self.advanced_dither = true
+	self.encode_luma = false
 
 	self.cache = {}
+end
+
+do
+	local alpha_buffer = {}
+	local error_buffer = {}
+
+	for i = 1, 16 do
+		alpha_buffer[i] = 0
+		error_buffer[i] = 0
+	end
+
+	function DXT3:SetBlock(x, y, pixels)
+		assert(x >= 0, '!x >= 0')
+		assert(y >= 0, '!y >= 0')
+		assert(x < self.width_blocks, '!x <= self.width_blocks')
+		assert(y < self.height_blocks, '!y <= self.height_blocks')
+
+		local pixel = y * self.width_blocks + x
+		local block = pixel * 16
+
+		local bytes = self.bytes
+
+		bytes:Seek(block)
+
+		-- encode alpha part
+		for i = 1, 16 do
+			alpha_buffer[i] = 0
+			error_buffer[i] = 0
+		end
+
+		for i = 1, 16 do
+			local alpha = pixels[i].a
+			local nearest = floor((alpha + error_buffer[i]) * 0.058823529411765 + 0.5)
+			local error_a = alpha - nearest * 17
+			local dither = dither_precompute[i]
+
+			for i2 = 1, #dither do
+				local index = dither[i2][1]
+				error_buffer[index] = error_buffer[index] + error_a * dither[i2][2]
+			end
+
+			alpha_buffer[i] = nearest
+		end
+
+		local alpha0 = 0
+		local alpha1 = 0
+
+		--for i = 8, 1, -1 do
+		for i = 1, 8 do
+			alpha0 = alpha0:rshift(4):bor(alpha_buffer[i]:lshift(28))
+		end
+
+		--for i = 16, 9, -1 do
+		for i = 9, 16 do
+			alpha1 = alpha1:rshift(4):bor(alpha_buffer[i]:lshift(28))
+		end
+
+		bytes:WriteInt32LE(alpha0)
+		bytes:WriteInt32LE(alpha1)
+
+		-- encode RGB part
+		local fColor0, fColor1, written = EncodeBCColorBlock(pixels, self.encode_luma or false, self.advanced_dither)
+
+		bytes:WriteUInt16LE(fColor0)
+		bytes:WriteUInt16LE(fColor1)
+		bytes:WriteInt32LE(written)
+
+		self.cache[pixel] = nil
+	end
 end
 
 function DXT3:GetBlock(x, y)
@@ -708,16 +815,16 @@ function DXT3:GetBlock(x, y)
 
 	self.bytes:Seek(block)
 
-	local alpha0 = self.bytes:ReadUInt32():bswap()
-	local alpha1 = self.bytes:ReadUInt32():bswap()
+	local alpha0 = self.bytes:ReadUInt32LE()
+	local alpha1 = self.bytes:ReadUInt32LE()
 
-	local color0 = self.bytes:ReadUInt16():bswap():rshift(16)
-	local color1 = self.bytes:ReadUInt16():bswap():rshift(16)
+	local color0 = self.bytes:ReadUInt16LE()
+	local color1 = self.bytes:ReadUInt16LE()
 
 	local color0_d = to_color_5_6_5(color0)
 	local color1_d = to_color_5_6_5(color1)
 
-	local describe = self.bytes:ReadUInt32():bswap()
+	local describe = self.bytes:ReadUInt32LE()
 
 	local decoded = {}
 
