@@ -276,13 +276,13 @@ function VTFObject.Create(version, width, height, format, extra)
 	if width == height then
 		thumb_width, thumb_height = 16, 16
 	elseif width <= 16 and height <= 16 then
-		thumb_width, thumb_height = width, height
+		thumb_width, thumb_height = width:max(4), height:max(4)
 	elseif width < height then
 		thumb_height = 16
-		thumb_width = math.max(1, (width / height) * 16)
+		thumb_width = math.max(4, (width / height) * 16)
 	else
 		thumb_width = 16
-		thumb_height = math.max(1, (height / width) * 16)
+		thumb_height = math.max(4, (height / width) * 16)
 	end
 
 	bytes:WriteUByte(thumb_width)
@@ -350,15 +350,15 @@ function VTF:ctor(bytes)
 
 	self.version_string = string.format('%d.%d', readHead.version[1], readHead.version[2])
 
-	self.version_major = readHead.version[1]
-	self.version_minor = readHead.version[2]
+	self.version_major = readHead.version[1] -- 4
+	self.version_minor = readHead.version[2] -- 8
 
-	self.width = readHead.width
-	self.height = readHead.height
-	self.flags = readHead.flags
-	self.frames = readHead.frames
-	self.first_frame = readHead.firstFrame
-	--self.reflectivity = Vector(1 - readHead.reflectivity[1], 1 - readHead.reflectivity[2], 1 - readHead.reflectivity[3])
+	self.width = readHead.width -- 12
+	self.height = readHead.height -- 14
+	self.flags = readHead.flags -- 16
+	self.frames = readHead.frames -- 20
+	self.first_frame = readHead.firstFrame -- 22
+	self.reflectivity = Vector(1 - readHead.reflectivity[1], 1 - readHead.reflectivity[2], 1 - readHead.reflectivity[3]) -- 28
 	self.high_res_image_format = readHead.highResImageFormat
 	self.low_res_image_format = readHead.lowResImageFormat
 	self.low_width = readHead.lowResImageWidth
@@ -441,10 +441,11 @@ function VTF:ToString()
 	return self.bytes:ToString()
 end
 
+local sample_encode_buff = {}
+
 do
 	local sample_buffer = {}
 	local sample_result = {}
-	local sample_encode_buff = {}
 
 	for i = 1, 16 do
 		sample_buffer[i] = {0, 0, 0, 255}
@@ -555,11 +556,17 @@ do
 
 	-- if fast - sample *previous* mip (so it sample only 4 texels of bigger mip)
 	-- if supersample, then it sample biggest mip and as current mip become smaller, more texels are sampled
+
+	-- also, auto generating mipmaps will also calculate reflectivity
 	function VTF:AutoGenerateMips(supersample)
 		if self.mipmap_count == 1 then return false end
 
 		local sampling = 0
 		local encoding = 0
+
+		local sampleR, sampleG, sampleB, sampleA, samples = 0, 0, 0, 0, 0
+		local reflectivity = true
+		local reflectivityO
 
 		if supersample then
 			local biggest = self.mipmaps_obj[self.mipmap_count]
@@ -638,6 +645,7 @@ do
 							obj2 = sample_result[4]
 							obj[1], obj[2], obj[3], obj[4] = obj2[1], obj2[2], obj2[3], obj2[4]
 
+
 							-- sampling 2x2 to 3x3
 							SubsampleBlock(biggest:GetBlock(blockX * 2 + 1, blockY * 2 + 1, sample_buffer))
 
@@ -656,6 +664,18 @@ do
 							obj  = sample_encode_buff[16]
 							obj2 = sample_result[4]
 							obj[1], obj[2], obj[3], obj[4] = obj2[1], obj2[2], obj2[3], obj2[4]
+
+							if reflectivity then
+								for i = 1, 16 do
+									local obj = sample_encode_buff[i]
+									sampleR = sampleR + obj[1]
+									sampleG = sampleG + obj[2]
+									sampleB = sampleB + obj[3]
+									sampleA = sampleA + obj[4]
+								end
+
+								samples = samples + 16
+							end
 
 							sampling = sampling + SysTime() - s
 
@@ -686,6 +706,19 @@ do
 							SampleBlock(biggest:GetBlock(blockX * 4 + 1,   blockY * 4 + 3, sample_buffer), sample_encode_buff[14])
 							SampleBlock(biggest:GetBlock(blockX * 4 + 2,   blockY * 4 + 3, sample_buffer), sample_encode_buff[15])
 							SampleBlock(biggest:GetBlock(blockX * 4 + 3,   blockY * 4 + 3, sample_buffer), sample_encode_buff[16])
+
+							if reflectivity then
+								for i = 1, 16 do
+									local obj = sample_encode_buff[i]
+									sampleR = sampleR + obj[1]
+									sampleG = sampleG + obj[2]
+									sampleB = sampleB + obj[3]
+									sampleA = sampleA + obj[4]
+								end
+
+								samples = samples + 16
+							end
+
 							sampling = sampling + SysTime() - s
 
 							s = SysTime()
@@ -720,6 +753,18 @@ do
 							SuperSampleBlock(biggest, blockX * step + step2 * 2, blockY * step + step2 * 3,  supersample_level - 2, sample_encode_buff[15])
 							SuperSampleBlock(biggest, blockX * step + step2 * 3, blockY * step + step2 * 3,  supersample_level - 2, sample_encode_buff[16])
 
+							if reflectivity then
+								for i = 1, 16 do
+									local obj = sample_encode_buff[i]
+									sampleR = sampleR + obj[1]
+									sampleG = sampleG + obj[2]
+									sampleB = sampleB + obj[3]
+									sampleA = sampleA + obj[4]
+								end
+
+								samples = samples + 16
+							end
+
 							sampling = sampling + SysTime() - s
 
 							s = SysTime()
@@ -727,6 +772,11 @@ do
 							encoding = encoding + SysTime() - s
 						end
 					end
+				end
+
+				if reflectivity then
+					reflectivityO = current
+					reflectivity = false
 				end
 
 				supersample_level = supersample_level + 1
@@ -822,6 +872,18 @@ do
 						obj2 = sample_result[4]
 						obj[1], obj[2], obj[3], obj[4] = obj2[1], obj2[2], obj2[3], obj2[4]
 
+						if reflectivity then
+							for i = 1, 16 do
+								local obj = sample_encode_buff[i]
+								sampleR = sampleR + obj[1]
+								sampleG = sampleG + obj[2]
+								sampleB = sampleB + obj[3]
+								sampleA = sampleA + obj[4]
+							end
+
+							samples = samples + 16
+						end
+
 						sampling = sampling + SysTime() - s
 
 						s = SysTime()
@@ -829,11 +891,60 @@ do
 						encoding = encoding + SysTime() - s
 					end
 				end
+
+				if reflectivity then
+					reflectivityO = current
+					reflectivity = false
+				end
 			end
 		end
 
+		local mult = sampleA / (samples * samples) * 1.5378700499808e-05
+		local reflectivity = Vector(sampleR * mult, sampleG * mult, sampleB * mult)
+		self.reflectivity = reflectivity
+
+		local bytes = self.bytes
+
+		bytes:Seek(self.pointer + 32)
+
+		bytes:WriteFloatLE(reflectivity.x)
+		bytes:WriteFloatLE(reflectivity.y)
+		bytes:WriteFloatLE(reflectivity.z)
+
 		return true, sampling, encoding
 	end
+end
+
+function VTF:CalculateReflectivity()
+	local obj = self.mipmaps_obj[self.mipmap_count]
+
+	local sampleR, sampleG, sampleB, sampleA = 0, 0, 0, 0
+
+	for blockX = 0, obj.width_blocks - 1 do
+		for blockY = 0, obj.height_blocks - 1 do
+			obj:GetBlock(blockX, blockY, sample_encode_buff)
+
+			for i = 1, 16 do
+				local obj = sample_encode_buff[i]
+				sampleR = sampleR + obj[1]
+				sampleG = sampleG + obj[2]
+				sampleB = sampleB + obj[3]
+				sampleA = sampleA + obj[4]
+			end
+		end
+	end
+
+	local mult = sampleA / (obj.width * obj.height * obj.width * obj.height) * 1.5378700499808e-05
+	local reflectivity = Vector(sampleR * mult, sampleG * mult, sampleB * mult)
+	self.reflectivity = reflectivity
+
+	local bytes = self.bytes
+
+	bytes:Seek(self.pointer + 32)
+
+	bytes:WriteFloatLE(reflectivity.x)
+	bytes:WriteFloatLE(reflectivity.y)
+	bytes:WriteFloatLE(reflectivity.z)
 end
 
 function VTF:CaptureRenderTarget(x, y, width, height, rx, ry)
