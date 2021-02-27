@@ -38,6 +38,13 @@ local Color = Color
 local DLib = DLib
 local string = string
 
+local function GetPixel(self, x, y)
+	local divX, divY = x % 4, y % 4
+	local blockX, blockY = (x - divX) / 4, (y - divY) / 4
+
+	return self:GetBlock(blockX, blockY)[divX + divY * 4 + 1]
+end
+
 -- decode byte swapped (big endian ready) 5, 6, 5 color
 local function to_color_5_6_5(value)
 	local b = floor(band(value, 31) * 8.2258064516129)
@@ -586,6 +593,8 @@ function DXT1:SetBlock(x, y, pixels)
 	self.cache[pixel] = nil
 end
 
+DXT1.GetPixel = GetPixel
+
 function DXT1:GetBlock(x, y)
 	assert(x >= 0, '!x >= 0')
 	assert(y >= 0, '!y >= 0')
@@ -785,6 +794,8 @@ do
 		self.cache[pixel] = nil
 	end
 end
+
+DXT3.GetPixel = GetPixel
 
 function DXT3:GetBlock(x, y)
 	assert(x >= 0, '!x >= 0')
@@ -1050,6 +1061,8 @@ do
 		self.cache[pixel] = nil
 	end
 end
+
+DXT5.GetPixel = GetPixel
 
 function DXT5:GetBlock(x, y)
 	assert(x >= 0, '!x >= 0')

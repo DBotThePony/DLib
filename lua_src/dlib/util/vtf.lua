@@ -144,7 +144,7 @@ local color_white = Color()
 local power_of_two = {}
 
 for i = 0, 14 do
-	power_of_two[math.pow(2, i)] = true
+	power_of_two[math.pow(2, i)] = i
 end
 
 -- version is a number from 1 (7.1) to 5 (7.5)
@@ -195,6 +195,10 @@ function VTFObject.Create(version, width, height, format, extra)
 
 	if extra.mipmap_count == nil then
 		extra.mipmap_count = 1
+	elseif extra.mipmap_count == true then
+		extra.mipmap_count = math.max(1, power_of_two[math.min(width, height)] - 1)
+	elseif isnumber(extra.mipmap_count) and extra.mipmap_count < 0 then
+		extra.mipmap_count = math.max(1, power_of_two[math.min(width, height)] + extra.mipmap_count)
 	end
 
 	if extra.depth == nil then
@@ -210,7 +214,12 @@ function VTFObject.Create(version, width, height, format, extra)
 	assert(power_of_two[extra.depth], 'extra.depth is not power of two', 2)
 	assert(extra.frames >= 1, 'extra.frames >= 1', 2)
 	assert(extra.first_frame >= 0, 'extra.first_frame >= 0', 2)
+	assert(extra.mipmap_count >= 1, 'extra.mipmap_count >= 1', 2)
 	assert(IsColor(extra.fill), 'IsColor(extra.fill)', 2)
+
+	if extra.mipmap_count > power_of_two[math.min(width, height)] then
+		error(string.format('Can not create image with %d mip levels due to image size of %dx%d', extra.mipmap_count, width, height), 2)
+	end
 
 	if extra.mipmap_count == 1 then
 		extra.flags = extra.flags:bor(TEXTUREFLAGS_NOMIP, TEXTUREFLAGS_NOLOD)
@@ -430,6 +439,117 @@ end
 
 function VTF:ToString()
 	return self.bytes:ToString()
+end
+
+-- if fast - sample *previous* mip (so it sample only 4 texels of bigger mip)
+-- if supersample, then it sample biggest mip and as current mip become smaller, more texels are sampled
+function VTF:AutoGenerateMips(supersample)
+	if self.mipmap_count == 1 then return false end
+	if supersample == nil then supersample = true end
+
+	if supersample then
+		local biggest = self.mipmaps_obj[self.mipmap_count]
+		local _w, _h = biggest.width, biggest.height
+
+		local sample_width = 1
+		local grid_width = 2
+
+		-- from biggest to smallest
+		for mipmap = self.mipmap_count - 1, 1, -1 do
+			local current = self.mipmaps_obj[mipmap]
+
+			local w, h = current.width_blocks, current.height_blocks
+
+			for blockX = 0, w - 1 do
+				for blockY = 0, h - 1 do
+					local block = {}
+
+					for x = 0, 3 do
+						for y = 0, 3 do
+							local aX, aY = (blockX * 4 + x) * grid_width, (blockY * 4 + y) * grid_width
+
+							local sampleR, sampleG, sampleB = 0, 0, 0
+							local samples = 0
+
+							for sw = 0, sample_width do
+								for sh = 0, sample_width do
+									if aX + sw < _w and aY + sh < _h then
+										local pixel = biggest:GetPixel(aX + sw, aY + sh)
+										sampleR = sampleR + pixel.r
+										sampleG = sampleG + pixel.g
+										sampleB = sampleB + pixel.b
+										samples = samples + 1
+									end
+								end
+							end
+
+							block[x + y * 4 + 1] = Color(sampleR / samples, sampleG / samples, sampleB / samples)
+						end
+					end
+
+					current:SetBlock(blockX, blockY, block)
+				end
+			end
+
+			sample_width = sample_width * 2
+			grid_width = grid_width * 2
+		end
+	else
+		-- from biggest to smallest
+		for mipmap = self.mipmap_count - 1, 1, -1 do
+			local prev = self.mipmaps_obj[mipmap + 1]
+			local current = self.mipmaps_obj[mipmap]
+
+			local w, h = current.width_blocks, current.height_blocks
+			local _w, _h = prev.width, prev.height
+
+			for blockX = 0, w - 1 do
+				for blockY = 0, h - 1 do
+					local block = {}
+
+					for x = 0, 3 do
+						for y = 0, 3 do
+							local aX, aY = (blockX * 4 + x) * 2, (blockY * 4 + y) * 2
+
+							local pixel = prev:GetPixel(aX, aY)
+							local sampleR, sampleG, sampleB = pixel.r, pixel.g, pixel.b
+							local samples = 1
+
+							if aX + 1 < _w then
+								pixel = prev:GetPixel(aX + 1, aY)
+								sampleR = sampleR + pixel.r
+								sampleG = sampleG + pixel.g
+								sampleB = sampleB + pixel.b
+								samples = samples + 1
+							end
+
+							if aY + 1 < _h then
+								pixel = prev:GetPixel(aX, aY + 1)
+								sampleR = sampleR + pixel.r
+								sampleG = sampleG + pixel.g
+								sampleB = sampleB + pixel.b
+								samples = samples + 1
+							end
+
+							if aX + 1 < _w and aY + 1 >= 0 then
+								pixel = prev:GetPixel(aX + 1, aY + 1)
+								sampleR = sampleR + pixel.r
+								sampleG = sampleG + pixel.g
+								sampleB = sampleB + pixel.b
+								samples = samples + 1
+							end
+
+							block[x + y * 4 + 1] = Color(sampleR / samples, sampleG / samples, sampleB / samples)
+						end
+					end
+
+					current:SetBlock(blockX, blockY, block)
+				end
+			end
+		end
+	end
+
+	return true
 end
 
 VTFObject.HeaderStruct = DLib.BytesBuffer.CompileStructure([[
