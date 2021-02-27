@@ -836,6 +836,21 @@ do
 	end
 end
 
+function VTF:CaptureRenderTarget(x, y, width, height, rx, ry)
+	if x == nil then x = 0 end
+	if y == nil then y = 0 end
+	if rx == nil then rx = 0 end
+	if ry == nil then ry = 0 end
+	if width == nil then width = math.min(ScrW() - rx, self.width - 1) end
+	if height == nil then height = math.min(ScrH() - ry, self.height - 1) end
+
+	assert(rx + width < self.width, 'x + width < self.width')
+	assert(ry + height < self.height, 'y + height < self.height')
+
+	render.CapturePixels()
+	self.mipmaps_obj[self.mipmap_count]:CaptureRenderTarget(x, y, width, height, rx, ry)
+end
+
 VTFObject.HeaderStruct = DLib.BytesBuffer.CompileStructure([[
 	char                            signature[4];       // File signature ("VTF\0"). (or as little-endian integer, 0x00465456)
 	little endian unsigned int      version[2];         // version[0].version[1] (currently 7.2).

@@ -110,7 +110,7 @@ function DXT1:ctor(bytes, width, height)
 	self.cache = {}
 end
 
-local SolveColorBlock, EncodeBCColorBlock
+local SolveColorBlock, EncodeBCColorBlock, CaptureRenderTarget
 local dither_precompute = {}
 local plain_pixel_block = {}
 
@@ -127,6 +127,90 @@ local function EncodePlainPixels(pixels)
 		obj2[2] = obj.g
 		obj2[3] = obj.b
 		obj2[4] = obj.a
+	end
+end
+
+do
+	local sample_encode_buff = {}
+
+	for i = 1, 16 do
+		sample_encode_buff[i] = {0, 0, 0, 255}
+	end
+
+	function CaptureRenderTarget(self, rx, ry, w, h, lx, ly)
+		local sBlockX = (lx - lx % 4) / 4
+		local sBlockY = (ly - ly % 4) / 4
+
+		local fitx = (lx + w + 1) % 4 == 0
+		local fity = (ly + h + 1) % 4 == 0
+		local fit = fitx and fity
+		local fBlockX = ((lx + w + 1) - (lx + w + 1) % 4) / 4 - 1
+		local fBlockY = ((ly + h + 1) - (ly + h + 1) % 4) / 4 - 1
+
+		for blockX = sBlockX, fBlockX do
+			for blockY = sBlockY, fBlockY do
+				for X = 0, 3 do
+					for Y = 0, 3 do
+						local obj = sample_encode_buff[1 + X + Y * 4]
+						obj[1], obj[2], obj[3] = render.ReadPixel(rx + X + blockX * 4, ry + Y + blockY * 4)
+					end
+				end
+
+				self:SetBlock(blockX, blockY, sample_encode_buff, true)
+			end
+		end
+
+		if fit then return end
+
+		if not fitx then
+			local blockX = fBlockX + 1
+
+			for blockY = sBlockY, fBlockY do
+				self:GetBlock(blockX, blockY, sample_encode_buff)
+
+				for X = 0, lx + w - blockX * 4 do
+					for Y = 0, 3 do
+						local obj = sample_encode_buff[1 + X + Y * 4]
+						obj[1], obj[2], obj[3] = render.ReadPixel(rx + X + blockX * 4, ry + Y + blockY * 4)
+					end
+				end
+
+				self:SetBlock(blockX, blockY, sample_encode_buff, true)
+			end
+		end
+
+		if not fity then
+			local blockY = fBlockY + 1
+
+			for blockX = sBlockX, fBlockX do
+				self:GetBlock(blockX, blockY, sample_encode_buff)
+
+				for X = 0, 3 do
+					for Y = 0, ly + h - blockY * 4 do
+						local obj = sample_encode_buff[1 + X + Y * 4]
+						obj[1], obj[2], obj[3] = render.ReadPixel(rx + X + blockX * 4, ry + Y + blockY * 4)
+					end
+				end
+
+				self:SetBlock(blockX, blockY, sample_encode_buff, true)
+			end
+		end
+
+		if not fitx and not fity then
+			local blockX = fBlockX + 1
+			local blockY = fBlockY + 1
+
+			self:GetBlock(blockX, blockY, sample_encode_buff)
+
+			for X = 0, lx + w - blockX * 4 do
+				for Y = 0, ly + h - blockY * 4 do
+					local obj = sample_encode_buff[1 + X + Y * 4]
+					obj[1], obj[2], obj[3] = render.ReadPixel(rx + X + blockX * 4, ry + Y + blockY * 4)
+				end
+			end
+
+			self:SetBlock(blockX, blockY, sample_encode_buff, true)
+		end
 	end
 end
 
@@ -626,6 +710,7 @@ function DXT1:SetBlock(x, y, pixels, pixels_are_plain)
 end
 
 DXT1.GetPixel = GetPixel
+DXT1.CaptureRenderTarget = CaptureRenderTarget
 
 function DXT1:GetBlock(x, y, export)
 	assert(x >= 0, '!x >= 0')
@@ -897,6 +982,7 @@ do
 end
 
 DXT3.GetPixel = GetPixel
+DXT3.CaptureRenderTarget = CaptureRenderTarget
 
 function DXT3:GetBlock(x, y, export)
 	assert(x >= 0, '!x >= 0')
@@ -1207,6 +1293,7 @@ do
 end
 
 DXT5.GetPixel = GetPixel
+DXT5.CaptureRenderTarget = CaptureRenderTarget
 
 function DXT5:GetBlock(x, y, export)
 	assert(x >= 0, '!x >= 0')
