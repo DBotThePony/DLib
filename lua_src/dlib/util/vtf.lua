@@ -441,261 +441,400 @@ function VTF:ToString()
 	return self.bytes:ToString()
 end
 
-local Color = Color
-
-local function subsample_block(getblock)
-	-- 0x0 texel
-	local a, b, c, d = getblock[1], getblock[2], getblock[5], getblock[6]
+do
+	local sample_buffer = {}
 	local sample_result = {}
-
-	sample_result[1] = Color(
-		(a.r + b.r + c.r + d.r) * 0.25,
-		(a.g + b.g + c.g + d.g) * 0.25,
-		(a.b + b.b + c.b + d.b) * 0.25
-	)
-
-	-- 1x0
-	a, b, c, d = getblock[3], getblock[4], getblock[7], getblock[8]
-
-	sample_result[2] = Color(
-		(a.r + b.r + c.r + d.r) * 0.25,
-		(a.g + b.g + c.g + d.g) * 0.25,
-		(a.b + b.b + c.b + d.b) * 0.25
-	)
-
-	-- 0x1
-	a, b, c, d = getblock[9], getblock[10], getblock[13], getblock[14]
-
-	sample_result[3] = Color(
-		(a.r + b.r + c.r + d.r) * 0.25,
-		(a.g + b.g + c.g + d.g) * 0.25,
-		(a.b + b.b + c.b + d.b) * 0.25
-	)
-
-	-- 1x1
-	a, b, c, d = getblock[11], getblock[12], getblock[15], getblock[16]
-
-	sample_result[4] = Color(
-		(a.r + b.r + c.r + d.r) * 0.25,
-		(a.g + b.g + c.g + d.g) * 0.25,
-		(a.b + b.b + c.b + d.b) * 0.25
-	)
-
-	return sample_result
-end
-
-local function sample_block(getblock)
-	local sampleR, sampleG, sampleB = 0, 0, 0
+	local sample_encode_buff = {}
 
 	for i = 1, 16 do
-		local col = getblock[i]
-		sampleR, sampleG, sampleB = sampleR + col.r, sampleG + col.g, sampleB + col.b
+		sample_buffer[i] = {0, 0, 0, 255}
+		sample_encode_buff[i] = {0, 0, 0, 255}
 	end
 
-	return Color(sampleR * 0.0625, sampleG * 0.0625, sampleB * 0.0625)
-end
-
-local function supersample_block(sample_from, blockX, blockY, level)
-	if level == 0 then
-		return sample_block(sample_from:GetBlock(blockX, blockY))
+	for i = 1, 4 do
+		sample_result[i] = {0, 0, 0, 255}
 	end
 
-	local step = math.pow(2, level - 1)
+	local function SubsampleBlock(getblock)
+		-- 0x0 texel
+		local a, b, c, d = getblock[1], getblock[2], getblock[5], getblock[6]
+		local obj = sample_result[1]
 
-	local a = supersample_block(sample_from, blockX, blockY, level - 1)
-	local b = supersample_block(sample_from, blockX + step, blockY, level - 1)
-	local c = supersample_block(sample_from, blockX, blockY + step, level - 1)
-	local d = supersample_block(sample_from, blockX + step, blockY + step, level - 1)
+		obj[1] = (a[1] + b[1] + c[1] + d[1]) * 0.25
+		obj[2] = (a[2] + b[2] + c[2] + d[2]) * 0.25
+		obj[3] = (a[3] + b[3] + c[3] + d[3]) * 0.25
+		obj[4] = (a[4] + b[4] + c[4] + d[4]) * 0.25
 
-	return Color(
-		(a.r + b.r + c.r + d.r) * 0.25,
-		(a.g + b.g + c.g + d.g) * 0.25,
-		(a.b + b.b + c.b + d.b) * 0.25
-	)
-end
+		-- 1x0
+		a, b, c, d = getblock[3], getblock[4], getblock[7], getblock[8]
+		obj = sample_result[2]
 
--- if fast - sample *previous* mip (so it sample only 4 texels of bigger mip)
--- if supersample, then it sample biggest mip and as current mip become smaller, more texels are sampled
-function VTF:AutoGenerateMips(supersample)
-	if self.mipmap_count == 1 then return false end
-	if supersample == nil then supersample = true end
+		obj[1] = (a[1] + b[1] + c[1] + d[1]) * 0.25
+		obj[2] = (a[2] + b[2] + c[2] + d[2]) * 0.25
+		obj[3] = (a[3] + b[3] + c[3] + d[3]) * 0.25
+		obj[4] = (a[4] + b[4] + c[4] + d[4]) * 0.25
 
-	if supersample then
-		local biggest = self.mipmaps_obj[self.mipmap_count]
-		local _w, _h = biggest.width, biggest.height
+		-- 0x1
+		a, b, c, d = getblock[9], getblock[10], getblock[13], getblock[14]
+		obj = sample_result[3]
 
-		local sample_width = 1
-		local supersample_level = 1
-		local grid_width = 2
+		obj[1] = (a[1] + b[1] + c[1] + d[1]) * 0.25
+		obj[2] = (a[2] + b[2] + c[2] + d[2]) * 0.25
+		obj[3] = (a[3] + b[3] + c[3] + d[3]) * 0.25
+		obj[4] = (a[4] + b[4] + c[4] + d[4]) * 0.25
 
-		-- from biggest to smallest
-		for mipmap = self.mipmap_count - 1, 1, -1 do
-			local current = self.mipmaps_obj[mipmap]
-			local w, h = current.width_blocks, current.height_blocks
+		-- 1x1
+		a, b, c, d = getblock[11], getblock[12], getblock[15], getblock[16]
+		obj = sample_result[4]
 
-			-- sampling 2x2 blocks per 1 texel on mip texture
-			-- so let's optimize that by sampling (4 blocks of 2x2 texels at once) * 4
-			if supersample_level == 1 then
+		obj[1] = (a[1] + b[1] + c[1] + d[1]) * 0.25
+		obj[2] = (a[2] + b[2] + c[2] + d[2]) * 0.25
+		obj[3] = (a[3] + b[3] + c[3] + d[3]) * 0.25
+		obj[4] = (a[4] + b[4] + c[4] + d[4]) * 0.25
+	end
+
+	local function SampleBlock(getblock, result)
+		local sampleR, sampleG, sampleB, sampleA = 0, 0, 0, 0
+
+		for i = 1, 16 do
+			local col = getblock[i]
+			sampleR, sampleG, sampleB = sampleR + col[1], sampleG + col[2], sampleB + col[3], sampleA + col[4]
+		end
+
+		result[1] = sampleR * 0.0625
+		result[2] = sampleG * 0.0625
+		result[3] = sampleB * 0.0625
+		result[4] = sampleA * 0.0625
+	end
+
+	local function SampleBlockPlain(getblock)
+		local sampleR, sampleG, sampleB, sampleA = 0, 0, 0, 0
+
+		for i = 1, 16 do
+			local col = getblock[i]
+			sampleR, sampleG, sampleB = sampleR + col[1], sampleG + col[2], sampleB + col[3], sampleA + col[4]
+		end
+
+		return sampleR * 0.0625, sampleG * 0.0625, sampleB * 0.0625, sampleA * 0.0625
+	end
+
+	local math_pow = math.pow
+	local SysTime = SysTime
+
+	local function SuperSampleBlock(sample_from, blockX, blockY, level, result)
+		if level == 0 then
+			if result then
+				return SampleBlock(sample_from:GetBlock(blockX, blockY, sample_buffer), result)
+			end
+
+			return SampleBlockPlain(sample_from:GetBlock(blockX, blockY, sample_buffer))
+		end
+
+		local step = math_pow(2, level - 1)
+
+		local a1, a2, a3, a4 = SuperSampleBlock(sample_from, blockX, blockY, level - 1)
+		local b1, b2, b3, b4 = SuperSampleBlock(sample_from, blockX + step, blockY, level - 1)
+		local c1, c2, c3, c4 = SuperSampleBlock(sample_from, blockX, blockY + step, level - 1)
+		local d1, d2, d3, d4 = SuperSampleBlock(sample_from, blockX + step, blockY + step, level - 1)
+
+		if result then
+			result[1] = (a1 + b1 + c1 + d1) * 0.25
+			result[2] = (a2 + b2 + c2 + d2) * 0.25
+			result[3] = (a3 + b3 + c3 + d3) * 0.25
+			result[4] = (a4 + b4 + c4 + d4) * 0.25
+
+			return
+		end
+
+		return
+			(a1 + b1 + c1 + d1) * 0.25,
+			(a2 + b2 + c2 + d2) * 0.25,
+			(a3 + b3 + c3 + d3) * 0.25,
+			(a4 + b4 + c4 + d4) * 0.25
+	end
+
+	-- if fast - sample *previous* mip (so it sample only 4 texels of bigger mip)
+	-- if supersample, then it sample biggest mip and as current mip become smaller, more texels are sampled
+	function VTF:AutoGenerateMips(supersample)
+		if self.mipmap_count == 1 then return false end
+		if supersample == nil then supersample = true end
+
+		local sampling = 0
+		local encoding = 0
+
+		if supersample then
+			local biggest = self.mipmaps_obj[self.mipmap_count]
+			local _w, _h = biggest.width, biggest.height
+
+			local sample_width = 1
+			local supersample_level = 1
+			local grid_width = 2
+
+			-- from biggest to smallest
+			for mipmap = self.mipmap_count - 1, 1, -1 do
+				local current = self.mipmaps_obj[mipmap]
+				local w, h = current.width_blocks, current.height_blocks
+
+				-- sampling 2x2 blocks per 1 texel on mip texture
+				-- so let's optimize that by sampling (4 blocks of 2x2 texels at once) * 4
+				if supersample_level == 1 then
+					for blockX = 0, w - 1 do
+						for blockY = 0, h - 1 do
+							local block = {}
+
+							local s = SysTime()
+							-- sampling 0x0 to 1x1
+							SubsampleBlock(biggest:GetBlock(blockX * 2, blockY * 2, sample_buffer))
+							local obj = sample_encode_buff[1]
+							local obj2 = sample_result[1]
+							obj[1], obj[2], obj[3], obj[4] = obj2[1], obj2[2], obj2[3], obj2[4]
+
+							obj  = sample_encode_buff[2]
+							obj2 = sample_result[2]
+							obj[1], obj[2], obj[3], obj[4] = obj2[1], obj2[2], obj2[3], obj2[4]
+
+							obj  = sample_encode_buff[5]
+							obj2 = sample_result[3]
+							obj[1], obj[2], obj[3], obj[4] = obj2[1], obj2[2], obj2[3], obj2[4]
+
+							obj  = sample_encode_buff[6]
+							obj2 = sample_result[4]
+							obj[1], obj[2], obj[3], obj[4] = obj2[1], obj2[2], obj2[3], obj2[4]
+
+							-- sampling 2x0 to 3x1
+							SubsampleBlock(biggest:GetBlock(blockX * 2 + 1, blockY * 2, sample_buffer))
+
+							obj  = sample_encode_buff[3]
+							obj2 = sample_result[1]
+							obj[1], obj[2], obj[3], obj[4] = obj2[1], obj2[2], obj2[3], obj2[4]
+
+							obj  = sample_encode_buff[4]
+							obj2 = sample_result[2]
+							obj[1], obj[2], obj[3], obj[4] = obj2[1], obj2[2], obj2[3], obj2[4]
+
+							obj  = sample_encode_buff[7]
+							obj2 = sample_result[3]
+							obj[1], obj[2], obj[3], obj[4] = obj2[1], obj2[2], obj2[3], obj2[4]
+
+							obj  = sample_encode_buff[8]
+							obj2 = sample_result[4]
+							obj[1], obj[2], obj[3], obj[4] = obj2[1], obj2[2], obj2[3], obj2[4]
+
+							-- sampling 0x2 to 1x2
+							SubsampleBlock(biggest:GetBlock(blockX * 2, blockY * 2 + 1, sample_buffer))
+
+							obj  = sample_encode_buff[9]
+							obj2 = sample_result[1]
+							obj[1], obj[2], obj[3], obj[4] = obj2[1], obj2[2], obj2[3], obj2[4]
+
+							obj  = sample_encode_buff[10]
+							obj2 = sample_result[2]
+							obj[1], obj[2], obj[3], obj[4] = obj2[1], obj2[2], obj2[3], obj2[4]
+
+							obj  = sample_encode_buff[13]
+							obj2 = sample_result[3]
+							obj[1], obj[2], obj[3], obj[4] = obj2[1], obj2[2], obj2[3], obj2[4]
+
+							obj  = sample_encode_buff[14]
+							obj2 = sample_result[4]
+							obj[1], obj[2], obj[3], obj[4] = obj2[1], obj2[2], obj2[3], obj2[4]
+
+							-- sampling 2x2 to 3x3
+							SubsampleBlock(biggest:GetBlock(blockX * 2 + 1, blockY * 2 + 1, sample_buffer))
+
+							obj  = sample_encode_buff[11]
+							obj2 = sample_result[1]
+							obj[1], obj[2], obj[3], obj[4] = obj2[1], obj2[2], obj2[3], obj2[4]
+
+							obj  = sample_encode_buff[12]
+							obj2 = sample_result[2]
+							obj[1], obj[2], obj[3], obj[4] = obj2[1], obj2[2], obj2[3], obj2[4]
+
+							obj  = sample_encode_buff[15]
+							obj2 = sample_result[3]
+							obj[1], obj[2], obj[3], obj[4] = obj2[1], obj2[2], obj2[3], obj2[4]
+
+							obj  = sample_encode_buff[16]
+							obj2 = sample_result[4]
+							obj[1], obj[2], obj[3], obj[4] = obj2[1], obj2[2], obj2[3], obj2[4]
+
+							sampling = sampling + SysTime() - s
+
+							s = SysTime()
+							current:SetBlock(blockX, blockY, sample_encode_buff, true)
+							encoding = encoding + SysTime() - s
+						end
+					end
+
+				-- sample entire blocks for one texel
+				elseif supersample_level == 2 then
+					for blockX = 0, w - 1 do
+						for blockY = 0, h - 1 do
+							local s = SysTime()
+							SampleBlock(biggest:GetBlock(blockX * 4,       blockY * 4,     sample_buffer), sample_encode_buff[1 ])
+							SampleBlock(biggest:GetBlock(blockX * 4 + 1,   blockY * 4,     sample_buffer), sample_encode_buff[2 ])
+							SampleBlock(biggest:GetBlock(blockX * 4 + 2,   blockY * 4,     sample_buffer), sample_encode_buff[3 ])
+							SampleBlock(biggest:GetBlock(blockX * 4 + 3,   blockY * 4,     sample_buffer), sample_encode_buff[4 ])
+							SampleBlock(biggest:GetBlock(blockX * 4,       blockY * 4 + 1, sample_buffer), sample_encode_buff[5 ])
+							SampleBlock(biggest:GetBlock(blockX * 4 + 1,   blockY * 4 + 1, sample_buffer), sample_encode_buff[6 ])
+							SampleBlock(biggest:GetBlock(blockX * 4 + 2,   blockY * 4 + 1, sample_buffer), sample_encode_buff[7 ])
+							SampleBlock(biggest:GetBlock(blockX * 4 + 3,   blockY * 4 + 1, sample_buffer), sample_encode_buff[8 ])
+							SampleBlock(biggest:GetBlock(blockX * 4,       blockY * 4 + 2, sample_buffer), sample_encode_buff[9 ])
+							SampleBlock(biggest:GetBlock(blockX * 4 + 1,   blockY * 4 + 2, sample_buffer), sample_encode_buff[10])
+							SampleBlock(biggest:GetBlock(blockX * 4 + 2,   blockY * 4 + 2, sample_buffer), sample_encode_buff[11])
+							SampleBlock(biggest:GetBlock(blockX * 4 + 3,   blockY * 4 + 2, sample_buffer), sample_encode_buff[12])
+							SampleBlock(biggest:GetBlock(blockX * 4,       blockY * 4 + 3, sample_buffer), sample_encode_buff[13])
+							SampleBlock(biggest:GetBlock(blockX * 4 + 1,   blockY * 4 + 3, sample_buffer), sample_encode_buff[14])
+							SampleBlock(biggest:GetBlock(blockX * 4 + 2,   blockY * 4 + 3, sample_buffer), sample_encode_buff[15])
+							SampleBlock(biggest:GetBlock(blockX * 4 + 3,   blockY * 4 + 3, sample_buffer), sample_encode_buff[16])
+							sampling = sampling + SysTime() - s
+
+							s = SysTime()
+							current:SetBlock(blockX, blockY, sample_encode_buff, true)
+							encoding = encoding + SysTime() - s
+						end
+					end
+
+				-- recursive supersampling
+				else
+					local step = math.pow(2, supersample_level)
+					local step2 = math.pow(2, supersample_level - 2)
+
+					for blockX = 0, w - 1 do
+						for blockY = 0, h - 1 do
+							local s = SysTime()
+
+							SuperSampleBlock(biggest, blockX * step            , blockY * step            ,  supersample_level - 2, sample_encode_buff[1 ])
+							SuperSampleBlock(biggest, blockX * step + step2 * 1, blockY * step            ,  supersample_level - 2, sample_encode_buff[2 ])
+							SuperSampleBlock(biggest, blockX * step + step2 * 2, blockY * step            ,  supersample_level - 2, sample_encode_buff[3 ])
+							SuperSampleBlock(biggest, blockX * step + step2 * 3, blockY * step            ,  supersample_level - 2, sample_encode_buff[4 ])
+							SuperSampleBlock(biggest, blockX * step            , blockY * step + step2 * 1,  supersample_level - 2, sample_encode_buff[5 ])
+							SuperSampleBlock(biggest, blockX * step + step2 * 1, blockY * step + step2 * 1,  supersample_level - 2, sample_encode_buff[6 ])
+							SuperSampleBlock(biggest, blockX * step + step2 * 2, blockY * step + step2 * 1,  supersample_level - 2, sample_encode_buff[7 ])
+							SuperSampleBlock(biggest, blockX * step + step2 * 3, blockY * step + step2 * 1,  supersample_level - 2, sample_encode_buff[8 ])
+							SuperSampleBlock(biggest, blockX * step            , blockY * step + step2 * 2,  supersample_level - 2, sample_encode_buff[9 ])
+							SuperSampleBlock(biggest, blockX * step + step2 * 1, blockY * step + step2 * 2,  supersample_level - 2, sample_encode_buff[10])
+							SuperSampleBlock(biggest, blockX * step + step2 * 2, blockY * step + step2 * 2,  supersample_level - 2, sample_encode_buff[11])
+							SuperSampleBlock(biggest, blockX * step + step2 * 3, blockY * step + step2 * 2,  supersample_level - 2, sample_encode_buff[12])
+							SuperSampleBlock(biggest, blockX * step            , blockY * step + step2 * 3,  supersample_level - 2, sample_encode_buff[13])
+							SuperSampleBlock(biggest, blockX * step + step2 * 1, blockY * step + step2 * 3,  supersample_level - 2, sample_encode_buff[14])
+							SuperSampleBlock(biggest, blockX * step + step2 * 2, blockY * step + step2 * 3,  supersample_level - 2, sample_encode_buff[15])
+							SuperSampleBlock(biggest, blockX * step + step2 * 3, blockY * step + step2 * 3,  supersample_level - 2, sample_encode_buff[16])
+
+							sampling = sampling + SysTime() - s
+
+							s = SysTime()
+							current:SetBlock(blockX, blockY, sample_encode_buff, true)
+							encoding = encoding + SysTime() - s
+						end
+					end
+				end
+
+				supersample_level = supersample_level + 1
+				sample_width = sample_width * 2
+				grid_width = grid_width * 2
+			end
+		else
+			-- from biggest to smallest
+			for mipmap = self.mipmap_count - 1, 1, -1 do
+				local prev = self.mipmaps_obj[mipmap + 1]
+				local current = self.mipmaps_obj[mipmap]
+
+				local w, h = current.width_blocks, current.height_blocks
+				local _w, _h = prev.width, prev.height
+
 				for blockX = 0, w - 1 do
 					for blockY = 0, h - 1 do
 						local block = {}
 
+						local s = SysTime()
 						-- sampling 0x0 to 1x1
-						local sample = subsample_block(biggest:GetBlock(blockX * 2, blockY * 2))
+						SubsampleBlock(prev:GetBlock(blockX * 2, blockY * 2, sample_buffer))
+						local obj = sample_encode_buff[1]
+						local obj2 = sample_result[1]
+						obj[1], obj[2], obj[3], obj[4] = obj2[1], obj2[2], obj2[3], obj2[4]
 
-						block[1] = sample[1]
-						block[2] = sample[2]
-						block[5] = sample[3]
-						block[6] = sample[4]
+						obj  = sample_encode_buff[2]
+						obj2 = sample_result[2]
+						obj[1], obj[2], obj[3], obj[4] = obj2[1], obj2[2], obj2[3], obj2[4]
+
+						obj  = sample_encode_buff[5]
+						obj2 = sample_result[3]
+						obj[1], obj[2], obj[3], obj[4] = obj2[1], obj2[2], obj2[3], obj2[4]
+
+						obj  = sample_encode_buff[6]
+						obj2 = sample_result[4]
+						obj[1], obj[2], obj[3], obj[4] = obj2[1], obj2[2], obj2[3], obj2[4]
 
 						-- sampling 2x0 to 3x1
-						sample = subsample_block(biggest:GetBlock(blockX * 2 + 1, blockY * 2))
+						SubsampleBlock(prev:GetBlock(blockX * 2 + 1, blockY * 2, sample_buffer))
 
-						block[3] = sample[1]
-						block[4] = sample[2]
-						block[7] = sample[3]
-						block[8] = sample[4]
+						obj  = sample_encode_buff[3]
+						obj2 = sample_result[1]
+						obj[1], obj[2], obj[3], obj[4] = obj2[1], obj2[2], obj2[3], obj2[4]
+
+						obj  = sample_encode_buff[4]
+						obj2 = sample_result[2]
+						obj[1], obj[2], obj[3], obj[4] = obj2[1], obj2[2], obj2[3], obj2[4]
+
+						obj  = sample_encode_buff[7]
+						obj2 = sample_result[3]
+						obj[1], obj[2], obj[3], obj[4] = obj2[1], obj2[2], obj2[3], obj2[4]
+
+						obj  = sample_encode_buff[8]
+						obj2 = sample_result[4]
+						obj[1], obj[2], obj[3], obj[4] = obj2[1], obj2[2], obj2[3], obj2[4]
 
 						-- sampling 0x2 to 1x2
-						sample = subsample_block(biggest:GetBlock(blockX * 2, blockY * 2 + 1))
+						SubsampleBlock(prev:GetBlock(blockX * 2, blockY * 2 + 1, sample_buffer))
 
-						block[9] = sample[1]
-						block[10] = sample[2]
-						block[13] = sample[3]
-						block[14] = sample[4]
+						obj  = sample_encode_buff[9]
+						obj2 = sample_result[1]
+						obj[1], obj[2], obj[3], obj[4] = obj2[1], obj2[2], obj2[3], obj2[4]
+
+						obj  = sample_encode_buff[10]
+						obj2 = sample_result[2]
+						obj[1], obj[2], obj[3], obj[4] = obj2[1], obj2[2], obj2[3], obj2[4]
+
+						obj  = sample_encode_buff[13]
+						obj2 = sample_result[3]
+						obj[1], obj[2], obj[3], obj[4] = obj2[1], obj2[2], obj2[3], obj2[4]
+
+						obj  = sample_encode_buff[14]
+						obj2 = sample_result[4]
+						obj[1], obj[2], obj[3], obj[4] = obj2[1], obj2[2], obj2[3], obj2[4]
 
 						-- sampling 2x2 to 3x3
-						sample = subsample_block(biggest:GetBlock(blockX * 2 + 1, blockY * 2 + 1))
+						SubsampleBlock(prev:GetBlock(blockX * 2 + 1, blockY * 2 + 1, sample_buffer))
 
-						block[11] = sample[1]
-						block[12] = sample[2]
-						block[15] = sample[3]
-						block[16] = sample[4]
+						obj  = sample_encode_buff[11]
+						obj2 = sample_result[1]
+						obj[1], obj[2], obj[3], obj[4] = obj2[1], obj2[2], obj2[3], obj2[4]
 
-						current:SetBlock(blockX, blockY, block)
-					end
-				end
+						obj  = sample_encode_buff[12]
+						obj2 = sample_result[2]
+						obj[1], obj[2], obj[3], obj[4] = obj2[1], obj2[2], obj2[3], obj2[4]
 
-			-- sample entire blocks for one texel
-			elseif supersample_level == 2 then
-				for blockX = 0, w - 1 do
-					for blockY = 0, h - 1 do
-						current:SetBlock(blockX, blockY, {
-							sample_block(biggest:GetBlock(blockX * 4,       blockY * 4)),
-							sample_block(biggest:GetBlock(blockX * 4 + 1,   blockY * 4)),
-							sample_block(biggest:GetBlock(blockX * 4 + 2,   blockY * 4)),
-							sample_block(biggest:GetBlock(blockX * 4 + 3,   blockY * 4)),
+						obj  = sample_encode_buff[15]
+						obj2 = sample_result[3]
+						obj[1], obj[2], obj[3], obj[4] = obj2[1], obj2[2], obj2[3], obj2[4]
 
-							sample_block(biggest:GetBlock(blockX * 4,       blockY * 4 + 1)),
-							sample_block(biggest:GetBlock(blockX * 4 + 1,   blockY * 4 + 1)),
-							sample_block(biggest:GetBlock(blockX * 4 + 2,   blockY * 4 + 1)),
-							sample_block(biggest:GetBlock(blockX * 4 + 3,   blockY * 4 + 1)),
+						obj  = sample_encode_buff[16]
+						obj2 = sample_result[4]
+						obj[1], obj[2], obj[3], obj[4] = obj2[1], obj2[2], obj2[3], obj2[4]
 
-							sample_block(biggest:GetBlock(blockX * 4,       blockY * 4 + 2)),
-							sample_block(biggest:GetBlock(blockX * 4 + 1,   blockY * 4 + 2)),
-							sample_block(biggest:GetBlock(blockX * 4 + 2,   blockY * 4 + 2)),
-							sample_block(biggest:GetBlock(blockX * 4 + 3,   blockY * 4 + 2)),
+						sampling = sampling + SysTime() - s
 
-							sample_block(biggest:GetBlock(blockX * 4,       blockY * 4 + 3)),
-							sample_block(biggest:GetBlock(blockX * 4 + 1,   blockY * 4 + 3)),
-							sample_block(biggest:GetBlock(blockX * 4 + 2,   blockY * 4 + 3)),
-							sample_block(biggest:GetBlock(blockX * 4 + 3,   blockY * 4 + 3)),
-						})
-					end
-				end
-
-			-- recursive supersampling
-			else
-				local step = math.pow(2, supersample_level)
-				local step2 = math.pow(2, supersample_level - 2)
-
-				for blockX = 0, w - 1 do
-					for blockY = 0, h - 1 do
-						current:SetBlock(blockX, blockY, {
-							supersample_block(biggest, blockX * step + step2 * 0, blockY * step + step2 * 0,  supersample_level - 2),
-							supersample_block(biggest, blockX * step + step2 * 1, blockY * step + step2 * 0,  supersample_level - 2),
-							supersample_block(biggest, blockX * step + step2 * 2, blockY * step + step2 * 0,  supersample_level - 2),
-							supersample_block(biggest, blockX * step + step2 * 3, blockY * step + step2 * 0,  supersample_level - 2),
-
-							supersample_block(biggest, blockX * step + step2 * 0, blockY * step + step2 * 1,  supersample_level - 2),
-							supersample_block(biggest, blockX * step + step2 * 1, blockY * step + step2 * 1,  supersample_level - 2),
-							supersample_block(biggest, blockX * step + step2 * 2, blockY * step + step2 * 1,  supersample_level - 2),
-							supersample_block(biggest, blockX * step + step2 * 3, blockY * step + step2 * 1,  supersample_level - 2),
-
-							supersample_block(biggest, blockX * step + step2 * 0, blockY * step + step2 * 2,  supersample_level - 2),
-							supersample_block(biggest, blockX * step + step2 * 1, blockY * step + step2 * 2,  supersample_level - 2),
-							supersample_block(biggest, blockX * step + step2 * 2, blockY * step + step2 * 2,  supersample_level - 2),
-							supersample_block(biggest, blockX * step + step2 * 3, blockY * step + step2 * 2,  supersample_level - 2),
-
-							supersample_block(biggest, blockX * step + step2 * 0, blockY * step + step2 * 3,  supersample_level - 2),
-							supersample_block(biggest, blockX * step + step2 * 1, blockY * step + step2 * 3,  supersample_level - 2),
-							supersample_block(biggest, blockX * step + step2 * 2, blockY * step + step2 * 3,  supersample_level - 2),
-							supersample_block(biggest, blockX * step + step2 * 3, blockY * step + step2 * 3,  supersample_level - 2),
-						})
+						s = SysTime()
+						current:SetBlock(blockX, blockY, sample_encode_buff, true)
+						encoding = encoding + SysTime() - s
 					end
 				end
 			end
-
-			supersample_level = supersample_level + 1
-			sample_width = sample_width * 2
-			grid_width = grid_width * 2
 		end
-	else
-		-- from biggest to smallest
-		for mipmap = self.mipmap_count - 1, 1, -1 do
-			local prev = self.mipmaps_obj[mipmap + 1]
-			local current = self.mipmaps_obj[mipmap]
 
-			local w, h = current.width_blocks, current.height_blocks
-			local _w, _h = prev.width, prev.height
-
-			for blockX = 0, w - 1 do
-				for blockY = 0, h - 1 do
-					local block = {}
-
-					for x = 0, 3 do
-						for y = 0, 3 do
-							local aX, aY = (blockX * 4 + x) * 2, (blockY * 4 + y) * 2
-
-							local pixel = prev:GetPixel(aX, aY)
-							local sampleR, sampleG, sampleB = pixel.r, pixel.g, pixel.b
-							local samples = 1
-
-							if aX + 1 < _w then
-								pixel = prev:GetPixel(aX + 1, aY)
-								sampleR = sampleR + pixel.r
-								sampleG = sampleG + pixel.g
-								sampleB = sampleB + pixel.b
-								samples = samples + 1
-							end
-
-							if aY + 1 < _h then
-								pixel = prev:GetPixel(aX, aY + 1)
-								sampleR = sampleR + pixel.r
-								sampleG = sampleG + pixel.g
-								sampleB = sampleB + pixel.b
-								samples = samples + 1
-							end
-
-							if aX + 1 < _w and aY + 1 >= 0 then
-								pixel = prev:GetPixel(aX + 1, aY + 1)
-								sampleR = sampleR + pixel.r
-								sampleG = sampleG + pixel.g
-								sampleB = sampleB + pixel.b
-								samples = samples + 1
-							end
-
-							block[x + y * 4 + 1] = Color(sampleR / samples, sampleG / samples, sampleB / samples)
-						end
-					end
-
-					current:SetBlock(blockX, blockY, block)
-				end
-			end
-		end
+		return true, sampling, encoding
 	end
-
-	return true
 end
 
 VTFObject.HeaderStruct = DLib.BytesBuffer.CompileStructure([[

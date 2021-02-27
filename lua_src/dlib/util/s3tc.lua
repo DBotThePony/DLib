@@ -54,6 +54,14 @@ local function to_color_5_6_5(value)
 	return Color(r, g, b)
 end
 
+local function to_color_5_6_5_plain(value)
+	local b = floor(band(value, 31) * 8.2258064516129)
+	local g = floor(band(rshift(value, 5), 63) * 4.047619047619)
+	local r = floor(band(rshift(value, 11), 31) * 8.2258064516129)
+
+	return r, g, b
+end
+
 -- encode 5, 6, 5 color as big endian
 local function encode_color_5_6_5(r, g, b)
 	local r = floor(clamp(r, 0, 1) * 31)
@@ -104,6 +112,23 @@ end
 
 local SolveColorBlock, EncodeBCColorBlock
 local dither_precompute = {}
+local plain_pixel_block = {}
+
+for i = 1, 16 do
+	plain_pixel_block[i] = {0, 0, 0, 0}
+end
+
+local function EncodePlainPixels(pixels)
+	for i = 1, 16 do
+		local obj = pixels[i]
+		local obj2 = plain_pixel_block[i]
+
+		obj2[1] = obj.r
+		obj2[2] = obj.g
+		obj2[3] = obj.b
+		obj2[4] = obj.a
+	end
+end
 
 do
 	--[[
@@ -371,7 +396,7 @@ do
 
 	local palette_bits = {0, 2, 3, 1}
 
-	function EncodeBCColorBlock(pixels, encode_luma, advanced_dither)
+	function EncodeBCColorBlock(pixels, encode_luma, advanced_dither, plain_format)
 		-- clear buffer
 		for i = 1, 16 do
 			local a = error_buffer[i]
@@ -392,7 +417,7 @@ do
 			local pixel = pixels[i]
 			local encoded = encoded565_buffer[i]
 			local _error = error_buffer[i]
-			local r, g, b, r_error, g_error, b_error = encode_color_5_6_5_error(pixel.r + _error[1], pixel.g + _error[2], pixel.b + _error[3])
+			local r, g, b, r_error, g_error, b_error = encode_color_5_6_5_error(pixel[1] + _error[1], pixel[2] + _error[2], pixel[3] + _error[3])
 
 			if encode_luma then
 				encoded[1], encoded[2], encoded[3] = r * luma_r, g * luma_g, b * luma_b
@@ -510,7 +535,7 @@ do
 			local pixel = pixels[i]
 			local _error = error_buffer[i]
 
-			local pixel_r, pixel_g, pixel_b = pixel.r * 0.003921568627451 + _error[1], pixel.g * 0.003921568627451 + _error[2], pixel.b * 0.003921568627451 + _error[3]
+			local pixel_r, pixel_g, pixel_b = pixel[1] * 0.003921568627451 + _error[1], pixel[2] * 0.003921568627451 + _error[2], pixel[3] * 0.003921568627451 + _error[3]
 
 			local dot_product = (pixel_r - palette_colors_buffer[1][1]) * direction_r +
 				(pixel_g - palette_colors_buffer[1][2]) * direction_g +
@@ -573,13 +598,20 @@ end
 AccessorFunc(DXT1, 'encode_luma', 'EncodeInLuma')
 AccessorFunc(DXT1, 'advanced_dither', 'AdvancedDither')
 
-function DXT1:SetBlock(x, y, pixels)
+function DXT1:SetBlock(x, y, pixels, pixels_are_plain)
 	assert(x >= 0, '!x >= 0')
 	assert(y >= 0, '!y >= 0')
 	assert(x < self.width_blocks, '!x <= self.width_blocks')
 	assert(y < self.height_blocks, '!y <= self.height_blocks')
 
-	local fColor0, fColor1, written = EncodeBCColorBlock(pixels, self.encode_luma or false, self.advanced_dither)
+	local fColor0, fColor1, written
+
+	if pixels_are_plain then
+		fColor0, fColor1, written = EncodeBCColorBlock(pixels, self.encode_luma or false, self.advanced_dither)
+	else
+		EncodePlainPixels(pixels)
+		fColor0, fColor1, written = EncodeBCColorBlock(plain_pixel_block, self.encode_luma or false, self.advanced_dither)
+	end
 
 	local pixel = y * self.width_blocks + x
 	local block = pixel * 8
@@ -595,7 +627,7 @@ end
 
 DXT1.GetPixel = GetPixel
 
-function DXT1:GetBlock(x, y, no_store)
+function DXT1:GetBlock(x, y, export)
 	assert(x >= 0, '!x >= 0')
 	assert(y >= 0, '!y >= 0')
 	assert(x < self.width_blocks, '!x <= self.width_blocks')
@@ -604,7 +636,7 @@ function DXT1:GetBlock(x, y, no_store)
 	local pixel = y * self.width_blocks + x
 	local block = pixel * 8
 
-	if self.cache[pixel] then
+	if self.cache[pixel] and not export then
 		return self.cache[pixel]
 	end
 
@@ -616,10 +648,71 @@ function DXT1:GetBlock(x, y, no_store)
 	local color0 = bytes:ReadUInt16LE()
 	local color1 = bytes:ReadUInt16LE()
 
+	local describe = bytes:ReadUInt32LE()
+
+	if export then
+		local color0_r, color0_g, color0_b = to_color_5_6_5_plain(color0)
+		local color1_r, color1_g, color1_b = to_color_5_6_5_plain(color1)
+
+		if color0 > color1 then
+			for i = 1, 16 do
+				local code = band(rshift(describe, (16 - i) * 2), 0x3)
+
+				local obj = export[17 - i]
+
+				if code == 0 then
+					obj[1] = color0_r
+					obj[2] = color0_g
+					obj[3] = color0_b
+				elseif code == 1 then
+					obj[1] = color1_r
+					obj[2] = color1_g
+					obj[3] = color1_b
+				elseif code == 2 then
+					obj[1] = (color0_r * 2 + color1_r) * 0.33333333333333
+					obj[2] = (color0_g * 2 + color1_g) * 0.33333333333333
+					obj[3] = (color0_b * 2 + color1_b) * 0.33333333333333
+				else
+					obj[1] = (color0_r + color1_r * 2) * 0.33333333333333
+					obj[2] = (color0_g + color1_g * 2) * 0.33333333333333
+					obj[3] = (color0_b + color1_b * 2) * 0.33333333333333
+				end
+
+				obj[4] = 255
+			end
+		else
+			for i = 1, 16 do
+				local code = band(rshift(describe, (16 - i) * 2), 0x3)
+
+				local obj = export[17 - i]
+
+				if code == 0 then
+					obj[1] = color0_r
+					obj[2] = color0_g
+					obj[3] = color0_b
+				elseif code == 1 then
+					obj[1] = color1_r
+					obj[2] = color1_g
+					obj[3] = color1_b
+				elseif code == 2 then
+					obj[1] = (color0_r + color1_r) * 0.5
+					obj[2] = (color0_g + color1_g) * 0.5
+					obj[3] = (color0_b + color1_b) * 0.5
+				else
+					obj[1] = 0
+					obj[2] = 0
+					obj[3] = 0
+				end
+
+				obj[4] = 255
+			end
+		end
+
+		return export, color0, color1, describe
+	end
+
 	local color0_d = to_color_5_6_5(color0)
 	local color1_d = to_color_5_6_5(color1)
-
-	local describe = bytes:ReadUInt32LE()
 
 	local decoded = {}
 
@@ -633,21 +726,21 @@ function DXT1:GetBlock(x, y, no_store)
 				decoded[17 - i] = color1_d
 			elseif code == 2 then
 				decoded[17 - i] = Color(
-					(color0_d.r * 2 + color1_d.r) / 3,
-					(color0_d.g * 2 + color1_d.g) / 3,
-					(color0_d.b * 2 + color1_d.b) / 3
+					(color0_d.r * 2 + color1_d.r) * 0.33333333333333,
+					(color0_d.g * 2 + color1_d.g) * 0.33333333333333,
+					(color0_d.b * 2 + color1_d.b) * 0.33333333333333
 				)
 			else
 				decoded[17 - i] = Color(
-					(color0_d.r + color1_d.r * 2) / 3,
-					(color0_d.g + color1_d.g * 2) / 3,
-					(color0_d.b + color1_d.b * 2) / 3
+					(color0_d.r + color1_d.r * 2) * 0.33333333333333,
+					(color0_d.g + color1_d.g * 2) * 0.33333333333333,
+					(color0_d.b + color1_d.b * 2) * 0.33333333333333
 				)
 			end
 		end
 	else
 		for i = 1, 16 do
-			local code = describe:rshift((16 - i) * 2):band(0x3)
+			local code = band(rshift(describe, (16 - i) * 2), 0x3)
 
 			if code == 0 then
 				decoded[17 - i] = color0_d
@@ -660,15 +753,12 @@ function DXT1:GetBlock(x, y, no_store)
 					(color0_d.b + color1_d.b) / 2
 				)
 			else
-				--print('black', x, y)
 				decoded[17 - i] = color_black
 			end
 		end
 	end
 
-	if not no_store then
-		self.cache[pixel] = decoded
-	end
+	self.cache[pixel] = decoded
 
 	return decoded, color0, color1, describe
 end
@@ -739,11 +829,23 @@ do
 		error_buffer[i] = 0
 	end
 
-	function DXT3:SetBlock(x, y, pixels)
+	function DXT3:SetBlock(x, y, pixels, pixels_are_plain)
 		assert(x >= 0, '!x >= 0')
 		assert(y >= 0, '!y >= 0')
 		assert(x < self.width_blocks, '!x <= self.width_blocks')
 		assert(y < self.height_blocks, '!y <= self.height_blocks')
+
+		-- encode RGB part
+		local fColor0, fColor1, written, use_buf
+
+		if pixels_are_plain then
+			use_buf = pixels
+			fColor0, fColor1, written = EncodeBCColorBlock(pixels, self.encode_luma or false, self.advanced_dither)
+		else
+			EncodePlainPixels(pixels)
+			use_buf = plain_pixel_block
+			fColor0, fColor1, written = EncodeBCColorBlock(plain_pixel_block, self.encode_luma or false, self.advanced_dither)
+		end
 
 		local pixel = y * self.width_blocks + x
 		local block = pixel * 16
@@ -759,7 +861,7 @@ do
 		end
 
 		for i = 1, 16 do
-			local alpha = pixels[i].a
+			local alpha = use_buf[i][4]
 			local nearest = floor((alpha + error_buffer[i]) * 0.058823529411765 + 0.5)
 			local error_a = alpha - nearest * 17
 			local dither = dither_precompute[i]
@@ -786,9 +888,6 @@ do
 		bytes:WriteInt32LE(alpha0)
 		bytes:WriteInt32LE(alpha1)
 
-		-- encode RGB part
-		local fColor0, fColor1, written = EncodeBCColorBlock(pixels, self.encode_luma or false, self.advanced_dither)
-
 		bytes:WriteUInt16LE(fColor0)
 		bytes:WriteUInt16LE(fColor1)
 		bytes:WriteInt32LE(written)
@@ -799,7 +898,7 @@ end
 
 DXT3.GetPixel = GetPixel
 
-function DXT3:GetBlock(x, y, no_store)
+function DXT3:GetBlock(x, y, export)
 	assert(x >= 0, '!x >= 0')
 	assert(y >= 0, '!y >= 0')
 	assert(x <= self.width_blocks, '!x <= self.width_blocks')
@@ -822,10 +921,44 @@ function DXT3:GetBlock(x, y, no_store)
 	local color0 = bytes:ReadUInt16LE()
 	local color1 = bytes:ReadUInt16LE()
 
+	local describe = bytes:ReadUInt32LE()
+
+	if export then
+		local color0_r, color0_g, color0_b = to_color_5_6_5_plain(color0)
+		local color1_r, color1_g, color1_b = to_color_5_6_5_plain(color1)
+
+		for i = 1, 16 do
+			local code = band(rshift(describe, (16 - i) * 2), 0x3)
+			local alpha = band(rshift((i <= 8 and alpha1 or alpha0), ((16 - i) % 8) * 4), 0xF) * 0x11
+
+			local obj = export[17 - i]
+
+			if code == 0 then
+				obj[1] = color0_r
+				obj[2] = color0_g
+				obj[3] = color0_b
+			elseif code == 1 then
+				obj[1] = color1_r
+				obj[2] = color1_g
+				obj[3] = color1_b
+			elseif code == 2 then
+				obj[1] = (color0_r * 2 + color1_r) * 0.33333333333333
+				obj[2] = (color0_g * 2 + color1_g) * 0.33333333333333
+				obj[3] = (color0_b * 2 + color1_b) * 0.33333333333333
+			else
+				obj[1] = (color0_r + color1_r * 2) * 0.33333333333333
+				obj[2] = (color0_g + color1_g * 2) * 0.33333333333333
+				obj[3] = (color0_b + color1_b * 2) * 0.33333333333333
+			end
+
+			obj[4] = alpha
+		end
+
+		return export, color0, color1, describe, alpha0, alpha1
+	end
+
 	local color0_d = to_color_5_6_5(color0)
 	local color1_d = to_color_5_6_5(color1)
-
-	local describe = bytes:ReadUInt32LE()
 
 	local decoded = {}
 
@@ -863,11 +996,9 @@ function DXT3:GetBlock(x, y, no_store)
 		end
 	end
 
-	if not no_store then
-		self.cache[pixel] = decoded
-	end
+	self.cache[pixel] = decoded
 
-	return decoded
+	return decoded, color0, color1, describe, alpha0, alpha1
 end
 
 DLib.DXT3 = DLib.CreateMoonClassBare('DXT3', DXT3, DXT3Object)
@@ -938,11 +1069,23 @@ do
 		alpha_palette[i] = 0
 	end
 
-	function DXT5:SetBlock(x, y, pixels)
+	function DXT5:SetBlock(x, y, pixels, pixels_are_plain)
 		assert(x >= 0, '!x >= 0')
 		assert(y >= 0, '!y >= 0')
 		assert(x < self.width_blocks, '!x <= self.width_blocks')
 		assert(y < self.height_blocks, '!y <= self.height_blocks')
+
+		-- encode RGB part
+		local fColor0, fColor1, written, use_buf
+
+		if pixels_are_plain then
+			use_buf = pixels
+			fColor0, fColor1, written = EncodeBCColorBlock(pixels, self.encode_luma or false, self.advanced_dither)
+		else
+			EncodePlainPixels(pixels)
+			use_buf = plain_pixel_block
+			fColor0, fColor1, written = EncodeBCColorBlock(plain_pixel_block, self.encode_luma or false, self.advanced_dither)
+		end
 
 		local pixel = y * self.width_blocks + x
 		local block = pixel * 16
@@ -955,7 +1098,7 @@ do
 		local alpha0, alpha1 = 255, 0
 
 		for i = 1, 16 do
-			local alpha = pixels[i].a
+			local alpha = use_buf[i][4]
 
 			if alpha0 > alpha then
 				alpha0 = alpha
@@ -1019,7 +1162,7 @@ do
 				local written = 0
 
 				for i = iteration * 8 + 1, iteration * 8 + 8 do
-					local alpha = pixels[i].a + error_buffer[i]
+					local alpha = use_buf[i][4] + error_buffer[i]
 					local dot_product = (alpha - fAlpha0) * scale
 
 					local palette_index
@@ -1055,9 +1198,6 @@ do
 			end
 		end
 
-		-- encode RGB part
-		local fColor0, fColor1, written = EncodeBCColorBlock(pixels, self.encode_luma or false, self.advanced_dither)
-
 		bytes:WriteUInt16LE(fColor0)
 		bytes:WriteUInt16LE(fColor1)
 		bytes:WriteInt32LE(written)
@@ -1068,7 +1208,7 @@ end
 
 DXT5.GetPixel = GetPixel
 
-function DXT5:GetBlock(x, y, no_store)
+function DXT5:GetBlock(x, y, export)
 	assert(x >= 0, '!x >= 0')
 	assert(y >= 0, '!y >= 0')
 	assert(x <= self.width_blocks, '!x <= self.width_blocks')
@@ -1102,12 +1242,18 @@ function DXT5:GetBlock(x, y, no_store)
 	local color0 = bytes:ReadUInt16LE()
 	local color1 = bytes:ReadUInt16LE()
 
-	local color0_d = to_color_5_6_5(color0)
-	local color1_d = to_color_5_6_5(color1)
-
 	local describe = bytes:ReadUInt32LE()
 
-	local decoded = {}
+	local decoded, color0_d, color1_d
+
+	local color0_r, color0_g, color0_b = to_color_5_6_5_plain(color0)
+	local color1_r, color1_g, color1_b = to_color_5_6_5_plain(color1)
+
+	if not export then
+		decoded = {}
+		color0_d = to_color_5_6_5(color0)
+		color1_d = to_color_5_6_5(color1)
+	end
 
 	for i = 1, 16 do
 		local code = band(rshift(describe, (16 - i) * 2), 0x3)
@@ -1160,32 +1306,62 @@ function DXT5:GetBlock(x, y, no_store)
 
 		alpha = floor(alpha * 255)
 
-		if code == 0 then
-			decoded[17 - i] = color0_d:ModifyAlpha(alpha)
-		elseif code == 1 then
-			decoded[17 - i] = color1_d:ModifyAlpha(alpha)
-		elseif code == 2 then
-			decoded[17 - i] = Color(
-				(color0_d.r * 2 + color1_d.r) / 3,
-				(color0_d.g * 2 + color1_d.g) / 3,
-				(color0_d.b * 2 + color1_d.b) / 3,
-				alpha
-			)
+		if export then
+			for i = 1, 16 do
+				local code = band(rshift(describe, (16 - i) * 2), 0x3)
+
+				local obj = export[17 - i]
+
+				if code == 0 then
+					obj[1] = color0_r
+					obj[2] = color0_g
+					obj[3] = color0_b
+				elseif code == 1 then
+					obj[1] = color1_r
+					obj[2] = color1_g
+					obj[3] = color1_b
+				elseif code == 2 then
+					obj[1] = (color0_r * 2 + color1_r) * 0.33333333333333
+					obj[2] = (color0_g * 2 + color1_g) * 0.33333333333333
+					obj[3] = (color0_b * 2 + color1_b) * 0.33333333333333
+				else
+					obj[1] = (color0_r + color1_r * 2) * 0.33333333333333
+					obj[2] = (color0_g + color1_g * 2) * 0.33333333333333
+					obj[3] = (color0_b + color1_b * 2) * 0.33333333333333
+				end
+
+				obj[4] = alpha
+			end
 		else
-			decoded[17 - i] = Color(
-				(color0_d.r + color1_d.r * 2) / 3,
-				(color0_d.g + color1_d.g * 2) / 3,
-				(color0_d.b + color1_d.b * 2) / 3,
-				alpha
-			)
+			if code == 0 then
+				decoded[17 - i] = color0_d:ModifyAlpha(alpha)
+			elseif code == 1 then
+				decoded[17 - i] = color1_d:ModifyAlpha(alpha)
+			elseif code == 2 then
+				decoded[17 - i] = Color(
+					(color0_d.r * 2 + color1_d.r) / 3,
+					(color0_d.g * 2 + color1_d.g) / 3,
+					(color0_d.b * 2 + color1_d.b) / 3,
+					alpha
+				)
+			else
+				decoded[17 - i] = Color(
+					(color0_d.r + color1_d.r * 2) / 3,
+					(color0_d.g + color1_d.g * 2) / 3,
+					(color0_d.b + color1_d.b * 2) / 3,
+					alpha
+				)
+			end
 		end
 	end
 
-	if not no_store then
-		self.cache[pixel] = decoded
+	if export then
+		return export, color0, color1, describe, alpha0, alpha1, alphacode0, alphacode1
 	end
 
-	return decoded
+	self.cache[pixel] = decoded
+
+	return decoded, color0, color1, describe, alpha0, alpha1, alphacode0, alphacode1
 end
 
 DLib.DXT5 = DLib.CreateMoonClassBare('DXT5', DXT5, DXT5Object)
