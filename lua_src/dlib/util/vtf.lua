@@ -441,6 +441,79 @@ function VTF:ToString()
 	return self.bytes:ToString()
 end
 
+local Color = Color
+
+local function subsample_block(getblock)
+	-- 0x0 texel
+	local a, b, c, d = getblock[1], getblock[2], getblock[5], getblock[6]
+	local sample_result = {}
+
+	sample_result[1] = Color(
+		(a.r + b.r + c.r + d.r) * 0.25,
+		(a.g + b.g + c.g + d.g) * 0.25,
+		(a.b + b.b + c.b + d.b) * 0.25
+	)
+
+	-- 1x0
+	a, b, c, d = getblock[3], getblock[4], getblock[7], getblock[8]
+
+	sample_result[2] = Color(
+		(a.r + b.r + c.r + d.r) * 0.25,
+		(a.g + b.g + c.g + d.g) * 0.25,
+		(a.b + b.b + c.b + d.b) * 0.25
+	)
+
+	-- 0x1
+	a, b, c, d = getblock[9], getblock[10], getblock[13], getblock[14]
+
+	sample_result[3] = Color(
+		(a.r + b.r + c.r + d.r) * 0.25,
+		(a.g + b.g + c.g + d.g) * 0.25,
+		(a.b + b.b + c.b + d.b) * 0.25
+	)
+
+	-- 1x1
+	a, b, c, d = getblock[11], getblock[12], getblock[15], getblock[16]
+
+	sample_result[4] = Color(
+		(a.r + b.r + c.r + d.r) * 0.25,
+		(a.g + b.g + c.g + d.g) * 0.25,
+		(a.b + b.b + c.b + d.b) * 0.25
+	)
+
+	return sample_result
+end
+
+local function sample_block(getblock)
+	local sampleR, sampleG, sampleB = 0, 0, 0
+
+	for i = 1, 16 do
+		local col = getblock[i]
+		sampleR, sampleG, sampleB = sampleR + col.r, sampleG + col.g, sampleB + col.b
+	end
+
+	return Color(sampleR * 0.0625, sampleG * 0.0625, sampleB * 0.0625)
+end
+
+local function supersample_block(sample_from, blockX, blockY, level)
+	if level == 0 then
+		return sample_block(sample_from:GetBlock(blockX, blockY))
+	end
+
+	local step = math.pow(2, level - 1)
+
+	local a = supersample_block(sample_from, blockX, blockY, level - 1)
+	local b = supersample_block(sample_from, blockX + step, blockY, level - 1)
+	local c = supersample_block(sample_from, blockX, blockY + step, level - 1)
+	local d = supersample_block(sample_from, blockX + step, blockY + step, level - 1)
+
+	return Color(
+		(a.r + b.r + c.r + d.r) * 0.25,
+		(a.g + b.g + c.g + d.g) * 0.25,
+		(a.b + b.b + c.b + d.b) * 0.25
+	)
+end
+
 -- if fast - sample *previous* mip (so it sample only 4 texels of bigger mip)
 -- if supersample, then it sample biggest mip and as current mip become smaller, more texels are sampled
 function VTF:AutoGenerateMips(supersample)
@@ -452,45 +525,118 @@ function VTF:AutoGenerateMips(supersample)
 		local _w, _h = biggest.width, biggest.height
 
 		local sample_width = 1
+		local supersample_level = 1
 		local grid_width = 2
 
 		-- from biggest to smallest
 		for mipmap = self.mipmap_count - 1, 1, -1 do
 			local current = self.mipmaps_obj[mipmap]
-
 			local w, h = current.width_blocks, current.height_blocks
 
-			for blockX = 0, w - 1 do
-				for blockY = 0, h - 1 do
-					local block = {}
+			-- sampling 2x2 blocks per 1 texel on mip texture
+			-- so let's optimize that by sampling (4 blocks of 2x2 texels at once) * 4
+			if supersample_level == 1 then
+				for blockX = 0, w - 1 do
+					for blockY = 0, h - 1 do
+						local block = {}
 
-					for x = 0, 3 do
-						for y = 0, 3 do
-							local aX, aY = (blockX * 4 + x) * grid_width, (blockY * 4 + y) * grid_width
+						-- sampling 0x0 to 1x1
+						local sample = subsample_block(biggest:GetBlock(blockX * 2, blockY * 2))
 
-							local sampleR, sampleG, sampleB = 0, 0, 0
-							local samples = 0
+						block[1] = sample[1]
+						block[2] = sample[2]
+						block[5] = sample[3]
+						block[6] = sample[4]
 
-							for sw = 0, sample_width do
-								for sh = 0, sample_width do
-									if aX + sw < _w and aY + sh < _h then
-										local pixel = biggest:GetPixel(aX + sw, aY + sh)
-										sampleR = sampleR + pixel.r
-										sampleG = sampleG + pixel.g
-										sampleB = sampleB + pixel.b
-										samples = samples + 1
-									end
-								end
-							end
+						-- sampling 2x0 to 3x1
+						sample = subsample_block(biggest:GetBlock(blockX * 2 + 1, blockY * 2))
 
-							block[x + y * 4 + 1] = Color(sampleR / samples, sampleG / samples, sampleB / samples)
-						end
+						block[3] = sample[1]
+						block[4] = sample[2]
+						block[7] = sample[3]
+						block[8] = sample[4]
+
+						-- sampling 0x2 to 1x2
+						sample = subsample_block(biggest:GetBlock(blockX * 2, blockY * 2 + 1))
+
+						block[9] = sample[1]
+						block[10] = sample[2]
+						block[13] = sample[3]
+						block[14] = sample[4]
+
+						-- sampling 2x2 to 3x3
+						sample = subsample_block(biggest:GetBlock(blockX * 2 + 1, blockY * 2 + 1))
+
+						block[11] = sample[1]
+						block[12] = sample[2]
+						block[15] = sample[3]
+						block[16] = sample[4]
+
+						current:SetBlock(blockX, blockY, block)
 					end
+				end
 
-					current:SetBlock(blockX, blockY, block)
+			-- sample entire blocks for one texel
+			elseif supersample_level == 2 then
+				for blockX = 0, w - 1 do
+					for blockY = 0, h - 1 do
+						current:SetBlock(blockX, blockY, {
+							sample_block(biggest:GetBlock(blockX * 4,       blockY * 4)),
+							sample_block(biggest:GetBlock(blockX * 4 + 1,   blockY * 4)),
+							sample_block(biggest:GetBlock(blockX * 4 + 2,   blockY * 4)),
+							sample_block(biggest:GetBlock(blockX * 4 + 3,   blockY * 4)),
+
+							sample_block(biggest:GetBlock(blockX * 4,       blockY * 4 + 1)),
+							sample_block(biggest:GetBlock(blockX * 4 + 1,   blockY * 4 + 1)),
+							sample_block(biggest:GetBlock(blockX * 4 + 2,   blockY * 4 + 1)),
+							sample_block(biggest:GetBlock(blockX * 4 + 3,   blockY * 4 + 1)),
+
+							sample_block(biggest:GetBlock(blockX * 4,       blockY * 4 + 2)),
+							sample_block(biggest:GetBlock(blockX * 4 + 1,   blockY * 4 + 2)),
+							sample_block(biggest:GetBlock(blockX * 4 + 2,   blockY * 4 + 2)),
+							sample_block(biggest:GetBlock(blockX * 4 + 3,   blockY * 4 + 2)),
+
+							sample_block(biggest:GetBlock(blockX * 4,       blockY * 4 + 3)),
+							sample_block(biggest:GetBlock(blockX * 4 + 1,   blockY * 4 + 3)),
+							sample_block(biggest:GetBlock(blockX * 4 + 2,   blockY * 4 + 3)),
+							sample_block(biggest:GetBlock(blockX * 4 + 3,   blockY * 4 + 3)),
+						})
+					end
+				end
+
+			-- recursive supersampling
+			else
+				local step = math.pow(2, supersample_level)
+				local step2 = math.pow(2, supersample_level - 2)
+
+				for blockX = 0, w - 1 do
+					for blockY = 0, h - 1 do
+						current:SetBlock(blockX, blockY, {
+							supersample_block(biggest, blockX * step + step2 * 0, blockY * step + step2 * 0,  supersample_level - 2),
+							supersample_block(biggest, blockX * step + step2 * 1, blockY * step + step2 * 0,  supersample_level - 2),
+							supersample_block(biggest, blockX * step + step2 * 2, blockY * step + step2 * 0,  supersample_level - 2),
+							supersample_block(biggest, blockX * step + step2 * 3, blockY * step + step2 * 0,  supersample_level - 2),
+
+							supersample_block(biggest, blockX * step + step2 * 0, blockY * step + step2 * 1,  supersample_level - 2),
+							supersample_block(biggest, blockX * step + step2 * 1, blockY * step + step2 * 1,  supersample_level - 2),
+							supersample_block(biggest, blockX * step + step2 * 2, blockY * step + step2 * 1,  supersample_level - 2),
+							supersample_block(biggest, blockX * step + step2 * 3, blockY * step + step2 * 1,  supersample_level - 2),
+
+							supersample_block(biggest, blockX * step + step2 * 0, blockY * step + step2 * 2,  supersample_level - 2),
+							supersample_block(biggest, blockX * step + step2 * 1, blockY * step + step2 * 2,  supersample_level - 2),
+							supersample_block(biggest, blockX * step + step2 * 2, blockY * step + step2 * 2,  supersample_level - 2),
+							supersample_block(biggest, blockX * step + step2 * 3, blockY * step + step2 * 2,  supersample_level - 2),
+
+							supersample_block(biggest, blockX * step + step2 * 0, blockY * step + step2 * 3,  supersample_level - 2),
+							supersample_block(biggest, blockX * step + step2 * 1, blockY * step + step2 * 3,  supersample_level - 2),
+							supersample_block(biggest, blockX * step + step2 * 2, blockY * step + step2 * 3,  supersample_level - 2),
+							supersample_block(biggest, blockX * step + step2 * 3, blockY * step + step2 * 3,  supersample_level - 2),
+						})
+					end
 				end
 			end
 
+			supersample_level = supersample_level + 1
 			sample_width = sample_width * 2
 			grid_width = grid_width * 2
 		end

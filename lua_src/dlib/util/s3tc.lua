@@ -595,7 +595,7 @@ end
 
 DXT1.GetPixel = GetPixel
 
-function DXT1:GetBlock(x, y)
+function DXT1:GetBlock(x, y, no_store)
 	assert(x >= 0, '!x >= 0')
 	assert(y >= 0, '!y >= 0')
 	assert(x < self.width_blocks, '!x <= self.width_blocks')
@@ -666,7 +666,9 @@ function DXT1:GetBlock(x, y)
 		end
 	end
 
-	self.cache[pixel] = decoded
+	if not no_store then
+		self.cache[pixel] = decoded
+	end
 
 	return decoded, color0, color1, describe
 end
@@ -797,7 +799,7 @@ end
 
 DXT3.GetPixel = GetPixel
 
-function DXT3:GetBlock(x, y)
+function DXT3:GetBlock(x, y, no_store)
 	assert(x >= 0, '!x >= 0')
 	assert(y >= 0, '!y >= 0')
 	assert(x <= self.width_blocks, '!x <= self.width_blocks')
@@ -861,7 +863,9 @@ function DXT3:GetBlock(x, y)
 		end
 	end
 
-	self.cache[pixel] = decoded
+	if not no_store then
+		self.cache[pixel] = decoded
+	end
 
 	return decoded
 end
@@ -1064,7 +1068,7 @@ end
 
 DXT5.GetPixel = GetPixel
 
-function DXT5:GetBlock(x, y)
+function DXT5:GetBlock(x, y, no_store)
 	assert(x >= 0, '!x >= 0')
 	assert(y >= 0, '!y >= 0')
 	assert(x <= self.width_blocks, '!x <= self.width_blocks')
@@ -1177,7 +1181,9 @@ function DXT5:GetBlock(x, y)
 		end
 	end
 
-	self.cache[pixel] = decoded
+	if not no_store then
+		self.cache[pixel] = decoded
+	end
 
 	return decoded
 end
