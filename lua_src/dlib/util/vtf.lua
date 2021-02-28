@@ -954,7 +954,7 @@ function VTF:CalculateReflectivity()
 	bytes:WriteFloatLE(reflectivity.z)
 end
 
-function VTF:CaptureRenderTarget(x, y, width, height, rx, ry)
+function VTF:CaptureRenderTarget(opts, y, width, height, rx, ry)
 	if not istable(opts) then
 		opts = {
 			x = opts,
@@ -1019,7 +1019,7 @@ end
 -- fully white - means fully opaque
 -- fully black - means fully translucent
 -- R, G, B are equal and their sum is divided by 3
-function VTF:CaptureRenderTargetAsAlpha(x, y, width, height, rx, ry)
+function VTF:CaptureRenderTargetAsAlpha(opts, y, width, height, rx, ry)
 	if not self.support_alpha then return false end
 
 	if not istable(opts) then
