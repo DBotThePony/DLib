@@ -1001,6 +1001,19 @@ function VTF:CaptureRenderTargetCoroutine(opts, y, width, height, rx, ry, ...)
 	if opts.ry == nil then opts.ry = 0 end
 	if opts.width == nil then opts.width = math.min(ScrW() - opts.rx, self.width - 1) end
 	if opts.height == nil then opts.height = math.min(ScrH() - opts.ry, self.height - 1) end
+
+	if opts.before == nil and opts.after == nil then
+		local rt = render.GetRenderTarget()
+
+		function opts.before()
+			render.PopRenderTarget()
+		end
+
+		function opts.after()
+			render.PushRenderTarget(rt)
+		end
+	end
+
 	if opts.before == nil then opts.before = function() end end
 	if opts.after == nil then opts.after = function() end end
 	if opts.yield_args == nil then opts.yield_args = {} end
@@ -1070,6 +1083,19 @@ function VTF:CaptureRenderTargetAsAlphaCoroutine(opts, y, width, height, rx, ry,
 	if opts.ry == nil then opts.ry = 0 end
 	if opts.width == nil then opts.width = math.min(ScrW() - opts.rx, self.width - 1) end
 	if opts.height == nil then opts.height = math.min(ScrH() - opts.ry, self.height - 1) end
+
+	if opts.before == nil and opts.after == nil then
+		local rt = render.GetRenderTarget()
+
+		function opts.before()
+			render.PopRenderTarget()
+		end
+
+		function opts.after()
+			render.PushRenderTarget(rt)
+		end
+	end
+
 	if opts.before == nil then opts.before = function() end end
 	if opts.after == nil then opts.after = function() end end
 	if opts.yield_args == nil then opts.yield_args = {} end
