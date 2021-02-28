@@ -873,6 +873,27 @@ do
 			a[3] = 0
 		end
 
+		-- check whenever is it solid block
+
+		local r, g, b = floor(pixels[1][1]), floor(pixels[1][2]), floor(pixels[1][3])
+		local solid = true
+
+		for i = 2, 16 do
+			local pixel = pixels[i]
+
+			if floor(pixel[1]) ~= r or floor(pixel[2]) ~= g or floor(pixel[3]) ~= b then
+				solid = false
+				break
+			end
+		end
+
+		-- solid color block
+		if solid then
+			local wColor0 = encode_color_5_6_5(r * 0.003921568627451, g * 0.003921568627451, b * 0.003921568627451)
+			print(r, g, b)
+			return wColor0, wColor0, 0
+		end
+
 		local r, g, b, r_error, g_error, b_error
 
 		-- encode and dither
