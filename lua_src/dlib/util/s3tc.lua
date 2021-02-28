@@ -110,7 +110,7 @@ function DXT1:ctor(bytes, width, height)
 	self.cache = {}
 end
 
-local SolveColorBlock, EncodeBCColorBlock, CaptureRenderTarget, CaptureRenderTargetAlpha
+local SolveColorBlock, EncodeBCColorBlock, CaptureRenderTarget, CaptureRenderTargetAlpha, CaptureRenderTargetCoroutine, CaptureRenderTargetAlphaCoroutine
 local dither_precompute = {}
 local plain_pixel_block = {}
 
@@ -213,6 +213,111 @@ do
 		end
 	end
 
+	local coroutine_yield = coroutine.yield
+	local SysTime = SysTime
+
+	function CaptureRenderTargetCoroutine(self, rx, ry, w, h, lx, ly, callbackBefore, callbackAfter, ...)
+		local sBlockX = (lx - lx % 4) / 4
+		local sBlockY = (ly - ly % 4) / 4
+
+		local fitx = (lx + w + 1) % 4 == 0
+		local fity = (ly + h + 1) % 4 == 0
+		local fit = fitx and fity
+		local fBlockX = ((lx + w + 1) - (lx + w + 1) % 4) / 4 - 1
+		local fBlockY = ((ly + h + 1) - (ly + h + 1) % 4) / 4 - 1
+
+		local s = SysTime() + 0.03
+
+		for blockX = sBlockX, fBlockX do
+			for blockY = sBlockY, fBlockY do
+				for X = 0, 3 do
+					for Y = 0, 3 do
+						local obj = sample_encode_buff[1 + X + Y * 4]
+						obj[1], obj[2], obj[3] = render.ReadPixel(rx + X + blockX * 4, ry + Y + blockY * 4)
+					end
+				end
+
+				self:SetBlock(blockX, blockY, sample_encode_buff, true)
+
+				if SysTime() >= s then
+					callbackBefore()
+					coroutine_yield(...)
+					s = SysTime() + 0.03
+					callbackAfter()
+					render.CapturePixels()
+				end
+			end
+		end
+
+		if fit then return end
+
+		if not fitx then
+			local blockX = fBlockX + 1
+
+			for blockY = sBlockY, fBlockY do
+				self:GetBlock(blockX, blockY, sample_encode_buff)
+
+				for X = 0, lx + w - blockX * 4 do
+					for Y = 0, 3 do
+						local obj = sample_encode_buff[1 + X + Y * 4]
+						obj[1], obj[2], obj[3] = render.ReadPixel(rx + X + blockX * 4, ry + Y + blockY * 4)
+					end
+				end
+
+				self:SetBlock(blockX, blockY, sample_encode_buff, true)
+
+				if SysTime() >= s then
+					callbackBefore()
+					coroutine_yield(...)
+					s = SysTime() + 0.03
+					callbackAfter()
+					render.CapturePixels()
+				end
+			end
+		end
+
+		if not fity then
+			local blockY = fBlockY + 1
+
+			for blockX = sBlockX, fBlockX do
+				self:GetBlock(blockX, blockY, sample_encode_buff)
+
+				for X = 0, 3 do
+					for Y = 0, ly + h - blockY * 4 do
+						local obj = sample_encode_buff[1 + X + Y * 4]
+						obj[1], obj[2], obj[3] = render.ReadPixel(rx + X + blockX * 4, ry + Y + blockY * 4)
+					end
+				end
+
+				self:SetBlock(blockX, blockY, sample_encode_buff, true)
+
+				if SysTime() >= s then
+					callbackBefore()
+					coroutine_yield(...)
+					s = SysTime() + 0.03
+					callbackAfter()
+					render.CapturePixels()
+				end
+			end
+		end
+
+		if not fitx and not fity then
+			local blockX = fBlockX + 1
+			local blockY = fBlockY + 1
+
+			self:GetBlock(blockX, blockY, sample_encode_buff)
+
+			for X = 0, lx + w - blockX * 4 do
+				for Y = 0, ly + h - blockY * 4 do
+					local obj = sample_encode_buff[1 + X + Y * 4]
+					obj[1], obj[2], obj[3] = render.ReadPixel(rx + X + blockX * 4, ry + Y + blockY * 4)
+				end
+			end
+
+			self:SetBlock(blockX, blockY, sample_encode_buff, true)
+		end
+	end
+
 	function CaptureRenderTargetAlpha(self, rx, ry, w, h, lx, ly)
 		local sBlockX = (lx - lx % 4) / 4
 		local sBlockY = (ly - ly % 4) / 4
@@ -272,6 +377,112 @@ do
 				end
 
 				self:SetBlock(blockX, blockY, sample_encode_buff, true, true)
+			end
+		end
+
+		if not fitx and not fity then
+			local blockX = fBlockX + 1
+			local blockY = fBlockY + 1
+
+			self:GetBlock(blockX, blockY, sample_encode_buff)
+
+			for X = 0, lx + w - blockX * 4 do
+				for Y = 0, ly + h - blockY * 4 do
+					local obj = sample_encode_buff[1 + X + Y * 4]
+					local r, g, b = render.ReadPixel(rx + X + blockX * 4, ry + Y + blockY * 4)
+					obj[4] = (r + g + b) / 3
+				end
+			end
+
+			self:SetBlock(blockX, blockY, sample_encode_buff, true, true)
+		end
+	end
+
+	function CaptureRenderTargetAlphaCoroutine(self, rx, ry, w, h, lx, ly, callbackBefore, callbackAfter, ...)
+		local sBlockX = (lx - lx % 4) / 4
+		local sBlockY = (ly - ly % 4) / 4
+
+		local fitx = (lx + w + 1) % 4 == 0
+		local fity = (ly + h + 1) % 4 == 0
+		local fit = fitx and fity
+		local fBlockX = ((lx + w + 1) - (lx + w + 1) % 4) / 4 - 1
+		local fBlockY = ((ly + h + 1) - (ly + h + 1) % 4) / 4 - 1
+
+		local s = SysTime() + 0.03
+
+		for blockX = sBlockX, fBlockX do
+			for blockY = sBlockY, fBlockY do
+				for X = 0, 3 do
+					for Y = 0, 3 do
+						local obj = sample_encode_buff[1 + X + Y * 4]
+						local r, g, b = render.ReadPixel(rx + X + blockX * 4, ry + Y + blockY * 4)
+						obj[4] = (r + g + b) / 3
+					end
+				end
+
+				self:SetBlock(blockX, blockY, sample_encode_buff, true, true)
+
+				if SysTime() >= s then
+					callbackBefore()
+					coroutine_yield(...)
+					s = SysTime() + 0.03
+					callbackAfter()
+					render.CapturePixels()
+				end
+			end
+		end
+
+		if fit then return end
+
+		if not fitx then
+			local blockX = fBlockX + 1
+
+			for blockY = sBlockY, fBlockY do
+				self:GetBlock(blockX, blockY, sample_encode_buff)
+
+				for X = 0, lx + w - blockX * 4 do
+					for Y = 0, 3 do
+						local obj = sample_encode_buff[1 + X + Y * 4]
+						local r, g, b = render.ReadPixel(rx + X + blockX * 4, ry + Y + blockY * 4)
+						obj[4] = (r + g + b) / 3
+					end
+				end
+
+				self:SetBlock(blockX, blockY, sample_encode_buff, true, true)
+
+				if SysTime() >= s then
+					callbackBefore()
+					coroutine_yield(...)
+					s = SysTime() + 0.03
+					callbackAfter()
+					render.CapturePixels()
+				end
+			end
+		end
+
+		if not fity then
+			local blockY = fBlockY + 1
+
+			for blockX = sBlockX, fBlockX do
+				self:GetBlock(blockX, blockY, sample_encode_buff)
+
+				for X = 0, 3 do
+					for Y = 0, ly + h - blockY * 4 do
+						local obj = sample_encode_buff[1 + X + Y * 4]
+						local r, g, b = render.ReadPixel(rx + X + blockX * 4, ry + Y + blockY * 4)
+						obj[4] = (r + g + b) / 3
+					end
+				end
+
+				self:SetBlock(blockX, blockY, sample_encode_buff, true, true)
+
+				if SysTime() >= s then
+					callbackBefore()
+					coroutine_yield(...)
+					s = SysTime() + 0.03
+					callbackAfter()
+					render.CapturePixels()
+				end
 			end
 		end
 
@@ -792,6 +1003,8 @@ end
 DXT1.GetPixel = GetPixel
 DXT1.CaptureRenderTarget = CaptureRenderTarget
 DXT1.CaptureRenderTargetAlpha = CaptureRenderTargetAlpha
+DXT1.CaptureRenderTargetCoroutine = CaptureRenderTargetCoroutine
+DXT1.CaptureRenderTargetAlphaCoroutine = CaptureRenderTargetAlphaCoroutine
 
 function DXT1:GetBlock(x, y, export)
 	assert(x >= 0, '!x >= 0')
@@ -1074,6 +1287,8 @@ end
 DXT3.GetPixel = GetPixel
 DXT3.CaptureRenderTarget = CaptureRenderTarget
 DXT3.CaptureRenderTargetAlpha = CaptureRenderTargetAlpha
+DXT3.CaptureRenderTargetCoroutine = CaptureRenderTargetCoroutine
+DXT3.CaptureRenderTargetAlphaCoroutine = CaptureRenderTargetAlphaCoroutine
 
 function DXT3:GetBlock(x, y, export)
 	assert(x >= 0, '!x >= 0')
@@ -1394,6 +1609,8 @@ end
 DXT5.GetPixel = GetPixel
 DXT5.CaptureRenderTarget = CaptureRenderTarget
 DXT5.CaptureRenderTargetAlpha = CaptureRenderTargetAlpha
+DXT5.CaptureRenderTargetCoroutine = CaptureRenderTargetCoroutine
+DXT5.CaptureRenderTargetAlphaCoroutine = CaptureRenderTargetAlphaCoroutine
 
 function DXT5:GetBlock(x, y, export)
 	assert(x >= 0, '!x >= 0')

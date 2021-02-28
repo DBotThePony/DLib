@@ -955,18 +955,61 @@ function VTF:CalculateReflectivity()
 end
 
 function VTF:CaptureRenderTarget(x, y, width, height, rx, ry)
-	if x == nil then x = 0 end
-	if y == nil then y = 0 end
-	if rx == nil then rx = 0 end
-	if ry == nil then ry = 0 end
-	if width == nil then width = math.min(ScrW() - rx, self.width - 1) end
-	if height == nil then height = math.min(ScrH() - ry, self.height - 1) end
+	if not istable(opts) then
+		opts = {
+			x = opts,
+			y = y,
+			width = width,
+			height = height,
+			rx = rx,
+			ry = ry,
+		}
+	end
 
-	assert(rx + width < self.width, 'x + width < self.width')
-	assert(ry + height < self.height, 'y + height < self.height')
+	if opts.x == nil then opts.x = 0 end
+	if opts.y == nil then opts.y = 0 end
+	if opts.rx == nil then opts.rx = 0 end
+	if opts.ry == nil then opts.ry = 0 end
+	if opts.width == nil then opts.width = math.min(ScrW() - opts.rx, self.width - 1) end
+	if opts.height == nil then opts.height = math.min(ScrH() - opts.ry, self.height - 1) end
+
+	assert(opts.rx + opts.width < self.width, 'x + width < self.width')
+	assert(opts.ry + opts.height < self.height, 'y + height < self.height')
 
 	render.CapturePixels()
-	self.mipmaps_obj[self.mipmap_count]:CaptureRenderTarget(x, y, width, height, rx, ry)
+	self.mipmaps_obj[self.mipmap_count]:CaptureRenderTarget(opts.x, opts.y, opts.width, opts.height, opts.rx, opts.ry)
+
+	return true
+end
+
+function VTF:CaptureRenderTargetCoroutine(opts, y, width, height, rx, ry, ...)
+	if not istable(opts) then
+		opts = {
+			x = opts,
+			y = y,
+			width = width,
+			height = height,
+			rx = rx,
+			ry = ry,
+			yield_args = {...}
+		}
+	end
+
+	if opts.x == nil then opts.x = 0 end
+	if opts.y == nil then opts.y = 0 end
+	if opts.rx == nil then opts.rx = 0 end
+	if opts.ry == nil then opts.ry = 0 end
+	if opts.width == nil then opts.width = math.min(ScrW() - opts.rx, self.width - 1) end
+	if opts.height == nil then opts.height = math.min(ScrH() - opts.ry, self.height - 1) end
+	if opts.before == nil then opts.before = function() end end
+	if opts.after == nil then opts.after = function() end end
+	if opts.yield_args == nil then opts.yield_args = {} end
+
+	assert(opts.rx + opts.width < self.width, 'x + width < self.width')
+	assert(opts.ry + opts.height < self.height, 'y + height < self.height')
+
+	render.CapturePixels()
+	self.mipmaps_obj[self.mipmap_count]:CaptureRenderTargetCoroutine(opts.x, opts.y, opts.width, opts.height, opts.rx, opts.ry, opts.before, opts.after, unpack(opts.yield_args))
 
 	return true
 end
@@ -978,18 +1021,63 @@ end
 function VTF:CaptureRenderTargetAsAlpha(x, y, width, height, rx, ry)
 	if not self.support_alpha then return false end
 
-	if x == nil then x = 0 end
-	if y == nil then y = 0 end
-	if rx == nil then rx = 0 end
-	if ry == nil then ry = 0 end
-	if width == nil then width = math.min(ScrW() - rx, self.width - 1) end
-	if height == nil then height = math.min(ScrH() - ry, self.height - 1) end
+	if not istable(opts) then
+		opts = {
+			x = opts,
+			y = y,
+			width = width,
+			height = height,
+			rx = rx,
+			ry = ry,
+		}
+	end
+
+	if opts.x == nil then opts.x = 0 end
+	if opts.y == nil then opts.y = 0 end
+	if opts.rx == nil then opts.rx = 0 end
+	if opts.ry == nil then opts.ry = 0 end
+	if opts.width == nil then opts.width = math.min(ScrW() - opts.rx, self.width - 1) end
+	if opts.height == nil then opts.height = math.min(ScrH() - opts.ry, self.height - 1) end
 
 	assert(rx + width < self.width, 'x + width < self.width')
 	assert(ry + height < self.height, 'y + height < self.height')
 
 	render.CapturePixels()
-	self.mipmaps_obj[self.mipmap_count]:CaptureRenderTargetAlpha(x, y, width, height, rx, ry)
+	self.mipmaps_obj[self.mipmap_count]:CaptureRenderTargetAlpha(opts.x, opts.y, opts.width, opts.height, opts.rx, opts.ry)
+
+	return true
+end
+
+function VTF:CaptureRenderTargetAsAlphaCoroutine(opts, y, width, height, rx, ry, ...)
+	if not self.support_alpha then return false end
+
+	if not istable(opts) then
+		opts = {
+			x = opts,
+			y = y,
+			width = width,
+			height = height,
+			rx = rx,
+			ry = ry,
+			yield_args = {...}
+		}
+	end
+
+	if opts.x == nil then opts.x = 0 end
+	if opts.y == nil then opts.y = 0 end
+	if opts.rx == nil then opts.rx = 0 end
+	if opts.ry == nil then opts.ry = 0 end
+	if opts.width == nil then opts.width = math.min(ScrW() - opts.rx, self.width - 1) end
+	if opts.height == nil then opts.height = math.min(ScrH() - opts.ry, self.height - 1) end
+	if opts.before == nil then opts.before = function() end end
+	if opts.after == nil then opts.after = function() end end
+	if opts.yield_args == nil then opts.yield_args = {} end
+
+	assert(opts.rx + opts.width < self.width, 'x + width < self.width')
+	assert(opts.ry + opts.height < self.height, 'y + height < self.height')
+
+	render.CapturePixels()
+	self.mipmaps_obj[self.mipmap_count]:CaptureRenderTargetAlphaCoroutine(opts.x, opts.y, opts.width, opts.height, opts.rx, opts.ry, opts.before, opts.after, unpack(opts.yield_args))
 
 	return true
 end
