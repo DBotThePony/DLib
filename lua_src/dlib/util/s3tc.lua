@@ -38,6 +38,16 @@ local Color = Color
 local DLib = DLib
 local string = string
 
+if CLIENT then
+	DLib._RenderCapturePixels = DLib._RenderCapturePixels or 0
+	DLib._RenderCapturePixelsFn = DLib._RenderCapturePixelsFn or render.CapturePixels
+
+	function render.CapturePixels(...)
+		DLib._RenderCapturePixels = DLib._RenderCapturePixels + 1
+		return DLib._RenderCapturePixelsFn(...)
+	end
+end
+
 local function GetPixel(self, x, y)
 	local divX, divY = x % 4, y % 4
 	local blockX, blockY = (x - divX) / 4, (y - divY) / 4
@@ -216,7 +226,7 @@ do
 	local coroutine_yield = coroutine.yield
 	local SysTime = SysTime
 
-	function CaptureRenderTargetCoroutine(self, rx, ry, w, h, lx, ly, callbackBefore, callbackAfter, ...)
+	function CaptureRenderTargetCoroutine(self, rx, ry, w, h, lx, ly, callbackBefore, callbackAfter, thersold, ...)
 		local sBlockX = (lx - lx % 4) / 4
 		local sBlockY = (ly - ly % 4) / 4
 
@@ -226,7 +236,22 @@ do
 		local fBlockX = ((lx + w + 1) - (lx + w + 1) % 4) / 4 - 1
 		local fBlockY = ((ly + h + 1) - (ly + h + 1) % 4) / 4 - 1
 
-		local s = SysTime() + 0.03
+		local s = SysTime() + thersold
+		local total = (fBlockX - sBlockX) * (fBlockY - sBlockY)
+
+		if not fitx then
+			total = total + fBlockY - sBlockY
+		end
+
+		if not fity then
+			total = total + fBlockX - sBlockX
+		end
+
+		if not fity and not fitx then
+			total = total + 1
+		end
+
+		local done = 0
 
 		for blockX = sBlockX, fBlockX do
 			for blockY = sBlockY, fBlockY do
@@ -239,12 +264,20 @@ do
 
 				self:SetBlock(blockX, blockY, sample_encode_buff, true)
 
+				done = done + 1
+
 				if SysTime() >= s then
 					callbackBefore()
+
+					local ref = DLib._RenderCapturePixels
+
 					coroutine_yield(...)
-					s = SysTime() + 0.03
-					callbackAfter()
-					render.CapturePixels()
+					s = SysTime() + thersold
+					callbackAfter(done / total)
+
+					if ref ~= DLib._RenderCapturePixels then
+						render.CapturePixels()
+					end
 				end
 			end
 		end
@@ -266,12 +299,20 @@ do
 
 				self:SetBlock(blockX, blockY, sample_encode_buff, true)
 
+				done = done + 1
+
 				if SysTime() >= s then
 					callbackBefore()
+
+					local ref = DLib._RenderCapturePixels
+
 					coroutine_yield(...)
-					s = SysTime() + 0.03
-					callbackAfter()
-					render.CapturePixels()
+					s = SysTime() + thersold
+					callbackAfter(done / total)
+
+					if ref ~= DLib._RenderCapturePixels then
+						render.CapturePixels()
+					end
 				end
 			end
 		end
@@ -291,12 +332,20 @@ do
 
 				self:SetBlock(blockX, blockY, sample_encode_buff, true)
 
+				done = done + 1
+
 				if SysTime() >= s then
 					callbackBefore()
+
+					local ref = DLib._RenderCapturePixels
+
 					coroutine_yield(...)
-					s = SysTime() + 0.03
-					callbackAfter()
-					render.CapturePixels()
+					s = SysTime() + thersold
+					callbackAfter(done / total)
+
+					if ref ~= DLib._RenderCapturePixels then
+						render.CapturePixels()
+					end
 				end
 			end
 		end
@@ -398,7 +447,7 @@ do
 		end
 	end
 
-	function CaptureRenderTargetAlphaCoroutine(self, rx, ry, w, h, lx, ly, callbackBefore, callbackAfter, ...)
+	function CaptureRenderTargetAlphaCoroutine(self, rx, ry, w, h, lx, ly, callbackBefore, callbackAfter, thersold, ...)
 		local sBlockX = (lx - lx % 4) / 4
 		local sBlockY = (ly - ly % 4) / 4
 
@@ -408,7 +457,22 @@ do
 		local fBlockX = ((lx + w + 1) - (lx + w + 1) % 4) / 4 - 1
 		local fBlockY = ((ly + h + 1) - (ly + h + 1) % 4) / 4 - 1
 
-		local s = SysTime() + 0.03
+		local s = SysTime() + thersold
+		local total = (fBlockX - sBlockX) * (fBlockY - sBlockY)
+
+		if not fitx then
+			total = total + fBlockY - sBlockY
+		end
+
+		if not fity then
+			total = total + fBlockX - sBlockX
+		end
+
+		if not fity and not fitx then
+			total = total + 1
+		end
+
+		local done = 0
 
 		for blockX = sBlockX, fBlockX do
 			for blockY = sBlockY, fBlockY do
@@ -422,12 +486,20 @@ do
 
 				self:SetBlock(blockX, blockY, sample_encode_buff, true, true)
 
+				done = done + 1
+
 				if SysTime() >= s then
 					callbackBefore()
+
+					local ref = DLib._RenderCapturePixels
+
 					coroutine_yield(...)
-					s = SysTime() + 0.03
-					callbackAfter()
-					render.CapturePixels()
+					s = SysTime() + thersold
+					callbackAfter(done / total)
+
+					if ref ~= DLib._RenderCapturePixels then
+						render.CapturePixels()
+					end
 				end
 			end
 		end
@@ -450,12 +522,20 @@ do
 
 				self:SetBlock(blockX, blockY, sample_encode_buff, true, true)
 
+				done = done + 1
+
 				if SysTime() >= s then
 					callbackBefore()
+
+					local ref = DLib._RenderCapturePixels
+
 					coroutine_yield(...)
-					s = SysTime() + 0.03
-					callbackAfter()
-					render.CapturePixels()
+					s = SysTime() + thersold
+					callbackAfter(done / total)
+
+					if ref ~= DLib._RenderCapturePixels then
+						render.CapturePixels()
+					end
 				end
 			end
 		end
@@ -476,12 +556,20 @@ do
 
 				self:SetBlock(blockX, blockY, sample_encode_buff, true, true)
 
+				done = done + 1
+
 				if SysTime() >= s then
 					callbackBefore()
+
+					local ref = DLib._RenderCapturePixels
+
 					coroutine_yield(...)
-					s = SysTime() + 0.03
-					callbackAfter()
-					render.CapturePixels()
+					s = SysTime() + thersold
+					callbackAfter(done / total)
+
+					if ref ~= DLib._RenderCapturePixels then
+						render.CapturePixels()
+					end
 				end
 			end
 		end

@@ -1004,12 +1004,13 @@ function VTF:CaptureRenderTargetCoroutine(opts, y, width, height, rx, ry, ...)
 	if opts.before == nil then opts.before = function() end end
 	if opts.after == nil then opts.after = function() end end
 	if opts.yield_args == nil then opts.yield_args = {} end
+	if opts.thersold == nil then opts.thersold = 0.02 end
 
 	assert(opts.rx + opts.width < self.width, 'x + width < self.width')
 	assert(opts.ry + opts.height < self.height, 'y + height < self.height')
 
 	render.CapturePixels()
-	self.mipmaps_obj[self.mipmap_count]:CaptureRenderTargetCoroutine(opts.x, opts.y, opts.width, opts.height, opts.rx, opts.ry, opts.before, opts.after, unpack(opts.yield_args))
+	self.mipmaps_obj[self.mipmap_count]:CaptureRenderTargetCoroutine(opts.x, opts.y, opts.width, opts.height, opts.rx, opts.ry, opts.before, opts.after, opts.thersold, unpack(opts.yield_args))
 
 	return true
 end
@@ -1072,12 +1073,13 @@ function VTF:CaptureRenderTargetAsAlphaCoroutine(opts, y, width, height, rx, ry,
 	if opts.before == nil then opts.before = function() end end
 	if opts.after == nil then opts.after = function() end end
 	if opts.yield_args == nil then opts.yield_args = {} end
+	if opts.thersold == nil then opts.thersold = 0.02 end
 
 	assert(opts.rx + opts.width < self.width, 'x + width < self.width')
 	assert(opts.ry + opts.height < self.height, 'y + height < self.height')
 
 	render.CapturePixels()
-	self.mipmaps_obj[self.mipmap_count]:CaptureRenderTargetAlphaCoroutine(opts.x, opts.y, opts.width, opts.height, opts.rx, opts.ry, opts.before, opts.after, unpack(opts.yield_args))
+	self.mipmaps_obj[self.mipmap_count]:CaptureRenderTargetAlphaCoroutine(opts.x, opts.y, opts.width, opts.height, opts.rx, opts.ry, opts.before, opts.after, opts.thersold, unpack(opts.yield_args))
 
 	return true
 end
