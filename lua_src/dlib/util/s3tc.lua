@@ -890,7 +890,6 @@ do
 		-- solid color block
 		if solid then
 			local wColor0 = encode_color_5_6_5(r * 0.003921568627451, g * 0.003921568627451, b * 0.003921568627451)
-			print(r, g, b)
 			return wColor0, wColor0, 0
 		end
 
