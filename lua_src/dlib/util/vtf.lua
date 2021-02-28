@@ -139,6 +139,11 @@ VTFObject.Readers.IMAGE_FORMAT_DXT1 = DLib.DXT1
 VTFObject.Readers.IMAGE_FORMAT_DXT3 = DLib.DXT3
 VTFObject.Readers.IMAGE_FORMAT_DXT5 = DLib.DXT5
 
+VTFObject.AlphaFormats = {
+	IMAGE_FORMAT_DXT3 = true,
+	IMAGE_FORMAT_DXT5 = true,
+}
+
 local color_white = Color()
 
 local power_of_two = {}
@@ -397,6 +402,8 @@ function VTF:ctor(bytes)
 	self.mipmaps_obj = {}
 
 	local reader = assert(VTFObject.Readers[VTFObject.Formats[self.high_res_image_format]], 'Unsupported image format ' .. VTFObject.Formats[self.high_res_image_format])
+
+	self.support_alpha = VTFObject.AlphaFormats[VTFObject.Formats[self.high_res_image_format]] == true
 
 	if self.version_minor <= 2 then
 		if bytes:Tell() < readHead.headerSize then
@@ -960,6 +967,31 @@ function VTF:CaptureRenderTarget(x, y, width, height, rx, ry)
 
 	render.CapturePixels()
 	self.mipmaps_obj[self.mipmap_count]:CaptureRenderTarget(x, y, width, height, rx, ry)
+
+	return true
+end
+
+-- captures current render target as "alpha"
+-- fully white - means fully opaque
+-- fully black - means fully translucent
+-- R, G, B are equal and their sum is divided by 3
+function VTF:CaptureRenderTargetAsAlpha(x, y, width, height, rx, ry)
+	if not self.support_alpha then return false end
+
+	if x == nil then x = 0 end
+	if y == nil then y = 0 end
+	if rx == nil then rx = 0 end
+	if ry == nil then ry = 0 end
+	if width == nil then width = math.min(ScrW() - rx, self.width - 1) end
+	if height == nil then height = math.min(ScrH() - ry, self.height - 1) end
+
+	assert(rx + width < self.width, 'x + width < self.width')
+	assert(ry + height < self.height, 'y + height < self.height')
+
+	render.CapturePixels()
+	self.mipmaps_obj[self.mipmap_count]:CaptureRenderTargetAlpha(x, y, width, height, rx, ry)
+
+	return true
 end
 
 VTFObject.HeaderStruct = DLib.BytesBuffer.CompileStructure([[

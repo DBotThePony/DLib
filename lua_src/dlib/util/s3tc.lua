@@ -110,7 +110,7 @@ function DXT1:ctor(bytes, width, height)
 	self.cache = {}
 end
 
-local SolveColorBlock, EncodeBCColorBlock, CaptureRenderTarget
+local SolveColorBlock, EncodeBCColorBlock, CaptureRenderTarget, CaptureRenderTargetAlpha
 local dither_precompute = {}
 local plain_pixel_block = {}
 
@@ -210,6 +210,86 @@ do
 			end
 
 			self:SetBlock(blockX, blockY, sample_encode_buff, true)
+		end
+	end
+
+	function CaptureRenderTargetAlpha(self, rx, ry, w, h, lx, ly)
+		local sBlockX = (lx - lx % 4) / 4
+		local sBlockY = (ly - ly % 4) / 4
+
+		local fitx = (lx + w + 1) % 4 == 0
+		local fity = (ly + h + 1) % 4 == 0
+		local fit = fitx and fity
+		local fBlockX = ((lx + w + 1) - (lx + w + 1) % 4) / 4 - 1
+		local fBlockY = ((ly + h + 1) - (ly + h + 1) % 4) / 4 - 1
+
+		for blockX = sBlockX, fBlockX do
+			for blockY = sBlockY, fBlockY do
+				for X = 0, 3 do
+					for Y = 0, 3 do
+						local obj = sample_encode_buff[1 + X + Y * 4]
+						local r, g, b = render.ReadPixel(rx + X + blockX * 4, ry + Y + blockY * 4)
+						obj[4] = (r + g + b) / 3
+					end
+				end
+
+				self:SetBlock(blockX, blockY, sample_encode_buff, true, true)
+			end
+		end
+
+		if fit then return end
+
+		if not fitx then
+			local blockX = fBlockX + 1
+
+			for blockY = sBlockY, fBlockY do
+				self:GetBlock(blockX, blockY, sample_encode_buff)
+
+				for X = 0, lx + w - blockX * 4 do
+					for Y = 0, 3 do
+						local obj = sample_encode_buff[1 + X + Y * 4]
+						local r, g, b = render.ReadPixel(rx + X + blockX * 4, ry + Y + blockY * 4)
+						obj[4] = (r + g + b) / 3
+					end
+				end
+
+				self:SetBlock(blockX, blockY, sample_encode_buff, true, true)
+			end
+		end
+
+		if not fity then
+			local blockY = fBlockY + 1
+
+			for blockX = sBlockX, fBlockX do
+				self:GetBlock(blockX, blockY, sample_encode_buff)
+
+				for X = 0, 3 do
+					for Y = 0, ly + h - blockY * 4 do
+						local obj = sample_encode_buff[1 + X + Y * 4]
+						local r, g, b = render.ReadPixel(rx + X + blockX * 4, ry + Y + blockY * 4)
+						obj[4] = (r + g + b) / 3
+					end
+				end
+
+				self:SetBlock(blockX, blockY, sample_encode_buff, true, true)
+			end
+		end
+
+		if not fitx and not fity then
+			local blockX = fBlockX + 1
+			local blockY = fBlockY + 1
+
+			self:GetBlock(blockX, blockY, sample_encode_buff)
+
+			for X = 0, lx + w - blockX * 4 do
+				for Y = 0, ly + h - blockY * 4 do
+					local obj = sample_encode_buff[1 + X + Y * 4]
+					local r, g, b = render.ReadPixel(rx + X + blockX * 4, ry + Y + blockY * 4)
+					obj[4] = (r + g + b) / 3
+				end
+			end
+
+			self:SetBlock(blockX, blockY, sample_encode_buff, true, true)
 		end
 	end
 end
@@ -711,6 +791,7 @@ end
 
 DXT1.GetPixel = GetPixel
 DXT1.CaptureRenderTarget = CaptureRenderTarget
+DXT1.CaptureRenderTargetAlpha = CaptureRenderTargetAlpha
 
 function DXT1:GetBlock(x, y, export)
 	assert(x >= 0, '!x >= 0')
@@ -914,7 +995,7 @@ do
 		error_buffer[i] = 0
 	end
 
-	function DXT3:SetBlock(x, y, pixels, pixels_are_plain)
+	function DXT3:SetBlock(x, y, pixels, pixels_are_plain, only_update_alpha)
 		assert(x >= 0, '!x >= 0')
 		assert(y >= 0, '!y >= 0')
 		assert(x < self.width_blocks, '!x <= self.width_blocks')
@@ -925,11 +1006,18 @@ do
 
 		if pixels_are_plain then
 			use_buf = pixels
-			fColor0, fColor1, written = EncodeBCColorBlock(pixels, self.encode_luma or false, self.advanced_dither)
+
+			if not only_update_alpha then
+				fColor0, fColor1, written = EncodeBCColorBlock(pixels, self.encode_luma or false, self.advanced_dither)
+			end
 		else
 			EncodePlainPixels(pixels)
+
 			use_buf = plain_pixel_block
-			fColor0, fColor1, written = EncodeBCColorBlock(plain_pixel_block, self.encode_luma or false, self.advanced_dither)
+
+			if not only_update_alpha then
+				fColor0, fColor1, written = EncodeBCColorBlock(plain_pixel_block, self.encode_luma or false, self.advanced_dither)
+			end
 		end
 
 		local pixel = y * self.width_blocks + x
@@ -973,9 +1061,11 @@ do
 		bytes:WriteInt32LE(alpha0)
 		bytes:WriteInt32LE(alpha1)
 
-		bytes:WriteUInt16LE(fColor0)
-		bytes:WriteUInt16LE(fColor1)
-		bytes:WriteInt32LE(written)
+		if not only_update_alpha then
+			bytes:WriteUInt16LE(fColor0)
+			bytes:WriteUInt16LE(fColor1)
+			bytes:WriteInt32LE(written)
+		end
 
 		self.cache[pixel] = nil
 	end
@@ -983,6 +1073,7 @@ end
 
 DXT3.GetPixel = GetPixel
 DXT3.CaptureRenderTarget = CaptureRenderTarget
+DXT3.CaptureRenderTargetAlpha = CaptureRenderTargetAlpha
 
 function DXT3:GetBlock(x, y, export)
 	assert(x >= 0, '!x >= 0')
@@ -1155,7 +1246,7 @@ do
 		alpha_palette[i] = 0
 	end
 
-	function DXT5:SetBlock(x, y, pixels, pixels_are_plain)
+	function DXT5:SetBlock(x, y, pixels, pixels_are_plain, only_update_alpha)
 		assert(x >= 0, '!x >= 0')
 		assert(y >= 0, '!y >= 0')
 		assert(x < self.width_blocks, '!x <= self.width_blocks')
@@ -1166,11 +1257,17 @@ do
 
 		if pixels_are_plain then
 			use_buf = pixels
-			fColor0, fColor1, written = EncodeBCColorBlock(pixels, self.encode_luma or false, self.advanced_dither)
+
+			if not only_update_alpha then
+				fColor0, fColor1, written = EncodeBCColorBlock(pixels, self.encode_luma or false, self.advanced_dither)
+			end
 		else
 			EncodePlainPixels(pixels)
 			use_buf = plain_pixel_block
-			fColor0, fColor1, written = EncodeBCColorBlock(plain_pixel_block, self.encode_luma or false, self.advanced_dither)
+
+			if not only_update_alpha then
+				fColor0, fColor1, written = EncodeBCColorBlock(plain_pixel_block, self.encode_luma or false, self.advanced_dither)
+			end
 		end
 
 		local pixel = y * self.width_blocks + x
@@ -1284,9 +1381,11 @@ do
 			end
 		end
 
-		bytes:WriteUInt16LE(fColor0)
-		bytes:WriteUInt16LE(fColor1)
-		bytes:WriteInt32LE(written)
+		if not only_update_alpha then
+			bytes:WriteUInt16LE(fColor0)
+			bytes:WriteUInt16LE(fColor1)
+			bytes:WriteInt32LE(written)
+		end
 
 		self.cache[pixel] = nil
 	end
@@ -1294,6 +1393,7 @@ end
 
 DXT5.GetPixel = GetPixel
 DXT5.CaptureRenderTarget = CaptureRenderTarget
+DXT5.CaptureRenderTargetAlpha = CaptureRenderTargetAlpha
 
 function DXT5:GetBlock(x, y, export)
 	assert(x >= 0, '!x >= 0')
