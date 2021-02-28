@@ -23,6 +23,7 @@ local jit_off = jit.off
 local jit_on = jit.on
 
 local bor = bit.bor
+local tobit = bit.tobit
 local band = bit.band
 local bxor = bit.bxor
 local rshift = bit.rshift
@@ -86,133 +87,119 @@ function meta:ctor(a, b, c, d)
 	self.length = 0
 end
 
-local function rotate(x, n)
-	return (bor(lshift(x, n), rshift(x, 32 - n)))
-end
+local ROTL = bit.rol
+local ROTR = bit.ror
 
 do
-	local x = {}
-	local S11 = 7
-	local S12 = 12
-	local S13 = 17
-	local S14 = 22
-	local S21 = 5
-	local S22 = 9
-	local S23 = 14
-	local S24 = 20
-	local S31 = 4
-	local S32 = 11
-	local S33 = 16
-	local S34 = 23
-	local S41 = 6
-	local S42 = 10
-	local S43 = 15
-	local S44 = 21
+	local W = {}
+
+	local S = {
+		7, 12, 17, 22,
+		7, 12, 17, 22,
+		7, 12, 17, 22,
+		7, 12, 17, 22,
+
+		5, 9,  14, 20,
+		5, 9,  14, 20,
+		5, 9,  14, 20,
+		5, 9,  14, 20,
+
+		4, 11, 16, 23,
+		4, 11, 16, 23,
+		4, 11, 16, 23,
+		4, 11, 16, 23,
+
+		6, 10, 15, 21,
+		6, 10, 15, 21,
+		6, 10, 15, 21,
+		6, 10, 15, 21,
+	}
+
+	local T = {}
+
+	for i = 1, 64 do
+		T[i] = math.floor(math.sin(i):abs() * 4294967296)
+	end
+
+	local function F(x, y, z)
+		return bor(band(x, y), band(z, bnot(x)))
+	end
+
+	local function G(x, y, z)
+		return bor(band(x, z), band(y, bnot(z)))
+	end
+
+	local H = bxor
+
+	local function I(x, y, z)
+		return bxor(y, bor(x, bnot(z)))
+	end
 
 	function meta:_Inner(cc)
-		local j = jit_status()
-
-		jit_off()
+		local A, B, C, D = self.A, self.B, self.C, self.D
+		local num = math_floor(#cc / 64)
+		self.blocks = self.blocks + num
 
 		-- 512 bit block
-		for i = 1, math_floor(#cc / 64) do
-			self.blocks = self.blocks + 1
+		for i = 1, num do
+			local init = (i - 1) * 64 - 4
 
-			-- separated as ubytes (8 bit)
-			local bytes = {string_byte(cc, (i - 1) * 64 + 1, i * 64)}
+			local a, b, c, d = A, B, C, D
 
-			-- copy as 4 byte uint blocks
-			for i = 0, 15 do
+			for t = 1, 16 do
 				-- BIG-ENDIAN blocks!
-				x[i] = overflow(bor(
-					bytes[i * 4 + 1],
-					lshift(bytes[i * 4 + 2], 8),
-					lshift(bytes[i * 4 + 3], 16),
-					lshift(bytes[i * 4 + 4], 24)
-				))
+				local a, b, c, d = string_byte(cc, init + t * 4 + 1, init + t * 4 + 4)
+
+				W[t] = bor(
+					a,
+					lshift(b, 8),
+					lshift(c, 16),
+					lshift(d, 24)
+				)
 			end
 
-			local a, b, c, d = self.A, self.B, self.C, self.D
-
 			-- /* Round 1 */
-			a = (overflow(rotate(((a) + overflow((bor(band(b, c), band(d, -b - 1)))) + (x[ 0]) + 0xd76aa478), S11)) + (b)) % 4294967296 -- /* 1 */
-			d = (overflow(rotate(((d) + overflow((bor(band(a, b), band(c, -a - 1)))) + (x[ 1]) + 0xe8c7b756), S12)) + (a)) % 4294967296 -- /* 2 */
-			c = (overflow(rotate(((c) + overflow((bor(band(d, a), band(b, -d - 1)))) + (x[ 2]) + 0x242070db), S13)) + (d)) % 4294967296 -- /* 3 */
-			b = (overflow(rotate(((b) + overflow((bor(band(c, d), band(a, -c - 1)))) + (x[ 3]) + 0xc1bdceee), S14)) + (c)) % 4294967296 -- /* 4 */
-			a = (overflow(rotate(((a) + overflow((bor(band(b, c), band(d, -b - 1)))) + (x[ 4]) + 0xf57c0faf), S11)) + (b)) % 4294967296 -- /* 5 */
-			d = (overflow(rotate(((d) + overflow((bor(band(a, b), band(c, -a - 1)))) + (x[ 5]) + 0x4787c62a), S12)) + (a)) % 4294967296 -- /* 6 */
-			c = (overflow(rotate(((c) + overflow((bor(band(d, a), band(b, -d - 1)))) + (x[ 6]) + 0xa8304613), S13)) + (d)) % 4294967296 -- /* 7 */
-			b = (overflow(rotate(((b) + overflow((bor(band(c, d), band(a, -c - 1)))) + (x[ 7]) + 0xfd469501), S14)) + (c)) % 4294967296 -- /* 8 */
-			a = (overflow(rotate(((a) + overflow((bor(band(b, c), band(d, -b - 1)))) + (x[ 8]) + 0x698098d8), S11)) + (b)) % 4294967296 -- /* 9 */
-			d = (overflow(rotate(((d) + overflow((bor(band(a, b), band(c, -a - 1)))) + (x[ 9]) + 0x8b44f7af), S12)) + (a)) % 4294967296 -- /* 10 */
-			c = (overflow(rotate(((c) + overflow((bor(band(d, a), band(b, -d - 1)))) + (x[10]) + 0xffff5bb1), S13)) + (d)) % 4294967296 -- /* 11 */
-			b = (overflow(rotate(((b) + overflow((bor(band(c, d), band(a, -c - 1)))) + (x[11]) + 0x895cd7be), S14)) + (c)) % 4294967296 -- /* 12 */
-			a = (overflow(rotate(((a) + overflow((bor(band(b, c), band(d, -b - 1)))) + (x[12]) + 0x6b901122), S11)) + (b)) % 4294967296 -- /* 13 */
-			d = (overflow(rotate(((d) + overflow((bor(band(a, b), band(c, -a - 1)))) + (x[13]) + 0xfd987193), S12)) + (a)) % 4294967296 -- /* 14 */
-			c = (overflow(rotate(((c) + overflow((bor(band(d, a), band(b, -d - 1)))) + (x[14]) + 0xa679438e), S13)) + (d)) % 4294967296 -- /* 15 */
-			b = (overflow(rotate(((b) + overflow((bor(band(c, d), band(a, -c - 1)))) + (x[15]) + 0x49b40821), S14)) + (c)) % 4294967296 -- /* 16 */
+			for i = 1, 16 do
+				--a = b + ROTL(a + F(b, c, d) + W[i] + T[i], S[i])
+				a = b + ROTL(a + bor(band(b, c), band(d, bnot(b))) + W[i] + T[i], S[i])
+				a, b, c, d = d, a, b, c
+			end
+
+			local index = 1
 
 			-- /* Round 2 */
-			a = (overflow(rotate(((a) + overflow((bor(band(b, d), band(c, -d - 1)))) + (x[ 1]) + 0xf61e2562), S21)) + (b)) % 4294967296 -- /* 17 */
-			d = (overflow(rotate(((d) + overflow((bor(band(a, c), band(b, -c - 1)))) + (x[ 6]) + 0xc040b340), S22)) + (a)) % 4294967296 -- /* 18 */
-			c = (overflow(rotate(((c) + overflow((bor(band(d, b), band(a, -b - 1)))) + (x[11]) + 0x265e5a51), S23)) + (d)) % 4294967296 -- /* 19 */
-			b = (overflow(rotate(((b) + overflow((bor(band(c, a), band(d, -a - 1)))) + (x[ 0]) + 0xe9b6c7aa), S24)) + (c)) % 4294967296 -- /* 20 */
-			a = (overflow(rotate(((a) + overflow((bor(band(b, d), band(c, -d - 1)))) + (x[ 5]) + 0xd62f105d), S21)) + (b)) % 4294967296 -- /* 21 */
-			d = (overflow(rotate(((d) + overflow((bor(band(a, c), band(b, -c - 1)))) + (x[10]) +  0x2441453), S22)) + (a)) % 4294967296 -- /* 22 */
-			c = (overflow(rotate(((c) + overflow((bor(band(d, b), band(a, -b - 1)))) + (x[15]) + 0xd8a1e681), S23)) + (d)) % 4294967296 -- /* 23 */
-			b = (overflow(rotate(((b) + overflow((bor(band(c, a), band(d, -a - 1)))) + (x[ 4]) + 0xe7d3fbc8), S24)) + (c)) % 4294967296 -- /* 24 */
-			a = (overflow(rotate(((a) + overflow((bor(band(b, d), band(c, -d - 1)))) + (x[ 9]) + 0x21e1cde6), S21)) + (b)) % 4294967296 -- /* 25 */
-			d = (overflow(rotate(((d) + overflow((bor(band(a, c), band(b, -c - 1)))) + (x[14]) + 0xc33707d6), S22)) + (a)) % 4294967296 -- /* 26 */
-			c = (overflow(rotate(((c) + overflow((bor(band(d, b), band(a, -b - 1)))) + (x[ 3]) + 0xf4d50d87), S23)) + (d)) % 4294967296 -- /* 27 */
-			b = (overflow(rotate(((b) + overflow((bor(band(c, a), band(d, -a - 1)))) + (x[ 8]) + 0x455a14ed), S24)) + (c)) % 4294967296 -- /* 28 */
-			a = (overflow(rotate(((a) + overflow((bor(band(b, d), band(c, -d - 1)))) + (x[13]) + 0xa9e3e905), S21)) + (b)) % 4294967296 -- /* 29 */
-			d = (overflow(rotate(((d) + overflow((bor(band(a, c), band(b, -c - 1)))) + (x[ 2]) + 0xfcefa3f8), S22)) + (a)) % 4294967296 -- /* 30 */
-			c = (overflow(rotate(((c) + overflow((bor(band(d, b), band(a, -b - 1)))) + (x[ 7]) + 0x676f02d9), S23)) + (d)) % 4294967296 -- /* 31 */
-			b = (overflow(rotate(((b) + overflow((bor(band(c, a), band(d, -a - 1)))) + (x[12]) + 0x8d2a4c8a), S24)) + (c)) % 4294967296 -- /* 32 */
+			for i = 17, 32 do
+				--a = b + ROTL(a + G(b, c, d) + W[index + 1] + T[i], S[i])
+				a = b + ROTL(a + bor(band(b, d), band(c, bnot(d))) + W[index + 1] + T[i], S[i])
+				index = band(index + 5, 0xF)
+				a, b, c, d = d, a, b, c
+			end
+
+			index = 5
 
 			-- /* Round 3 */
-			a = (overflow(rotate(((a) + overflow(bxor(b, c, d)) + (x[ 5]) + 0xfffa3942), S31)) + (b)) % 4294967296 -- /* 33 */
-			d = (overflow(rotate(((d) + overflow(bxor(a, b, c)) + (x[ 8]) + 0x8771f681), S32)) + (a)) % 4294967296 -- /* 34 */
-			c = (overflow(rotate(((c) + overflow(bxor(d, a, b)) + (x[11]) + 0x6d9d6122), S33)) + (d)) % 4294967296 -- /* 35 */
-			b = (overflow(rotate(((b) + overflow(bxor(c, d, a)) + (x[14]) + 0xfde5380c), S34)) + (c)) % 4294967296 -- /* 36 */
-			a = (overflow(rotate(((a) + overflow(bxor(b, c, d)) + (x[ 1]) + 0xa4beea44), S31)) + (b)) % 4294967296 -- /* 37 */
-			d = (overflow(rotate(((d) + overflow(bxor(a, b, c)) + (x[ 4]) + 0x4bdecfa9), S32)) + (a)) % 4294967296 -- /* 38 */
-			c = (overflow(rotate(((c) + overflow(bxor(d, a, b)) + (x[ 7]) + 0xf6bb4b60), S33)) + (d)) % 4294967296 -- /* 39 */
-			b = (overflow(rotate(((b) + overflow(bxor(c, d, a)) + (x[10]) + 0xbebfbc70), S34)) + (c)) % 4294967296 -- /* 40 */
-			a = (overflow(rotate(((a) + overflow(bxor(b, c, d)) + (x[13]) + 0x289b7ec6), S31)) + (b)) % 4294967296 -- /* 41 */
-			d = (overflow(rotate(((d) + overflow(bxor(a, b, c)) + (x[ 0]) + 0xeaa127fa), S32)) + (a)) % 4294967296 -- /* 42 */
-			c = (overflow(rotate(((c) + overflow(bxor(d, a, b)) + (x[ 3]) + 0xd4ef3085), S33)) + (d)) % 4294967296 -- /* 43 */
-			b = (overflow(rotate(((b) + overflow(bxor(c, d, a)) + (x[ 6]) +  0x4881d05), S34)) + (c)) % 4294967296 -- /* 44 */
-			a = (overflow(rotate(((a) + overflow(bxor(b, c, d)) + (x[ 9]) + 0xd9d4d039), S31)) + (b)) % 4294967296 -- /* 45 */
-			d = (overflow(rotate(((d) + overflow(bxor(a, b, c)) + (x[12]) + 0xe6db99e5), S32)) + (a)) % 4294967296 -- /* 46 */
-			c = (overflow(rotate(((c) + overflow(bxor(d, a, b)) + (x[15]) + 0x1fa27cf8), S33)) + (d)) % 4294967296 -- /* 47 */
-			b = (overflow(rotate(((b) + overflow(bxor(c, d, a)) + (x[ 2]) + 0xc4ac5665), S34)) + (c)) % 4294967296 -- /* 48 */
+			for i = 33, 48 do
+				a = b + ROTL(a + H(b, c, d) + W[index + 1] + T[i], S[i])
+				index = band(index + 3, 0xF)
+				a, b, c, d = d, a, b, c
+			end
+
+			index = 0
 
 			-- /* Round 4 */
-			a = (overflow(rotate(((a) + overflow((bxor(c, bor(b, -d - 1)))) + (x[ 0]) + 0xf4292244), S41)) + (b)) % 4294967296 -- /* 49 */
-			d = (overflow(rotate(((d) + overflow((bxor(b, bor(a, -c - 1)))) + (x[ 7]) + 0x432aff97), S42)) + (a)) % 4294967296 -- /* 50 */
-			c = (overflow(rotate(((c) + overflow((bxor(a, bor(d, -b - 1)))) + (x[14]) + 0xab9423a7), S43)) + (d)) % 4294967296 -- /* 51 */
-			b = (overflow(rotate(((b) + overflow((bxor(d, bor(c, -a - 1)))) + (x[ 5]) + 0xfc93a039), S44)) + (c)) % 4294967296 -- /* 52 */
-			a = (overflow(rotate(((a) + overflow((bxor(c, bor(b, -d - 1)))) + (x[12]) + 0x655b59c3), S41)) + (b)) % 4294967296 -- /* 53 */
-			d = (overflow(rotate(((d) + overflow((bxor(b, bor(a, -c - 1)))) + (x[ 3]) + 0x8f0ccc92), S42)) + (a)) % 4294967296 -- /* 54 */
-			c = (overflow(rotate(((c) + overflow((bxor(a, bor(d, -b - 1)))) + (x[10]) + 0xffeff47d), S43)) + (d)) % 4294967296 -- /* 55 */
-			b = (overflow(rotate(((b) + overflow((bxor(d, bor(c, -a - 1)))) + (x[ 1]) + 0x85845dd1), S44)) + (c)) % 4294967296 -- /* 56 */
-			a = (overflow(rotate(((a) + overflow((bxor(c, bor(b, -d - 1)))) + (x[ 8]) + 0x6fa87e4f), S41)) + (b)) % 4294967296 -- /* 57 */
-			d = (overflow(rotate(((d) + overflow((bxor(b, bor(a, -c - 1)))) + (x[15]) + 0xfe2ce6e0), S42)) + (a)) % 4294967296 -- /* 58 */
-			c = (overflow(rotate(((c) + overflow((bxor(a, bor(d, -b - 1)))) + (x[ 6]) + 0xa3014314), S43)) + (d)) % 4294967296 -- /* 59 */
-			b = (overflow(rotate(((b) + overflow((bxor(d, bor(c, -a - 1)))) + (x[13]) + 0x4e0811a1), S44)) + (c)) % 4294967296 -- /* 60 */
-			a = (overflow(rotate(((a) + overflow((bxor(c, bor(b, -d - 1)))) + (x[ 4]) + 0xf7537e82), S41)) + (b)) % 4294967296 -- /* 61 */
-			d = (overflow(rotate(((d) + overflow((bxor(b, bor(a, -c - 1)))) + (x[11]) + 0xbd3af235), S42)) + (a)) % 4294967296 -- /* 62 */
-			c = (overflow(rotate(((c) + overflow((bxor(a, bor(d, -b - 1)))) + (x[ 2]) + 0x2ad7d2bb), S43)) + (d)) % 4294967296 -- /* 63 */
-			b = (overflow(rotate(((b) + overflow((bxor(d, bor(c, -a - 1)))) + (x[ 9]) + 0xeb86d391), S44)) + (c)) % 4294967296 -- /* 64 */
+			for i = 49, 64 do
+				a = b + ROTL(a + I(b, c, d) + W[index + 1] + T[i], S[i])
+				index = band(index + 7, 0xF)
+				a, b, c, d = d, a, b, c
+			end
 
-			self.A = (self.A + overflow(a)) % 4294967296
-			self.B = (self.B + overflow(b)) % 4294967296
-			self.C = (self.C + overflow(c)) % 4294967296
-			self.D = (self.D + overflow(d)) % 4294967296
+			A = tobit(A + a)
+			B = tobit(B + b)
+			C = tobit(C + c)
+			D = tobit(D + d)
 		end
 
-		if j then jit_on() end
+		self.A, self.B, self.C, self.D = A, B, C, D
 	end
 end
 
@@ -342,145 +329,57 @@ end
 
 do
 	local W = {}
+	local bytes = {}
 
 	function metasha1:_Inner(cc)
-		local j = jit_status()
-
-		jit_off()
+		local num = math_floor(#cc / 64)
+		self.blocks = self.blocks + num
 
 		-- 512 bit block
-		for i = 1, math_floor(#cc / 64) do
-			self.blocks = self.blocks + 1
+		for i = 1, num do
+			local init = (i - 1) * 64 - 4
 
-			-- separated as ubytes (8 bit)
-			local bytes = {string_byte(cc, (i - 1) * 64 + 1, i * 64)}
-
-			-- copy as 4 byte uint blocks
-			for i = 0, 15 do
+			for t = 1, 16 do
 				-- LITTLE-ENDIAN blocks!
-				W[i] = overflow(bor(
-					bytes[i * 4 + 4],
-					lshift(bytes[i * 4 + 3], 8),
-					lshift(bytes[i * 4 + 2], 16),
-					lshift(bytes[i * 4 + 1], 24)
-				))
+				local a, b, c, d = string_byte(cc, init + t * 4 + 1, init + t * 4 + 4)
+
+				W[t] = bor(
+					d,
+					lshift(c, 8),
+					lshift(b, 16),
+					lshift(a, 24)
+				)
 			end
 
 			-- process extra
-			for t = 16, 79 do
-				W[t] = overflow(rotate(bxor(W[t - 3], W[t - 8], W[t - 14], W[t - 16]), 1))
+			for t = 17, 80 do
+				W[t] = ROTL(bxor(W[t - 3], W[t - 8], W[t - 14], W[t - 16]), 1)
 			end
 
 			local A, B, C, D, E = self.H0, self.H1, self.H2, self.H3, self.H4
 
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(bnot(B), D))) + E + W[0] + 0x5A827999) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(bnot(B), D))) + E + W[1] + 0x5A827999) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(bnot(B), D))) + E + W[2] + 0x5A827999) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(bnot(B), D))) + E + W[3] + 0x5A827999) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(bnot(B), D))) + E + W[4] + 0x5A827999) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(bnot(B), D))) + E + W[5] + 0x5A827999) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(bnot(B), D))) + E + W[6] + 0x5A827999) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(bnot(B), D))) + E + W[7] + 0x5A827999) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(bnot(B), D))) + E + W[8] + 0x5A827999) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(bnot(B), D))) + E + W[9] + 0x5A827999) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(bnot(B), D))) + E + W[10] + 0x5A827999) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(bnot(B), D))) + E + W[11] + 0x5A827999) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(bnot(B), D))) + E + W[12] + 0x5A827999) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(bnot(B), D))) + E + W[13] + 0x5A827999) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(bnot(B), D))) + E + W[14] + 0x5A827999) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(bnot(B), D))) + E + W[15] + 0x5A827999) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(bnot(B), D))) + E + W[16] + 0x5A827999) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(bnot(B), D))) + E + W[17] + 0x5A827999) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(bnot(B), D))) + E + W[18] + 0x5A827999) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(bnot(B), D))) + E + W[19] + 0x5A827999) % 4294967296
+			for t = 1, 20 do
+				E, D, C, B, A = D, C, ROTL(B, 30), A, ROTL(A, 5) + bor(band(B, C), band(bnot(B), D)) + E + W[t] + 0x5A827999
+			end
 
-			--[[for t = 0, 19 do
-				E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(bnot(B), D))) + E + W[t] + 0x5A827999) % 4294967296
-			end]]
+			for t = 21, 40 do
+				E, D, C, B, A = D, C, ROTL(B, 30), A, ROTL(A, 5) + bxor(B, C, D) + E + W[t] + 0x6ED9EBA1
+			end
 
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[20] + 0x6ED9EBA1) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[21] + 0x6ED9EBA1) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[22] + 0x6ED9EBA1) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[23] + 0x6ED9EBA1) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[24] + 0x6ED9EBA1) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[25] + 0x6ED9EBA1) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[26] + 0x6ED9EBA1) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[27] + 0x6ED9EBA1) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[28] + 0x6ED9EBA1) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[29] + 0x6ED9EBA1) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[30] + 0x6ED9EBA1) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[31] + 0x6ED9EBA1) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[32] + 0x6ED9EBA1) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[33] + 0x6ED9EBA1) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[34] + 0x6ED9EBA1) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[35] + 0x6ED9EBA1) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[36] + 0x6ED9EBA1) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[37] + 0x6ED9EBA1) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[38] + 0x6ED9EBA1) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[39] + 0x6ED9EBA1) % 4294967296
+			for t = 41, 60 do
+				E, D, C, B, A = D, C, ROTL(B, 30), A, ROTL(A, 5) + bor(band(B, C), band(B, D), band(C, D)) + E + W[t] + 0x8F1BBCDC
+			end
 
-			--[[for t = 20, 39 do
-				E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[t] + 0x6ED9EBA1) % 4294967296
-			end]]
+			for t = 61, 80 do
+				E, D, C, B, A = D, C, ROTL(B, 30), A, ROTL(A, 5) + bxor(B, C, D) + E + W[t] + 0xCA62C1D6
+			end
 
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(B, D), band(C, D))) + E + W[40] + 0x8F1BBCDC) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(B, D), band(C, D))) + E + W[41] + 0x8F1BBCDC) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(B, D), band(C, D))) + E + W[42] + 0x8F1BBCDC) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(B, D), band(C, D))) + E + W[43] + 0x8F1BBCDC) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(B, D), band(C, D))) + E + W[44] + 0x8F1BBCDC) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(B, D), band(C, D))) + E + W[45] + 0x8F1BBCDC) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(B, D), band(C, D))) + E + W[46] + 0x8F1BBCDC) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(B, D), band(C, D))) + E + W[47] + 0x8F1BBCDC) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(B, D), band(C, D))) + E + W[48] + 0x8F1BBCDC) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(B, D), band(C, D))) + E + W[49] + 0x8F1BBCDC) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(B, D), band(C, D))) + E + W[50] + 0x8F1BBCDC) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(B, D), band(C, D))) + E + W[51] + 0x8F1BBCDC) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(B, D), band(C, D))) + E + W[52] + 0x8F1BBCDC) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(B, D), band(C, D))) + E + W[53] + 0x8F1BBCDC) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(B, D), band(C, D))) + E + W[54] + 0x8F1BBCDC) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(B, D), band(C, D))) + E + W[55] + 0x8F1BBCDC) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(B, D), band(C, D))) + E + W[56] + 0x8F1BBCDC) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(B, D), band(C, D))) + E + W[57] + 0x8F1BBCDC) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(B, D), band(C, D))) + E + W[58] + 0x8F1BBCDC) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(B, D), band(C, D))) + E + W[59] + 0x8F1BBCDC) % 4294967296
-
-			--[[for t = 40, 59 do
-				E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bor(band(B, C), band(B, D), band(C, D))) + E + W[t] + 0x8F1BBCDC) % 4294967296
-			end]]
-
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[60] + 0xCA62C1D6) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[61] + 0xCA62C1D6) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[62] + 0xCA62C1D6) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[63] + 0xCA62C1D6) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[64] + 0xCA62C1D6) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[65] + 0xCA62C1D6) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[66] + 0xCA62C1D6) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[67] + 0xCA62C1D6) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[68] + 0xCA62C1D6) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[69] + 0xCA62C1D6) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[70] + 0xCA62C1D6) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[71] + 0xCA62C1D6) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[72] + 0xCA62C1D6) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[73] + 0xCA62C1D6) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[74] + 0xCA62C1D6) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[75] + 0xCA62C1D6) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[76] + 0xCA62C1D6) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[77] + 0xCA62C1D6) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[78] + 0xCA62C1D6) % 4294967296
-			E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[79] + 0xCA62C1D6) % 4294967296
-
-			--[[for t = 60, 79 do
-				E, D, C, B, A = D, C, overflow(rotate(B, 30)), A, (overflow(rotate(A, 5)) + overflow(bxor(B, C, D)) + E + W[t] + 0xCA62C1D6) % 4294967296
-			end]]
-
-			self.H0 = (self.H0 + A) % 4294967296
-			self.H1 = (self.H1 + B) % 4294967296
-			self.H2 = (self.H2 + C) % 4294967296
-			self.H3 = (self.H3 + D) % 4294967296
-			self.H4 = (self.H4 + E) % 4294967296
+			self.H0 = tobit(self.H0 + A)
+			self.H1 = tobit(self.H1 + B)
+			self.H2 = tobit(self.H2 + C)
+			self.H3 = tobit(self.H3 + D)
+			self.H4 = tobit(self.H4 + E)
 		end
-
-		if j then jit_on() end
 	end
 end
 
@@ -653,12 +552,6 @@ function metasha256:ctor(a, b, c, d, e, f, g, h)
 end
 
 do
-	local ROTL = rotate
-
-	local function ROTR(x, n)
-		return bor(rshift(x, n), lshift(x, 32 - n))
-	end
-
 	local function CH(x, y, z)
 		return bxor(band(x, y), band(bnot(x), z))
 	end
@@ -684,6 +577,7 @@ do
 	end
 
 	local W = {}
+	local bytes = {}
 
 	local K = {
 		0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5,
@@ -704,35 +598,28 @@ do
 		0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2,
 	}
 
-	K[0] = table.remove(K, 1)
-
 	local function _Inner(self, cc)
-		local j = jit_status()
-
-		jit_off()
-
 		-- 512 bit block
 		for i = 1, math_floor(#cc / 64) do
 			self.blocks = self.blocks + 1
 
-			-- separated as ubytes (8 bit)
-			local bytes = {string_byte(cc, (i - 1) * 64 + 1, i * 64)}
+			local init = (i - 1) * 64 - 4
 
-			-- copy as 4 byte uint blocks
-			for t = 0, 15 do
+			for t = 1, 16 do
 				-- LITTLE-ENDIAN blocks!
-				W[t] = overflow(bor(
-					bytes[t * 4 + 4],
-					lshift(bytes[t * 4 + 3], 8),
-					lshift(bytes[t * 4 + 2], 16),
-					lshift(bytes[t * 4 + 1], 24)
-				))
+				local a, b, c, d = string_byte(cc, init + t * 4 + 1, init + t * 4 + 4)
+
+				W[t] = bor(
+					d,
+					lshift(c, 8),
+					lshift(b, 16),
+					lshift(a, 24)
+				)
 			end
 
 			-- prepare
-			for t = 16, 63 do
-				local a, b = W[t - 2], W[t - 15]
-				W[t] = (overflow(bxor(ROTR(a, 17), ROTR(a, 19), rshift(a, 10))) + W[t - 7] + overflow(bxor(ROTR(b, 7), ROTR(b, 18), rshift(b, 3))) + W[t - 16]) % 4294967296
+			for t = 17, 64 do
+				W[t] = SSIG1(W[t - 2]) + W[t - 7] + SSIG0(W[t - 15]) + W[t - 16]
 			end
 
 			-- working variables
@@ -746,34 +633,27 @@ do
 				self.H6,
 				self.H7
 
-			local T1, T2
-
-			for t = 0, 63 do
-				T1 = (
+			for t = 1, 64 do
+				local T1 =
 					h +
-					overflow(bxor(ROTR(e, 6), ROTR(e, 11), ROTR(e, 25))) +
-					overflow(bxor(band(e, f), band(bnot(e), g))) +
+					BSIG1(e) +
+					CH(e, f, g) +
 					K[t] +
-					W[t]) % 4294967296
+					W[t]
 
-				T2 = (overflow(bxor(ROTR(a, 2), ROTR(a, 13), ROTR(a, 22))) +
-					overflow(bxor(band(a, b), band(a, c), band(b, c)))) % 4294967296
-
-				h, g, f, e, d, c, b, a = g, f, e, (d + T1) % 4294967296, c, b, a, (T1 + T2) % 4294967296
+				h, g, f, e, d, c, b, a = g, f, e, d + T1, c, b, a, T1 + BSIG0(a) + MAJ(a, b, c)
 			end
 
 			-- compute intermediate hash value
-			self.H0 = (a + self.H0) % 4294967296
-			self.H1 = (b + self.H1) % 4294967296
-			self.H2 = (c + self.H2) % 4294967296
-			self.H3 = (d + self.H3) % 4294967296
-			self.H4 = (e + self.H4) % 4294967296
-			self.H5 = (f + self.H5) % 4294967296
-			self.H6 = (g + self.H6) % 4294967296
-			self.H7 = (h + self.H7) % 4294967296
+			self.H0 = tobit(a + self.H0)
+			self.H1 = tobit(b + self.H1)
+			self.H2 = tobit(c + self.H2)
+			self.H3 = tobit(d + self.H3)
+			self.H4 = tobit(e + self.H4)
+			self.H5 = tobit(f + self.H5)
+			self.H6 = tobit(g + self.H6)
+			self.H7 = tobit(h + self.H7)
 		end
-
-		if j then jit_on() end
 	end
 
 	metasha224._Inner = _Inner
