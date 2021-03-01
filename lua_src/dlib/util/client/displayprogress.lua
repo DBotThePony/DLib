@@ -153,12 +153,12 @@ local function HUDPaint()
 		render.SetScissorRect(0, Y, max_width * progress, ScrH, true)
 
 		HUDCommons.DrawLoading(2, Y + 2, tall - 8, color2, 16, 4)
-		draw.SimpleText(text, 'DLib_LoadingNotify', 42, Y + 2, color2)
+		draw.DrawText(text, 'DLib_LoadingNotify', 42, Y + 2, color2)
 
 		render.SetScissorRect(max_width * progress, 0, ScrW, ScrH, true)
 
 		HUDCommons.DrawLoading(2, Y + 2, tall - 8, color, 16, 4)
-		draw.SimpleText(text, 'DLib_LoadingNotify', 42, Y + 2, color)
+		draw.DrawText(text, 'DLib_LoadingNotify', 42, Y + 2, color)
 
 		render.SetScissorRect(0, 0, 0, 0, false)
 

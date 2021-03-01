@@ -250,6 +250,17 @@ function DLib.ttf.ASyncSearchFamilies()
 		local files2 = file.Find('cache/workshop/resource/fonts/*.ttf', 'GAME')
 		local output = {}
 
+		local total = #files
+		local sampled = 0
+
+		for i, mfile in ipairs(files2) do
+			if not table.qhasValue(files, mfile) then
+				total = total + 1
+			end
+		end
+
+		DLib.Util.PushProgress('dlibfonts', DLib.I18n.localize('gui.dlib.notify.families_loading'))
+
 		for i, mfile in ipairs(files) do
 			local ttf = DLib.ttf.Open(DLib.BytesBuffer(file.Read('resource/fonts/' .. mfile, 'GAME')))
 			coroutine.syswait(0.1)
@@ -261,6 +272,9 @@ function DLib.ttf.ASyncSearchFamilies()
 					table.insert(output, getName)
 				end
 			end
+
+			sampled = sampled + 1
+			DLib.Util.PushProgress('dlibfonts', DLib.I18n.localize('gui.dlib.notify.families_loading'), sampled / total)
 		end
 
 		for i, mfile in ipairs(files2) do
@@ -275,8 +289,13 @@ function DLib.ttf.ASyncSearchFamilies()
 						table.insert(output, getName)
 					end
 				end
+
+				sampled = sampled + 1
+				DLib.Util.PushProgress('dlibfonts', DLib.I18n.localize('gui.dlib.notify.families_loading'), sampled / total)
 			end
 		end
+
+		DLib.Util.PopProgress('dlibfonts')
 
 		concurrentRunning = nil
 		return table.deduplicate(output)
@@ -298,24 +317,6 @@ local color_black = color_black
 local ScreenSize = ScreenSize
 local draw = draw
 local TEXT_ALIGN_CENTER = TEXT_ALIGN_CENTER
-
-hook.Add('PostRenderVGUI', 'DLib.ASyncSearchFamilies', function()
-	if not concurrentRunning then return end
-
-	surface.SetFont('DLib.ASyncSearchFamilies')
-	local text = DLib.i18n.localize('gui.dlib.notify.families_loading')
-	local w, h = surface.GetTextSize(text)
-
-	local x, y = ScrWL() / 2, ScrHL() * 0.03
-	x = x - w / 2 - h - ScreenSize(4)
-
-	DLib.HUDCommons.DrawLoading(x + 2, y + 2, h, color_black, 50, math.floor(h / 6):ceil():max(4))
-	DLib.HUDCommons.DrawLoading(x, y, h, drawColorNotify, 50, math.floor(h / 6):ceil():max(4))
-	x = x + ScreenSize(4) + w / 2 + h
-
-	draw.DrawText(text, 'DLib.ASyncSearchFamilies', x + 1, y + 1, color_black, TEXT_ALIGN_CENTER)
-	draw.DrawText(text, 'DLib.ASyncSearchFamilies', x, y, drawColorNotify, TEXT_ALIGN_CENTER)
-end)
 
 function DLib.ttf.SearchFamiliesCached()
 	if DLib.ttf.__familyCache then
