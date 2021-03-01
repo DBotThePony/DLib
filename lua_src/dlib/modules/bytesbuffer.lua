@@ -935,6 +935,30 @@ meta.ReadUShortLE = meta.ReadUInt16LE
 	@returns
 	number
 ]]
+function meta:ReadInt32_2()
+	return self:ReadUInt32LE() - 0x80000000
+end
+
+function meta:ReadInt32()
+	return unwrap(self:ReadUInt32LE(), 0x80000000)
+end
+
+function meta:ReadUInt32()
+	self:CheckOverflow('UInt32', 4)
+
+	local bytes, pointer = self.bytes, self.pointer + 1
+
+	local value =
+		lshift(bytes[pointer], 24) +
+		lshift(bytes[pointer + 1], 16) +
+		lshift(bytes[pointer + 2], 8) +
+		bytes[pointer + 3]
+
+	self.pointer = pointer + 3
+
+	return value
+end
+
 function meta:ReadInt32LE_2()
 	return self:ReadUInt32LE() - 0x80000000
 end
