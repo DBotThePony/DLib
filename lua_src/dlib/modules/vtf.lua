@@ -506,7 +506,7 @@ do
 
 		for i = 1, 16 do
 			local col = getblock[i]
-			sampleR, sampleG, sampleB = sampleR + col[1], sampleG + col[2], sampleB + col[3], sampleA + col[4]
+			sampleR, sampleG, sampleB, sampleA = sampleR + col[1], sampleG + col[2], sampleB + col[3], sampleA + col[4]
 		end
 
 		result[1] = sampleR * 0.0625
@@ -520,7 +520,7 @@ do
 
 		for i = 1, 16 do
 			local col = getblock[i]
-			sampleR, sampleG, sampleB = sampleR + col[1], sampleG + col[2], sampleB + col[3], sampleA + col[4]
+			sampleR, sampleG, sampleB, sampleA = sampleR + col[1], sampleG + col[2], sampleB + col[3], sampleA + col[4]
 		end
 
 		return sampleR * 0.0625, sampleG * 0.0625, sampleB * 0.0625, sampleA * 0.0625
