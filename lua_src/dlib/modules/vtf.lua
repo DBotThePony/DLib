@@ -18,6 +18,8 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
+DLib._NEXT_VTF_PROGRESS_IDENTIFIER = DLib._NEXT_VTF_PROGRESS_IDENTIFIER or 0
+
 _G.TEXTUREFLAGS_POINTSAMPLE                   = 0x00000001
 _G.TEXTUREFLAGS_TRILINEAR                     = 0x00000002
 _G.TEXTUREFLAGS_CLAMPS                        = 0x00000004
@@ -581,6 +583,27 @@ do
 		if opts.coroutine == nil then opts.coroutine = coroutine.running() ~= nil end
 		if opts.thresold == nil then opts.thresold = 0.02 end
 
+		local identifier
+
+		if opts.before == nil and opts.after == nil then
+			identifier = string.format('vtf_mips_%d', DLib._NEXT_VTF_PROGRESS_IDENTIFIER)
+			DLib._NEXT_VTF_PROGRESS_IDENTIFIER = DLib._NEXT_VTF_PROGRESS_IDENTIFIER + 1
+			local text = supersample and DLib.I18n.Localize('gui.dlib.notify.vtf_sampling') or DLib.I18n.Localize('gui.dlib.notify.vtf_supersampling')
+
+			function opts.before()
+
+			end
+
+			function opts.after(progress)
+				DLib.Util.PushProgress(identifier, text, progress)
+			end
+		end
+
+		if opts.before == nil then opts.before = function() end end
+		if opts.after == nil then opts.after = function() end end
+
+		local _before, _after = opts.before, opts.after
+
 		local use_coroutine = opts.coroutine
 		local thresold = opts.thresold
 
@@ -592,6 +615,14 @@ do
 		local reflectivityO
 
 		local scoroutine = SysTime() + thresold
+
+		local tosample = 0
+		local sampled = 0
+
+		for mipmap = self.mipmap_count - 1, 1, -1 do
+			local current = self.mipmaps_obj[mipmap]
+			tosample = tosample + current.width_blocks * current.height_blocks
+		end
 
 		if supersample then
 			local biggest = self.mipmaps_obj[self.mipmap_count]
@@ -708,9 +739,13 @@ do
 							current:SetBlock(blockX, blockY, sample_encode_buff, true)
 							encoding = encoding + SysTime() - s
 
+							sampled = sampled + 1
+
 							if use_coroutine and scoroutine <= SysTime() then
+								_before()
 								coroutine_yield(...)
 								scoroutine = SysTime() + thresold
+								_after(sampled / tosample)
 							end
 						end
 					end
@@ -755,9 +790,13 @@ do
 							current:SetBlock(blockX, blockY, sample_encode_buff, true)
 							encoding = encoding + SysTime() - s
 
+							sampled = sampled + 1
+
 							if use_coroutine and scoroutine <= SysTime() then
+								_before()
 								coroutine_yield(...)
 								scoroutine = SysTime() + thresold
+								_after(sampled / tosample)
 							end
 						end
 					end
@@ -806,9 +845,13 @@ do
 							current:SetBlock(blockX, blockY, sample_encode_buff, true)
 							encoding = encoding + SysTime() - s
 
+							sampled = sampled + 1
+
 							if use_coroutine and scoroutine <= SysTime() then
+								_before()
 								coroutine_yield(...)
 								scoroutine = SysTime() + thresold
+								_after(sampled / tosample)
 							end
 						end
 					end
@@ -930,9 +973,13 @@ do
 						current:SetBlock(blockX, blockY, sample_encode_buff, true)
 						encoding = encoding + SysTime() - s
 
+						sampled = sampled + 1
+
 						if use_coroutine and scoroutine <= SysTime() then
+							_before()
 							coroutine_yield(...)
 							scoroutine = SysTime() + thresold
+							_after(sampled / tosample)
 						end
 					end
 				end
@@ -955,6 +1002,10 @@ do
 		bytes:WriteFloatLE(reflectivity.x)
 		bytes:WriteFloatLE(reflectivity.y)
 		bytes:WriteFloatLE(reflectivity.z)
+
+		if identifier then
+			DLib.Util.PopProgress(identifier)
+		end
 
 		return true, sampling, encoding
 	end
@@ -1042,15 +1093,21 @@ function VTF:CaptureRenderTargetCoroutine(opts, y, width, height, rx, ry, ...)
 	if opts.width == nil then opts.width = math.min(ScrW() - opts.rx, self.width - 1) end
 	if opts.height == nil then opts.height = math.min(ScrH() - opts.ry, self.height - 1) end
 
+	local identifier
+
 	if opts.before == nil and opts.after == nil then
 		local rt = render.GetRenderTarget()
+		identifier = string.format('vtf_rt_%d', DLib._NEXT_VTF_PROGRESS_IDENTIFIER)
+		DLib._NEXT_VTF_PROGRESS_IDENTIFIER = DLib._NEXT_VTF_PROGRESS_IDENTIFIER + 1
+		local text = DLib.I18n.Localize('gui.dlib.notify.vtf_encoding')
 
 		function opts.before()
 			render.PopRenderTarget()
 		end
 
-		function opts.after()
+		function opts.after(progress)
 			render.PushRenderTarget(rt)
+			DLib.Util.PushProgress(identifier, text, progress)
 		end
 	end
 
@@ -1064,6 +1121,10 @@ function VTF:CaptureRenderTargetCoroutine(opts, y, width, height, rx, ry, ...)
 
 	render.CapturePixels()
 	self.mipmaps_obj[self.mipmap_count]:CaptureRenderTargetCoroutine(opts.x, opts.y, opts.width, opts.height, opts.rx, opts.ry, opts.before, opts.after, opts.thersold, unpack(opts.yield_args))
+
+	if identifier then
+		DLib.Util.PopProgress(identifier)
+	end
 
 	return true
 end
@@ -1126,15 +1187,21 @@ function VTF:CaptureRenderTargetAsAlphaCoroutine(opts, y, width, height, rx, ry,
 	if opts.width == nil then opts.width = math.min(ScrW() - opts.rx, self.width - 1) end
 	if opts.height == nil then opts.height = math.min(ScrH() - opts.ry, self.height - 1) end
 
+	local identifier
+
 	if opts.before == nil and opts.after == nil then
 		local rt = render.GetRenderTarget()
+		identifier = string.format('vtf_rta_%d', DLib._NEXT_VTF_PROGRESS_IDENTIFIER)
+		DLib._NEXT_VTF_PROGRESS_IDENTIFIER = DLib._NEXT_VTF_PROGRESS_IDENTIFIER + 1
+		local text = DLib.I18n.Localize('gui.dlib.notify.vtf_encoding')
 
 		function opts.before()
 			render.PopRenderTarget()
 		end
 
-		function opts.after()
+		function opts.after(progress)
 			render.PushRenderTarget(rt)
+			DLib.Util.PushProgress(identifier, text, progress)
 		end
 	end
 
@@ -1148,6 +1215,10 @@ function VTF:CaptureRenderTargetAsAlphaCoroutine(opts, y, width, height, rx, ry,
 
 	render.CapturePixels()
 	self.mipmaps_obj[self.mipmap_count]:CaptureRenderTargetAlphaCoroutine(opts.x, opts.y, opts.width, opts.height, opts.rx, opts.ry, opts.before, opts.after, opts.thersold, unpack(opts.yield_args))
+
+	if identifier then
+		DLib.Util.PopProgress(identifier)
+	end
 
 	return true
 end

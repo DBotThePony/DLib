@@ -45,10 +45,10 @@ local total_tall = 0
 for _, data in pairs(DisplayProgressList) do
 	table.insert(list, data)
 	max_width = max_width:max(data[4])
-	total_tall = total_tall + data[5]
+	total_tall = total_tall + data[5] + 4
 end
 
-max_width = max_width + 40
+max_width = max_width + 50
 
 function Util.PushProgress(identifier, text, progress)
 	assert(isstring(identifier), 'isstring(identifier)')
@@ -72,8 +72,10 @@ function Util.PushProgress(identifier, text, progress)
 
 		for i = 1, #list do
 			max_width = max_width:max(list[i][4])
-			total_tall = total_tall + list[i][5]
+			total_tall = total_tall + list[i][5] + 4
 		end
+
+		max_width = max_width + 50
 
 		return
 	end
@@ -88,10 +90,10 @@ function Util.PushProgress(identifier, text, progress)
 
 	for i = 1, #list do
 		max_width = max_width:max(list[i][4])
-		total_tall = total_tall + list[i][5]
+		total_tall = total_tall + list[i][5] + 4
 	end
 
-	max_width = max_width + 40
+	max_width = max_width + 50
 end
 
 function Util.PopProgress(identifier)
@@ -115,10 +117,10 @@ function Util.PopProgress(identifier)
 
 	for i = 1, #list do
 		max_width = max_width:max(list[i][4])
-		total_tall = total_tall + list[i][5]
+		total_tall = total_tall + list[i][5] + 4
 	end
 
-	max_width = max_width + 40
+	max_width = max_width + 50
 end
 
 local HUDCommons = DLib.HUDCommons
@@ -143,20 +145,20 @@ local function HUDPaint()
 		local text = data[2]
 		local progress = data[3]
 
-		local tall = select(2, surface.GetTextSize(text))
+		local tall = select(2, surface.GetTextSize(text)) + 4
 
 		surface.SetDrawColor(0, 100, 0)
 		surface.DrawRect(0, Y, max_width * progress, tall)
 
 		render.SetScissorRect(0, Y, max_width * progress, ScrH, true)
 
-		HUDCommons.DrawLoading(2, Y + 2, tall - 4, color2, 16, 4)
-		draw.SimpleText(text, 'DLib_LoadingNotify', 32, Y, color2)
+		HUDCommons.DrawLoading(2, Y + 2, tall - 8, color2, 16, 4)
+		draw.SimpleText(text, 'DLib_LoadingNotify', 42, Y + 2, color2)
 
 		render.SetScissorRect(max_width * progress, 0, ScrW, ScrH, true)
 
-		HUDCommons.DrawLoading(2, Y + 2, tall - 4, color, 16, 4)
-		draw.SimpleText(text, 'DLib_LoadingNotify', 32, Y, color)
+		HUDCommons.DrawLoading(2, Y + 2, tall - 8, color, 16, 4)
+		draw.SimpleText(text, 'DLib_LoadingNotify', 42, Y + 2, color)
 
 		render.SetScissorRect(0, 0, 0, 0, false)
 
