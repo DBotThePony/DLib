@@ -155,6 +155,9 @@ gui.dlib.hudcommons.menu.nothing_to_edit = 'Нечего менять.'
 gui.dlib.hudcommons.menu.interactive_mode = 'Запустить интерактивный режим'
 
 gui.dlib.notify.families_loading = 'Возможны подвисания, DLib печёт тортик\n(поиск установленных шрифтов)'
+gui.dlib.notify.vtf_encoding = 'DLib кодирует VTF текстуру'
+gui.dlib.notify.vtf_sampling = 'DLib кодирует VTF текстуру'
+gui.dlib.notify.vtf_supersampling = 'DLib суперсемплит VTF текстуру'
 
 local prefix = {
 	{'yocto',   'и',     'Иокто'},
