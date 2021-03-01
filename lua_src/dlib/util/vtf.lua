@@ -565,8 +565,24 @@ do
 	-- if supersample, then it sample biggest mip and as current mip become smaller, more texels are sampled
 
 	-- also, auto generating mipmaps will also calculate reflectivity
-	function VTF:AutoGenerateMips(supersample)
+
+	local coroutine_yield = coroutine.yield
+
+	function VTF:AutoGenerateMips(supersample, opts, ...)
 		if self.mipmap_count == 1 then return false end
+
+		if not istable(opts) then
+			opts = {
+				coroutine = coroutine.running() ~= nil,
+				thresold = 0.02,
+			}
+		end
+
+		if opts.coroutine == nil then opts.coroutine = coroutine.running() ~= nil end
+		if opts.thresold == nil then opts.thresold = 0.02 end
+
+		local use_coroutine = opts.coroutine
+		local thresold = opts.thresold
 
 		local sampling = 0
 		local encoding = 0
@@ -574,6 +590,8 @@ do
 		local sampleR, sampleG, sampleB, sampleA, samples = 0, 0, 0, 0, 0
 		local reflectivity = true
 		local reflectivityO
+
+		local scoroutine = SysTime() + thresold
 
 		if supersample then
 			local biggest = self.mipmaps_obj[self.mipmap_count]
@@ -689,6 +707,11 @@ do
 							s = SysTime()
 							current:SetBlock(blockX, blockY, sample_encode_buff, true)
 							encoding = encoding + SysTime() - s
+
+							if use_coroutine and scoroutine <= SysTime() then
+								coroutine_yield(...)
+								scoroutine = SysTime() + thresold
+							end
 						end
 					end
 
@@ -731,6 +754,11 @@ do
 							s = SysTime()
 							current:SetBlock(blockX, blockY, sample_encode_buff, true)
 							encoding = encoding + SysTime() - s
+
+							if use_coroutine and scoroutine <= SysTime() then
+								coroutine_yield(...)
+								scoroutine = SysTime() + thresold
+							end
 						end
 					end
 
@@ -777,6 +805,11 @@ do
 							s = SysTime()
 							current:SetBlock(blockX, blockY, sample_encode_buff, true)
 							encoding = encoding + SysTime() - s
+
+							if use_coroutine and scoroutine <= SysTime() then
+								coroutine_yield(...)
+								scoroutine = SysTime() + thresold
+							end
 						end
 					end
 				end
@@ -896,6 +929,11 @@ do
 						s = SysTime()
 						current:SetBlock(blockX, blockY, sample_encode_buff, true)
 						encoding = encoding + SysTime() - s
+
+						if use_coroutine and scoroutine <= SysTime() then
+							coroutine_yield(...)
+							scoroutine = SysTime() + thresold
+						end
 					end
 				end
 
