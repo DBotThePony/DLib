@@ -55,12 +55,13 @@ function Util.PushProgress(identifier, text, progress)
 	assert(isstring(text), 'isstring(text)')
 
 	progress = progress or 0
+	assert(isnumber(progress), 'isnumber(progress)')
 
 	if not DisplayProgressList[identifier] then
 		surface.SetFont('DLib_LoadingNotify')
 
 		local data = {
-			identifier, text, progress, surface.GetTextSize(text)
+			identifier, text, progress:clamp(0, 1), surface.GetTextSize(text)
 		}
 
 		table.insert(list, data)
@@ -78,7 +79,7 @@ function Util.PushProgress(identifier, text, progress)
 	end
 
 	DisplayProgressList[identifier][2] = text
-	DisplayProgressList[identifier][3] = progress
+	DisplayProgressList[identifier][3] = progress:clamp(0, 1)
 	surface.SetFont('DLib_LoadingNotify')
 	DisplayProgressList[identifier][4], DisplayProgressList[identifier][4] = surface.GetTextSize(text)
 
