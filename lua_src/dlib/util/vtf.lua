@@ -993,6 +993,7 @@ function VTF:CalculateReflectivity()
 end
 
 function VTF:CaptureRenderTarget(opts, y, width, height, rx, ry)
+	if SERVER then error('Invalid realm', 2) end
 	if not istable(opts) then
 		opts = {
 			x = opts,
@@ -1021,6 +1022,7 @@ function VTF:CaptureRenderTarget(opts, y, width, height, rx, ry)
 end
 
 function VTF:CaptureRenderTargetCoroutine(opts, y, width, height, rx, ry, ...)
+	if SERVER then error('Invalid realm', 2) end
 	if not istable(opts) then
 		opts = {
 			x = opts,
@@ -1071,6 +1073,7 @@ end
 -- fully black - means fully translucent
 -- R, G, B are equal and their sum is divided by 3
 function VTF:CaptureRenderTargetAsAlpha(opts, y, width, height, rx, ry)
+	if SERVER then error('Invalid realm', 2) end
 	if not self.support_alpha then return false end
 
 	if not istable(opts) then
@@ -1101,6 +1104,7 @@ function VTF:CaptureRenderTargetAsAlpha(opts, y, width, height, rx, ry)
 end
 
 function VTF:CaptureRenderTargetAsAlphaCoroutine(opts, y, width, height, rx, ry, ...)
+	if SERVER then error('Invalid realm', 2) end
 	if not self.support_alpha then return false end
 
 	if not istable(opts) then
