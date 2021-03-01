@@ -936,11 +936,11 @@ meta.ReadUShortLE = meta.ReadUInt16LE
 	number
 ]]
 function meta:ReadInt32_2()
-	return self:ReadUInt32LE() - 0x80000000
+	return self:ReadUInt32() - 0x80000000
 end
 
 function meta:ReadInt32()
-	return unwrap(self:ReadUInt32LE(), 0x80000000)
+	return unwrap(self:ReadUInt32(), 0x80000000)
 end
 
 function meta:ReadUInt32()
