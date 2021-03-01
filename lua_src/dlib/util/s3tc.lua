@@ -31,7 +31,7 @@
 
 local color_black = Color(0, 0, 0)
 local color_white = Color()
-local min, max, ceil, floor, clamp = math.min, math.max, math.ceil, math.floor, math.clamp
+local min, max, ceil, floor, clamp, round = math.min, math.max, math.ceil, math.floor, math.clamp, math.round
 local band, bor, rshift, lshift = bit.band, bit.bor, bit.rshift, bit.lshift
 local assert = assert
 local Color = Color
@@ -57,26 +57,26 @@ end
 
 -- decode byte swapped (big endian ready) 5, 6, 5 color
 local function to_color_5_6_5(value)
-	local b = floor(band(value, 31) * 8.2258064516129)
-	local g = floor(band(rshift(value, 5), 63) * 4.047619047619)
-	local r = floor(band(rshift(value, 11), 31) * 8.2258064516129)
+	local b = round(band(value, 31) * 8.2258064516129)
+	local g = round(band(rshift(value, 5), 63) * 4.047619047619)
+	local r = round(band(rshift(value, 11), 31) * 8.2258064516129)
 
 	return Color(r, g, b)
 end
 
 local function to_color_5_6_5_plain(value)
-	local b = floor(band(value, 31) * 8.2258064516129)
-	local g = floor(band(rshift(value, 5), 63) * 4.047619047619)
-	local r = floor(band(rshift(value, 11), 31) * 8.2258064516129)
+	local b = round(band(value, 31) * 8.2258064516129)
+	local g = round(band(rshift(value, 5), 63) * 4.047619047619)
+	local r = round(band(rshift(value, 11), 31) * 8.2258064516129)
 
 	return r, g, b
 end
 
 -- encode 5, 6, 5 color as big endian
 local function encode_color_5_6_5(r, g, b)
-	local r = floor(clamp(r, 0, 1) * 31)
-	local g = floor(clamp(g, 0, 1) * 63)
-	local b = floor(clamp(b, 0, 1) * 31)
+	local r = round(clamp(r, 0, 1) * 31)
+	local g = round(clamp(g, 0, 1) * 63)
+	local b = round(clamp(b, 0, 1) * 31)
 
 	return max(0, bor(lshift(r, 11), lshift(g, 5), b))
 end
@@ -616,9 +616,9 @@ do
 
 	-- 255, 255, 255 rgb encoded to 5 6 5 palette as floats
 	local function encode_color_5_6_5_error(r, g, b)
-		local _r = floor(r * 0.12156862745098)
-		local _g = floor(g * 0.24705882352941)
-		local _b = floor(b * 0.12156862745098)
+		local _r = round(r * 0.12156862745098)
+		local _g = round(g * 0.24705882352941)
+		local _b = round(b * 0.12156862745098)
 
 		return _r * 0.032258064516129, _g * 0.015873015873016, _b * 0.032258064516129, r - _r * 8.2258064516129, g - _g * 4.047619047619, b - _b * 8.2258064516129
 	end
