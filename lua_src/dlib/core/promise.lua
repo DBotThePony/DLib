@@ -91,6 +91,7 @@ function meta:execute(...)
 	if self.handlerType == 'function' then
 		xpcall(self.handler, function(err)
 			self.errors = {debug_traceback(err, 2)}
+			self.errors_num = 1
 			self.failure = true
 			self.executed_finish = true
 
@@ -99,6 +100,7 @@ function meta:execute(...)
 			end
 		end, function(...)
 			self.returns = {...}
+			self.returns_num = select('#', ...)
 			self.success = true
 			self.executed_finish = true
 
@@ -107,6 +109,7 @@ function meta:execute(...)
 			end
 		end, function(...)
 			self.errors = {...}
+			self.errors_num = select('#', ...)
 			self.failure = true
 			self.executed_finish = true
 
@@ -122,6 +125,7 @@ function meta:execute(...)
 
 	if not args[1] then
 		self.errors = {args[2]}
+		self.errors_num = 1
 		self.failure = true
 		self.executed_finish = true
 
@@ -137,12 +141,23 @@ function meta:execute(...)
 	if status == 'dead' then
 		table_remove(args, 1)
 
+		local max = next(args)
+
+		if max then
+			for index in pairs(args) do
+				if index > max then
+					max = index
+				end
+			end
+		end
+
 		self.returns = args
+		self.returns_num = max
 		self.success = true
 		self.executed_finish = true
 
 		if self.resolve then
-			self.resolve(unpack(args, 1, #args))
+			self.resolve(unpack(args, 1, max))
 		end
 
 		return
@@ -153,6 +168,7 @@ function meta:execute(...)
 
 		if not args[1] then
 			self.errors = {args[2]}
+			self.errors_num = 1
 			self.failure = true
 			self.executed_finish = true
 
@@ -168,12 +184,23 @@ function meta:execute(...)
 		if status == 'dead' then
 			table_remove(args, 1)
 
+			local max = next(args)
+
+			if max then
+				for index in pairs(args) do
+					if index > max then
+						max = index
+					end
+				end
+			end
+
 			self.returns = args
+			self.returns_num = max
 			self.success = true
 			self.executed_finish = true
 
 			if self.resolve then
-				self.resolve(unpack(args, 1, #args))
+				self.resolve(unpack(args, 1, max))
 			end
 		end
 	end)
@@ -191,7 +218,7 @@ function meta:catch(handler)
 	self.reject = handler
 
 	if self.executed and self.failure then
-		handler(unpack(self.errors, 1, #self.errors))
+		handler(unpack(self.errors, 1, self.errors_num))
 	end
 
 	return self
@@ -205,7 +232,7 @@ function meta:reslv(handler)
 	self.resolve = handler
 
 	if self.executed and self.success then
-		handler(unpack(self.returns, 1, #self.returns))
+		handler(unpack(self.returns, 1, self.returns_num))
 	end
 
 	return self
