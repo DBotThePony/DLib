@@ -40,7 +40,7 @@ local function findRecursive(dirTarget)
 	table_append(dirs, findDirs)
 
 	for i, dir in ipairs(findDirs) do
-		findRecursive(dirTarget .. '/' .. dir)
+		findRecursive(dir)
 	end
 end
 
