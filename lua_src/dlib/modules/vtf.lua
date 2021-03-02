@@ -1155,8 +1155,8 @@ function VTF:CaptureRenderTargetAsAlpha(opts, y, width, height, rx, ry)
 	if opts.width == nil then opts.width = math.min(ScrW() - opts.rx, self.width - 1) end
 	if opts.height == nil then opts.height = math.min(ScrH() - opts.ry, self.height - 1) end
 
-	assert(rx + width < self.width, 'x + width < self.width')
-	assert(ry + height < self.height, 'y + height < self.height')
+	assert(opts.rx + opts.width < self.width, 'x + width < self.width')
+	assert(opts.ry + opts.height < self.height, 'y + height < self.height')
 
 	render.CapturePixels()
 	self.mipmaps_obj[self.mipmap_count]:CaptureRenderTargetAlpha(opts.x, opts.y, opts.width, opts.height, opts.rx, opts.ry)

@@ -148,6 +148,10 @@ do
 	end
 
 	function CaptureRenderTarget(self, rx, ry, w, h, lx, ly)
+		for i = 1, 16 do
+			sample_encode_buff[i][4] = 255
+		end
+
 		local sBlockX = (lx - lx % 4) / 4
 		local sBlockY = (ly - ly % 4) / 4
 
@@ -227,6 +231,10 @@ do
 	local SysTime = SysTime
 
 	function CaptureRenderTargetCoroutine(self, rx, ry, w, h, lx, ly, callbackBefore, callbackAfter, thersold, ...)
+		for i = 1, 16 do
+			sample_encode_buff[i][4] = 255
+		end
+
 		local sBlockX = (lx - lx % 4) / 4
 		local sBlockY = (ly - ly % 4) / 4
 
