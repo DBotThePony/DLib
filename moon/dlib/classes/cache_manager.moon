@@ -116,7 +116,7 @@ class DLib.CacheManager
 		if @state_hash[key]
 			@state_hash[key].last_access = os.time()
 			@dirty = true
-			return true
+			return key
 
 		return false
 
