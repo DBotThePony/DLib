@@ -52,7 +52,7 @@ class DLib.CacheManager
 							size: file.Size(@folder .. '/' .. folder .. '/' .. filename, 'DATA')
 						})
 
-			@dirty = true
+			@SaveSwap()
 
 		@state_hash = {}
 
@@ -71,6 +71,11 @@ class DLib.CacheManager
 
 	SaveSwapIfDirty: =>
 		return false if not @dirty
+		@SaveSwap()
+		return true
+
+	SaveSwapIfDirtyForLong: =>
+		return false if not @dirty or @dirty + 10 > SysTime()
 		@SaveSwap()
 		return true
 
@@ -115,7 +120,8 @@ class DLib.CacheManager
 	HasGetHash: (key) =>
 		if @state_hash[key]
 			@state_hash[key].last_access = os.time()
-			@dirty = true
+			@dirty = SysTime() if not @dirty
+			@SaveSwapIfDirtyForLong()
 			return key
 
 		return false
@@ -123,10 +129,11 @@ class DLib.CacheManager
 	GetHash: (key, if_none) =>
 		return if_none if not @state_hash[key]
 		@state_hash[key].last_access = os.time()
-		@dirty = true
+		@dirty = SysTime() if not @dirty
 		return file.Read(string.format('%s/%s/%s.%s', @folder, key\sub(1, 2), key, @extension), 'DATA')
 
 	SetHash: (key, value) =>
+		file.mkdir(string.format('%s/%s', @folder, key\sub(1, 2))
 		file.Write(string.format('%s/%s/%s.%s', @folder, key\sub(1, 2), key, @extension), value)
 
 		if not @state_hash[key]
@@ -140,4 +147,6 @@ class DLib.CacheManager
 			.last_access = os.time()
 			.size = #value
 
-		@dirty = true
+		@dirty = SysTime() if not @dirty
+		@CleanupIfFull()
+		@SaveSwapIfDirty()
