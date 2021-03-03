@@ -116,13 +116,14 @@ class DLib.CacheManager
 		@SaveSwap()
 		return true
 
-	HasHash: (key) => @state_hash[key] ~= nil
+	HasHash: (key) => @state_hash[key] and string.format('%s/%s/%s.%s', @folder, key\sub(1, 2), key, @extension) or false
+
 	HasGetHash: (key) =>
 		if @state_hash[key]
 			@state_hash[key].last_access = os.time()
 			@dirty = SysTime() if not @dirty
 			@SaveSwapIfDirtyForLong()
-			return key
+			return string.format('%s/%s/%s.%s', @folder, key\sub(1, 2), key, @extension)
 
 		return false
 
@@ -134,7 +135,8 @@ class DLib.CacheManager
 
 	SetHash: (key, value) =>
 		file.mkdir(string.format('%s/%s', @folder, key\sub(1, 2)))
-		file.Write(string.format('%s/%s/%s.%s', @folder, key\sub(1, 2), key, @extension), value)
+		path = string.format('%s/%s/%s.%s', @folder, key\sub(1, 2), key, @extension)
+		file.Write(path, value)
 
 		if not @state_hash[key]
 			@state_hash[key] = {
@@ -150,3 +152,4 @@ class DLib.CacheManager
 		@dirty = SysTime() if not @dirty
 		@CleanupIfFull()
 		@SaveSwapIfDirty()
+		return path
