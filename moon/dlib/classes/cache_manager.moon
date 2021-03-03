@@ -133,7 +133,7 @@ class DLib.CacheManager
 		return file.Read(string.format('%s/%s/%s.%s', @folder, key\sub(1, 2), key, @extension), 'DATA')
 
 	SetHash: (key, value) =>
-		file.mkdir(string.format('%s/%s', @folder, key\sub(1, 2))
+		file.mkdir(string.format('%s/%s', @folder, key\sub(1, 2)))
 		file.Write(string.format('%s/%s/%s.%s', @folder, key\sub(1, 2), key, @extension), value)
 
 		if not @state_hash[key]
