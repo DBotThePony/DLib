@@ -160,6 +160,8 @@ gui.dlib.notify.vtf_encoding = 'DLib is encoding a VTF texture'
 gui.dlib.notify.vtf_sampling = 'DLib is sampling a VTF texture'
 gui.dlib.notify.vtf_supersampling = 'DLib is supersampling a VTF texture'
 
+message.dlib.cache_manager.cleanup = 'Cache manager %q deleted #d files with total size of %s'
+
 -- yotta    Y    10008      1024   1000000000000000000000000    septillion      quadrillion    1991
 -- zetta    Z    10007      1021   1000000000000000000000   sextillion      trilliard  1991
 -- exa      E    10006      1018   1000000000000000000      quintillion     trillion   1975

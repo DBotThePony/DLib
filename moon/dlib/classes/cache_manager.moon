@@ -106,12 +106,19 @@ class DLib.CacheManager
 		time = SysTime()
 		sessionstart = os.time() - time
 
+		deleted = 0
+		deleted_size = 0
+
 		while size >= limit and #@state ~= 0
 			obj = table.remove(@state)
 			break if size < limit * 2 and obj.last_access < sessionstart
 			@state_hash[obj.hash] = nil
 			file.Delete(string.format('%s/%s/%s.%s', @folder, obj.hash\sub(1, 2), obj.hash, @extension))
 			size -= obj.size
+			deleted_size += obj.size
+			deleted += 1
+
+		DLib.LMessage('message.dlib.cache_manager.cleanup', @folder, deleted, DLib.I18n.FormatAnyBytesLong(deleted_size))
 
 		@SaveSwap()
 		return true
