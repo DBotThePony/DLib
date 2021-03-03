@@ -588,7 +588,7 @@ do
 		if opts.before == nil and opts.after == nil then
 			identifier = string.format('vtf_mips_%d', DLib._NEXT_VTF_PROGRESS_IDENTIFIER)
 			DLib._NEXT_VTF_PROGRESS_IDENTIFIER = DLib._NEXT_VTF_PROGRESS_IDENTIFIER + 1
-			local text = supersample and DLib.I18n.Localize('gui.dlib.notify.vtf_sampling') or DLib.I18n.Localize('gui.dlib.notify.vtf_supersampling')
+			local text = supersample and DLib.I18n.Localize('gui.dlib.notify.vtf_supersampling') or DLib.I18n.Localize('gui.dlib.notify.vtf_sampling')
 
 			function opts.before()
 
