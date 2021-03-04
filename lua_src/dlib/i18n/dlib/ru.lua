@@ -291,3 +291,4 @@ info.dlib.si.bytes.tera = '%.2f терабайт'
 info.dlib.si.bytes.peta = '%.2f петабайт'
 
 message.dlib.cache_manager.cleanup = 'Менеджер кеша %q удалил #d файлов с общим размером %s'
+message.dlib.cache_manager.total_size = 'Менеджер кеша %q хранит #d файлов с общим размером %s'

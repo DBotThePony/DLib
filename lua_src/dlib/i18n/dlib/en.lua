@@ -161,6 +161,9 @@ gui.dlib.notify.vtf_sampling = 'DLib is sampling a VTF texture'
 gui.dlib.notify.vtf_supersampling = 'DLib is supersampling a VTF texture'
 
 message.dlib.cache_manager.cleanup = 'Cache manager %q deleted #d files with total size of %s'
+message.dlib.cache_manager.cleanup_not_required = 'Cleanup of %q is not required'
+message.dlib.cache_manager.nothing_to_remove = '%q is empty'
+message.dlib.cache_manager.total_size = 'Cache manager %q has #d files with total size of %s'
 
 -- yotta    Y    10008      1024   1000000000000000000000000    septillion      quadrillion    1991
 -- zetta    Z    10007      1021   1000000000000000000000   sextillion      trilliard  1991

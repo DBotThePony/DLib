@@ -95,6 +95,30 @@ class DLib.CacheManager
 
 		return calculate
 
+	AddCommands: (prefix = @folder) =>
+		@AddCommandTotalSize(prefix .. '_print_size')
+		@AddCommandCleanupIfFull(prefix .. '_cleanup')
+		@AddCommandRemoveEverything(prefix .. '_clear')
+
+	AddCommandTotalSize: (name = @folder .. '_print_size') =>
+		concommand.Add name, (ply) ->
+			return if IsValid(ply) and SERVER
+			DLib.LMessage('message.dlib.cache_manager.total_size', @folder, #@state, DLib.I18n.FormatAnyBytesLong(@TotalSize()))
+
+	AddCommandCleanupIfFull: (name = @folder .. '_cleanup') =>
+		concommand.Add name, (ply) ->
+			return if IsValid(ply) and SERVER
+
+			if not @CleanupIfFull()
+				DLib.LMessage('message.dlib.cache_manager.cleanup_not_required', @folder)
+
+	AddCommandRemoveEverything: (name = @folder .. '_clear') =>
+		concommand.Add name, (ply) ->
+			return if IsValid(ply) and SERVER
+
+			if not @RemoveEverything()
+				DLib.LMessage('message.dlib.cache_manager.nothing_to_remove', @folder)
+
 	RemoveEverything: =>
 		return false if #@state == 0
 
