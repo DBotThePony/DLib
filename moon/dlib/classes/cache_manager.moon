@@ -33,41 +33,65 @@ class DLib.CacheManager
 
 		if file.Exists(folder .. '/swap.json', 'DATA')
 			@state = util.JSONToTable(file.Read(folder .. '/swap.json', 'DATA'))
-			@dirty = false
+
+			if @state
+				@dirty = false
+				@state_hash = {}
+				@state_hash[state.hash] = state for state in *@state
+			else
+				@state = {}
+				@state_hash = {}
+				@Rescan()
 		else
 			@state = {}
+			@state_hash = {}
+			@Rescan()
 
-			files, folders = file.Find(folder .. '/*', 'DATA')
+		@extension = extension
 
-			for folder in *folders
-				if #folder == 2
-					for filename in *file.Find(@folder .. '/' .. folder .. '/*.' .. extension, 'DATA')
+	Rescan: =>
+		files, folders = file.Find(@folder .. '/*', 'DATA')
+		found_hashes = {}
+
+		for folder in *folders
+			if #folder == 2
+				for filename in *file.Find(@folder .. '/' .. folder .. '/*.' .. @extension, 'DATA')
+					hash = filename\sub(1, -#@extension - 2)
+					found_hashes[hash] = true
+
+					if not @state_hash[hash]
 						time = file.Time(@folder .. '/' .. folder .. '/' .. filename, 'DATA')
 
-						table.insert(@state, {
-							hash: filename\sub(1, -#extension - 2)
+						data = {
+							hash: hash
 							created: time
 							last_access: time
 							last_modify: time
 							size: file.Size(@folder .. '/' .. folder .. '/' .. filename, 'DATA')
-						})
+						}
 
-			@SaveSwap()
+						table.insert(@state, data)
+						@state_hash[hash] = data
 
-		@state_hash = {}
+		for i = #@state, 1, -1
+			data = @state[i]
 
-		for state in *@state
-			@state_hash[state.hash] = state
+			if not found_hashes[data.hash]
+				table.remove(@state, i)
+				@state_hash[data.hash] = nil
 
-		@extension = extension
+		@SaveSwap()
+		return @
 
 	SetConVar: (convar, minimal = 0) =>
 		@convar = convar
 		@minimal = minimal
+		return @
 
 	SaveSwap: =>
 		file.Write(@folder .. '/swap.json', util.TableToJSON(@state, true))
 		@dirty = false
+		return @
 
 	SaveSwapIfDirty: =>
 		return false if not @dirty
@@ -97,8 +121,16 @@ class DLib.CacheManager
 
 	AddCommands: (prefix = @folder) =>
 		@AddCommandTotalSize(prefix .. '_print_size')
+		@AddCommandRescan(prefix .. '_rescan')
 		@AddCommandCleanupIfFull(prefix .. '_cleanup')
 		@AddCommandRemoveEverything(prefix .. '_clear')
+
+	AddCommandRescan: (name = @folder .. '_rescan') =>
+		concommand.Add name, (ply) ->
+			return if IsValid(ply) and SERVER
+			@Rescan()
+			DLib.LMessage('message.dlib.cache_manager.rescanned', @folder)
+			DLib.LMessage('message.dlib.cache_manager.total_size', @folder, #@state, DLib.I18n.FormatAnyBytesLong(@TotalSize()))
 
 	AddCommandTotalSize: (name = @folder .. '_print_size') =>
 		concommand.Add name, (ply) ->
@@ -189,10 +221,13 @@ class DLib.CacheManager
 		file.Write(path, value)
 
 		if not @state_hash[key]
-			@state_hash[key] = {
+			data = {
 				hash: key
 				created: os.time()
 			}
+
+			@state_hash[key] = data
+			table.insert(@state, data)
 
 		with @state_hash[key]
 			.last_modify = os.time()
