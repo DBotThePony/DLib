@@ -963,6 +963,8 @@ do
 			color0_r, color0_g, color0_b, color1_r, color1_g, color1_b = color0_r * luma_inv_r, color0_g * luma_inv_g, color0_b * luma_inv_b, color1_r * luma_inv_r, color1_g * luma_inv_g, color1_b * luma_inv_b
 		end
 
+		color0_r, color0_g, color0_b, color1_r, color1_g, color1_b = clamp(color0_r, 0, 1), clamp(color0_g, 0, 1), clamp(color0_b, 0, 1), clamp(color1_r, 0, 1), clamp(color1_g, 0, 1), clamp(color1_b, 0, 1)
+
 		-- encoded colors
 		local wColor0, wColor1 = encode_color_5_6_5(color0_r, color0_g, color0_b), encode_color_5_6_5(color1_r, color1_g, color1_b)
 
@@ -1009,7 +1011,6 @@ do
 			palette_colors_buffer[2][2] - palette_colors_buffer[1][2],
 			palette_colors_buffer[2][3] - palette_colors_buffer[1][3]
 
-		local fSteps = 3
 		local scale = 3 / (direction_r * direction_r + direction_g * direction_g + direction_b * direction_b)
 		direction_r, direction_g, direction_b = direction_r * scale, direction_g * scale, direction_b * scale
 
@@ -1032,14 +1033,12 @@ do
 				(pixel_g - palette_colors_buffer[1][2]) * direction_g +
 				(pixel_b - palette_colors_buffer[1][3]) * direction_b
 
-			local palette_index = dot_product < 0 and 0 or dot_product > 3 and 1 or palette_bits[ceil(dot_product + 1)]
+			local palette_index = dot_product < 0 and 0 or dot_product > 3 and 1 or palette_bits[round(dot_product) + 1]
 			local chosen_color = palette_colors_buffer[palette_index + 1]
-
-			local encoded = encoded565_buffer[i]
 
 			local r_error, g_error, b_error = pixel_r - chosen_color[1], pixel_g - chosen_color[2], pixel_b - chosen_color[3]
 
-			written = written:rshift(2):bor(palette_index:lshift(30))
+			written = bor(rshift(written, 2), lshift(palette_index, 30))
 
 			if advanced_dither then
 				local dither = dither_precompute[i]
