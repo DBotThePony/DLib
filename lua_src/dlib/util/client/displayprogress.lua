@@ -23,7 +23,8 @@ local color2 = Color()
 
 surface.DLibCreateFont('DLib_LoadingNotify', {
 	font = 'Roboto',
-	size = 14,
+	size = 7,
+	minimum_size = 9,
 	extended = true,
 })
 

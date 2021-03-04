@@ -76,7 +76,7 @@ function surface.DLibCreateFont(fontName, fontData)
 	fontData.osize = fontData.size
 
 	local function refresh()
-		fontData.size = ScreenSize(fontData.osize)
+		fontData.size = ScreenSize(fontData.osize):max(fontData.minimum_size or 0)
 		surface.CreateFont(fontName, fontData)
 	end
 
