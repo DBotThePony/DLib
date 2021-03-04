@@ -292,3 +292,6 @@ info.dlib.si.bytes.peta = '%.2f петабайт'
 
 message.dlib.cache_manager.cleanup = 'Менеджер кеша %q удалил #d файлов с общим размером %s'
 message.dlib.cache_manager.total_size = 'Менеджер кеша %q хранит #d файлов с общим размером %s'
+message.dlib.cache_manager.cleanup_not_required = '%q не требует очистки'
+message.dlib.cache_manager.nothing_to_remove = '%q пуст'
+message.dlib.cache_manager.rescanned = 'Менеджер кеша %q просканировал диск на наличие существующих файлов'
