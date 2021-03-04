@@ -95,6 +95,25 @@ class DLib.CacheManager
 
 		return calculate
 
+	RemoveEverything: =>
+		return false if #@state == 0
+
+		deleted = 0
+		deleted_size = 0
+
+		for i = #@state, 1, -1
+			obj = @state[i]
+			@state[i] = nil
+			file.Delete(string.format('%s/%s/%s.%s', @folder, obj.hash\sub(1, 2), obj.hash, @extension))
+			@state_hash[obj.hash] = nil
+			deleted_size += obj.size
+			deleted += 1
+
+		DLib.LMessage('message.dlib.cache_manager.cleanup', @folder, deleted, DLib.I18n.FormatAnyBytesLong(deleted_size))
+
+		@SaveSwap()
+		return true
+
 	CleanupIfFull: =>
 		size = @TotalSize()
 		limit = @convar and @convar\GetInt()\max(@minimal) or @limit
