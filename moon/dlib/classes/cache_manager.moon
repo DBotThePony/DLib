@@ -83,7 +83,7 @@ class DLib.CacheManager
 		@SaveSwap()
 		return @
 
-	SetConVar: (convar, minimal = 0) =>
+	SetConVar: (convar = CreateConVar(@folder .. '_size', @limit, {FCVAR_ARCHIVE}, 'Cache size in bytes'), minimal = 0) =>
 		@convar = convar
 		@minimal = minimal
 		return @
