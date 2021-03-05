@@ -118,7 +118,7 @@ function table.filter(target, filterFunc)
 	for key, value in pairs(target) do
 		local status = filterFunc(key, value, target)
 
-		if not status then
+		if status then
 			if isnumber(key) then
 				index = index + 1
 
