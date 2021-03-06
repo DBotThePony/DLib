@@ -114,6 +114,7 @@ function table.filter(target, filterFunc)
 	local toRemove = {}
 	local index = 0
 	local indexR = 0
+	local filtered = {}
 
 	for key, value in pairs(target) do
 		local status = filterFunc(key, value, target)
