@@ -68,9 +68,7 @@ end
 ]]
 function file.FindVisible(dir, searchIn)
 	local fileFind, dirFind = file.Find(dir .. '/*', searchIn or 'LUA')
-	table_filter(fileFind, function(key, val) return val[1] ~= '.' end)
-	table_filter(dirFind, function(key, val) return val[1] ~= '.' end)
-	return fileFind, dirFind
+	return table_filter(fileFind, function(key, val) return val[1] ~= '.' end), table_filter(dirFind, function(key, val) return val[1] ~= '.' end)
 end
 
 local file_FindVisible = file.FindVisible
