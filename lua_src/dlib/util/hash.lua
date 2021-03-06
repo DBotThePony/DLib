@@ -771,9 +771,23 @@ end
 local plyMeta = FindMetaTable('Player')
 
 function plyMeta:DLibUniqueID()
+	if self._dlib_hash then return self._dlib_hash end
+
 	if self:IsBot() then
-		return DLib.Util.QuickSHA1('Bot ' .. self:UserID())
+		self._dlib_hash = DLib.Util.QuickSHA1('Bot ' .. self:UserID())
+		return self._dlib_hash
 	end
 
-	return DLib.Util.QuickSHA1(self:SteamID64() or '0')
+	self._dlib_hash = DLib.Util.QuickSHA1(self:SteamID64() or '0')
+	return self._dlib_hash
+end
+
+function player.GetByDLibUniqueID(id)
+	local players = player.GetAll()
+
+	for i = 1, #players do
+		if players[i]:DLibUniqueID() == id then return players[i] end
+	end
+
+	return false
 end
