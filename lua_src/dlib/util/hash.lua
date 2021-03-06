@@ -767,3 +767,13 @@ end
 function DLib.Util.QuickSHA224(str)
 	return DLib.Util.SHA224():Update(str):Digest()
 end
+
+local plyMeta = FindMetaTable('Player')
+
+function plyMeta:DLibUniqueID()
+	if self:IsBot() then
+		return DLib.Util.QuickSHA1('Bot ' .. self:UserID())
+	end
+
+	return DLib.Util.QuickSHA1(self:SteamID64() or '0')
+end
