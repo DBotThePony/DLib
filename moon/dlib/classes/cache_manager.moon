@@ -30,6 +30,7 @@ class DLib.CacheManager
 		file.mkdir(folder)
 		@folder = folder
 		@limit = limit
+		@extension = extension
 
 		if file.Exists(folder .. '/swap.json', 'DATA')
 			@state = util.JSONToTable(file.Read(folder .. '/swap.json', 'DATA'))
@@ -46,8 +47,6 @@ class DLib.CacheManager
 			@state = {}
 			@state_hash = {}
 			@Rescan()
-
-		@extension = extension
 
 	Rescan: =>
 		files, folders = file.Find(@folder .. '/*', 'DATA')
