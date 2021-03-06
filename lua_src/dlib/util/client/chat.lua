@@ -69,9 +69,9 @@ function chat.registerChat(vname, ...)
 	return nw
 end
 
-function chat.registerWithMessages(target, vname, ...)
+function chat.registerWithMessages(target, vname, color, ...)
 	target = target or {}
-	DLib.CMessage(target, vname)
+	DLib.CMessage(target, vname, color)
 
 	local function input(incomingTable)
 		return unpack(target.FormatMessage(unpack(incomingTable)))

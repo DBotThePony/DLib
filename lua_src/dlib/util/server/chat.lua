@@ -87,10 +87,10 @@ function chat.generate(name, targetTable)
 	return newModule
 end
 
-function chat.generateWithMessages(targetTable, name, ...)
+function chat.generateWithMessages(targetTable, name, color, ...)
 	targetTable = targetTable or {}
 
-	DLib.CMessage(targetTable, name, ...)
+	DLib.CMessage(targetTable, name, color)
 	chat.generate(name, targetTable, ...)
 
 	targetTable.chatPlayerMessage = targetTable.chatPlayer
