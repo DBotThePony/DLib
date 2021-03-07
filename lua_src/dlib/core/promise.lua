@@ -253,13 +253,11 @@ function meta:Await(...)
 
 	self:reslv(function()
 		fulfilled = true
-		coroutine_resume(thread)
 	end)
 
 	self:catch(function(err2)
 		err = err2
 		fulfilled = true
-		coroutine_resume(thread)
 	end)
 
 	while not fulfilled do
