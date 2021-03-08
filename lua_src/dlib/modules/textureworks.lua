@@ -1568,3 +1568,168 @@ function RGB888:ReadEntireImage(nocache)
 end
 
 DLib.RGB888 = DLib.CreateMoonClassBare('RGB888', RGB888, RGB888Object, DLib.AbstractTexture)
+
+local BGR888 = {}
+local BGR888Object = {}
+
+function BGR888Object.CountBytes(w, h)
+	return w * h * 3
+end
+
+function BGR888Object.Create(width, height, fill, bytes)
+	assert(width > 0, 'width <= 0')
+	assert(height > 0, 'height <= 0')
+
+	--assert(width % 4 == 0, 'width % 4 ~= 0')
+	--assert(height % 4 == 0, 'height % 4 ~= 0')
+
+	fill = fill or color_white
+	local r, g, b = floor(fill.r), floor(fill.g), floor(fill.b)
+
+	local filler = string.char(b, g, r)
+
+	if not bytes then
+		return DLib.BGR888(DLib.BytesBuffer(string.rep(filler, width * height)), width, height)
+	end
+
+	local pointer = bytes:Tell()
+	bytes:WriteBinary(string.rep(filler, width * height))
+	local pointer2 = bytes:Tell()
+	bytes:Seek(pointer)
+	local texture = DLib.BGR888(bytes, width, height)
+	bytes:Seek(pointer2)
+
+	return texture
+end
+
+function BGR888:SetBlock(x, y, buffer, plain_format)
+	assert(x >= 0, '!x >= 0')
+	assert(y >= 0, '!y >= 0')
+	assert(x < self.width_blocks, '!x <= self.width_blocks')
+	assert(y < self.height_blocks, '!y <= self.height_blocks')
+
+	local bytes = self.bytes
+	local edge = self.edge
+	local width = self.width
+
+	if plain_format then
+		for line = 0, 3 do
+			bytes:Seek(edge + x * 12 + y * width * 12 + line * width * 3)
+
+			local obj = buffer[line * 4 + 1]
+			bytes:WriteUInt24LE(bor(obj[3], lshift(obj[2], 8), lshift(obj[1], 16)))
+
+			obj = buffer[line * 4 + 2]
+			bytes:WriteUInt24LE(bor(obj[3], lshift(obj[2], 8), lshift(obj[1], 16)))
+
+			obj = buffer[line * 4 + 3]
+			bytes:WriteUInt24LE(bor(obj[3], lshift(obj[2], 8), lshift(obj[1], 16)))
+
+			obj = buffer[line * 4 + 4]
+			bytes:WriteUInt24LE(bor(obj[3], lshift(obj[2], 8), lshift(obj[1], 16)))
+		end
+	else
+		for line = 0, 3 do
+			bytes:Seek(edge + x * 12 + y * width * 12 + line * width * 3)
+
+			local obj = buffer[line * 4 + 1]
+			bytes:WriteUInt24LE(bor(obj.b, lshift(obj.g, 8), lshift(obj.r, 16)))
+
+			obj = buffer[line * 4 + 2]
+			bytes:WriteUInt24LE(bor(obj.b, lshift(obj.g, 8), lshift(obj.r, 16)))
+
+			obj = buffer[line * 4 + 3]
+			bytes:WriteUInt24LE(bor(obj.b, lshift(obj.g, 8), lshift(obj.r, 16)))
+
+			obj = buffer[line * 4 + 4]
+			bytes:WriteUInt24LE(bor(obj.b, lshift(obj.g, 8), lshift(obj.r, 16)))
+		end
+	end
+end
+
+function BGR888:GetBlock(x, y, export)
+	assert(x >= 0, '!x >= 0')
+	assert(y >= 0, '!y >= 0')
+	assert(x < self.width_blocks, '!x <= self.width_blocks')
+	assert(y < self.height_blocks, '!y <= self.height_blocks')
+
+	local pixel = y * self.width_blocks + x
+
+	if not export and self.cache[pixel] then
+		return self.cache[pixel]
+	end
+
+	local bytes = self.bytes
+	local edge = self.edge
+	local width = self.width
+
+	if export then
+		for line = 0, 3 do
+			bytes:Seek(edge + x * 12 + y * width * 12 + line * width * 3)
+			local color = bytes:ReadUInt24LE()
+			local obj = export[line * 4 + 1]
+			obj[3], obj[2], obj[1] = band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16)
+
+			color = bytes:ReadUInt24LE()
+			obj = export[line * 4 + 2]
+			obj[3], obj[2], obj[1] = band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24)
+
+			color = bytes:ReadUInt24LE()
+			obj = export[line * 4 + 3]
+			obj[3], obj[2], obj[1] = band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24)
+
+			color = bytes:ReadUInt24LE()
+			obj = export[line * 4 + 4]
+			obj[3], obj[2], obj[1] = band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24)
+		end
+	else
+		local result = {}
+		local index = 1
+
+		for line = 0, 3 do
+			bytes:Seek(edge + x * 12 + y * width * 12 + line * width * 3)
+
+			local color = bytes:ReadUInt24LE()
+			result[line * 4 + 1] = Color(rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF00), 8), band(color, 0xFF))
+
+			color = bytes:ReadUInt24LE()
+			result[line * 4 + 2] = Color(rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF00), 8), band(color, 0xFF))
+
+			color = bytes:ReadUInt24LE()
+			result[line * 4 + 3] = Color(rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF00), 8), band(color, 0xFF))
+
+			color = bytes:ReadUInt24LE()
+			result[line * 4 + 4] = Color(rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF00), 8), band(color, 0xFF))
+		end
+
+		self.cache[pixel] = result
+
+		return result
+	end
+end
+
+function BGR888:ReadEntireImage(nocache)
+	if self._cache then return self._cache end
+
+	local result = {}
+	local index = 1
+	local bytes = self.bytes
+
+	bytes:Seek(self.edge)
+
+	for y = 0, self.height - 1 do
+		for x = 0, self.width - 1 do
+			local color = bytes:ReadUInt24LE()
+			result[index] = Color(rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF00), 8), band(color, 0xFF))
+			index = index + 1
+		end
+	end
+
+	if not nocache then
+		self._cache = result
+	end
+
+	return result
+end
+
+DLib.BGR888 = DLib.CreateMoonClassBare('BGR888', BGR888, BGR888Object, DLib.AbstractTexture)
