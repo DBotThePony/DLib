@@ -141,11 +141,13 @@ VTFObject.Readers.IMAGE_FORMAT_DXT1 = DLib.DXT1
 VTFObject.Readers.IMAGE_FORMAT_DXT3 = DLib.DXT3
 VTFObject.Readers.IMAGE_FORMAT_DXT5 = DLib.DXT5
 VTFObject.Readers.IMAGE_FORMAT_RGBA8888 = DLib.RGBA8888
+VTFObject.Readers.IMAGE_FORMAT_BGRA8888 = DLib.BGRA8888
 
 VTFObject.AlphaFormats = {
 	IMAGE_FORMAT_DXT3 = true,
 	IMAGE_FORMAT_DXT5 = true,
 	IMAGE_FORMAT_RGBA8888 = true,
+	IMAGE_FORMAT_BGRA8888 = true,
 }
 
 local color_white = Color()
