@@ -522,43 +522,11 @@ end
 
 DLib.AbstractTexture, DLib.AbstractTextureBase = DLib.CreateMoonClassBare('AbstractTexture', AbstractTexture, AbstractTextureObj)
 
---[[
-	-- Template:
-
-	local RGBA8888 = {}
-	local RGBA8888Object = {}
-
-	function RGBA8888Object.CountBytes(w, h)
-		return w * h * 4
-	end
-
-	function RGBA8888:SetBlock(x, y, buffer, plain_format, only_update_alpha)
-		assert(x >= 0, '!x >= 0')
-		assert(y >= 0, '!y >= 0')
-		assert(x < self.width_blocks, '!x <= self.width_blocks')
-		assert(y < self.height_blocks, '!y <= self.height_blocks')
-	end
-
-	function RGBA8888:GetBlock(x, y, export)
-		assert(x >= 0, '!x >= 0')
-		assert(y >= 0, '!y >= 0')
-		assert(x < self.width_blocks, '!x <= self.width_blocks')
-		assert(y < self.height_blocks, '!y <= self.height_blocks')
-
-		local pixel = y * self.width_blocks + x
-
-		if not export and self.cache[pixel] then
-			return self.cache[pixel]
-		end
-
-		local bytes = self.bytes
-
-	end
-
-	DLib.RGBA8888 = DLib.CreateMoonClassBare('RGBA8888', RGBA8888, RGBA8888Object, DLib.AbstractTexture)
-]]
-
-local RGBA8888 = {}
+local RGBA8888 = {
+	flip = function(r, g, b, a) return r, g, b, a end,
+	flop = function(r, g, b, a) return r, g, b, a end,
+	update_alpha = function(value, a) return bor(band(value, 0x00FFFFFF), lshift(a, 24)) end,
+}
 local RGBA8888Object = {}
 
 function RGBA8888Object.CountBytes(w, h)
@@ -600,6 +568,8 @@ function RGBA8888:SetBlock(x, y, buffer, plain_format, only_update_alpha)
 	local bytes = self.bytes
 	local edge = self.edge
 	local width = self.width
+	local flip = self.flip
+	local update_alpha = self.update_alpha
 
 	if plain_format then
 		if only_update_alpha then
@@ -611,33 +581,30 @@ function RGBA8888:SetBlock(x, y, buffer, plain_format, only_update_alpha)
 				local d = bytes:ReadUInt32LE()
 				bytes:Seek(edge + x * 16 + y * width * 16 + line * width * 4)
 
-				local obj = buffer[line * 4 + 1]
-				bytes:WriteInt32LE(bor(band(a, 0x00FFFFFF), lshift(obj[4], 24)))
-
-				obj = buffer[line * 4 + 2]
-				bytes:WriteInt32LE(bor(band(b, 0x00FFFFFF), lshift(obj[4], 24)))
-
-				obj = buffer[line * 4 + 3]
-				bytes:WriteInt32LE(bor(band(c, 0x00FFFFFF), lshift(obj[4], 24)))
-
-				obj = buffer[line * 4 + 4]
-				bytes:WriteInt32LE(bor(band(d, 0x00FFFFFF), lshift(obj[4], 24)))
+				bytes:WriteInt32LE(update_alpha(a, buffer[line * 4 + 1][4]))
+				bytes:WriteInt32LE(update_alpha(b, buffer[line * 4 + 2][4]))
+				bytes:WriteInt32LE(update_alpha(c, buffer[line * 4 + 3][4]))
+				bytes:WriteInt32LE(update_alpha(d, buffer[line * 4 + 4][4]))
 			end
 		else
 			for line = 0, 3 do
 				bytes:Seek(edge + x * 16 + y * width * 16 + line * width * 4)
 
 				local obj = buffer[line * 4 + 1]
-				bytes:WriteInt32LE(bor(obj[1], lshift(obj[2], 8), lshift(obj[3], 16), lshift(obj[4], 24)))
+				local r, g, b, a = flip(obj[1], obj[2], obj[3], obj[4])
+				bytes:WriteInt32LE(bor(r, lshift(g, 8), lshift(b, 16), lshift(a, 24)))
 
 				obj = buffer[line * 4 + 2]
-				bytes:WriteInt32LE(bor(obj[1], lshift(obj[2], 8), lshift(obj[3], 16), lshift(obj[4], 24)))
+				r, g, b, a = flip(obj[1], obj[2], obj[3], obj[4])
+				bytes:WriteInt32LE(bor(r, lshift(g, 8), lshift(b, 16), lshift(a, 24)))
 
 				obj = buffer[line * 4 + 3]
-				bytes:WriteInt32LE(bor(obj[1], lshift(obj[2], 8), lshift(obj[3], 16), lshift(obj[4], 24)))
+				r, g, b, a = flip(obj[1], obj[2], obj[3], obj[4])
+				bytes:WriteInt32LE(bor(r, lshift(g, 8), lshift(b, 16), lshift(a, 24)))
 
 				obj = buffer[line * 4 + 4]
-				bytes:WriteInt32LE(bor(obj[1], lshift(obj[2], 8), lshift(obj[3], 16), lshift(obj[4], 24)))
+				r, g, b, a = flip(obj[1], obj[2], obj[3], obj[4])
+				bytes:WriteInt32LE(bor(r, lshift(g, 8), lshift(b, 16), lshift(a, 24)))
 			end
 		end
 	else
@@ -650,33 +617,30 @@ function RGBA8888:SetBlock(x, y, buffer, plain_format, only_update_alpha)
 				local d = bytes:ReadUInt32LE()
 				bytes:Seek(edge + x * 16 + y * width * 16 + line * width * 4)
 
-				local obj = buffer[line * 4 + 1]
-				bytes:WriteInt32LE(bor(band(a, 0x00FFFFFF), lshift(obj.a, 24)))
-
-				obj = buffer[line * 4 + 2]
-				bytes:WriteInt32LE(bor(band(b, 0x00FFFFFF), lshift(obj.a, 24)))
-
-				obj = buffer[line * 4 + 3]
-				bytes:WriteInt32LE(bor(band(c, 0x00FFFFFF), lshift(obj.a, 24)))
-
-				obj = buffer[line * 4 + 4]
-				bytes:WriteInt32LE(bor(band(d, 0x00FFFFFF), lshift(obj.a, 24)))
+				bytes:WriteInt32LE(update_alpha(a, buffer[line * 4 + 1].a))
+				bytes:WriteInt32LE(update_alpha(b, buffer[line * 4 + 2].a))
+				bytes:WriteInt32LE(update_alpha(c, buffer[line * 4 + 3].a))
+				bytes:WriteInt32LE(update_alpha(d, buffer[line * 4 + 4].a))
 			end
 		else
 			for line = 0, 3 do
 				bytes:Seek(edge + x * 16 + y * width * 16 + line * width * 4)
 
 				local obj = buffer[line * 4 + 1]
-				bytes:WriteInt32LE(bor(obj.r, lshift(obj.g, 8), lshift(obj.b, 16), lshift(obj.a, 24)))
+				local r, g, b, a = flip(obj.r, obj.g, obj.b, obj.a)
+				bytes:WriteInt32LE(bor(r, lshift(g, 8), lshift(b, 16), lshift(a, 24)))
 
 				obj = buffer[line * 4 + 2]
-				bytes:WriteInt32LE(bor(obj.r, lshift(obj.g, 8), lshift(obj.b, 16), lshift(obj.a, 24)))
+				r, g, b, a = flip(obj.r, obj.g, obj.b, obj.a)
+				bytes:WriteInt32LE(bor(r, lshift(g, 8), lshift(b, 16), lshift(a, 24)))
 
 				obj = buffer[line * 4 + 3]
-				bytes:WriteInt32LE(bor(obj.r, lshift(obj.g, 8), lshift(obj.b, 16), lshift(obj.a, 24)))
+				r, g, b, a = flip(obj.r, obj.g, obj.b, obj.a)
+				bytes:WriteInt32LE(bor(r, lshift(g, 8), lshift(b, 16), lshift(a, 24)))
 
 				obj = buffer[line * 4 + 4]
-				bytes:WriteInt32LE(bor(obj.r, lshift(obj.g, 8), lshift(obj.b, 16), lshift(obj.a, 24)))
+				r, g, b, a = flip(obj.r, obj.g, obj.b, obj.a)
+				bytes:WriteInt32LE(bor(r, lshift(g, 8), lshift(b, 16), lshift(a, 24)))
 			end
 		end
 	end
@@ -697,25 +661,26 @@ function RGBA8888:GetBlock(x, y, export)
 	local bytes = self.bytes
 	local edge = self.edge
 	local width = self.width
+	local flop = self.flop
 
 	if export then
 		for line = 0, 3 do
 			bytes:Seek(edge + x * 16 + y * width * 16 + line * width * 4)
 			local color = bytes:ReadUInt32LE()
 			local obj = export[line * 4 + 1]
-			obj[1], obj[2], obj[3], obj[4] = band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24)
+			obj[1], obj[2], obj[3], obj[4] = flop(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24))
 
 			color = bytes:ReadUInt32LE()
 			obj = export[line * 4 + 2]
-			obj[1], obj[2], obj[3], obj[4] = band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24)
+			obj[1], obj[2], obj[3], obj[4] = flop(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24))
 
 			color = bytes:ReadUInt32LE()
 			obj = export[line * 4 + 3]
-			obj[1], obj[2], obj[3], obj[4] = band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24)
+			obj[1], obj[2], obj[3], obj[4] = flop(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24))
 
 			color = bytes:ReadUInt32LE()
 			obj = export[line * 4 + 4]
-			obj[1], obj[2], obj[3], obj[4] = band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24)
+			obj[1], obj[2], obj[3], obj[4] = flop(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24))
 		end
 	else
 		local result = {}
@@ -725,16 +690,16 @@ function RGBA8888:GetBlock(x, y, export)
 			bytes:Seek(edge + x * 16 + y * width * 16 + line * width * 4)
 
 			local color = bytes:ReadUInt32LE()
-			result[line * 4 + 1] = Color(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24))
+			result[line * 4 + 1] = Color(flop(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24)))
 
 			color = bytes:ReadUInt32LE()
-			result[line * 4 + 2] = Color(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24))
+			result[line * 4 + 2] = Color(flop(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24)))
 
 			color = bytes:ReadUInt32LE()
-			result[line * 4 + 3] = Color(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24))
+			result[line * 4 + 3] = Color(flop(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24)))
 
 			color = bytes:ReadUInt32LE()
-			result[line * 4 + 4] = Color(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24))
+			result[line * 4 + 4] = Color(flop(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24)))
 		end
 
 		self.cache[pixel] = result
@@ -752,10 +717,12 @@ function RGBA8888:ReadEntireImage(nocache)
 
 	bytes:Seek(self.edge)
 
+	local flop = self.flop
+
 	for y = 0, self.height - 1 do
 		for x = 0, self.width - 1 do
 			local color = bytes:ReadUInt32LE()
-			result[index] = Color(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24))
+			result[index] = Color(flop(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24)))
 			index = index + 1
 		end
 	end
@@ -771,7 +738,11 @@ DLib.RGBA8888 = DLib.CreateMoonClassBare('RGBA8888', RGBA8888, RGBA8888Object, D
 
 -- VTFEdit read this format wrong (it read it as GBAR8888 in little-endian byte order
 -- or, RABG8888 in big-endian order)
-local ARGB8888 = {}
+local ARGB8888 = {
+	flip = function(r, g, b, a) return a, r, g, b end,
+	flop = function(a, r, g, b) return r, g, b, a end,
+	update_alpha = function(value, a) return bor(band(value, 0xFFFFFF00), a) end,
+}
 local ARGB8888Object = {}
 
 function ARGB8888Object.CountBytes(w, h)
@@ -804,185 +775,12 @@ function ARGB8888Object.Create(width, height, fill, bytes)
 	return texture
 end
 
-function ARGB8888:SetBlock(x, y, buffer, plain_format, only_update_alpha)
-	assert(x >= 0, '!x >= 0')
-	assert(y >= 0, '!y >= 0')
-	assert(x < self.width_blocks, '!x <= self.width_blocks')
-	assert(y < self.height_blocks, '!y <= self.height_blocks')
+DLib.ARGB8888 = DLib.CreateMoonClassBare('ARGB8888', ARGB8888, ARGB8888Object, DLib.RGBA8888)
 
-	local bytes = self.bytes
-	local edge = self.edge
-	local width = self.width
-
-	if plain_format then
-		if only_update_alpha then
-			for line = 0, 3 do
-				bytes:Seek(edge + x * 16 + y * width * 16 + line * width * 4)
-				local a = bytes:ReadUInt32LE()
-				local b = bytes:ReadUInt32LE()
-				local c = bytes:ReadUInt32LE()
-				local d = bytes:ReadUInt32LE()
-				bytes:Seek(edge + x * 16 + y * width * 16 + line * width * 4)
-
-				local obj = buffer[line * 4 + 1]
-				bytes:WriteInt32LE(bor(band(a, 0xFFFFFF00), obj[4]))
-
-				obj = buffer[line * 4 + 2]
-				bytes:WriteInt32LE(bor(band(a, 0xFFFFFF00), obj[4]))
-
-				obj = buffer[line * 4 + 3]
-				bytes:WriteInt32LE(bor(band(a, 0xFFFFFF00), obj[4]))
-
-				obj = buffer[line * 4 + 4]
-				bytes:WriteInt32LE(bor(band(a, 0xFFFFFF00), obj[4]))
-			end
-		else
-			for line = 0, 3 do
-				bytes:Seek(edge + x * 16 + y * width * 16 + line * width * 4)
-
-				local obj = buffer[line * 4 + 1]
-				bytes:WriteInt32LE(bor(lshift(obj[1], 8), lshift(obj[2], 16), lshift(obj[3], 24), obj[4]))
-
-				obj = buffer[line * 4 + 2]
-				bytes:WriteInt32LE(bor(lshift(obj[1], 8), lshift(obj[2], 16), lshift(obj[3], 24), obj[4]))
-
-				obj = buffer[line * 4 + 3]
-				bytes:WriteInt32LE(bor(lshift(obj[1], 8), lshift(obj[2], 16), lshift(obj[3], 24), obj[4]))
-
-				obj = buffer[line * 4 + 4]
-				bytes:WriteInt32LE(bor(lshift(obj[1], 8), lshift(obj[2], 16), lshift(obj[3], 24), obj[4]))
-			end
-		end
-	else
-		if only_update_alpha then
-			for line = 0, 3 do
-				bytes:Seek(edge + x * 16 + y * width * 16 + line * width * 4)
-				local a = bytes:ReadUInt32LE()
-				local b = bytes:ReadUInt32LE()
-				local c = bytes:ReadUInt32LE()
-				local d = bytes:ReadUInt32LE()
-				bytes:Seek(edge + x * 16 + y * width * 16 + line * width * 4)
-
-				local obj = buffer[line * 4 + 1]
-				bytes:WriteInt32LE(bor(band(b, 0xFFFFFF00), obj.a, 24))
-
-				obj = buffer[line * 4 + 2]
-				bytes:WriteInt32LE(bor(band(b, 0xFFFFFF00), obj.a, 24))
-
-				obj = buffer[line * 4 + 3]
-				bytes:WriteInt32LE(bor(band(b, 0xFFFFFF00), obj.a, 24))
-
-				obj = buffer[line * 4 + 4]
-				bytes:WriteInt32LE(bor(band(b, 0xFFFFFF00), obj.a, 24))
-			end
-		else
-			for line = 0, 3 do
-				bytes:Seek(edge + x * 16 + y * width * 16 + line * width * 4)
-
-				local obj = buffer[line * 4 + 1]
-				bytes:WriteInt32LE(bor(lshift(obj.r, 8), lshift(obj.g, 16), lshift(obj.b, 24), band(obj.a, 0xFF)))
-
-				obj = buffer[line * 4 + 2]
-				bytes:WriteInt32LE(bor(lshift(obj.r, 8), lshift(obj.g, 16), lshift(obj.b, 24), band(obj.a, 0xFF)))
-
-				obj = buffer[line * 4 + 3]
-				bytes:WriteInt32LE(bor(lshift(obj.r, 8), lshift(obj.g, 16), lshift(obj.b, 24), band(obj.a, 0xFF)))
-
-				obj = buffer[line * 4 + 4]
-				bytes:WriteInt32LE(bor(lshift(obj.r, 8), lshift(obj.g, 16), lshift(obj.b, 24), band(obj.a, 0xFF)))
-			end
-		end
-	end
-end
-
-function ARGB8888:GetBlock(x, y, export)
-	assert(x >= 0, '!x >= 0')
-	assert(y >= 0, '!y >= 0')
-	assert(x < self.width_blocks, '!x <= self.width_blocks')
-	assert(y < self.height_blocks, '!y <= self.height_blocks')
-
-	local pixel = y * self.width_blocks + x
-
-	if not export and self.cache[pixel] then
-		return self.cache[pixel]
-	end
-
-	local bytes = self.bytes
-	local edge = self.edge
-	local width = self.width
-
-	if export then
-		for line = 0, 3 do
-			bytes:Seek(edge + x * 16 + y * width * 16 + line * width * 4)
-			local color = bytes:ReadUInt32LE()
-			local obj = export[line * 4 + 1]
-			obj[4], obj[1], obj[2], obj[3] = band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24)
-
-			color = bytes:ReadUInt32LE()
-			obj = export[line * 4 + 2]
-			obj[4], obj[1], obj[2], obj[3] = band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24)
-
-			color = bytes:ReadUInt32LE()
-			obj = export[line * 4 + 3]
-			obj[4], obj[1], obj[2], obj[3] = band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24)
-
-			color = bytes:ReadUInt32LE()
-			obj = export[line * 4 + 4]
-			obj[4], obj[1], obj[2], obj[3] = band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24)
-		end
-	else
-		local result = {}
-		local index = 1
-
-		for line = 0, 3 do
-			bytes:Seek(edge + x * 16 + y * width * 16 + line * width * 4)
-
-			local color = bytes:ReadUInt32LE()
-			result[line * 4 + 1] = Color(rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24), band(color, 0xFF))
-
-			color = bytes:ReadUInt32LE()
-			result[line * 4 + 2] = Color(rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24), band(color, 0xFF))
-
-			color = bytes:ReadUInt32LE()
-			result[line * 4 + 3] = Color(rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24), band(color, 0xFF))
-
-			color = bytes:ReadUInt32LE()
-			result[line * 4 + 4] = Color(rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24), band(color, 0xFF))
-		end
-
-		self.cache[pixel] = result
-
-		return result
-	end
-end
-
-function ARGB8888:ReadEntireImage(nocache)
-	if self._cache then return self._cache end
-
-	local result = {}
-	local index = 1
-	local bytes = self.bytes
-
-	bytes:Seek(self.edge)
-
-	for y = 0, self.height - 1 do
-		for x = 0, self.width - 1 do
-			local color = bytes:ReadUInt32LE()
-			result[index] = Color(rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24), band(color, 0xFF))
-			index = index + 1
-		end
-	end
-
-	if not nocache then
-		self._cache = result
-	end
-
-	return result
-end
-
-DLib.ARGB8888 = DLib.CreateMoonClassBare('ARGB8888', ARGB8888, ARGB8888Object, DLib.AbstractTexture)
-
-local BGRA8888 = {}
+local BGRA8888 = {
+	flip = function(r, g, b, a) return b, g, r, a end,
+	flop = function(b, g, r, a) return r, g, b, a end,
+}
 local BGRA8888Object = {}
 
 function BGRA8888Object.CountBytes(w, h)
@@ -1015,185 +813,13 @@ function BGRA8888Object.Create(width, height, fill, bytes)
 	return texture
 end
 
-function BGRA8888:SetBlock(x, y, buffer, plain_format, only_update_alpha)
-	assert(x >= 0, '!x >= 0')
-	assert(y >= 0, '!y >= 0')
-	assert(x < self.width_blocks, '!x <= self.width_blocks')
-	assert(y < self.height_blocks, '!y <= self.height_blocks')
+DLib.BGRA8888 = DLib.CreateMoonClassBare('BGRA8888', BGRA8888, BGRA8888Object, DLib.RGBA8888)
 
-	local bytes = self.bytes
-	local edge = self.edge
-	local width = self.width
-
-	if plain_format then
-		if only_update_alpha then
-			for line = 0, 3 do
-				bytes:Seek(edge + x * 16 + y * width * 16 + line * width * 4)
-				local a = bytes:ReadUInt32LE()
-				local b = bytes:ReadUInt32LE()
-				local c = bytes:ReadUInt32LE()
-				local d = bytes:ReadUInt32LE()
-				bytes:Seek(edge + x * 16 + y * width * 16 + line * width * 4)
-
-				local obj = buffer[line * 4 + 1]
-				bytes:WriteInt32LE(bor(band(a, 0x00FFFFFF), lshift(obj[4], 24)))
-
-				obj = buffer[line * 4 + 2]
-				bytes:WriteInt32LE(bor(band(b, 0x00FFFFFF), lshift(obj[4], 24)))
-
-				obj = buffer[line * 4 + 3]
-				bytes:WriteInt32LE(bor(band(c, 0x00FFFFFF), lshift(obj[4], 24)))
-
-				obj = buffer[line * 4 + 4]
-				bytes:WriteInt32LE(bor(band(d, 0x00FFFFFF), lshift(obj[4], 24)))
-			end
-		else
-			for line = 0, 3 do
-				bytes:Seek(edge + x * 16 + y * width * 16 + line * width * 4)
-
-				local obj = buffer[line * 4 + 1]
-				bytes:WriteInt32LE(bor(obj[3], lshift(obj[2], 8), lshift(obj[1], 16), lshift(obj[4], 24)))
-
-				obj = buffer[line * 4 + 2]
-				bytes:WriteInt32LE(bor(obj[3], lshift(obj[2], 8), lshift(obj[1], 16), lshift(obj[4], 24)))
-
-				obj = buffer[line * 4 + 3]
-				bytes:WriteInt32LE(bor(obj[3], lshift(obj[2], 8), lshift(obj[1], 16), lshift(obj[4], 24)))
-
-				obj = buffer[line * 4 + 4]
-				bytes:WriteInt32LE(bor(obj[3], lshift(obj[2], 8), lshift(obj[1], 16), lshift(obj[4], 24)))
-			end
-		end
-	else
-		if only_update_alpha then
-			for line = 0, 3 do
-				bytes:Seek(edge + x * 16 + y * width * 16 + line * width * 4)
-				local a = bytes:ReadUInt32LE()
-				local b = bytes:ReadUInt32LE()
-				local c = bytes:ReadUInt32LE()
-				local d = bytes:ReadUInt32LE()
-				bytes:Seek(edge + x * 16 + y * width * 16 + line * width * 4)
-
-				local obj = buffer[line * 4 + 1]
-				bytes:WriteInt32LE(bor(band(a, 0x00FFFFFF), lshift(obj.a, 24)))
-
-				obj = buffer[line * 4 + 2]
-				bytes:WriteInt32LE(bor(band(b, 0x00FFFFFF), lshift(obj.a, 24)))
-
-				obj = buffer[line * 4 + 3]
-				bytes:WriteInt32LE(bor(band(c, 0x00FFFFFF), lshift(obj.a, 24)))
-
-				obj = buffer[line * 4 + 4]
-				bytes:WriteInt32LE(bor(band(d, 0x00FFFFFF), lshift(obj.a, 24)))
-			end
-		else
-			for line = 0, 3 do
-				bytes:Seek(edge + x * 16 + y * width * 16 + line * width * 4)
-
-				local obj = buffer[line * 4 + 1]
-				bytes:WriteInt32LE(bor(obj.b, lshift(obj.g, 8), lshift(obj.r, 16), lshift(obj.a, 24)))
-
-				obj = buffer[line * 4 + 2]
-				bytes:WriteInt32LE(bor(obj.b, lshift(obj.g, 8), lshift(obj.r, 16), lshift(obj.a, 24)))
-
-				obj = buffer[line * 4 + 3]
-				bytes:WriteInt32LE(bor(obj.b, lshift(obj.g, 8), lshift(obj.r, 16), lshift(obj.a, 24)))
-
-				obj = buffer[line * 4 + 4]
-				bytes:WriteInt32LE(bor(obj.b, lshift(obj.g, 8), lshift(obj.r, 16), lshift(obj.a, 24)))
-			end
-		end
-	end
-end
-
-function BGRA8888:GetBlock(x, y, export)
-	assert(x >= 0, '!x >= 0')
-	assert(y >= 0, '!y >= 0')
-	assert(x < self.width_blocks, '!x <= self.width_blocks')
-	assert(y < self.height_blocks, '!y <= self.height_blocks')
-
-	local pixel = y * self.width_blocks + x
-
-	if not export and self.cache[pixel] then
-		return self.cache[pixel]
-	end
-
-	local bytes = self.bytes
-	local edge = self.edge
-	local width = self.width
-
-	if export then
-		for line = 0, 3 do
-			bytes:Seek(edge + x * 16 + y * width * 16 + line * width * 4)
-			local color = bytes:ReadUInt32LE()
-			local obj = export[line * 4 + 1]
-			obj[3], obj[2], obj[1], obj[4] = band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24)
-
-			color = bytes:ReadUInt32LE()
-			obj = export[line * 4 + 2]
-			obj[3], obj[2], obj[1], obj[4] = band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24)
-
-			color = bytes:ReadUInt32LE()
-			obj = export[line * 4 + 3]
-			obj[3], obj[2], obj[1], obj[4] = band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24)
-
-			color = bytes:ReadUInt32LE()
-			obj = export[line * 4 + 4]
-			obj[3], obj[2], obj[1], obj[4] = band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24)
-		end
-	else
-		local result = {}
-		local index = 1
-
-		for line = 0, 3 do
-			bytes:Seek(edge + x * 16 + y * width * 16 + line * width * 4)
-
-			local color = bytes:ReadUInt32LE()
-			result[line * 4 + 1] = Color(rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF00), 8), band(color, 0xFF), rshift(band(color, 0xFF000000), 24))
-
-			color = bytes:ReadUInt32LE()
-			result[line * 4 + 2] = Color(rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF00), 8), band(color, 0xFF), rshift(band(color, 0xFF000000), 24))
-
-			color = bytes:ReadUInt32LE()
-			result[line * 4 + 3] = Color(rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF00), 8), band(color, 0xFF), rshift(band(color, 0xFF000000), 24))
-
-			color = bytes:ReadUInt32LE()
-			result[line * 4 + 4] = Color(rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF00), 8), band(color, 0xFF), rshift(band(color, 0xFF000000), 24))
-		end
-
-		self.cache[pixel] = result
-
-		return result
-	end
-end
-
-function BGRA8888:ReadEntireImage(nocache)
-	if self._cache then return self._cache end
-
-	local result = {}
-	local index = 1
-	local bytes = self.bytes
-
-	bytes:Seek(self.edge)
-
-	for y = 0, self.height - 1 do
-		for x = 0, self.width - 1 do
-			local color = bytes:ReadUInt32LE()
-			result[index] = Color(rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF00), 8), band(color, 0xFF), rshift(band(color, 0xFF000000), 24))
-			index = index + 1
-		end
-	end
-
-	if not nocache then
-		self._cache = result
-	end
-
-	return result
-end
-
-DLib.BGRA8888 = DLib.CreateMoonClassBare('BGRA8888', BGRA8888, BGRA8888Object, DLib.AbstractTexture)
-
-local ABGR8888 = {}
+local ABGR8888 = {
+	flip = function(r, g, b, a) return a, b, g, r end,
+	flop = function(a, b, g, r) return r, g, b, a end,
+	update_alpha = function(value, a) return bor(band(value, 0xFFFFFF00), a) end,
+}
 local ABGR8888Object = {}
 
 function ABGR8888Object.CountBytes(w, h)
@@ -1226,185 +852,12 @@ function ABGR8888Object.Create(width, height, fill, bytes)
 	return texture
 end
 
-function ABGR8888:SetBlock(x, y, buffer, plain_format, only_update_alpha)
-	assert(x >= 0, '!x >= 0')
-	assert(y >= 0, '!y >= 0')
-	assert(x < self.width_blocks, '!x <= self.width_blocks')
-	assert(y < self.height_blocks, '!y <= self.height_blocks')
+DLib.ABGR8888 = DLib.CreateMoonClassBare('ABGR8888', ABGR8888, ABGR8888Object, DLib.RGBA8888)
 
-	local bytes = self.bytes
-	local edge = self.edge
-	local width = self.width
-
-	if plain_format then
-		if only_update_alpha then
-			for line = 0, 3 do
-				bytes:Seek(edge + x * 16 + y * width * 16 + line * width * 4)
-				local a = bytes:ReadUInt32LE()
-				local b = bytes:ReadUInt32LE()
-				local c = bytes:ReadUInt32LE()
-				local d = bytes:ReadUInt32LE()
-				bytes:Seek(edge + x * 16 + y * width * 16 + line * width * 4)
-
-				local obj = buffer[line * 4 + 1]
-				bytes:WriteInt32LE(bor(band(a, 0xFFFFFF00), obj[4]))
-
-				obj = buffer[line * 4 + 2]
-				bytes:WriteInt32LE(bor(band(a, 0xFFFFFF00), obj[4]))
-
-				obj = buffer[line * 4 + 3]
-				bytes:WriteInt32LE(bor(band(a, 0xFFFFFF00), obj[4]))
-
-				obj = buffer[line * 4 + 4]
-				bytes:WriteInt32LE(bor(band(a, 0xFFFFFF00), obj[4]))
-			end
-		else
-			for line = 0, 3 do
-				bytes:Seek(edge + x * 16 + y * width * 16 + line * width * 4)
-
-				local obj = buffer[line * 4 + 1]
-				bytes:WriteInt32LE(bor(lshift(obj[3], 8), lshift(obj[2], 16), lshift(obj[1], 24), obj[4]))
-
-				obj = buffer[line * 4 + 2]
-				bytes:WriteInt32LE(bor(lshift(obj[3], 8), lshift(obj[2], 16), lshift(obj[1], 24), obj[4]))
-
-				obj = buffer[line * 4 + 3]
-				bytes:WriteInt32LE(bor(lshift(obj[3], 8), lshift(obj[2], 16), lshift(obj[1], 24), obj[4]))
-
-				obj = buffer[line * 4 + 4]
-				bytes:WriteInt32LE(bor(lshift(obj[3], 8), lshift(obj[2], 16), lshift(obj[1], 24), obj[4]))
-			end
-		end
-	else
-		if only_update_alpha then
-			for line = 0, 3 do
-				bytes:Seek(edge + x * 16 + y * width * 16 + line * width * 4)
-				local a = bytes:ReadUInt32LE()
-				local b = bytes:ReadUInt32LE()
-				local c = bytes:ReadUInt32LE()
-				local d = bytes:ReadUInt32LE()
-				bytes:Seek(edge + x * 16 + y * width * 16 + line * width * 4)
-
-				local obj = buffer[line * 4 + 1]
-				bytes:WriteInt32LE(bor(band(b, 0xFFFFFF00), obj.a, 24))
-
-				obj = buffer[line * 4 + 2]
-				bytes:WriteInt32LE(bor(band(b, 0xFFFFFF00), obj.a, 24))
-
-				obj = buffer[line * 4 + 3]
-				bytes:WriteInt32LE(bor(band(b, 0xFFFFFF00), obj.a, 24))
-
-				obj = buffer[line * 4 + 4]
-				bytes:WriteInt32LE(bor(band(b, 0xFFFFFF00), obj.a, 24))
-			end
-		else
-			for line = 0, 3 do
-				bytes:Seek(edge + x * 16 + y * width * 16 + line * width * 4)
-
-				local obj = buffer[line * 4 + 1]
-				bytes:WriteInt32LE(bor(lshift(obj.b, 8), lshift(obj.g, 16), lshift(obj.r, 24), band(obj.a, 0xFF)))
-
-				obj = buffer[line * 4 + 2]
-				bytes:WriteInt32LE(bor(lshift(obj.b, 8), lshift(obj.g, 16), lshift(obj.r, 24), band(obj.a, 0xFF)))
-
-				obj = buffer[line * 4 + 3]
-				bytes:WriteInt32LE(bor(lshift(obj.b, 8), lshift(obj.g, 16), lshift(obj.r, 24), band(obj.a, 0xFF)))
-
-				obj = buffer[line * 4 + 4]
-				bytes:WriteInt32LE(bor(lshift(obj.b, 8), lshift(obj.g, 16), lshift(obj.r, 24), band(obj.a, 0xFF)))
-			end
-		end
-	end
-end
-
-function ABGR8888:GetBlock(x, y, export)
-	assert(x >= 0, '!x >= 0')
-	assert(y >= 0, '!y >= 0')
-	assert(x < self.width_blocks, '!x <= self.width_blocks')
-	assert(y < self.height_blocks, '!y <= self.height_blocks')
-
-	local pixel = y * self.width_blocks + x
-
-	if not export and self.cache[pixel] then
-		return self.cache[pixel]
-	end
-
-	local bytes = self.bytes
-	local edge = self.edge
-	local width = self.width
-
-	if export then
-		for line = 0, 3 do
-			bytes:Seek(edge + x * 16 + y * width * 16 + line * width * 4)
-			local color = bytes:ReadUInt32LE()
-			local obj = export[line * 4 + 1]
-			obj[4], obj[3], obj[2], obj[1] = band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24)
-
-			color = bytes:ReadUInt32LE()
-			obj = export[line * 4 + 2]
-			obj[4], obj[3], obj[2], obj[1] = band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24)
-
-			color = bytes:ReadUInt32LE()
-			obj = export[line * 4 + 3]
-			obj[4], obj[3], obj[2], obj[1] = band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24)
-
-			color = bytes:ReadUInt32LE()
-			obj = export[line * 4 + 4]
-			obj[4], obj[3], obj[2], obj[1] = band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24)
-		end
-	else
-		local result = {}
-		local index = 1
-
-		for line = 0, 3 do
-			bytes:Seek(edge + x * 16 + y * width * 16 + line * width * 4)
-
-			local color = bytes:ReadUInt32LE()
-			result[line * 4 + 1] = Color(rshift(band(color, 0xFF000000), 24), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF00), 8), band(color, 0xFF))
-
-			color = bytes:ReadUInt32LE()
-			result[line * 4 + 2] = Color(rshift(band(color, 0xFF000000), 24), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF00), 8), band(color, 0xFF))
-
-			color = bytes:ReadUInt32LE()
-			result[line * 4 + 3] = Color(rshift(band(color, 0xFF000000), 24), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF00), 8), band(color, 0xFF))
-
-			color = bytes:ReadUInt32LE()
-			result[line * 4 + 4] = Color(rshift(band(color, 0xFF000000), 24), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF00), 8), band(color, 0xFF))
-		end
-
-		self.cache[pixel] = result
-
-		return result
-	end
-end
-
-function ABGR8888:ReadEntireImage(nocache)
-	if self._cache then return self._cache end
-
-	local result = {}
-	local index = 1
-	local bytes = self.bytes
-
-	bytes:Seek(self.edge)
-
-	for y = 0, self.height - 1 do
-		for x = 0, self.width - 1 do
-			local color = bytes:ReadUInt32LE()
-			result[index] = Color(rshift(band(color, 0xFF000000), 24), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF00), 8), band(color, 0xFF))
-			index = index + 1
-		end
-	end
-
-	if not nocache then
-		self._cache = result
-	end
-
-	return result
-end
-
-DLib.ABGR8888 = DLib.CreateMoonClassBare('ABGR8888', ABGR8888, ABGR8888Object, DLib.AbstractTexture)
-
-local RGB888 = {}
+local RGB888 = {
+	flip = function(r, g, b) return r, g, b end,
+	flop = function(r, g, b) return r, g, b end,
+}
 local RGB888Object = {}
 
 function RGB888Object.CountBytes(w, h)
@@ -1446,38 +899,47 @@ function RGB888:SetBlock(x, y, buffer, plain_format)
 	local bytes = self.bytes
 	local edge = self.edge
 	local width = self.width
+	local flip = self.flip
 
 	if plain_format then
 		for line = 0, 3 do
 			bytes:Seek(edge + x * 12 + y * width * 12 + line * width * 3)
 
 			local obj = buffer[line * 4 + 1]
-			bytes:WriteUInt24LE(bor(obj[1], lshift(obj[2], 8), lshift(obj[3], 16)))
+			local r, g, b = flip(obj[1], obj[2], obj[3])
+			bytes:WriteUInt24LE(bor(r, lshift(g, 8), lshift(b, 16)))
 
 			obj = buffer[line * 4 + 2]
-			bytes:WriteUInt24LE(bor(obj[1], lshift(obj[2], 8), lshift(obj[3], 16)))
+			r, g, b = flip(obj[1], obj[2], obj[3])
+			bytes:WriteUInt24LE(bor(r, lshift(g, 8), lshift(b, 16)))
 
 			obj = buffer[line * 4 + 3]
-			bytes:WriteUInt24LE(bor(obj[1], lshift(obj[2], 8), lshift(obj[3], 16)))
+			r, g, b = flip(obj[1], obj[2], obj[3])
+			bytes:WriteUInt24LE(bor(r, lshift(g, 8), lshift(b, 16)))
 
 			obj = buffer[line * 4 + 4]
-			bytes:WriteUInt24LE(bor(obj[1], lshift(obj[2], 8), lshift(obj[3], 16)))
+			r, g, b = flip(obj[1], obj[2], obj[3])
+			bytes:WriteUInt24LE(bor(r, lshift(g, 8), lshift(b, 16)))
 		end
 	else
 		for line = 0, 3 do
 			bytes:Seek(edge + x * 12 + y * width * 12 + line * width * 3)
 
 			local obj = buffer[line * 4 + 1]
-			bytes:WriteUInt24LE(bor(obj.r, lshift(obj.g, 8), lshift(obj.b, 16)))
+			local r, g, b = flip(obj.r, obj.g, obj.b)
+			bytes:WriteUInt24LE(bor(r, lshift(g, 8), lshift(b, 16)))
 
 			obj = buffer[line * 4 + 2]
-			bytes:WriteUInt24LE(bor(obj.r, lshift(obj.g, 8), lshift(obj.b, 16)))
+			r, g, b = flip(obj.r, obj.g, obj.b)
+			bytes:WriteUInt24LE(bor(r, lshift(g, 8), lshift(b, 16)))
 
 			obj = buffer[line * 4 + 3]
-			bytes:WriteUInt24LE(bor(obj.r, lshift(obj.g, 8), lshift(obj.b, 16)))
+			r, g, b = flip(obj.r, obj.g, obj.b)
+			bytes:WriteUInt24LE(bor(r, lshift(g, 8), lshift(b, 16)))
 
 			obj = buffer[line * 4 + 4]
-			bytes:WriteUInt24LE(bor(obj.r, lshift(obj.g, 8), lshift(obj.b, 16)))
+			r, g, b = flip(obj.r, obj.g, obj.b)
+			bytes:WriteUInt24LE(bor(r, lshift(g, 8), lshift(b, 16)))
 		end
 	end
 end
@@ -1497,25 +959,26 @@ function RGB888:GetBlock(x, y, export)
 	local bytes = self.bytes
 	local edge = self.edge
 	local width = self.width
+	local flop = self.flop
 
 	if export then
 		for line = 0, 3 do
 			bytes:Seek(edge + x * 12 + y * width * 12 + line * width * 3)
 			local color = bytes:ReadUInt24LE()
 			local obj = export[line * 4 + 1]
-			obj[1], obj[2], obj[3] = band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16)
+			obj[1], obj[2], obj[3] = flop(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16))
 
 			color = bytes:ReadUInt24LE()
 			obj = export[line * 4 + 2]
-			obj[1], obj[2], obj[3] = band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24)
+			obj[1], obj[2], obj[3] = flop(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16))
 
 			color = bytes:ReadUInt24LE()
 			obj = export[line * 4 + 3]
-			obj[1], obj[2], obj[3] = band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24)
+			obj[1], obj[2], obj[3] = flop(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16))
 
 			color = bytes:ReadUInt24LE()
 			obj = export[line * 4 + 4]
-			obj[1], obj[2], obj[3] = band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24)
+			obj[1], obj[2], obj[3] = flop(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16))
 		end
 	else
 		local result = {}
@@ -1525,16 +988,16 @@ function RGB888:GetBlock(x, y, export)
 			bytes:Seek(edge + x * 12 + y * width * 12 + line * width * 3)
 
 			local color = bytes:ReadUInt24LE()
-			result[line * 4 + 1] = Color(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16))
+			result[line * 4 + 1] = Color(flop(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16)))
 
 			color = bytes:ReadUInt24LE()
-			result[line * 4 + 2] = Color(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16))
+			result[line * 4 + 2] = Color(flop(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16)))
 
 			color = bytes:ReadUInt24LE()
-			result[line * 4 + 3] = Color(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16))
+			result[line * 4 + 3] = Color(flop(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16)))
 
 			color = bytes:ReadUInt24LE()
-			result[line * 4 + 4] = Color(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16))
+			result[line * 4 + 4] = Color(flop(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16)))
 		end
 
 		self.cache[pixel] = result
@@ -1549,13 +1012,14 @@ function RGB888:ReadEntireImage(nocache)
 	local result = {}
 	local index = 1
 	local bytes = self.bytes
+	local flop = self.flop
 
 	bytes:Seek(self.edge)
 
 	for y = 0, self.height - 1 do
 		for x = 0, self.width - 1 do
 			local color = bytes:ReadUInt24LE()
-			result[index] = Color(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16))
+			result[index] = Color(flop(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16)))
 			index = index + 1
 		end
 	end
@@ -1569,7 +1033,10 @@ end
 
 DLib.RGB888 = DLib.CreateMoonClassBare('RGB888', RGB888, RGB888Object, DLib.AbstractTexture)
 
-local BGR888 = {}
+local BGR888 = {
+	flip = function(r, g, b) return b, g, r end,
+	flop = function(b, g, r) return r, g, b end,
+}
 local BGR888Object = {}
 
 function BGR888Object.CountBytes(w, h)
@@ -1602,137 +1069,7 @@ function BGR888Object.Create(width, height, fill, bytes)
 	return texture
 end
 
-function BGR888:SetBlock(x, y, buffer, plain_format)
-	assert(x >= 0, '!x >= 0')
-	assert(y >= 0, '!y >= 0')
-	assert(x < self.width_blocks, '!x <= self.width_blocks')
-	assert(y < self.height_blocks, '!y <= self.height_blocks')
-
-	local bytes = self.bytes
-	local edge = self.edge
-	local width = self.width
-
-	if plain_format then
-		for line = 0, 3 do
-			bytes:Seek(edge + x * 12 + y * width * 12 + line * width * 3)
-
-			local obj = buffer[line * 4 + 1]
-			bytes:WriteUInt24LE(bor(obj[3], lshift(obj[2], 8), lshift(obj[1], 16)))
-
-			obj = buffer[line * 4 + 2]
-			bytes:WriteUInt24LE(bor(obj[3], lshift(obj[2], 8), lshift(obj[1], 16)))
-
-			obj = buffer[line * 4 + 3]
-			bytes:WriteUInt24LE(bor(obj[3], lshift(obj[2], 8), lshift(obj[1], 16)))
-
-			obj = buffer[line * 4 + 4]
-			bytes:WriteUInt24LE(bor(obj[3], lshift(obj[2], 8), lshift(obj[1], 16)))
-		end
-	else
-		for line = 0, 3 do
-			bytes:Seek(edge + x * 12 + y * width * 12 + line * width * 3)
-
-			local obj = buffer[line * 4 + 1]
-			bytes:WriteUInt24LE(bor(obj.b, lshift(obj.g, 8), lshift(obj.r, 16)))
-
-			obj = buffer[line * 4 + 2]
-			bytes:WriteUInt24LE(bor(obj.b, lshift(obj.g, 8), lshift(obj.r, 16)))
-
-			obj = buffer[line * 4 + 3]
-			bytes:WriteUInt24LE(bor(obj.b, lshift(obj.g, 8), lshift(obj.r, 16)))
-
-			obj = buffer[line * 4 + 4]
-			bytes:WriteUInt24LE(bor(obj.b, lshift(obj.g, 8), lshift(obj.r, 16)))
-		end
-	end
-end
-
-function BGR888:GetBlock(x, y, export)
-	assert(x >= 0, '!x >= 0')
-	assert(y >= 0, '!y >= 0')
-	assert(x < self.width_blocks, '!x <= self.width_blocks')
-	assert(y < self.height_blocks, '!y <= self.height_blocks')
-
-	local pixel = y * self.width_blocks + x
-
-	if not export and self.cache[pixel] then
-		return self.cache[pixel]
-	end
-
-	local bytes = self.bytes
-	local edge = self.edge
-	local width = self.width
-
-	if export then
-		for line = 0, 3 do
-			bytes:Seek(edge + x * 12 + y * width * 12 + line * width * 3)
-			local color = bytes:ReadUInt24LE()
-			local obj = export[line * 4 + 1]
-			obj[3], obj[2], obj[1] = band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16)
-
-			color = bytes:ReadUInt24LE()
-			obj = export[line * 4 + 2]
-			obj[3], obj[2], obj[1] = band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24)
-
-			color = bytes:ReadUInt24LE()
-			obj = export[line * 4 + 3]
-			obj[3], obj[2], obj[1] = band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24)
-
-			color = bytes:ReadUInt24LE()
-			obj = export[line * 4 + 4]
-			obj[3], obj[2], obj[1] = band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24)
-		end
-	else
-		local result = {}
-		local index = 1
-
-		for line = 0, 3 do
-			bytes:Seek(edge + x * 12 + y * width * 12 + line * width * 3)
-
-			local color = bytes:ReadUInt24LE()
-			result[line * 4 + 1] = Color(rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF00), 8), band(color, 0xFF))
-
-			color = bytes:ReadUInt24LE()
-			result[line * 4 + 2] = Color(rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF00), 8), band(color, 0xFF))
-
-			color = bytes:ReadUInt24LE()
-			result[line * 4 + 3] = Color(rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF00), 8), band(color, 0xFF))
-
-			color = bytes:ReadUInt24LE()
-			result[line * 4 + 4] = Color(rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF00), 8), band(color, 0xFF))
-		end
-
-		self.cache[pixel] = result
-
-		return result
-	end
-end
-
-function BGR888:ReadEntireImage(nocache)
-	if self._cache then return self._cache end
-
-	local result = {}
-	local index = 1
-	local bytes = self.bytes
-
-	bytes:Seek(self.edge)
-
-	for y = 0, self.height - 1 do
-		for x = 0, self.width - 1 do
-			local color = bytes:ReadUInt24LE()
-			result[index] = Color(rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF00), 8), band(color, 0xFF))
-			index = index + 1
-		end
-	end
-
-	if not nocache then
-		self._cache = result
-	end
-
-	return result
-end
-
-DLib.BGR888 = DLib.CreateMoonClassBare('BGR888', BGR888, BGR888Object, DLib.AbstractTexture)
+DLib.BGR888 = DLib.CreateMoonClassBare('BGR888', BGR888, BGR888Object, DLib.RGB888)
 
 local function encode_color_5_6_5(r, g, b, a)
 	r = round(clamp(r, 0, 255) * 0.12156862745098)
