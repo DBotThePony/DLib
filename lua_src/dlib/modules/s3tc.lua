@@ -104,12 +104,16 @@ function DXT1Object.Create(width, height, fill, bytes)
 		return DLib.DXT1(DLib.BytesBuffer(string.rep(filler, width * height / 16)), width, height)
 	end
 
+	local pointer = bytes:Tell()
 	bytes:WriteBinary(string.rep(filler, width * height / 16))
+	bytes:Seek(pointer)
+
 	return DLib.DXT1(bytes, width, height)
 end
 
 function DXT1:ctor(bytes, width, height)
 	self.bytes = bytes
+	self.edge = bytes:Tell()
 	self.width = width
 	self.height = height
 	self.width_blocks = width / 4
@@ -1107,7 +1111,7 @@ function DXT1:SetBlock(x, y, pixels, pixels_are_plain)
 	local block = pixel * 8
 	local bytes = self.bytes
 
-	bytes:Seek(block)
+	bytes:Seek(self.edge + block)
 	bytes:WriteUInt16LE(fColor0)
 	bytes:WriteUInt16LE(fColor1)
 	bytes:WriteInt32LE(written)
@@ -1136,7 +1140,7 @@ function DXT1:GetBlock(x, y, export)
 
 	local bytes = self.bytes
 
-	bytes:Seek(block)
+	bytes:Seek(self.edge + block)
 
 	-- they are little endians
 	local color0 = bytes:ReadUInt16LE()
@@ -1295,7 +1299,10 @@ function DXT3Object.Create(width, height, fill, bytes)
 		return DLib.DXT3(DLib.BytesBuffer(string.rep(filler, width * height / 16)), width, height)
 	end
 
+	local pointer = bytes:Tell()
 	bytes:WriteBinary(string.rep(filler, width * height / 16))
+	bytes:Seek(pointer)
+
 	return DLib.DXT3(bytes, width, height)
 end
 
@@ -1304,6 +1311,7 @@ AccessorFunc(DXT3, 'advanced_dither', 'AdvancedDither')
 
 function DXT3:ctor(bytes, width, height)
 	self.bytes = bytes
+	self.edge = bytes:Tell()
 	self.width = width
 	self.height = height
 	self.width_blocks = width / 4
@@ -1353,7 +1361,7 @@ do
 
 		local bytes = self.bytes
 
-		bytes:Seek(block)
+		bytes:Seek(self.edge + block)
 
 		-- encode alpha part
 		for i = 1, 16 do
@@ -1420,7 +1428,7 @@ function DXT3:GetBlock(x, y, export)
 
 	local bytes = self.bytes
 
-	bytes:Seek(block)
+	bytes:Seek(self.edge + block)
 
 	local alpha0 = bytes:ReadUInt32LE()
 	local alpha1 = bytes:ReadUInt32LE()
@@ -1519,6 +1527,7 @@ end
 
 function DXT5:ctor(bytes, width, height)
 	self.bytes = bytes
+	self.edge = bytes:Tell()
 	self.width = width
 	self.height = height
 	self.width_blocks = width / 4
@@ -1556,7 +1565,10 @@ function DXT5Object.Create(width, height, fill, bytes)
 		return DLib.DXT5(DLib.BytesBuffer(string.rep(filler, width * height / 16)), width, height)
 	end
 
+	local pointer = bytes:Tell()
 	bytes:WriteBinary(string.rep(filler, width * height / 16))
+	bytes:Seek(pointer)
+
 	return DLib.DXT5(bytes, width, height)
 end
 
@@ -1604,7 +1616,7 @@ do
 		local block = pixel * 16
 
 		local bytes = self.bytes
-		bytes:Seek(block)
+		bytes:Seek(self.edge + block)
 
 		-- encode alpha
 		-- find minimum (alpha0) and maximum (alpha1)
@@ -1742,7 +1754,7 @@ function DXT5:GetBlock(x, y, export)
 
 	local bytes = self.bytes
 
-	bytes:Seek(block)
+	bytes:Seek(self.edge + block)
 
 	local alpha0 = bytes:ReadUByte() * 0.003921568627451
 	local alpha1 = bytes:ReadUByte() * 0.003921568627451

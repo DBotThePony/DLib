@@ -429,7 +429,7 @@ function VTF:ctor(bytes)
 					for zDepth = 1, self.depth do
 						local walk = reader.CountBytes(w, h)
 						self.mipmaps[mipmap] = DLib.BytesBufferView(bytes:Tell(), bytes:Tell() + walk, bytes)
-						self.mipmaps_obj[mipmap] = reader(self.mipmaps[mipmap], w, h)
+						self.mipmaps_obj[mipmap] = reader(bytes, w, h)
 						bytes:Walk(walk)
 					end
 				end
