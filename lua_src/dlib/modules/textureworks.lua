@@ -40,7 +40,7 @@ end
 local AbstractTexture = {}
 local AbstractTextureObj = {}
 
-AccessorFunc(AbstractTexture, 'advanced_dither', 'AdvancedDither')
+AccessorFunc(AbstractTexture, 'dither', 'Dither')
 
 function AbstractTexture:ctor(bytes, width, height)
 	self.bytes = bytes
@@ -49,7 +49,7 @@ function AbstractTexture:ctor(bytes, width, height)
 	self.height = height
 	self.width_blocks = width / 4
 	self.height_blocks = height / 4
-	self.advanced_dither = true
+	self.dither = true
 
 	self.cache = {}
 end
@@ -1931,12 +1931,16 @@ function RGB565:SetBlock(x, y, buffer, plain_format)
 		return
 	end
 
-	reset_error_buffer()
+	if self.dither then
+		reset_error_buffer()
+	end
 
 	if plain_format then
-		for i = 1, 16 do
-			local obj = buffer[i]
-			report_error(i, obj[1], obj[2], obj[3])
+		if self.dither then
+			for i = 1, 16 do
+				local obj = buffer[i]
+				report_error(i, obj[1], obj[2], obj[3])
+			end
 		end
 
 		for line = 0, 3 do
@@ -1959,9 +1963,11 @@ function RGB565:SetBlock(x, y, buffer, plain_format)
 			bytes:WriteUInt16LE(encode_color_5_6_5(obj[1] + _r, obj[2] + _g, obj[3] + _b))
 		end
 	else
-		for i = 1, 16 do
-			local obj = buffer[i]
-			report_error(i, obj.r, obj.g, obj.b)
+		if self.dither then
+			for i = 1, 16 do
+				local obj = buffer[i]
+				report_error(i, obj.r, obj.g, obj.b)
+			end
 		end
 
 		for line = 0, 3 do

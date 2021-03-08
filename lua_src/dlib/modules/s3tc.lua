@@ -388,7 +388,7 @@ do
 
 	local palette_bits = {0, 2, 3, 1}
 
-	function EncodeBCColorBlock(pixels, encode_luma, advanced_dither, plain_format)
+	function EncodeBCColorBlock(pixels, encode_luma, dither, plain_format)
 		-- clear buffer
 		for i = 1, 16 do
 			local a = error_buffer[i]
@@ -437,7 +437,7 @@ do
 				encoded[1], encoded[2], encoded[3] = r, g, b
 			end
 
-			if advanced_dither then
+			if dither then
 				local dither = dither_precompute[i]
 
 				for i2 = 1, #dither do
@@ -446,34 +446,6 @@ do
 					_error2[1] = _error2[1] + r_error * mult
 					_error2[2] = _error2[2] + g_error * mult
 					_error2[3] = _error2[3] + b_error * mult
-				end
-			else
-				if band(i - 1, 3) ~= 3 then
-					_error = error_buffer[i + 1]
-					_error[1] = _error[1] + r_error * 0.4375
-					_error[2] = _error[2] + g_error * 0.4375
-					_error[3] = _error[3] + b_error * 0.4375
-				end
-
-				if i < 13 then
-					if band(i - 1, 3) ~= 0 then
-						_error = error_buffer[i + 3]
-						_error[1] = _error[1] + r_error * 0.1875
-						_error[2] = _error[2] + g_error * 0.1875
-						_error[3] = _error[3] + b_error * 0.1875
-					end
-
-					_error = error_buffer[i + 4]
-					_error[1] = _error[1] + r_error * 0.3125
-					_error[2] = _error[2] + g_error * 0.3125
-					_error[3] = _error[3] + b_error * 0.3125
-
-					if band(i - 1, 3) ~= 3 then
-						_error = error_buffer[i + 5]
-						_error[1] = _error[1] + r_error * 0.0625
-						_error[2] = _error[2] + g_error * 0.0625
-						_error[3] = _error[3] + b_error * 0.0625
-					end
 				end
 			end
 		end
@@ -561,7 +533,7 @@ do
 
 			written = bor(rshift(written, 2), lshift(palette_index, 30))
 
-			if advanced_dither then
+			if dither then
 				local dither = dither_precompute[i]
 
 				for i2 = 1, #dither do
@@ -570,34 +542,6 @@ do
 					_error2[1] = _error2[1] + r_error * mult
 					_error2[2] = _error2[2] + g_error * mult
 					_error2[3] = _error2[3] + b_error * mult
-				end
-			else
-				if band(i - 1, 3) ~= 3 then
-					_error = error_buffer[i + 1]
-					_error[1] = _error[1] + r_error * 0.4375
-					_error[2] = _error[2] + g_error * 0.4375
-					_error[3] = _error[3] + b_error * 0.4375
-				end
-
-				if i < 13 then
-					if band(i - 1, 3) ~= 0 then
-						_error = error_buffer[i + 3]
-						_error[1] = _error[1] + r_error * 0.1875
-						_error[2] = _error[2] + g_error * 0.1875
-						_error[3] = _error[3] + b_error * 0.1875
-					end
-
-					_error = error_buffer[i + 4]
-					_error[1] = _error[1] + r_error * 0.3125
-					_error[2] = _error[2] + g_error * 0.3125
-					_error[3] = _error[3] + b_error * 0.3125
-
-					if band(i - 1, 3) ~= 3 then
-						_error = error_buffer[i + 5]
-						_error[1] = _error[1] + r_error * 0.0625
-						_error[2] = _error[2] + g_error * 0.0625
-						_error[3] = _error[3] + b_error * 0.0625
-					end
 				end
 			end
 		end
@@ -617,10 +561,10 @@ function DXT1:SetBlock(x, y, pixels, pixels_are_plain)
 	local fColor0, fColor1, written
 
 	if pixels_are_plain then
-		fColor0, fColor1, written = EncodeBCColorBlock(pixels, self.encode_luma or false, self.advanced_dither)
+		fColor0, fColor1, written = EncodeBCColorBlock(pixels, self.encode_luma or false, self.dither)
 	else
 		EncodePlainPixels(pixels)
-		fColor0, fColor1, written = EncodeBCColorBlock(plain_pixel_block, self.encode_luma or false, self.advanced_dither)
+		fColor0, fColor1, written = EncodeBCColorBlock(plain_pixel_block, self.encode_luma or false, self.dither)
 	end
 
 	local pixel = y * self.width_blocks + x
@@ -848,7 +792,7 @@ do
 			use_buf = pixels
 
 			if not only_update_alpha then
-				fColor0, fColor1, written = EncodeBCColorBlock(pixels, self.encode_luma or false, self.advanced_dither)
+				fColor0, fColor1, written = EncodeBCColorBlock(pixels, self.encode_luma or false, self.dither)
 			end
 		else
 			EncodePlainPixels(pixels)
@@ -856,7 +800,7 @@ do
 			use_buf = plain_pixel_block
 
 			if not only_update_alpha then
-				fColor0, fColor1, written = EncodeBCColorBlock(plain_pixel_block, self.encode_luma or false, self.advanced_dither)
+				fColor0, fColor1, written = EncodeBCColorBlock(plain_pixel_block, self.encode_luma or false, self.dither)
 			end
 		end
 
@@ -1098,14 +1042,14 @@ do
 			use_buf = pixels
 
 			if not only_update_alpha then
-				fColor0, fColor1, written = EncodeBCColorBlock(pixels, self.encode_luma or false, self.advanced_dither)
+				fColor0, fColor1, written = EncodeBCColorBlock(pixels, self.encode_luma or false, self.dither)
 			end
 		else
 			EncodePlainPixels(pixels)
 			use_buf = plain_pixel_block
 
 			if not only_update_alpha then
-				fColor0, fColor1, written = EncodeBCColorBlock(plain_pixel_block, self.encode_luma or false, self.advanced_dither)
+				fColor0, fColor1, written = EncodeBCColorBlock(plain_pixel_block, self.encode_luma or false, self.dither)
 			end
 		end
 
