@@ -38,23 +38,6 @@ local Color = Color
 local DLib = DLib
 local string = string
 
-if CLIENT then
-	DLib._RenderCapturePixels = DLib._RenderCapturePixels or 0
-	DLib._RenderCapturePixelsFn = DLib._RenderCapturePixelsFn or render.CapturePixels
-
-	function render.CapturePixels(...)
-		DLib._RenderCapturePixels = DLib._RenderCapturePixels + 1
-		return DLib._RenderCapturePixelsFn(...)
-	end
-end
-
-local function GetPixel(self, x, y)
-	local divX, divY = x % 4, y % 4
-	local blockX, blockY = (x - divX) / 4, (y - divY) / 4
-
-	return self:GetBlock(blockX, blockY)[divX + divY * 4 + 1]
-end
-
 -- decode byte swapped (big endian ready) 5, 6, 5 color
 local function to_color_5_6_5(value)
 	local b = round(band(value, 31) * 8.2258064516129)
@@ -115,19 +98,11 @@ function DXT1Object.Create(width, height, fill, bytes)
 end
 
 function DXT1:ctor(bytes, width, height)
-	self.bytes = bytes
-	self.edge = bytes:Tell()
-	self.width = width
-	self.height = height
-	self.width_blocks = width / 4
-	self.height_blocks = height / 4
-	self.advanced_dither = true
+	DLib.AbstractTexture.__init(self, bytes, width, height)
 	self.encode_luma = false
-
-	self.cache = {}
 end
 
-local SolveColorBlock, EncodeBCColorBlock, CaptureRenderTarget, CaptureRenderTargetAlpha, CaptureRenderTargetCoroutine, CaptureRenderTargetAlphaCoroutine
+local SolveColorBlock, EncodeBCColorBlock
 local dither_precompute = {}
 local plain_pixel_block = {}
 
@@ -144,467 +119,6 @@ local function EncodePlainPixels(pixels)
 		obj2[2] = obj.g
 		obj2[3] = obj.b
 		obj2[4] = obj.a
-	end
-end
-
-do
-	local sample_encode_buff = {}
-
-	for i = 1, 16 do
-		sample_encode_buff[i] = {0, 0, 0, 255}
-	end
-
-	function CaptureRenderTarget(self, rx, ry, w, h, lx, ly)
-		for i = 1, 16 do
-			sample_encode_buff[i][4] = 255
-		end
-
-		local sBlockX = (lx - lx % 4) / 4
-		local sBlockY = (ly - ly % 4) / 4
-
-		local fitx = (lx + w + 1) % 4 == 0
-		local fity = (ly + h + 1) % 4 == 0
-		local fit = fitx and fity
-		local fBlockX = ((lx + w + 1) - (lx + w + 1) % 4) / 4 - 1
-		local fBlockY = ((ly + h + 1) - (ly + h + 1) % 4) / 4 - 1
-
-		for blockX = sBlockX, fBlockX do
-			for blockY = sBlockY, fBlockY do
-				for X = 0, 3 do
-					for Y = 0, 3 do
-						local obj = sample_encode_buff[1 + X + Y * 4]
-						obj[1], obj[2], obj[3] = render.ReadPixel(rx + X + blockX * 4, ry + Y + blockY * 4)
-					end
-				end
-
-				self:SetBlock(blockX, blockY, sample_encode_buff, true)
-			end
-		end
-
-		if fit then return end
-
-		if not fitx then
-			local blockX = fBlockX + 1
-
-			for blockY = sBlockY, fBlockY do
-				self:GetBlock(blockX, blockY, sample_encode_buff)
-
-				for X = 0, lx + w - blockX * 4 do
-					for Y = 0, 3 do
-						local obj = sample_encode_buff[1 + X + Y * 4]
-						obj[1], obj[2], obj[3] = render.ReadPixel(rx + X + blockX * 4, ry + Y + blockY * 4)
-					end
-				end
-
-				self:SetBlock(blockX, blockY, sample_encode_buff, true)
-			end
-		end
-
-		if not fity then
-			local blockY = fBlockY + 1
-
-			for blockX = sBlockX, fBlockX do
-				self:GetBlock(blockX, blockY, sample_encode_buff)
-
-				for X = 0, 3 do
-					for Y = 0, ly + h - blockY * 4 do
-						local obj = sample_encode_buff[1 + X + Y * 4]
-						obj[1], obj[2], obj[3] = render.ReadPixel(rx + X + blockX * 4, ry + Y + blockY * 4)
-					end
-				end
-
-				self:SetBlock(blockX, blockY, sample_encode_buff, true)
-			end
-		end
-
-		if not fitx and not fity then
-			local blockX = fBlockX + 1
-			local blockY = fBlockY + 1
-
-			self:GetBlock(blockX, blockY, sample_encode_buff)
-
-			for X = 0, lx + w - blockX * 4 do
-				for Y = 0, ly + h - blockY * 4 do
-					local obj = sample_encode_buff[1 + X + Y * 4]
-					obj[1], obj[2], obj[3] = render.ReadPixel(rx + X + blockX * 4, ry + Y + blockY * 4)
-				end
-			end
-
-			self:SetBlock(blockX, blockY, sample_encode_buff, true)
-		end
-	end
-
-	local coroutine_yield = coroutine.yield
-	local SysTime = SysTime
-
-	function CaptureRenderTargetCoroutine(self, rx, ry, w, h, lx, ly, callbackBefore, callbackAfter, thersold, ...)
-		for i = 1, 16 do
-			sample_encode_buff[i][4] = 255
-		end
-
-		local sBlockX = (lx - lx % 4) / 4
-		local sBlockY = (ly - ly % 4) / 4
-
-		local fitx = (lx + w + 1) % 4 == 0
-		local fity = (ly + h + 1) % 4 == 0
-		local fit = fitx and fity
-		local fBlockX = ((lx + w + 1) - (lx + w + 1) % 4) / 4 - 1
-		local fBlockY = ((ly + h + 1) - (ly + h + 1) % 4) / 4 - 1
-
-		local s = SysTime() + thersold
-		local total = (fBlockX - sBlockX) * (fBlockY - sBlockY)
-
-		if not fitx then
-			total = total + fBlockY - sBlockY
-		end
-
-		if not fity then
-			total = total + fBlockX - sBlockX
-		end
-
-		if not fity and not fitx then
-			total = total + 1
-		end
-
-		local done = 0
-
-		for blockX = sBlockX, fBlockX do
-			for blockY = sBlockY, fBlockY do
-				for X = 0, 3 do
-					for Y = 0, 3 do
-						local obj = sample_encode_buff[1 + X + Y * 4]
-						obj[1], obj[2], obj[3] = render.ReadPixel(rx + X + blockX * 4, ry + Y + blockY * 4)
-					end
-				end
-
-				self:SetBlock(blockX, blockY, sample_encode_buff, true)
-
-				done = done + 1
-
-				if SysTime() >= s then
-					callbackBefore()
-
-					local ref = DLib._RenderCapturePixels
-
-					coroutine_yield(...)
-					s = SysTime() + thersold
-					callbackAfter(done / total)
-
-					if ref ~= DLib._RenderCapturePixels then
-						render.CapturePixels()
-					end
-				end
-			end
-		end
-
-		if fit then return end
-
-		if not fitx then
-			local blockX = fBlockX + 1
-
-			for blockY = sBlockY, fBlockY do
-				self:GetBlock(blockX, blockY, sample_encode_buff)
-
-				for X = 0, lx + w - blockX * 4 do
-					for Y = 0, 3 do
-						local obj = sample_encode_buff[1 + X + Y * 4]
-						obj[1], obj[2], obj[3] = render.ReadPixel(rx + X + blockX * 4, ry + Y + blockY * 4)
-					end
-				end
-
-				self:SetBlock(blockX, blockY, sample_encode_buff, true)
-
-				done = done + 1
-
-				if SysTime() >= s then
-					callbackBefore()
-
-					local ref = DLib._RenderCapturePixels
-
-					coroutine_yield(...)
-					s = SysTime() + thersold
-					callbackAfter(done / total)
-
-					if ref ~= DLib._RenderCapturePixels then
-						render.CapturePixels()
-					end
-				end
-			end
-		end
-
-		if not fity then
-			local blockY = fBlockY + 1
-
-			for blockX = sBlockX, fBlockX do
-				self:GetBlock(blockX, blockY, sample_encode_buff)
-
-				for X = 0, 3 do
-					for Y = 0, ly + h - blockY * 4 do
-						local obj = sample_encode_buff[1 + X + Y * 4]
-						obj[1], obj[2], obj[3] = render.ReadPixel(rx + X + blockX * 4, ry + Y + blockY * 4)
-					end
-				end
-
-				self:SetBlock(blockX, blockY, sample_encode_buff, true)
-
-				done = done + 1
-
-				if SysTime() >= s then
-					callbackBefore()
-
-					local ref = DLib._RenderCapturePixels
-
-					coroutine_yield(...)
-					s = SysTime() + thersold
-					callbackAfter(done / total)
-
-					if ref ~= DLib._RenderCapturePixels then
-						render.CapturePixels()
-					end
-				end
-			end
-		end
-
-		if not fitx and not fity then
-			local blockX = fBlockX + 1
-			local blockY = fBlockY + 1
-
-			self:GetBlock(blockX, blockY, sample_encode_buff)
-
-			for X = 0, lx + w - blockX * 4 do
-				for Y = 0, ly + h - blockY * 4 do
-					local obj = sample_encode_buff[1 + X + Y * 4]
-					obj[1], obj[2], obj[3] = render.ReadPixel(rx + X + blockX * 4, ry + Y + blockY * 4)
-				end
-			end
-
-			self:SetBlock(blockX, blockY, sample_encode_buff, true)
-		end
-	end
-
-	function CaptureRenderTargetAlpha(self, rx, ry, w, h, lx, ly)
-		local sBlockX = (lx - lx % 4) / 4
-		local sBlockY = (ly - ly % 4) / 4
-
-		local fitx = (lx + w + 1) % 4 == 0
-		local fity = (ly + h + 1) % 4 == 0
-		local fit = fitx and fity
-		local fBlockX = ((lx + w + 1) - (lx + w + 1) % 4) / 4 - 1
-		local fBlockY = ((ly + h + 1) - (ly + h + 1) % 4) / 4 - 1
-
-		for blockX = sBlockX, fBlockX do
-			for blockY = sBlockY, fBlockY do
-				for X = 0, 3 do
-					for Y = 0, 3 do
-						local obj = sample_encode_buff[1 + X + Y * 4]
-						local r, g, b = render.ReadPixel(rx + X + blockX * 4, ry + Y + blockY * 4)
-						obj[4] = (r + g + b) / 3
-					end
-				end
-
-				self:SetBlock(blockX, blockY, sample_encode_buff, true, true)
-			end
-		end
-
-		if fit then return end
-
-		if not fitx then
-			local blockX = fBlockX + 1
-
-			for blockY = sBlockY, fBlockY do
-				self:GetBlock(blockX, blockY, sample_encode_buff)
-
-				for X = 0, lx + w - blockX * 4 do
-					for Y = 0, 3 do
-						local obj = sample_encode_buff[1 + X + Y * 4]
-						local r, g, b = render.ReadPixel(rx + X + blockX * 4, ry + Y + blockY * 4)
-						obj[4] = (r + g + b) / 3
-					end
-				end
-
-				self:SetBlock(blockX, blockY, sample_encode_buff, true, true)
-			end
-		end
-
-		if not fity then
-			local blockY = fBlockY + 1
-
-			for blockX = sBlockX, fBlockX do
-				self:GetBlock(blockX, blockY, sample_encode_buff)
-
-				for X = 0, 3 do
-					for Y = 0, ly + h - blockY * 4 do
-						local obj = sample_encode_buff[1 + X + Y * 4]
-						local r, g, b = render.ReadPixel(rx + X + blockX * 4, ry + Y + blockY * 4)
-						obj[4] = (r + g + b) / 3
-					end
-				end
-
-				self:SetBlock(blockX, blockY, sample_encode_buff, true, true)
-			end
-		end
-
-		if not fitx and not fity then
-			local blockX = fBlockX + 1
-			local blockY = fBlockY + 1
-
-			self:GetBlock(blockX, blockY, sample_encode_buff)
-
-			for X = 0, lx + w - blockX * 4 do
-				for Y = 0, ly + h - blockY * 4 do
-					local obj = sample_encode_buff[1 + X + Y * 4]
-					local r, g, b = render.ReadPixel(rx + X + blockX * 4, ry + Y + blockY * 4)
-					obj[4] = (r + g + b) / 3
-				end
-			end
-
-			self:SetBlock(blockX, blockY, sample_encode_buff, true, true)
-		end
-	end
-
-	function CaptureRenderTargetAlphaCoroutine(self, rx, ry, w, h, lx, ly, callbackBefore, callbackAfter, thersold, ...)
-		local sBlockX = (lx - lx % 4) / 4
-		local sBlockY = (ly - ly % 4) / 4
-
-		local fitx = (lx + w + 1) % 4 == 0
-		local fity = (ly + h + 1) % 4 == 0
-		local fit = fitx and fity
-		local fBlockX = ((lx + w + 1) - (lx + w + 1) % 4) / 4 - 1
-		local fBlockY = ((ly + h + 1) - (ly + h + 1) % 4) / 4 - 1
-
-		local s = SysTime() + thersold
-		local total = (fBlockX - sBlockX) * (fBlockY - sBlockY)
-
-		if not fitx then
-			total = total + fBlockY - sBlockY
-		end
-
-		if not fity then
-			total = total + fBlockX - sBlockX
-		end
-
-		if not fity and not fitx then
-			total = total + 1
-		end
-
-		local done = 0
-
-		for blockX = sBlockX, fBlockX do
-			for blockY = sBlockY, fBlockY do
-				for X = 0, 3 do
-					for Y = 0, 3 do
-						local obj = sample_encode_buff[1 + X + Y * 4]
-						local r, g, b = render.ReadPixel(rx + X + blockX * 4, ry + Y + blockY * 4)
-						obj[4] = (r + g + b) / 3
-					end
-				end
-
-				self:SetBlock(blockX, blockY, sample_encode_buff, true, true)
-
-				done = done + 1
-
-				if SysTime() >= s then
-					callbackBefore()
-
-					local ref = DLib._RenderCapturePixels
-
-					coroutine_yield(...)
-					s = SysTime() + thersold
-					callbackAfter(done / total)
-
-					if ref ~= DLib._RenderCapturePixels then
-						render.CapturePixels()
-					end
-				end
-			end
-		end
-
-		if fit then return end
-
-		if not fitx then
-			local blockX = fBlockX + 1
-
-			for blockY = sBlockY, fBlockY do
-				self:GetBlock(blockX, blockY, sample_encode_buff)
-
-				for X = 0, lx + w - blockX * 4 do
-					for Y = 0, 3 do
-						local obj = sample_encode_buff[1 + X + Y * 4]
-						local r, g, b = render.ReadPixel(rx + X + blockX * 4, ry + Y + blockY * 4)
-						obj[4] = (r + g + b) / 3
-					end
-				end
-
-				self:SetBlock(blockX, blockY, sample_encode_buff, true, true)
-
-				done = done + 1
-
-				if SysTime() >= s then
-					callbackBefore()
-
-					local ref = DLib._RenderCapturePixels
-
-					coroutine_yield(...)
-					s = SysTime() + thersold
-					callbackAfter(done / total)
-
-					if ref ~= DLib._RenderCapturePixels then
-						render.CapturePixels()
-					end
-				end
-			end
-		end
-
-		if not fity then
-			local blockY = fBlockY + 1
-
-			for blockX = sBlockX, fBlockX do
-				self:GetBlock(blockX, blockY, sample_encode_buff)
-
-				for X = 0, 3 do
-					for Y = 0, ly + h - blockY * 4 do
-						local obj = sample_encode_buff[1 + X + Y * 4]
-						local r, g, b = render.ReadPixel(rx + X + blockX * 4, ry + Y + blockY * 4)
-						obj[4] = (r + g + b) / 3
-					end
-				end
-
-				self:SetBlock(blockX, blockY, sample_encode_buff, true, true)
-
-				done = done + 1
-
-				if SysTime() >= s then
-					callbackBefore()
-
-					local ref = DLib._RenderCapturePixels
-
-					coroutine_yield(...)
-					s = SysTime() + thersold
-					callbackAfter(done / total)
-
-					if ref ~= DLib._RenderCapturePixels then
-						render.CapturePixels()
-					end
-				end
-			end
-		end
-
-		if not fitx and not fity then
-			local blockX = fBlockX + 1
-			local blockY = fBlockY + 1
-
-			self:GetBlock(blockX, blockY, sample_encode_buff)
-
-			for X = 0, lx + w - blockX * 4 do
-				for Y = 0, ly + h - blockY * 4 do
-					local obj = sample_encode_buff[1 + X + Y * 4]
-					local r, g, b = render.ReadPixel(rx + X + blockX * 4, ry + Y + blockY * 4)
-					obj[4] = (r + g + b) / 3
-				end
-			end
-
-			self:SetBlock(blockX, blockY, sample_encode_buff, true, true)
-		end
 	end
 end
 
@@ -1093,7 +607,6 @@ do
 end
 
 AccessorFunc(DXT1, 'encode_luma', 'EncodeInLuma')
-AccessorFunc(DXT1, 'advanced_dither', 'AdvancedDither')
 
 function DXT1:SetBlock(x, y, pixels, pixels_are_plain)
 	assert(x >= 0, '!x >= 0')
@@ -1121,12 +634,6 @@ function DXT1:SetBlock(x, y, pixels, pixels_are_plain)
 
 	self.cache[pixel] = nil
 end
-
-DXT1.GetPixel = GetPixel
-DXT1.CaptureRenderTarget = CaptureRenderTarget
-DXT1.CaptureRenderTargetAlpha = CaptureRenderTargetAlpha
-DXT1.CaptureRenderTargetCoroutine = CaptureRenderTargetCoroutine
-DXT1.CaptureRenderTargetAlphaCoroutine = CaptureRenderTargetAlphaCoroutine
 
 function DXT1:GetBlock(x, y, export)
 	assert(x >= 0, '!x >= 0')
@@ -1264,7 +771,7 @@ function DXT1:GetBlock(x, y, export)
 	return decoded, color0, color1, describe
 end
 
-DLib.DXT1 = DLib.CreateMoonClassBare('DXT1', DXT1, DXT1Object)
+DLib.DXT1 = DLib.CreateMoonClassBare('DXT1', DXT1, DXT1Object, DLib.AbstractTexture)
 
 local DXT3 = {}
 local DXT3Object = {}
@@ -1313,19 +820,10 @@ function DXT3Object.Create(width, height, fill, bytes)
 end
 
 AccessorFunc(DXT3, 'encode_luma', 'EncodeInLuma')
-AccessorFunc(DXT3, 'advanced_dither', 'AdvancedDither')
 
 function DXT3:ctor(bytes, width, height)
-	self.bytes = bytes
-	self.edge = bytes:Tell()
-	self.width = width
-	self.height = height
-	self.width_blocks = width / 4
-	self.height_blocks = height / 4
-	self.advanced_dither = true
+	DLib.AbstractTexture.__init(self, bytes, width, height)
 	self.encode_luma = false
-
-	self.cache = {}
 end
 
 do
@@ -1412,12 +910,6 @@ do
 		self.cache[pixel] = nil
 	end
 end
-
-DXT3.GetPixel = GetPixel
-DXT3.CaptureRenderTarget = CaptureRenderTarget
-DXT3.CaptureRenderTargetAlpha = CaptureRenderTargetAlpha
-DXT3.CaptureRenderTargetCoroutine = CaptureRenderTargetCoroutine
-DXT3.CaptureRenderTargetAlphaCoroutine = CaptureRenderTargetAlphaCoroutine
 
 function DXT3:GetBlock(x, y, export)
 	assert(x >= 0, '!x >= 0')
@@ -1522,24 +1014,20 @@ function DXT3:GetBlock(x, y, export)
 	return decoded, color0, color1, describe, alpha0, alpha1
 end
 
-DLib.DXT3 = DLib.CreateMoonClassBare('DXT3', DXT3, DXT3Object)
+DLib.DXT3 = DLib.CreateMoonClassBare('DXT3', DXT3, DXT3Object, DLib.AbstractTexture)
 
 local DXT5 = {}
 local DXT5Object = {}
+
+AccessorFunc(DXT5, 'encode_luma', 'EncodeInLuma')
 
 function DXT5Object.CountBytes(w, h)
 	return ceil(w * h):max(16)
 end
 
 function DXT5:ctor(bytes, width, height)
-	self.bytes = bytes
-	self.edge = bytes:Tell()
-	self.width = width
-	self.height = height
-	self.width_blocks = width / 4
-	self.height_blocks = height / 4
-
-	self.cache = {}
+	DLib.AbstractTexture.__init(self, bytes, width, height)
+	self.encode_luma = false
 end
 
 function DXT5Object.Create(width, height, fill, bytes)
@@ -1742,12 +1230,6 @@ do
 	end
 end
 
-DXT5.GetPixel = GetPixel
-DXT5.CaptureRenderTarget = CaptureRenderTarget
-DXT5.CaptureRenderTargetAlpha = CaptureRenderTargetAlpha
-DXT5.CaptureRenderTargetCoroutine = CaptureRenderTargetCoroutine
-DXT5.CaptureRenderTargetAlphaCoroutine = CaptureRenderTargetAlphaCoroutine
-
 function DXT5:GetBlock(x, y, export)
 	assert(x >= 0, '!x >= 0')
 	assert(y >= 0, '!y >= 0')
@@ -1904,4 +1386,4 @@ function DXT5:GetBlock(x, y, export)
 	return decoded, color0, color1, describe, alpha0, alpha1, alphacode0, alphacode1
 end
 
-DLib.DXT5 = DLib.CreateMoonClassBare('DXT5', DXT5, DXT5Object)
+DLib.DXT5 = DLib.CreateMoonClassBare('DXT5', DXT5, DXT5Object, DLib.AbstractTexture)

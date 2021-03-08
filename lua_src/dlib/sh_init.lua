@@ -208,6 +208,7 @@ DLib.ServerInclude('modules/nwvar/sv_nwvar.lua')
 
 DLib.SharedInclude('util/queue.lua')
 DLib.SharedInclude('util/pdata.lua')
+DLib.SharedInclude('modules/textureworks.lua')
 DLib.SharedInclude('modules/s3tc.lua')
 DLib.SharedInclude('modules/vtf.lua')
 DLib.SharedInclude('classes/cache_manager.lua')
