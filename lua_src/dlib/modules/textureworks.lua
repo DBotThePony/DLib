@@ -521,3 +521,250 @@ function AbstractTexture:GetPixel(x, y)
 end
 
 DLib.AbstractTexture, DLib.AbstractTextureBase = DLib.CreateMoonClassBare('AbstractTexture', AbstractTexture, AbstractTextureObj)
+
+--[[
+	-- Template:
+
+	local RGBA8888 = {}
+	local RGBA8888Object = {}
+
+	function RGBA8888Object.CountBytes(w, h)
+		return w * h * 4
+	end
+
+	function RGBA8888:SetBlock(x, y, buffer, plain_format, only_update_alpha)
+		assert(x >= 0, '!x >= 0')
+		assert(y >= 0, '!y >= 0')
+		assert(x < self.width_blocks, '!x <= self.width_blocks')
+		assert(y < self.height_blocks, '!y <= self.height_blocks')
+	end
+
+	function RGBA8888:GetBlock(x, y, export)
+		assert(x >= 0, '!x >= 0')
+		assert(y >= 0, '!y >= 0')
+		assert(x < self.width_blocks, '!x <= self.width_blocks')
+		assert(y < self.height_blocks, '!y <= self.height_blocks')
+
+		local pixel = y * self.width_blocks + x
+
+		if not export and self.cache[pixel] then
+			return self.cache[pixel]
+		end
+
+		local bytes = self.bytes
+
+	end
+
+	DLib.RGBA8888 = DLib.CreateMoonClassBare('RGBA8888', RGBA8888, RGBA8888Object, DLib.AbstractTexture)
+]]
+
+local RGBA8888 = {}
+local RGBA8888Object = {}
+
+function RGBA8888Object.CountBytes(w, h)
+	return w * h * 4
+end
+
+function RGBA8888Object.Create(width, height, fill, bytes)
+	assert(width > 0, 'width <= 0')
+	assert(height > 0, 'height <= 0')
+
+	--assert(width % 4 == 0, 'width % 4 ~= 0')
+	--assert(height % 4 == 0, 'height % 4 ~= 0')
+
+	fill = fill or color_white
+	local r, g, b, a = floor(fill.r), floor(fill.g), floor(fill.b), floor(fill.a)
+
+	local filler = string.char(r, g, b, a)
+
+	if not bytes then
+		return DLib.RGBA8888(DLib.BytesBuffer(string.rep(filler, width * height)), width, height)
+	end
+
+	local pointer = bytes:Tell()
+	bytes:WriteBinary(string.rep(filler, width * height))
+	local pointer2 = bytes:Tell()
+	bytes:Seek(pointer)
+	local texture = DLib.RGBA8888(bytes, width, height)
+	bytes:Seek(pointer2)
+
+	return texture
+end
+
+function RGBA8888:SetBlock(x, y, buffer, plain_format, only_update_alpha)
+	assert(x >= 0, '!x >= 0')
+	assert(y >= 0, '!y >= 0')
+	assert(x < self.width_blocks, '!x <= self.width_blocks')
+	assert(y < self.height_blocks, '!y <= self.height_blocks')
+
+	local bytes = self.bytes
+	local edge = self.edge
+	local width = self.width
+
+	if plain_format then
+		if only_update_alpha then
+			for line = 0, 3 do
+				bytes:Seek(edge + x * 16 + y * width * 16 + line * width * 4)
+				local a = bytes:ReadUInt32LE()
+				local b = bytes:ReadUInt32LE()
+				local c = bytes:ReadUInt32LE()
+				local d = bytes:ReadUInt32LE()
+				bytes:Seek(edge + x * 16 + y * width * 16 + line * width * 4)
+
+				local obj = buffer[line * 4 + 1]
+				bytes:WriteInt32LE(bor(band(a, 0x00FFFFFF), lshift(obj[4], 24)))
+
+				obj = buffer[line * 4 + 2]
+				bytes:WriteInt32LE(bor(band(b, 0x00FFFFFF), lshift(obj[4], 24)))
+
+				obj = buffer[line * 4 + 3]
+				bytes:WriteInt32LE(bor(band(c, 0x00FFFFFF), lshift(obj[4], 24)))
+
+				obj = buffer[line * 4 + 4]
+				bytes:WriteInt32LE(bor(band(d, 0x00FFFFFF), lshift(obj[4], 24)))
+			end
+		else
+			for line = 0, 3 do
+				bytes:Seek(edge + x * 16 + y * width * 16 + line * width * 4)
+
+				local obj = buffer[line * 4 + 1]
+				bytes:WriteInt32LE(bor(obj[1], lshift(obj[2], 8), lshift(obj[3], 16), lshift(obj[4], 24)))
+
+				obj = buffer[line * 4 + 2]
+				bytes:WriteInt32LE(bor(obj[1], lshift(obj[2], 8), lshift(obj[3], 16), lshift(obj[4], 24)))
+
+				obj = buffer[line * 4 + 3]
+				bytes:WriteInt32LE(bor(obj[1], lshift(obj[2], 8), lshift(obj[3], 16), lshift(obj[4], 24)))
+
+				obj = buffer[line * 4 + 4]
+				bytes:WriteInt32LE(bor(obj[1], lshift(obj[2], 8), lshift(obj[3], 16), lshift(obj[4], 24)))
+			end
+		end
+	else
+		if only_update_alpha then
+			for line = 0, 3 do
+				bytes:Seek(edge + x * 16 + y * width * 16 + line * width * 4)
+				local a = bytes:ReadUInt32LE()
+				local b = bytes:ReadUInt32LE()
+				local c = bytes:ReadUInt32LE()
+				local d = bytes:ReadUInt32LE()
+				bytes:Seek(edge + x * 16 + y * width * 16 + line * width * 4)
+
+				local obj = buffer[line * 4 + 1]
+				bytes:WriteInt32LE(bor(band(a, 0x00FFFFFF), lshift(obj.a, 24)))
+
+				obj = buffer[line * 4 + 2]
+				bytes:WriteInt32LE(bor(band(b, 0x00FFFFFF), lshift(obj.a, 24)))
+
+				obj = buffer[line * 4 + 3]
+				bytes:WriteInt32LE(bor(band(c, 0x00FFFFFF), lshift(obj.a, 24)))
+
+				obj = buffer[line * 4 + 4]
+				bytes:WriteInt32LE(bor(band(d, 0x00FFFFFF), lshift(obj.a, 24)))
+			end
+		else
+			for line = 0, 3 do
+				bytes:Seek(edge + x * 16 + y * width * 16 + line * width * 4)
+
+				local obj = buffer[line * 4 + 1]
+				bytes:WriteInt32LE(bor(obj.r, lshift(obj.g, 8), lshift(obj.b, 16), lshift(obj.a, 24)))
+
+				obj = buffer[line * 4 + 2]
+				bytes:WriteInt32LE(bor(obj.r, lshift(obj.g, 8), lshift(obj.b, 16), lshift(obj.a, 24)))
+
+				obj = buffer[line * 4 + 3]
+				bytes:WriteInt32LE(bor(obj.r, lshift(obj.g, 8), lshift(obj.b, 16), lshift(obj.a, 24)))
+
+				obj = buffer[line * 4 + 4]
+				bytes:WriteInt32LE(bor(obj.r, lshift(obj.g, 8), lshift(obj.b, 16), lshift(obj.a, 24)))
+			end
+		end
+	end
+end
+
+function RGBA8888:GetBlock(x, y, export)
+	assert(x >= 0, '!x >= 0')
+	assert(y >= 0, '!y >= 0')
+	assert(x < self.width_blocks, '!x <= self.width_blocks')
+	assert(y < self.height_blocks, '!y <= self.height_blocks')
+
+	local pixel = y * self.width_blocks + x
+
+	if not export and self.cache[pixel] then
+		return self.cache[pixel]
+	end
+
+	local bytes = self.bytes
+	local edge = self.edge
+	local width = self.width
+
+	if export then
+		for line = 0, 3 do
+			bytes:Seek(edge + x * 16 + y * width * 16 + line * width * 4)
+			local color = bytes:ReadUInt32LE()
+			local obj = export[line * 4 + 1]
+			obj[1], obj[2], obj[3], obj[4] = band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24)
+
+			color = bytes:ReadUInt32LE()
+			obj = export[line * 4 + 2]
+			obj[1], obj[2], obj[3], obj[4] = band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24)
+
+			color = bytes:ReadUInt32LE()
+			obj = export[line * 4 + 3]
+			obj[1], obj[2], obj[3], obj[4] = band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24)
+
+			color = bytes:ReadUInt32LE()
+			obj = export[line * 4 + 4]
+			obj[1], obj[2], obj[3], obj[4] = band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24)
+		end
+	else
+		local result = {}
+		local index = 1
+
+		for line = 0, 3 do
+			bytes:Seek(edge + x * 16 + y * width * 16 + line * width * 4)
+
+			local color = bytes:ReadUInt32LE()
+			result[line * 4 + 1] = Color(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24))
+
+			color = bytes:ReadUInt32LE()
+			result[line * 4 + 2] = Color(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24))
+
+			color = bytes:ReadUInt32LE()
+			result[line * 4 + 3] = Color(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24))
+
+			color = bytes:ReadUInt32LE()
+			result[line * 4 + 4] = Color(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24))
+		end
+
+		self.cache[pixel] = result
+
+		return result
+	end
+end
+
+function RGBA8888:ReadEntireImage(nocache)
+	if self._cache then return self._cache end
+
+	local result = {}
+	local index = 1
+	local bytes = self.bytes
+
+	bytes:Seek(self.edge)
+
+	for y = 0, self.height - 1 do
+		for x = 0, self.width - 1 do
+			local color = bytes:ReadUInt32LE()
+			result[index] = Color(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24))
+			index = index + 1
+		end
+	end
+
+	if not nocache then
+		self._cache = result
+	end
+
+	return result
+end
+
+DLib.RGBA8888 = DLib.CreateMoonClassBare('RGBA8888', RGBA8888, RGBA8888Object, DLib.AbstractTexture)

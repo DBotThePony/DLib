@@ -920,7 +920,7 @@ function DXT3:GetBlock(x, y, export)
 	local pixel = y * self.width_blocks + x
 	local block = pixel * 16
 
-	if self.cache[pixel] then
+	if not export and self.cache[pixel] then
 		return self.cache[pixel]
 	end
 
@@ -1239,7 +1239,7 @@ function DXT5:GetBlock(x, y, export)
 	local pixel = y * self.width_blocks + x
 	local block = pixel * 16
 
-	if self.cache[pixel] then
+	if self.cache[pixel] and not export then
 		return self.cache[pixel]
 	end
 
