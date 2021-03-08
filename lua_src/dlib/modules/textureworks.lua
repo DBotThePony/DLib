@@ -1734,10 +1734,10 @@ end
 
 DLib.BGR888 = DLib.CreateMoonClassBare('BGR888', BGR888, BGR888Object, DLib.AbstractTexture)
 
-local function encode_color_5_6_5(r, g, b)
-	local r = round(clamp(r, 0, 255) * 0.12156862745098)
-	local g = round(clamp(g, 0, 255) * 0.24705882352941)
-	local b = round(clamp(b, 0, 255) * 0.12156862745098)
+local function encode_color_5_6_5(r, g, b, a)
+	r = round(clamp(r, 0, 255) * 0.12156862745098)
+	g = round(clamp(g, 0, 255) * 0.24705882352941)
+	b = round(clamp(b, 0, 255) * 0.12156862745098)
 
 	return band(bor(lshift(b, 11), lshift(g, 5), r), 0xFFFF)
 end
@@ -1747,15 +1747,33 @@ local function decode_color_5_6_5(value)
 	local g = round(band(rshift(value, 5), 63) * 4.047619047619)
 	local b = round(band(rshift(value, 11), 31) * 8.2258064516129)
 
-	return r, g, b
+	return r, g, b, 255
 end
 
-local function encode_color_5_6_5_le(r, g, b)
-	local r = round(clamp(r, 0, 255) * 0.12156862745098)
-	local g = round(clamp(g, 0, 255) * 0.24705882352941)
-	local b = round(clamp(b, 0, 255) * 0.12156862745098)
+local function encode_color_5_6_5_le(r, g, b, a)
+	r = round(clamp(r, 0, 255) * 0.12156862745098)
+	g = round(clamp(g, 0, 255) * 0.24705882352941)
+	b = round(clamp(b, 0, 255) * 0.12156862745098)
 
 	return band(bor(lshift(r, 11), lshift(g, 5), b), 0xFFFF)
+end
+
+local function encode_color_4444_le(r, g, b, a)
+	r = round(clamp(r, 0, 255) * 0.058823529411765)
+	g = round(clamp(g, 0, 255) * 0.058823529411765)
+	b = round(clamp(b, 0, 255) * 0.058823529411765)
+	a = round(clamp(a, 0, 255) * 0.058823529411765)
+
+	return band(bor(lshift(a, 12), lshift(r, 8), lshift(g, 4), b), 0xFFFF)
+end
+
+local function encode_color_5551_le(r, g, b, a)
+	r = round(clamp(r, 0, 255) * 0.12156862745098)
+	g = round(clamp(g, 0, 255) * 0.12156862745098)
+	b = round(clamp(b, 0, 255) * 0.12156862745098)
+	a = a > 127.5 and 1 or 0
+
+	return band(bor(lshift(a, 15), lshift(r, 10), lshift(g, 5), b), 0xFFFF)
 end
 
 local function decode_color_5_6_5_le(value)
@@ -1763,7 +1781,25 @@ local function decode_color_5_6_5_le(value)
 	local g = round(band(rshift(value, 5), 63) * 4.047619047619)
 	local r = round(band(rshift(value, 11), 31) * 8.2258064516129)
 
-	return r, g, b
+	return r, g, b, 255
+end
+
+local function decode_color_4444_le(value)
+	local b = round(band(value, 15) * 17)
+	local g = round(band(rshift(value, 4), 15) * 17)
+	local r = round(band(rshift(value, 8), 15) * 17)
+	local a = round(band(rshift(value, 12), 15) * 17)
+
+	return r, g, b, a
+end
+
+local function decode_color_5551_le(value)
+	local b = round(band(value, 31) * 8.2258064516129)
+	local g = round(band(rshift(value, 5), 31) * 8.2258064516129)
+	local r = round(band(rshift(value, 10), 31) * 8.2258064516129)
+	local a = rshift(value, 15) == 1 and 255 or 0
+
+	return r, g, b, a
 end
 
 local error_buffer = {}
@@ -1782,7 +1818,7 @@ local function reset_error_buffer()
 	end
 end
 
-local report_error, receive_error
+local report_error, receive_error, report_error_4444, report_error_5551
 
 do
 	local dither_precompute = {}
@@ -1818,6 +1854,43 @@ do
 		end
 	end
 
+	-- no dither for alpha since it is just one bit
+	function report_error_5551(index, r, g, b, a)
+		local _r = round(r * 0.12156862745098)
+		local _g = round(g * 0.12156862745098)
+		local _b = round(b * 0.12156862745098)
+
+		local r_error, g_error, b_error = r - _r * 8.2258064516129, g - _g * 8.2258064516129, b - _b * 8.2258064516129
+		local dither = dither_precompute[index]
+
+		for i2 = 1, #dither do
+			local _error2 = error_buffer[dither[i2][1]]
+			local mult = dither[i2][2]
+			_error2[1] = _error2[1] + r_error * mult
+			_error2[2] = _error2[2] + g_error * mult
+			_error2[3] = _error2[3] + b_error * mult
+		end
+	end
+
+	function report_error_4444(index, r, g, b, a)
+		local _r = round(r * 0.058823529411765)
+		local _g = round(g * 0.058823529411765)
+		local _b = round(b * 0.058823529411765)
+		local _a = round(a * 0.058823529411765)
+
+		local r_error, g_error, b_error, a_error = r - _r * 17, g - _g * 17, b - _b * 17, a - _a * 17
+		local dither = dither_precompute[index]
+
+		for i2 = 1, #dither do
+			local _error2 = error_buffer[dither[i2][1]]
+			local mult = dither[i2][2]
+			_error2[1] = _error2[1] + r_error * mult
+			_error2[2] = _error2[2] + g_error * mult
+			_error2[3] = _error2[3] + b_error * mult
+			_error2[4] = _error2[4] + a_error * mult
+		end
+	end
+
 	function report_error(index, r, g, b)
 		local _r = round(r * 0.12156862745098)
 		local _g = round(g * 0.24705882352941)
@@ -1846,6 +1919,8 @@ end
 local RGB565 = {
 	encode_color_5_6_5 = encode_color_5_6_5,
 	decode_color_5_6_5 = decode_color_5_6_5,
+	report_error = report_error,
+	care_about_alpha = false
 }
 local RGB565Object = {}
 
@@ -1892,34 +1967,62 @@ function RGB565:SetBlock(x, y, buffer, plain_format)
 	local encode_color_5_6_5 = self.encode_color_5_6_5
 
 	local solid = true
-	local r, g, b
+	local r, g, b, a
 
-	if plain_format then
-		r, g, b = floor(buffer[1][1]), floor(buffer[1][2]), floor(buffer[1][3])
+	if self.care_about_alpha then
+		if plain_format then
+			r, g, b, a = floor(buffer[1][1]), floor(buffer[1][2]), floor(buffer[1][3]), floor(buffer[1][4])
 
-		for i = 2, 16 do
-			local pixel = buffer[i]
+			for i = 2, 16 do
+				local pixel = buffer[i]
 
-			if floor(pixel[1]) ~= r or floor(pixel[2]) ~= g or floor(pixel[3]) ~= b then
-				solid = false
-				break
+				if floor(pixel[1]) ~= r or floor(pixel[2]) ~= g or floor(pixel[3]) ~= b or floor(pixel[4]) ~= a then
+					solid = false
+					break
+				end
+			end
+		else
+			r, g, b, a = floor(buffer[1].r), floor(buffer[1].g), floor(buffer[1].b), floor(buffer[1].a)
+
+			for i = 2, 16 do
+				local pixel = buffer[i]
+
+				if floor(pixel.r) ~= r or floor(pixel.g) ~= g or floor(pixel.b) ~= b or floor(pixel.a) ~= a then
+					solid = false
+					break
+				end
 			end
 		end
 	else
-		r, g, b = floor(buffer[1].r), floor(buffer[1].g), floor(buffer[1].b)
+		a = 255
 
-		for i = 2, 16 do
-			local pixel = buffer[i]
+		if plain_format then
+			r, g, b = floor(buffer[1][1]), floor(buffer[1][2]), floor(buffer[1][3])
 
-			if floor(pixel.r) ~= r or floor(pixel.g) ~= g or floor(pixel.b) ~= b then
-				solid = false
-				break
+			for i = 2, 16 do
+				local pixel = buffer[i]
+
+				if floor(pixel[1]) ~= r or floor(pixel[2]) ~= g or floor(pixel[3]) ~= b then
+					solid = false
+					break
+				end
+			end
+		else
+			r, g, b = floor(buffer[1].r), floor(buffer[1].g), floor(buffer[1].b)
+
+			for i = 2, 16 do
+				local pixel = buffer[i]
+
+				if floor(pixel.r) ~= r or floor(pixel.g) ~= g or floor(pixel.b) ~= b then
+					solid = false
+					break
+				end
 			end
 		end
 	end
 
 	if solid then
-		local wColor0 = encode_color_5_6_5(r, g, b)
+		local wColor0 = encode_color_5_6_5(r, g, b, a)
 		wColor0 = bor(wColor0, lshift(wColor0, 16))
 
 		for line = 0, 3 do
@@ -1931,15 +2034,14 @@ function RGB565:SetBlock(x, y, buffer, plain_format)
 		return
 	end
 
-	if self.dither then
-		reset_error_buffer()
-	end
+	reset_error_buffer()
+	local report_error = self.report_error
 
 	if plain_format then
 		if self.dither then
 			for i = 1, 16 do
 				local obj = buffer[i]
-				report_error(i, obj[1], obj[2], obj[3])
+				report_error(i, obj[1], obj[2], obj[3], obj[4])
 			end
 		end
 
@@ -1947,26 +2049,26 @@ function RGB565:SetBlock(x, y, buffer, plain_format)
 			bytes:Seek(edge + x * 8 + y * width * 8 + line * width * 2)
 
 			local obj = buffer[line * 4 + 1]
-			local _r, _g, _b = receive_error(line * 4 + 1)
-			bytes:WriteUInt16LE(encode_color_5_6_5(obj[1] + _r, obj[2] + _g, obj[3] + _b))
+			local _r, _g, _b, _a = receive_error(line * 4 + 1)
+			bytes:WriteUInt16LE(encode_color_5_6_5(obj[1] + _r, obj[2] + _g, obj[3] + _b, obj[4] + _a))
 
 			obj = buffer[line * 4 + 2]
-			_r, _g, _b = receive_error(line * 4 + 1)
-			bytes:WriteUInt16LE(encode_color_5_6_5(obj[1] + _r, obj[2] + _g, obj[3] + _b))
+			r, _g, _b, _a = receive_error(line * 4 + 1)
+			bytes:WriteUInt16LE(encode_color_5_6_5(obj[1] + _r, obj[2] + _g, obj[3] + _b, obj[4] + _a))
 
 			obj = buffer[line * 4 + 3]
-			_r, _g, _b = receive_error(line * 4 + 1)
-			bytes:WriteUInt16LE(encode_color_5_6_5(obj[1] + _r, obj[2] + _g, obj[3] + _b))
+			r, _g, _b, _a = receive_error(line * 4 + 1)
+			bytes:WriteUInt16LE(encode_color_5_6_5(obj[1] + _r, obj[2] + _g, obj[3] + _b, obj[4] + _a))
 
 			obj = buffer[line * 4 + 4]
-			_r, _g, _b = receive_error(line * 4 + 1)
-			bytes:WriteUInt16LE(encode_color_5_6_5(obj[1] + _r, obj[2] + _g, obj[3] + _b))
+			r, _g, _b, _a = receive_error(line * 4 + 1)
+			bytes:WriteUInt16LE(encode_color_5_6_5(obj[1] + _r, obj[2] + _g, obj[3] + _b, obj[4] + _a))
 		end
 	else
 		if self.dither then
 			for i = 1, 16 do
 				local obj = buffer[i]
-				report_error(i, obj.r, obj.g, obj.b)
+				report_error(i, obj.r, obj.g, obj.b, obj.a)
 			end
 		end
 
@@ -1974,20 +2076,20 @@ function RGB565:SetBlock(x, y, buffer, plain_format)
 			bytes:Seek(edge + x * 8 + y * width * 8 + line * width * 2)
 
 			local obj = buffer[line * 4 + 1]
-			local _r, _g, _b = receive_error(line * 4 + 1)
-			bytes:WriteUInt16LE(encode_color_5_6_5(obj.r + _r, obj.g + _g, obj.b + _b))
+			local _r, _g, _b, _a = receive_error(line * 4 + 1)
+			bytes:WriteUInt16LE(encode_color_5_6_5(obj.r + _r, obj.g + _g, obj.b + _b, obj.a + _a))
 
 			obj = buffer[line * 4 + 2]
-			_r, _g, _b = receive_error(line * 4 + 1)
-			bytes:WriteUInt16LE(encode_color_5_6_5(obj.r + _r, obj.g + _g, obj.b + _b))
+			_r, _g, _b, _a = receive_error(line * 4 + 1)
+			bytes:WriteUInt16LE(encode_color_5_6_5(obj.r + _r, obj.g + _g, obj.b + _b, obj.a + _a))
 
 			obj = buffer[line * 4 + 3]
-			_r, _g, _b = receive_error(line * 4 + 1)
-			bytes:WriteUInt16LE(encode_color_5_6_5(obj.r + _r, obj.g + _g, obj.b + _b))
+			_r, _g, _b, _a = receive_error(line * 4 + 1)
+			bytes:WriteUInt16LE(encode_color_5_6_5(obj.r + _r, obj.g + _g, obj.b + _b, obj.a + _a))
 
 			obj = buffer[line * 4 + 4]
-			_r, _g, _b = receive_error(line * 4 + 1)
-			bytes:WriteUInt16LE(encode_color_5_6_5(obj.r + _r, obj.g + _g, obj.b + _b))
+			_r, _g, _b, _a = receive_error(line * 4 + 1)
+			bytes:WriteUInt16LE(encode_color_5_6_5(obj.r + _r, obj.g + _g, obj.b + _b, obj.a + _a))
 		end
 	end
 end
@@ -2015,19 +2117,19 @@ function RGB565:GetBlock(x, y, export)
 			bytes:Seek(edge + x * 8 + y * width * 8 + line * width * 2)
 			local color = bytes:ReadUInt16LE()
 			local obj = export[line * 4 + 1]
-			obj[1], obj[2], obj[3] = decode_color_5_6_5(color)
+			obj[1], obj[2], obj[3], obj[4] = decode_color_5_6_5(color)
 
 			color = bytes:ReadUInt16LE()
 			obj = export[line * 4 + 2]
-			obj[1], obj[2], obj[3] = decode_color_5_6_5(color)
+			obj[1], obj[2], obj[3], obj[4] = decode_color_5_6_5(color)
 
 			color = bytes:ReadUInt16LE()
 			obj = export[line * 4 + 3]
-			obj[1], obj[2], obj[3] = decode_color_5_6_5(color)
+			obj[1], obj[2], obj[3], obj[4] = decode_color_5_6_5(color)
 
 			color = bytes:ReadUInt16LE()
 			obj = export[line * 4 + 4]
-			obj[1], obj[2], obj[3] = decode_color_5_6_5(color)
+			obj[1], obj[2], obj[3], obj[4] = decode_color_5_6_5(color)
 		end
 	else
 		local result = {}
@@ -2121,3 +2223,83 @@ function BGR565Object.Create(width, height, fill, bytes)
 end
 
 DLib.BGR565 = DLib.CreateMoonClassBare('BGR565', BGR565, BGR565Object, DLib.RGB565)
+
+local BGRA4444 = {
+	encode_color_5_6_5 = encode_color_4444_le,
+	decode_color_5_6_5 = decode_color_4444_le,
+	report_error = report_error_4444,
+	care_about_alpha = true
+}
+local BGRA4444Object = {}
+
+function BGRA4444Object.CountBytes(w, h)
+	return w * h * 2
+end
+
+function BGRA4444Object.Create(width, height, fill, bytes)
+	assert(width > 0, 'width <= 0')
+	assert(height > 0, 'height <= 0')
+
+	--assert(width % 4 == 0, 'width % 4 ~= 0')
+	--assert(height % 4 == 0, 'height % 4 ~= 0')
+
+	fill = fill or color_white
+	local color = encode_color_4444_le(floor(fill.r), floor(fill.g), floor(fill.b), floor(fill.a))
+
+	local filler = string.char(band(color, 0xFF), rshift(color, 8))
+
+	if not bytes then
+		return DLib.BGRA4444(DLib.BytesBuffer(string.rep(filler, width * height)), width, height)
+	end
+
+	local pointer = bytes:Tell()
+	bytes:WriteBinary(string.rep(filler, width * height))
+	local pointer2 = bytes:Tell()
+	bytes:Seek(pointer)
+	local texture = DLib.BGRA4444(bytes, width, height)
+	bytes:Seek(pointer2)
+
+	return texture
+end
+
+DLib.BGRA4444 = DLib.CreateMoonClassBare('BGRA4444', BGRA4444, BGRA4444Object, DLib.RGB565)
+
+local BGRA5551 = {
+	encode_color_5_6_5 = encode_color_5551_le,
+	decode_color_5_6_5 = decode_color_5551_le,
+	report_error = report_error_5551,
+	care_about_alpha = true
+}
+local BGRA5551Object = {}
+
+function BGRA5551Object.CountBytes(w, h)
+	return w * h * 2
+end
+
+function BGRA5551Object.Create(width, height, fill, bytes)
+	assert(width > 0, 'width <= 0')
+	assert(height > 0, 'height <= 0')
+
+	--assert(width % 4 == 0, 'width % 4 ~= 0')
+	--assert(height % 4 == 0, 'height % 4 ~= 0')
+
+	fill = fill or color_white
+	local color = encode_color_4444_le(floor(fill.r), floor(fill.g), floor(fill.b), floor(fill.a))
+
+	local filler = string.char(band(color, 0xFF), rshift(color, 8))
+
+	if not bytes then
+		return DLib.BGRA5551(DLib.BytesBuffer(string.rep(filler, width * height)), width, height)
+	end
+
+	local pointer = bytes:Tell()
+	bytes:WriteBinary(string.rep(filler, width * height))
+	local pointer2 = bytes:Tell()
+	bytes:Seek(pointer)
+	local texture = DLib.BGRA5551(bytes, width, height)
+	bytes:Seek(pointer2)
+
+	return texture
+end
+
+DLib.BGRA5551 = DLib.CreateMoonClassBare('BGRA5551', BGRA5551, BGRA5551Object, DLib.RGB565)
