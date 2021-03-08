@@ -106,9 +106,12 @@ function DXT1Object.Create(width, height, fill, bytes)
 
 	local pointer = bytes:Tell()
 	bytes:WriteBinary(string.rep(filler, width * height / 16))
+	local pointer2 = bytes:Tell()
 	bytes:Seek(pointer)
+	local texture = DLib.DXT1(bytes, width, height)
+	bytes:Seek(pointer2)
 
-	return DLib.DXT1(bytes, width, height)
+	return texture
 end
 
 function DXT1:ctor(bytes, width, height)
@@ -1301,9 +1304,12 @@ function DXT3Object.Create(width, height, fill, bytes)
 
 	local pointer = bytes:Tell()
 	bytes:WriteBinary(string.rep(filler, width * height / 16))
+	local pointer2 = bytes:Tell()
 	bytes:Seek(pointer)
+	local texture = DLib.DXT3(bytes, width, height)
+	bytes:Seek(pointer2)
 
-	return DLib.DXT3(bytes, width, height)
+	return texture
 end
 
 AccessorFunc(DXT3, 'encode_luma', 'EncodeInLuma')
@@ -1567,9 +1573,12 @@ function DXT5Object.Create(width, height, fill, bytes)
 
 	local pointer = bytes:Tell()
 	bytes:WriteBinary(string.rep(filler, width * height / 16))
+	local pointer2 = bytes:Tell()
 	bytes:Seek(pointer)
+	local texture = DLib.DXT5(bytes, width, height)
+	bytes:Seek(pointer2)
 
-	return DLib.DXT5(bytes, width, height)
+	return texture
 end
 
 

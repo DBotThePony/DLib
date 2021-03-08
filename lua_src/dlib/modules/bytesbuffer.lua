@@ -38,10 +38,137 @@ local rshift = bit.rshift
 local band = bit.band
 local bor = bit.bor
 local bxor = bit.bxor
+local bswap = bit.bswap
 local string_byte = string.byte
 local string_char = string.char
 local table_insert = table.insert
 local math_floor = math.floor
+local math_ceil = math.ceil
+
+local function get_1_bytes_le(pointer, bytes)
+	return band(rshift(bytes[rshift(pointer, 2) + 1], band(pointer, 0x3) * 8), 0xFF)
+end
+
+local function get_2_bytes_le(pointer, bytes)
+	local pick = band(pointer, 0x3)
+	pointer = rshift(pointer, 2) + 1
+
+	if pick == 0 then
+		local value = bytes[pointer]
+		return band(value, 0xFF), band(rshift(value, 8), 0xFF)
+	end
+
+	if pick == 1 then
+		local value = bytes[pointer]
+		return band(rshift(value, 8), 0xFF), band(rshift(value, 16), 0xFF)
+	end
+
+	if pick == 2 then
+		local value = bytes[pointer]
+		return band(rshift(value, 16), 0xFF), band(rshift(value, 24), 0xFF)
+	end
+
+	local value_a = bytes[pointer]
+	local value_b = bytes[pointer + 1]
+
+	return band(rshift(value_a, 24), 0xFF), band(value_b, 0xFF)
+end
+
+local function get_4_bytes_le(pointer, bytes)
+	local pick = band(pointer, 0x3)
+	pointer = rshift(pointer, 2) + 1
+
+	if pick == 0 then
+		local value = bytes[pointer]
+		return band(value, 0xFF), band(rshift(value, 8), 0xFF), band(rshift(value, 16), 0xFF), band(rshift(value, 24), 0xFF)
+	end
+
+	local value_a = bytes[pointer]
+	local value_b = bytes[pointer + 1]
+
+	if pick == 1 then
+		return band(rshift(value_a, 8), 0xFF), band(rshift(value_a, 16), 0xFF), band(rshift(value_a, 24), 0xFF), band(value_b, 0xFF)
+	end
+
+	if pick == 2 then
+		return band(rshift(value_a, 16), 0xFF), band(rshift(value_a, 24), 0xFF), band(rshift(value_b, 0), 0xFF), band(rshift(value_b, 8), 0xFF)
+	end
+
+	return band(rshift(value_a, 24), 0xFF), band(rshift(value_b, 0), 0xFF), band(rshift(value_b, 8), 0xFF), band(rshift(value_b, 16), 0xFF)
+end
+
+local function set_1_bytes_le(pointer, bytes, value)
+	local pick = band(pointer, 0x3)
+	pointer = rshift(pointer, 2) + 1
+
+	if pick == 0 then
+		bytes[pointer] = bor(band(bytes[pointer], 0xFFFFFF00), value)
+		return
+	end
+
+	if pick == 1 then
+		bytes[pointer] = bor(band(bytes[pointer], 0xFFFF00FF), lshift(value, 8))
+		return
+	end
+
+	if pick == 2 then
+		bytes[pointer] = bor(band(bytes[pointer], 0xFF00FFFF), lshift(value, 16))
+		return
+	end
+
+	if pick == 3 then
+		bytes[pointer] = bor(band(bytes[pointer], 0x00FFFFFF), lshift(value, 24))
+		return
+	end
+end
+
+local function set_2_bytes_le(pointer, bytes, value)
+	local pick = band(pointer, 0x3)
+	pointer = rshift(pointer, 2) + 1
+
+	if pick == 0 then
+		bytes[pointer] = bor(band(bytes[pointer], 0xFFFF0000), value)
+		return
+	end
+
+	if pick == 1 then
+		bytes[pointer] = bor(band(bytes[pointer], 0xFF0000FF), lshift(value, 8))
+		return
+	end
+
+	if pick == 2 then
+		bytes[pointer] = bor(band(bytes[pointer], 0x0000FFFF), lshift(value, 16))
+		return
+	end
+
+	bytes[pointer] = bor(band(bytes[pointer], 0x00FFFFFF), lshift(value, 24))
+	bytes[pointer + 1] = bor(band(bytes[pointer + 1], 0xFFFFFF00), rshift(value, 8))
+end
+
+local function set_4_bytes_le(pointer, bytes, value)
+	local pick = band(pointer, 0x3)
+	pointer = rshift(pointer, 2) + 1
+
+	if pick == 0 then
+		bytes[pointer] = value
+		return
+	end
+
+	if pick == 1 then
+		bytes[pointer] = bor(band(bytes[pointer], 0x000000FF), lshift(value, 8))
+		bytes[pointer + 1] = bor(band(bytes[pointer + 1], 0xFFFFFF00), rshift(value, 24))
+		return
+	end
+
+	if pick == 2 then
+		bytes[pointer] = bor(band(bytes[pointer], 0x0000FFFF), lshift(value, 16))
+		bytes[pointer + 1] = bor(band(bytes[pointer + 1], 0xFFFF0000), rshift(value, 16))
+		return
+	end
+
+	bytes[pointer] = bor(band(bytes[pointer], 0x00FFFFFF), lshift(value, 24))
+	bytes[pointer + 1] = bor(band(bytes[pointer + 1], 0xFF000000), rshift(value, 8))
+end
 
 --[[
 	@doc
@@ -64,12 +191,27 @@ function meta:ctor(stringIn)
 	if isstring(stringIn) then
 		local bytes = {}
 
-		for i = 1, #stringIn do
-			bytes[i] = string_byte(stringIn, i)
+		local length = #stringIn
+
+		for i = 1, math_floor(length / 4) do
+			local a, b, c, d = string_byte(stringIn, (i - 1) * 4 + 1, (i - 1) * 4 + 4)
+			bytes[i] = a + lshift(b, 8) + lshift(c, 16) + lshift(d, 24)
 		end
 
 		self.bytes = bytes
-		self.length = #bytes
+		self.length = length
+
+		local _length = band(length, 3)
+
+		if _length == 1 then
+			bytes[#bytes + 1] = string_byte(stringIn, length)
+		elseif _length == 2 then
+			local a, b = string_byte(stringIn, length - 1, length)
+			bytes[#bytes + 1] = a + lshift(b, 8)
+		elseif _length == 3 then
+			local a, b, c = string_byte(stringIn, length - 2, length)
+			bytes[#bytes + 1] = a + lshift(b, 8) + lshift(c, 16)
+		end
 	else
 		self.bytes = {}
 		self.length = 0
@@ -161,6 +303,11 @@ end
 
 	@internal
 
+	@desc
+	Whatever is stored there is not guaranteed to be like that across DLib versions
+	The array is optimized exclusively for inner class usage
+	@enddesc
+
 	@returns
 	table: of integers (for optimization purpose). editing this array will affect the object! be careful
 ]]
@@ -225,9 +372,21 @@ function meta:WriteUByte(valueIn)
 
 	valueIn = math_floor(valueIn)
 
-	self.bytes[self.pointer + 1] = valueIn
-	self.pointer = self.pointer + 1
-	self.length = self._length or #self.bytes
+	local pointer = self.pointer
+	local bytes = self.bytes
+	local length = self.length
+
+	if pointer == length then
+		self.length = length + 1
+		local index = rshift(pointer, 2) + 1
+
+		if bytes[index] == nil then
+			bytes[index] = 0
+		end
+	end
+
+	set_1_bytes_le(pointer, bytes, valueIn)
+	self.pointer = pointer + 1
 
 	return self
 end
@@ -394,12 +553,27 @@ function meta:WriteUInt16(valueIn)
 	assertType(valueIn, 'number', 'WriteUInt16')
 	assertRange(valueIn, 0, 0xFFFF, 'WriteUInt16')
 
-	local bytes, pointer = self.bytes, self.pointer + 1
+	local pointer = self.pointer
+	local bytes = self.bytes
+	local length = self.length
 
-	bytes[pointer] = band(rshift(valueIn, 8), 0xFF)
-	bytes[pointer + 1] = band(valueIn, 0xFF)
-	self.pointer = pointer + 1
-	self.length = self._length or #bytes
+	if pointer + 1 >= length then
+		self.length = pointer + 2
+		local index = rshift(pointer, 2) + 1
+
+		if bytes[index] == nil then
+			bytes[index] = 0
+		end
+
+		index = rshift(pointer + 1, 2) + 1
+
+		if bytes[index] == nil then
+			bytes[index] = 0
+		end
+	end
+
+	set_2_bytes_le(pointer, bytes, rshift(bswap(valueIn), 16))
+	self.pointer = pointer + 2
 
 	return self
 end
@@ -408,12 +582,27 @@ function meta:WriteUInt16LE(valueIn)
 	assertType(valueIn, 'number', 'WriteUInt16LE')
 	assertRange(valueIn, 0, 0xFFFF, 'WriteUInt16LE')
 
-	local bytes, pointer = self.bytes, self.pointer + 1
+	local pointer = self.pointer
+	local bytes = self.bytes
+	local length = self.length
 
-	bytes[pointer] = band(valueIn, 0xFF)
-	bytes[pointer + 1] = band(rshift(valueIn, 8), 0xFF)
-	self.pointer = pointer + 1
-	self.length = self._length or #bytes
+	if pointer + 1 >= length then
+		self.length = pointer + 2
+		local index = rshift(pointer, 2) + 1
+
+		if bytes[index] == nil then
+			bytes[index] = 0
+		end
+
+		index = rshift(pointer + 1, 2) + 1
+
+		if bytes[index] == nil then
+			bytes[index] = 0
+		end
+	end
+
+	set_2_bytes_le(pointer, bytes, valueIn)
+	self.pointer = pointer + 2
 
 	return self
 end
@@ -516,15 +705,39 @@ function meta:WriteUInt32(valueIn)
 	assertType(valueIn, 'number', 'WriteUInt32')
 	assertRange(valueIn, 0, 0xFFFFFFFF, 'WriteUInt32')
 
-	local bytes, pointer = self.bytes, self.pointer + 1
+	local pointer = self.pointer
+	local bytes = self.bytes
+	local length = self.length
 
-	bytes[pointer] = band(rshift(valueIn, 24), 0xFF)
-	bytes[pointer + 1] = band(rshift(valueIn, 16), 0xFF)
-	bytes[pointer + 2] = band(rshift(valueIn, 8), 0xFF)
-	bytes[pointer + 3] = band(valueIn, 0xFF)
+	if pointer + 3 >= length then
+		self.length = pointer + 4
+		local index = rshift(pointer, 2) + 1
 
-	self.pointer = pointer + 3
-	self.length = self._length or #bytes
+		if bytes[index] == nil then
+			bytes[index] = 0
+		end
+
+		index = rshift(pointer + 1, 2) + 1
+
+		if bytes[index] == nil then
+			bytes[index] = 0
+		end
+
+		index = rshift(pointer + 2, 2) + 1
+
+		if bytes[index] == nil then
+			bytes[index] = 0
+		end
+
+		index = rshift(pointer + 3, 2) + 1
+
+		if bytes[index] == nil then
+			bytes[index] = 0
+		end
+	end
+
+	set_4_bytes_le(pointer, bytes, bswap(valueIn))
+	self.pointer = pointer + 4
 
 	return self
 end
@@ -545,15 +758,39 @@ function meta:WriteUInt32LE(valueIn)
 	assertType(valueIn, 'number', 'WriteUInt32')
 	assertRange(valueIn, 0, 0xFFFFFFFF, 'WriteUInt32')
 
-	local bytes, pointer = self.bytes, self.pointer + 1
+	local pointer = self.pointer
+	local bytes = self.bytes
+	local length = self.length
 
-	bytes[pointer + 3] = band(rshift(valueIn, 24), 0xFF)
-	bytes[pointer + 2] = band(rshift(valueIn, 16), 0xFF)
-	bytes[pointer + 1] = band(rshift(valueIn, 8), 0xFF)
-	bytes[pointer] = band(valueIn, 0xFF)
+	if pointer + 3 >= length then
+		self.length = pointer + 4
+		local index = rshift(pointer, 2) + 1
 
-	self.pointer = pointer + 3
-	self.length = self._length or #bytes
+		if bytes[index] == nil then
+			bytes[index] = 0
+		end
+
+		index = rshift(pointer + 1, 2) + 1
+
+		if bytes[index] == nil then
+			bytes[index] = 0
+		end
+
+		index = rshift(pointer + 2, 2) + 1
+
+		if bytes[index] == nil then
+			bytes[index] = 0
+		end
+
+		index = rshift(pointer + 3, 2) + 1
+
+		if bytes[index] == nil then
+			bytes[index] = 0
+		end
+	end
+
+	set_4_bytes_le(pointer, bytes, valueIn)
+	self.pointer = pointer + 4
 
 	return self
 end
@@ -670,12 +907,6 @@ function meta:WriteUInt64(valueIn)
 	return self
 end
 
-function meta:CheckOverflow(name, moveBy)
-	if self.pointer + moveBy > self.length then
-		error('Read' .. name .. ' - bytes amount overflow (' .. self.pointer .. ' + ' .. moveBy .. ' vs ' .. self.length .. ')', 3)
-	end
-end
-
 function meta:WriteInt64LE_2(valueIn)
 	self:WriteUInt64LE(valueIn + 0x100000000)
 	return self
@@ -693,12 +924,6 @@ function meta:WriteUInt64LE(valueIn)
 	return self
 end
 
-function meta:CheckOverflow(name, moveBy)
-	if self.pointer + moveBy > self.length then
-		error('Read' .. name .. ' - bytes amount overflow (' .. self.pointer .. ' + ' .. moveBy .. ' vs ' .. self.length .. ')', 3)
-	end
-end
-
 meta.WriteLong = meta.WriteInt64
 meta.WriteLong_2 = meta.WriteInt64_2
 meta.WriteULong = meta.WriteUInt64
@@ -706,6 +931,12 @@ meta.WriteULong = meta.WriteUInt64
 meta.WriteLongLE = meta.WriteInt64LE
 meta.WriteLongLE_2 = meta.WriteInt64LE_2
 meta.WriteULongLE = meta.WriteUInt64LE
+
+function meta:CheckOverflow(name, moveBy)
+	if self.pointer + moveBy > self.length then
+		error('Read' .. name .. ' - bytes amount overflow (' .. self.pointer .. ' + ' .. moveBy .. ' vs ' .. self.length .. ')', 3)
+	end
+end
 
 --[[
 	@doc
@@ -748,10 +979,9 @@ end
 
 function meta:ReadUByte()
 	self:CheckOverflow('UByte', 1)
-	local value = self.bytes[self.pointer + 1]
-	self.pointer = self.pointer + 1
-
-	return value
+	local pointer = self.pointer
+	self.pointer = pointer + 1
+	return get_1_bytes_le(pointer, self.bytes)
 end
 
 meta.ReadInt8 = meta.ReadByte
@@ -830,16 +1060,10 @@ end
 
 function meta:ReadUInt16()
 	self:CheckOverflow('UInt16', 2)
-
-	local bytes, pointer = self.bytes, self.pointer + 1
-
-	local value =
-		lshift(bytes[pointer], 8) +
-		bytes[pointer + 1]
-
-	self.pointer = pointer + 1
-
-	return value
+	local pointer = self.pointer
+	self.pointer = pointer + 2
+	local a, b = get_2_bytes_le(pointer, self.bytes)
+	return bor(lshift(a, 8), b)
 end
 
 function meta:ReadInt16LE_2()
@@ -852,16 +1076,10 @@ end
 
 function meta:ReadUInt16LE()
 	self:CheckOverflow('UInt16LE', 2)
-
-	local bytes, pointer = self.bytes, self.pointer + 1
-
-	local value =
-		lshift(bytes[pointer + 1], 8) +
-		bytes[pointer]
-
-	self.pointer = pointer + 1
-
-	return value
+	local pointer = self.pointer
+	self.pointer = pointer + 2
+	local a, b = get_2_bytes_le(pointer, self.bytes)
+	return bor(lshift(b, 8), a)
 end
 
 meta.ReadShort = meta.ReadInt16
@@ -945,18 +1163,10 @@ end
 
 function meta:ReadUInt32()
 	self:CheckOverflow('UInt32', 4)
-
-	local bytes, pointer = self.bytes, self.pointer + 1
-
-	local value =
-		lshift(bytes[pointer], 24) +
-		lshift(bytes[pointer + 1], 16) +
-		lshift(bytes[pointer + 2], 8) +
-		bytes[pointer + 3]
-
-	self.pointer = pointer + 3
-
-	return value
+	local pointer = self.pointer
+	self.pointer = pointer + 4
+	local a, b, c, d = get_4_bytes_le(pointer, self.bytes)
+	return bor(lshift(a, 24), lshift(b, 16), lshift(c, 8), d)
 end
 
 function meta:ReadInt32LE_2()
@@ -969,18 +1179,10 @@ end
 
 function meta:ReadUInt32LE()
 	self:CheckOverflow('UInt32LE', 4)
-
-	local bytes, pointer = self.bytes, self.pointer + 1
-
-	local value =
-		lshift(bytes[pointer + 3], 24) +
-		lshift(bytes[pointer + 2], 16) +
-		lshift(bytes[pointer + 1], 8) +
-		bytes[pointer]
-
-	self.pointer = pointer + 3
-
-	return value
+	local pointer = self.pointer
+	self.pointer = pointer + 4
+	local a, b, c, d = get_4_bytes_le(pointer, self.bytes)
+	return bor(lshift(d, 24), lshift(c, 16), lshift(b, 8), a)
 end
 
 meta.ReadInt = meta.ReadInt32
@@ -1077,21 +1279,18 @@ end
 function meta:ReadUInt64()
 	self:CheckOverflow('UInt64', 8)
 
-	local bytes, pointer = self.bytes, self.pointer + 1
+	local pointer = self.pointer
+	self.pointer = pointer + 8
 
-	local value =
-		bytes[pointer] * 0x100000000000000 +
-		bytes[pointer + 1] * 0x1000000000000 +
-		bytes[pointer + 2] * 0x10000000000 +
-		bytes[pointer + 3] * 0x100000000 +
-		lshift(bytes[pointer + 4], 24) +
-		lshift(bytes[pointer + 5], 16) +
-		lshift(bytes[pointer + 6], 8) +
-		bytes[pointer + 7]
+	local a, b, c, d = get_4_bytes_le(pointer, self.bytes)
+	local e, f, g, k = get_4_bytes_le(pointer + 4, self.bytes)
 
-	self.pointer = pointer + 7
-
-	return value
+	return
+		a * 0x100000000000000 +
+		b * 0x1000000000000 +
+		c * 0x10000000000 +
+		d * 0x100000000 +
+		bor(lshift(e, 24), lshift(f, 16), lshift(g, 8), k)
 end
 
 function meta:ReadInt64LE_2()
@@ -1105,21 +1304,15 @@ end
 function meta:ReadUInt64LE()
 	self:CheckOverflow('UInt64LE', 8)
 
-	local bytes, pointer = self.bytes, self.pointer + 1
+	local k, g, f, e = get_4_bytes_le(pointer, self.bytes)
+	local d, c, b, a = get_4_bytes_le(pointer + 4, self.bytes)
 
-	local value =
-		bytes[pointer + 7] * 0x100000000000000 +
-		bytes[pointer + 6] * 0x1000000000000 +
-		bytes[pointer + 5] * 0x10000000000 +
-		bytes[pointer + 4] * 0x100000000 +
-		lshift(bytes[pointer + 3], 24) +
-		lshift(bytes[pointer + 2], 16) +
-		lshift(bytes[pointer + 1], 8) +
-		bytes[pointer]
-
-	self.pointer = pointer + 7
-
-	return value
+	return
+		a * 0x100000000000000 +
+		b * 0x1000000000000 +
+		c * 0x10000000000 +
+		d * 0x100000000 +
+		bor(lshift(e, 24), lshift(f, 16), lshift(g, 8), k)
 end
 
 meta.ReadLong = meta.ReadInt32
@@ -1252,19 +1445,8 @@ function meta:WriteDoubleSlow(valueIn)
 	local bits = BitWorker.FloatToBinaryIEEE(valueIn, 11, 52)
 	local bytes = BitWorker.BitsToBytes(bits)
 
-	local bytes, pointer = self.bytes, self.pointer + 1
-
-	bytes[pointer] = bytes[1]
-	bytes[pointer + 1] = bytes[2]
-	bytes[pointer + 2] = bytes[3]
-	bytes[pointer + 3] = bytes[4]
-	bytes[pointer + 4] = bytes[5]
-	bytes[pointer + 5] = bytes[6]
-	bytes[pointer + 6] = bytes[7]
-	bytes[pointer + 7] = bytes[8]
-
-	self.pointer = pointer + 7
-	self.length = self._length or #bytes
+	self:WriteUInt32(wrap(bor(lshift(bytes[1], 24), lshift(bytes[2], 16), lshift(bytes[3], 8), bytes[4]), 0x80000000))
+	self:WriteUInt32(wrap(bor(lshift(bytes[5], 24), lshift(bytes[6], 16), lshift(bytes[7], 8), bytes[8]), 0x80000000))
 
 	return self
 end
@@ -1298,23 +1480,9 @@ function meta:WriteDouble(valueIn)
 	assertType(valueIn, 'number', 'WriteDouble')
 
 	local int1, int2 = BitWorker.FastDoubleToBinaryIEEE(valueIn)
-	local bytes, pointer = self.bytes, self.pointer + 1
 
-	int1 = wrap(int1, 0x80000000)
-	int2 = wrap(int2, 0x80000000)
-
-	bytes[pointer] = band(rshift(int1, 24), 0xFF)
-	bytes[pointer + 1] = band(rshift(int1, 16), 0xFF)
-	bytes[pointer + 2] = band(rshift(int1, 8), 0xFF)
-	bytes[pointer + 3] = band(int1, 0xFF)
-
-	bytes[pointer + 4] = band(rshift(int2, 24), 0xFF)
-	bytes[pointer + 5] = band(rshift(int2, 16), 0xFF)
-	bytes[pointer + 6] = band(rshift(int2, 8), 0xFF)
-	bytes[pointer + 7] = band(int2, 0xFF)
-
-	self.pointer = pointer + 7
-	self.length = self._length or #bytes
+	self:WriteUInt32(wrap(int1, 0x80000000))
+	self:WriteUInt32(wrap(int2, 0x80000000))
 
 	return self
 end
@@ -1323,23 +1491,9 @@ function meta:WriteDoubleLE(valueIn)
 	assertType(valueIn, 'number', 'WriteDouble')
 
 	local int1, int2 = BitWorker.FastDoubleToBinaryIEEE(valueIn)
-	local bytes, pointer = self.bytes, self.pointer + 1
 
-	int1 = wrap(int1, 0x80000000)
-	int2 = wrap(int2, 0x80000000)
-
-	bytes[pointer + 7] = band(rshift(int2, 24), 0xFF)
-	bytes[pointer + 6] = band(rshift(int2, 16), 0xFF)
-	bytes[pointer + 5] = band(rshift(int2, 8), 0xFF)
-	bytes[pointer + 4] = band(int2, 0xFF)
-
-	bytes[pointer + 3] = band(rshift(int1, 24), 0xFF)
-	bytes[pointer + 2] = band(rshift(int1, 16), 0xFF)
-	bytes[pointer + 1] = band(rshift(int1, 8), 0xFF)
-	bytes[pointer] = band(int1, 0xFF)
-
-	self.pointer = pointer + 7
-	self.length = self._length or #bytes
+	self:WriteUInt32LE(wrap(int2, 0x80000000))
+	self:WriteUInt32LE(wrap(int1, 0x80000000))
 
 	return self
 end
@@ -1359,8 +1513,7 @@ end
 function meta:ReadDoubleSlow()
 	local bytes1 = self:ReadUInt32()
 	local bytes2 = self:ReadUInt32()
-	local bits = {}
-	table.append(bits, BitWorker.UIntegerToBinary(bytes1, 32))
+	local bits = BitWorker.UIntegerToBinary(bytes1, 32)
 	table.append(bits, BitWorker.UIntegerToBinary(bytes2, 32))
 	return BitWorker.BinaryToFloatIEEE(bits, 11, 52)
 end
@@ -1418,23 +1571,45 @@ function meta:WriteString(stringIn)
 	end
 
 	local bytes = self.bytes
-	local pointer = self.pointer + 1
+	local pointer = self.pointer
 
-	-- LuaJIT optimize such loop so it is pretty fast
-	for i = 1, #stringIn do
-		local byte = string_byte(stringIn, i)
-
-		if byte == 0 then
-			error('NUL terminator in string at ' .. i)
-		else
-			bytes[pointer] = byte
-			pointer = pointer + 1
+	for pointer = rshift(self.pointer, 2), rshift(self.pointer + #stringIn, 2) + 1 do
+		if bytes[pointer] == nil then
+			bytes[pointer] = 0
 		end
 	end
 
-	self.length = self._length or #bytes
-	self.pointer = pointer - 1
+	local length = #stringIn
 
+	for i = 1, math_floor(length / 4) do
+		local a, b, c, d = string_byte(stringIn, (i - 1) * 4 + 1, (i - 1) * 4 + 4)
+
+		if a == 0 then error('NUL in input string at ' .. ((i - 1) * 4 + 1)) end
+		if b == 0 then error('NUL in input string at ' .. ((i - 1) * 4 + 2)) end
+		if c == 0 then error('NUL in input string at ' .. ((i - 1) * 4 + 3)) end
+		if d == 0 then error('NUL in input string at ' .. ((i - 1) * 4 + 4)) end
+
+		set_4_bytes_le(pointer, bytes, a + lshift(b, 8) + lshift(c, 16) + lshift(d, 24))
+		pointer = pointer + 4
+	end
+
+	local _length = band(length, 3)
+
+	if _length == 1 then
+		set_1_bytes_le(pointer, bytes, string_byte(stringIn, length))
+	elseif _length == 2 then
+		local a, b = string_byte(stringIn, length - 1, length)
+		set_2_bytes_le(pointer, bytes, a + lshift(b, 8))
+	elseif _length == 3 then
+		local a, b, c = string_byte(stringIn, length - 2, length)
+		set_2_bytes_le(pointer, bytes, a + lshift(b, 8))
+		set_1_bytes_le(pointer + 2, bytes, c)
+	end
+
+	pointer = pointer + _length
+
+	self.pointer = pointer
+	self.length = self.length:max(pointer)
 	self:WriteUByte(0)
 
 	return self
@@ -1457,10 +1632,10 @@ function meta:ReadString()
 	self:CheckOverflow('String', 1)
 	local bytes = self.bytes
 
-	for i = self.pointer + 1, self.length do
-		if bytes[i] == 0 then
-			local string = self:StringSlice(self.pointer + 1, i - 1)
-			self.pointer = i
+	for i = self.pointer, self.length do
+		if get_1_bytes_le(i, bytes) == 0 then
+			local string = self:StringSlice(self.pointer + 1, i)
+			self.pointer = i + 1
 			return string
 		end
 	end
@@ -1479,21 +1654,47 @@ end
 	@returns
 	BytesBuffer: self
 ]]
-function meta:WriteBinary(binaryString)
-	assertType(binaryString, 'string', 'WriteBinary')
-	if #binaryString == 0 then return self end
+function meta:WriteBinary(stringIn)
+	assertType(stringIn, 'string', 'WriteBinary')
+
+	if #stringIn == 0 then
+		return self
+	end
 
 	local bytes = self.bytes
 	local pointer = self.pointer
-	local length = #binaryString
 
-	-- LuaJIT optimize such loop so it is pretty fast
-	for i = 1, length do
-		bytes[pointer + i] = string_byte(binaryString, i)
+	for pointer = rshift(self.pointer, 2), rshift(self.pointer + #stringIn, 2) + 1 do
+		if bytes[pointer] == nil then
+			bytes[pointer] = 0
+		end
 	end
 
-	self.length = self._length or #bytes
-	self.pointer = pointer + length
+	local length = #stringIn
+
+	for i = 1, math_floor(length / 4) do
+		local a, b, c, d = string_byte(stringIn, (i - 1) * 4 + 1, (i - 1) * 4 + 4)
+		set_4_bytes_le(pointer, bytes, a + lshift(b, 8) + lshift(c, 16) + lshift(d, 24))
+		pointer = pointer + 4
+	end
+
+	local _length = band(length, 3)
+
+	if _length == 1 then
+		set_1_bytes_le(pointer, bytes, string_byte(stringIn, length))
+	elseif _length == 2 then
+		local a, b = string_byte(stringIn, length - 1, length)
+		set_2_bytes_le(pointer, bytes, a + lshift(b, 8))
+	elseif _length == 3 then
+		local a, b, c = string_byte(stringIn, length - 2, length)
+		set_2_bytes_le(pointer, bytes, a + lshift(b, 8))
+		set_1_bytes_le(pointer + 2, bytes, c)
+	end
+
+	pointer = pointer + _length
+
+	self.pointer = pointer
+	self.length = self.length:max(pointer)
 
 	return self
 end
@@ -1545,14 +1746,39 @@ end
 	string
 ]]
 function meta:StringSlice(slice_start, slice_end)
+	local bytes = self.bytes
+	local _length = slice_end - slice_start + 1
+
+	if _length == 1 then
+		return string_char(get_1_bytes_le(slice_start - 1, bytes))
+	elseif _length == 2 then
+		return string_char(get_2_bytes_le(slice_start - 1, bytes))
+	elseif _length == 3 then
+		local a, b = get_2_bytes_le(slice_start - 1, bytes)
+		return string_char(a, b, get_1_bytes_le(slice_start + 1, bytes))
+	elseif _length == 4 then
+		return string_char(get_4_bytes_le(slice_start - 1, bytes))
+	end
+
 	local strings = {}
-	slice_start = slice_start - 1
 
-	while slice_start < slice_end do
-		local nexti = math.min(7996, slice_end - slice_start)
+	local whole_length = math_floor(_length / 4)
+	local index = 1
 
-		table_insert(strings, string_char(unpack(self.bytes, slice_start + 1, slice_start + nexti)))
-		slice_start = slice_start + nexti
+	for i = 1, whole_length do
+		strings[index] = string_char(get_4_bytes_le(slice_start + i * 4 - 5, bytes))
+		index = index + 1
+	end
+
+	_length = band(_length, 0x3)
+
+	if _length == 1 then
+		strings[index] = string_char(get_1_bytes_le(slice_end - 1, bytes))
+	elseif _length == 2 then
+		strings[index] = string_char(get_2_bytes_le(slice_end - 2, bytes))
+	elseif _length == 3 then
+		local a, b = get_2_bytes_le(slice_end - 3, bytes)
+		strings[index] = string_char(a, b, get_1_bytes_le(slice_end - 1, bytes))
 	end
 
 	return table.concat(strings, '')
@@ -1841,34 +2067,75 @@ end
 
 function meta_view:__index(key)
 	local value = rawget(self, key)
-
 	if value ~= nil then return value end
-
-	--[[if key == 'length' then
-		return meta_view.CalculateLength(self)
-	end]]
-
 	return meta_view[key] or real_buff_meta[key]
 end
 
-function meta_bytes:__index(key)
-	if not isnumber(key) then return end
+local mask_lut = {
+	[0] =    0xFFFFFFFF,
+	[0.25] = 0xFFFFFF00,
+	[0.5] =  0xFFFF0000,
+	[0.75] = 0xFF000000,
+}
+
+function meta_bytes:__index(whole_key)
+	if not isnumber(whole_key) then return end
+
 	local self2 = rawget(self, 'self')
-	key = key + self2.slice_start
+	local key = whole_key + self2._slice_start
 
 	if key < 0 then return end
-	if key > self2.slice_end then return end
+	if key > self2._slice_end2 then return end
+	local buffers = self2.buffers
 
-	for _, buffer in ipairs(self2.buffers) do
-		local key2 = key - buffer.length
+	for _i, buffer in ipairs(buffers) do
+		local key2 = key - buffer.length / 4
 
-		if key2 <= 0 then
-			return buffer.bytes[key]
-		else
+		if key2 > 1 then -- completely skipping buffer
 			key = key2
+		elseif key2 <= 0 then -- in bounds of single buffer
+			local div = key % 1
+			key = key - div
+			local bytes = buffer.bytes
+
+			if div == 0 then
+				if bytes[key] == nil then error('what the fuck') end
+				return bytes[key]
+			elseif div == 0.25 then
+				return bor(rshift(bytes[key], 8 ), lshift(band(bytes[key + 1], 0x000000FF), 24))
+			elseif div == 0.5 then
+				return bor(rshift(bytes[key], 16), lshift(band(bytes[key + 1], 0x0000FFFF), 16))
+			else
+				return bor(rshift(bytes[key], 24), lshift(band(bytes[key + 1], 0x00FFFFFF), 8 ))
+			end
+		else -- edge of two buffers
+			local getbuffer = buffers[_i + 1]
+			local bytes_need = key2 * 4
+			local mask = key % 1
+			local value = rshift(band(buffer.bytes[math_floor(key)], mask_lut[mask]), mask * 32)
+
+			while getbuffer and bytes_need > 0 do
+				local bytes = getbuffer.bytes
+				local length = getbuffer.length
+
+				value = bor(value, lshift(bytes[1], (4 - bytes_need) * 8))
+				bytes_need = bytes_need - length
+
+				_i = _i + 1
+				getbuffer = buffers[_i + 1]
+			end
+
+			return value
 		end
 	end
 end
+
+local mask_lut = {
+	[0] =    0x00000000,
+	[0.25] = 0x000000FF,
+	[0.5] =  0x0000FFFF,
+	[0.75] = 0x00FFFFFF,
+}
 
 function meta_bytes:__newindex(key, value)
 	if not isnumber(key) then return end
@@ -1876,16 +2143,104 @@ function meta_bytes:__newindex(key, value)
 	key = key + self2.slice_start
 
 	if key < 0 then return end
-	if key > self2.slice_end then return end
+	if math_floor(key) > self2.slice_end2 then return end
 
-	for _, buffer in ipairs(self2.buffers) do
-		local key2 = key - buffer.length
+	local buffers = self2.buffers
 
-		if key2 <= 0 then
-			buffer.bytes[key] = value
-			return
-		else
+	for _i, buffer in ipairs(buffers) do
+		local key2 = key - buffer.length / 4
+
+		if key2 > 1 then -- completely skipping buffer
 			key = key2
+		elseif key2 <= 0 then -- in bounds of single buffer
+			local div = key % 1
+			key = key - div
+			local bytes = buffer.bytes
+
+			if div == 0 then
+				bytes[key] = value
+			elseif div == 0.25 then
+				bytes[key] =        bor(lshift(band(value, 0x00FFFFFF), 8 ), band(buffer.bytes[key],  0x000000FF))
+				bytes[key + 1] =    bor(rshift(band(value, 0xFF000000), 24), band(buffer.bytes[key],  0xFFFFFF00))
+			elseif div == 0.5 then
+				bytes[key] =        bor(lshift(band(value, 0x0000FFFF), 16), band(buffer.bytes[key],  0x0000FFFF))
+				bytes[key + 1] =    bor(rshift(band(value, 0xFFFF0000), 16), band(buffer.bytes[key],  0xFFFF0000))
+			else
+				bytes[key] =        bor(lshift(band(value, 0x000000FF), 24), band(buffer.bytes[key],  0x00FFFFFF))
+				bytes[key + 1] =    bor(rshift(band(value, 0xFFFFFF00), 8 ), band(buffer.bytes[key],  0xFF000000))
+			end
+
+			return
+		else -- edge of two buffers
+			local getbuffer = buffers[_i + 1]
+
+			if key2 == 0.25 then
+				buffer.bytes[math_floor(key)] = band(value,  0xFF)
+				value = rshift(value, 8)
+				local indices = 3
+
+				::WORK::
+
+				if getbuffer and indices > 0 then
+					local _length = getbuffer.length
+
+					if _length == 1 then
+						getbuffer.bytes[1] = band(value, 0xFF)
+						value = rshift(value, 8)
+						_i = _i + 1
+						getbuffer = buffers[_i + 1]
+						indices = indices - 1
+						goto WORK
+					elseif _length == 2 then
+						getbuffer.bytes[1] = band(value, 0xFFFF)
+						value = rshift(value, 16)
+						_i = _i + 1
+						getbuffer = buffers[_i + 1]
+						indices = indices - 2
+						goto WORK
+					elseif _length == 3 then
+						getbuffer.bytes[1] = value
+					elseif _length >= 4 then
+						getbuffer.bytes[1] = bor(band(getbuffer.bytes[1], 0xFF000000), value)
+					end
+				end
+			elseif key2 == 0.5 then
+				buffer.bytes[math_floor(key)] = band(value,  0xFFFF)
+				value = rshift(value, 16)
+				local indices = 2
+
+				::WORK::
+
+				if getbuffer and indices > 0 then
+					local _length = getbuffer.length
+
+					if _length == 1 then
+						getbuffer.bytes[1] = band(value, 0xFF)
+						value = rshift(value, 8)
+						_i = _i + 1
+						getbuffer = buffers[_i + 1]
+						indices = indices - 1
+						goto WORK
+					elseif _length == 2 then
+						getbuffer.bytes[1] = value
+					elseif _length >= 3 then
+						getbuffer.bytes[1] = bor(band(getbuffer.bytes[1], 0xFFFF0000), value)
+					end
+				end
+			elseif key2 == 0.75 then
+				buffer.bytes[math_floor(key)] = band(value,  0xFFFFFF)
+				value = rshift(value, 24)
+
+				if getbuffer then
+					local _length = getbuffer.length
+
+					if _length == 1 then
+						getbuffer.bytes[1] = band(value, 0xFF)
+					elseif _length >= 2 then
+						getbuffer.bytes[1] = bor(band(getbuffer.bytes[1], 0xFFFFFF00), value)
+					end
+				end
+			end
 		end
 	end
 end
@@ -1916,9 +2271,12 @@ DLib.BytesBufferView = setmetatable({proto = meta_view, meta = meta_view}, {__ca
 	local obj = setmetatable({}, meta_view)
 	obj.pointer = 0
 	obj.length = slice_end - slice_start
-	obj._length = slice_end - slice_start
 	obj.slice_start = slice_start
+	obj._slice_start = slice_start / 4
+	obj._slice_start2 = math_ceil(slice_start / 4 + 1)
 	obj.slice_end = slice_end
+	obj._slice_end = slice_end / 4
+	obj._slice_end2 = math_ceil(slice_end / 4 + 1)
 	obj.buffers = {...}
 	obj.bytes = setmetatable({self = obj}, meta_bytes)
 
