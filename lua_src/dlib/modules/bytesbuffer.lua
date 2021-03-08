@@ -74,6 +74,33 @@ local function get_2_bytes_le(pointer, bytes)
 	return band(rshift(value_a, 24), 0xFF), band(value_b, 0xFF)
 end
 
+local function get_3_bytes_le(pointer, bytes)
+	local pick = band(pointer, 0x3)
+	pointer = rshift(pointer, 2) + 1
+
+	if pick == 0 then
+		local value = bytes[pointer]
+		return band(value, 0xFF), band(rshift(value, 8), 0xFF), band(rshift(value, 16), 0xFF)
+	end
+
+	if pick == 1 then
+		local value = bytes[pointer]
+		return band(rshift(value, 8), 0xFF), band(rshift(value, 16), 0xFF), band(rshift(value, 24), 0xFF)
+	end
+
+	if pick == 2 then
+		local value_a = bytes[pointer]
+		local value_b = bytes[pointer + 1]
+
+		return band(rshift(value_a, 16), 0xFF), band(rshift(value_a, 24), 0xFF), band(value_b, 0xFF)
+	end
+
+	local value_a = bytes[pointer]
+	local value_b = bytes[pointer + 1]
+
+	return band(rshift(value_a, 24), 0xFF), band(value_b, 0xFF), band(rshift(value_b, 8), 0xFF)
+end
+
 local function get_4_bytes_le(pointer, bytes)
 	local pick = band(pointer, 0x3)
 	pointer = rshift(pointer, 2) + 1
@@ -143,6 +170,31 @@ local function set_2_bytes_le(pointer, bytes, value)
 
 	bytes[pointer] = bor(band(bytes[pointer], 0x00FFFFFF), lshift(value, 24))
 	bytes[pointer + 1] = bor(band(bytes[pointer + 1], 0xFFFFFF00), rshift(value, 8))
+end
+
+local function set_3_bytes_le(pointer, bytes, value)
+	local pick = band(pointer, 0x3)
+	pointer = rshift(pointer, 2) + 1
+
+	if pick == 0 then
+		bytes[pointer] = bor(band(bytes[pointer], 0xFF000000), value)
+		return
+	end
+
+	if pick == 1 then
+		bytes[pointer] = bor(band(bytes[pointer], 0x000000FF), lshift(value, 8))
+		return
+	end
+
+	if pick == 2 then
+		bytes[pointer] = bor(band(bytes[pointer], 0x0000FFFF), lshift(value, 16))
+		bytes[pointer + 1] = bor(band(bytes[pointer + 1], 0xFFFFFF00), rshift(value, 16))
+
+		return
+	end
+
+	bytes[pointer] = bor(band(bytes[pointer], 0x00FFFFFF), lshift(value, 24))
+	bytes[pointer + 1] = bor(band(bytes[pointer + 1], 0xFFFF0000), rshift(value, 8))
 end
 
 local function set_4_bytes_le(pointer, bytes, value)
@@ -613,6 +665,169 @@ meta.WriteShort_2 = meta.WriteInt16_2
 meta.WriteShortLE_2 = meta.WriteInt16LE_2
 meta.WriteUShort = meta.WriteUInt16
 meta.WriteUShortLE = meta.WriteUInt16LE
+
+--[[
+	@doc
+	@fname BytesBuffer:WriteInt24_2
+	@args number value
+
+	@desc
+	with value shift
+	@enddesc
+
+	@returns
+	BytesBuffer: self
+]]
+
+--[[
+	@doc
+	@fname BytesBuffer:WriteInt24LE_2
+	@args number value
+
+	@desc
+	with value shift
+	@enddesc
+
+	@returns
+	BytesBuffer: self
+]]
+
+--[[
+	@doc
+	@fname BytesBuffer:WriteInt24
+	@args number value
+
+	@desc
+	with negative number overflow
+	@enddesc
+
+	@returns
+	BytesBuffer: self
+]]
+
+--[[
+	@doc
+	@fname BytesBuffer:WriteInt24LE
+	@args number value
+
+	@desc
+	with negative number overflow
+	@enddesc
+
+	@returns
+	BytesBuffer: self
+]]
+
+--[[
+	@doc
+	@fname BytesBuffer:WriteUInt24
+	@args number value
+
+	@returns
+	BytesBuffer: self
+]]
+
+--[[
+	@doc
+	@fname BytesBuffer:WriteUInt24LE
+	@args number value
+
+	@returns
+	BytesBuffer: self
+]]
+function meta:WriteInt24_2(valueIn)
+	assertType(valueIn, 'number', 'WriteInt24')
+	assertRange(valueIn, -0x800000, 0x7FFFFF, 'WriteInt24')
+	return self:WriteUInt24(math_floor(valueIn) + 0x8000)
+end
+
+function meta:WriteInt24(valueIn)
+	assertType(valueIn, 'number', 'WriteInt24')
+	assertRange(valueIn, -0x800000, 0x7FFFFF, 'WriteInt24')
+	return self:WriteUInt24(wrap(math_floor(valueIn), 0x800000))
+end
+
+function meta:WriteInt24LE_2(valueIn)
+	assertType(valueIn, 'number', 'WriteInt24LE')
+	assertRange(valueIn, -0x800000, 0x7FFFFF, 'WriteInt24LE')
+	return self:WriteUInt24LE(math_floor(valueIn) + 0x800000)
+end
+
+function meta:WriteInt24LE(valueIn)
+	assertType(valueIn, 'number', 'WriteInt24LE')
+	assertRange(valueIn, -0x800000, 0x7FFFFF, 'WriteInt24LE')
+	return self:WriteUInt24LE(wrap(math_floor(valueIn), 0x800000))
+end
+
+function meta:WriteUInt24(valueIn)
+	assertType(valueIn, 'number', 'WriteUInt24')
+	assertRange(valueIn, 0, 0xFFFFFF, 'WriteUInt24')
+
+	local pointer = self.pointer
+	local bytes = self.bytes
+	local length = self.length
+
+	if pointer + 2 >= length then
+		self.length = pointer + 3
+		local index = rshift(pointer, 2) + 1
+
+		if bytes[index] == nil then
+			bytes[index] = 0
+		end
+
+		index = rshift(pointer + 1, 2) + 1
+
+		if bytes[index] == nil then
+			bytes[index] = 0
+		end
+
+		index = rshift(pointer + 2, 2) + 1
+
+		if bytes[index] == nil then
+			bytes[index] = 0
+		end
+	end
+
+	set_3_bytes_le(pointer, bytes, rshift(bswap(valueIn), 8))
+	self.pointer = pointer + 3
+
+	return self
+end
+
+function meta:WriteUInt24LE(valueIn)
+	assertType(valueIn, 'number', 'WriteUInt24LE')
+	assertRange(valueIn, 0, 0xFFFFFF, 'WriteUInt24LE')
+
+	local pointer = self.pointer
+	local bytes = self.bytes
+	local length = self.length
+
+	if pointer + 2 >= length then
+		self.length = pointer + 3
+		local index = rshift(pointer, 2) + 1
+
+		if bytes[index] == nil then
+			bytes[index] = 0
+		end
+
+		index = rshift(pointer + 1, 2) + 1
+
+		if bytes[index] == nil then
+			bytes[index] = 0
+		end
+
+		index = rshift(pointer + 2, 2) + 1
+
+		if bytes[index] == nil then
+			bytes[index] = 0
+		end
+	end
+
+	set_3_bytes_le(pointer, bytes, valueIn)
+	self.pointer = pointer + 3
+
+	return self
+end
 
 --[[
 	@doc
@@ -1089,6 +1304,101 @@ meta.ReadUShort = meta.ReadUInt16
 meta.ReadShortLE = meta.ReadInt16LE
 meta.ReadShortLE_2 = meta.ReadInt16LE_2
 meta.ReadUShortLE = meta.ReadUInt16LE
+
+--[[
+	@doc
+	@fname BytesBuffer:ReadInt24_2
+
+	@desc
+	with value shift
+	@enddesc
+
+	@returns
+	number
+]]
+
+--[[
+	@doc
+	@fname BytesBuffer:ReadInt24
+
+	@desc
+	with negative number overflow
+	@enddesc
+
+	@returns
+	number
+]]
+
+--[[
+	@doc
+	@fname BytesBuffer:ReadUInt24
+
+	@returns
+	number
+]]
+
+--[[
+	@doc
+	@fname BytesBuffer:ReadInt24LE_2
+
+	@desc
+	with value shift
+	@enddesc
+
+	@returns
+	number
+]]
+
+--[[
+	@doc
+	@fname BytesBuffer:ReadInt24LE
+
+	@desc
+	with negative number overflow
+	@enddesc
+
+	@returns
+	number
+]]
+
+--[[
+	@doc
+	@fname BytesBuffer:ReadUInt24LE
+
+	@returns
+	number
+]]
+function meta:ReadInt24_2()
+	return self:ReadUInt24() - 0x800000
+end
+
+function meta:ReadInt24()
+	return unwrap(self:ReadUInt24(), 0x800000)
+end
+
+function meta:ReadUInt24()
+	self:CheckOverflow('UInt24', 3)
+	local pointer = self.pointer
+	self.pointer = pointer + 3
+	local a, b, c = get_3_bytes_le(pointer, self.bytes)
+	return bor(lshift(a, 8), b, lshift(c, 16))
+end
+
+function meta:ReadInt24LE_2()
+	return self:ReadUInt24LE() - 0x800000
+end
+
+function meta:ReadInt24LE()
+	return unwrap(self:ReadUInt24LE(), 0x800000)
+end
+
+function meta:ReadUInt24LE()
+	self:CheckOverflow('UInt24LE', 3)
+	local pointer = self.pointer
+	self.pointer = pointer + 3
+	local a, b, c = get_3_bytes_le(pointer, self.bytes)
+	return bor(lshift(c, 16), lshift(b, 8), a)
+end
 
 --[[
 	@doc
