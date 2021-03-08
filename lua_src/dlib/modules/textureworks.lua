@@ -1733,3 +1733,385 @@ function BGR888:ReadEntireImage(nocache)
 end
 
 DLib.BGR888 = DLib.CreateMoonClassBare('BGR888', BGR888, BGR888Object, DLib.AbstractTexture)
+
+local function encode_color_5_6_5(r, g, b)
+	local r = round(clamp(r, 0, 255) * 0.12156862745098)
+	local g = round(clamp(g, 0, 255) * 0.24705882352941)
+	local b = round(clamp(b, 0, 255) * 0.12156862745098)
+
+	return band(bor(lshift(b, 11), lshift(g, 5), r), 0xFFFF)
+end
+
+local function decode_color_5_6_5(value)
+	local r = round(band(value, 31) * 8.2258064516129)
+	local g = round(band(rshift(value, 5), 63) * 4.047619047619)
+	local b = round(band(rshift(value, 11), 31) * 8.2258064516129)
+
+	return r, g, b
+end
+
+local function encode_color_5_6_5_le(r, g, b)
+	local r = round(clamp(r, 0, 255) * 0.12156862745098)
+	local g = round(clamp(g, 0, 255) * 0.24705882352941)
+	local b = round(clamp(b, 0, 255) * 0.12156862745098)
+
+	return band(bor(lshift(r, 11), lshift(g, 5), b), 0xFFFF)
+end
+
+local function decode_color_5_6_5_le(value)
+	local b = round(band(value, 31) * 8.2258064516129)
+	local g = round(band(rshift(value, 5), 63) * 4.047619047619)
+	local r = round(band(rshift(value, 11), 31) * 8.2258064516129)
+
+	return r, g, b
+end
+
+local error_buffer = {}
+
+for i = 1, 16 do
+	error_buffer[i] = {0, 0, 0, 0}
+end
+
+local function reset_error_buffer()
+	for i = 1, 16 do
+		local obj = error_buffer[i]
+		obj[1] = 0
+		obj[2] = 0
+		obj[3] = 0
+		obj[4] = 0
+	end
+end
+
+local report_error, receive_error
+
+do
+	local dither_precompute = {}
+	local _compute = {
+		{1, 0, 7 / 48},
+		{2, 0, 5 / 48},
+
+		{-2, 1, 3 / 48},
+		{-1, 1, 5 / 48},
+		{0, 1, 7 / 48},
+		{1, 1, 5 / 48},
+		{2, 1, 3 / 48},
+
+		{-2, 2, 1 / 48},
+		{-1, 2, 3 / 48},
+		{0, 2, 5 / 48},
+		{1, 2, 3 / 48},
+		{2, 2, 1 / 48},
+	}
+
+	for X = 0, 3 do
+		for Y = 0, 3 do
+			local compute = {}
+			dither_precompute[1 + X + Y * 4] = compute
+
+			for _, data in ipairs(_compute) do
+				local x, y, dither = data[1] + X, data[2] + Y, data[3]
+
+				if x < 4 and x > -1 and y < 4 and y > -1 then
+					table.insert(compute, {1 + x + y * 4, dither})
+				end
+			end
+		end
+	end
+
+	function report_error(index, r, g, b)
+		local _r = round(r * 0.12156862745098)
+		local _g = round(g * 0.24705882352941)
+		local _b = round(b * 0.12156862745098)
+
+		local r_error, g_error, b_error = r - _r * 8.2258064516129, g - _g * 4.047619047619, b - _b * 8.2258064516129
+		local dither = dither_precompute[index]
+
+		for i2 = 1, #dither do
+			local _error2 = error_buffer[dither[i2][1]]
+			local mult = dither[i2][2]
+			_error2[1] = _error2[1] + r_error * mult
+			_error2[2] = _error2[2] + g_error * mult
+			_error2[3] = _error2[3] + b_error * mult
+		end
+	end
+
+	function receive_error(index)
+		local obj = error_buffer[index]
+		return obj[1], obj[2], obj[3], obj[4]
+	end
+end
+
+-- source engine does not support RGB565 for some vague reasons
+-- since BGR565 is supported
+local RGB565 = {
+	encode_color_5_6_5 = encode_color_5_6_5,
+	decode_color_5_6_5 = decode_color_5_6_5,
+}
+local RGB565Object = {}
+
+function RGB565Object.CountBytes(w, h)
+	return w * h * 2
+end
+
+function RGB565Object.Create(width, height, fill, bytes)
+	assert(width > 0, 'width <= 0')
+	assert(height > 0, 'height <= 0')
+
+	--assert(width % 4 == 0, 'width % 4 ~= 0')
+	--assert(height % 4 == 0, 'height % 4 ~= 0')
+
+	fill = fill or color_white
+	local r, g, b = floor(fill.r), floor(fill.g), floor(fill.b)
+	local color = encode_color_5_6_5(r, g, b)
+
+	local filler = string.char(band(color, 0xFF), rshift(color, 8))
+
+	if not bytes then
+		return DLib.RGB565(DLib.BytesBuffer(string.rep(filler, width * height)), width, height)
+	end
+
+	local pointer = bytes:Tell()
+	bytes:WriteBinary(string.rep(filler, width * height))
+	local pointer2 = bytes:Tell()
+	bytes:Seek(pointer)
+	local texture = DLib.RGB565(bytes, width, height)
+	bytes:Seek(pointer2)
+
+	return texture
+end
+
+function RGB565:SetBlock(x, y, buffer, plain_format)
+	assert(x >= 0, '!x >= 0')
+	assert(y >= 0, '!y >= 0')
+	assert(x < self.width_blocks, '!x <= self.width_blocks')
+	assert(y < self.height_blocks, '!y <= self.height_blocks')
+
+	local bytes = self.bytes
+	local edge = self.edge
+	local width = self.width
+	local encode_color_5_6_5 = self.encode_color_5_6_5
+
+	local solid = true
+	local r, g, b
+
+	if plain_format then
+		r, g, b = floor(buffer[1][1]), floor(buffer[1][2]), floor(buffer[1][3])
+
+		for i = 2, 16 do
+			local pixel = buffer[i]
+
+			if floor(pixel[1]) ~= r or floor(pixel[2]) ~= g or floor(pixel[3]) ~= b then
+				solid = false
+				break
+			end
+		end
+	else
+		r, g, b = floor(buffer[1].r), floor(buffer[1].g), floor(buffer[1].b)
+
+		for i = 2, 16 do
+			local pixel = buffer[i]
+
+			if floor(pixel.r) ~= r or floor(pixel.g) ~= g or floor(pixel.b) ~= b then
+				solid = false
+				break
+			end
+		end
+	end
+
+	if solid then
+		local wColor0 = encode_color_5_6_5(r, g, b)
+		wColor0 = bor(wColor0, lshift(wColor0, 16))
+
+		for line = 0, 3 do
+			bytes:Seek(edge + x * 8 + y * width * 8 + line * width * 2)
+			bytes:WriteInt32LE(wColor0)
+			bytes:WriteInt32LE(wColor0)
+		end
+
+		return
+	end
+
+	reset_error_buffer()
+
+	if plain_format then
+		for i = 1, 16 do
+			local obj = buffer[i]
+			report_error(i, obj[1], obj[2], obj[3])
+		end
+
+		for line = 0, 3 do
+			bytes:Seek(edge + x * 8 + y * width * 8 + line * width * 2)
+
+			local obj = buffer[line * 4 + 1]
+			local _r, _g, _b = receive_error(line * 4 + 1)
+			bytes:WriteUInt16LE(encode_color_5_6_5(obj[1] + _r, obj[2] + _g, obj[3] + _b))
+
+			obj = buffer[line * 4 + 2]
+			_r, _g, _b = receive_error(line * 4 + 1)
+			bytes:WriteUInt16LE(encode_color_5_6_5(obj[1] + _r, obj[2] + _g, obj[3] + _b))
+
+			obj = buffer[line * 4 + 3]
+			_r, _g, _b = receive_error(line * 4 + 1)
+			bytes:WriteUInt16LE(encode_color_5_6_5(obj[1] + _r, obj[2] + _g, obj[3] + _b))
+
+			obj = buffer[line * 4 + 4]
+			_r, _g, _b = receive_error(line * 4 + 1)
+			bytes:WriteUInt16LE(encode_color_5_6_5(obj[1] + _r, obj[2] + _g, obj[3] + _b))
+		end
+	else
+		for i = 1, 16 do
+			local obj = buffer[i]
+			report_error(i, obj.r, obj.g, obj.b)
+		end
+
+		for line = 0, 3 do
+			bytes:Seek(edge + x * 8 + y * width * 8 + line * width * 2)
+
+			local obj = buffer[line * 4 + 1]
+			local _r, _g, _b = receive_error(line * 4 + 1)
+			bytes:WriteUInt16LE(encode_color_5_6_5(obj.r + _r, obj.g + _g, obj.b + _b))
+
+			obj = buffer[line * 4 + 2]
+			_r, _g, _b = receive_error(line * 4 + 1)
+			bytes:WriteUInt16LE(encode_color_5_6_5(obj.r + _r, obj.g + _g, obj.b + _b))
+
+			obj = buffer[line * 4 + 3]
+			_r, _g, _b = receive_error(line * 4 + 1)
+			bytes:WriteUInt16LE(encode_color_5_6_5(obj.r + _r, obj.g + _g, obj.b + _b))
+
+			obj = buffer[line * 4 + 4]
+			_r, _g, _b = receive_error(line * 4 + 1)
+			bytes:WriteUInt16LE(encode_color_5_6_5(obj.r + _r, obj.g + _g, obj.b + _b))
+		end
+	end
+end
+
+function RGB565:GetBlock(x, y, export)
+	assert(x >= 0, '!x >= 0')
+	assert(y >= 0, '!y >= 0')
+	assert(x < self.width_blocks, '!x <= self.width_blocks')
+	assert(y < self.height_blocks, '!y <= self.height_blocks')
+
+	local pixel = y * self.width_blocks + x
+
+	if not export and self.cache[pixel] then
+		return self.cache[pixel]
+	end
+
+	local bytes = self.bytes
+	local edge = self.edge
+	local width = self.width
+
+	local decode_color_5_6_5 = self.decode_color_5_6_5
+
+	if export then
+		for line = 0, 3 do
+			bytes:Seek(edge + x * 8 + y * width * 8 + line * width * 2)
+			local color = bytes:ReadUInt16LE()
+			local obj = export[line * 4 + 1]
+			obj[1], obj[2], obj[3] = decode_color_5_6_5(color)
+
+			color = bytes:ReadUInt16LE()
+			obj = export[line * 4 + 2]
+			obj[1], obj[2], obj[3] = decode_color_5_6_5(color)
+
+			color = bytes:ReadUInt16LE()
+			obj = export[line * 4 + 3]
+			obj[1], obj[2], obj[3] = decode_color_5_6_5(color)
+
+			color = bytes:ReadUInt16LE()
+			obj = export[line * 4 + 4]
+			obj[1], obj[2], obj[3] = decode_color_5_6_5(color)
+		end
+	else
+		local result = {}
+		local index = 1
+
+		for line = 0, 3 do
+			bytes:Seek(edge + x * 8 + y * width * 8 + line * width * 2)
+
+			local color = bytes:ReadUInt16LE()
+			result[line * 4 + 1] = Color(decode_color_5_6_5(color))
+
+			color = bytes:ReadUInt16LE()
+			result[line * 4 + 2] = Color(decode_color_5_6_5(color))
+
+			color = bytes:ReadUInt16LE()
+			result[line * 4 + 3] = Color(decode_color_5_6_5(color))
+
+			color = bytes:ReadUInt16LE()
+			result[line * 4 + 4] = Color(decode_color_5_6_5(color))
+		end
+
+		self.cache[pixel] = result
+
+		return result
+	end
+end
+
+function RGB565:ReadEntireImage(nocache)
+	if self._cache then return self._cache end
+
+	local result = {}
+	local index = 1
+	local bytes = self.bytes
+
+	bytes:Seek(self.edge)
+
+	local decode_color_5_6_5 = self.decode_color_5_6_5
+
+	for y = 0, self.height - 1 do
+		for x = 0, self.width - 1 do
+			local color = bytes:ReadUInt16LE()
+			result[index] = Color(decode_color_5_6_5(color))
+			index = index + 1
+		end
+	end
+
+	if not nocache then
+		self._cache = result
+	end
+
+	return result
+end
+
+DLib.RGB565 = DLib.CreateMoonClassBare('RGB565', RGB565, RGB565Object, DLib.AbstractTexture)
+
+local BGR565 = {
+	encode_color_5_6_5 = encode_color_5_6_5_le,
+	decode_color_5_6_5 = decode_color_5_6_5_le,
+}
+local BGR565Object = {}
+
+function BGR565Object.CountBytes(w, h)
+	return w * h * 2
+end
+
+function BGR565Object.Create(width, height, fill, bytes)
+	assert(width > 0, 'width <= 0')
+	assert(height > 0, 'height <= 0')
+
+	--assert(width % 4 == 0, 'width % 4 ~= 0')
+	--assert(height % 4 == 0, 'height % 4 ~= 0')
+
+	fill = fill or color_white
+	local r, g, b = floor(fill.r), floor(fill.g), floor(fill.b)
+	local color = encode_color_5_6_5_le(r, g, b)
+
+	local filler = string.char(band(color, 0xFF), rshift(color, 8))
+
+	if not bytes then
+		return DLib.BGR565(DLib.BytesBuffer(string.rep(filler, width * height)), width, height)
+	end
+
+	local pointer = bytes:Tell()
+	bytes:WriteBinary(string.rep(filler, width * height))
+	local pointer2 = bytes:Tell()
+	bytes:Seek(pointer)
+	local texture = DLib.BGR565(bytes, width, height)
+	bytes:Seek(pointer2)
+
+	return texture
+end
+
+DLib.BGR565 = DLib.CreateMoonClassBare('BGR565', BGR565, BGR565Object, DLib.RGB565)
