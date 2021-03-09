@@ -364,7 +364,6 @@ end
 
 function VTF:ctor(bytes)
 	self.pointer = bytes:Tell()
-	-- self.buffer = bytes
 
 	local readHead = VTFObject.HeaderStruct(bytes)
 	local readHead2, readHead3
@@ -1120,15 +1119,43 @@ function VTF:CalculateReflectivity()
 
 	local mult = sampleA / (obj.width * obj.height * obj.width * obj.height) * 1.5378700499808e-05
 	local reflectivity = Vector(sampleR * mult, sampleG * mult, sampleB * mult)
+	self:SetReflectivity(reflectivity)
+end
+
+function VTF:SetFlags(flags)
+	assert(isnumber(flags), 'isnumber(flags)')
+
+	if flags:band(TEXTUREFLAGS_ENVMAP) == TEXTUREFLAGS_ENVMAP and self.flags:band(TEXTUREFLAGS_ENVMAP) == 0 then
+		error('Can not add TEXTUREFLAGS_ENVMAP to existing texture')
+	elseif flags:band(TEXTUREFLAGS_ENVMAP) == 0 and self.flags:band(TEXTUREFLAGS_ENVMAP) == TEXTUREFLAGS_ENVMAP then
+		error('Can not remove TEXTUREFLAGS_ENVMAP from existing texture')
+	end
+
+	self.bytes:Seek(self.pointer + 16)
+	self.bytes:WriteUint32LE(flags)
+	self.flags = flags
+
+	return self
+end
+
+function VTF:AddFlags(flags)
+	return self:SetFlags(self.flags:bor(flags))
+end
+
+function VTF:RemoveFlags(flags)
+	return self:SetFlags(self.flags:band(flags:bnot()))
+end
+
+function VTF:SetReflectivity(reflectivity)
 	self.reflectivity = reflectivity
 
 	local bytes = self.bytes
-
 	bytes:Seek(self.pointer + 32)
-
 	bytes:WriteFloatLE(reflectivity.x)
 	bytes:WriteFloatLE(reflectivity.y)
 	bytes:WriteFloatLE(reflectivity.z)
+
+	return self
 end
 
 function VTF:CaptureRenderTarget(opts, y, width, height, rx, ry)
