@@ -2103,11 +2103,25 @@ end
 	File
 ]]
 function meta:ToFileStream(fileStream)
-	local bytes = #self.bytes
-	if bytes == 0 then return fileStream end
+	if self.length == 0 then return fileStream end
+	local bytes = self.bytes
 
-	for i, byte in ipairs(self.bytes) do
-		fileStream:WriteByte(byte)
+	for i = 1, math_floor(self.length / 4) do
+		fileStream:WriteLong(bytes[i])
+	end
+
+	local _length = band(self.length, 0x3)
+	local last = bytes[#bytes]
+
+	if _length == 1 then
+		fileStream:WriteByte(last)
+	elseif _length == 2 then
+		fileStream:WriteByte(band(last, 0xFF))
+		fileStream:WriteByte(rshift(band(last, 0xFF00), 8))
+	elseif _length == 3 then
+		fileStream:WriteByte(band(last, 0xFF))
+		fileStream:WriteByte(rshift(band(last, 0xFF00), 8))
+		fileStream:WriteByte(rshift(band(last, 0xFF00), 16))
 	end
 
 	return fileStream
