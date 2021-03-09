@@ -49,7 +49,7 @@ function Net.ReceiveAntispam(identifier, cooldown, antispam_type)
 	Net.ReceiversAntispam[assert(isstring(identifier) and string_lower(identifier), 'Bad identifier given. typeof ' .. type(identifier))] = {
 		cooldown = cooldown,
 		antispam_type = antispam_type,
-		func = antispam_type and CurTime or RealTime,
+		func = antispam_type and CurTime or SysTime,
 	}
 end
 
@@ -195,11 +195,11 @@ function Net.Discard()
 	table_remove(Net.active_write_buffers)
 end
 
-local RealTime = RealTime
+local SysTime = SysTime
 
 _net.receive('dlib_net_ack1', function(_, ply)
 	local namespace = Net.Namespace(CLIENT and Net or ply)
-	namespace.last_expected_ack = RealTime() + 10
+	namespace.last_expected_ack = SysTime() + 10
 
 	namespace.server_chunk_ack = true
 	namespace.server_datagram_ack = true
@@ -219,7 +219,7 @@ _net.receive('dlib_net_ack2', function(_, ply)
 	debug('Ask 2')
 
 	local namespace = Net.Namespace(CLIENT and Net or ply)
-	namespace.last_expected_ack = RealTime() + 10
+	namespace.last_expected_ack = SysTime() + 10
 	namespace.server_chunk_ack = true
 	namespace.server_datagram_ack = true
 end)
@@ -641,7 +641,7 @@ function Net.Dispatch(ply)
 	end
 
 	if namespace.last_expected_ack == 0xFFFFFFFF then
-		namespace.last_expected_ack = RealTime() + 10
+		namespace.last_expected_ack = SysTime() + 10
 	end
 end
 
@@ -728,7 +728,7 @@ function Net.DispatchChunk(ply)
 	namespace.server_chunk_ack = false
 
 	if namespace.last_expected_ack == 0xFFFFFFFF then
-		namespace.last_expected_ack = RealTime() + 10
+		namespace.last_expected_ack = SysTime() + 10
 	end
 
 	_net.Start('dlib_net_chunk', true)
@@ -770,7 +770,7 @@ _net.receive('dlib_net_chunk_ack', function(_, ply)
 	if namespace.server_chunks_num == 0 and namespace.server_datagrams_num == 0 then
 		namespace.last_expected_ack = 0xFFFFFFFF
 	else
-		namespace.last_expected_ack = RealTime() + 10
+		namespace.last_expected_ack = SysTime() + 10
 	end
 end)
 
@@ -833,7 +833,7 @@ _net.receive('dlib_net_datagram_ack', function(length, ply)
 	if namespace.server_chunks_num == 0 and namespace.server_datagrams_num == 0 then
 		namespace.last_expected_ack = 0xFFFFFFFF
 	else
-		namespace.last_expected_ack = RealTime() + 10
+		namespace.last_expected_ack = SysTime() + 10
 	end
 end)
 
