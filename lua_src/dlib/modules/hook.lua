@@ -67,9 +67,6 @@ _G.HOOK_NORMAL = 0
 _G.HOOK_LOW = 1
 _G.HOOK_MONITOR_LOW = 2
 
-local maximalPriority = -10
-local minimalPriority = 10
-
 --[[
 	@doc
 	@fname hook.GetTable
@@ -234,12 +231,13 @@ function hook.DisableHook(event, stringID)
 		return true
 	else
 		if not __table[event] then return false end
+
 		stringID = transformStringID(stringID, event)
 
-		for priority = -10, 10 do
-			if __table[event][priority] and __table[event][priority][stringID] then
-				local wasDisabled = __table[event][priority][stringID].disabled
-				__table[event][priority][stringID].disabled = true
+		for priority, eventData in pairs(__table[event]) do
+			if eventData[stringID] then
+				local wasDisabled = eventData[stringID].disabled
+				eventData[stringID].disabled = true
 				hook.Reconstruct(event)
 				return not wasDisabled
 			end
@@ -262,14 +260,13 @@ function hook.DisableAllHooksExcept(event, stringID)
 	assert(type(stringID) ~= 'nil', 'hook.DisableAllHooksExcept - ID is not a valid value! ' .. type(stringID))
 
 	if not __table[event] then return false end
+
 	stringID = transformStringID(stringID, event)
 
-	for priority = -10, 10 do
-		if __table[event][priority] then
-			for id, hookData in pairs(__table[event][priority]) do
-				if id ~= stringID then
-					hookData.disabled = true
-				end
+	for priority, eventData in pairs(__table[event]) do
+		for id, hookData in pairs(eventData) do
+			if id ~= stringID then
+				hookData.disabled = true
 			end
 		end
 	end
@@ -298,14 +295,12 @@ function hook.DisableHooksByPredicate(event, predicate)
 
 	if not __table[event] then return false end
 
-	for priority = -10, 10 do
-		if __table[event][priority] then
-			for id, hookData in pairs(__table[event][priority]) do
-				local reply = predicate(event, id, priority, hookData)
+	for priority, eventData in pairs(__table[event]) do
+		for id, hookData in pairs(eventData) do
+			local reply = predicate(event, id, priority, hookData)
 
-				if reply then
-					hookData.disabled = true
-				end
+			if reply then
+				hookData.disabled = true
 			end
 		end
 	end
@@ -331,14 +326,12 @@ function hook.DisableAllHooksByPredicate(predicate)
 	assert(type(predicate) == 'function', 'hook.DisableAllHooksByPredicate - invalid predicate function! ' .. type(predicate))
 
 	for event, eventData in pairs(__table) do
-		for priority = -10, 10 do
-			if eventData[priority] then
-				for id, hookData in pairs(eventData[priority]) do
-					local reply = predicate(event, id, priority, hookData)
+		for priority, _eventData in pairs(eventData) do
+			for id, hookData in pairs(_eventData) do
+				local reply = predicate(event, id, priority, hookData)
 
-					if reply then
-						hookData.disabled = true
-					end
+				if reply then
+					hookData.disabled = true
 				end
 			end
 		end
@@ -367,14 +360,12 @@ function hook.EnableHooksByPredicate(event, predicate)
 
 	if not __table[event] then return false end
 
-	for priority = -10, 10 do
-		if __table[event][priority] then
-			for id, hookData in pairs(__table[event][priority]) do
-				local reply = predicate(event, id, priority, hookData)
+	for priority, eventData in pairs(__table[event]) do
+		for id, hookData in pairs(eventData) do
+			local reply = predicate(event, id, priority, hookData)
 
-				if reply then
-					hookData.disabled = false
-				end
+			if reply then
+				hookData.disabled = false
 			end
 		end
 	end
@@ -399,14 +390,12 @@ function hook.EnableAllHooksByPredicate(predicate)
 	assert(type(predicate) == 'function', 'hook.DisableAllHooksByPredicate - invalid predicate function! ' .. type(predicate))
 
 	for event, eventData in pairs(__table) do
-		for priority = -10, 10 do
-			if eventData[priority] then
-				for id, hookData in pairs(eventData[priority]) do
-					local reply = predicate(event, id, priority, hookData)
+		for priority, _eventData in pairs(eventData) do
+			for id, hookData in pairs(_eventData) do
+				local reply = predicate(event, id, priority, hookData)
 
-					if reply then
-						hookData.disabled = false
-					end
+				if reply then
+					hookData.disabled = false
 				end
 			end
 		end
@@ -436,11 +425,9 @@ function hook.EnableAllHooks()
 	end
 
 	for event, eventData in pairs(__table) do
-		for priority = -10, 10 do
-			if eventData[priority] then
-				for id, hookData in pairs(eventData[priority]) do
-					hookData.disabled = false
-				end
+		for priority, _eventData in pairs(eventData) do
+			for id, hookData in pairs(_eventData) do
+				hookData.disabled = false
 			end
 		end
 
@@ -473,10 +460,10 @@ function hook.EnableHook(event, stringID)
 	if not __table[event] then return false end
 	stringID = transformStringID(stringID, event)
 
-	for priority = -10, 10 do
-		if __table[event][priority] and __table[event][priority][stringID] then
-			local wasDisabled = __table[event][priority][stringID].disabled
-			__table[event][priority][stringID].disabled = false
+	for priority, eventData in pairs(__table[event]) do
+		if eventData[stringID] then
+			local wasDisabled = eventData[stringID].disabled
+			eventData[stringID].disabled = false
 			hook.Reconstruct(event)
 			return wasDisabled
 		end
@@ -520,10 +507,8 @@ function hook.Add(event, stringID, funcToCall, priority)
 
 	stringID = transformStringID(stringID, event)
 
-	for priority = maximalPriority, minimalPriority do
-		local eventsTable = __table[event][priority]
-
-		if eventsTable and eventsTable[stringID] then
+	for _priority, eventsTable in pairs(__table[event]) do
+		if eventsTable[stringID] then
 			if not priority then
 				priority = eventsTable[stringID].priority
 			end
@@ -538,18 +523,16 @@ function hook.Add(event, stringID, funcToCall, priority)
 		priority = tonumber(priority) or 0
 	end
 
-	priority = math.Clamp(math.floor(priority), maximalPriority, minimalPriority)
-
 	local hookData = {
 		event = event,
 		priority = priority,
 		funcToCall = funcToCall,
 		fn = funcToCall, -- ULib
-		isstring = type(stringID) == 'string', -- ULib
+		isstring = isstring(stringID), -- ULib
 		id = stringID,
 		idString = tostring(stringID),
 		registeredAt = SysTime(),
-		typeof = type(stringID) == 'string'
+		typeof = isstring(stringID)
 	}
 
 	__table[event][priority] = __table[event][priority] or {}
@@ -588,10 +571,8 @@ function hook.SetPriority(event, stringID, priority)
 
 	stringID = transformStringID(stringID, event)
 
-	for priority = maximalPriority, minimalPriority do
-		local eventsTable = __table[event][priority]
-
-		if eventsTable and eventsTable[stringID] then
+	for _priority, eventsTable in pairs(__table[event]) do
+		if eventsTable[stringID] then
 			eventsTable[stringID].priority = priority
 			hook.Reconstruct(event)
 			return true
@@ -630,18 +611,12 @@ end
 ]]
 function hook.Remove(event, stringID)
 	if type(event) ~= 'string' then
-		--if DLib.DEBUG_MODE:GetBool() then
-			DLib.Message(traceback('hook.Remove - event is not a string! ' .. type(event)))
-		--end
-
+		DLib.Message(traceback('hook.Remove - event is not a string! ' .. type(event)))
 		return
 	end
 
 	if type(stringID) == 'nil' then
-		--if DLib.DEBUG_MODE:GetBool() then
-			DLib.Message(traceback('hook.Remove - hook id is nil!'))
-		--end
-
+		DLib.Message(traceback('hook.Remove - hook id is nil!'))
 		return
 	end
 
@@ -652,16 +627,13 @@ function hook.Remove(event, stringID)
 
 	__tableGmod[event][stringID] = nil
 
-	for priority = maximalPriority, minimalPriority do
-		local eventsTable = __table[event][priority]
+	for priority, eventsTable in pairs(__table[event]) do
+		local oldData = eventsTable[stringID]
 
-		if eventsTable ~= nil then
-			local oldData = eventsTable[stringID]
-			if oldData ~= nil then
-				eventsTable[stringID] = nil
-				hook.Reconstruct(event)
-				return
-			end
+		if oldData ~= nil then
+			eventsTable[stringID] = nil
+			hook.Reconstruct(event)
+			return
 		end
 	end
 end
@@ -694,18 +666,12 @@ function hook.AddPostModifier(event, stringID, funcToCall)
 	__tableModifiersPost[event] = __tableModifiersPost[event] or {}
 
 	if type(event) ~= 'string' then
-		--if DLib.DEBUG_MODE:GetBool() then
-			DLib.Message(traceback('hook.AddPostModifier - event is not a string! ' .. type(event)))
-		--end
-
+		DLib.Message(traceback('hook.AddPostModifier - event is not a string! ' .. type(event)))
 		return false
 	end
 
 	if type(funcToCall) ~= 'function' then
-		--if DLib.DEBUG_MODE:GetBool() then
-			DLib.Message(traceback('hook.AddPostModifier - function is not a function! ' .. type(funcToCall)))
-		--end
-
+		DLib.Message(traceback('hook.AddPostModifier - function is not a function! ' .. type(funcToCall)))
 		return false
 	end
 
@@ -717,7 +683,7 @@ function hook.AddPostModifier(event, stringID, funcToCall)
 		id = stringID,
 		idString = tostring(stringID),
 		registeredAt = SysTime(),
-		typeof = type(stringID) == 'string'
+		typeof = isstring(stringID)
 	}
 
 	__tableModifiersPost[event][stringID] = hookData
@@ -772,38 +738,36 @@ function hook.ReconstructPostModifiers(eventToReconstruct)
 		return
 	end
 
+	if __tableModifiersPost[eventToReconstruct] == nil then
+		__tableModifiersPostOptimized[eventToReconstruct] = nil
+		return
+	end
+
 	__tableModifiersPostOptimized[eventToReconstruct] = {}
 	local event = __tableModifiersPost[eventToReconstruct]
-
-	local ordered = {}
+	local target = __tableModifiersPostOptimized[eventToReconstruct]
+	local index = 1
 
 	if event then
 		for stringID, hookData in pairs(event) do
-			if hookData.typeof == false then
+			local applicable = false
+
+			if hookData.typeof then
+				applicable = true
+			else
 				if hookData.id:IsValid() then
-					table.insert(ordered, hookData)
+					applicable = true
 				else
 					event[stringID] = nil
 				end
-			else
-				table.insert(ordered, hookData)
+			end
+
+			if applicable then
+				target[index] = hookData.funcToCall
+				index = index + 1
 			end
 		end
 	end
-
-	local cnt = #ordered
-
-	if cnt == 0 then
-		__tableModifiersPostOptimized[eventToReconstruct] = nil
-	else
-		local target = __tableModifiersPostOptimized[eventToReconstruct]
-
-		for i = 1, cnt do
-			table.insert(target, ordered[i].funcToCall)
-		end
-	end
-
-	return __tableModifiersPostOptimized, ordered
 end
 
 --[[
@@ -819,14 +783,10 @@ function hook.ListAllHooks(includeDisabled)
 	local output = {}
 
 	for event, priorityTable in pairs(__table) do
-		for priority = maximalPriority, minimalPriority do
-			local hookList = priorityTable[priority]
-
-			if hookList then
-				for stringID, hookData in pairs(hookList) do
-					if not hookData.disabled or includeDisabled then
-						table.insert(output, hookData)
-					end
+		for priority, hookList in SortedPairs(priorityTable) do
+			for stringID, hookData in pairs(hookList) do
+				if not hookData.disabled or includeDisabled then
+					table.insert(output, hookData)
 				end
 			end
 		end
@@ -859,87 +819,84 @@ function hook.Reconstruct(eventToReconstruct)
 		return
 	end
 
+	if not __table[eventToReconstruct] then
+		__tableOptimized[eventToReconstruct] = nil
+		return
+	end
+
 	__tableOptimized[eventToReconstruct] = {}
-	local ordered = {}
+
+	local index = 1
 	local priorityTable = __table[eventToReconstruct]
 	local inboundgmod = __tableGmod[eventToReconstruct]
+	local target = __tableOptimized[eventToReconstruct]
 
-	if priorityTable then
-		for priority = maximalPriority, minimalPriority do
-			local hookList = priorityTable[priority]
+	for priority, hookList in SortedPairs(priorityTable) do
+		for stringID, hookData in pairs(hookList) do
+			if not hookData.disabled then
+				local applicable = false
 
-			if hookList then
-				for stringID, hookData in pairs(hookList) do
-					if not hookData.disabled then
-						if hookData.typeof == false then
-							if hookData.id:IsValid() then
-								table.insert(ordered, hookData)
-							else
-								hookList[stringID] = nil
-								inboundgmod[stringID] = nil
+				if hookData.typeof then
+					applicable = true
+				else
+					if hookData.id:IsValid() then
+						applicable = true
+					else
+						hookList[stringID] = nil
+						inboundgmod[stringID] = nil
+					end
+				end
+
+				if applicable then
+					local callable
+
+					if hookData.typeof then
+						callable = hookData.funcToCall
+					else
+						local self = hookData.id
+						local upfuncCallableSelf = hookData.funcToCall
+
+						function callable(...)
+							if not self:IsValid() then
+								hook.Remove(hookData.event, self)
+								return
 							end
-						else
-							table.insert(ordered, hookData)
+
+							return upfuncCallableSelf(self, ...)
 						end
 					end
-				end
-			end
-		end
-	end
 
-	local cnt = #ordered
+					if hook.PROFILING then
+						local THIS_RUNTIME = 0
+						local THIS_CALLS = 0
+						local upfuncProfiled = callable
 
-	if cnt == 0 then
-		__tableOptimized[eventToReconstruct] = nil
-	else
-		local target = __tableOptimized[eventToReconstruct]
+						function callable(...)
+							THIS_CALLS = THIS_CALLS + 1
+							local t = SysTime()
+							local Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M = upfuncProfiled(...)
+							local t2 = SysTime()
 
-		for i = 1, cnt do
-			local callable
-			local hookData = ordered[i]
+							THIS_RUNTIME = THIS_RUNTIME + (t2 - t)
+							return Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M
+						end
 
-			if type(hookData.id) == 'string' then
-				callable = hookData.funcToCall
-			else
-				local self = hookData.id
-				local upfuncCallableSelf = hookData.funcToCall
-
-				callable = function(...)
-					if not self:IsValid() then
-						hook.Remove(hookData.event, self)
-						return
+						function hookData.profileEnds()
+							hookData.THIS_RUNTIME = THIS_RUNTIME
+							hookData.THIS_CALLS = THIS_CALLS
+						end
 					end
 
-					return upfuncCallableSelf(self, ...)
+					target[index] = callable
+					index = index + 1
 				end
 			end
-
-			if hook.PROFILING then
-				local THIS_RUNTIME = 0
-				local THIS_CALLS = 0
-				local upfuncProfiled = callable
-
-				callable = function(...)
-					THIS_CALLS = THIS_CALLS + 1
-					local t = SysTime()
-					local Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M = upfuncProfiled(...)
-					local t2 = SysTime()
-
-					THIS_RUNTIME = THIS_RUNTIME + (t2 - t)
-					return Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M
-				end
-
-				hookData.profileEnds = function()
-					hookData.THIS_RUNTIME = THIS_RUNTIME
-					hookData.THIS_CALLS = THIS_CALLS
-				end
-			end
-
-			table.insert(target, callable)
 		end
 	end
 
-	return __tableOptimized, ordered
+	if index == 1 then
+		__tableOptimized[eventToReconstruct] = nil
+	end
 end
 
 local function Call(...)
@@ -988,7 +945,7 @@ hook.StaticHooks = __breakage
 	boolean
 ]]
 function hook.HasHooks(event)
-	return __tableOptimized[event] ~= nil and #__tableOptimized[event] ~= 0
+	return __tableOptimized[event] ~= nil
 end
 
 local last_trace, last_error
@@ -1057,7 +1014,6 @@ local dlib_has_nothing_to_do_with_this_traceback = xpcall
 	@internal
 ]]
 function hook.CallStatic(event, hookTable, ...)
-	local post = __tableModifiersPostOptimized[event]
 	local events = __tableOptimized[event]
 
 	if events == nil then
@@ -1376,25 +1332,21 @@ local function lua_findhooks(eventName, ply)
 
 	local tableToUse = __table[eventName]
 
-	if tableToUse and table.Count(tableToUse) ~= 0 then
-		for priority = maximalPriority, minimalPriority do
-			local hookList = tableToUse[priority]
-
-			if hookList then
-				for stringID, hookData in pairs(hookList) do
-					local info = debug.getinfo(hookData.funcToCall)
-					DLib.MessagePlayer(ply,
-						string.format(
-							'\t\t%q [%s] at %p (%s: %i->%i)',
-							stringID,
-							priority,
-							hookData.funcToCall,
-							info.source,
-							info.linedefined,
-							info.lastlinedefined
-						)
+	if tableToUse and next(tableToUse) then
+		for priority, hookList in SortedPairs(tableToUse) do
+			for stringID, hookData in pairs(hookList) do
+				local info = debug.getinfo(hookData.funcToCall)
+				DLib.MessagePlayer(ply,
+					string.format(
+						'\t\t%q [%s] at %p (%s: %i->%i)',
+						stringID,
+						priority,
+						hookData.funcToCall,
+						info.source,
+						info.linedefined,
+						info.lastlinedefined
 					)
-				end
+				)
 			end
 		end
 	else
@@ -1416,45 +1368,31 @@ end
 function hook.GetDumpStr()
 	local lines = {}
 
-	local sorted = {}
+	for eventName, eventData in SortedPairs(__table) do
+		for priority, hookList in SortedPairs(eventData) do
+			local llines = {}
+			table.insert(lines, '// Begin list hooks of event ' .. eventName)
 
-	for eventName, eventData in pairs(__table) do
-		table.insert(sorted, eventName)
-	end
+			for stringID, hookData in pairs(hookList) do
+				local info = debug.getinfo(hookData.funcToCall)
 
-	table.sort(sorted)
-
-	for i, eventName in ipairs(sorted) do
-		local eventData = __table[eventName]
-
-		for priority = maximalPriority, minimalPriority do
-			local hookList = eventData[priority]
-
-			if hookList then
-				local llines = {}
-				table.insert(lines, '// Begin list hooks of event ' .. eventName)
-
-				for stringID, hookData in pairs(hookList) do
-					local info = debug.getinfo(hookData.funcToCall)
-
-					table.insert(llines,
-						string.format(
-							'\t%q [%s] at %p (%s: %i->%i)',
-							tostring(stringID),
-							tostring(priority),
-							hookData.funcToCall,
-							info.source,
-							info.linedefined,
-							info.lastlinedefined
-						)
+				table.insert(llines,
+					string.format(
+						'\t%q [%s] at %p (%s: %i->%i)',
+						tostring(stringID),
+						tostring(priority),
+						hookData.funcToCall,
+						info.source,
+						info.linedefined,
+						info.lastlinedefined
 					)
-				end
-
-				table.sort(llines)
-				table.append(lines, llines)
-
-				table.insert(lines, '// End list hooks of event ' .. eventName .. '\n')
+				)
 			end
+
+			table.sort(llines)
+			table.append(lines, llines)
+
+			table.insert(lines, '// End list hooks of event ' .. eventName .. '\n')
 		end
 	end
 
