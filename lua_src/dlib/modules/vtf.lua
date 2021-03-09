@@ -202,6 +202,10 @@ function VTFObject.Create(version, width, height, format, extra)
 		extra = {}
 	end
 
+	if extra.resources == nil then
+		extra.resources = {}
+	end
+
 	if extra.flags == nil then
 		extra.flags = 0
 	end
@@ -254,51 +258,37 @@ function VTFObject.Create(version, width, height, format, extra)
 		extra.flags = extra.flags:bor(TEXTUREFLAGS_NOMIP, TEXTUREFLAGS_NOLOD)
 	end
 
+	extra.resources['\x01\x00\x00'] = nil
+	extra.resources['\x30\x00\x00'] = nil
+
 	local bytes = DLib.BytesBuffer('VTF\x00')
 	bytes:Seek(4)
 
-	local size = 80
-
 	bytes:WriteUInt32LE(7)
 	bytes:WriteUInt32LE(version)
-	bytes:WriteUInt32LE(size)
-
-	size = size - 12
+	local header_size_pos = bytes:Tell()
+	bytes:WriteUInt32LE(0)
 
 	bytes:WriteUInt16LE(width)
 	bytes:WriteUInt16LE(height)
-
-	size = size - 4
 
 	bytes:WriteUInt32LE(extra.flags)
 	bytes:WriteUInt16LE(extra.frames)
 	bytes:WriteUInt16LE(extra.first_frame)
 
-	size = size - 8
-
 	bytes:WriteUInt32(0)
-
-	size = size - 4
 
 	bytes:WriteFloatLE(extra.fill.r / 255)
 	bytes:WriteFloatLE(extra.fill.g / 255)
 	bytes:WriteFloatLE(extra.fill.b / 255)
 
-	size = size - 12
-
 	bytes:WriteUInt32(0)
 	bytes:WriteFloatLE(extra.bumpmap_scale)
-
-	size = size - 8
 
 	bytes:WriteUInt32LE(format)
 	bytes:WriteUByte(extra.mipmap_count)
 
-	size = size - 5
-
 	bytes:WriteUInt32LE(VTFObject.Formats.IMAGE_FORMAT_DXT1)
-
-	size = size - 4
 
 	local thumb_width, thumb_height
 
@@ -317,15 +307,8 @@ function VTFObject.Create(version, width, height, format, extra)
 	bytes:WriteUByte(thumb_width)
 	bytes:WriteUByte(thumb_height)
 
-	size = size - 2
-
 	if version >= 2 then
 		bytes:WriteUInt16LE(extra.depth)
-		size = size - 2
-	end
-
-	if size > 0 then
-		bytes:WriteBinary(string.rep('\x00', size - 4)) -- including vtf\0
 	end
 
 	local faces = bit.band(extra.flags, TEXTUREFLAGS_ENVMAP) == TEXTUREFLAGS_ENVMAP and 6 or 1
@@ -337,6 +320,69 @@ function VTFObject.Create(version, width, height, format, extra)
 		resolutions[mipmap] = {w, h}
 		w = w / 2
 		h = h / 2
+	end
+
+	local num_resources = table.Count(extra.resources) + 2
+
+	if version >= 3 then
+		-- padding
+		bytes:WriteUInt24LE(0)
+
+		bytes:WriteUInt32LE(num_resources)
+
+		-- padding
+		bytes:WriteUInt32LE(0)
+		bytes:WriteUInt32LE(0)
+
+		-- reserve space for resources
+		bytes:WriteBinary(string.rep('\x00', num_resources * (3 + 4 + 1)))
+	end
+
+	local size = bytes:Tell()
+
+	-- achieved with SORSE
+	-- 7.2 and lower appears to have mandatory padding for header to be 80 bytes
+	-- but VTFLib properly read unpadded files
+	if version <= 2 and size < 80 then
+		bytes:WriteBinary(string.rep('\x00', 80 - size))
+		size = bytes:Tell()
+	end
+
+	bytes:Seek(header_size_pos)
+	bytes:WriteUInt32LE(size)
+	bytes:Seek(size)
+
+	if version >= 3 then
+		bytes:Walk(-num_resources * (3 + 4 + 1))
+
+		bytes:WriteBinary('\x01\x00\x00')
+		bytes:WriteUByte(0)
+		bytes:WriteUInt32LE(size)
+
+		bytes:WriteBinary('\x30\x00\x00')
+		bytes:WriteUByte(0)
+		bytes:WriteUInt32LE(size + thumb_width * thumb_height / 2)
+
+		local offset = size + thumb_width * thumb_height / 2
+
+		for mipmap = 1, extra.mipmap_count do
+			offset = offset + reader.CountBytes(resolutions[mipmap][1], resolutions[mipmap][2]) * extra.frames * faces
+		end
+
+		for k, v in SortedPairs(extra.resources) do
+			if v.offset then
+				bytes:WriteBinary(k)
+				bytes:WriteUByte(v.flags or 0)
+				bytes:WriteUInt32LE(v.offset)
+			elseif isstring(v.data) then
+				bytes:WriteBinary(k)
+				bytes:WriteUByte(v.flags or 0)
+				bytes:WriteUInt32LE(offset)
+				offset = offset + #v.data
+			else
+				error('Unfinished resource entry at ' .. table.concat({string.byte(k, 1, 3)}, ' ') .. ' (neither offset or data present)')
+			end
+		end
 	end
 
 	-- write DXT1 thumbnail
@@ -358,12 +404,75 @@ function VTFObject.Create(version, width, height, format, extra)
 		end
 	end
 
+	if version >= 3 then
+		extra.resources['\x01\x00\x00'] = nil
+		extra.resources['\x30\x00\x00'] = nil
+
+		local offset = size + thumb_width * thumb_height / 2
+
+		for mipmap = 1, extra.mipmap_count do
+			offset = offset + reader.CountBytes(resolutions[mipmap][1], resolutions[mipmap][2]) * extra.frames * faces
+		end
+
+		bytes:Seek(offset)
+
+		for k, v in SortedPairs(extra.resources) do
+			if isstring(v.data) then
+				bytes:WriteBinary(v.data)
+			end
+		end
+	end
+
 	bytes:Seek(0)
 	return DLib.VTF(bytes)
 end
 
+function VTF:DecodeHiRes()
+	-- from smallest to largest
+	for mipmap = 1, self.mipmap_count do
+		local w, h = self.mipmap_resolutions[mipmap][1], self.mipmap_resolutions[mipmap][2]
+		self.structure[mipmap] = {}
+		self.structure_buffer[mipmap] = {}
+
+		-- from first to last
+		for frame = 1, self.frames do
+			self.structure[mipmap][frame] = {}
+			self.structure_buffer[mipmap][frame] = {}
+
+			-- from first to last
+			for face = 1, self.faces do
+				self.structure[mipmap][frame][face] = {}
+				self.structure_buffer[mipmap][frame][face] = {}
+
+				-- for each Z slice (smallest to largest)
+				for zDepth = 1, self.depth do
+					local walk = self.reader.CountBytes(w, h)
+
+					self.structure_buffer[mipmap][frame][face][zDepth] = DLib.BytesBufferView(self.bytes:Tell(), self.bytes:Tell() + walk, self.bytes)
+					self.structure[mipmap][frame][face][zDepth] = self.reader(self.bytes, w, h)
+
+					if self.mipmaps[mipmap] == nil then
+						self.mipmaps[mipmap] = self.structure_buffer[mipmap][frame][face][zDepth]
+						self.mipmaps_obj[mipmap] = self.structure[mipmap][frame][face][zDepth]
+					end
+
+					self.bytes:Walk(walk)
+				end
+			end
+		end
+	end
+end
+
+function VTF:DecodeLowRes()
+	-- DXT1: each block takes 64 bits of data, or 8 bytes
+	-- width / 4 * height / 4 * 8
+	-- skip it
+	self.bytes:Walk(self.low_width * self.low_height / 2)
+end
+
 function VTF:ctor(bytes)
 	self.pointer = bytes:Tell()
+	self.bytes = bytes
 
 	local readHead = VTFObject.HeaderStruct(bytes)
 	local readHead2, readHead3
@@ -430,6 +539,7 @@ function VTF:ctor(bytes)
 	self.structure_buffer = {}
 
 	local reader = assert(VTFObject.Readers[VTFObject.Formats[self.high_res_image_format]], 'Unsupported image format ' .. VTFObject.Formats[self.high_res_image_format])
+	self.reader = reader
 
 	self.support_alpha = VTFObject.AlphaFormats[VTFObject.Formats[self.high_res_image_format]] == true
 
@@ -438,53 +548,35 @@ function VTF:ctor(bytes)
 			bytes:Walk(readHead.headerSize - bytes:Tell())
 		end
 
-		-- DXT1: each block takes 64 bits of data, or 8 bytes
-		-- width / 4 * height / 4 * 8
-		-- skip it
-		bytes:Walk(self.low_width * self.low_height / 2)
-
-		-- from smallest to largest
-		for mipmap = 1, self.mipmap_count do
-			local w, h = resolutions[mipmap][1], resolutions[mipmap][2]
-			self.structure[mipmap] = {}
-			self.structure_buffer[mipmap] = {}
-
-			-- from first to last
-			for frame = 1, self.frames do
-				self.structure[mipmap][frame] = {}
-				self.structure_buffer[mipmap][frame] = {}
-
-				-- from first to last
-				for face = 1, self.faces do
-					self.structure[mipmap][frame][face] = {}
-					self.structure_buffer[mipmap][frame][face] = {}
-
-					-- for each Z slice (smallest to largest)
-					for zDepth = 1, self.depth do
-						local walk = reader.CountBytes(w, h)
-
-						self.structure_buffer[mipmap][frame][face][zDepth] = DLib.BytesBufferView(bytes:Tell(), bytes:Tell() + walk, bytes)
-						self.structure[mipmap][frame][face][zDepth] = reader(bytes, w, h)
-
-						if self.mipmaps[mipmap] == nil then
-							self.mipmaps[mipmap] = self.structure_buffer[mipmap][frame][face][zDepth]
-							self.mipmaps_obj[mipmap] = self.structure[mipmap][frame][face][zDepth]
-						end
-
-						bytes:Walk(walk)
-					end
-				end
-			end
-		end
+		self:DecodeLowRes()
+		self:DecodeHiRes()
 	else
 		self.resources = {}
 
 		for i = 1, self.num_resources do
-			table.insert(self.resources, VTFObject.ResourceInfoStruct(bytes))
+			local resource = VTFObject.ResourceInfoStruct(bytes)
+
+			if resource.tag[1] == 48 and resource.tag[2] == 0 and resource.tag[3] == 0 then
+				self.resources.high_res = resource
+			elseif resource.tag[1] == 1 and resource.tag[2] == 0 and resource.tag[3] == 0 then
+				self.resources.low_res = resource
+			elseif resource.tag[1] == 16 and resource.tag[2] == 0 and resource.tag[3] == 0 then
+				self.resources.particle = resource
+			else
+				self.resources[string.char(resource.tag[1], resource.tag[2], resource.tag[3])] = resource
+			end
+		end
+
+		if self.resources.low_res then
+			bytes:Seek(self.pointer + self.resources.low_res.offset)
+			self:DecodeLowRes()
+		end
+
+		if self.resources.high_res then
+			bytes:Seek(self.pointer + self.resources.high_res.offset)
+			self:DecodeHiRes()
 		end
 	end
-
-	self.bytes = bytes
 end
 
 AccessorFunc(VTF, 'm_upcomping_mipmap', 'UpcomingMipmap')
@@ -1277,7 +1369,7 @@ function VTF:CaptureRenderTargetAsAlpha(opts, y, width, height, rx, ry)
 
 	render.CapturePixels()
 	local texture = self:GetTexture(opts.mipmap or self.m_upcomping_mipmap, opts.frame or self.m_upcomping_frame, opts.face or self.m_upcomping_face, opts.depth or self.m_upcomping_depth)
-	texture:CaptureRenderTargetAsAlpha(opts.x, opts.y, opts.width, opts.height, opts.rx, opts.ry, opts.before, opts.after, opts.thersold)
+	texture:CaptureRenderTargetAlpha(opts.x, opts.y, opts.width, opts.height, opts.rx, opts.ry, opts.before, opts.after, opts.thersold)
 
 	return true
 end
@@ -1333,7 +1425,7 @@ function VTF:CaptureRenderTargetAsAlphaCoroutine(opts, y, width, height, rx, ry,
 
 	render.CapturePixels()
 	local texture = self:GetTexture(opts.mipmap or self.m_upcomping_mipmap, opts.frame or self.m_upcomping_frame, opts.face or self.m_upcomping_face, opts.depth or self.m_upcomping_depth)
-	texture:CaptureRenderTargetAsAlphaCoroutine(opts.x, opts.y, opts.width, opts.height, opts.rx, opts.ry, opts.before, opts.after, opts.thersold, unpack(opts.yield_args))
+	texture:CaptureRenderTargetAlphaCoroutine(opts.x, opts.y, opts.width, opts.height, opts.rx, opts.ry, opts.before, opts.after, opts.thersold, unpack(opts.yield_args))
 
 	if identifier then
 		DLib.Util.PopProgress(identifier)
