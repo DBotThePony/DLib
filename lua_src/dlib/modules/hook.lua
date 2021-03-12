@@ -1464,16 +1464,16 @@ local function printProfilingResults(ply)
 		deftable[hookData.event] = deftable[hookData.event] or {runtime = 0, calls = 0, list = {}, name = hookData.event}
 
 		table.insert(deftable[hookData.event].list, hookData)
-		deftable[hookData.event].runtime = deftable[hookData.event].runtime + hookData.THIS_RUNTIME
-		totalRuntime = totalRuntime + hookData.THIS_RUNTIME
-		deftable[hookData.event].calls = deftable[hookData.event].calls + hookData.THIS_CALLS
+		deftable[hookData.event].runtime = deftable[hookData.event].runtime + (hookData.THIS_RUNTIME or 0)
+		totalRuntime = totalRuntime + (hookData.THIS_RUNTIME or 0)
+		deftable[hookData.event].calls = deftable[hookData.event].calls + (hookData.THIS_CALLS or 0)
 	end
 
 	local sortedtable = {}
 
 	for event, eventTable in pairs(deftable) do
 		table.sort(eventTable.list, function(a, b)
-			return a.THIS_RUNTIME > b.THIS_RUNTIME
+			return (a.THIS_RUNTIME or 0) > (b.THIS_RUNTIME or 0)
 		end)
 
 		table.insert(sortedtable, eventTable)
