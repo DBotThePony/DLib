@@ -156,7 +156,8 @@ gui.dlib.hudcommons.menu.nothing_to_edit = 'Nothing to edit.'
 gui.dlib.hudcommons.menu.interactive_mode = 'Enter interactive mode'
 
 gui.dlib.notify.families_loading = 'DLib is identifying installed font families'
-gui.dlib.notify.vtf_encoding = 'DLib is encoding a VTF texture'
+gui.dlib.notify.vtf_encoding = 'DLib is encoding a VTF'
+gui.dlib.notify.vtf_encoding_alpha = 'DLib is encoding a VTF alpha'
 gui.dlib.notify.vtf_sampling = 'DLib is sampling a VTF texture'
 gui.dlib.notify.vtf_supersampling = 'DLib is supersampling a VTF texture'
 

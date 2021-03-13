@@ -155,8 +155,9 @@ gui.dlib.hudcommons.menu.nothing_to_edit = 'Нечего менять.'
 gui.dlib.hudcommons.menu.interactive_mode = 'Запустить интерактивный режим'
 
 gui.dlib.notify.families_loading = 'DLib определяет установленные шрифты'
-gui.dlib.notify.vtf_encoding = 'DLib кодирует VTF текстуру'
-gui.dlib.notify.vtf_sampling = 'DLib кодирует VTF текстуру'
+gui.dlib.notify.vtf_encoding = 'DLib кодирует VTF'
+gui.dlib.notify.vtf_encoding_alpha = 'DLib кодирует VTF альфу'
+gui.dlib.notify.vtf_sampling = 'DLib семплит VTF текстуру'
 gui.dlib.notify.vtf_supersampling = 'DLib суперсемплит VTF текстуру'
 
 local prefix = {

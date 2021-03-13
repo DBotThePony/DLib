@@ -1403,7 +1403,7 @@ function VTF:CaptureRenderTargetAsAlphaCoroutine(opts, y, width, height, rx, ry,
 		local rt = render.GetRenderTarget()
 		identifier = string.format('vtf_rta_%d', DLib._NEXT_VTF_PROGRESS_IDENTIFIER)
 		DLib._NEXT_VTF_PROGRESS_IDENTIFIER = DLib._NEXT_VTF_PROGRESS_IDENTIFIER + 1
-		local text = DLib.I18n.Localize('gui.dlib.notify.vtf_encoding')
+		local text = DLib.I18n.Localize('gui.dlib.notify.vtf_encoding_alpha')
 
 		function opts.before()
 			render.PopRenderTarget()
