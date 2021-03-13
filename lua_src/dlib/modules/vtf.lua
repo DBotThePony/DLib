@@ -774,7 +774,6 @@ do
 
 		local sampleR, sampleG, sampleB, sampleA, samples = 0, 0, 0, 0, 0
 		local reflectivity = true
-		local reflectivityO
 
 		local scoroutine = SysTime() + thresold
 
@@ -1029,7 +1028,6 @@ do
 							end
 
 							if reflectivity then
-								reflectivityO = current
 								reflectivity = false
 							end
 						end
@@ -1161,26 +1159,25 @@ do
 							end
 
 							if reflectivity then
-								reflectivityO = current
 								reflectivity = false
 							end
 						end
 					end
-
-					local mult = sampleA / (samples * samples) * 1.5378700499808e-05
-					local reflectivity = Vector(sampleR * mult, sampleG * mult, sampleB * mult)
-					self.reflectivity = reflectivity
-
-					local bytes = self.bytes
-
-					bytes:Seek(self.pointer + 32)
-
-					bytes:WriteFloatLE(reflectivity.x)
-					bytes:WriteFloatLE(reflectivity.y)
-					bytes:WriteFloatLE(reflectivity.z)
 				end
 			end
 		end
+
+		local mult = sampleA / (samples * samples) * 1.5378700499808e-05
+		local reflectivity = Vector(sampleR * mult, sampleG * mult, sampleB * mult)
+		self.reflectivity = reflectivity
+
+		local bytes = self.bytes
+
+		bytes:Seek(self.pointer + 32)
+
+		bytes:WriteFloatLE(reflectivity.x)
+		bytes:WriteFloatLE(reflectivity.y)
+		bytes:WriteFloatLE(reflectivity.z)
 
 		if identifier then
 			DLib.Util.PopProgress(identifier)
