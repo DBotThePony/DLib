@@ -1178,12 +1178,12 @@ do
 					bytes:WriteFloatLE(reflectivity.x)
 					bytes:WriteFloatLE(reflectivity.y)
 					bytes:WriteFloatLE(reflectivity.z)
-
-					if identifier then
-						DLib.Util.PopProgress(identifier)
-					end
 				end
 			end
+		end
+
+		if identifier then
+			DLib.Util.PopProgress(identifier)
 		end
 
 		return true, sampling, encoding
