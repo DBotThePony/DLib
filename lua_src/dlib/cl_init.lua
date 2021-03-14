@@ -95,6 +95,7 @@ DLib.ClientInclude('util/client/matnotify.lua')
 DLib.ClientInclude('util/client/blur.lua')
 DLib.ClientInclude('util/client/menu.lua')
 DLib.ClientInclude('util/client/displayprogress.lua')
+DLib.ClientInclude('util/client/performance.lua')
 
 DLib.ClientInclude('modules/client/friendstatus.lua')
 DLib.ClientInclude('modules/client/lastnick.lua')

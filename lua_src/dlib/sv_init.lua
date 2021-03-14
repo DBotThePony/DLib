@@ -70,6 +70,7 @@ AddCSLuaFile('dlib/util/client/scrsize.lua')
 AddCSLuaFile('dlib/util/client/ttfreader.lua')
 AddCSLuaFile('dlib/util/client/menu.lua')
 AddCSLuaFile('dlib/util/client/displayprogress.lua')
+AddCSLuaFile('dlib/util/client/performance.lua')
 
 AddCSLuaFile('dlib/modules/client/friendstatus.lua')
 AddCSLuaFile('dlib/modules/client/lastnick.lua')
