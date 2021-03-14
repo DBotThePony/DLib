@@ -147,7 +147,7 @@ function Net.TriggerEvent(network_id, buffer, ply)
 			buffer = buffer,
 			ply = ply,
 			thread = thread,
-			_length = buffer and buffer.length * 8 or 0
+			_length = buffer and buffer:Length() * 8 or 0
 		}
 
 		Net.active_read = read_def
@@ -535,7 +535,7 @@ function Net.ProcessIncomingQueue(namespace, ply)
 					string_format('Processed datagram %d with position %d->%d and network id %d',
 					fdgram, fdata.startpos, fdata.endpos, fdata.readnetid))
 
-				local read_def = Net.TriggerEvent(fdata.readnetid, DLib.BytesBufferView(start, start + len, bdata.buffer), ply)
+				local read_def = Net.TriggerEvent(fdata.readnetid, bdata.buffer:Slice(start, len), ply)
 
 				namespace.next_expected_datagram = namespace.next_expected_datagram + 1
 

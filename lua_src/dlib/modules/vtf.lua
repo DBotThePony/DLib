@@ -448,7 +448,7 @@ function VTF:DecodeHiRes()
 				for zDepth = 1, self.depth do
 					local walk = self.reader.CountBytes(w, h)
 
-					self.structure_buffer[mipmap][frame][face][zDepth] = DLib.BytesBufferView(self.bytes:Tell(), self.bytes:Tell() + walk, self.bytes)
+					self.structure_buffer[mipmap][frame][face][zDepth] = self.bytes:Slice(self.bytes:Tell(), walk)
 					self.structure[mipmap][frame][face][zDepth] = self.reader(self.bytes, w, h)
 
 					if self.mipmaps[mipmap] == nil then

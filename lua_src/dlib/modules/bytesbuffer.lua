@@ -161,6 +161,7 @@ local function set_1_bytes_le(optimize, pointer, bytes, value)
 		end
 
 		bytes[pointer] = bor(band(bytes[pointer], 0x00FFFFFF), lshift(value, 24))
+		return
 	end
 
 	bytes[pointer + 1] = band(value, 0xFF)
@@ -188,6 +189,7 @@ local function set_2_bytes_le(optimize, pointer, bytes, value)
 
 		bytes[pointer] = bor(band(bytes[pointer], 0x00FFFFFF), lshift(value, 24))
 		bytes[pointer + 1] = bor(band(bytes[pointer + 1], 0xFFFFFF00), rshift(value, 8))
+		return
 	end
 
 	bytes[pointer + 1] = band(value, 0xFF)
@@ -218,6 +220,7 @@ local function set_3_bytes_le(optimize, pointer, bytes, value)
 
 		bytes[pointer] = bor(band(bytes[pointer], 0x00FFFFFF), lshift(value, 24))
 		bytes[pointer + 1] = bor(band(bytes[pointer + 1], 0xFFFF0000), rshift(value, 8))
+		return
 	end
 
 	bytes[pointer + 1] = band(value, 0xFF)
@@ -249,6 +252,7 @@ local function set_4_bytes_le(optimize, pointer, bytes, value)
 
 		bytes[pointer] = bor(band(bytes[pointer], 0x00FFFFFF), lshift(value, 24))
 		bytes[pointer + 1] = bor(band(bytes[pointer + 1], 0xFF000000), rshift(value, 8))
+		return
 	end
 
 	bytes[pointer + 1] = band(value, 0xFF)
@@ -304,7 +308,176 @@ function meta:ctor(stringIn)
 		self.length = 0
 	end
 
+	self.slices = {}
+
 	self.o = true
+end
+
+--[[
+	@doc
+	@fname BytesBuffer:PushSlice
+	@args number slice_start, number slice_end = nil
+
+	@desc
+	Pushes new slice of this buffer, relative to any other slices present
+	`slice_end` is not required and in most cases should be left undefined
+	`slice_end` is ***relative***
+	since write operations ignore limits
+	unless you want upcoming code to rely on `Buffer:Length()`
+	@enddesc
+]]
+function meta:PushSlice(slice_start, slice_end)
+	assert(isnumber(slice_start), 'slice start must be a number', 2)
+	assert(slice_start >= 0, 'slice start must be positive', 2)
+
+	if isnumber(slice_end) then
+		assert(slice_end > 0, 'slice end must be above zero')
+	elseif slice_end ~= nil then
+		error('slice end is not a number', 2)
+	end
+
+	table.insert(self.slices, {self.slice_start, self.slice_end, self.pointer})
+	local _slice_start = self.slice_start or 0
+
+	self.pointer = 0
+	self.slice_start = _slice_start + slice_start
+
+	if slice_end then
+		self.slice_end = _slice_start + slice_start + slice_end
+		self.slice_end_real = slice_end
+	else
+		self.slice_end_real = self.length - (_slice_start + slice_start)
+	end
+end
+
+--[[
+	@doc
+	@fname BytesBuffer:Slice
+	@args number slice_start, number slice_end = nil
+
+	@desc
+	`DLib.BytesBufferView` replacement. Creates shallow clone which reflect original, with slice defined,
+	Won't work if buffer is unoptimized or gets unoptimized in future.
+	Basically `self:ShallowClone()` with `clone:PushSlice(slice_start, slice_end)`.
+	@enddesc
+
+	@returns
+	table: slice pseudo-object
+]]
+function meta:Slice(slice_start, slice_end)
+	assert(self.o, 'Unoptimized BytesBuffers are unsupported', 2)
+
+	local obj = self:ShallowClone()
+	obj:PushSlice(slice_start, slice_end)
+	return obj
+end
+
+--[[
+	@doc
+	@fname BytesBuffer:ShallowClone
+
+	@desc
+	Allows to define buffer-wide properties (such as current slice) without affecting original buffer
+	Any write/read operations will be directed to original
+	Won't work if buffer is unoptimized or gets unoptimized in future.
+	@enddesc
+
+	@returns
+	table: slice pseudo-object
+]]
+function meta:ShallowClone()
+	assert(self.o, 'Unoptimized BytesBuffers are unsupported', 2)
+
+	return setmetatable({
+		pointer = self.pointer,
+		bytes = self.bytes,
+		slices = table.Copy(self.slices),
+		slice_start = self.slice_start,
+		slice_end = self.slice_end,
+	}, {
+		__index = self,
+		__newindex = function(_self, key, value)
+			if key == 'length' then
+				self[key] = value
+				return
+			end
+
+			rawset(_self, key, value)
+		end
+	})
+end
+
+--[[
+	@doc
+	@fname BytesBuffer:PopSlice
+]]
+function meta:PopSlice()
+	local pop = assert(table.remove(self.slices), 'nothing to pop', 2)
+
+	self.slice_start = pop[1]
+	self.slice_end = pop[2]
+	self.pointer = pop[3]
+	self.slice_end_real = nil
+
+	if self.slice_end then
+		self.slice_end_real = self.slice_end - self.slice_start
+	elseif self.slice_start then
+		self.slice_end_real = self.length - self.slice_start
+	end
+end
+
+--[[
+	@doc
+	@fname BytesBuffer:CurrentSliceEnd
+
+	@internal
+
+	@returns
+	number
+]]
+function meta:CurrentSliceEnd()
+	local get = self.slice_end
+	if get == nil then return self.length end
+	return get
+end
+
+--[[
+	@doc
+	@fname BytesBuffer:Length
+
+	@returns
+	number: length affected by slices
+]]
+function meta:Length()
+	local get = self.slice_end_real
+	if get == nil then return self.length end
+	return get
+end
+
+--[[
+	@doc
+	@fname BytesBuffer:RealLength
+
+	@returns
+	number: unaffected length by slices
+]]
+function meta:RealLength()
+	return self.length
+end
+
+--[[
+	@doc
+	@fname BytesBuffer:CurrentSliceStart
+
+	@internal
+
+	@returns
+	number
+]]
+function meta:CurrentSliceStart()
+	local get = self.slice_start
+	if get == nil then return 0 end
+	return get
 end
 
 --[[
@@ -345,14 +518,25 @@ end
 	@returns
 	BytesBuffer: self
 ]]
--- Operations
 function meta:Seek(moveTo)
-	if moveTo < 0 or moveTo > self.length then
-		error('Seek - invalid position (' .. moveTo .. '; ' .. self.length .. ')', 2)
+	if moveTo < 0 then
+		error(string.format('BytesBuffer:Seek(%d): argument must be non-negative', moveTo), 2)
+	elseif moveTo > self:Length() then
+		error(string.format('BytesBuffer:Seek(%d): overflow (max %d, delta %d)', moveTo, self:Length(), moveTo - self:Length()), 2)
 	end
 
 	self.pointer = moveTo
 	return self
+end
+
+function meta:CheckOverflow(name, moveBy)
+	if self.pointer + moveBy > self:Length() then
+		error(string.format('BytesBuffer:Read%s(): overflow (read %d->%d; %d)',
+			name,
+			self.pointer,
+			self.pointer + moveBy,
+			self:Length()), 3)
+	end
 end
 
 --[[
@@ -469,13 +653,11 @@ end
 	@returns
 	boolean
 ]]
-function meta:EndOfStream()
-	return self.pointer >= self.length
+function meta:IsEOF()
+	return self.pointer >= self:Length()
 end
 
-function meta:IsEOF()
-	return self.pointer >= self.length
-end
+meta.EndOfStream = meta.IsEOF
 
 --[[
 	@doc
@@ -492,19 +674,20 @@ function meta:WriteUByte(valueIn)
 	valueIn = math_floor(valueIn)
 
 	local pointer = self.pointer
+	local _pointer = pointer + self:CurrentSliceStart()
 	local bytes = self.bytes
 	local length = self.length
 
-	if pointer == length then
+	if _pointer == length then
 		self.length = length + 1
-		local index = rshift(pointer, 2) + 1
+		local index = rshift(_pointer, 2) + 1
 
 		if bytes[index] == nil then
 			bytes[index] = 0
 		end
 	end
 
-	set_1_bytes_le(self.o, pointer, bytes, valueIn)
+	set_1_bytes_le(self.o, _pointer, bytes, valueIn)
 	self.pointer = pointer + 1
 
 	return self
@@ -673,20 +856,21 @@ function meta:WriteUInt16(valueIn)
 	assertRange(valueIn, 0, 0xFFFF, 'WriteUInt16')
 
 	local pointer = self.pointer
+	local _pointer = pointer + self:CurrentSliceStart()
 	local bytes = self.bytes
 	local length = self.length
 
-	if pointer + 1 >= length then
-		self.length = pointer + 2
+	if _pointer + 1 >= length then
+		self.length = _pointer + 2
 
 		if self.o then
-			local index = rshift(pointer, 2) + 1
+			local index = rshift(_pointer, 2) + 1
 
 			if bytes[index] == nil then
 				bytes[index] = 0
 			end
 
-			index = rshift(pointer + 1, 2) + 1
+			index = rshift(_pointer + 1, 2) + 1
 
 			if bytes[index] == nil then
 				bytes[index] = 0
@@ -694,7 +878,7 @@ function meta:WriteUInt16(valueIn)
 		end
 	end
 
-	set_2_bytes_le(self.o, pointer, bytes, rshift(bswap(valueIn), 16))
+	set_2_bytes_le(self.o, _pointer, bytes, rshift(bswap(valueIn), 16))
 	self.pointer = pointer + 2
 
 	return self
@@ -705,20 +889,21 @@ function meta:WriteUInt16LE(valueIn)
 	assertRange(valueIn, 0, 0xFFFF, 'WriteUInt16LE')
 
 	local pointer = self.pointer
+	local _pointer = pointer + self:CurrentSliceStart()
 	local bytes = self.bytes
 	local length = self.length
 
-	if pointer + 1 >= length then
-		self.length = pointer + 2
+	if _pointer + 1 >= length then
+		self.length = _pointer + 2
 
 		if self.o then
-			local index = rshift(pointer, 2) + 1
+			local index = rshift(_pointer, 2) + 1
 
 			if bytes[index] == nil then
 				bytes[index] = 0
 			end
 
-			index = rshift(pointer + 1, 2) + 1
+			index = rshift(_pointer + 1, 2) + 1
 
 			if bytes[index] == nil then
 				bytes[index] = 0
@@ -726,7 +911,7 @@ function meta:WriteUInt16LE(valueIn)
 		end
 	end
 
-	set_2_bytes_le(self.o, pointer, bytes, valueIn)
+	set_2_bytes_le(self.o, _pointer, bytes, valueIn)
 	self.pointer = pointer + 2
 
 	return self
@@ -837,26 +1022,27 @@ function meta:WriteUInt24(valueIn)
 	assertRange(valueIn, 0, 0xFFFFFF, 'WriteUInt24')
 
 	local pointer = self.pointer
+	local _pointer = pointer + self:CurrentSliceStart()
 	local bytes = self.bytes
 	local length = self.length
 
-	if pointer + 2 >= length then
-		self.length = pointer + 3
+	if _pointer + 2 >= length then
+		self.length = _pointer + 3
 
 		if self.o then
-			local index = rshift(pointer, 2) + 1
+			local index = rshift(_pointer, 2) + 1
 
 			if bytes[index] == nil then
 				bytes[index] = 0
 			end
 
-			index = rshift(pointer + 1, 2) + 1
+			index = rshift(_pointer + 1, 2) + 1
 
 			if bytes[index] == nil then
 				bytes[index] = 0
 			end
 
-			index = rshift(pointer + 2, 2) + 1
+			index = rshift(_pointer + 2, 2) + 1
 
 			if bytes[index] == nil then
 				bytes[index] = 0
@@ -875,26 +1061,27 @@ function meta:WriteUInt24LE(valueIn)
 	assertRange(valueIn, 0, 0xFFFFFF, 'WriteUInt24LE')
 
 	local pointer = self.pointer
+	local _pointer = pointer + self:CurrentSliceStart()
 	local bytes = self.bytes
 	local length = self.length
 
-	if pointer + 2 >= length then
-		self.length = pointer + 3
+	if _pointer + 2 >= length then
+		self.length = _pointer + 3
 
 		if self.o then
-			local index = rshift(pointer, 2) + 1
+			local index = rshift(_pointer, 2) + 1
 
 			if bytes[index] == nil then
 				bytes[index] = 0
 			end
 
-			index = rshift(pointer + 1, 2) + 1
+			index = rshift(_pointer + 1, 2) + 1
 
 			if bytes[index] == nil then
 				bytes[index] = 0
 			end
 
-			index = rshift(pointer + 2, 2) + 1
+			index = rshift(_pointer + 2, 2) + 1
 
 			if bytes[index] == nil then
 				bytes[index] = 0
@@ -902,7 +1089,7 @@ function meta:WriteUInt24LE(valueIn)
 		end
 	end
 
-	set_3_bytes_le(self.o, pointer, bytes, valueIn)
+	set_3_bytes_le(self.o, _pointer, bytes, valueIn)
 	self.pointer = pointer + 3
 
 	return self
@@ -1000,32 +1187,33 @@ function meta:WriteUInt32(valueIn)
 	assertRange(valueIn, 0, 0xFFFFFFFF, 'WriteUInt32')
 
 	local pointer = self.pointer
+	local _pointer = pointer + self:CurrentSliceStart()
 	local bytes = self.bytes
 	local length = self.length
 
-	if pointer + 3 >= length then
-		self.length = pointer + 4
+	if _pointer + 3 >= length then
+		self.length = _pointer + 4
 
 		if self.o then
-			local index = rshift(pointer, 2) + 1
+			local index = rshift(_pointer, 2) + 1
 
 			if bytes[index] == nil then
 				bytes[index] = 0
 			end
 
-			index = rshift(pointer + 1, 2) + 1
+			index = rshift(_pointer + 1, 2) + 1
 
 			if bytes[index] == nil then
 				bytes[index] = 0
 			end
 
-			index = rshift(pointer + 2, 2) + 1
+			index = rshift(_pointer + 2, 2) + 1
 
 			if bytes[index] == nil then
 				bytes[index] = 0
 			end
 
-			index = rshift(pointer + 3, 2) + 1
+			index = rshift(_pointer + 3, 2) + 1
 
 			if bytes[index] == nil then
 				bytes[index] = 0
@@ -1033,7 +1221,7 @@ function meta:WriteUInt32(valueIn)
 		end
 	end
 
-	set_4_bytes_le(self.o, pointer, bytes, bswap(valueIn))
+	set_4_bytes_le(self.o, _pointer, bytes, bswap(valueIn))
 	self.pointer = pointer + 4
 
 	return self
@@ -1232,12 +1420,6 @@ meta.WriteLongLE = meta.WriteInt64LE
 meta.WriteLongLE_2 = meta.WriteInt64LE_2
 meta.WriteULongLE = meta.WriteUInt64LE
 
-function meta:CheckOverflow(name, moveBy)
-	if self.pointer + moveBy > self.length then
-		error('Read' .. name .. ' - bytes amount overflow (' .. self.pointer .. ' + ' .. moveBy .. ' vs ' .. self.length .. ')', 3)
-	end
-end
-
 --[[
 	@doc
 	@fname BytesBuffer:ReadByte_2
@@ -1281,7 +1463,7 @@ function meta:ReadUByte()
 	self:CheckOverflow('UByte', 1)
 	local pointer = self.pointer
 	self.pointer = pointer + 1
-	return get_1_bytes_le(self.o, pointer, self.bytes)
+	return get_1_bytes_le(self.o, pointer + self:CurrentSliceStart(), self.bytes)
 end
 
 meta.ReadInt8 = meta.ReadByte
@@ -1362,7 +1544,7 @@ function meta:ReadUInt16()
 	self:CheckOverflow('UInt16', 2)
 	local pointer = self.pointer
 	self.pointer = pointer + 2
-	local a, b = get_2_bytes_le(self.o, pointer, self.bytes)
+	local a, b = get_2_bytes_le(self.o, pointer + self:CurrentSliceStart(), self.bytes)
 	return bor(lshift(a, 8), b)
 end
 
@@ -1378,7 +1560,7 @@ function meta:ReadUInt16LE()
 	self:CheckOverflow('UInt16LE', 2)
 	local pointer = self.pointer
 	self.pointer = pointer + 2
-	local a, b = get_2_bytes_le(self.o, pointer, self.bytes)
+	local a, b = get_2_bytes_le(self.o, pointer + self:CurrentSliceStart(), self.bytes)
 	return bor(lshift(b, 8), a)
 end
 
@@ -1465,7 +1647,7 @@ function meta:ReadUInt24()
 	self:CheckOverflow('UInt24', 3)
 	local pointer = self.pointer
 	self.pointer = pointer + 3
-	local a, b, c = get_3_bytes_le(self.o, pointer, self.bytes)
+	local a, b, c = get_3_bytes_le(self.o, pointer + self:CurrentSliceStart(), self.bytes)
 	return bor(lshift(a, 8), b, lshift(c, 16))
 end
 
@@ -1481,7 +1663,7 @@ function meta:ReadUInt24LE()
 	self:CheckOverflow('UInt24LE', 3)
 	local pointer = self.pointer
 	self.pointer = pointer + 3
-	local a, b, c = get_3_bytes_le(self.o, pointer, self.bytes)
+	local a, b, c = get_3_bytes_le(self.o, pointer + self:CurrentSliceStart(), self.bytes)
 	return bor(lshift(c, 16), lshift(b, 8), a)
 end
 
@@ -1560,7 +1742,7 @@ function meta:ReadUInt32()
 	self:CheckOverflow('UInt32', 4)
 	local pointer = self.pointer
 	self.pointer = pointer + 4
-	local a, b, c, d = get_4_bytes_le(self.o, pointer, self.bytes)
+	local a, b, c, d = get_4_bytes_le(self.o, pointer + self:CurrentSliceStart(), self.bytes)
 	return bor(lshift(a, 24), lshift(b, 16), lshift(c, 8), d)
 end
 
@@ -1576,7 +1758,7 @@ function meta:ReadUInt32LE()
 	self:CheckOverflow('UInt32LE', 4)
 	local pointer = self.pointer
 	self.pointer = pointer + 4
-	local a, b, c, d = get_4_bytes_le(self.o, pointer, self.bytes)
+	local a, b, c, d = get_4_bytes_le(self.o, pointer + self:CurrentSliceStart(), self.bytes)
 	return bor(lshift(d, 24), lshift(c, 16), lshift(b, 8), a)
 end
 
@@ -1675,10 +1857,11 @@ function meta:ReadUInt64()
 	self:CheckOverflow('UInt64', 8)
 
 	local pointer = self.pointer
+	local _poiner = pointer + self:CurrentSliceStart()
 	self.pointer = pointer + 8
 
-	local a, b, c, d = get_4_bytes_le(self.o, pointer, self.bytes)
-	local e, f, g, k = get_4_bytes_le(self.o, pointer + 4, self.bytes)
+	local a, b, c, d = get_4_bytes_le(self.o, _poiner, self.bytes)
+	local e, f, g, k = get_4_bytes_le(self.o, _poiner + 4, self.bytes)
 
 	return
 		a * 0x100000000000000 +
@@ -1699,8 +1882,12 @@ end
 function meta:ReadUInt64LE()
 	self:CheckOverflow('UInt64LE', 8)
 
-	local k, g, f, e = get_4_bytes_le(self.o, pointer, self.bytes)
-	local d, c, b, a = get_4_bytes_le(self.o, pointer + 4, self.bytes)
+	local pointer = self.pointer
+	local _poiner = pointer + self:CurrentSliceStart()
+	self.pointer = pointer + 8
+
+	local k, g, f, e = get_4_bytes_le(self.o, _poiner, self.bytes)
+	local d, c, b, a = get_4_bytes_le(self.o, _poiner + 4, self.bytes)
 
 	return
 		a * 0x100000000000000 +
@@ -1965,10 +2152,10 @@ function meta:WriteString(stringIn)
 		return self
 	end
 
+	local _pointer = self.pointer + self:CurrentSliceStart()
 	local bytes = self.bytes
-	local pointer = self.pointer
 
-	for pointer = rshift(self.pointer, 2), rshift(self.pointer + #stringIn, 2) + 1 do
+	for pointer = rshift(self.pointer + self:CurrentSliceStart(), 2), rshift(self.pointer + #stringIn + self:CurrentSliceStart(), 2) + 1 do
 		if bytes[pointer] == nil then
 			bytes[pointer] = 0
 		end
@@ -1985,27 +2172,27 @@ function meta:WriteString(stringIn)
 		if c == 0 then error('NUL in input string at ' .. ((i - 1) * 4 + 3)) end
 		if d == 0 then error('NUL in input string at ' .. ((i - 1) * 4 + 4)) end
 
-		set_4_bytes_le(optimized, pointer, bytes, a + lshift(b, 8) + lshift(c, 16) + lshift(d, 24))
-		pointer = pointer + 4
+		set_4_bytes_le(optimized, _pointer, bytes, a + lshift(b, 8) + lshift(c, 16) + lshift(d, 24))
+		_pointer = _pointer + 4
 	end
 
 	local _length = band(length, 3)
 
 	if _length == 1 then
-		set_1_bytes_le(optimized, pointer, bytes, string_byte(stringIn, length))
+		set_1_bytes_le(optimized, _pointer, bytes, string_byte(stringIn, length))
 	elseif _length == 2 then
 		local a, b = string_byte(stringIn, length - 1, length)
-		set_2_bytes_le(optimized, pointer, bytes, a + lshift(b, 8))
+		set_2_bytes_le(optimized, _pointer, bytes, a + lshift(b, 8))
 	elseif _length == 3 then
 		local a, b, c = string_byte(stringIn, length - 2, length)
-		set_2_bytes_le(optimized, pointer, bytes, a + lshift(b, 8))
-		set_1_bytes_le(optimized, pointer + 2, bytes, c)
+		set_2_bytes_le(optimized, _pointer, bytes, a + lshift(b, 8))
+		set_1_bytes_le(optimized, _pointer + 2, bytes, c)
 	end
 
-	pointer = pointer + _length
+	_pointer = _pointer + _length
 
-	self.pointer = pointer
-	self.length = self.length:max(pointer)
+	self.pointer = _pointer - self:CurrentSliceStart()
+	self.length = self.length:max(_pointer)
 	self:WriteUByte(0)
 
 	return self
@@ -2029,10 +2216,10 @@ function meta:ReadString()
 	local bytes = self.bytes
 	local optimized = self.o
 
-	for i = self.pointer, self.length do
+	for i = self.pointer + self:CurrentSliceStart(), self:CurrentSliceEnd() do
 		if get_1_bytes_le(optimized, i, bytes) == 0 then
-			local string = self:StringSlice(self.pointer + 1, i)
-			self.pointer = i + 1
+			local string = self:StringSlice(self.pointer + 1 + self:CurrentSliceStart(), i)
+			self.pointer = i + 1 - self:CurrentSliceStart()
 			return string
 		end
 	end
@@ -2058,10 +2245,10 @@ function meta:WriteBinary(stringIn)
 		return self
 	end
 
+	local _pointer = self.pointer + self:CurrentSliceStart()
 	local bytes = self.bytes
-	local pointer = self.pointer
 
-	for pointer = rshift(self.pointer, 2), rshift(self.pointer + #stringIn, 2) + 1 do
+	for pointer = rshift(self.pointer + self:CurrentSliceStart(), 2), rshift(self.pointer + #stringIn + self:CurrentSliceStart(), 2) + 1 do
 		if bytes[pointer] == nil then
 			bytes[pointer] = 0
 		end
@@ -2072,27 +2259,27 @@ function meta:WriteBinary(stringIn)
 
 	for i = 1, math_floor(length / 4) do
 		local a, b, c, d = string_byte(stringIn, (i - 1) * 4 + 1, (i - 1) * 4 + 4)
-		set_4_bytes_le(optimized, pointer, bytes, a + lshift(b, 8) + lshift(c, 16) + lshift(d, 24))
-		pointer = pointer + 4
+		set_4_bytes_le(optimized, _pointer, bytes, a + lshift(b, 8) + lshift(c, 16) + lshift(d, 24))
+		_pointer = _pointer + 4
 	end
 
 	local _length = band(length, 3)
 
 	if _length == 1 then
-		set_1_bytes_le(optimized, pointer, bytes, string_byte(stringIn, length))
+		set_1_bytes_le(optimized, _pointer, bytes, string_byte(stringIn, length))
 	elseif _length == 2 then
 		local a, b = string_byte(stringIn, length - 1, length)
-		set_2_bytes_le(optimized, pointer, bytes, a + lshift(b, 8))
+		set_2_bytes_le(optimized, _pointer, bytes, a + lshift(b, 8))
 	elseif _length == 3 then
 		local a, b, c = string_byte(stringIn, length - 2, length)
-		set_2_bytes_le(optimized, pointer, bytes, a + lshift(b, 8))
-		set_1_bytes_le(optimized, pointer + 2, bytes, c)
+		set_2_bytes_le(optimized, _pointer, bytes, a + lshift(b, 8))
+		set_1_bytes_le(optimized, _pointer + 2, bytes, c)
 	end
 
-	pointer = pointer + _length
+	_pointer = _pointer + _length
 
-	self.pointer = pointer
-	self.length = self.length:max(pointer)
+	self.pointer = _pointer - self:CurrentSliceStart()
+	self.length = self.length:max(_pointer)
 
 	return self
 end
@@ -2111,7 +2298,7 @@ function meta:ReadBinary(readAmount)
 	if readAmount == 0 then return '' end
 	self:CheckOverflow('Binary', readAmount)
 
-	local slice = self:StringSlice(self.pointer + 1, self.pointer + readAmount)
+	local slice = self:StringSlice(self.pointer + 1 + self:CurrentSliceStart(), self.pointer + readAmount + self:CurrentSliceStart())
 	self.pointer = self.pointer + readAmount
 
 	return slice
@@ -2132,7 +2319,7 @@ end
 	string
 ]]
 function meta:ToString()
-	return self:StringSlice(1, self.length)
+	return self:StringSlice(self:CurrentSliceStart() + 1, self:CurrentSliceEnd())
 end
 
 --[[
@@ -2193,25 +2380,9 @@ end
 ]]
 function meta:ToFileStream(fileStream)
 	if self.length == 0 then return fileStream end
-	local bytes = self.bytes
 
-	for i = 1, math_floor(self.length / 4) do
-		fileStream:WriteLong(bytes[i])
-	end
-
-	local _length = band(self.length, 0x3)
-	local last = bytes[#bytes]
-
-	if _length == 1 then
-		fileStream:WriteByte(last)
-	elseif _length == 2 then
-		fileStream:WriteByte(band(last, 0xFF))
-		fileStream:WriteByte(rshift(band(last, 0xFF00), 8))
-	elseif _length == 3 then
-		fileStream:WriteByte(band(last, 0xFF))
-		fileStream:WriteByte(rshift(band(last, 0xFF00), 8))
-		fileStream:WriteByte(rshift(band(last, 0xFF00), 16))
-	end
+	-- writing bytes manually is extremely slow holy shit
+	fileStream:Write(self:StringSlice(self:CurrentSliceStart() + 1, self:CurrentSliceEnd()))
 
 	return fileStream
 end
@@ -2448,7 +2619,7 @@ local meta_bytes = {}
 
 function meta_view:StringSlice(slice_start, slice_end)
 	local strings = {}
-	local self_slice_start, self_slice_end = self.slice_start, self.slice_end
+	local self_slice_start, self_slice_end = self._slice_start, self._slice_end
 	local aqs = self_slice_start + (slice_start - 1):max(0)
 	local aqe = aqs + (slice_end - slice_start + 1)
 	local distance = aqe - aqs
@@ -2488,10 +2659,11 @@ end
 function meta_bytes:__index(key)
 	if not isnumber(key) then return end
 	local self2 = rawget(self, 'self')
-	key = key + self2.slice_start
+
+	key = key + self2._slice_start
 
 	if key < 0 then return end
-	if key > self2.slice_end then return end
+	if key > self2._slice_end then return end
 
 	for _, buffer in ipairs(self2.buffers) do
 		local key2 = key - buffer.length
@@ -2507,10 +2679,10 @@ end
 function meta_bytes:__newindex(key, value)
 	if not isnumber(key) then return end
 	local self2 = rawget(self, 'self')
-	key = key + self2.slice_start
+	key = key + self2._slice_start
 
 	if key < 0 then return end
-	if key > self2.slice_end then return end
+	if key > self2._slice_end then return end
 
 	for _, buffer in ipairs(self2.buffers) do
 		local key2 = key - buffer.length
@@ -2557,8 +2729,8 @@ DLib.BytesBufferView = setmetatable({proto = meta_view, meta = meta_view}, {__ca
 	local obj = setmetatable({}, meta_view)
 	obj.pointer = 0
 	obj.length = slice_end - slice_start
-	obj.slice_start = slice_start
-	obj.slice_end = slice_end
+	obj._slice_start = slice_start
+	obj._slice_end = slice_end
 	obj.buffers = {...}
 	obj.bytes = setmetatable({self = obj}, meta_bytes)
 
