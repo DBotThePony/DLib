@@ -58,10 +58,15 @@ local function refresh()
 	current_render = graph_rt_1
 end
 
-refresh()
-timer.Simple(0, refresh)
-hook.Add('ScreenResolutionChanged', 'DLib Refresh Performance Screen', refresh)
-hook.Add('InvalidateMaterialCache', 'DLib Refresh Performance Screen', refresh)
+hook.Add('ScreenResolutionChanged', 'DLib Refresh Performance Screen', function()
+	graph_rt_1, graph_rt_2 = nil
+	graph_rt_1_mat, graph_rt_2_mat = nil
+end)
+
+hook.Add('InvalidateMaterialCache', 'DLib Refresh Performance Screen', function()
+	graph_rt_1, graph_rt_2 = nil
+	graph_rt_1_mat, graph_rt_2_mat = nil
+end)
 
 local _last_frame, _last_frame_gc = 0, 0
 local _last_frame2 = 0
@@ -92,6 +97,7 @@ local tick = 0
 
 local function PostRender()
 	if not dlib_performance:GetBool() then return end
+	if not graph_rt_1 then refresh() end
 
 	local stime = SysTime()
 
@@ -256,6 +262,7 @@ local sv_cheats = ConVar('sv_cheats')
 
 local function PostDrawHUD()
 	if not dlib_performance:GetBool() then return end
+	if not graph_rt_1 then refresh() end
 
 	if not features then
 		local ply = LocalPlayer()
