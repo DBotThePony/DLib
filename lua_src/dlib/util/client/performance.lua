@@ -34,21 +34,34 @@ local string = string
 local abs = math.abs
 local dlib_performance = CreateConVar('dlib_performance', '0', {}, 'Show debug screen')
 
-local graph_rt_1 = GetRenderTarget('graph_profile_rt1', ScrW(), ScrH())
-local graph_rt_2 = GetRenderTarget('graph_profile_rt2', ScrW(), ScrH())
+local graph_rt_1, graph_rt_2
+local graph_rt_1_mat, graph_rt_2_mat
+local current_render
 
-local graph_rt_1_mat = CreateMaterial('graph_profile_rt1', 'UnlitGeneric', {
-	['$translucent'] = '1',
-	['$basetexture'] = '__error__a', -- force pixel correction to assume texture is 32x32
-})
+local function refresh()
+	graph_rt_1 = GetRenderTarget('graph_profile_rt1' .. ScrW() .. '_' .. ScrH(), ScrW(), ScrH())
+	graph_rt_2 = GetRenderTarget('graph_profile_rt2' .. ScrW() .. '_' .. ScrH(), ScrW(), ScrH())
 
-local graph_rt_2_mat = CreateMaterial('graph_profile_rt2', 'UnlitGeneric', {
-	['$translucent'] = '1',
-	['$basetexture'] = '__error__a', -- force pixel correction to assume texture is 32x32
-})
+	graph_rt_1_mat = CreateMaterial('graph_profile_rt1', 'UnlitGeneric', {
+		['$translucent'] = '1',
+		['$basetexture'] = '__error__a', -- force pixel correction to assume texture is 32x32
+	})
 
-graph_rt_1_mat:SetTexture('$basetexture', graph_rt_1)
-graph_rt_2_mat:SetTexture('$basetexture', graph_rt_2)
+	graph_rt_2_mat = CreateMaterial('graph_profile_rt2', 'UnlitGeneric', {
+		['$translucent'] = '1',
+		['$basetexture'] = '__error__a', -- force pixel correction to assume texture is 32x32
+	})
+
+	graph_rt_1_mat:SetTexture('$basetexture', graph_rt_1)
+	graph_rt_2_mat:SetTexture('$basetexture', graph_rt_2)
+
+	current_render = graph_rt_1
+end
+
+refresh()
+timer.Simple(0, refresh)
+hook.Add('ScreenResolutionChanged', 'DLib Refresh Performance Screen', refresh)
+hook.Add('InvalidateMaterialCache', 'DLib Refresh Performance Screen', refresh)
 
 local _last_frame, _last_frame_gc = 0, 0
 local _last_frame2 = 0
@@ -57,7 +70,6 @@ local fps_account_frames, last_fps_account, last_fps_account_time, last_fps_acco
 
 local account_logic, account_render, last_account_logic, last_account_render = 0, 0, 0, 0
 
-local current_render = graph_rt_1
 local current_render_position = 0
 
 local step_1_fps = 8000

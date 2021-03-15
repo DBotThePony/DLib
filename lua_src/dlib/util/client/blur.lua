@@ -42,16 +42,16 @@ local function refreshRT()
 	RTX = RTW / 2 - w / 2
 	RTY = RTH / 2 - h / 2
 
-	DRAWMAT = CreateMaterial('dlib-blur2', 'UnlitGeneric', {
-		['$basetexture'] = 'models/debug/debugwhite',
+	DRAWMAT = CreateMaterial('dlib-blur2_', 'UnlitGeneric', {
+		-- ['$basetexture'] = 'models/debug/debugwhite',
 		['$translucent'] = '0',
 		['$color'] = '[1 1 1]',
 		['$alpha'] = '1',
 		['$nolod'] = '1',
 	})
 
-	EFFECTSMAT = CreateMaterial('dlib-screen-space', 'UnlitGeneric', {
-		['$basetexture'] = 'models/debug/debugwhite',
+	EFFECTSMAT = CreateMaterial('dlib-screen-space_', 'UnlitGeneric', {
+		-- ['$basetexture'] = 'models/debug/debugwhite',
 		['$translucent'] = '0',
 		['$color'] = '[1 1 1]',
 		['$alpha'] = '1',
@@ -64,8 +64,8 @@ end
 
 refreshRT()
 timer.Simple(0, refreshRT)
-hook.Add('ScreenResolutionChanged', 'BAHUD.RefreshRT', refreshRT)
-hook.Add('InvalidateMaterialCache', 'BAHUD.RefreshRT', refreshRT)
+hook.Add('ScreenResolutionChanged', 'DLib Refresh Blur', refreshRT)
+hook.Add('InvalidateMaterialCache', 'DLib Refresh Blur', refreshRT)
 
 DLib.blur = DLib.blur or {}
 local blur = DLib.blur
