@@ -32,7 +32,7 @@ local cam = cam
 local collectgarbage = collectgarbage
 local string = string
 local abs = math.abs
-local dlib_debugscreen = CreateConVar('dlib_debugscreen', '0', {}, 'Show debug screen')
+local dlib_performance = CreateConVar('dlib_performance', '0', {}, 'Show debug screen')
 
 local graph_rt_1 = GetRenderTarget('graph_profile_rt1', ScrW(), ScrH())
 local graph_rt_2 = GetRenderTarget('graph_profile_rt2', ScrW(), ScrH())
@@ -64,7 +64,7 @@ local step_1_fps = 8000
 local target_width = ScrW() * 0.7
 
 local function PreRender()
-	if not dlib_debugscreen:GetBool() then return end
+	if not dlib_performance:GetBool() then return end
 
 	_last_frame2 = SysTime()
 	_last_frame_gc = collectgarbage('count')
@@ -79,7 +79,7 @@ local mark_240_fps = 1 / 240
 local tick = 0
 
 local function PostRender()
-	if not dlib_debugscreen:GetBool() then return end
+	if not dlib_performance:GetBool() then return end
 
 	local stime = SysTime()
 
@@ -223,19 +223,19 @@ local velocity = Angle()
 
 local function PreDrawTranslucentRenderables(a, b)
 	if a or b then return end
-	if not dlib_debugscreen:GetBool() then return end
+	if not dlib_performance:GetBool() then return end
 
 	eye_pos = EyePos()
 	eye_angles = EyeAngles()
 end
 
 local function FinishMove(ply, mv)
-	if not dlib_debugscreen:GetBool() then return end
+	if not dlib_performance:GetBool() then return end
 	velocity = mv:GetVelocity()
 end
 
 local function ThinkVelocity()
-	if not dlib_debugscreen:GetBool() then return end
+	if not dlib_performance:GetBool() then return end
 	velocity = LocalPlayer():GetVelocity()
 end
 
@@ -243,7 +243,7 @@ local host_timescale = ConVar('host_timescale')
 local sv_cheats = ConVar('sv_cheats')
 
 local function PostDrawHUD()
-	if not dlib_debugscreen:GetBool() then return end
+	if not dlib_performance:GetBool() then return end
 
 	if not features then
 		local ply = LocalPlayer()
