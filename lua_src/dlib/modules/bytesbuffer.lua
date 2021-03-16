@@ -1743,7 +1743,13 @@ function meta:ReadUInt32()
 	local pointer = self.pointer
 	self.pointer = pointer + 4
 	local a, b, c, d = get_4_bytes_le(self.o, pointer + self:CurrentSliceStart(), self.bytes)
-	return bor(lshift(a, 24), lshift(b, 16), lshift(c, 8), d)
+	local value = bor(lshift(a, 24), lshift(b, 16), lshift(c, 8), d)
+
+	if value < 0 then
+		return value + 0x100000000
+	end
+
+	return value
 end
 
 function meta:ReadInt32LE_2()
@@ -1759,7 +1765,13 @@ function meta:ReadUInt32LE()
 	local pointer = self.pointer
 	self.pointer = pointer + 4
 	local a, b, c, d = get_4_bytes_le(self.o, pointer + self:CurrentSliceStart(), self.bytes)
-	return bor(lshift(d, 24), lshift(c, 16), lshift(b, 8), a)
+	local value = bor(lshift(d, 24), lshift(c, 16), lshift(b, 8), a)
+
+	if value < 0 then
+		return value + 0x100000000
+	end
+
+	return value
 end
 
 meta.ReadInt = meta.ReadInt32
@@ -1863,12 +1875,18 @@ function meta:ReadUInt64()
 	local a, b, c, d = get_4_bytes_le(self.o, _poiner, self.bytes)
 	local e, f, g, k = get_4_bytes_le(self.o, _poiner + 4, self.bytes)
 
+	local value = bor(lshift(e, 24), lshift(f, 16), lshift(g, 8), k)
+
+	if value < 0 then
+		return value + 0x100000000
+	end
+
 	return
 		a * 0x100000000000000 +
 		b * 0x1000000000000 +
 		c * 0x10000000000 +
 		d * 0x100000000 +
-		bor(lshift(e, 24), lshift(f, 16), lshift(g, 8), k)
+		value
 end
 
 function meta:ReadInt64LE_2()
@@ -1889,12 +1907,18 @@ function meta:ReadUInt64LE()
 	local k, g, f, e = get_4_bytes_le(self.o, _poiner, self.bytes)
 	local d, c, b, a = get_4_bytes_le(self.o, _poiner + 4, self.bytes)
 
+	local value = bor(lshift(e, 24), lshift(f, 16), lshift(g, 8), k)
+
+	if value < 0 then
+		return value + 0x100000000
+	end
+
 	return
 		a * 0x100000000000000 +
 		b * 0x1000000000000 +
 		c * 0x10000000000 +
 		d * 0x100000000 +
-		bor(lshift(e, 24), lshift(f, 16), lshift(g, 8), k)
+		value
 end
 
 meta.ReadLong = meta.ReadInt32
