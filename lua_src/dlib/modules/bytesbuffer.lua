@@ -699,7 +699,7 @@ end
 	@args number value
 
 	@desc
-	with value shift
+	one's exponent
 	@enddesc
 
 	@returns
@@ -712,7 +712,7 @@ end
 	@args number value
 
 	@desc
-	with negative number overflow
+	two's exponent
 	@enddesc
 
 	@returns
@@ -759,7 +759,7 @@ end
 	@args number value
 
 	@desc
-	with value shift
+	one's exponent
 	@enddesc
 
 	@returns
@@ -773,7 +773,7 @@ end
 	@args number value
 
 	@desc
-	with value shift
+	one's exponent
 	@enddesc
 
 	@returns
@@ -787,7 +787,7 @@ end
 	@args number value
 
 	@desc
-	with negative number overflow
+	two's exponent
 	@enddesc
 
 	@returns
@@ -801,7 +801,7 @@ end
 	@args number value
 
 	@desc
-	with negative number overflow
+	two's exponent
 	@enddesc
 
 	@returns
@@ -930,7 +930,7 @@ meta.WriteUShortLE = meta.WriteUInt16LE
 	@args number value
 
 	@desc
-	with value shift
+	one's exponent
 	@enddesc
 
 	@returns
@@ -943,7 +943,7 @@ meta.WriteUShortLE = meta.WriteUInt16LE
 	@args number value
 
 	@desc
-	with value shift
+	one's exponent
 	@enddesc
 
 	@returns
@@ -956,7 +956,7 @@ meta.WriteUShortLE = meta.WriteUInt16LE
 	@args number value
 
 	@desc
-	with negative number overflow
+	two's exponent
 	@enddesc
 
 	@returns
@@ -969,7 +969,7 @@ meta.WriteUShortLE = meta.WriteUInt16LE
 	@args number value
 
 	@desc
-	with negative number overflow
+	two's exponent
 	@enddesc
 
 	@returns
@@ -1102,7 +1102,7 @@ end
 	@args number value
 
 	@desc
-	with value shift
+	one's exponent
 	@enddesc
 
 	@returns
@@ -1116,7 +1116,7 @@ end
 	@args number value
 
 	@desc
-	with negative number overflow
+	two's exponent
 	@enddesc
 
 	@returns
@@ -1140,7 +1140,7 @@ end
 	@args number value
 
 	@desc
-	with value shift
+	one's exponent
 	@enddesc
 
 	@returns
@@ -1154,7 +1154,7 @@ end
 	@args number value
 
 	@desc
-	with negative number overflow
+	two's exponent
 	@enddesc
 
 	@returns
@@ -1298,7 +1298,7 @@ meta.WriteUIntLE = meta.WriteUInt32LE
 	@args number value
 
 	@desc
-	with value shift
+	one's exponent
 	due to precision errors, this not actually accurate operation
 	@enddesc
 
@@ -1313,7 +1313,7 @@ meta.WriteUIntLE = meta.WriteUInt32LE
 	@args number value
 
 	@desc
-	with negative number overflow
+	two's exponent
 	due to precision errors, this not actually accurate operation
 	@enddesc
 
@@ -1342,7 +1342,7 @@ meta.WriteUIntLE = meta.WriteUInt32LE
 	@args number value
 
 	@desc
-	with value shift
+	one's exponent
 	due to precision errors, this not actually accurate operation
 	@enddesc
 
@@ -1357,7 +1357,7 @@ meta.WriteUIntLE = meta.WriteUInt32LE
 	@args number value
 
 	@desc
-	with negative number overflow
+	two's exponent
 	due to precision errors, this not actually accurate operation
 	@enddesc
 
@@ -1425,7 +1425,7 @@ meta.WriteULongLE = meta.WriteUInt64LE
 	@fname BytesBuffer:ReadByte_2
 
 	@desc
-	with value shift
+	one's exponent
 	@enddesc
 
 	@returns
@@ -1437,7 +1437,7 @@ meta.WriteULongLE = meta.WriteUInt64LE
 	@fname BytesBuffer:ReadByte
 
 	@desc
-	with negative number overflow
+	two's exponent
 	@enddesc
 
 	@returns
@@ -1474,7 +1474,7 @@ meta.ReadUInt8 = meta.ReadUByte
 	@fname BytesBuffer:ReadInt16_2
 
 	@desc
-	with value shift
+	one's exponent
 	@enddesc
 
 	@returns
@@ -1486,7 +1486,7 @@ meta.ReadUInt8 = meta.ReadUByte
 	@fname BytesBuffer:ReadInt16
 
 	@desc
-	with negative number overflow
+	two's exponent
 	@enddesc
 
 	@returns
@@ -1506,7 +1506,7 @@ meta.ReadUInt8 = meta.ReadUByte
 	@fname BytesBuffer:ReadInt16LE_2
 
 	@desc
-	with value shift
+	one's exponent
 	@enddesc
 
 	@returns
@@ -1518,7 +1518,7 @@ meta.ReadUInt8 = meta.ReadUByte
 	@fname BytesBuffer:ReadInt16LE
 
 	@desc
-	with negative number overflow
+	two's exponent
 	@enddesc
 
 	@returns
@@ -1577,7 +1577,7 @@ meta.ReadUShortLE = meta.ReadUInt16LE
 	@fname BytesBuffer:ReadInt24_2
 
 	@desc
-	with value shift
+	one's exponent
 	@enddesc
 
 	@returns
@@ -1589,7 +1589,7 @@ meta.ReadUShortLE = meta.ReadUInt16LE
 	@fname BytesBuffer:ReadInt24
 
 	@desc
-	with negative number overflow
+	two's exponent
 	@enddesc
 
 	@returns
@@ -1609,7 +1609,7 @@ meta.ReadUShortLE = meta.ReadUInt16LE
 	@fname BytesBuffer:ReadInt24LE_2
 
 	@desc
-	with value shift
+	one's exponent
 	@enddesc
 
 	@returns
@@ -1621,7 +1621,7 @@ meta.ReadUShortLE = meta.ReadUInt16LE
 	@fname BytesBuffer:ReadInt24LE
 
 	@desc
-	with negative number overflow
+	two's exponent
 	@enddesc
 
 	@returns
@@ -1672,7 +1672,7 @@ end
 	@fname BytesBuffer:ReadInt32_2
 
 	@desc
-	with value shift
+	one's exponent
 	@enddesc
 
 	@returns
@@ -1684,7 +1684,7 @@ end
 	@fname BytesBuffer:ReadInt32
 
 	@desc
-	with negative number overflow
+	two's exponent
 	@enddesc
 
 	@returns
@@ -1704,7 +1704,7 @@ end
 	@fname BytesBuffer:ReadInt32LE_2
 
 	@desc
-	with value shift
+	one's exponent
 	@enddesc
 
 	@returns
@@ -1716,7 +1716,7 @@ end
 	@fname BytesBuffer:ReadInt32LE
 
 	@desc
-	with negative number overflow
+	two's exponent
 	@enddesc
 
 	@returns
@@ -1787,7 +1787,7 @@ meta.ReadUIntLE = meta.ReadUInt32LE
 	@fname BytesBuffer:ReadInt64_2
 
 	@desc
-	with value shift
+	one's exponent
 	due to precision errors, this not actually accurate operation
 	@enddesc
 
@@ -1800,7 +1800,7 @@ meta.ReadUIntLE = meta.ReadUInt32LE
 	@fname BytesBuffer:ReadInt64
 
 	@desc
-	with negative number overflow
+	two's exponent
 	due to precision errors, this not actually accurate operation
 	@enddesc
 
@@ -1825,7 +1825,7 @@ meta.ReadUIntLE = meta.ReadUInt32LE
 	@fname BytesBuffer:ReadInt64LE_2
 
 	@desc
-	with value shift
+	one's exponent
 	due to precision errors, this not actually accurate operation
 	@enddesc
 
@@ -1838,7 +1838,7 @@ meta.ReadUIntLE = meta.ReadUInt32LE
 	@fname BytesBuffer:ReadInt64LE
 
 	@desc
-	with negative number overflow
+	two's exponent
 	due to precision errors, this not actually accurate operation
 	@enddesc
 
