@@ -2470,16 +2470,32 @@ do
 		return string.char(self:ReadUByte())
 	end
 
-	local function readCharLE(self, struct)
-		return string.char(self:ReadUByte():bswap():rshift(24))
+	local function readVec3(self, struct)
+		return Vector(self:ReadFloat(), self:ReadFloat(), self:ReadFloat())
+	end
+
+	local function readVec3LE(self, struct)
+		return Vector(self:ReadFloatLE(), self:ReadFloatLE(), self:ReadFloatLE())
 	end
 
 	function metaclass.CompileStructure(structureDef, callbacks)
 		local output = {}
+		local comment = false
 
 		for i, line in ipairs(structureDef:split('\n')) do
 			line = line:trim()
-			--assert(line ~= '', 'Invalid line definition at ' .. i)
+
+			if comment then
+				if not line:startsWith('*/') then
+					goto CONTINUE
+				end
+
+				comment = false
+				goto CONTINUE
+			elseif line:startsWith('/*') then
+				comment = true
+				goto CONTINUE
+			end
 
 			if line ~= '' and not line:startsWith('//') then
 				line = line
@@ -2522,56 +2538,34 @@ do
 					rname = rname:sub(1, #rname - #findIndex)
 				end
 
-				local limit = 0x0
-
 				if rtype == 'int8' or rtype == 'byte' then
 					table_insert(output, {rname, meta.ReadByte})
-					limit = 24
 				elseif rtype == 'char' then
-					local addfn = readChar
-					limit = 24
-
-					if isLE then
-						isLE = false
-						addfn = readCharLE
-					end
-
-					table_insert(output, {rname, addfn})
+					table_insert(output, {rname, readChar})
 				elseif rtype == 'int16' or rtype == 'short' then
-					table_insert(output, {rname, meta.ReadInt16})
-					limit = 16
+					table_insert(output, {rname, isLE and meta.ReadInt16LE or meta.ReadInt16})
 				elseif rtype == 'int32' or rtype == 'long' or rtype == 'int' then
-					table_insert(output, {rname, meta.ReadInt32})
-					limit = 0
+					table_insert(output, {rname, isLE and meta.ReadInt32LE or meta.ReadInt32})
 				elseif rtype == 'int64' or rtype == 'longlong' or rtype == 'bigint' then
-					table_insert(output, {rname, meta.ReadInt64})
-					limit = 0 -- unsupported by bit library
+					table_insert(output, {rname, isLE and meta.ReadInt64LE or meta.ReadInt64})
+
 				elseif rtype == 'uint8' or rtype == 'ubyte' then
 					table_insert(output, {rname, meta.ReadUByte})
-					limit = 24
 				elseif rtype == 'uint16' or rtype == 'ushort' then
-					table_insert(output, {rname, meta.ReadUInt16})
-					limit = 16
+					table_insert(output, {rname, isLE and meta.ReadUInt16LE or meta.ReadUInt16})
 				elseif rtype == 'uint32' or rtype == 'ulong' or rtype == 'uint' then
-					table_insert(output, {rname, meta.ReadUInt32})
-					limit = 0
+					table_insert(output, {rname, isLE and meta.ReadUInt32LE or meta.ReadUInt32})
 				elseif rtype == 'uint64' or rtype == 'ulong64' or rtype == 'biguint' or rtype == 'ubigint' then
-					table_insert(output, {rname, meta.ReadUInt64})
-					limit = 0 -- unsupported by bit library
+
+					table_insert(output, {rname, isLE and meta.ReadUInt64LE or meta.ReadUInt64})
 				elseif rtype == 'float' then
-					if isLE then
-						isLE = false
-						table_insert(output, {rname, meta.ReadFloatLE})
-					else
-						table_insert(output, {rname, meta.ReadFloat})
-					end
+					table_insert(output, {rname, isLE and meta.ReadFloatLE or meta.ReadFloat})
 				elseif rtype == 'double' then
-					if isLE then
-						isLE = false
-						table_insert(output, {rname, meta.ReadDoubleLE})
-					else
-						table_insert(output, {rname, meta.ReadDouble})
-					end
+					table_insert(output, {rname, isLE and meta.ReadDoubleLE or meta.ReadDouble})
+
+				elseif rtype == 'vec3' then
+					table_insert(output, {rname, isLE and readVec3LE or readVec3})
+
 				elseif rtype == 'variable' or rtype == 'string' then
 					table_insert(output, {rname, meta.ReadString})
 				elseif callbacks and callbacks[rtype2] then
@@ -2580,19 +2574,13 @@ do
 					DLib.MessageError(debug.traceback('Undefined type: ' .. rtype))
 				end
 
-				if isLE then
-					local fn = output[#output][2]
-
-					output[#output][2] = function(self, struct)
-						return fn(self, struct):bswap():rshift(limit)
-					end
-				end
-
 				if findIndex then
 					local index = findIndex:sub(2, #findIndex - 1)
 					output[#output][2] = readArray(tonumber(index) or index, output[#output][2])
 				end
 			end
+
+			::CONTINUE::
 		end
 
 		return function(self)
@@ -2605,6 +2593,8 @@ do
 			return read
 		end
 	end
+
+	metaclass.CompileStruct = metaclass.CompileStructure
 end
 
 --[[
