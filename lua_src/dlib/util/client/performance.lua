@@ -56,6 +56,14 @@ local function refresh()
 	graph_rt_2_mat:SetTexture('$basetexture', graph_rt_2)
 
 	current_render = graph_rt_1
+
+	render.PushRenderTarget(graph_rt_1)
+	render.Clear(0, 0, 0, 0, true, true)
+	render.PopRenderTarget()
+
+	render.PushRenderTarget(graph_rt_2)
+	render.Clear(0, 0, 0, 0, true, true)
+	render.PopRenderTarget()
 end
 
 hook.Add('ScreenResolutionChanged', 'DLib Refresh Performance Screen', function()
