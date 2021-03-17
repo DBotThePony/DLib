@@ -357,7 +357,7 @@ end
 
 	@desc
 	`DLib.BytesBufferView` replacement. Creates shallow clone which reflect original, with slice defined,
-	Won't work if buffer is unoptimized or gets unoptimized in future.
+	Won't work if buffer is optimized and gets unoptimized later.
 	Basically `self:ShallowClone()` with `clone:PushSlice(slice_start, slice_end)`.
 	@enddesc
 
@@ -365,8 +365,6 @@ end
 	table: slice pseudo-object
 ]]
 function meta:Slice(slice_start, slice_end)
-	assert(self.o, 'Unoptimized BytesBuffers are unsupported', 2)
-
 	local obj = self:ShallowClone()
 	obj:PushSlice(slice_start, slice_end)
 	return obj
@@ -379,15 +377,13 @@ end
 	@desc
 	Allows to define buffer-wide properties (such as current slice) without affecting original buffer
 	Any write/read operations will be directed to original
-	Won't work if buffer is unoptimized or gets unoptimized in future.
+	Won't work if buffer is optimized and gets unoptimized later.
 	@enddesc
 
 	@returns
 	table: slice pseudo-object
 ]]
 function meta:ShallowClone()
-	assert(self.o, 'Unoptimized BytesBuffers are unsupported', 2)
-
 	return setmetatable({
 		pointer = self.pointer,
 		bytes = self.bytes,
