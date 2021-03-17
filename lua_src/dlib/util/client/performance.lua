@@ -103,6 +103,8 @@ local mark_240_fps = 1 / 240
 
 local tick = 0
 
+local last_max_memory, last_max_memory_text, last_memory = 0, '0'
+
 local function PostRender()
 	if not dlib_performance:GetBool() then return end
 	if not graph_rt_1 then refresh() end
@@ -117,6 +119,13 @@ local function PostRender()
 	local gcnum = collectgarbage('count')
 	local delta_gc = gcnum - _last_frame_gc
 	tick = tick + 1
+
+	if last_max_memory < gcnum then
+		last_max_memory_text = DLib.I18n.FormatAnyBytesLong(gcnum * 1024)
+		last_max_memory = gcnum
+	end
+
+	last_memory = DLib.I18n.FormatAnyBytesLong(gcnum * 1024)
 
 	if last_gc_account_time < stime then
 		local _gc_account = gc_account / 2048
@@ -243,6 +252,18 @@ local function draw_boxed(text, y)
 	return y + _h + 4
 end
 
+local scr_w
+
+local function draw_boxed_right(text, y)
+	local _w, _h = surface.GetTextSize(text)
+
+	surface.DrawRect(scr_w - _w - 8, y, _w + 8, _h + 4)
+	surface.SetTextPos(scr_w - _w - 4, y + 2)
+	surface.DrawText(text)
+
+	return y + _h + 4
+end
+
 local eye_pos = Vector()
 local eye_angles = Angle()
 local velocity = Angle()
@@ -267,6 +288,8 @@ end
 
 local host_timescale = ConVar('host_timescale')
 local sv_cheats = ConVar('sv_cheats')
+local cl_showfps = ConVar('cl_showfps')
+local cl_showpos = ConVar('cl_showpos')
 
 local function PostDrawHUD()
 	if not dlib_performance:GetBool() then return end
@@ -291,6 +314,7 @@ local function PostDrawHUD()
 	render.DrawScreenQuad()
 
 	local sH = ScrH()
+	scr_w = ScrW()
 
 	render.SetScissorRect(current_render_position, 0, target_width, sH, true)
 	render.SetMaterial(other_mat)
@@ -356,6 +380,18 @@ local function PostDrawHUD()
 	y = draw_boxed(string.format('EyeAngles(%.3f %.3f %.3f)', eye_angles:Unpack()), y)
 	y = draw_boxed(string.format('Velocity(%.3f %.3f %.3f)', velocity:Unpack()), y)
 	y = draw_boxed(string.format('game.GetTimeScale(): %.2f; host_timescale: %.2f / %.2f', game.GetTimeScale(), host_timescale:GetFloat(), sv_cheats:GetBool() and host_timescale:GetFloat() or 1), y)
+
+	y = 0
+
+	if cl_showfps:GetBool() then
+		y = 16
+	end
+
+	if cl_showpos:GetBool() then
+		y = y + 48
+	end
+
+	draw_boxed_right(string.format('LuaVM Mem: %s / %s', last_memory, last_max_memory_text), y)
 
 	cam.End2D()
 end
