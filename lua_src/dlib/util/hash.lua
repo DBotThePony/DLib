@@ -135,14 +135,12 @@ do
 		return bxor(y, bor(x, bnot(z)))
 	end
 
-	function meta:_Inner(cc)
+	function meta:_Inner(cc, initial, num)
 		local A, B, C, D = self.A, self.B, self.C, self.D
-		local num = math_floor(#cc / 64)
-		self.blocks = self.blocks + num
 
 		-- 512 bit block
 		for i = 1, num do
-			local init = (i - 1) * 64 - 4
+			local init = initial + (i - 1) * 64 - 4
 
 			local a, b, c, d = A, B, C, D
 
@@ -207,16 +205,27 @@ function meta:Update(data)
 	if self.digested then error('Message is already digested!') end
 
 	if data == '' then return self end
-	local cc = self.current_block .. data
 	self.length = self.length + #data
 
-	if #cc < 64 then
-		self.current_block = cc
+	local initial = 0
+	local blocks = math_floor(#data / 64)
+
+	if #self.current_block + #data >= 64 then
+		self:_Inner(self.current_block .. string_sub(data, 1, 64 - #self.current_block), 0, 1)
+		initial = 64 - #self.current_block
+		self.current_block = ''
+		blocks = math_floor((#data - (64 - #self.current_block)) / 64)
+		self.blocks = self.blocks + 1
+	end
+
+	if blocks < 1 then
+		self.current_block = self.current_block .. string_sub(data, initial + 1)
 		return self
 	end
 
-	self.current_block = string_sub(cc, #cc - #cc % 64 + 1, #cc)
-	self:_Inner(cc)
+	self.blocks = self.blocks + blocks
+	self:_Inner(data, initial, blocks)
+	self.current_block = string_sub(data, initial + blocks * 64 + 1)
 
 	return self
 end
@@ -226,14 +235,19 @@ function meta:_Digest()
 
 	local mod = self.length % 64
 
+	local blocks
+
 	if mod < 56 then
 		-- append 128, then 0
 		self.current_block = self.current_block .. '\x80' .. string.rep('\x00', 55 - mod)
+		blocks = 1
 	else
 		-- too long
 		self.current_block = self.current_block ..
 			'\x80' ..
 			string.rep('\x00', 119 - mod)
+
+		blocks = 2
 	end
 
 	local realLength = self.length * 8
@@ -250,7 +264,7 @@ function meta:_Digest()
 		band(rshift(div, 8), 0xFF),
 		band(rshift(div, 16), 0xFF),
 		band(rshift(div, 24), 0xFF)
-	))
+	), 0, blocks)
 
 	self.digest_hex = string.format('%08x%08x%08x%08x', overflow(bit.bswap(self.A)), overflow(bit.bswap(self.B)), overflow(bit.bswap(self.C)), overflow(bit.bswap(self.D)))
 end
@@ -331,13 +345,10 @@ do
 	local W = {}
 	local bytes = {}
 
-	function metasha1:_Inner(cc)
-		local num = math_floor(#cc / 64)
-		self.blocks = self.blocks + num
-
+	function metasha1:_Inner(cc, initial, blocks)
 		-- 512 bit block
-		for i = 1, num do
-			local init = (i - 1) * 64 - 4
+		for i = 1, blocks do
+			local init = initial + (i - 1) * 64 - 4
 
 			for t = 1, 16 do
 				-- LITTLE-ENDIAN blocks!
@@ -391,14 +402,19 @@ function metasha1:_Digest()
 
 	local mod = self.length % 64
 
+	local blocks
+
 	if mod < 56 then
 		-- append 128, then 0
 		self.current_block = self.current_block .. '\x80' .. string.rep('\x00', 55 - mod)
+		blocks = 1
 	else
 		-- too long
 		self.current_block = self.current_block ..
 			'\x80' ..
 			string.rep('\x00', 119 - mod)
+
+		blocks = 2
 	end
 
 	local realLength = self.length * 8
@@ -415,7 +431,7 @@ function metasha1:_Digest()
 		band(rshift(modLen, 16), 0xFF),
 		band(rshift(modLen, 8), 0xFF),
 		band(rshift(modLen, 0), 0xFF)
-	))
+	), 0, blocks)
 
 	self.digest_hex = string.format('%08x%08x%08x%08x%08x',
 		overflow(self.H0),
@@ -598,12 +614,10 @@ do
 		0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2,
 	}
 
-	local function _Inner(self, cc)
+	local function _Inner(self, cc, initial, blocks)
 		-- 512 bit block
-		for i = 1, math_floor(#cc / 64) do
-			self.blocks = self.blocks + 1
-
-			local init = (i - 1) * 64 - 4
+		for i = 1, blocks do
+			local init = initial + (i - 1) * 64 - 4
 
 			for t = 1, 16 do
 				-- LITTLE-ENDIAN blocks!
@@ -666,14 +680,19 @@ do
 
 		local mod = self.length % 64
 
+		local blocks
+
 		if mod < 56 then
 			-- append 128, then 0
 			self.current_block = self.current_block .. '\x80' .. string.rep('\x00', 55 - mod)
+			blocks = 1
 		else
 			-- too long
 			self.current_block = self.current_block ..
 				'\x80' ..
 				string.rep('\x00', 119 - mod)
+
+			blocks = 2
 		end
 
 		local realLength = self.length * 8
@@ -690,7 +709,7 @@ do
 			band(rshift(modLen, 16), 0xFF),
 			band(rshift(modLen, 8), 0xFF),
 			band(rshift(modLen, 0), 0xFF)
-		))
+		), 0, blocks)
 	end
 
 	function metasha224:_Digest()
