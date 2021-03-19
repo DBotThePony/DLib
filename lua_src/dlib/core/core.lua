@@ -126,3 +126,15 @@ net.receive = net.Receive
 	@enddesc
 ]]
 file.mkdir = file.CreateDir
+
+-- compat with older addons
+_G.CurTimeL = CurTime
+_G.CurTimeC = CurTime
+_G.RealTimeL = RealTime
+_G.RealTimeC = RealTime
+_G.FrameNumberL = FrameNumber
+_G.FrameNumberC = FrameNumber
+_G.ScrWL = ScrW
+_G.ScrWC = ScrW
+_G.ScrHL = ScrH
+_G.ScrHC = ScrH

@@ -158,7 +158,6 @@ MsgC('[DLib] Initializing DLib GLua extensions ... ')
 DLib.SharedInclude('util/combathelper.lua')
 
 DLib.SharedInclude('modules/bitworker.lua')
-DLib.SharedInclude('luabridge/luaify.lua')
 
 DLib.SharedInclude('extensions/extensions.lua')
 DLib.SharedInclude('extensions/string.lua')
@@ -169,7 +168,6 @@ DLib.SharedInclude('extensions/render.lua')
 DLib.SharedInclude('extensions/player.lua')
 
 DLib.SharedInclude('modules/hook.lua')
-DLib.SharedInclude('luabridge/luaify2.lua')
 
 DLib.SharedInclude('util/http.lua')
 DLib.SharedInclude('util/httpclient.lua')
