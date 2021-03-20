@@ -110,5 +110,5 @@ local function DrawGuidingLines()
 	DLib.HUDCommons.WordBox(string.format('X percent: %.2f Y percent: %.2f', x / lastW, y / lastH), 'DLib.GuidingLine', x:clamp(lastW * 0.15, lastW * 0.85), (y - ScreenSize(17)):clamp(lastH * 0.1, lastH * 0.9), color_white, color_black, true)
 end
 
-hook.Add('Think', 'DLib Check Screen Dimensions', check)
+hook.Add('PreRender', 'DLib Check Screen Dimensions', check)
 hook.Add('HUDPaint', 'DLib.DrawGuidingLines', DrawGuidingLines)
