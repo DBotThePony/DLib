@@ -907,7 +907,7 @@ local function Run(...)
 	return hook.Run2(...)
 end
 
-local __breakage1 = {
+local __static1 = {
 	'HUDPaint',
 	'PreDrawHUD',
 	'PostDrawHUD',
@@ -925,16 +925,20 @@ local __breakage1 = {
 	'CreateMove',
 	'StartCommand',
 	'SetupMove',
+
+	'PostRender',
+	'Think',
+	'Tick',
 }
 
-local __breakage = {}
+local __static = {}
 
-for i, str in ipairs(__breakage1) do
-	__breakage[str] = true
+for i, str in ipairs(__static1) do
+	__static[str] = true
 end
 
 -- these hooks can't return any values
-hook.StaticHooks = __breakage
+hook.StaticHooks = __static
 
 --[[
 	@doc
@@ -1086,7 +1090,7 @@ function hook.Call2(event, hookTable, ...)
 
 	ITERATING = event
 
-	if __breakage[event] == true then
+	if __static[event] then
 		hook.CallStatic(event, hookTable, ...)
 		return
 	end
