@@ -29,6 +29,7 @@ local string = string
 
 if CLIENT then
 	DLib._RenderCapturePixels = DLib._RenderCapturePixels or 0
+	DLib._RenderCapturePixels_TextureWorks = DLib._RenderCapturePixels_TextureWorks or 0
 	DLib._RenderCapturePixelsFn = DLib._RenderCapturePixelsFn or render.CapturePixels
 
 	function render.CapturePixels(...)
@@ -141,6 +142,7 @@ function AbstractTexture:CaptureRenderTarget(rx, ry, w, h, lx, ly)
 end
 
 local coroutine_yield = coroutine.yield
+local coroutine_syswait = coroutine.syswait
 local SysTime = SysTime
 
 function AbstractTexture:CaptureRenderTargetCoroutine(rx, ry, w, h, lx, ly, callbackBefore, callbackAfter, thersold, ...)
@@ -194,10 +196,17 @@ function AbstractTexture:CaptureRenderTargetCoroutine(rx, ry, w, h, lx, ly, call
 
 				coroutine_yield(...)
 				s = SysTime() + thersold
+
+				if ref ~= DLib._RenderCapturePixels and DLib._RenderCapturePixels_TextureWorks == DLib._RenderCapturePixels then
+					coroutine_syswait(1)
+					s = SysTime() + thersold
+				end
+
 				callbackAfter(done / total)
 
 				if ref ~= DLib._RenderCapturePixels then
 					render.CapturePixels()
+					DLib._RenderCapturePixels_TextureWorks = DLib._RenderCapturePixels
 				end
 			end
 		end
@@ -229,10 +238,17 @@ function AbstractTexture:CaptureRenderTargetCoroutine(rx, ry, w, h, lx, ly, call
 
 				coroutine_yield(...)
 				s = SysTime() + thersold
+
+				if ref ~= DLib._RenderCapturePixels and DLib._RenderCapturePixels_TextureWorks == DLib._RenderCapturePixels then
+					coroutine_syswait(1)
+					s = SysTime() + thersold
+				end
+
 				callbackAfter(done / total)
 
 				if ref ~= DLib._RenderCapturePixels then
 					render.CapturePixels()
+					DLib._RenderCapturePixels_TextureWorks = DLib._RenderCapturePixels
 				end
 			end
 		end
@@ -262,10 +278,17 @@ function AbstractTexture:CaptureRenderTargetCoroutine(rx, ry, w, h, lx, ly, call
 
 				coroutine_yield(...)
 				s = SysTime() + thersold
+
+				if ref ~= DLib._RenderCapturePixels and DLib._RenderCapturePixels_TextureWorks == DLib._RenderCapturePixels then
+					coroutine_syswait(1)
+					s = SysTime() + thersold
+				end
+
 				callbackAfter(done / total)
 
 				if ref ~= DLib._RenderCapturePixels then
 					render.CapturePixels()
+					DLib._RenderCapturePixels_TextureWorks = DLib._RenderCapturePixels
 				end
 			end
 		end
@@ -416,10 +439,17 @@ function AbstractTexture:CaptureRenderTargetAlphaCoroutine(rx, ry, w, h, lx, ly,
 
 				coroutine_yield(...)
 				s = SysTime() + thersold
+
+				if ref ~= DLib._RenderCapturePixels and DLib._RenderCapturePixels_TextureWorks == DLib._RenderCapturePixels then
+					coroutine_syswait(1)
+					s = SysTime() + thersold
+				end
+
 				callbackAfter(done / total)
 
 				if ref ~= DLib._RenderCapturePixels then
 					render.CapturePixels()
+					DLib._RenderCapturePixels_TextureWorks = DLib._RenderCapturePixels
 				end
 			end
 		end
@@ -452,10 +482,17 @@ function AbstractTexture:CaptureRenderTargetAlphaCoroutine(rx, ry, w, h, lx, ly,
 
 				coroutine_yield(...)
 				s = SysTime() + thersold
+
+				if ref ~= DLib._RenderCapturePixels and DLib._RenderCapturePixels_TextureWorks == DLib._RenderCapturePixels then
+					coroutine_syswait(1)
+					s = SysTime() + thersold
+				end
+
 				callbackAfter(done / total)
 
 				if ref ~= DLib._RenderCapturePixels then
 					render.CapturePixels()
+					DLib._RenderCapturePixels_TextureWorks = DLib._RenderCapturePixels
 				end
 			end
 		end
@@ -486,10 +523,17 @@ function AbstractTexture:CaptureRenderTargetAlphaCoroutine(rx, ry, w, h, lx, ly,
 
 				coroutine_yield(...)
 				s = SysTime() + thersold
+
+				if ref ~= DLib._RenderCapturePixels and DLib._RenderCapturePixels_TextureWorks == DLib._RenderCapturePixels then
+					coroutine_syswait(1)
+					s = SysTime() + thersold
+				end
+
 				callbackAfter(done / total)
 
 				if ref ~= DLib._RenderCapturePixels then
 					render.CapturePixels()
+					DLib._RenderCapturePixels_TextureWorks = DLib._RenderCapturePixels
 				end
 			end
 		end
