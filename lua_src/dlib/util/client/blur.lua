@@ -103,7 +103,6 @@ local BLUR_X = CreateConVar('dlib_blur_x', '2', {FCVAR_ARCHIVE}, 'Blurring stren
 local BLUR_Y = CreateConVar('dlib_blur_y', '2', {FCVAR_ARCHIVE}, 'Blurring strength at Y scale. Do not change unless you know what you are doing!')
 local BLUR_PASSES = CreateConVar('dlib_blur_passes', '1', {FCVAR_ARCHIVE}, 'Blurring passes. Do not change unless you know what you are doing!')
 local BLUR_ENABLE = CreateConVar('dlib_blur_enable', '1', {FCVAR_ARCHIVE}, 'Enable blur utility functions. Usually this does not affect performance or do so slightly.')
-local BLUR_NEW = CreateConVar('dlib_blur_new', '1', {FCVAR_ARCHIVE}, 'Enable new way of blur rendering, fixing some of distortion issues.')
 
 local LAST_DRAW = 0
 local LAST_REFRESH
@@ -128,41 +127,7 @@ function blur.RefreshNow(force)
 	LAST_REFRESH = FrameNumber()
 	LAST_DRAW = LAST_DRAW - 1
 
-	if BLUR_NEW:GetBool() then
-		render.UpdateScreenEffectTexture()
-		EFFECTSMAT:SetTexture('$basetexture', render.GetScreenEffectTexture())
-
-		local w, h = ScrW(), ScrH()
-
-		-- distortion fix (near screen edges on right and bottom)
-		render.PushRenderTarget(SCREENCOPY)
-		render.Clear(0, 0, 0, 255, true, true)
-		render.OverrideAlphaWriteEnable(true, true)
-		cam.Start2D()
-
-		local dirort_fix_x = w / DLib.DISTORT_FIX_X
-		local dirort_fix_y = h / DLib.DISTORT_FIX_Y
-
-		local u0, v0, u1, v1 = 0, 0, 1, 1
-		local du = 0.5 / 32 -- half pixel anticorrection
-		local dv = 0.5 / 32 -- half pixel anticorrection
-		u0, v0 = (u0 - du) / (1 - 2 * du), (v0 - dv) / (1 - 2 * dv)
-		u1, v1 = (u1 - du) / (1 - 2 * du), (v1 - dv) / (1 - 2 * dv)
-
-		DisableClipping(true)
-		surface.SetMaterial(EFFECTSMAT)
-		surface.SetDrawColor(255, 255, 255)
-		surface.DrawTexturedRectUV(RTX, RTY, w, h, u0, v0, u1, v1)
-		DisableClipping(false)
-
-		cam.End2D()
-
-		render.OverrideAlphaWriteEnable(false)
-		render.PopRenderTarget()
-	else
-		render.CopyRenderTargetToTexture(SCREENCOPY)
-	end
-
+	render.CopyRenderTargetToTexture(SCREENCOPY)
 	BlurRenderTarget(SCREENCOPY, BLUR_X:GetInt(2):clamp(1, 32), BLUR_Y:GetInt(2):clamp(1, 32), BLUR_PASSES:GetInt(1):clamp(1, 32))
 
 	return true
@@ -186,14 +151,7 @@ function blur.Draw(x, y, w, h)
 	if not render.SupportsPixelShaders_2_0() then return end
 	LAST_DRAW = 10
 	if LAST_REFRESH ~= FrameNumber() then return end
-	local u0, v0, u1, v1
-
-	if BLUR_NEW:GetBool() then
-		u0, v0, u1, v1 = (RTX + x) / RTW, (RTY + y) / RTH, (RTX + x + w) / RTW, (RTY + y + h) / RTH
-	else
-		u0, v0, u1, v1 = x / ScrWL(), y / ScrHL(), (x + w) / ScrWL(), (y + h) / ScrHL()
-	end
-
+	local u0, v0, u1, v1 = x / ScrWL(), y / ScrHL(), (x + w) / ScrWL(), (y + h) / ScrHL()
 	local du = 0.5 / 32 -- half pixel anticorrection
 	local dv = 0.5 / 32 -- half pixel anticorrection
 	u0, v0 = (u0 - du) / (1 - 2 * du), (v0 - dv) / (1 - 2 * dv)
@@ -218,13 +176,7 @@ function blur.DrawOffset(drawX, drawY, w, h, realX, realY)
 	LAST_DRAW = 10
 	if LAST_REFRESH ~= FrameNumber() then return end
 
-	local u0, v0, u1, v1
-
-	if BLUR_NEW:GetBool() then
-		u0, v0, u1, v1 = (RTX + realX) / RTW, (RTY + realY) / RTH, (RTX + realX + w) / RTW, (RTY + realY + h) / RTH
-	else
-		u0, v0, u1, v1 = realX / ScrWL(), realY / ScrHL(), (realX + w) / ScrWL(), (realY + h) / ScrHL()
-	end
+	local u0, v0, u1, v1 = realX / ScrWL(), realY / ScrHL(), (realX + w) / ScrWL(), (realY + h) / ScrHL()
 
 	local du = 0.5 / 32 -- half pixel anticorrection
 	local dv = 0.5 / 32 -- half pixel anticorrection
@@ -254,13 +206,7 @@ function blur.DrawPanel(w, h, x, y)
 	LAST_DRAW = 10
 	if LAST_REFRESH ~= FrameNumber() then return end
 
-	local u0, v0, u1, v1
-
-	if BLUR_NEW:GetBool() then
-		u0, v0, u1, v1 = (RTX + x) / RTW, (RTY + y) / RTH, (RTX + x + w) / RTW, (RTY + y + h) / RTH
-	else
-		u0, v0, u1, v1 = x / ScrWL(), y / ScrHL(), (x + w) / ScrWL(), (y + h) / ScrHL()
-	end
+	local u0, v0, u1, v1 = x / ScrWL(), y / ScrHL(), (x + w) / ScrWL(), (y + h) / ScrHL()
 
 	local du = 0.5 / 32 -- half pixel anticorrection
 	local dv = 0.5 / 32 -- half pixel anticorrection
