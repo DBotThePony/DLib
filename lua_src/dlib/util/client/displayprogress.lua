@@ -32,6 +32,7 @@ local list = {}
 
 local DLib = DLib
 local Util = DLib.Util
+local math_max = math.max
 
 Util.DisplayProgressList = Util.DisplayProgressList or {}
 
@@ -61,8 +62,10 @@ function Util.PushProgress(identifier, text, progress)
 	if not DisplayProgressList[identifier] then
 		surface.SetFont('DLib_LoadingNotify')
 
+		local a, b = surface.GetTextSize(text)
+
 		local data = {
-			identifier, text, progress:clamp(0, 1), surface.GetTextSize(text)
+			identifier, text, progress:clamp(0, 1), a, b, SysTime() + 10, SysTime() + 13
 		}
 
 		table.insert(list, data)
@@ -84,7 +87,9 @@ function Util.PushProgress(identifier, text, progress)
 	DisplayProgressList[identifier][2] = text
 	DisplayProgressList[identifier][3] = progress:clamp(0, 1)
 	surface.SetFont('DLib_LoadingNotify')
-	DisplayProgressList[identifier][4], DisplayProgressList[identifier][4] = surface.GetTextSize(text)
+	DisplayProgressList[identifier][4], DisplayProgressList[identifier][5] = surface.GetTextSize(text)
+	DisplayProgressList[identifier][6] = SysTime() + 10
+	DisplayProgressList[identifier][7] = SysTime() + 13
 
 	max_width = 200
 	total_tall = 0
@@ -128,6 +133,8 @@ local HUDCommons = DLib.HUDCommons
 local render = render
 local surface = surface
 local draw = draw
+local ScrH = ScrH
+local ScrW = ScrW
 
 local function HUDPaint()
 	if #list == 0 then return end
@@ -137,18 +144,47 @@ local function HUDPaint()
 	local Y = 0
 	local ScrH = ScrH()
 	local ScrW = ScrW()
+	local time = SysTime()
 
-	surface.SetDrawColor(0, 0, 0)
+	local max_alpha = 0
+
+	for i = 1, #list do
+		local data = list[i]
+		local alpha = 255
+
+		if data[6] < time then
+			alpha = 255 - time:progression(data[6], data[7]) * 255
+
+			if alpha <= 0 then
+				Util.PopProgress(data[1])
+				break
+			end
+		end
+
+		max_alpha = math_max(max_alpha, alpha)
+		if max_alpha == 255 then break end
+	end
+
+	surface.SetDrawColor(0, 0, 0, max_alpha)
 	surface.DrawRect(0, 0, max_width, total_tall)
 
 	for i = 1, #list do
 		local data = list[i]
+		local alpha = 255
+
+		if data[6] < time then
+			alpha = 255 - time:progression(data[6], data[7]) * 255
+		end
+
+		color.a = alpha
+		color2.a = alpha
+
 		local text = data[2]
 		local progress = data[3]
 
 		local tall = select(2, surface.GetTextSize(text)) + 4
 
-		surface.SetDrawColor(0, 100, 0)
+		surface.SetDrawColor(0, 100, 0, alpha)
 		surface.DrawRect(0, Y, max_width * progress, tall)
 
 		render.SetScissorRect(0, Y, max_width * progress, ScrH, true)
