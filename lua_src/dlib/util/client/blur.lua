@@ -143,10 +143,16 @@ function blur.RefreshNow(force)
 		local dirort_fix_x = w / DLib.DISTORT_FIX_X
 		local dirort_fix_y = h / DLib.DISTORT_FIX_Y
 
+		local u0, v0, u1, v1 = 0, 0, 1, 1
+		local du = 0.5 / 32 -- half pixel anticorrection
+		local dv = 0.5 / 32 -- half pixel anticorrection
+		u0, v0 = (u0 - du) / (1 - 2 * du), (v0 - dv) / (1 - 2 * dv)
+		u1, v1 = (u1 - du) / (1 - 2 * du), (v1 - dv) / (1 - 2 * dv)
+
 		DisableClipping(true)
 		surface.SetMaterial(EFFECTSMAT)
 		surface.SetDrawColor(255, 255, 255)
-		surface.DrawTexturedRect(RTX - dirort_fix_x, RTY - dirort_fix_y, w + dirort_fix_x * 2, h + dirort_fix_y * 2)
+		surface.DrawTexturedRectUV(RTX, RTY, w, h, u0, v0, u1, v1)
 		DisableClipping(false)
 
 		cam.End2D()
@@ -180,18 +186,23 @@ function blur.Draw(x, y, w, h)
 	if not render.SupportsPixelShaders_2_0() then return end
 	LAST_DRAW = 10
 	if LAST_REFRESH ~= FrameNumber() then return end
-	local u, v, eu, ev
+	local u0, v0, u1, v1
 
 	if BLUR_NEW:GetBool() then
-		u, v, eu, ev = (RTX + x) / RTW, (RTY + y) / RTH, (RTX + x + w) / RTW, (RTY + y + h) / RTH
+		u0, v0, u1, v1 = (RTX + x) / RTW, (RTY + y) / RTH, (RTX + x + w) / RTW, (RTY + y + h) / RTH
 	else
-		u, v, eu, ev = x / ScrWL(), y / ScrHL(), (x + w) / ScrWL(), (y + h) / ScrHL()
+		u0, v0, u1, v1 = x / ScrWL(), y / ScrHL(), (x + w) / ScrWL(), (y + h) / ScrHL()
 	end
+
+	local du = 0.5 / 32 -- half pixel anticorrection
+	local dv = 0.5 / 32 -- half pixel anticorrection
+	u0, v0 = (u0 - du) / (1 - 2 * du), (v0 - dv) / (1 - 2 * dv)
+	u1, v1 = (u1 - du) / (1 - 2 * du), (v1 - dv) / (1 - 2 * dv)
 
 	surface.SetMaterial(DRAWMAT)
 	surface.SetDrawColor(255, 255, 255)
 	render.OverrideDepthEnable(true, false)
-	surface.DrawTexturedRectUV(x, y, w, h, u, v, eu, ev)
+	surface.DrawTexturedRectUV(x, y, w, h, u0, v0, u1, v1)
 	render.OverrideDepthEnable(false)
 end
 
@@ -207,18 +218,23 @@ function blur.DrawOffset(drawX, drawY, w, h, realX, realY)
 	LAST_DRAW = 10
 	if LAST_REFRESH ~= FrameNumber() then return end
 
-	local u, v, eu, ev
+	local u0, v0, u1, v1
 
 	if BLUR_NEW:GetBool() then
-		u, v, eu, ev = (RTX + realX) / RTW, (RTY + realY) / RTH, (RTX + realX + w) / RTW, (RTY + realY + h) / RTH
+		u0, v0, u1, v1 = (RTX + realX) / RTW, (RTY + realY) / RTH, (RTX + realX + w) / RTW, (RTY + realY + h) / RTH
 	else
-		u, v, eu, ev = realX / ScrWL(), realY / ScrHL(), (realX + w) / ScrWL(), (realY + h) / ScrHL()
+		u0, v0, u1, v1 = realX / ScrWL(), realY / ScrHL(), (realX + w) / ScrWL(), (realY + h) / ScrHL()
 	end
+
+	local du = 0.5 / 32 -- half pixel anticorrection
+	local dv = 0.5 / 32 -- half pixel anticorrection
+	u0, v0 = (u0 - du) / (1 - 2 * du), (v0 - dv) / (1 - 2 * dv)
+	u1, v1 = (u1 - du) / (1 - 2 * du), (v1 - dv) / (1 - 2 * dv)
 
 	surface.SetMaterial(DRAWMAT)
 	surface.SetDrawColor(255, 255, 255)
 	render.OverrideDepthEnable(true, false)
-	surface.DrawTexturedRectUV(drawX, drawY, w, h, u, v, eu, ev)
+	surface.DrawTexturedRectUV(drawX, drawY, w, h, u0, v0, u1, v1)
 	render.OverrideDepthEnable(false)
 end
 
@@ -238,17 +254,22 @@ function blur.DrawPanel(w, h, x, y)
 	LAST_DRAW = 10
 	if LAST_REFRESH ~= FrameNumber() then return end
 
-	local u, v, eu, ev
+	local u0, v0, u1, v1
 
 	if BLUR_NEW:GetBool() then
-		u, v, eu, ev = (RTX + x) / RTW, (RTY + y) / RTH, (RTX + x + w) / RTW, (RTY + y + h) / RTH
+		u0, v0, u1, v1 = (RTX + x) / RTW, (RTY + y) / RTH, (RTX + x + w) / RTW, (RTY + y + h) / RTH
 	else
-		u, v, eu, ev = x / ScrWL(), y / ScrHL(), (x + w) / ScrWL(), (y + h) / ScrHL()
+		u0, v0, u1, v1 = x / ScrWL(), y / ScrHL(), (x + w) / ScrWL(), (y + h) / ScrHL()
 	end
+
+	local du = 0.5 / 32 -- half pixel anticorrection
+	local dv = 0.5 / 32 -- half pixel anticorrection
+	u0, v0 = (u0 - du) / (1 - 2 * du), (v0 - dv) / (1 - 2 * dv)
+	u1, v1 = (u1 - du) / (1 - 2 * du), (v1 - dv) / (1 - 2 * dv)
 
 	surface.SetMaterial(DRAWMAT)
 	surface.SetDrawColor(255, 255, 255)
 	render.OverrideDepthEnable(true, false)
-	surface.DrawTexturedRectUV(0, 0, w, h, u, v, eu, ev)
+	surface.DrawTexturedRectUV(0, 0, w, h, u0, v0, u1, v1)
 	render.OverrideDepthEnable(false)
 end
