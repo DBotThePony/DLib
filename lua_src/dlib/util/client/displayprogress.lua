@@ -41,16 +41,14 @@ local isstring = isstring
 local table = table
 local DisplayProgressList = Util.DisplayProgressList
 
-local max_width = 200
+local max_width = 100
 local total_tall = 0
 
 for _, data in pairs(DisplayProgressList) do
 	table.insert(list, data)
-	max_width = max_width:max(data[4])
+	max_width = max_width:max(data[4] + data[5] + 20)
 	total_tall = total_tall + data[5] + 4
 end
-
-max_width = max_width + 50
 
 function Util.PushProgress(identifier, text, progress)
 	assert(isstring(identifier), 'isstring(identifier)')
@@ -71,15 +69,13 @@ function Util.PushProgress(identifier, text, progress)
 		table.insert(list, data)
 		DisplayProgressList[identifier] = data
 
-		max_width = 200
+		max_width = 100
 		total_tall = 0
 
 		for i = 1, #list do
-			max_width = max_width:max(list[i][4])
+			max_width = max_width:max(list[i][4] + list[i][5] + 20)
 			total_tall = total_tall + list[i][5] + 4
 		end
-
-		max_width = max_width + 50
 
 		return
 	end
@@ -91,15 +87,13 @@ function Util.PushProgress(identifier, text, progress)
 	DisplayProgressList[identifier][6] = SysTime() + 10
 	DisplayProgressList[identifier][7] = SysTime() + 13
 
-	max_width = 200
+	max_width = 100
 	total_tall = 0
 
 	for i = 1, #list do
-		max_width = max_width:max(list[i][4])
+		max_width = max_width:max(list[i][4] + list[i][5] + 20)
 		total_tall = total_tall + list[i][5] + 4
 	end
-
-	max_width = max_width + 50
 end
 
 function Util.PopProgress(identifier)
@@ -118,15 +112,13 @@ function Util.PopProgress(identifier)
 
 	DisplayProgressList[identifier] = nil
 
-	max_width = 200
+	max_width = 100
 	total_tall = 0
 
 	for i = 1, #list do
-		max_width = max_width:max(list[i][4])
+		max_width = max_width:max(list[i][4] + list[i][5] + 20)
 		total_tall = total_tall + list[i][5] + 4
 	end
-
-	max_width = max_width + 50
 end
 
 local HUDCommons = DLib.HUDCommons
@@ -189,13 +181,13 @@ local function HUDPaint()
 
 		render.SetScissorRect(0, Y, max_width * progress, ScrH, true)
 
-		HUDCommons.DrawLoading(2, Y + 2, tall - 8, color2, 16, 4)
-		draw.DrawText(text, 'DLib_LoadingNotify', 42, Y + 2, color2)
+		HUDCommons.DrawLoading(2, Y + 2, tall - 4, color2, 16, 4)
+		draw.DrawText(text, 'DLib_LoadingNotify', tall + 6, Y + 2, color2)
 
 		render.SetScissorRect(max_width * progress, 0, ScrW, ScrH, true)
 
-		HUDCommons.DrawLoading(2, Y + 2, tall - 8, color, 16, 4)
-		draw.DrawText(text, 'DLib_LoadingNotify', 42, Y + 2, color)
+		HUDCommons.DrawLoading(2, Y + 2, tall - 4, color, 16, 4)
+		draw.DrawText(text, 'DLib_LoadingNotify', tall + 6, Y + 2, color)
 
 		render.SetScissorRect(0, 0, 0, 0, false)
 
