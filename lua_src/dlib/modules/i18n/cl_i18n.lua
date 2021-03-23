@@ -28,7 +28,7 @@ local DefaultPanelCreated
 
 do
 	local function languageWatchdog(self)
-		self:_SetTextDLib(I18n.localize(self._DLibLocalize, unpack(self._DLibLocalizeArgs)))
+		self:_SetTextDLib(I18n.localize(self._DLibLocalizeText, unpack(self._DLibLocalizeArgsText)))
 	end
 
 	local function SetText(self, text, ...)
@@ -49,8 +49,8 @@ do
 		end
 
 		hook.Add('DLib.I18n.LangUpdate5', self, languageWatchdog)
-		self._DLibLocalize = text2
-		self._DLibLocalizeArgs = {...}
+		self._DLibLocalizeText = text2
+		self._DLibLocalizeArgsText = {...}
 		return self:_SetTextDLib(I18n.localize(text2, ...))
 	end
 
@@ -66,7 +66,7 @@ local LabelPanelCreated
 
 do
 	local function languageWatchdog(self)
-		self:_SetLabelDLib(I18n.localize(self._DLibLocalize, unpack(self._DLibLocalizeArgs)))
+		self:_SetLabelDLib(I18n.localize(self._DLibLocalizeLabel, unpack(self._DLibLocalizeArgsLabel)))
 	end
 
 	local function SetLabel(self, text, ...)
@@ -76,8 +76,8 @@ do
 		end
 
 		hook.Add('DLib.I18n.LangUpdate4', self, languageWatchdog)
-		self._DLibLocalize = text
-		self._DLibLocalizeArgs = {...}
+		self._DLibLocalizeLabel = text
+		self._DLibLocalizeArgsLabel = {...}
 		return self:_SetLabelDLib(I18n.localize(text, ...))
 	end
 
@@ -93,7 +93,7 @@ local TooltipPanelCreated
 
 do
 	local function languageWatchdog(self)
-		self:_SetTooltipDLib(I18n.localize(self._DLibLocalize, unpack(self._DLibLocalizeArgs)))
+		self:_SetTooltipDLib(I18n.localize(self._DLibLocalizeTooltip, unpack(self._DLibLocalizeArgsTooltip)))
 	end
 
 	local function SetTooltip(self, text, ...)
@@ -103,8 +103,8 @@ do
 		end
 
 		hook.Add('DLib.I18n.LangUpdate3', self, languageWatchdog)
-		self._DLibLocalize = text
-		self._DLibLocalizeArgs = {...}
+		self._DLibLocalizeTooltip = text
+		self._DLibLocalizeArgsTooltip = {...}
 		return self:_SetTooltipDLib(I18n.localize(text, ...))
 	end
 
@@ -120,7 +120,7 @@ local TitlePanelCreated
 
 do
 	local function languageWatchdog(self)
-		self:_SetTitleDLib(I18n.localize(self._DLibLocalize, unpack(self._DLibLocalizeArgs)))
+		self:_SetTitleDLib(I18n.localize(self._DLibLocalizeTitle, unpack(self._DLibLocalizeArgsTitle)))
 	end
 
 	local function SetTitle(self, text, ...)
@@ -130,8 +130,8 @@ do
 		end
 
 		hook.Add('DLib.I18n.LangUpdate2', self, languageWatchdog)
-		self._DLibLocalize = text
-		self._DLibLocalizeArgs = {...}
+		self._DLibLocalizeTitle = text
+		self._DLibLocalizeArgsTitle = {...}
 		return self:_SetTitleDLib(I18n.localize(text, ...))
 	end
 
@@ -147,7 +147,7 @@ local NamedPanelCreated
 
 do
 	local function languageWatchdog(self)
-		self:_SetNameDLib(I18n.localize(self._DLibLocalize, unpack(self._DLibLocalizeArgs)))
+		self:_SetNameDLib(I18n.localize(self._DLibLocalizeName, unpack(self._DLibLocalizeArgsName)))
 	end
 
 	local function SetName(self, text, ...)
@@ -157,8 +157,8 @@ do
 		end
 
 		hook.Add('DLib.I18n.LangUpdate1', self, languageWatchdog)
-		self._DLibLocalize = text
-		self._DLibLocalizeArgs = {...}
+		self._DLibLocalizeName = text
+		self._DLibLocalizeArgsName = {...}
 		return self:_SetNameDLib(I18n.localize(text, ...))
 	end
 
