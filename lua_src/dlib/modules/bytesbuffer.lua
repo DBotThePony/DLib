@@ -317,7 +317,7 @@ function metaclass.Allocate(length)
 	local buff = DLib.BytesBuffer()
 	local bytes = buff.bytes
 
-	for i = 1, length do
+	for i = 1, math.ceil(length / 4) do
 		bytes[i] = 0
 	end
 
