@@ -229,21 +229,19 @@ function hook.DisableHook(event, stringID)
 
 		__disabled[event] = true
 		return true
-	else
-		if not __table[event] then return false end
+	end
 
-		stringID = transformStringID('hook.DisableHook', stringID, event)
+	if not __table[event] then return end
 
-		for priority, eventData in pairs(__table[event]) do
-			if eventData[stringID] then
-				local wasDisabled = eventData[stringID].disabled
-				eventData[stringID].disabled = true
-				hook.Reconstruct(event)
-				return not wasDisabled
-			end
+	stringID = transformStringID('hook.DisableHook', stringID, event)
+
+	for priority, eventData in pairs(__table[event]) do
+		if eventData[stringID] then
+			local wasDisabled = eventData[stringID].disabled
+			eventData[stringID].disabled = true
+			hook.Reconstruct(event)
+			return not wasDisabled
 		end
-
-		return false
 	end
 end
 
@@ -457,7 +455,7 @@ function hook.EnableHook(event, stringID)
 		return true
 	end
 
-	if not __table[event] then return false end
+	if not __table[event] then return end
 	stringID = transformStringID('hook.EnableHook', stringID, event)
 
 	for priority, eventData in pairs(__table[event]) do
@@ -468,8 +466,6 @@ function hook.EnableHook(event, stringID)
 			return wasDisabled
 		end
 	end
-
-	return false
 end
 
 --[[
@@ -1805,4 +1801,42 @@ function hook.RemoveTask(event, stringID)
 	__tableTasks[event][stringID] = nil
 
 	hook.ReconstructTasks(event)
+end
+
+function hook.DisableTask(event, stringID)
+	assert(type(event) == 'string', 'hook.DisableTask - event is not a string! ' .. type(event))
+
+	if not stringID then
+		return hook.DisableHook(event, 'DLib Task Executor')
+	end
+
+	if not __tableTasks[event] then return end
+
+	stringID = transformStringID('hook.DisableTask', stringID, event)
+
+	if not __tableTasks[event][stringID] then return end
+
+	local wasDisabled = __tableTasks[event][stringID].disabled
+	__tableTasks[event][stringID].disabled = true
+	hook.ReconstructTasks(event)
+	return not wasDisabled
+end
+
+function hook.EnableTask(event, stringID)
+	assert(type(event) == 'string', 'hook.DisableTask - event is not a string! ' .. type(event))
+
+	if not stringID then
+		return hook.EnableHook(event, 'DLib Task Executor')
+	end
+
+	if not __tableTasks[event] then return end
+
+	stringID = transformStringID('hook.DisableTask', stringID, event)
+
+	if not __tableTasks[event][stringID] then return end
+
+	local wasDisabled = __tableTasks[event][stringID].disabled
+	__tableTasks[event][stringID].disabled = false
+	hook.ReconstructTasks(event)
+	return wasDisabled
 end
