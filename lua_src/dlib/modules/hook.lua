@@ -52,12 +52,15 @@ hook.__tableModifiersPost = hook.__tableModifiersPost or {}
 hook.__tableModifiersPostOptimized = hook.__tableModifiersPostOptimized or {}
 hook.__disabled = hook.__disabled or {}
 
+hook.__tableTasks = hook.__tableTasks or {}
+
 local __table = hook.__table
 local __disabled = hook.__disabled
 local __tableOptimized = hook.__tableOptimized
 local __tableGmod = hook.__tableGmod
 local __tableModifiersPost = hook.__tableModifiersPost
 local __tableModifiersPostOptimized = hook.__tableModifiersPostOptimized
+local __tableTasks = hook.__tableTasks
 
 -- ULib compatibility
 -- ugh
@@ -185,13 +188,13 @@ if ghook ~= DLib.ghook then
 	end
 end
 
-local function transformStringID(stringID, event)
+local function transformStringID(funcname, stringID, event)
 	if type(stringID) == 'number' then
 		stringID = tostring(stringID)
 	end
 
 	if type(stringID) == 'boolean' then
-		error('booleans are not allowed as hookID value', 3)
+		error(string.format('bad argument #2 to %s (object expected, got boolean)', funcname), 3)
 	end
 
 	if type(stringID) ~= 'string' then
@@ -200,10 +203,7 @@ local function transformStringID(stringID, event)
 		end)
 
 		if not success then
-			--if DLib.DEBUG_MODE:GetBool() then
-				--DLib.Message(traceback('hook.Add - hook ID is not a string and not a valid object! Using tostring() instead. ' .. type(stringID)))
-				error('hook.Add - hook ID is not a string and not a valid object! ' .. type(stringID), 3)
-			--end
+			error(string.format('bad argument #2 to %s (object expected, got %s)', funcname, type(stringID)), 3)
 			stringID = tostring(stringID)
 		end
 	end
@@ -232,7 +232,7 @@ function hook.DisableHook(event, stringID)
 	else
 		if not __table[event] then return false end
 
-		stringID = transformStringID(stringID, event)
+		stringID = transformStringID('hook.DisableHook', stringID, event)
 
 		for priority, eventData in pairs(__table[event]) do
 			if eventData[stringID] then
@@ -256,12 +256,12 @@ end
 	boolean
 ]]
 function hook.DisableAllHooksExcept(event, stringID)
-	assert(type(event) == 'string', 'hook.DisableAllHooksExcept - event is not a string! ' .. type(event))
+	assert(type(event) == 'string', 'bad argument #1 to hook.DisableAllHooksExcept (string expected, got ' .. type(event) .. ')')
 	assert(type(stringID) ~= 'nil', 'hook.DisableAllHooksExcept - ID is not a valid value! ' .. type(stringID))
 
 	if not __table[event] then return false end
 
-	stringID = transformStringID(stringID, event)
+	stringID = transformStringID('hook.DisableAllHooksExcept', stringID, event)
 
 	for priority, eventData in pairs(__table[event]) do
 		for id, hookData in pairs(eventData) do
@@ -290,7 +290,7 @@ end
 	boolean
 ]]
 function hook.DisableHooksByPredicate(event, predicate)
-	assert(type(event) == 'string', 'hook.DisableAllHooksByPredicate - event is not a string! ' .. type(event))
+	assert(type(event) == 'string', 'bad argument #1 to hook.DisableAllHooksByPredicate (string expected, got ' .. type(event) .. ')')
 	assert(type(predicate) == 'function', 'hook.DisableAllHooksByPredicate - invalid predicate function! ' .. type(predicate))
 
 	if not __table[event] then return false end
@@ -355,7 +355,7 @@ end
 	boolean
 ]]
 function hook.EnableHooksByPredicate(event, predicate)
-	assert(type(event) == 'string', 'hook.DisableAllHooksByPredicate - event is not a string! ' .. type(event))
+	assert(type(event) == 'string', 'bad argument #1 to hook.EnableHooksByPredicate (string expected, got ' .. type(event) .. ')')
 	assert(type(predicate) == 'function', 'hook.DisableAllHooksByPredicate - invalid predicate function! ' .. type(predicate))
 
 	if not __table[event] then return false end
@@ -446,7 +446,7 @@ end
 	boolean
 ]]
 function hook.EnableHook(event, stringID)
-	assert(type(event) == 'string', 'hook.EnableHook - event is not a string! ' .. type(event))
+	assert(type(event) == 'string', 'bad argument #1 to hook.EnableHook (string expected, got ' .. type(event) .. ')')
 
 	if not stringID then
 		if not __disabled[event] then
@@ -458,7 +458,7 @@ function hook.EnableHook(event, stringID)
 	end
 
 	if not __table[event] then return false end
-	stringID = transformStringID(stringID, event)
+	stringID = transformStringID('hook.EnableHook', stringID, event)
 
 	for priority, eventData in pairs(__table[event]) do
 		if eventData[stringID] then
@@ -490,22 +490,22 @@ end
 	and it doesn't know about hook priorities
 	@enddesc
 ]]
-function hook.Add(event, stringID, funcToCall, priority)
+function hook.Add(event, stringID, callback, priority)
 	if type(event) ~= 'string' then
-		ErrorNoHalt(debug.traceback('[DLib] Bad argument #1 to hook.Add (string expected, got ' .. type(event) .. ')', 2) .. '\n')
+		ErrorNoHalt(debug.traceback('bad argument #1 to hook.Add (string expected, got ' .. type(event) .. ')', 2) .. '\n')
+
+		return
+	end
+
+	if type(callback) ~= 'function' then
+		ErrorNoHalt(debug.traceback('bad argument #3 to hook.Add (function expected, got ' .. type(callback) .. ')', 2) .. '\n')
 
 		return
 	end
 
 	__table[event] = __table[event] or {}
 
-	if type(funcToCall) ~= 'function' then
-		ErrorNoHalt(debug.traceback('[DLib] Bad argument #3 to hook.Add (function expected, got ' .. type(funcToCall) .. ')', 2) .. '\n')
-
-		return
-	end
-
-	stringID = transformStringID(stringID, event)
+	stringID = transformStringID('hook.Add', stringID, event)
 
 	for _priority, eventsTable in pairs(__table[event]) do
 		if eventsTable[stringID] then
@@ -526,8 +526,8 @@ function hook.Add(event, stringID, funcToCall, priority)
 	local hookData = {
 		event = event,
 		priority = priority,
-		funcToCall = funcToCall,
-		fn = funcToCall, -- ULib
+		callback = callback,
+		fn = callback, -- ULib
 		isstring = isstring(stringID), -- ULib
 		id = stringID,
 		idString = tostring(stringID),
@@ -538,7 +538,7 @@ function hook.Add(event, stringID, funcToCall, priority)
 	__table[event][priority] = __table[event][priority] or {}
 	__table[event][priority][stringID] = hookData
 	__tableGmod[event] = __tableGmod[event] or {}
-	__tableGmod[event][stringID] = funcToCall
+	__tableGmod[event][stringID] = callback
 
 	hook.Reconstruct(event)
 	return
@@ -569,7 +569,7 @@ function hook.SetPriority(event, stringID, priority)
 		return false
 	end
 
-	stringID = transformStringID(stringID, event)
+	stringID = transformStringID('hook.SetPriority', stringID, event)
 
 	for _priority, eventsTable in pairs(__table[event]) do
 		if eventsTable[stringID] then
@@ -593,13 +593,13 @@ hook._O_SALT = hook._O_SALT or -0xFFFFFFF
 	`hook.Add`, but function would be called back only once.
 	@enddesc
 ]]
-function hook.Once(event, funcToCall, priority)
+function hook.Once(event, callback, priority)
 	hook._O_SALT = hook._O_SALT + 1
 	local id = 'hook.Once.' .. hook._O_SALT
 
 	hook.Add(event, id, function(...)
 		hook.Remove(event, id)
-		return funcToCall(...)
+		return callback(...)
 	end, priority)
 end
 
@@ -623,7 +623,7 @@ function hook.Remove(event, stringID)
 	if not __table[event] then return end
 	__tableGmod[event] = __tableGmod[event] or {}
 
-	stringID = transformStringID(stringID, event)
+	stringID = transformStringID('hook.Remove', stringID, event)
 
 	__tableGmod[event][stringID] = nil
 
@@ -662,7 +662,7 @@ end
 	boolean
 	table: hookData
 ]]
-function hook.AddPostModifier(event, stringID, funcToCall)
+function hook.AddPostModifier(event, stringID, callback)
 	__tableModifiersPost[event] = __tableModifiersPost[event] or {}
 
 	if type(event) ~= 'string' then
@@ -670,16 +670,16 @@ function hook.AddPostModifier(event, stringID, funcToCall)
 		return false
 	end
 
-	if type(funcToCall) ~= 'function' then
+	if type(callback) ~= 'function' then
 		DLib.Message(traceback('hook.AddPostModifier - function is not a function! ' .. type(funcToCall)))
 		return false
 	end
 
-	stringID = transformStringID(stringID, event)
+	stringID = transformStringID('hook.AddPostModifier', stringID, event)
 
 	local hookData = {
 		event = event,
-		funcToCall = funcToCall,
+		callback = callback,
 		id = stringID,
 		idString = tostring(stringID),
 		registeredAt = SysTime(),
@@ -703,7 +703,7 @@ end
 function hook.RemovePostModifier(event, stringID)
 	if not __tableModifiersPost[event] then return false end
 
-	stringID = transformStringID(stringID, event)
+	stringID = transformStringID('hook.RemovePostModifier', stringID, event)
 	if __tableModifiersPost[event][stringID] then
 		local old = __tableModifiersPost[event][stringID]
 		__tableModifiersPost[event][stringID] = nil
@@ -763,7 +763,7 @@ function hook.ReconstructPostModifiers(eventToReconstruct)
 			end
 
 			if applicable then
-				target[index] = hookData.funcToCall
+				target[index] = hookData.callback or hookData.funcToCall
 				index = index + 1
 			end
 		end
@@ -851,10 +851,10 @@ function hook.Reconstruct(eventToReconstruct)
 					local callable
 
 					if hookData.typeof then
-						callable = hookData.funcToCall
+						callable = hookData.callback or hookData.funcToCall
 					else
 						local self = hookData.id
-						local upfuncCallableSelf = hookData.funcToCall
+						local upfuncCallableSelf = hookData.callback or hookData.funcToCall
 
 						function callable(...)
 							if not self:IsValid() then
@@ -1355,14 +1355,15 @@ local function lua_findhooks(eventName, ply)
 			local priorityL = #tostring(priority) + 2
 
 			for stringID, hookData in pairs(hookList) do
-				local info = debug.getinfo(hookData.funcToCall)
+				local info = debug.getinfo(hookData.callback)
+
 				DLib.MessagePlayer(ply, odd and odd_line or even_line,
 					string.format(
 						'\t\t[%d] %q%s at %p (%s: %i->%i)',
 						priority,
 						tostring(stringID),
 						string.rep(' ', max_width - utf8.len(tostring(stringID)) - priorityL),
-						hookData.funcToCall,
+						hookData.callback,
 						info.source,
 						info.linedefined,
 						info.lastlinedefined
@@ -1410,7 +1411,7 @@ function hook.GetDumpStr()
 			local priorityL = #tostring(priority) + 2
 
 			for stringID, hookData in pairs(hookList) do
-				local info = debug.getinfo(hookData.funcToCall)
+				local info = debug.getinfo(hookData.callback)
 
 				table.insert(llines,
 					string.format(
@@ -1418,7 +1419,7 @@ function hook.GetDumpStr()
 						priority,
 						tostring(stringID),
 						string.rep(' ', max_width - utf8.len(tostring(stringID)) - priorityL),
-						hookData.funcToCall,
+						hookData.callback,
 						info.source,
 						info.linedefined,
 						info.lastlinedefined
@@ -1667,4 +1668,141 @@ if file.Exists('autorun/hat_init.lua', 'LUA') then
 
 		return table._DLibCopy(tableIn)
 	end
+end
+
+local coroutine = coroutine
+local coroutine_resume = coroutine.resume
+local coroutine_status = coroutine.status
+local coroutine_create = coroutine.create
+
+function hook.ReconstructTasks(eventToReconstruct)
+	if not eventToReconstruct then
+		for event, data in pairs(__tableTasks) do
+			hook.ReconstructTasks(event)
+		end
+
+		return
+	end
+
+	if not __tableTasks[eventToReconstruct] or not next(__tableTasks[eventToReconstruct]) then
+		hook.Remove(eventToReconstruct, 'DLib Task Executor')
+		return
+	end
+
+	local index = 1
+	local target = {}
+	local target_funcs = {}
+	local target_data = {}
+	local ignore_dead = false
+
+	for stringID, hookData in pairs(__tableTasks[eventToReconstruct]) do
+		if not hookData.disabled then
+			local applicable = false
+
+			if hookData.typeof then
+				applicable = true
+			else
+				if hookData.id:IsValid() then
+					applicable = true
+				else
+					hookList[stringID] = nil
+					inboundgmod[stringID] = nil
+				end
+			end
+
+			if applicable then
+				local callable
+
+				if hookData.typeof then
+					callable = hookData.callback
+				else
+					local self = hookData.id
+					local upfuncCallableSelf = hookData.callback
+
+					function callable()
+						if not self:IsValid() then
+							ignore_dead = true
+							hook.RemoveTask(hookData.event, self)
+							return
+						end
+
+						return upfuncCallableSelf(self)
+					end
+				end
+
+				if not hookData.thread or coroutine.status(hookData.thread) == 'dead' then
+					hookData.thread = coroutine_create(callable)
+				end
+
+				target[index] = hookData.thread
+				target_funcs[index] = callable
+				target_data[index] = hookData
+				index = index + 1
+			end
+		end
+	end
+
+	index = index - 1
+
+	if index == 0 then
+		hook.Remove(eventToReconstruct, 'DLib Task Executor')
+		return
+	end
+
+	local task_i = 0
+
+	hook.Add(eventToReconstruct, 'DLib Task Executor', function()
+		task_i = task_i + 1
+
+		if task_i > index then
+			task_i = 1
+		end
+
+		local thread = target[task_i]
+		ignore_dead = false
+		local status, err = coroutine_resume(thread)
+
+		if not status then
+			target[task_i] = coroutine_create(target_funcs[task_i])
+			target_data[task_i].thread = target[task_i]
+			error('Task ' .. target_data[task_i].idString .. ' failed: ' .. err)
+		end
+
+		if not ignore_dead and coroutine_status(thread) == 'dead' then
+			target[task_i] = coroutine_create(target_funcs[task_i])
+			target_data[task_i].thread = target[task_i]
+		end
+	end)
+end
+
+function hook.AddTask(event, stringID, callback)
+	assert(type(event) == 'string', 'bad argument #1 to hook.AddTask (string expected, got ' .. type(event) .. ')', 2)
+	assert(type(callback) == 'function', 'bad argument #3 to hook.AddTask (function expected, got ' .. type(callback) .. ')', 2)
+
+	stringID = transformStringID('hook.AddTask', stringID, event)
+
+	local hookData = {
+		event = event,
+		callback = callback,
+		id = stringID,
+		idString = tostring(stringID),
+		registeredAt = SysTime(),
+		typeof = isstring(stringID)
+	}
+
+	__tableTasks[event] = __tableTasks[event] or {}
+	__tableTasks[event][stringID] = hookData
+
+	hook.ReconstructTasks(event)
+end
+
+function hook.RemoveTask(event, stringID)
+	assert(type(event) == 'string', 'bad argument #1 to hook.AddTask (string expected, got ' .. type(event) .. ')', 2)
+	stringID = transformStringID('hook.AddTask', stringID, event)
+
+	if not __tableTasks[event] then return end
+	if not __tableTasks[event][stringID] then return end
+	__tableTasks[event][stringID] = nil
+
+	hook.ReconstructTasks(event)
 end
