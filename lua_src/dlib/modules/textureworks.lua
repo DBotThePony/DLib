@@ -106,7 +106,7 @@ end
 
 local function ReadPixel(x, y)
 	local r, g, b, a = render_ReadPixel(x, y)
-	return r, g, b, a or 255
+	return r or 0, g or 0, b or 0, a or 255
 end
 
 function AbstractTexture:CaptureRenderTarget(rx, ry, w, h, lx, ly)
@@ -191,7 +191,13 @@ local SysTime = SysTime
 
 local function read_bitmap(bitmap, x, y, w, h)
 	local pointer = (x + y * w) * 4
-	return string_byte(bitmap, pointer + 1, pointer + 4)
+	local r, g, b, a = string_byte(bitmap, pointer + 1, pointer + 4)
+
+	if r then
+		return r, g, b, a
+	end
+
+	return 0, 0, 0, 255
 end
 
 function AbstractTexture:CaptureRenderTargetCoroutine(bitmap, bW, bH, rx, ry, w, h, lx, ly, callbackBefore, callbackAfter, thersold, ...)
