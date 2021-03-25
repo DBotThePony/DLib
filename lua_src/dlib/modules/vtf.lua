@@ -1307,10 +1307,12 @@ function VTF:CaptureRenderTargetCoroutine(opts, y, width, height, rx, ry, ...)
 		local text = DLib.I18n.Localize('gui.dlib.notify.vtf_encoding')
 
 		function opts.before()
+			-- idk
 			render.PopRenderTarget()
 		end
 
 		function opts.after(progress)
+			-- idk
 			render.PushRenderTarget(rt)
 			DLib.Util.PushProgress(identifier, text, progress)
 		end
@@ -1324,9 +1326,10 @@ function VTF:CaptureRenderTargetCoroutine(opts, y, width, height, rx, ry, ...)
 	assert(opts.rx + opts.width < self.width, 'x + width < self.width')
 	assert(opts.ry + opts.height < self.height, 'y + height < self.height')
 
-	render.CapturePixels()
+	local bitmap = render.CapturePixelsBitmap()
+	local bW, bH = ScrW(), ScrH()
 	local texture = self:GetTexture(opts.mipmap or self.m_upcomping_mipmap, opts.frame or self.m_upcomping_frame, opts.face or self.m_upcomping_face, opts.depth or self.m_upcomping_depth)
-	texture:CaptureRenderTargetCoroutine(opts.x, opts.y, opts.width, opts.height, opts.rx, opts.ry, opts.before, opts.after, opts.thersold, unpack(opts.yield_args))
+	texture:CaptureRenderTargetCoroutine(bitmap, bW, bH, opts.x, opts.y, opts.width, opts.height, opts.rx, opts.ry, opts.before, opts.after, opts.thersold, unpack(opts.yield_args))
 
 	if identifier then
 		DLib.Util.PopProgress(identifier)
@@ -1420,9 +1423,10 @@ function VTF:CaptureRenderTargetAsAlphaCoroutine(opts, y, width, height, rx, ry,
 	assert(opts.rx + opts.width < self.width, 'x + width < self.width')
 	assert(opts.ry + opts.height < self.height, 'y + height < self.height')
 
-	render.CapturePixels()
+	local bitmap = render.CapturePixelsBitmap()
+	local bW, bH = ScrW(), ScrH()
 	local texture = self:GetTexture(opts.mipmap or self.m_upcomping_mipmap, opts.frame or self.m_upcomping_frame, opts.face or self.m_upcomping_face, opts.depth or self.m_upcomping_depth)
-	texture:CaptureRenderTargetAlphaCoroutine(opts.x, opts.y, opts.width, opts.height, opts.rx, opts.ry, opts.before, opts.after, opts.thersold, unpack(opts.yield_args))
+	texture:CaptureRenderTargetAlphaCoroutine(bitmap, bW, bH, opts.x, opts.y, opts.width, opts.height, opts.rx, opts.ry, opts.before, opts.after, opts.thersold, unpack(opts.yield_args))
 
 	if identifier then
 		DLib.Util.PopProgress(identifier)

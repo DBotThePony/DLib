@@ -26,6 +26,8 @@ local assert = assert
 local Color = Color
 local DLib = DLib
 local string = string
+local render = render
+local string_byte = string.byte
 
 if CLIENT then
 	DLib._RenderCapturePixels = DLib._RenderCapturePixels or 0
@@ -35,6 +37,45 @@ if CLIENT then
 	function render.CapturePixels(...)
 		DLib._RenderCapturePixels = DLib._RenderCapturePixels + 1
 		return DLib._RenderCapturePixelsFn(...)
+	end
+
+	local buff = {}
+	local render_ReadPixel = render.ReadPixel
+	local string_char = string.char
+	local unpack = unpack
+	local ScrW = ScrW
+	local ScrH = ScrH
+
+	function render.CapturePixelsBitmap()
+		render.CapturePixels()
+		local buildbuff = {}
+
+		local w, h = ScrW(), ScrH()
+
+		local buff_index = 1
+		local build_index = 1
+
+		for y = 0, h - 1 do
+			for x = 0, w - 1 do
+				local r, g, b = render_ReadPixel(x, y)
+				buff[buff_index] = r
+				buff[buff_index + 1] = g
+				buff[buff_index + 2] = b
+				buff_index = buff_index + 3
+
+				if buff_index >= 7900 then
+					buildbuff[build_index] = string_char(unpack(buff, 1, buff_index - 1))
+					build_index = build_index + 1
+					buff_index = 1
+				end
+			end
+		end
+
+		if build_index > 1 then
+			buildbuff[build_index] = string_char(unpack(buff, 1, buff_index - 1))
+		end
+
+		return table.concat(buildbuff, '')
 	end
 end
 
@@ -145,7 +186,12 @@ local coroutine_yield = coroutine.yield
 local coroutine_syswait = coroutine.syswait
 local SysTime = SysTime
 
-function AbstractTexture:CaptureRenderTargetCoroutine(rx, ry, w, h, lx, ly, callbackBefore, callbackAfter, thersold, ...)
+local function read_bitmap(bitmap, x, y, w, h)
+	local pointer = (x + y * w) * 3
+	return string_byte(bitmap, pointer + 1, pointer + 3)
+end
+
+function AbstractTexture:CaptureRenderTargetCoroutine(bitmap, bW, bH, rx, ry, w, h, lx, ly, callbackBefore, callbackAfter, thersold, ...)
 	for i = 1, 16 do
 		sample_encode_buff[i][4] = 255
 	end
@@ -181,7 +227,8 @@ function AbstractTexture:CaptureRenderTargetCoroutine(rx, ry, w, h, lx, ly, call
 			for X = 0, 3 do
 				for Y = 0, 3 do
 					local obj = sample_encode_buff[1 + X + Y * 4]
-					obj[1], obj[2], obj[3] = render.ReadPixel(rx + X + blockX * 4, ry + Y + blockY * 4)
+					--obj[1], obj[2], obj[3] = render.ReadPixel(rx + X + blockX * 4, ry + Y + blockY * 4)
+					obj[1], obj[2], obj[3] = read_bitmap(bitmap, rx + X + blockX * 4, ry + Y + blockY * 4, bW, bH)
 				end
 			end
 
@@ -192,22 +239,22 @@ function AbstractTexture:CaptureRenderTargetCoroutine(rx, ry, w, h, lx, ly, call
 			if SysTime() >= s then
 				callbackBefore()
 
-				local ref = DLib._RenderCapturePixels
+				--local ref = DLib._RenderCapturePixels
 
 				coroutine_yield(...)
 				s = SysTime() + thersold
 
-				if ref ~= DLib._RenderCapturePixels and DLib._RenderCapturePixels_TextureWorks == DLib._RenderCapturePixels then
+				--[[if ref ~= DLib._RenderCapturePixels and DLib._RenderCapturePixels_TextureWorks == DLib._RenderCapturePixels then
 					coroutine_syswait(1)
 					s = SysTime() + thersold
-				end
+				end]]
 
 				callbackAfter(done / total)
 
-				if ref ~= DLib._RenderCapturePixels then
+				--[[if ref ~= DLib._RenderCapturePixels then
 					render.CapturePixels()
 					DLib._RenderCapturePixels_TextureWorks = DLib._RenderCapturePixels
-				end
+				end]]
 			end
 		end
 	end
@@ -223,7 +270,8 @@ function AbstractTexture:CaptureRenderTargetCoroutine(rx, ry, w, h, lx, ly, call
 			for X = 0, lx + w - blockX * 4 do
 				for Y = 0, 3 do
 					local obj = sample_encode_buff[1 + X + Y * 4]
-					obj[1], obj[2], obj[3] = render.ReadPixel(rx + X + blockX * 4, ry + Y + blockY * 4)
+					--obj[1], obj[2], obj[3] = render.ReadPixel(rx + X + blockX * 4, ry + Y + blockY * 4)
+					obj[1], obj[2], obj[3] = read_bitmap(bitmap, rx + X + blockX * 4, ry + Y + blockY * 4, bW, bH)
 				end
 			end
 
@@ -234,22 +282,22 @@ function AbstractTexture:CaptureRenderTargetCoroutine(rx, ry, w, h, lx, ly, call
 			if SysTime() >= s then
 				callbackBefore()
 
-				local ref = DLib._RenderCapturePixels
+				--local ref = DLib._RenderCapturePixels
 
 				coroutine_yield(...)
 				s = SysTime() + thersold
 
-				if ref ~= DLib._RenderCapturePixels and DLib._RenderCapturePixels_TextureWorks == DLib._RenderCapturePixels then
+				--[[if ref ~= DLib._RenderCapturePixels and DLib._RenderCapturePixels_TextureWorks == DLib._RenderCapturePixels then
 					coroutine_syswait(1)
 					s = SysTime() + thersold
-				end
+				end]]
 
 				callbackAfter(done / total)
 
-				if ref ~= DLib._RenderCapturePixels then
+				--[[if ref ~= DLib._RenderCapturePixels then
 					render.CapturePixels()
 					DLib._RenderCapturePixels_TextureWorks = DLib._RenderCapturePixels
-				end
+				end]]
 			end
 		end
 	end
@@ -263,7 +311,8 @@ function AbstractTexture:CaptureRenderTargetCoroutine(rx, ry, w, h, lx, ly, call
 			for X = 0, 3 do
 				for Y = 0, ly + h - blockY * 4 do
 					local obj = sample_encode_buff[1 + X + Y * 4]
-					obj[1], obj[2], obj[3] = render.ReadPixel(rx + X + blockX * 4, ry + Y + blockY * 4)
+					--obj[1], obj[2], obj[3] = render.ReadPixel(rx + X + blockX * 4, ry + Y + blockY * 4)
+					obj[1], obj[2], obj[3] = read_bitmap(bitmap, rx + X + blockX * 4, ry + Y + blockY * 4, bW, bH)
 				end
 			end
 
@@ -274,22 +323,22 @@ function AbstractTexture:CaptureRenderTargetCoroutine(rx, ry, w, h, lx, ly, call
 			if SysTime() >= s then
 				callbackBefore()
 
-				local ref = DLib._RenderCapturePixels
+				--local ref = DLib._RenderCapturePixels
 
 				coroutine_yield(...)
 				s = SysTime() + thersold
 
-				if ref ~= DLib._RenderCapturePixels and DLib._RenderCapturePixels_TextureWorks == DLib._RenderCapturePixels then
+				--[[if ref ~= DLib._RenderCapturePixels and DLib._RenderCapturePixels_TextureWorks == DLib._RenderCapturePixels then
 					coroutine_syswait(1)
 					s = SysTime() + thersold
-				end
+				end]]
 
 				callbackAfter(done / total)
 
-				if ref ~= DLib._RenderCapturePixels then
+				--[[if ref ~= DLib._RenderCapturePixels then
 					render.CapturePixels()
 					DLib._RenderCapturePixels_TextureWorks = DLib._RenderCapturePixels
-				end
+				end]]
 			end
 		end
 	end
@@ -303,7 +352,8 @@ function AbstractTexture:CaptureRenderTargetCoroutine(rx, ry, w, h, lx, ly, call
 		for X = 0, lx + w - blockX * 4 do
 			for Y = 0, ly + h - blockY * 4 do
 				local obj = sample_encode_buff[1 + X + Y * 4]
-				obj[1], obj[2], obj[3] = render.ReadPixel(rx + X + blockX * 4, ry + Y + blockY * 4)
+				--obj[1], obj[2], obj[3] = render.ReadPixel(rx + X + blockX * 4, ry + Y + blockY * 4)
+				obj[1], obj[2], obj[3] = read_bitmap(bitmap, rx + X + blockX * 4, ry + Y + blockY * 4, bW, bH)
 			end
 		end
 
@@ -391,7 +441,7 @@ function AbstractTexture:CaptureRenderTargetAlpha(rx, ry, w, h, lx, ly)
 	end
 end
 
-function AbstractTexture:CaptureRenderTargetAlphaCoroutine(rx, ry, w, h, lx, ly, callbackBefore, callbackAfter, thersold, ...)
+function AbstractTexture:CaptureRenderTargetAlphaCoroutine(bitmap, bW, bH, rx, ry, w, h, lx, ly, callbackBefore, callbackAfter, thersold, ...)
 	local sBlockX = (lx - lx % 4) / 4
 	local sBlockY = (ly - ly % 4) / 4
 
@@ -423,7 +473,8 @@ function AbstractTexture:CaptureRenderTargetAlphaCoroutine(rx, ry, w, h, lx, ly,
 			for X = 0, 3 do
 				for Y = 0, 3 do
 					local obj = sample_encode_buff[1 + X + Y * 4]
-					local r, g, b = render.ReadPixel(rx + X + blockX * 4, ry + Y + blockY * 4)
+					--local r, g, b = render.ReadPixel(rx + X + blockX * 4, ry + Y + blockY * 4)
+					local r, g, b = read_bitmap(bitmap, rx + X + blockX * 4, ry + Y + blockY * 4, bW, bH)
 					obj[4] = (r + g + b) / 3
 				end
 			end
@@ -435,22 +486,22 @@ function AbstractTexture:CaptureRenderTargetAlphaCoroutine(rx, ry, w, h, lx, ly,
 			if SysTime() >= s then
 				callbackBefore()
 
-				local ref = DLib._RenderCapturePixels
+				--local ref = DLib._RenderCapturePixels
 
 				coroutine_yield(...)
 				s = SysTime() + thersold
 
-				if ref ~= DLib._RenderCapturePixels and DLib._RenderCapturePixels_TextureWorks == DLib._RenderCapturePixels then
+				--[[if ref ~= DLib._RenderCapturePixels and DLib._RenderCapturePixels_TextureWorks == DLib._RenderCapturePixels then
 					coroutine_syswait(1)
 					s = SysTime() + thersold
-				end
+				end]]
 
 				callbackAfter(done / total)
 
-				if ref ~= DLib._RenderCapturePixels then
+				--[[if ref ~= DLib._RenderCapturePixels then
 					render.CapturePixels()
 					DLib._RenderCapturePixels_TextureWorks = DLib._RenderCapturePixels
-				end
+				end]]
 			end
 		end
 	end
@@ -466,7 +517,8 @@ function AbstractTexture:CaptureRenderTargetAlphaCoroutine(rx, ry, w, h, lx, ly,
 			for X = 0, lx + w - blockX * 4 do
 				for Y = 0, 3 do
 					local obj = sample_encode_buff[1 + X + Y * 4]
-					local r, g, b = render.ReadPixel(rx + X + blockX * 4, ry + Y + blockY * 4)
+					--local r, g, b = render.ReadPixel(rx + X + blockX * 4, ry + Y + blockY * 4)
+					local r, g, b = read_bitmap(bitmap, rx + X + blockX * 4, ry + Y + blockY * 4, bW, bH)
 					obj[4] = (r + g + b) / 3
 				end
 			end
@@ -478,22 +530,22 @@ function AbstractTexture:CaptureRenderTargetAlphaCoroutine(rx, ry, w, h, lx, ly,
 			if SysTime() >= s then
 				callbackBefore()
 
-				local ref = DLib._RenderCapturePixels
+				--local ref = DLib._RenderCapturePixels
 
 				coroutine_yield(...)
 				s = SysTime() + thersold
 
-				if ref ~= DLib._RenderCapturePixels and DLib._RenderCapturePixels_TextureWorks == DLib._RenderCapturePixels then
+				--[[if ref ~= DLib._RenderCapturePixels and DLib._RenderCapturePixels_TextureWorks == DLib._RenderCapturePixels then
 					coroutine_syswait(1)
 					s = SysTime() + thersold
-				end
+				end]]
 
 				callbackAfter(done / total)
 
-				if ref ~= DLib._RenderCapturePixels then
+				--[[if ref ~= DLib._RenderCapturePixels then
 					render.CapturePixels()
 					DLib._RenderCapturePixels_TextureWorks = DLib._RenderCapturePixels
-				end
+				end]]
 			end
 		end
 	end
@@ -507,7 +559,8 @@ function AbstractTexture:CaptureRenderTargetAlphaCoroutine(rx, ry, w, h, lx, ly,
 			for X = 0, 3 do
 				for Y = 0, ly + h - blockY * 4 do
 					local obj = sample_encode_buff[1 + X + Y * 4]
-					local r, g, b = render.ReadPixel(rx + X + blockX * 4, ry + Y + blockY * 4)
+					--local r, g, b = render.ReadPixel(rx + X + blockX * 4, ry + Y + blockY * 4)
+					local r, g, b = read_bitmap(bitmap, rx + X + blockX * 4, ry + Y + blockY * 4, bW, bH)
 					obj[4] = (r + g + b) / 3
 				end
 			end
@@ -519,22 +572,22 @@ function AbstractTexture:CaptureRenderTargetAlphaCoroutine(rx, ry, w, h, lx, ly,
 			if SysTime() >= s then
 				callbackBefore()
 
-				local ref = DLib._RenderCapturePixels
+				--local ref = DLib._RenderCapturePixels
 
 				coroutine_yield(...)
 				s = SysTime() + thersold
 
-				if ref ~= DLib._RenderCapturePixels and DLib._RenderCapturePixels_TextureWorks == DLib._RenderCapturePixels then
+				--[[if ref ~= DLib._RenderCapturePixels and DLib._RenderCapturePixels_TextureWorks == DLib._RenderCapturePixels then
 					coroutine_syswait(1)
 					s = SysTime() + thersold
-				end
+				end]]
 
 				callbackAfter(done / total)
 
-				if ref ~= DLib._RenderCapturePixels then
+				--[[if ref ~= DLib._RenderCapturePixels then
 					render.CapturePixels()
 					DLib._RenderCapturePixels_TextureWorks = DLib._RenderCapturePixels
-				end
+				end]]
 			end
 		end
 	end
@@ -548,7 +601,8 @@ function AbstractTexture:CaptureRenderTargetAlphaCoroutine(rx, ry, w, h, lx, ly,
 		for X = 0, lx + w - blockX * 4 do
 			for Y = 0, ly + h - blockY * 4 do
 				local obj = sample_encode_buff[1 + X + Y * 4]
-				local r, g, b = render.ReadPixel(rx + X + blockX * 4, ry + Y + blockY * 4)
+				--local r, g, b = render.ReadPixel(rx + X + blockX * 4, ry + Y + blockY * 4)
+				local r, g, b = read_bitmap(bitmap, rx + X + blockX * 4, ry + Y + blockY * 4, bW, bH)
 				obj[4] = (r + g + b) / 3
 			end
 		end
