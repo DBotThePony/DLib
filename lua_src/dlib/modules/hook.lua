@@ -1330,27 +1330,46 @@ DLib.benchhook = {
 	GetTable = hook.GetTable,
 }
 
+local odd_line = Color(200, 200, 200)
+local even_line = Color(150, 150, 150)
+
 local function lua_findhooks(eventName, ply)
 	DLib.MessagePlayer(ply, '----------------------------------')
 	DLib.MessagePlayer(ply, string.format('Finding %s hooks for event %q', CLIENT and 'CLIENTSIDE' or 'SERVERSIDE', eventName))
 
 	local tableToUse = __table[eventName]
+	local odd = true
 
 	if tableToUse and next(tableToUse) then
+		local max_width = 0
+
 		for priority, hookList in SortedPairs(tableToUse) do
+			local priorityL = #tostring(priority) + 2
+
+			for stringID, hookData in pairs(hookList) do
+				max_width = max_width:max(utf8.len(tostring(stringID)) + priorityL)
+			end
+		end
+
+		for priority, hookList in SortedPairs(tableToUse) do
+			local priorityL = #tostring(priority) + 2
+
 			for stringID, hookData in pairs(hookList) do
 				local info = debug.getinfo(hookData.funcToCall)
-				DLib.MessagePlayer(ply,
+				DLib.MessagePlayer(ply, odd and odd_line or even_line,
 					string.format(
-						'\t\t%q [%s] at %p (%s: %i->%i)',
-						stringID,
+						'\t\t[%d] %q%s at %p (%s: %i->%i)',
 						priority,
+						tostring(stringID),
+						string.rep(' ', max_width - utf8.len(tostring(stringID)) - priorityL),
 						hookData.funcToCall,
 						info.source,
 						info.linedefined,
 						info.lastlinedefined
 					)
 				)
+
+				odd = not odd
 			end
 		end
 	else
@@ -1372,19 +1391,33 @@ end
 function hook.GetDumpStr()
 	local lines = {}
 
+	local max_width = 0
+
+	for eventName, eventData in SortedPairs(__table) do
+		for priority, hookList in SortedPairs(eventData) do
+			local priorityL = #tostring(priority) + 2
+
+			for stringID, hookData in pairs(hookList) do
+				max_width = max_width:max(utf8.len(tostring(stringID)) + priorityL)
+			end
+		end
+	end
+
 	for eventName, eventData in SortedPairs(__table) do
 		for priority, hookList in SortedPairs(eventData) do
 			local llines = {}
 			table.insert(lines, '// Begin list hooks of event ' .. eventName)
+			local priorityL = #tostring(priority) + 2
 
 			for stringID, hookData in pairs(hookList) do
 				local info = debug.getinfo(hookData.funcToCall)
 
 				table.insert(llines,
 					string.format(
-						'\t%q [%s] at %p (%s: %i->%i)',
+						'\t[%d] %q%s at %p (%s: %i->%i)',
+						priority,
 						tostring(stringID),
-						tostring(priority),
+						string.rep(' ', max_width - utf8.len(tostring(stringID)) - priorityL),
 						hookData.funcToCall,
 						info.source,
 						info.linedefined,
