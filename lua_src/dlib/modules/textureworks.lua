@@ -31,53 +31,58 @@ local string_byte = string.byte
 local render_ReadPixel
 
 if CLIENT then
-	DLib._RenderCapturePixels = DLib._RenderCapturePixels or 0
-	DLib._RenderCapturePixels_TextureWorks = DLib._RenderCapturePixels_TextureWorks or 0
-	DLib._RenderCapturePixelsFn = DLib._RenderCapturePixelsFn or render.CapturePixels
-
-	function render.CapturePixels(...)
-		DLib._RenderCapturePixels = DLib._RenderCapturePixels + 1
-		return DLib._RenderCapturePixelsFn(...)
-	end
-
-	local buff = {}
-	local string_char = string.char
-	local unpack = unpack
-	local ScrW = ScrW
-	local ScrH = ScrH
 	render_ReadPixel = render.ReadPixel
 
-	function render.CapturePixelsBitmap()
-		render.CapturePixels()
-		local buildbuff = {}
+	if not DLib._RenderCapturePixelsFn then
+		DLib._RenderCapturePixels = DLib._RenderCapturePixels or 0
+		DLib._RenderCapturePixels_TextureWorks = DLib._RenderCapturePixels_TextureWorks or 0
+		DLib._RenderCapturePixelsFn = DLib._RenderCapturePixelsFn or render.CapturePixels
 
-		local w, h = ScrW(), ScrH()
+		function render.CapturePixels(...)
+			DLib._RenderCapturePixels = DLib._RenderCapturePixels + 1
+			return DLib._RenderCapturePixelsFn(...)
+		end
+	end
 
-		local buff_index = 1
-		local build_index = 1
+	if not render.CapturePixelsBitmap then
+		local buff = {}
+		local string_char = string.char
+		local unpack = unpack
+		local ScrW = ScrW
+		local ScrH = ScrH
 
-		for y = 0, h - 1 do
-			for x = 0, w - 1 do
-				local r, g, b, a = render_ReadPixel(x, y)
-				buff[buff_index] = r
-				buff[buff_index + 1] = g
-				buff[buff_index + 2] = b
-				buff[buff_index + 3] = a or 255
-				buff_index = buff_index + 4
+		function render.CapturePixelsBitmap()
+			render.CapturePixels()
+			local buildbuff = {}
 
-				if buff_index >= 7900 then
-					buildbuff[build_index] = string_char(unpack(buff, 1, buff_index - 1))
-					build_index = build_index + 1
-					buff_index = 1
+			local w, h = ScrW(), ScrH()
+
+			local buff_index = 1
+			local build_index = 1
+
+			for y = 0, h - 1 do
+				for x = 0, w - 1 do
+					local r, g, b, a = render_ReadPixel(x, y)
+					buff[buff_index] = r
+					buff[buff_index + 1] = g
+					buff[buff_index + 2] = b
+					buff[buff_index + 3] = a or 255
+					buff_index = buff_index + 4
+
+					if buff_index >= 7900 then
+						buildbuff[build_index] = string_char(unpack(buff, 1, buff_index - 1))
+						build_index = build_index + 1
+						buff_index = 1
+					end
 				end
 			end
-		end
 
-		if build_index > 1 then
-			buildbuff[build_index] = string_char(unpack(buff, 1, buff_index - 1))
-		end
+			if build_index > 1 then
+				buildbuff[build_index] = string_char(unpack(buff, 1, buff_index - 1))
+			end
 
-		return table.concat(buildbuff, '')
+			return table.concat(buildbuff, '')
+		end
 	end
 end
 
