@@ -150,6 +150,7 @@ end
 local knownStatus = {}
 local enums = DLib.Enum('none', 'friend', 'blocked', 'requested')
 local IsValid = FindMetaTable('Entity').IsValid
+local yield = coroutine.yield
 
 local function update()
 	local dirty = false
@@ -159,15 +160,19 @@ local function update()
 			dirty = true
 			knownStatus[ply] = nil
 		end
+
+		yield()
 	end
 
 	for i, ply in ipairs(player.GetAll()) do
-		local newstatus = ply:GetFriendStatus()
+		local newstatus = ply:GetFriendStatusDLib()
 
 		if knownStatus[ply] ~= newstatus then
 			knownStatus[ply] = newstatus
 			dirty = true
 		end
+
+		yield()
 	end
 
 	if dirty then
@@ -184,7 +189,8 @@ local function update()
 	end
 end
 
-timer.Create('DLib.FriendStatus', 5, 0, update)
+timer.Remove('DLib.FriendStatus')
+hook.AddTask('Think', 'DLib Update Friend Status', update)
 
 local function friendstatus()
 	local ply = net.ReadPlayer()

@@ -18,7 +18,6 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-
 CAMI = CAMI
 DLib = DLib
 CLIENT = CLIENT
@@ -28,20 +27,19 @@ pairs = pairs
 ipairs = ipairs
 IsValid = IsValid
 player = player
-timer = timer
 table = table
+coroutine_yield = coroutine.yield
 
 class DLib.CAMIWatchdog
-	new: (idetifier, repeatSpeed = 10, ...) =>
+	new: (idetifier, repeatSpeed, ...) =>
 		error('No idetifier!') if not idetifier
-		@repeatSpeed = repeatSpeed
 		@idetifier = idetifier
 		@tracked = DLib.Set()
 		@trackedReplies = {} if CLIENT
 		@trackedPanels = {} if CLIENT
 		@trackedRepliesPly = {}
 		@Track(...)
-		timer.Create 'DLib.CAMIWatchdog.' .. @idetifier, repeatSpeed, 0, -> @TriggerUpdate()
+		hook.AddTask 'Think', 'DLib.CAMIWatchdog ' .. @idetifier, -> @TriggerUpdate(true)
 		@TriggerUpdate()
 
 	Track: (...) =>
@@ -62,11 +60,11 @@ class DLib.CAMIWatchdog
 		table.insert(@trackedPanels[perm], pnl)
 		return @
 
-	TriggerUpdate: =>
-		@TriggerUpdateClient() if CLIENT
-		@TriggerUpdateRegular()
+	TriggerUpdate: (dyield) =>
+		@TriggerUpdateClient(dyield) if CLIENT
+		@TriggerUpdateRegular(dyield)
 
-	TriggerUpdateClient: =>
+	TriggerUpdateClient: (dyield) =>
 		ply = LocalPlayer()
 		return if not ply\IsValid() or not ply.UniqueID
 
@@ -75,24 +73,30 @@ class DLib.CAMIWatchdog
 				CAMI.PlayerHasAccess ply, perm, (has = false, reason = '') ->
 					old = @trackedReplies[perm]
 					@trackedReplies[perm] = has
+
 					if old ~= has and @trackedPanels[perm]
 						cleanup = {}
+
 						for k, v in ipairs @trackedPanels[perm]
 							if IsValid(v)
 								v\SetEnabled(has)
 							else
 								table.insert(cleanup, k)
+
 						table.removeValues(@trackedPanels[perm], cleanup)
 
 			if not status
-				DLib.MessageError('Error while getting permissions for ' .. @idetifier .. '! Tell Admin mod (if problem is on its side)/Author of addon which use CAMIWatchdog')
+				DLib.MessageError('Error while getting permissions for ' .. @idetifier .. '! Report to Admin mod issue tracker')
 				DLib.MessageError('Permission in question: ' .. perm)
 
-	TriggerUpdateRegular: =>
+			coroutine_yield() if dyield
+
+	TriggerUpdateRegular: (dyield) =>
 		@trackedRepliesPly = {ply, data for ply, data in pairs @trackedRepliesPly when ply\IsValid()}
 
 		for ply in *player.GetAll()
 			@trackedRepliesPly[ply] = @trackedRepliesPly[ply] or {}
+
 			for perm in *@tracked.values
 				status = ProtectedCall () ->
 					CAMI.PlayerHasAccess ply, perm, (has = false, reason = '') -> @trackedRepliesPly[ply][perm] = has if IsValid(ply)
@@ -100,4 +104,6 @@ class DLib.CAMIWatchdog
 				if not status
 					DLib.Message('Error while getting permissions for ' .. @idetifier .. '! Tell Admin mod (if problem is on its side)/Author of addon which use CAMIWatchdog')
 					DLib.Message('Permission in question: ' .. perm)
+
+				coroutine_yield() if dyield
 

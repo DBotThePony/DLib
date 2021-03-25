@@ -481,10 +481,12 @@ net.receive('DLib.friendsystem', function(len)
 	end
 end)
 
-timer.Create('DLib.updateFriendList', 1, 0, function()
-	if not IsValid(LocalPlayer()) then return end
+local GetCount = player.GetCount
 
-	if Friend.CurrentCount ~= player.GetCount() then
+hook.AddTask('Think', 'DLib Update Friend List', function()
+	if Friend.CurrentCount ~= GetCount() then
 		Friend.Reload()
 	end
 end)
+
+timer.Remove('DLib.updateFriendList')

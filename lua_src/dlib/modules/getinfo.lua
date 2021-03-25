@@ -24,7 +24,7 @@ local pairs = pairs
 local ipairs = ipairs
 local RealTimeL = RealTimeL
 local GetConVar = GetConVar
-local net = net
+local net = DLib.net
 local table = table
 local IsValid = IsValid
 local LocalPlayer = LocalPlayer
@@ -144,46 +144,62 @@ end
 GetInfo.Rebuild()
 
 if CLIENT then
-	timer.Create('DLib.GetInfo.replication', 10, 0, function()
-		GetInfo.ReplicateNow()
-	end)
+	timer.Remove('DLib.GetInfo.replication')
 
 	function GetInfo.ReplicateNow()
 		local ply = LocalPlayer()
 		if not IsValid(ply) then return end
 
-		net.Start('DLib.GetInfo.replicate')
-
 		for i, data in ipairs(GetInfo.BankOptimized) do
 			data.cvar = data.cvar or GetConVar(data.id)
 			local val = data.cvar:GetByType(data.valuetype)
 
-			--if val ~= data.oldval then
+			if val ~= data.oldval then
+				net.Start('DLib.GetInfo.replicate')
 				net.WriteUInt(data.uid, 32)
 				data.writeFunc(val)
 
 				data.nwSet(ply, data.id, val)
 				data.oldval = val
-			--end
+				net.SendToServer()
+			end
 		end
-
-		net.WriteUInt(0, 32)
-
-		net.SendToServer()
 	end
+
+	local yield = coroutine.yield
+
+	function GetInfo.ReplicateNowCT()
+		local ply = LocalPlayer()
+		if not IsValid(ply) then return end
+
+		for i, data in ipairs(GetInfo.BankOptimized) do
+			data.cvar = data.cvar or GetConVar(data.id)
+			local val = data.cvar:GetByType(data.valuetype)
+
+			if val ~= data.oldval then
+				net.Start('DLib.GetInfo.replicate')
+
+				net.WriteUInt(data.uid, 32)
+				data.writeFunc(val)
+
+				data.nwSet(ply, data.id, val)
+				data.oldval = val
+				net.SendToServer()
+			end
+
+			yield()
+		end
+	end
+
+	hook.AddTask('Think', 'DLib.GetInfo.ReplicateNowCT', GetInfo.ReplicateNowCT)
 else
 	net.receive('DLib.GetInfo.replicate', function(len, ply)
 		if not IsValid(ply) then return end
-		local nextID = net.ReadUInt(32)
+		local bank = GetInfo.BankCRC[net.ReadUInt32()]
+		if not bank then return end
 
-		while nextID ~= 0 and GetInfo.BankCRC[nextID] do
-			local bank = GetInfo.BankCRC[nextID]
-
-			local val = bank.readFunc()
-			bank.nwSet(ply, bank.id, val)
-
-			nextID = net.ReadUInt(32)
-		end
+		local val = bank.readFunc()
+		bank.nwSet(ply, bank.id, val)
 	end)
 end
 

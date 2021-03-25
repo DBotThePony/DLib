@@ -146,6 +146,7 @@ local game = game
 local GetName = FindMetaTable('Entity').GetName
 local SetName = FindMetaTable('Entity').SetName
 local GetHumans = player.GetHumans
+local yield = coroutine.yield
 
 local function tickPlayers()
 	for i, ply in ipairs(GetHumans()) do
@@ -160,6 +161,8 @@ local function tickPlayers()
 		if I18n.exists(nick) then
 			ply:Kick('[DLib.I18n] Bad player name. Contact server\'s staff if you changed name to this using serverside nickname system by a mistake.')
 		end
+
+		yield()
 	end
 end
 
@@ -180,7 +183,7 @@ net.receive('dlib.clientlang', function(len, ply)
 end)
 
 if not game.SinglePlayer() then
-	timer.Create('DLib.TickPlayerNames', 0.5, 0, tickPlayers)
+	hook.AddTask('Think', 'DLib Update Friend List', tickPlayers)
+	timer.Remove('DLib.TickPlayerNames')
 	hook.Add('PlayerSpawn', 'DLib.TickPlayerNames', timer.Simple:Wrap(0, tickPlayers))
-	hook.Add('DoPlayerDeath', 'DLib.TickPlayerNames', tickPlayers)
 end

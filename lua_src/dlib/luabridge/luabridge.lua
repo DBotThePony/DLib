@@ -61,6 +61,7 @@ if CLIENT then
 
 	local LocalPlayer = LocalPlayer
 	local GetWeapons = FindMetaTable('Player').GetWeapons
+	local yield = coroutine.yield
 
 	local function updateWeaponFix()
 		local ply = LocalPlayer()
@@ -87,8 +88,8 @@ if CLIENT then
 		end
 	end
 
-	timer.Create('DLib.DrawWeaponSelection', 10, 0, updateWeaponFix)
-	updateWeaponFix()
+	timer.Remove('DLib.DrawWeaponSelection')
+	hook.AddTask('Think', 'DLib Update DrawWeaponSelection', updateWeaponFix)
 
 	--[[
 		@doc

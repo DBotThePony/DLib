@@ -18,10 +18,11 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-
+local ipairs = ipairs
 local LocalPlayer = LocalPlayer
 local sql = sql
 local DLib = DLib
+local player = player
 
 sql.Query([[
 	CREATE TABLE IF NOT EXISTS dlib_lastnick (
@@ -67,13 +68,14 @@ end
 ]]
 function DLib.LastNickFormatted(steamid)
 	local nick, name = DLib.LastNick(steamid)
-	if not nick then return 'Unknown Pone #' .. util.CRC(steamid):sub(1, 4) end
+
+	if not nick then return 'Anonymous #' .. DLib.Util.QuickSHA1(steamid):sub(1, 8) end
 
 	if nick == name then
 		return nick
-	else
-		return nick .. ' (' .. name .. ')'
 	end
+
+	return nick .. ' (' .. name .. ')'
 end
 
 --[[
@@ -98,40 +100,33 @@ function DLib.UpdateLastNick(steamid, nick, lastname)
 	nick = SQLStr(nick)
 	lastname = SQLStr(lastname)
 
-	if sql.Query('SELECT steamid FROM dlib_lastnick WHERE steamid = ' .. steamid) then
-		return sql.Query('UPDATE dlib_lastnick SET lastnick = ' .. nick .. ', lastname = ' .. lastname .. ' WHERE steamid = ' .. steamid)
-	else
-		return sql.Query('INSERT INTO dlib_lastnick (steamid, lastnick, lastname) VALUES (' .. steamid .. ', ' .. nick .. ', ' .. lastname .. ')')
-	end
+	return sql.Query('REPLACE INTO "dlib_lastnick" ("steamid", "lastnick", "lastname") VALUES (' .. steamid .. ', ' .. nick .. ', ' .. lastname .. ')') ~= false
 end
 
---[[
-	@doc
-	@fname DLib.UpdateLastNicks
+local yield = coroutine.yield
 
-	@internal
-]]
 function DLib.UpdateLastNicks()
-	sql.Query('BEGIN')
-
 	for i, ply in ipairs(player.GetHumans()) do
-		local steamid, lastname = SQLStr(ply:SteamID()), SQLStr(ply:Nick())
-		local nick = lastname
+		local lastname = ply:Nick()
+		local lastnick = lastname
 
 		if ply.SteamName then
-			lastname = SQLStr(ply:SteamName())
+			lastname = ply:SteamName()
 		end
 
-		if not ply.__dlib_nickinsert then
-			sql.Query('INSERT INTO dlib_lastnick (steamid, lastnick, lastname) VALUES (' .. steamid .. ', ' .. nick .. ', ' .. lastname .. ')')
-			ply.__dlib_nickinsert = true
+		if ply._dlib_lastname ~= lastname or ply._dlib_lastnick ~= lastnick then
+			ply._dlib_lastname = lastname
+			ply._dlib_lastnick = lastnick
+
+			local steamid = SQLStr(ply:SteamID())
+			lastname, lastnick = SQLStr(lastname), SQLStr(lastnick)
+
+			sql.Query('REPLACE INTO "dlib_lastnick" ("steamid", "lastnick", "lastname") VALUES (' .. steamid .. ', ' .. lastnick .. ', ' .. lastname .. ')')
 		end
 
-		sql.Query('UPDATE dlib_lastnick SET lastnick = ' .. nick .. ', lastname = ' .. lastname .. ' WHERE steamid = ' .. steamid)
+		yield()
 	end
-
-	sql.Query('COMMIT')
 end
 
-timer.Create('DLib.UpdateLastNicks', 5, 0, DLib.UpdateLastNicks)
-DLib.UpdateLastNicks()
+timer.Remove('DLib.UpdateLastNicks')
+hook.AddTask('Think', 'DLib Update Last Nicknames', DLib.UpdateLastNicks)

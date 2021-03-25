@@ -268,17 +268,19 @@ function plyMeta:GetMaxArmor()
 end
 
 local VehicleListIterable = {}
+local yield = coroutine.yield
 
 local function rebuildVehicleList()
 	for classname, data in pairs(list.GetForEdit('Vehicles')) do
 		if data.Model then
 			VehicleListIterable[data.Model:lower()] = data
+			yield()
 		end
 	end
 end
 
-timer.Create('DLib.RebuildVehicleListNames', 10, 0, rebuildVehicleList)
-rebuildVehicleList()
+timer.Remove('DLib.RebuildVehicleListNames')
+hook.AddTask('Think', 'DLib Rebuild Vehicle List', rebuildVehicleList)
 
 --[[
 	@doc
