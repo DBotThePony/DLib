@@ -165,11 +165,13 @@ local function update()
 	end
 
 	for i, ply in ipairs(player.GetAll()) do
-		local newstatus = ply:GetFriendStatusDLib()
+		if IsValid(ply) then
+			local newstatus = ply:GetFriendStatusDLib()
 
-		if knownStatus[ply] ~= newstatus then
-			knownStatus[ply] = newstatus
-			dirty = true
+			if knownStatus[ply] ~= newstatus then
+				knownStatus[ply] = newstatus
+				dirty = true
+			end
 		end
 
 		yield()

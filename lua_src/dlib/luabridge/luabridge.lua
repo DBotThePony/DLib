@@ -70,19 +70,21 @@ if CLIENT then
 		if not weapons then return end
 
 		for k, wep in ipairs(weapons) do
-			local tab = GetTable(wep)
+			if IsValid(wep) then
+				local tab = GetTable(wep)
 
-			if not tab.DrawWeaponSelection_DLib and tab.DrawWeaponSelection then
-				tab.DrawWeaponSelection_DLib = tab.DrawWeaponSelection
+				if not tab.DrawWeaponSelection_DLib and tab.DrawWeaponSelection then
+					tab.DrawWeaponSelection_DLib = tab.DrawWeaponSelection
 
-				tab.DrawWeaponSelection = function(self, x, y, w, h, a)
-					local can = hook.Run('DrawWeaponSelection', self, x, y, w, h, a)
-					if can == false then return end
+					tab.DrawWeaponSelection = function(self, x, y, w, h, a)
+						local can = hook.Run('DrawWeaponSelection', self, x, y, w, h, a)
+						if can == false then return end
 
-					hook.Run('PreDrawWeaponSelection', self, x, y, width, height, alpha)
-					local A, B, C, D, E, F = tab.DrawWeaponSelection_DLib(self, x, y, w, h, a)
-					hook.Run('PostDrawWeaponSelection', self, x, y, width, height, alpha)
-					return A, B, C, D, E, F
+						hook.Run('PreDrawWeaponSelection', self, x, y, width, height, alpha)
+						local A, B, C, D, E, F = tab.DrawWeaponSelection_DLib(self, x, y, w, h, a)
+						hook.Run('PostDrawWeaponSelection', self, x, y, width, height, alpha)
+						return A, B, C, D, E, F
+					end
 				end
 			end
 		end
