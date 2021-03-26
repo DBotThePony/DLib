@@ -104,27 +104,30 @@ function DLib.UpdateLastNick(steamid, nick, lastname)
 end
 
 local yield = coroutine.yield
+local IsValid = FindMetaTable('Entity').IsValid
 
 function DLib.UpdateLastNicks()
 	for i, ply in ipairs(player.GetHumans()) do
-		local lastname = ply:Nick()
-		local lastnick = lastname
+		if IsValid(ply) then
+			local lastname = ply:Nick()
+			local lastnick = lastname
 
-		if ply.SteamName then
-			lastname = ply:SteamName()
+			if ply.SteamName then
+				lastname = ply:SteamName()
+			end
+
+			if ply._dlib_lastname ~= lastname or ply._dlib_lastnick ~= lastnick then
+				ply._dlib_lastname = lastname
+				ply._dlib_lastnick = lastnick
+
+				local steamid = SQLStr(ply:SteamID())
+				lastname, lastnick = SQLStr(lastname), SQLStr(lastnick)
+
+				sql.Query('REPLACE INTO "dlib_lastnick" ("steamid", "lastnick", "lastname") VALUES (' .. steamid .. ', ' .. lastnick .. ', ' .. lastname .. ')')
+			end
+
+			yield()
 		end
-
-		if ply._dlib_lastname ~= lastname or ply._dlib_lastnick ~= lastnick then
-			ply._dlib_lastname = lastname
-			ply._dlib_lastnick = lastnick
-
-			local steamid = SQLStr(ply:SteamID())
-			lastname, lastnick = SQLStr(lastname), SQLStr(lastnick)
-
-			sql.Query('REPLACE INTO "dlib_lastnick" ("steamid", "lastnick", "lastname") VALUES (' .. steamid .. ', ' .. lastnick .. ', ' .. lastname .. ')')
-		end
-
-		yield()
 	end
 end
 
