@@ -2759,3 +2759,270 @@ DLib.BytesBufferView = setmetatable({proto = meta_view, meta = meta_view}, {__ca
 
 	return obj
 end})
+
+local meta_immutable = {}
+local object_immutable = {}
+
+do
+	local import = {
+		'PushSlice',
+		'Slice',
+		'ShallowClone',
+		'PopSlice',
+		'CurrentSliceEnd',
+		'Length',
+		'RealLength',
+		'CurrentSliceStart',
+		'Seek',
+		'CheckOverflow',
+		'Tell',
+		'Ask',
+		'Move',
+		'Walk',
+		'Reset',
+		'GetBytes',
+		'IsEOF',
+
+		'ReadByte_2',
+		'ReadByte',
+
+		'ReadInt16_2',
+		'ReadInt16',
+		'ReadInt16LE_2',
+		'ReadInt16LE',
+
+		'ReadInt24_2',
+		'ReadInt24',
+		'ReadInt24LE_2',
+		'ReadInt24LE',
+
+		'ReadInt32_2',
+		'ReadInt32',
+		'ReadInt32LE_2',
+		'ReadInt32LE',
+
+		'ReadInt64_2',
+		'ReadInt64',
+		'ReadInt64LE_2',
+		'ReadInt64',
+
+		'ReadFloatSlow',
+		'ReadFloat',
+		'ReadFloatLE',
+		'ReadDoubleSlow',
+		'ReadDouble',
+		'ReadDoubleLE',
+
+		'ToFileStream',
+	}
+
+	for i, fnname in ipairs(import) do
+		meta_immutable[fnname] = meta[fnname]
+	end
+end
+
+local function get_1_bytes_le(pointer, bytes)
+	return string_byte(bytes, pointer + 1)
+end
+
+local function get_2_bytes_le(pointer, bytes)
+	return string_byte(bytes, pointer + 1, pointer + 2)
+end
+
+local function get_3_bytes_le(pointer, bytes)
+	return string_byte(bytes, pointer + 1, pointer + 3)
+end
+
+local function get_4_bytes_le(pointer, bytes)
+	return string_byte(bytes, pointer + 1, pointer + 4)
+end
+
+local function get_8_bytes_le(pointer, bytes)
+	return string_byte(bytes, pointer + 1, pointer + 8)
+end
+
+function meta_immutable:ReadUByte()
+	self:CheckOverflow('UByte', 1)
+	local pointer = self.pointer
+	self.pointer = pointer + 1
+	return get_1_bytes_le(pointer + self:CurrentSliceStart(), self.bytes)
+end
+
+function meta_immutable:ReadUInt16()
+	self:CheckOverflow('UInt16', 2)
+	local pointer = self.pointer
+	self.pointer = pointer + 2
+	local a, b = get_2_bytes_le(pointer + self:CurrentSliceStart(), self.bytes)
+	return bor(lshift(a, 8), b)
+end
+
+function meta_immutable:ReadUInt16LE()
+	self:CheckOverflow('UInt16LE', 2)
+	local pointer = self.pointer
+	self.pointer = pointer + 2
+	local a, b = get_2_bytes_le(pointer + self:CurrentSliceStart(), self.bytes)
+	return bor(lshift(b, 8), a)
+end
+
+function meta_immutable:ReadUInt24()
+	self:CheckOverflow('UInt24', 3)
+	local pointer = self.pointer
+	self.pointer = pointer + 3
+	local a, b, c = get_3_bytes_le(pointer + self:CurrentSliceStart(), self.bytes)
+	return bor(lshift(a, 8), b, lshift(c, 16))
+end
+
+function meta_immutable:ReadUInt24LE()
+	self:CheckOverflow('UInt24LE', 3)
+	local pointer = self.pointer
+	self.pointer = pointer + 3
+	local a, b, c = get_3_bytes_le(pointer + self:CurrentSliceStart(), self.bytes)
+	return bor(lshift(c, 16), lshift(b, 8), a)
+end
+
+function meta_immutable:ReadUInt32()
+	self:CheckOverflow('UInt32', 4)
+	local pointer = self.pointer
+	self.pointer = pointer + 4
+	local a, b, c, d = get_4_bytes_le(pointer + self:CurrentSliceStart(), self.bytes)
+	local value = bor(lshift(a, 24), lshift(b, 16), lshift(c, 8), d)
+
+	if value < 0 then
+		return value + 0x100000000
+	end
+
+	return value
+end
+
+function meta_immutable:ReadUInt32LE()
+	self:CheckOverflow('UInt32LE', 4)
+	local pointer = self.pointer
+	self.pointer = pointer + 4
+	local a, b, c, d = get_4_bytes_le(pointer + self:CurrentSliceStart(), self.bytes)
+	local value = bor(lshift(d, 24), lshift(c, 16), lshift(b, 8), a)
+
+	if value < 0 then
+		return value + 0x100000000
+	end
+
+	return value
+end
+
+function meta_immutable:ReadUInt64()
+	self:CheckOverflow('UInt64', 8)
+
+	local pointer = self.pointer
+	local _poiner = pointer + self:CurrentSliceStart()
+	self.pointer = pointer + 8
+
+	local a, b, c, d, e, f, g, k = get_8_bytes_le(_poiner, self.bytes)
+
+	local value = bor(lshift(e, 24), lshift(f, 16), lshift(g, 8), k)
+
+	if value < 0 then
+		return value + 0x100000000
+	end
+
+	return
+		a * 0x100000000000000 +
+		b * 0x1000000000000 +
+		c * 0x10000000000 +
+		d * 0x100000000 +
+		value
+end
+
+function meta_immutable:ReadUInt64LE()
+	self:CheckOverflow('UInt64LE', 8)
+
+	local pointer = self.pointer
+	local _poiner = pointer + self:CurrentSliceStart()
+	self.pointer = pointer + 8
+
+	local k, g, f, e, d, c, b, a = get_8_bytes_le(_poiner, self.bytes)
+
+	local value = bor(lshift(e, 24), lshift(f, 16), lshift(g, 8), k)
+
+	if value < 0 then
+		return value + 0x100000000
+	end
+
+	return
+		a * 0x100000000000000 +
+		b * 0x1000000000000 +
+		c * 0x10000000000 +
+		d * 0x100000000 +
+		value
+end
+
+function meta_immutable:ReadString()
+	self:CheckOverflow('String', 1)
+
+	local bytes = self.bytes
+
+	for i = self.pointer + self:CurrentSliceStart() + 1, self:CurrentSliceEnd() do
+		if string_byte(bytes, i) == 0 then
+			local string = string.sub(bytes, self.pointer + 1 + self:CurrentSliceStart(), i - 1)
+			self.pointer = i + 1 - self:CurrentSliceStart()
+			return string
+		end
+	end
+
+	error('No NUL terminator was found while reached EOF')
+end
+
+function meta_immutable:ReadBinary(readAmount)
+	assert(readAmount >= 0, 'Read amount must be positive')
+	if readAmount == 0 then return '' end
+	self:CheckOverflow('Binary', readAmount)
+
+	local slice = string.sub(self.bytes, self.pointer + 1 + self:CurrentSliceStart(), self.pointer + readAmount + self:CurrentSliceStart())
+	self.pointer = self.pointer + readAmount
+
+	return slice
+end
+
+function meta_immutable:ToString()
+	return string.sub(self.bytes, self:CurrentSliceStart() + 1, self:CurrentSliceEnd())
+end
+
+function meta_immutable:StringSlice(slice_start, slice_end)
+	return string.sub(self.bytes, slice_start, slice_end)
+end
+
+meta_immutable.ReadInt8 = meta_immutable.ReadByte
+meta_immutable.ReadUInt8 = meta_immutable.ReadUByte
+
+meta_immutable.ReadShort = meta_immutable.ReadInt16
+meta_immutable.ReadShort_2 = meta_immutable.ReadInt16_2
+meta_immutable.ReadUShort = meta_immutable.ReadUInt16
+
+meta_immutable.ReadShortLE = meta_immutable.ReadInt16LE
+meta_immutable.ReadShortLE_2 = meta_immutable.ReadInt16LE_2
+meta_immutable.ReadUShortLE = meta_immutable.ReadUInt16LE
+
+meta_immutable.ReadInt = meta_immutable.ReadInt32
+meta_immutable.ReadInt_2 = meta_immutable.ReadInt32_2
+meta_immutable.ReadUInt = meta_immutable.ReadUInt32
+
+meta_immutable.ReadIntLE = meta_immutable.ReadInt32LE
+meta_immutable.ReadIntLE_2 = meta_immutable.ReadInt32LE_2
+meta_immutable.ReadUIntLE = meta_immutable.ReadUInt32LE
+
+meta_immutable.ReadLong = meta_immutable.ReadInt32
+meta_immutable.ReadLong_2 = meta_immutable.ReadInt32_2
+meta_immutable.ReadULong = meta_immutable.ReadUInt32
+
+meta_immutable.ReadLongLE = meta_immutable.ReadInt32LE
+meta_immutable.ReadLongLE_2 = meta_immutable.ReadInt32LE_2
+meta_immutable.ReadULongLE = meta_immutable.ReadUInt32LE
+
+meta_immutable.ReadData = meta_immutable.ReadBinary
+
+function meta_immutable:ctor(strIn)
+	self.bytes = assert(isstring(strIn) and strIn, 'bad argument #1 to DLib.ImmutableBytesBuffer (string expected, got ' .. type(strIn) .. ')')
+	self.length = #strIn
+	self.pointer = 0
+end
+
+DLib.ImmutableBytesBuffer, DLib.ImmutableBytesBufferBase = DLib.CreateMoonClassBare('LImmutableBytesBuffer', meta_immutable, object_immutable, nil, DLib.ImmutableBytesBuffer, true)
+debug.getregistry().LImmutableBytesBuffer = DLib.ImmutableBytesBuffer
