@@ -56,6 +56,20 @@ function http.PromisePut(url, body, params, headers)
 	end)
 end
 
+if file.AsyncRead then
+	function file.PromiseAsyncRead(path, search_path, sync)
+		return Promise(function(resolve, reject)
+			file.AsyncRead(path, search_path, function(_path, _search_path, status, data)
+				if status then
+					resolve(data)
+				else
+					reject()
+				end
+			end, sync)
+		end)
+	end
+end
+
 if CLIENT then
 	local steamworks = steamworks
 
