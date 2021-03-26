@@ -105,6 +105,8 @@ file.mkdir('dlib')
 
 DLib.MessageNoNL('Initializing DLib GLua extensions ... ')
 
+DLib.SharedInclude('modules/hook.lua')
+
 DLib.SharedInclude('util/combathelper.lua')
 
 DLib.SharedInclude('modules/bitworker.lua')
@@ -116,8 +118,6 @@ DLib.SharedInclude('extensions/cvar.lua')
 DLib.SharedInclude('extensions/entity.lua')
 DLib.SharedInclude('extensions/render.lua')
 DLib.SharedInclude('extensions/player.lua')
-
-DLib.SharedInclude('modules/hook.lua')
 
 DLib.SharedInclude('util/http.lua')
 DLib.SharedInclude('util/httpclient.lua')
