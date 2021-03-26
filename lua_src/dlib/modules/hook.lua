@@ -18,10 +18,7 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-
 -- performance and functionality to the core
-
-jit.on()
 
 local pairs = pairs
 local ipairs = ipairs
@@ -33,7 +30,6 @@ local type = type
 local traceback = debug.traceback
 local DLib = DLib
 local unpack = unpack
-local gxpcall = xpcall
 local SysTime = SysTime
 
 DLib.hook = DLib.hook or {}

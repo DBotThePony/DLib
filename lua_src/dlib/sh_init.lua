@@ -135,7 +135,6 @@ DLib.SharedInclude('modules/nbt.lua')
 DLib.SharedInclude('modules/gobjectnotation.lua')
 DLib.SharedInclude('modules/lerp.lua')
 DLib.SharedInclude('modules/sh_cami.lua')
-DLib.SharedInclude('modules/getinfo.lua')
 DLib.SharedInclude('modules/predictedvars.lua')
 
 DLib.net = DLib.net or {}
@@ -143,6 +142,8 @@ DLib.Net = DLib.net
 DLib.SharedInclude('modules/net/sh_init.lua')
 DLib.ClientInclude('modules/net/cl_init.lua')
 DLib.ServerInclude('modules/net/sv_init.lua')
+
+DLib.SharedInclude('modules/getinfo.lua')
 
 DLib.MessageMaker(DLib, 'DLib')
 

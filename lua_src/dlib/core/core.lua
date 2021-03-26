@@ -138,3 +138,19 @@ _G.ScrWL = ScrW
 _G.ScrWC = ScrW
 _G.ScrHL = ScrH
 _G.ScrHC = ScrH
+
+--[[
+	@doc
+	@fname ConVar
+	@args vararg arguments
+
+	@desc
+	alias of !g:GetConVar
+	@enddesc
+
+	@returns
+	ConVar: returned object
+]]
+function _G.ConVar(...)
+	return GetConVar(...)
+end

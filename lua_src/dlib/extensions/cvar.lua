@@ -21,22 +21,6 @@
 
 local GetConVar = GetConVar
 
---[[
-	@doc
-	@fname ConVar
-	@args vararg arguments
-
-	@desc
-	alias of !g:GetConVar
-	@enddesc
-
-	@returns
-	ConVar: returned object
-]]
-function _G.ConVar(...)
-	return GetConVar(...)
-end
-
 local ConVar = FindMetaTable('ConVar')
 local math = math
 local error = error
