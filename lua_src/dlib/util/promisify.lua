@@ -60,12 +60,12 @@ if file.AsyncRead then
 	function file.PromiseAsyncRead(path, search_path, sync)
 		return Promise(function(resolve, reject)
 			file.AsyncRead(path, search_path, function(_path, _search_path, status, data)
-				if status then
+				if status == 0 then
 					resolve(data)
 				else
-					reject()
+					reject(status)
 				end
-			end, sync)
+			end, sync == true)
 		end)
 	end
 end
