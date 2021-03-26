@@ -630,8 +630,10 @@ return function(tableTarget, moduleName, moduleColor)
 
 	local nwname = 'DLib.Message.' .. util.CRC(moduleName)
 	local nwnameL = 'DLib.Message.' .. util.CRC(moduleName) .. '.L'
+
 	local nwnameW = 'DLib.MessageW.' .. util.CRC(moduleName)
 	local nwnameWL = 'DLib.MessageW.' .. util.CRC(moduleName) .. '.L'
+
 	local nwnameE = 'DLib.MessageE.' .. util.CRC(moduleName)
 	local nwnameEL = 'DLib.MessageE.' .. util.CRC(moduleName) .. '.L'
 
@@ -654,9 +656,35 @@ return function(tableTarget, moduleName, moduleColor)
 		return formatted
 	end
 
+	local function MessageNoNL(...)
+		local formatted = FormatMessageRegular({...})
+		MsgC(PREFIX_COLOR, PREFIX, unpack(formatted))
+		return formatted
+	end
+
+	local function MessageNoPrefix(...)
+		local formatted = FormatMessageRegular({...})
+		MsgC(unpack(formatted))
+		MsgC('\n')
+		return formatted
+	end
+
 	local function LMessage(...)
 		local formatted = FormatMessageRegular(DLib.i18n.rebuildTable({...}, DEFAULT_TEXT_COLOR))
 		MsgC(PREFIX_COLOR, PREFIX, unpack(formatted))
+		MsgC('\n')
+		return formatted
+	end
+
+	local function LMessageNoNL(...)
+		local formatted = FormatMessageRegular(DLib.i18n.rebuildTable({...}, DEFAULT_TEXT_COLOR))
+		MsgC(PREFIX_COLOR, PREFIX, unpack(formatted))
+		return formatted
+	end
+
+	local function LMessageNoPrefix(...)
+		local formatted = FormatMessageRegular(DLib.i18n.rebuildTable({...}, DEFAULT_TEXT_COLOR))
+		MsgC(unpack(formatted))
 		MsgC('\n')
 		return formatted
 	end
@@ -668,9 +696,35 @@ return function(tableTarget, moduleName, moduleColor)
 		return formatted
 	end
 
+	local function WarningNoNL(...)
+		local formatted = FormatMessageWarning({...})
+		MsgC(PREFIX_COLOR, PREFIX, unpack(formatted))
+		return formatted
+	end
+
+	local function WarningNoPrefix(...)
+		local formatted = FormatMessageWarning({...})
+		MsgC(unpack(formatted))
+		MsgC('\n')
+		return formatted
+	end
+
 	local function LWarning(...)
 		local formatted = FormatMessageWarning(DLib.i18n.rebuildTable({...}, WARNING_COLOR))
 		MsgC(PREFIX_COLOR, PREFIX, unpack(formatted))
+		MsgC('\n')
+		return formatted
+	end
+
+	local function LWarningNoNL(...)
+		local formatted = FormatMessageWarning(DLib.i18n.rebuildTable({...}, WARNING_COLOR))
+		MsgC(PREFIX_COLOR, PREFIX, unpack(formatted))
+		return formatted
+	end
+
+	local function LWarningNoPrefix(...)
+		local formatted = FormatMessageWarning(DLib.i18n.rebuildTable({...}, WARNING_COLOR))
+		MsgC(unpack(formatted))
 		MsgC('\n')
 		return formatted
 	end
@@ -682,9 +736,34 @@ return function(tableTarget, moduleName, moduleColor)
 		return formatted
 	end
 
+	local function PrintErrorNoNL(...)
+		local formatted = FormatMessageError({...})
+		MsgC(PREFIX_COLOR, PREFIX, unpack(formatted))
+		return formatted
+	end
+
+	local function PrintErrorNoPrefix(...)
+		local formatted = FormatMessageError({...})
+		MsgC(unpack(formatted))
+		return formatted
+	end
+
 	local function LPrintError(...)
 		local formatted = FormatMessageError(DLib.i18n.rebuildTable({...}, ERROR_COLOR))
 		MsgC(PREFIX_COLOR, PREFIX, unpack(formatted))
+		MsgC('\n')
+		return formatted
+	end
+
+	local function LPrintErrorNoNL(...)
+		local formatted = FormatMessageError(DLib.i18n.rebuildTable({...}, ERROR_COLOR))
+		MsgC(PREFIX_COLOR, PREFIX, unpack(formatted))
+		return formatted
+	end
+
+	local function LPrintErrorNoPrefix(...)
+		local formatted = FormatMessageError(DLib.i18n.rebuildTable({...}, ERROR_COLOR))
+		MsgC(unpack(formatted))
 		MsgC('\n')
 		return formatted
 	end
@@ -944,107 +1023,129 @@ return function(tableTarget, moduleName, moduleColor)
 	end
 
 	local function export(tableTo)
-		tableTo.Message = Message
-		tableTo.LMessage = LMessage
-		tableTo.Warning = Warning
-		tableTo.LWarning = LWarning
-		tableTo.MessageWarning = Warning
-		tableTo.LMessageWarning = LWarning
-		tableTo.PrintError = PrintError
-		tableTo.LPrintError = LPrintError
-		tableTo.MessageError = PrintError
-		tableTo.LMessageError = LPrintError
+		tableTo.Message                     = Message
+		tableTo.LMessage                    = LMessage
+		tableTo.Warning                     = Warning
+		tableTo.LWarning                    = LWarning
+		tableTo.MessageWarning              = Warning
+		tableTo.LMessageWarning             = LWarning
+		tableTo.PrintError                  = PrintError
+		tableTo.LPrintError                 = LPrintError
+		tableTo.MessageError                = PrintError
+		tableTo.LMessageError               = LPrintError
 
-		tableTo.textcolor = Color(DEFAULT_TEXT_COLOR)
-		tableTo.textcolorWarn = Color(WARNING_COLOR)
-		tableTo.textcolorErr = Color(ERROR_COLOR)
-		tableTo.textcolorError = Color(ERROR_COLOR)
+		tableTo.MessageNoPrefix             = MessageNoPrefix
+		tableTo.LMessageNoPrefix            = LMessageNoPrefix
+		tableTo.WarningNoPrefix             = WarningNoPrefix
+		tableTo.LWarningNoPrefix            = LWarningNoPrefix
+		tableTo.MessageWarningNoPrefix      = WarningNoPrefix
+		tableTo.LMessageWarningNoPrefix     = LWarningNoPrefix
+		tableTo.PrintErrorNoPrefix          = PrintErrorNoPrefix
+		tableTo.LPrintErrorNoPrefix         = LPrintErrorNoPrefix
+		tableTo.MessageErrorNoPrefix        = PrintErrorNoPrefix
+		tableTo.LMessageErrorNoPrefix       = LPrintErrorNoPrefix
 
-		tableTo.RepackMessage = RepackMessage
-		tableTo.FormatMessage = FormatMessage
-		tableTo.FormatMessageWarning = FormatMessageWarn
-		tableTo.FormatMessageWarn = FormatMessageWarn
-		tableTo.FormatMessageError = FormatMessageErr
-		tableTo.FormatMessageErr = FormatMessageErr
+		tableTo.MessageNoNL                 = MessageNoNL
+		tableTo.LMessageNoNL                = LMessageNoNL
+		tableTo.WarningNoNL                 = WarningNoNL
+		tableTo.LWarningNoNL                = LWarningNoNL
+		tableTo.MessageWarningNoNL          = WarningNoNL
+		tableTo.LMessageWarningNoNL         = LWarningNoNL
+		tableTo.PrintErrorNoNL              = PrintErrorNoNL
+		tableTo.LPrintErrorNoNL             = LPrintErrorNoNL
+		tableTo.MessageErrorNoNL            = PrintErrorNoNL
+		tableTo.LMessageErrorNoNL           = LPrintErrorNoNL
 
-		tableTo.LFormatMessage = LFormatMessage
-		tableTo.LFormatMessageWarning = LFormatMessageWarn
-		tableTo.LFormatMessageWarn = LFormatMessageWarn
-		tableTo.LFormatMessageError = LFormatMessageErr
-		tableTo.LFormatMessageErr = LFormatMessageErr
+		tableTo.textcolor                   = Color(DEFAULT_TEXT_COLOR)
+		tableTo.textcolorWarn               = Color(WARNING_COLOR)
+		tableTo.textcolorErr                = Color(ERROR_COLOR)
+		tableTo.textcolorError              = Color(ERROR_COLOR)
 
-		tableTo.FormatMessageRaw = FormatMessageRaw
-		tableTo.FormatMessageWarningRaw = FormatMessageWarnRaw
-		tableTo.FormatMessageWarnRaw = FormatMessageWarnRaw
-		tableTo.FormatMessageErrorRaw = FormatMessageErrRaw
-		tableTo.FormatMessageErrRaw = FormatMessageErrRaw
+		tableTo.RepackMessage               = RepackMessage
+		tableTo.FormatMessage               = FormatMessage
+		tableTo.FormatMessageWarning        = FormatMessageWarn
+		tableTo.FormatMessageWarn           = FormatMessageWarn
+		tableTo.FormatMessageError          = FormatMessageErr
+		tableTo.FormatMessageErr            = FormatMessageErr
 
-		tableTo.LFormatMessageRaw = LFormatMessageRaw
-		tableTo.LFormatMessageWarningRaw = LFormatMessageWarnRaw
-		tableTo.LFormatMessageWarnRaw = LFormatMessageWarnRaw
-		tableTo.LFormatMessageErrorRaw = LFormatMessageErrRaw
-		tableTo.LFormatMessageErrRaw = LFormatMessageErrRaw
+		tableTo.LFormatMessage              = LFormatMessage
+		tableTo.LFormatMessageWarning       = LFormatMessageWarn
+		tableTo.LFormatMessageWarn          = LFormatMessageWarn
+		tableTo.LFormatMessageError         = LFormatMessageErr
+		tableTo.LFormatMessageErr           = LFormatMessageErr
 
-		tableTo.lformatMessage = LFormatMessage
-		tableTo.message = Message
-		tableTo.lmessage = LMessage
-		tableTo.repackMessage = RepackMessage
-		tableTo.formatMessage = FormatMessage
+		tableTo.FormatMessageRaw            = FormatMessageRaw
+		tableTo.FormatMessageWarningRaw     = FormatMessageWarnRaw
+		tableTo.FormatMessageWarnRaw        = FormatMessageWarnRaw
+		tableTo.FormatMessageErrorRaw       = FormatMessageErrRaw
+		tableTo.FormatMessageErrRaw         = FormatMessageErrRaw
+
+		tableTo.LFormatMessageRaw           = LFormatMessageRaw
+		tableTo.LFormatMessageWarningRaw    = LFormatMessageWarnRaw
+		tableTo.LFormatMessageWarnRaw       = LFormatMessageWarnRaw
+		tableTo.LFormatMessageErrorRaw      = LFormatMessageErrRaw
+		tableTo.LFormatMessageErrRaw        = LFormatMessageErrRaw
+
+		tableTo.lformatMessage              = LFormatMessage
+		tableTo.message                     = Message
+		tableTo.lmessage                    = LMessage
+		tableTo.repackMessage               = RepackMessage
+		tableTo.formatMessage               = FormatMessage
 
 		if CLIENT then
-			tableTo.Chat = Chat
-			tableTo.ChatWarn = ChatWarn
-			tableTo.ChatError = ChatError
-			tableTo.ChatMessage = Chat
-			tableTo.ChatPrint = Chat
-			tableTo.ChatPrintWarn = ChatWarn
-			tableTo.ChatPrintWarning = ChatWarn
-			tableTo.ChatPrintError = ChatError
-			tableTo.AddChat = Chat
-			tableTo.chatMessage = Chat
+			tableTo.Chat                    = Chat
+			tableTo.ChatWarn                = ChatWarn
+			tableTo.ChatError               = ChatError
+			tableTo.ChatMessage             = Chat
+			tableTo.ChatPrint               = Chat
+			tableTo.ChatPrintWarn           = ChatWarn
+			tableTo.ChatPrintWarning        = ChatWarn
+			tableTo.ChatPrintError          = ChatError
+			tableTo.AddChat                 = Chat
+			tableTo.chatMessage             = Chat
 
-			tableTo.LChat = LChat
-			tableTo.LChatError = LChatError
-			tableTo.LChatWarn = LChatWarn
-			tableTo.LChatMessage = LChat
-			tableTo.LChatPrint = LChat
-			tableTo.LChatPrintWarn = LChatWarn
-			tableTo.LChatPrintWarning = LChatWarn
-			tableTo.LChatPrintError = LChatError
-			tableTo.LAddChat = LChat
-			tableTo.lchatMessage = LChat
+			tableTo.LChat                   = LChat
+			tableTo.LChatError              = LChatError
+			tableTo.LChatWarn               = LChatWarn
+			tableTo.LChatMessage            = LChat
+			tableTo.LChatPrint              = LChat
+			tableTo.LChatPrintWarn          = LChatWarn
+			tableTo.LChatPrintWarning       = LChatWarn
+			tableTo.LChatPrintError         = LChatError
+			tableTo.LAddChat                = LChat
+			tableTo.lchatMessage            = LChat
 		else
-			tableTo.MessageAll = MessageAll
-			tableTo.MessageErrorAll = PrintErrorAll
-			tableTo.LMessageErrorAll = LPrintErrorAll
-			tableTo.PrintErrorAll = PrintErrorAll
-			tableTo.LPrintErrorAll = LPrintErrorAll
-			tableTo.MessageWarningAll = WarningAll
-			tableTo.WarningAll = WarningAll
-			tableTo.MessageWarningAll = WarningAll
-			tableTo.LWarningAll = LWarningAll
-			tableTo.LMessageWarningAll = LWarningAll
-			tableTo.LMessageAll = LMessageAll
+			tableTo.MessageAll              = MessageAll
+			tableTo.MessageErrorAll         = PrintErrorAll
+			tableTo.LMessageErrorAll        = LPrintErrorAll
+			tableTo.PrintErrorAll           = PrintErrorAll
+			tableTo.LPrintErrorAll          = LPrintErrorAll
+			tableTo.MessageWarningAll       = WarningAll
+			tableTo.WarningAll              = WarningAll
+			tableTo.MessageWarningAll       = WarningAll
+			tableTo.LWarningAll             = LWarningAll
+			tableTo.LMessageWarningAll      = LWarningAll
+			tableTo.LMessageAll             = LMessageAll
 		end
 
-		tableTo.MessagePlayer = MessagePlayer
-		tableTo.MessageErrorPlayer = PrintErrorPlayer
-		tableTo.PrintErrorPlayer = PrintErrorPlayer
-		tableTo.WarningPlayer = WarningPlayer
-		tableTo.MessageWarningPlayer = WarningPlayer
+		tableTo.MessagePlayer               = MessagePlayer
+		tableTo.MessageErrorPlayer          = PrintErrorPlayer
+		tableTo.PrintErrorPlayer            = PrintErrorPlayer
+		tableTo.WarningPlayer               = WarningPlayer
+		tableTo.MessageWarningPlayer        = WarningPlayer
 
-		tableTo.messagePlayer = MessagePlayer
-		tableTo.messageP = MessagePlayer
+		tableTo.messagePlayer               = MessagePlayer
+		tableTo.messageP                    = MessagePlayer
 
-		tableTo.LMessagePlayer = LMessagePlayer
-		tableTo.LPrintErrorPlayer = LPrintErrorPlayer
-		tableTo.LWarningPlayer = LWarningPlayer
+		tableTo.LMessagePlayer              = LMessagePlayer
+		tableTo.LPrintErrorPlayer           = LPrintErrorPlayer
+		tableTo.LWarningPlayer              = LWarningPlayer
 
-		tableTo.LMessageErrorPlayer = LPrintErrorPlayer
-		tableTo.LMessageWarningPlayer = LWarningPlayer
+		tableTo.LMessageErrorPlayer         = LPrintErrorPlayer
+		tableTo.LMessageWarningPlayer       = LWarningPlayer
 
-		tableTo.lmessagePlayer = LMessagePlayer
-		tableTo.lmessageP = LMessagePlayer
+		tableTo.lmessagePlayer              = LMessagePlayer
+		tableTo.lmessageP                   = LMessagePlayer
 	end
 
 	tableTarget = tableTarget or {}

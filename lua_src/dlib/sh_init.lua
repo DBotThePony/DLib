@@ -45,56 +45,6 @@ function DLib.ServerInclude(fil)
 	return include('dlib/' .. fil)
 end
 
-local startupText = [[
-	___  _    _ ___
-	|  \ |    | |__]
-	|__/ |___ | |__]
-
-	____ ____ ___  ____ ____ _ _  _ _ _  _ ____
-	|__/ |___ |  \ |___ |___ | |\ | | |\ | | __
-	|  \ |___ |__/ |___ |    | | \| | | \| |__]
-
-	____ _    _  _ ____
-	| __ |    |  | |__|
-	|__] |___ |__| |  |
-
-]]
-
-local startupText2 = [[
-	___  _    _ ___
-	|  \ |    | |__]
-	|__/ |___ | |__]
-
-	___  ____ ____ ____ _  _ _ _  _ ____
-	|__] |__/ |___ |__| |_/  | |\ | | __
-	|__] |  \ |___ |  | | \_ | | \| |__]
-
-	_   _ ____ _  _ ____
-	 \_/  |  | |  | |__/
-	  |   |__| |__| |  \
-
-	____ _  _ _ ___
-	[__  |__| |  |
-	___] |  | |  |
-
-	___ _  _
-	 |  |\/|
-	 |  |  |
-
-]]
-
-MsgC('---------------------------------------------------------------\n')
-
-if math.random() > 0.1 then
-	for line in string.gmatch(startupText, '(.-)\r?\n') do
-		MsgC(line .. '\n')
-	end
-else
-	for line in string.gmatch(startupText2, '(.-)\r?\n') do
-		MsgC(line .. '\n')
-	end
-end
-
 local MsgC = MsgC
 local SysTime = SysTime
 local timeStart = SysTime()
@@ -148,12 +98,12 @@ DLib.SharedInclude('core/fsutil.lua')
 DLib.SharedInclude('core/loader.lua')
 DLib.SharedInclude('core/loader_modes.lua')
 
-MsgC(string.format('%.2f ms\n', (SysTime() - timeStart) * 1000))
+DLib.MessageNoPrefix(string.format('%.2f ms', (SysTime() - timeStart) * 1000))
 timeStart = SysTime()
 
 file.mkdir('dlib')
 
-MsgC('[DLib] Initializing DLib GLua extensions ... ')
+DLib.MessageNoNL('Initializing DLib GLua extensions ... ')
 
 DLib.SharedInclude('util/combathelper.lua')
 
@@ -173,9 +123,9 @@ DLib.SharedInclude('util/http.lua')
 DLib.SharedInclude('util/httpclient.lua')
 DLib.SharedInclude('util/promisify.lua')
 
-MsgC(string.format('%.2f ms\n', (SysTime() - timeStart) * 1000))
+DLib.MessageNoPrefix(string.format('%.2f ms', (SysTime() - timeStart) * 1000))
 timeStart = SysTime()
-MsgC('[DLib] Initializing DLib modules ... ')
+DLib.MessageNoNL('Initializing DLib modules ... ')
 
 DLib.SharedInclude('modules/luavector.lua')
 DLib.SharedInclude('modules/net_ext.lua')
@@ -245,9 +195,9 @@ DLib.ClientInclude('modules/friendsystem/cl_friends.lua')
 DLib.ClientInclude('modules/friendsystem/cl_gui.lua')
 DLib.ServerInclude('modules/friendsystem/sv_friends.lua')
 
-MsgC(string.format('%.2f ms\n', (SysTime() - timeStart) * 1000))
+DLib.MessageNoPrefix(string.format('%.2f ms', (SysTime() - timeStart) * 1000))
 timeStart = SysTime()
-MsgC('[DLib] Initializing DLib classes ... ')
+DLib.MessageNoNL('Initializing DLib classes ... ')
 
 DLib.SharedInclude('classes/astar.lua')
 DLib.SharedInclude('classes/dmginfo.lua')
@@ -266,9 +216,9 @@ if CLIENT then
 	DLib.VGUI = DLib.VGUI or {}
 end
 
-MsgC(string.format('%.2f ms\n', (SysTime() - timeStart) * 1000))
+DLib.MessageNoPrefix(string.format('%.2f ms', (SysTime() - timeStart) * 1000))
 timeStart = SysTime()
-MsgC('[DLib] Initializing DLib general Lua additions ... ')
+DLib.MessageNoNL('Initializing DLib general Lua additions ... ')
 
 DLib.SharedInclude('luabridge/luabridge.lua')
 DLib.SharedInclude('luabridge/physgunhandler.lua')
@@ -283,4 +233,4 @@ DLib.hl2wdata = DLib.SharedInclude('data/hl2sweps.lua')
 
 DLib.__net_ext_export(DLib.Net)
 
-MsgC(string.format('%.2f ms\n', (SysTime() - timeStart) * 1000))
+DLib.MessageNoPrefix(string.format('%.2f ms', (SysTime() - timeStart) * 1000))

@@ -18,11 +18,10 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-local MsgC = MsgC
 local SysTime = SysTime
 local timeStart = SysTime()
 
-MsgC('[DLib] Initializing DLib serverside ... ')
+DLib.MessageNoNL('Initializing DLib serverside ... ')
 
 CreateConVar('sv_dlib_hud_shift', '1', {FCVAR_REPLICATED, FCVAR_NOTIFY}, 'SV Override: Enable HUD shifting')
 
@@ -104,9 +103,9 @@ AddCSLuaFile('dlib/vgui/window.lua')
 
 include('dlib/util/server/chat.lua')
 
-MsgC(string.format('%.2f ms\n', (SysTime() - timeStart) * 1000))
+DLib.MessageNoPrefix(string.format('%.2f ms\n', (SysTime() - timeStart) * 1000))
 timeStart = SysTime()
-MsgC('[DLib] Running addons ... \n')
+DLib.Message('Running addons ...')
 
 if not VLL_CURR_FILE and not VLL2_FILEDEF then
 	DLib.Loader.SharedLoad('dlib/autorun')
@@ -114,10 +113,10 @@ if not VLL_CURR_FILE and not VLL2_FILEDEF then
 	DLib.Loader.ClientLoad('dlib/autorun/client')
 end
 
-MsgC(string.format('[DLib] Addons were initialized in %.2f ms\n', (SysTime() - timeStart) * 1000))
+DLib.Message(string.format('Addons were initialized in %.2f ms', (SysTime() - timeStart) * 1000))
 
 timeStart = SysTime()
-MsgC('[DLib] Loading translations for i18n ... ')
+DLib.MessageNoNL('[DLib] Loading translations for i18n ... ')
 
 DLib.I18n.Reload()
 
@@ -133,6 +132,6 @@ end)
 
 hook.Run('DLib.TranslationsReloaded')
 
-MsgC(string.format('%.2f ms\n', (SysTime() - timeStart) * 1000))
+DLib.MessageNoPrefix(string.format('%.2f ms\n', (SysTime() - timeStart) * 1000))
 
 MsgC('---------------------------------------------------------------\n')

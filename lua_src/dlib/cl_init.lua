@@ -18,12 +18,10 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-
-local MsgC = MsgC
 local SysTime = SysTime
 local timeStart = SysTime()
 
-MsgC('[DLib] Initializing DLib clientside ... ')
+DLib.MessageNoNL('Initializing DLib clientside ... ')
 
 DLib.Notify = DLib.Notify or {}
 include('dlib/modules/notify/client/cl_init.lua')
@@ -100,19 +98,19 @@ DLib.ClientInclude('util/client/performance.lua')
 DLib.ClientInclude('modules/client/friendstatus.lua')
 DLib.ClientInclude('modules/client/lastnick.lua')
 
-MsgC(string.format('%.2f ms\n', (SysTime() - timeStart) * 1000))
+DLib.MessageNoPrefix(string.format('%.2f ms', (SysTime() - timeStart) * 1000))
 timeStart = SysTime()
-MsgC('[DLib] Running addons ... \n')
+DLib.Message('Running addons ...')
 
 if not VLL_CURR_FILE and not VLL2_FILEDEF then
 	DLib.Loader.SharedLoad('dlib/autorun')
 	DLib.Loader.ClientLoad('dlib/autorun/client')
 end
 
-MsgC(string.format('[DLib] Addons were initialized in %.2f ms\n', (SysTime() - timeStart) * 1000))
+DLib.Message(string.format('Addons were initialized in %.2f ms', (SysTime() - timeStart) * 1000))
 
 timeStart = SysTime()
-MsgC('[DLib] Loading translations for i18n ... ')
+DLib.MessageNoNL('Loading translations for i18n ... ')
 
 DLib.I18n.Reload()
 
@@ -126,6 +124,6 @@ end)
 
 hook.Run('DLib.TranslationsReloaded')
 
-MsgC(string.format('%.2f ms\n', (SysTime() - timeStart) * 1000))
+DLib.MessageNoPrefix(string.format('%.2f ms', (SysTime() - timeStart) * 1000))
 
 MsgC('---------------------------------------------------------------\n')
