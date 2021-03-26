@@ -33,7 +33,7 @@ local render_ReadPixel
 if CLIENT then
 	render_ReadPixel = render.ReadPixel
 
-	if not DLib._RenderCapturePixelsFn then
+	if not DLib._RenderCapturePixelsFn or debug.getinfo(render.CapturePixels).source:find('dlib') then
 		DLib._RenderCapturePixels = DLib._RenderCapturePixels or 0
 		DLib._RenderCapturePixels_TextureWorks = DLib._RenderCapturePixels_TextureWorks or 0
 		DLib._RenderCapturePixelsFn = DLib._RenderCapturePixelsFn or render.CapturePixels
@@ -44,7 +44,7 @@ if CLIENT then
 		end
 	end
 
-	if not render.CapturePixelsBitmap then
+	if not render.CapturePixelsBitmap or debug.getinfo(render.CapturePixelsBitmap).source:find('dlib') then
 		local buff = {}
 		local string_char = string.char
 		local unpack = unpack
