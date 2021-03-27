@@ -32,6 +32,11 @@ local DLib = DLib
 local unpack = unpack
 local SysTime = SysTime
 
+local coroutine = coroutine
+local coroutine_resume = coroutine.resume
+local coroutine_status = coroutine.status
+local coroutine_create = coroutine.create
+
 DLib.hook = DLib.hook or {}
 local ghook = _G.hook
 local hook = DLib.hook
@@ -185,6 +190,9 @@ if ghook ~= DLib.ghook then
 end
 
 local function transformStringID(funcname, stringID, event)
+	if isstring(stringID) then return stringID end
+	if type(stringID) == 'thread' then return stringID end
+
 	if type(stringID) == 'number' then
 		stringID = tostring(stringID)
 	end
@@ -472,8 +480,8 @@ end
 
 	@desc
 	Refer to !g:hook.Add for main information
-	`priority` can be a number within range of -10 to 10 inclusive
-	`hookID` **can** be a number, unlike default gmod behavior, but can not be a boolean
+	`priority` can be any number you want
+	`hookID` **can** be a number or a **coroutine** thread, unlike default gmod behavior, but can not be a boolean
 	prints tracebacks when some of arguments are invalid instead of silent fail, unlike original hook
 	throws an error when something goes horribly wrong instead of silent fail, unlike original hook
 	if priority argument is omitted, then it uses `0` as priority (if hook was not defined before)
@@ -483,13 +491,13 @@ end
 	@enddesc
 ]]
 function hook.Add(event, stringID, callback, priority)
-	if type(event) ~= 'string' then
+	if not isstring(event) then
 		ErrorNoHalt(debug.traceback('bad argument #1 to hook.Add (string expected, got ' .. type(event) .. ')', 2) .. '\n')
 
 		return
 	end
 
-	if type(callback) ~= 'function' then
+	if type(callback) ~= 'function' and type(stringID) ~= 'thread' then
 		ErrorNoHalt(debug.traceback('bad argument #3 to hook.Add (function expected, got ' .. type(callback) .. ')', 2) .. '\n')
 
 		return
@@ -515,6 +523,17 @@ function hook.Add(event, stringID, callback, priority)
 		priority = tonumber(priority) or 0
 	end
 
+	if type(stringID) == 'thread' and not callback then
+		function callback(...)
+			local status, err = coroutine_resume(stringID)
+
+			if not status then
+				hook.Remove(event, stringID)
+				error(err)
+			end
+		end
+	end
+
 	local hookData = {
 		event = event,
 		priority = priority,
@@ -524,7 +543,8 @@ function hook.Add(event, stringID, callback, priority)
 		id = stringID,
 		idString = tostring(stringID),
 		registeredAt = SysTime(),
-		typeof = isstring(stringID)
+		typeof = isstring(stringID),
+		isthread = type(stringID) == 'thread'
 	}
 
 	__table[event][priority] = __table[event][priority] or {}
@@ -830,6 +850,13 @@ function hook.Reconstruct(eventToReconstruct)
 
 				if hookData.typeof then
 					applicable = true
+				elseif hookData.isthread then
+					if coroutine_status(hookData.id) == 'dead' then
+						hookList[stringID] = nil
+						inboundgmod[stringID] = nil
+					else
+						applicable = true
+					end
 				else
 					if hookData.id:IsValid() then
 						applicable = true
@@ -844,6 +871,18 @@ function hook.Reconstruct(eventToReconstruct)
 
 					if hookData.typeof then
 						callable = hookData.callback or hookData.funcToCall
+					elseif hookData.isthread then
+						local self = hookData.id
+						local upfuncCallableSelf = hookData.callback
+
+						function callable(...)
+							if coroutine_status(self) == 'dead' then
+								hook.Remove(hookData.event, self)
+								return
+							end
+
+							return upfuncCallableSelf(self, ...)
+						end
 					else
 						local self = hookData.id
 						local upfuncCallableSelf = hookData.callback or hookData.funcToCall
@@ -1661,11 +1700,6 @@ if file.Exists('autorun/hat_init.lua', 'LUA') then
 		return table._DLibCopy(tableIn)
 	end
 end
-
-local coroutine = coroutine
-local coroutine_resume = coroutine.resume
-local coroutine_status = coroutine.status
-local coroutine_create = coroutine.create
 
 function hook.ReconstructTasks(eventToReconstruct)
 	if not eventToReconstruct then
