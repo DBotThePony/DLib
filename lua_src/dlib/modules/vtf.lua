@@ -1231,7 +1231,7 @@ function VTF:AddFlags(flags)
 	return self:SetFlags(self.flags:bor(flags))
 end
 
-function VTF:GetFlags(flags)
+function VTF:GetFlags()
 	return self.flags
 end
 
