@@ -482,6 +482,7 @@ end
 	Refer to !g:hook.Add for main information
 	`priority` can be any number you want
 	`hookID` **can** be a number or a **coroutine** thread, unlike default gmod behavior, but can not be a boolean
+	if `hookID` is a coroutine, `callback` can be omitted.
 	prints tracebacks when some of arguments are invalid instead of silent fail, unlike original hook
 	throws an error when something goes horribly wrong instead of silent fail, unlike original hook
 	if priority argument is omitted, then it uses `0` as priority (if hook was not defined before)
@@ -1801,6 +1802,24 @@ function hook.ReconstructTasks(eventToReconstruct)
 	end)
 end
 
+--[[
+	@doc
+	@fname hook.AddTask
+	@replaces
+	@args string event, any hookID, function callback
+
+	@desc
+	Adds a hook on specified event to resume coroutine created of `callback`
+	`callback` shouldn't be necessary endless loop, since if it "die", it is automatically recreated
+	The more are tasks on one hook, the more sparsingly they are called
+	This is meant for cases when you need specific code to be just executed *sometimes*,
+	for example, checking for some not critical of all server entities on each game frame
+	Example:
+	`hook.AddTask("Think", "Check Ents", function() for ... do ... coroutine.yield() end end)`
+	If used properly, can greatly help eliminating runtime requirement of background task execution
+	If you need to have your coroutine executed each time on this specific event, just use `hook.Add` instead.
+	@enddesc
+]]
 function hook.AddTask(event, stringID, callback)
 	assert(type(event) == 'string', 'bad argument #1 to hook.AddTask (string expected, got ' .. type(event) .. ')', 2)
 	assert(type(callback) == 'function', 'bad argument #3 to hook.AddTask (function expected, got ' .. type(callback) .. ')', 2)
@@ -1822,6 +1841,12 @@ function hook.AddTask(event, stringID, callback)
 	hook.ReconstructTasks(event)
 end
 
+--[[
+	@doc
+	@fname hook.RemoveTask
+	@replaces
+	@args string event, any hookID
+]]
 function hook.RemoveTask(event, stringID)
 	assert(type(event) == 'string', 'bad argument #1 to hook.AddTask (string expected, got ' .. type(event) .. ')', 2)
 	stringID = transformStringID('hook.AddTask', stringID, event)
@@ -1833,6 +1858,15 @@ function hook.RemoveTask(event, stringID)
 	hook.ReconstructTasks(event)
 end
 
+--[[
+	@doc
+	@fname hook.DisableTask
+	@replaces
+	@args string event, any hookID
+
+	@returns
+	boolean: whenever it was disabled
+]]
 function hook.DisableTask(event, stringID)
 	assert(type(event) == 'string', 'hook.DisableTask - event is not a string! ' .. type(event))
 
@@ -1852,6 +1886,15 @@ function hook.DisableTask(event, stringID)
 	return not wasDisabled
 end
 
+--[[
+	@doc
+	@fname hook.EnableTask
+	@replaces
+	@args string event, any hookID
+
+	@returns
+	boolean: whenever it was enabled
+]]
 function hook.EnableTask(event, stringID)
 	assert(type(event) == 'string', 'hook.DisableTask - event is not a string! ' .. type(event))
 
