@@ -1231,6 +1231,10 @@ function VTF:AddFlags(flags)
 	return self:SetFlags(self.flags:bor(flags))
 end
 
+function VTF:GetFlags(flags)
+	return self.flags
+end
+
 function VTF:RemoveFlags(flags)
 	return self:SetFlags(self.flags:band(flags:bnot()))
 end
