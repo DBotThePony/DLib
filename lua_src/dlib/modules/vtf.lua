@@ -1220,8 +1220,8 @@ function VTF:SetFlags(flags)
 		error('Can not remove TEXTUREFLAGS_ENVMAP from existing texture')
 	end
 
-	self.bytes:Seek(self.pointer + 16)
-	self.bytes:WriteUint32LE(flags)
+	self.bytes:Seek(self.pointer + 20)
+	self.bytes:WriteUInt32LE(flags)
 	self.flags = flags
 
 	return self
