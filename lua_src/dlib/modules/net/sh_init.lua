@@ -765,6 +765,7 @@ _net.receive('dlib_net_chunk_ack', function(_, ply)
 	for _, data in ipairs(namespace.server_chunks) do
 		if data.chunkid == chunkid then
 			data.chunks[current_chunk] = nil
+			break
 		end
 	end
 
