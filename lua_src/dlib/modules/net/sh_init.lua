@@ -245,6 +245,10 @@ _net.receive('dlib_net_chunk', function(_, ply)
 		string_format('Received chunk: Chunkid %d, current chunk number %d, total chunks %d, position: %d->%d, compressed: %s, lenght: %s',
 		chunkid, current_chunk, chunks, startpos, endpos, is_compressed and 'Yes' or 'No', length))
 
+	local namespace = Net.Namespace(CLIENT and Net or ply)
+
+	if namespace.next_expected_chunk > chunkid then return end
+
 	_net.Start('dlib_net_chunk_ack')
 	_net.WriteUInt32(chunkid)
 	_net.WriteUInt16(current_chunk)
@@ -254,10 +258,6 @@ _net.receive('dlib_net_chunk', function(_, ply)
 	else
 		_net.Send(ply)
 	end
-
-	local namespace = Net.Namespace(CLIENT and Net or ply)
-
-	if namespace.next_expected_chunk > chunkid then return end
 
 	local data = namespace.queued_chunks[chunkid]
 
