@@ -245,16 +245,14 @@ _net.receive('dlib_net_chunk', function(_, ply)
 		string_format('Received chunk: Chunkid %d, current chunk number %d, total chunks %d, position: %d->%d, compressed: %s, lenght: %s',
 		chunkid, current_chunk, chunks, startpos, endpos, is_compressed and 'Yes' or 'No', length))
 
-	if CLIENT or not is_compressed or Net.USE_COMPRESSION:GetBool() then
-		_net.Start('dlib_net_chunk_ack')
-		_net.WriteUInt32(chunkid)
-		_net.WriteUInt16(current_chunk)
+	_net.Start('dlib_net_chunk_ack')
+	_net.WriteUInt32(chunkid)
+	_net.WriteUInt16(current_chunk)
 
-		if CLIENT then
-			_net.SendToServer()
-		else
-			_net.Send(ply)
-		end
+	if CLIENT then
+		_net.SendToServer()
+	else
+		_net.Send(ply)
 	end
 
 	local namespace = Net.Namespace(CLIENT and Net or ply)
