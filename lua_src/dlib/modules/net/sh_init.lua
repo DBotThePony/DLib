@@ -87,7 +87,8 @@ function Net.Start(identifier)
 		buffer = DLib.BytesBuffer(),
 	}
 
-	if num > 19 then
+	if num > 19 and (not Net.last_write_buffer_warn or num - Net.last_write_buffer_warn > 19) then
+		Net.last_write_buffer_warn = num
 		DLib.MessageWarning('Network message send queue might got leaked. Currently ', num, ' network messages are awaiting send.')
 	end
 end
