@@ -164,10 +164,11 @@ class DLib.CacheManager
 			deleted_size += obj.size
 			deleted += 1
 
-		DLib.LMessage('message.dlib.cache_manager.cleanup', @folder, deleted, DLib.I18n.FormatAnyBytesLong(deleted_size))
+		if deleted > 0
+			DLib.LMessage('message.dlib.cache_manager.cleanup', @folder, deleted, DLib.I18n.FormatAnyBytesLong(deleted_size))
+			@SaveSwap()
 
-		@SaveSwap()
-		return true
+		return deleted > 0
 
 	CleanupIfFull: =>
 		size = @TotalSize()
@@ -192,10 +193,11 @@ class DLib.CacheManager
 			deleted_size += obj.size
 			deleted += 1
 
-		DLib.LMessage('message.dlib.cache_manager.cleanup', @folder, deleted, DLib.I18n.FormatAnyBytesLong(deleted_size))
+		if deleted > 0
+			DLib.LMessage('message.dlib.cache_manager.cleanup', @folder, deleted, DLib.I18n.FormatAnyBytesLong(deleted_size))
+			@SaveSwap()
 
-		@SaveSwap()
-		return true
+		return deleted > 0
 
 	HasHash: (key) => @state_hash[key] and string.format('%s/%s/%s.%s', @folder, key\sub(1, 2), key, @extension) or false
 
