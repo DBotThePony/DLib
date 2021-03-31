@@ -18,8 +18,6 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
-jit.on()
-
 local DLib = DLib
 local meta, metaclass = {}, {}
 
@@ -3018,6 +3016,19 @@ meta_immutable.ReadULongLE = meta_immutable.ReadUInt32LE
 
 meta_immutable.ReadData = meta_immutable.ReadBinary
 
+--[[
+	@doc
+	@fname DLib.ImmutableBytesBuffer
+	@args string binary
+
+	@desc
+	Allows to slice string for bytes. Interface is same as `BytesBuffer`,
+	except there are no write functions.
+	@enddesc
+
+	@returns
+	table: newly created object
+]]
 function meta_immutable:ctor(strIn)
 	self.bytes = assert(isstring(strIn) and strIn, 'bad argument #1 to DLib.ImmutableBytesBuffer (string expected, got ' .. type(strIn) .. ')')
 	self.length = #strIn
