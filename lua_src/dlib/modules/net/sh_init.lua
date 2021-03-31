@@ -199,8 +199,10 @@ end
 local SysTime = SysTime
 
 _net.receive('dlib_net_ack1', function(_, ply)
+	-- yeah
 	local namespace = Net.Namespace(CLIENT and Net or ply)
 	namespace.last_expected_ack = SysTime() + 10
+	namespace.last_expected_ack_chunks = SysTime() + 10
 
 	namespace.server_chunk_ack = true
 	namespace.server_datagram_ack = true
@@ -217,10 +219,12 @@ _net.receive('dlib_net_ack1', function(_, ply)
 end)
 
 _net.receive('dlib_net_ack2', function(_, ply)
+	-- pills.
 	debug('Ask 2')
 
 	local namespace = Net.Namespace(CLIENT and Net or ply)
 	namespace.last_expected_ack = SysTime() + 10
+	namespace.last_expected_ack_chunks = SysTime() + 10
 	namespace.server_chunk_ack = true
 	namespace.server_datagram_ack = true
 end)
@@ -574,6 +578,7 @@ function Net.DiscardAndFire(namespace)
 
 	namespace.next_expected_datagram = -1
 	namespace.last_expected_ack = nil
+	namespace.last_expected_ack_chunks = nil
 
 	Net.ProcessIncomingQueue(namespace)
 end
@@ -641,6 +646,10 @@ function Net.Dispatch(ply)
 
 	if not namespace.last_expected_ack then
 		namespace.last_expected_ack = SysTime() + 10
+	end
+
+	if not namespace.last_expected_ack_chunks then
+		namespace.last_expected_ack_chunks = SysTime() + 10
 	end
 end
 
@@ -717,8 +726,12 @@ function Net.DispatchChunk(ply)
 		namespace.server_chunks_num = namespace.server_chunks_num - 1
 		namespace.server_queued_size = namespace.server_queued_size - data.length
 
-		if namespace.server_chunks_num == 0 and namespace.server_datagrams_num == 0 then
+		if namespace.server_datagrams_num == 0 then
 			namespace.last_expected_ack = nil
+		end
+
+		if namespace.server_chunks_num == 0 then
+			namespace.last_expected_ack_chunks = nil
 		end
 
 		return Net.DispatchChunk(ply)
@@ -726,8 +739,8 @@ function Net.DispatchChunk(ply)
 
 	namespace.server_chunk_ack = false
 
-	if not namespace.last_expected_ack then
-		namespace.last_expected_ack = SysTime() + 10
+	if not namespace.last_expected_ack_chunks then
+		namespace.last_expected_ack_chunks = SysTime() + 10
 	end
 
 	_net.Start('dlib_net_chunk', true)
@@ -767,10 +780,10 @@ _net.receive('dlib_net_chunk_ack', function(_, ply)
 		end
 	end
 
-	if namespace.server_chunks_num == 0 and namespace.server_datagrams_num == 0 then
-		namespace.last_expected_ack = nil
+	if namespace.server_chunks_num == 0 then
+		namespace.last_expected_ack_chunks = nil
 	else
-		namespace.last_expected_ack = SysTime() + 10
+		namespace.last_expected_ack_chunks = SysTime() + 10
 	end
 end)
 
@@ -830,7 +843,7 @@ _net.receive('dlib_net_datagram_ack', function(length, ply)
 		end
 	end
 
-	if namespace.server_chunks_num == 0 and namespace.server_datagrams_num == 0 then
+	if namespace.server_datagrams_num == 0 then
 		namespace.last_expected_ack = nil
 	else
 		namespace.last_expected_ack = SysTime() + 10

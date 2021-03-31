@@ -95,11 +95,27 @@ function Net.Think()
 	local time = SysTime()
 
 	if Net.last_expected_ack and Net.last_expected_ack < time then
-		-- can you hear me?
+		-- can ANYONE HEAR MEEEE?
 		_net.Start('dlib_net_ack1', true)
 		_net.SendToServer()
 
 		Net.last_expected_ack = time + 10
+
+		if Net.last_expected_ack_chunks then
+			Net.last_expected_ack_chunks = time + 10
+		end
+	end
+
+	if Net.last_expected_ack_chunks and Net.last_expected_ack_chunks < time then
+		-- can ANYONE HEAR MEEEE?
+		_net.Start('dlib_net_ack1', true)
+		_net.SendToServer()
+
+		if Net.last_expected_ack then
+			Net.last_expected_ack = time + 10
+		end
+
+		Net.last_expected_ack_chunks = time + 10
 	end
 
 	if Net.process_next and Net.process_next < time then

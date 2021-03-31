@@ -205,11 +205,19 @@ function Net.Think()
 		end
 
 		if namespace.last_expected_ack and namespace.last_expected_ack < time then
-			-- can you hear me?
+			-- can ANYONE HEAR MEEEE?
 			_net.Start('dlib_net_ack1', true)
 			_net.Send(ply)
 
 			namespace.last_expected_ack = time + 10
+		end
+
+		if namespace.last_expected_ack_chunks and namespace.last_expected_ack_chunks < time then
+			-- can ANYONE HEAR MEEEE?
+			_net.Start('dlib_net_ack1', true)
+			_net.Send(ply)
+
+			namespace.last_expected_ack_chunks = time + 10
 		end
 
 		if namespace.server_datagrams_num_warn ~= namespace.server_datagrams_num then
