@@ -57,7 +57,6 @@ Net.server_datagrams_num = Net.server_datagrams_num or 0
 Net.next_expected_datagram = Net.next_expected_datagram or 0
 Net.next_expected_chunk = Net.next_expected_chunk or 0
 
-Net.last_expected_ack = Net.last_expected_ack or 0xFFFFFFFF
 Net.server_queued_size = Net.server_queued_size or 0
 
 Net.next_datagram_id = Net.next_datagram_id or 0
@@ -95,7 +94,7 @@ function Net.Think()
 
 	local time = SysTime()
 
-	if Net.last_expected_ack ~= 0xFFFFFFFF and Net.last_expected_ack < time then
+	if Net.last_expected_ack and Net.last_expected_ack < time then
 		-- can you hear me?
 		_net.Start('dlib_net_ack1', true)
 		_net.SendToServer()

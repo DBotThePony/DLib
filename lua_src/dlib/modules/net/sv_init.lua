@@ -167,8 +167,6 @@ function Net.Namespace(target)
 	target.next_expected_datagram = target.next_expected_datagram or 0
 	target.next_expected_chunk = target.next_expected_chunk or 0
 
-	target.last_expected_ack = target.last_expected_ack or 0xFFFFFFFF
-
 	target.next_datagram_id = target.next_datagram_id or 0
 	target.next_chunk_id = target.next_chunk_id or 0
 
@@ -206,7 +204,7 @@ function Net.Think()
 			Net.ProcessIncomingQueue(namespace, ply)
 		end
 
-		if namespace.last_expected_ack ~= 0xFFFFFFFF and namespace.last_expected_ack < time then
+		if namespace.last_expected_ack and namespace.last_expected_ack < time then
 			-- can you hear me?
 			_net.Start('dlib_net_ack1', true)
 			_net.Send(ply)

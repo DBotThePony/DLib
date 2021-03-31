@@ -573,7 +573,7 @@ function Net.DiscardAndFire(namespace)
 	namespace.queued_datagrams_num = table_Count(namespace.queued_datagrams)
 
 	namespace.next_expected_datagram = -1
-	namespace.last_expected_ack = 0xFFFFFFFF
+	namespace.last_expected_ack = nil
 
 	Net.ProcessIncomingQueue(namespace)
 end
@@ -639,7 +639,7 @@ function Net.Dispatch(ply)
 		DLib.MessageWarning('DLib.Net: Queued ', namespace.server_datagrams_num, ' datagrams for server!')
 	end
 
-	if namespace.last_expected_ack == 0xFFFFFFFF then
+	if not namespace.last_expected_ack then
 		namespace.last_expected_ack = SysTime() + 10
 	end
 end
@@ -718,7 +718,7 @@ function Net.DispatchChunk(ply)
 		namespace.server_queued_size = namespace.server_queued_size - data.length
 
 		if namespace.server_chunks_num == 0 and namespace.server_datagrams_num == 0 then
-			namespace.last_expected_ack = 0xFFFFFFFF
+			namespace.last_expected_ack = nil
 		end
 
 		return Net.DispatchChunk(ply)
@@ -726,7 +726,7 @@ function Net.DispatchChunk(ply)
 
 	namespace.server_chunk_ack = false
 
-	if namespace.last_expected_ack == 0xFFFFFFFF then
+	if not namespace.last_expected_ack then
 		namespace.last_expected_ack = SysTime() + 10
 	end
 
@@ -768,7 +768,7 @@ _net.receive('dlib_net_chunk_ack', function(_, ply)
 	end
 
 	if namespace.server_chunks_num == 0 and namespace.server_datagrams_num == 0 then
-		namespace.last_expected_ack = 0xFFFFFFFF
+		namespace.last_expected_ack = nil
 	else
 		namespace.last_expected_ack = SysTime() + 10
 	end
@@ -831,7 +831,7 @@ _net.receive('dlib_net_datagram_ack', function(length, ply)
 	end
 
 	if namespace.server_chunks_num == 0 and namespace.server_datagrams_num == 0 then
-		namespace.last_expected_ack = 0xFFFFFFFF
+		namespace.last_expected_ack = nil
 	else
 		namespace.last_expected_ack = SysTime() + 10
 	end
