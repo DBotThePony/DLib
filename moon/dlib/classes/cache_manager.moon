@@ -185,8 +185,9 @@ class DLib.CacheManager
 		deleted_size = 0
 
 		while size >= limit and #@state ~= 0
-			obj = table.remove(@state)
+			obj = @state[#@state]
 			break if size < limit * 2 and obj.last_access < sessionstart
+			@state[#@state] = nil
 			@state_hash[obj.hash] = nil
 			file.Delete(string.format('%s/%s/%s.%s', @folder, obj.hash\sub(1, 2), obj.hash, @extension))
 			size -= obj.size
