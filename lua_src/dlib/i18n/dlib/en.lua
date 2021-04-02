@@ -215,7 +215,7 @@ for i, row in ipairs(prefix) do
 	info.dlib.si.prefix[row[1]].prefix = row[2]
 end
 
-info.dlib.si.bytes_short.bytes = '%d B'
+info.dlib.si.bytes_short.bytes = '%s B'
 info.dlib.si.bytes_short.kilo = '%.2f KB'
 info.dlib.si.bytes_short.mega = '%.2f MB'
 info.dlib.si.bytes_short.giga = '%.2f GB'

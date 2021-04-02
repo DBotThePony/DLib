@@ -277,7 +277,7 @@ gui.dlib.menu.settings.oldalpha = 'Старый ползунок альфа ка
 gui.dlib.menu.settings.oldhue = 'Старый ползунок цвета'
 gui.dlib.menu.settings.wangbars = 'Ползунки цвета'
 
-info.dlib.si.bytes_short.bytes = '%d Б'
+info.dlib.si.bytes_short.bytes = '%s Б'
 info.dlib.si.bytes_short.kilo = '%.2f КБ'
 info.dlib.si.bytes_short.mega = '%.2f МБ'
 info.dlib.si.bytes_short.giga = '%.2f ГБ'
