@@ -57,6 +57,9 @@ local math_abs = math.abs
 local math_progression = math.progression
 local surface_GetTextSize = surface.GetTextSize
 
+local Net = DLib.Net
+local I18n = DLib.I18n
+
 local function refresh()
 	graph_rt_1 = GetRenderTarget('graph_profile_rt1' .. ScrW() .. '_' .. ScrH(), ScrW(), ScrH())
 	graph_rt_2 = GetRenderTarget('graph_profile_rt2' .. ScrW() .. '_' .. ScrH(), ScrW(), ScrH())
@@ -415,6 +418,14 @@ local function PostDrawHUD()
 	y = draw_boxed(string_format('EyeAngles(%.3f %.3f %.3f)', eye_angles:Unpack()), y)
 	y = draw_boxed(string_format('Velocity(%.3f %.3f %.3f)', velocity:Unpack()), y)
 	y = draw_boxed(string_format('game.GetTimeScale(): %.2f; host_timescale: %.2f / %.2f', game.GetTimeScale(), host_timescale:GetFloat(), sv_cheats:GetBool() and host_timescale:GetFloat() or 1), y)
+
+	y = y + 10
+	y = draw_boxed('DLib.Net', y)
+	y = draw_boxed(string_format('Bytes As-Server %s/As-Client %s', I18n.FormatKilobytes(Net.server_position), I18n.FormatKilobytes(Net.network_position)), y)
+	y = draw_boxed(string_format('Next datagram As-Server %d/As-Client %d', Net.next_datagram_id, Net.next_expected_datagram), y)
+	y = draw_boxed(string_format('Queued As-Server Chunks %d/Datagrams %d', Net.server_chunks_num, Net.server_datagrams_num), y)
+	y = draw_boxed(string_format('Queued As-Client Chunks %d/Datagrams %d', Net.queued_chunks_num, Net.queued_datagrams_num), y)
+	y = draw_boxed(string_format('Input buffer %s', I18n.FormatKilobytes(Net.accumulated_size)), y)
 
 	y = 0
 
