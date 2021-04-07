@@ -176,6 +176,64 @@ for i = 0, 14 do
 	power_of_two[math.pow(2, i)] = i
 end
 
+--[[
+	@doc
+	@fname DLib.VTF.Create
+	@args number version, number width, number height, number format, table extra = {}
+
+	@desc
+	`version` is a number between 1 and 5 (inclusive) for 7.1 to 7.5 VTF versions respectively
+	`width` and `height` must be a power of two
+	`format` must be `IMAGE_FORMAT_` global enum:
+
+	```lua
+		local Formats = {
+		'IMAGE_FORMAT_NONE',
+		'IMAGE_FORMAT_RGBA8888',
+		'IMAGE_FORMAT_ABGR8888',
+		'IMAGE_FORMAT_RGB888',
+		'IMAGE_FORMAT_BGR888',
+		'IMAGE_FORMAT_RGB565',
+		'IMAGE_FORMAT_I8',
+		'IMAGE_FORMAT_IA88',
+		'IMAGE_FORMAT_P8',
+		'IMAGE_FORMAT_A8',
+		'IMAGE_FORMAT_RGB888_BLUESCREEN',
+		'IMAGE_FORMAT_BGR888_BLUESCREEN',
+		'IMAGE_FORMAT_ARGB8888',
+		'IMAGE_FORMAT_BGRA8888',
+		'IMAGE_FORMAT_DXT1',
+		'IMAGE_FORMAT_DXT3',
+		'IMAGE_FORMAT_DXT5',
+		'IMAGE_FORMAT_BGRX8888',
+		'IMAGE_FORMAT_BGR565',
+		'IMAGE_FORMAT_BGRX5551',
+		'IMAGE_FORMAT_BGRA4444',
+		'IMAGE_FORMAT_DXT1_ONEBITALPHA',
+		'IMAGE_FORMAT_BGRA5551',
+		'IMAGE_FORMAT_UV88',
+		'IMAGE_FORMAT_UVWQ8888',
+		'IMAGE_FORMAT_RGBA16161616F',
+		'IMAGE_FORMAT_RGBA16161616',
+		'IMAGE_FORMAT_UVLX8888'
+	}
+	```
+
+	extra is an optional table that might include:
+	`resources` table (key -> value, 7.3+ only, filled automatically)
+	`flags` number (for creating envmaps you must set it)
+	`frames` number
+	`first_frame` number
+	`fill` Color (defaults to white)
+	`bumpmap_scale` number
+	`mipmap_count` can be a positive number (exact), negative (auto - mipmap_count), or `true` (auto)
+	`depth` number
+
+	@enddesc
+
+	@returns
+	table: newly created DLib.VTF
+]]
 -- version is a number from 1 (7.1) to 5 (7.5)
 function VTFObject.Create(version, width, height, format, extra)
 	assert(isnumber(version), 'isnumber(version)', 2)
@@ -427,6 +485,12 @@ function VTFObject.Create(version, width, height, format, extra)
 	return DLib.VTF(bytes)
 end
 
+--[[
+	@doc
+	@fname VTF:DecodeHiRes
+
+	@internal
+]]
 function VTF:DecodeHiRes()
 	-- from smallest to largest
 	for mipmap = 1, self.mipmap_count do
@@ -463,6 +527,12 @@ function VTF:DecodeHiRes()
 	end
 end
 
+--[[
+	@doc
+	@fname VTF:DecodeLowRes
+
+	@internal
+]]
 function VTF:DecodeLowRes()
 	-- DXT1: each block takes 64 bits of data, or 8 bytes
 	-- width / 4 * height / 4 * 8
@@ -470,6 +540,22 @@ function VTF:DecodeLowRes()
 	self.bytes:Walk(self.low_width * self.low_height / 2)
 end
 
+--[[
+	@doc
+	@fname DLib.VTF
+	@args table bytesBuffer
+
+	@desc
+	this is a moonscript compatible class table
+	Example usage: `DLib.VTF(DLib.BytesBuffer(file.Read('something.vtf', 'DATA')))`
+
+	If you don't need to modify texture and only read it, use `DLib.ImmutableBytesBuffer` in example above.
+	That will be a lot faster
+	@enddesc
+
+	@returns
+	table: newly created DLib.VTF
+]]
 function VTF:ctor(bytes)
 	self.pointer = bytes:Tell()
 	self.bytes = bytes
@@ -579,11 +665,101 @@ function VTF:ctor(bytes)
 	end
 end
 
+--[[
+	@doc
+	@fname VTF:SetUpcomingMipmap
+	@args number mipmap
+
+	@desc
+	Sets appropriate variable for upcoming operations as default value
+	@enddesc
+]]
+
+--[[
+	@doc
+	@fname VTF:GetUpcomingMipmap
+	@args number mipmap
+
+	@returns
+	number
+]]
 AccessorFunc(VTF, 'm_upcomping_mipmap', 'UpcomingMipmap')
+
+--[[
+	@doc
+	@fname VTF:SetUpcomingFrame
+	@args number frame
+
+	@desc
+	Sets appropriate variable for upcoming operations as default value
+	1 count start based
+	@enddesc
+]]
+
+--[[
+	@doc
+	@fname VTF:GetUpcomingFrame
+	@args number frame
+
+	@returns
+	number
+]]
 AccessorFunc(VTF, 'm_upcomping_frame', 'UpcomingFrame')
+
+--[[
+	@doc
+	@fname VTF:SetUpcomingFace
+	@args number face
+
+	@desc
+	Sets appropriate variable for upcoming operations as default value
+	1 count start based
+	@enddesc
+]]
+
+--[[
+	@doc
+	@fname VTF:GetUpcomingFace
+	@args number face
+
+	@returns
+	number
+]]
 AccessorFunc(VTF, 'm_upcomping_face', 'UpcomingFace')
+
+--[[
+	@doc
+	@fname VTF:SetUpcomingDepth
+	@args number depth
+
+	@desc
+	Sets appropriate variable for upcoming operations as default value
+	1 count start based
+	@enddesc
+]]
+
+--[[
+	@doc
+	@fname VTF:GetUpcomingDepth
+	@args number depth
+
+	@returns
+	number
+]]
 AccessorFunc(VTF, 'm_upcomping_depth', 'UpcomingDepth')
 
+--[[
+	@doc
+	@fname VTF:GetTexture
+	@args number mipmap = 1, number frame = 1, number face = 1, number zDepth = 1
+
+	@desc
+	throws errors if no texture is found (due to bad arguments)
+	@enddesc
+
+	@returns
+	table: respective texture object (DLib.AbstractTexture derative)
+]]
 -- for reasons of better use experience, 1 is largest mipmap
 function VTF:GetTexture(mipmap, frame, face, zDepth)
 	if mipmap == nil then mipmap = 1 end
@@ -604,16 +780,43 @@ function VTF:GetTexture(mipmap, frame, face, zDepth)
 	return self.structure[self.mipmap_count - mipmap + 1][frame][face][zDepth]
 end
 
+--[[
+	@doc
+	@fname VTF:ToFileStream
+	@args File stream
+]]
 function VTF:ToFileStream(...)
 	return self.bytes:ToFileStream(...)
 end
 
+--[[
+	@doc
+	@fname VTF:ToString
+
+	@returns
+	string: binary
+]]
 function VTF:ToString()
 	return self.bytes:ToString()
 end
 
 local sample_encode_buff = {}
 
+--[[
+	@doc
+	@fname VTF:AutoGenerateMips
+	@args boolean supersample, table options = {}
+
+	@desc
+	Samples biggest mipmap onto all smaller mips.
+	Supersampling is much more accurate when calculating very small mips,
+	but is performance hungry, since it has to sample entire biggest mip each time.
+	`options` might include:
+	`coroutine` boolean (whenever to use coroutine, **set to true if not present and AutoGenerateMips called within coroutine**)
+	`thresold` number (how long to execute on each coroutine.resume call)
+	This also (re)calculate reflectivity
+	@enddesc
+]]
 do
 	local sample_buffer = {}
 	local sample_result = {}
@@ -1187,6 +1390,10 @@ do
 	end
 end
 
+--[[
+	@doc
+	@fname VTF:CalculateReflectivity
+]]
 function VTF:CalculateReflectivity()
 	local obj = self.mipmaps_obj[self.mipmap_count]
 
@@ -1211,6 +1418,18 @@ function VTF:CalculateReflectivity()
 	self:SetReflectivity(reflectivity)
 end
 
+--[[
+	@doc
+	@fname VTF:SetFlags
+	@args number flags
+
+	@desc
+	certain flags that mutate texture depth/faces are immutable
+	@enddesc
+
+	@returns
+	table: self
+]]
 function VTF:SetFlags(flags)
 	assert(isnumber(flags), 'isnumber(flags)')
 
@@ -1227,18 +1446,62 @@ function VTF:SetFlags(flags)
 	return self
 end
 
+--[[
+	@doc
+	@fname VTF:AddFlags
+	@args number flags
+
+	@desc
+	certain flags that mutate texture depth/faces are immutable
+	@enddesc
+
+	@returns
+	table: self
+]]
 function VTF:AddFlags(flags)
 	return self:SetFlags(self.flags:bor(flags))
 end
 
+--[[
+	@doc
+	@fname VTF:GetFlags
+
+	@returns
+	number: flags
+]]
 function VTF:GetFlags()
 	return self.flags
 end
 
+--[[
+	@doc
+	@fname VTF:RemoveFlags
+	@args number flags
+
+	@desc
+	certain flags that mutate texture depth/faces are immutable
+	@enddesc
+
+	@returns
+	table: self
+]]
 function VTF:RemoveFlags(flags)
 	return self:SetFlags(self.flags:band(flags:bnot()))
 end
 
+--[[
+	@doc
+	@fname VTF:SetReflectivity
+	@args Vector reflectivity
+
+	@desc
+	writes vector components as little endians to buffer to reflectivity
+	variable in header
+	@enddesc
+
+	@returns
+	table: self
+]]
 function VTF:SetReflectivity(reflectivity)
 	self.reflectivity = reflectivity
 
@@ -1251,6 +1514,27 @@ function VTF:SetReflectivity(reflectivity)
 	return self
 end
 
+--[[
+	@doc
+	@fname VTF:CaptureRenderTarget
+	@args table options = {}
+
+	@desc
+	`options.x` number
+	`options.y` number
+	`options.width` number
+	`options.height` number
+	`options.rx` number (offset inside texture)
+	`options.ry` number (offset inside texture)
+	`options.mipmap` number (mipmap to use, starting from 1)
+	`options.frame` number (frame to use, starting from 1)
+	`options.face` number (face to use, starting from 1)
+	`options.depth` number (depth to use, starting from 1)
+	@enddesc
+
+	@returns
+	boolean: if the operation is supposely successful
+]]
 function VTF:CaptureRenderTarget(opts, y, width, height, rx, ry)
 	if SERVER then error('Invalid realm', 2) end
 	if not istable(opts) then
@@ -1281,6 +1565,33 @@ function VTF:CaptureRenderTarget(opts, y, width, height, rx, ry)
 	return true
 end
 
+--[[
+	@doc
+	@fname VTF:CaptureRenderTargetCoroutine
+	@args table options = {}
+
+	@desc
+	`options.x` number
+	`options.y` number
+	`options.width` number
+	`options.height` number
+	`options.rx` number (offset inside texture)
+	`options.ry` number (offset inside texture)
+	`options.mipmap` number (mipmap to use, starting from 1)
+	`options.frame` number (frame to use, starting from 1)
+	`options.face` number (face to use, starting from 1)
+	`options.depth` number (depth to use, starting from 1)
+	`options.yield_args` table
+	`options.thersold` number (how long to execute on each coroutine.resume call)
+	`options.before` function (code to execute before coroutine.yield())
+	`options.after` function (code to execute after coroutine.yield())
+	if `before` and `after` are nil, they are defined as `render.Pop/PushRenderTarget`
+	with `DLib.Util.PushProgress`
+	@enddesc
+
+	@returns
+	boolean: if the operation is supposely successful
+]]
 function VTF:CaptureRenderTargetCoroutine(opts, y, width, height, rx, ry, ...)
 	if SERVER then error('Invalid realm', 2) end
 	if not istable(opts) then
@@ -1342,6 +1653,32 @@ function VTF:CaptureRenderTargetCoroutine(opts, y, width, height, rx, ry, ...)
 	return true
 end
 
+--[[
+	@doc
+	@fname VTF:CaptureRenderTargetAsAlpha
+	@args table options = {}
+
+	@desc
+	Captures render target as "alpha"
+	Fully white - opaque
+	Fully black - translucent
+	This is mostly required for getting Alpha on older gmod versions
+	See https://github.com/Facepunch/garrysmod-requests/issues/1813
+	`options.x` number
+	`options.y` number
+	`options.width` number
+	`options.height` number
+	`options.rx` number (offset inside texture)
+	`options.ry` number (offset inside texture)
+	`options.mipmap` number (mipmap to use, starting from 1)
+	`options.frame` number (frame to use, starting from 1)
+	`options.face` number (face to use, starting from 1)
+	`options.depth` number (depth to use, starting from 1)
+	@enddesc
+
+	@returns
+	boolean: if the operation is supposely successful
+]]
 -- captures current render target as "alpha"
 -- fully white - means fully opaque
 -- fully black - means fully translucent
@@ -1378,6 +1715,38 @@ function VTF:CaptureRenderTargetAsAlpha(opts, y, width, height, rx, ry)
 	return true
 end
 
+--[[
+	@doc
+	@fname VTF:CaptureRenderTargetAsAlphaCoroutine
+	@args table options = {}
+
+	@desc
+	Captures render target as "alpha"
+	Fully white - opaque
+	Fully black - translucent
+	This is mostly required for getting Alpha on older gmod versions
+	See https://github.com/Facepunch/garrysmod-requests/issues/1813
+	`options.x` number
+	`options.y` number
+	`options.width` number
+	`options.height` number
+	`options.rx` number (offset inside texture)
+	`options.ry` number (offset inside texture)
+	`options.mipmap` number (mipmap to use, starting from 1)
+	`options.frame` number (frame to use, starting from 1)
+	`options.face` number (face to use, starting from 1)
+	`options.depth` number (depth to use, starting from 1)
+	`options.yield_args` table
+	`options.thersold` number (how long to execute on each coroutine.resume call)
+	`options.before` function (code to execute before coroutine.yield())
+	`options.after` function (code to execute after coroutine.yield())
+	if `before` and `after` are nil, they are defined as `render.Pop/PushRenderTarget`
+	with `DLib.Util.PushProgress`
+	@enddesc
+
+	@returns
+	boolean: if the operation is supposely successful
+]]
 function VTF:CaptureRenderTargetAsAlphaCoroutine(opts, y, width, height, rx, ry, ...)
 	if SERVER then error('Invalid realm', 2) end
 	if not self.support_alpha then return false end
