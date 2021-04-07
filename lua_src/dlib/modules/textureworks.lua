@@ -688,19 +688,19 @@ function RGBA8888:GetBlock(x, y, export)
 			bytes:Seek(edge + x * 16 + y * width * 16 + line * width * 4)
 			local color = bytes:ReadUInt32LE()
 			local obj = export[line * 4 + 1]
-			obj[1], obj[2], obj[3], obj[4] = flop(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24))
+			obj[1], obj[2], obj[3], obj[4] = flop(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(color, 24))
 
 			color = bytes:ReadUInt32LE()
 			obj = export[line * 4 + 2]
-			obj[1], obj[2], obj[3], obj[4] = flop(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24))
+			obj[1], obj[2], obj[3], obj[4] = flop(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(color, 24))
 
 			color = bytes:ReadUInt32LE()
 			obj = export[line * 4 + 3]
-			obj[1], obj[2], obj[3], obj[4] = flop(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24))
+			obj[1], obj[2], obj[3], obj[4] = flop(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(color, 24))
 
 			color = bytes:ReadUInt32LE()
 			obj = export[line * 4 + 4]
-			obj[1], obj[2], obj[3], obj[4] = flop(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24))
+			obj[1], obj[2], obj[3], obj[4] = flop(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(color, 24))
 		end
 
 		return export
@@ -713,16 +713,16 @@ function RGBA8888:GetBlock(x, y, export)
 		bytes:Seek(edge + x * 16 + y * width * 16 + line * width * 4)
 
 		local color = bytes:ReadUInt32LE()
-		result[line * 4 + 1] = Color(flop(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24)))
+		result[line * 4 + 1] = Color(flop(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(color, 24)))
 
 		color = bytes:ReadUInt32LE()
-		result[line * 4 + 2] = Color(flop(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24)))
+		result[line * 4 + 2] = Color(flop(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(color, 24)))
 
 		color = bytes:ReadUInt32LE()
-		result[line * 4 + 3] = Color(flop(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24)))
+		result[line * 4 + 3] = Color(flop(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(color, 24)))
 
 		color = bytes:ReadUInt32LE()
-		result[line * 4 + 4] = Color(flop(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24)))
+		result[line * 4 + 4] = Color(flop(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(color, 24)))
 	end
 
 	self.cache[pixel] = result
@@ -744,7 +744,7 @@ function RGBA8888:ReadEntireImage(nocache)
 	for y = 0, self.height - 1 do
 		for x = 0, self.width - 1 do
 			local color = bytes:ReadUInt32LE()
-			result[index] = Color(flop(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24)))
+			result[index] = Color(flop(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(color, 24)))
 			index = index + 1
 		end
 	end
@@ -1666,3 +1666,411 @@ function BGRA5551Object.Create(width, height, fill, bytes)
 end
 
 DLib.BGRA5551 = DLib.CreateMoonClassBare('BGRA5551', BGRA5551, BGRA5551Object, DLib.RGB565)
+
+local function to_luma_rec601(r, g, b) return round(r * 0.299 + g * 0.587 + b * 0.114) end
+local function to_luma_rec709(r, g, b) return round(r * 0.2126 + g * 0.7152 + b * 0.0722) end
+local function to_luma_rec240(r, g, b) return round(r * 0.212 + g * 0.701 + b * 0.0087) end
+
+local I8 = {
+	luma_func = to_luma_rec709,
+	current_luma = 1,
+	lumas = {
+		to_luma_rec709,
+		to_luma_rec601,
+		to_luma_rec240
+	}
+}
+local I8Object = {}
+
+function I8:SwitchLumaType(num)
+	self.luma_func = assert(self.lumas[num], 'invalid luma function: ' .. num)
+	self.current_luma = num
+end
+
+function I8:GetLumaType()
+	return self.current_luma
+end
+
+function I8:GetLumaFunction()
+	return self.luma_func
+end
+
+function I8:SetLumaFunction(func)
+	assert(isfunction(func))
+	self.luma_func = func
+end
+
+function I8Object.CountBytes(w, h)
+	return w * h
+end
+
+local function twos(_)
+	if _ < 0 then return 0x100000000 + _ end
+	return _
+end
+
+function I8Object.Create(width, height, fill, bytes)
+	assert(width > 0, 'width <= 0')
+	assert(height > 0, 'height <= 0')
+
+	--assert(width % 4 == 0, 'width % 4 ~= 0')
+	--assert(height % 4 == 0, 'height % 4 ~= 0')
+
+	fill = fill or color_white
+	local filler = string.char(to_luma_rec601(floor(fill.r), floor(fill.g), floor(fill.b)))
+
+	if not bytes then
+		return DLib.I8(DLib.BytesBuffer(string.rep(filler, width * height)), width, height)
+	end
+
+	local pointer = bytes:Tell()
+	bytes:WriteBinary(string.rep(filler, width * height))
+	local pointer2 = bytes:Tell()
+	bytes:Seek(pointer)
+	local texture = DLib.I8(bytes, width, height)
+	bytes:Seek(pointer2)
+
+	return texture
+end
+
+function I8:SetBlock(x, y, buffer, plain_format)
+	assert(x >= 0, '!x >= 0')
+	assert(y >= 0, '!y >= 0')
+	assert(x < self.width_blocks, '!x <= self.width_blocks')
+	assert(y < self.height_blocks, '!y <= self.height_blocks')
+
+	local bytes = self.bytes
+	local edge = self.edge
+	local width = self.width
+	local luma_func = self.luma_func
+
+	if plain_format then
+		for line = 0, 3 do
+			bytes:Seek(edge + x * 4 + y * width * 4 + line * width)
+
+			local obj_1 = buffer[line * 4 + 1]
+			local obj_2 = buffer[line * 4 + 2]
+			local obj_3 = buffer[line * 4 + 3]
+			local obj_4 = buffer[line * 4 + 4]
+
+			bytes:WriteUInt32LE(twos(bor(
+					   luma_func(obj_1[1], obj_1[2], obj_1[3]),
+				lshift(luma_func(obj_2[1], obj_2[2], obj_2[3]), 8),
+				lshift(luma_func(obj_3[1], obj_3[2], obj_3[3]), 16),
+				lshift(luma_func(obj_4[1], obj_4[2], obj_4[3]), 24)
+			)))
+		end
+	else
+		for line = 0, 3 do
+			bytes:Seek(edge + x * 4 + y * width * 4 + line * width)
+
+			local obj_1 = buffer[line * 4 + 1]
+			local obj_2 = buffer[line * 4 + 2]
+			local obj_3 = buffer[line * 4 + 3]
+			local obj_4 = buffer[line * 4 + 4]
+
+			bytes:WriteUInt32LE(twos(bor(
+					   luma_func(obj_1.r, obj_1.g, obj_1.b),
+				lshift(luma_func(obj_2.r, obj_2.g, obj_2.b), 8),
+				lshift(luma_func(obj_3.r, obj_3.g, obj_3.b), 16),
+				lshift(luma_func(obj_4.r, obj_4.g, obj_4.b), 24)
+			)))
+		end
+	end
+end
+
+function I8:GetBlock(x, y, export)
+	assert(x >= 0, '!x >= 0')
+	assert(y >= 0, '!y >= 0')
+	assert(x < self.width_blocks, '!x <= self.width_blocks')
+	assert(y < self.height_blocks, '!y <= self.height_blocks')
+
+	local pixel = y * self.width_blocks + x
+
+	if not export and self.cache[pixel] then
+		return self.cache[pixel]
+	end
+
+	local bytes = self.bytes
+	local edge = self.edge
+	local width = self.width
+	local flop = self.flop
+
+	if export then
+		for line = 0, 3 do
+			bytes:Seek(edge + x * 4 + y * width * 4 + line * width)
+			local color = bytes:ReadUInt32LE()
+			local obj = export[line * 4 + 1]
+			local _color = band(color, 0xFF)
+			obj[1], obj[2], obj[3] = _color, _color, _color
+
+			_color = rshift(band(color, 0xFF00), 8)
+			obj = export[line * 4 + 2]
+			obj[1], obj[2], obj[3] = _color, _color, _color
+
+			_color = rshift(band(color, 0xFF0000), 16)
+			obj = export[line * 4 + 3]
+			obj[1], obj[2], obj[3] = _color, _color, _color
+
+			_color = rshift(color, 24)
+			obj = export[line * 4 + 4]
+			obj[1], obj[2], obj[3] = _color, _color, _color
+		end
+
+		return export
+	end
+
+	local result = {}
+	local index = 1
+
+	for line = 0, 3 do
+		bytes:Seek(edge + x * 4 + y * width * 4 + line * width)
+
+		local color = bytes:ReadUInt32LE()
+		local _color = band(color, 0xFF)
+		result[line * 4 + 1] = Color(_color, _color, _color)
+
+		_color = rshift(band(color, 0xFF00), 8)
+		result[line * 4 + 2] = Color(_color, _color, _color)
+
+		_color = rshift(band(color, 0xFF0000), 16)
+		result[line * 4 + 3] = Color(_color, _color, _color)
+
+		_color = rshift(color, 24)
+		result[line * 4 + 4] = Color(_color, _color, _color)
+	end
+
+	self.cache[pixel] = result
+
+	return result
+end
+
+function I8:ReadEntireImage(nocache)
+	if self._cache then return self._cache end
+
+	local result = {}
+	local index = 1
+	local bytes = self.bytes
+	local flop = self.flop
+
+	bytes:Seek(self.edge)
+
+	for y = 0, self.height - 1 do
+		for x = 0, self.width - 1 do
+			local read = bytes:ReadUByte()
+			result[index] = Color(read, read, read)
+			index = index + 1
+		end
+	end
+
+	if not nocache then
+		self._cache = result
+	end
+
+	return result
+end
+
+DLib.I8 = DLib.CreateMoonClassBare('I8', I8, I8Object, DLib.AbstractTexture)
+
+local IA88 = {
+	luma_func = to_luma_rec709,
+	current_luma = 1,
+	lumas = {
+		to_luma_rec709,
+		to_luma_rec601,
+		to_luma_rec240
+	}
+}
+local IA88Object = {}
+
+function IA88:SwitchLumaType(num)
+	self.luma_func = assert(self.lumas[num], 'invalid luma function: ' .. num)
+	self.current_luma = num
+end
+
+function IA88:GetLumaType()
+	return self.current_luma
+end
+
+function IA88:GetLumaFunction()
+	return self.luma_func
+end
+
+function IA88:SetLumaFunction(func)
+	assert(isfunction(func))
+	self.luma_func = func
+end
+
+function IA88Object.CountBytes(w, h)
+	return w * h * 2
+end
+
+function IA88Object.Create(width, height, fill, bytes)
+	assert(width > 0, 'width <= 0')
+	assert(height > 0, 'height <= 0')
+
+	--assert(width % 4 == 0, 'width % 4 ~= 0')
+	--assert(height % 4 == 0, 'height % 4 ~= 0')
+
+	fill = fill or color_white
+	local filler = string.char(to_luma_rec601(floor(fill.r), floor(fill.g), floor(fill.b)), floor(fill.a))
+
+	if not bytes then
+		return DLib.I8(DLib.BytesBuffer(string.rep(filler, width * height)), width, height)
+	end
+
+	local pointer = bytes:Tell()
+	bytes:WriteBinary(string.rep(filler, width * height))
+	local pointer2 = bytes:Tell()
+	bytes:Seek(pointer)
+	local texture = DLib.I8(bytes, width, height)
+	bytes:Seek(pointer2)
+
+	return texture
+end
+
+function IA88:SetBlock(x, y, buffer, plain_format)
+	assert(x >= 0, '!x >= 0')
+	assert(y >= 0, '!y >= 0')
+	assert(x < self.width_blocks, '!x <= self.width_blocks')
+	assert(y < self.height_blocks, '!y <= self.height_blocks')
+
+	local bytes = self.bytes
+	local edge = self.edge
+	local width = self.width
+	local luma_func = self.luma_func
+
+	if plain_format then
+		for line = 0, 3 do
+			bytes:Seek(edge + x * 8 + y * width * 8 + line * width * 2)
+
+			local obj = buffer[line * 4 + 1]
+			bytes:WriteUInt16LE(bor(luma_func(obj[1], obj[2], obj[3]), lshift(obj[4], 8)))
+
+			obj = buffer[line * 4 + 2]
+			bytes:WriteUInt16LE(bor(luma_func(obj[1], obj[2], obj[3]), lshift(obj[4], 8)))
+
+			obj = buffer[line * 4 + 3]
+			bytes:WriteUInt16LE(bor(luma_func(obj[1], obj[2], obj[3]), lshift(obj[4], 8)))
+
+			obj = buffer[line * 4 + 4]
+			bytes:WriteUInt16LE(bor(luma_func(obj[1], obj[2], obj[3]), lshift(obj[4], 8)))
+		end
+	else
+		for line = 0, 3 do
+			bytes:Seek(edge + x * 8 + y * width * 8 + line * width * 2)
+
+			local obj = buffer[line * 4 + 1]
+			bytes:WriteUInt16LE(bor(luma_func(obj.r, obj.g, obj.b), lshift(obj[4], 8)))
+
+			obj = buffer[line * 4 + 2]
+			bytes:WriteUInt16LE(bor(luma_func(obj.r, obj.g, obj.b), lshift(obj[4], 8)))
+
+			obj = buffer[line * 4 + 3]
+			bytes:WriteUInt16LE(bor(luma_func(obj.r, obj.g, obj.b), lshift(obj[4], 8)))
+
+			obj = buffer[line * 4 + 4]
+			bytes:WriteUInt16LE(bor(luma_func(obj.r, obj.g, obj.b), lshift(obj[4], 8)))
+		end
+	end
+end
+
+function IA88:GetBlock(x, y, export)
+	assert(x >= 0, '!x >= 0')
+	assert(y >= 0, '!y >= 0')
+	assert(x < self.width_blocks, '!x <= self.width_blocks')
+	assert(y < self.height_blocks, '!y <= self.height_blocks')
+
+	local pixel = y * self.width_blocks + x
+
+	if not export and self.cache[pixel] then
+		return self.cache[pixel]
+	end
+
+	local bytes = self.bytes
+	local edge = self.edge
+	local width = self.width
+	local flop = self.flop
+
+	if export then
+		for line = 0, 3 do
+			bytes:Seek(edge + x * 8 + y * width * 8 + line * width * 2)
+			local color = bytes:ReadUInt16LE()
+			local obj = export[line * 4 + 1]
+			local _color = band(color, 0xFF)
+			obj[1], obj[2], obj[3] = _color, _color, _color, rshift(color, 8)
+
+			color = bytes:ReadUInt16LE()
+			obj = export[line * 4 + 2]
+			_color = band(color, 0xFF)
+			obj[1], obj[2], obj[3] = _color, _color, _color, rshift(color, 8)
+
+			color = bytes:ReadUInt16LE()
+			obj = export[line * 4 + 3]
+			_color = band(color, 0xFF)
+			obj[1], obj[2], obj[3] = _color, _color, _color, rshift(color, 8)
+
+			color = bytes:ReadUInt16LE()
+			obj = export[line * 4 + 4]
+			_color = band(color, 0xFF)
+			obj[1], obj[2], obj[3] = _color, _color, _color, rshift(color, 8)
+		end
+
+		return export
+	end
+
+	local result = {}
+	local index = 1
+
+	for line = 0, 3 do
+		bytes:Seek(edge + x * 8 + y * width * 8 + line * width * 2)
+
+		local color = bytes:ReadUInt16LE()
+		local _color = band(color, 0xFF)
+		result[line * 4 + 1] = Color(_color, _color, _color, rshift(color, 8))
+
+		color = bytes:ReadUInt16LE()
+		_color = band(color, 0xFF)
+		result[line * 4 + 2] = Color(_color, _color, _color, rshift(color, 8))
+
+		color = bytes:ReadUInt16LE()
+		_color = band(color, 0xFF)
+		result[line * 4 + 3] = Color(_color, _color, _color, rshift(color, 8))
+
+		color = bytes:ReadUInt16LE()
+		_color = band(color, 0xFF)
+		result[line * 4 + 4] = Color(_color, _color, _color, rshift(color, 8))
+	end
+
+	self.cache[pixel] = result
+
+	return result
+end
+
+function IA88:ReadEntireImage(nocache)
+	if self._cache then return self._cache end
+
+	local result = {}
+	local index = 1
+	local bytes = self.bytes
+	local flop = self.flop
+
+	bytes:Seek(self.edge)
+
+	for y = 0, self.height - 1 do
+		for x = 0, self.width - 1 do
+			local color = bytes:ReadUInt16LE()
+			_color = band(color, 0xFF)
+			result[index] = Color(_color, _color, _color, rshift(color, 8))
+			index = index + 1
+		end
+	end
+
+	if not nocache then
+		self._cache = result
+	end
+
+	return result
+end
+
+DLib.IA88 = DLib.CreateMoonClassBare('IA88', IA88, IA88Object, DLib.AbstractTexture)
