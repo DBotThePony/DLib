@@ -1941,7 +1941,7 @@ function IA88Object.Create(width, height, fill, bytes)
 	return texture
 end
 
-function IA88:SetBlock(x, y, buffer, plain_format)
+function IA88:SetBlock(x, y, buffer, plain_format, only_update_alpha)
 	assert(x >= 0, '!x >= 0')
 	assert(y >= 0, '!y >= 0')
 	assert(x < self.width_blocks, '!x <= self.width_blocks')
@@ -1953,36 +1953,86 @@ function IA88:SetBlock(x, y, buffer, plain_format)
 	local luma_func = self.luma_func
 
 	if plain_format then
-		for line = 0, 3 do
-			bytes:Seek(edge + x * 8 + y * width * 8 + line * width * 2)
+		if only_update_alpha then
+			for line = 0, 3 do
+				bytes:Seek(edge + x * 8 + y * width * 8 + line * width * 2)
 
-			local obj = buffer[line * 4 + 1]
-			bytes:WriteUInt16LE(bor(luma_func(obj[1], obj[2], obj[3]), lshift(obj[4], 8)))
+				local a = bytes:ReadUInt16LE()
+				local b = bytes:ReadUInt16LE()
+				local c = bytes:ReadUInt16LE()
+				local d = bytes:ReadUInt16LE()
 
-			obj = buffer[line * 4 + 2]
-			bytes:WriteUInt16LE(bor(luma_func(obj[1], obj[2], obj[3]), lshift(obj[4], 8)))
+				bytes:Seek(edge + x * 8 + y * width * 8 + line * width * 2)
 
-			obj = buffer[line * 4 + 3]
-			bytes:WriteUInt16LE(bor(luma_func(obj[1], obj[2], obj[3]), lshift(obj[4], 8)))
+				local obj = buffer[line * 4 + 1]
+				bytes:WriteUInt16LE(bor(band(a, 0xFF), lshift(obj[4], 8)))
 
-			obj = buffer[line * 4 + 4]
-			bytes:WriteUInt16LE(bor(luma_func(obj[1], obj[2], obj[3]), lshift(obj[4], 8)))
+				obj = buffer[line * 4 + 2]
+				bytes:WriteUInt16LE(bor(band(b, 0xFF), lshift(obj[4], 8)))
+
+				obj = buffer[line * 4 + 3]
+				bytes:WriteUInt16LE(bor(band(c, 0xFF), lshift(obj[4], 8)))
+
+				obj = buffer[line * 4 + 4]
+				bytes:WriteUInt16LE(bor(band(d, 0xFF), lshift(obj[4], 8)))
+			end
+		else
+			for line = 0, 3 do
+				bytes:Seek(edge + x * 8 + y * width * 8 + line * width * 2)
+
+				local obj = buffer[line * 4 + 1]
+				bytes:WriteUInt16LE(bor(luma_func(obj[1], obj[2], obj[3]), lshift(obj[4], 8)))
+
+				obj = buffer[line * 4 + 2]
+				bytes:WriteUInt16LE(bor(luma_func(obj[1], obj[2], obj[3]), lshift(obj[4], 8)))
+
+				obj = buffer[line * 4 + 3]
+				bytes:WriteUInt16LE(bor(luma_func(obj[1], obj[2], obj[3]), lshift(obj[4], 8)))
+
+				obj = buffer[line * 4 + 4]
+				bytes:WriteUInt16LE(bor(luma_func(obj[1], obj[2], obj[3]), lshift(obj[4], 8)))
+			end
 		end
 	else
-		for line = 0, 3 do
-			bytes:Seek(edge + x * 8 + y * width * 8 + line * width * 2)
+		if only_update_alpha then
+			for line = 0, 3 do
+				bytes:Seek(edge + x * 8 + y * width * 8 + line * width * 2)
 
-			local obj = buffer[line * 4 + 1]
-			bytes:WriteUInt16LE(bor(luma_func(obj.r, obj.g, obj.b), lshift(obj[4], 8)))
+				local a = bytes:ReadUInt16LE()
+				local b = bytes:ReadUInt16LE()
+				local c = bytes:ReadUInt16LE()
+				local d = bytes:ReadUInt16LE()
 
-			obj = buffer[line * 4 + 2]
-			bytes:WriteUInt16LE(bor(luma_func(obj.r, obj.g, obj.b), lshift(obj[4], 8)))
+				bytes:Seek(edge + x * 8 + y * width * 8 + line * width * 2)
 
-			obj = buffer[line * 4 + 3]
-			bytes:WriteUInt16LE(bor(luma_func(obj.r, obj.g, obj.b), lshift(obj[4], 8)))
+				local obj = buffer[line * 4 + 1]
+				bytes:WriteUInt16LE(bor(band(a, 0xFF), lshift(obj.a, 8)))
 
-			obj = buffer[line * 4 + 4]
-			bytes:WriteUInt16LE(bor(luma_func(obj.r, obj.g, obj.b), lshift(obj[4], 8)))
+				obj = buffer[line * 4 + 2]
+				bytes:WriteUInt16LE(bor(band(a, 0xFF), lshift(obj.a, 8)))
+
+				obj = buffer[line * 4 + 3]
+				bytes:WriteUInt16LE(bor(band(a, 0xFF), lshift(obj.a, 8)))
+
+				obj = buffer[line * 4 + 4]
+				bytes:WriteUInt16LE(bor(band(a, 0xFF), lshift(obj.a, 8)))
+			end
+		else
+			for line = 0, 3 do
+				bytes:Seek(edge + x * 8 + y * width * 8 + line * width * 2)
+
+				local obj = buffer[line * 4 + 1]
+				bytes:WriteUInt16LE(bor(luma_func(obj.r, obj.g, obj.b), lshift(obj.a, 8)))
+
+				obj = buffer[line * 4 + 2]
+				bytes:WriteUInt16LE(bor(luma_func(obj.r, obj.g, obj.b), lshift(obj.a, 8)))
+
+				obj = buffer[line * 4 + 3]
+				bytes:WriteUInt16LE(bor(luma_func(obj.r, obj.g, obj.b), lshift(obj.a, 8)))
+
+				obj = buffer[line * 4 + 4]
+				bytes:WriteUInt16LE(bor(luma_func(obj.r, obj.g, obj.b), lshift(obj.a, 8)))
+			end
 		end
 	end
 end
