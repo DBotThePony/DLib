@@ -143,6 +143,8 @@ function AbstractTexture:CaptureRenderTarget(rx, ry, w, h, lx, ly)
 		local blockX = fBlockX + 1
 
 		for blockY = sBlockY, fBlockY do
+			self:GetBlock(blockX, blockY, sample_encode_buff)
+
 			for X = 0, lx + w - blockX * 4 do
 				for Y = 0, 3 do
 					local obj = sample_encode_buff[1 + X + Y * 4]
@@ -158,6 +160,8 @@ function AbstractTexture:CaptureRenderTarget(rx, ry, w, h, lx, ly)
 		local blockY = fBlockY + 1
 
 		for blockX = sBlockX, fBlockX do
+			self:GetBlock(blockX, blockY, sample_encode_buff)
+
 			for X = 0, 3 do
 				for Y = 0, ly + h - blockY * 4 do
 					local obj = sample_encode_buff[1 + X + Y * 4]
@@ -172,6 +176,8 @@ function AbstractTexture:CaptureRenderTarget(rx, ry, w, h, lx, ly)
 	if not fitx and not fity then
 		local blockX = fBlockX + 1
 		local blockY = fBlockY + 1
+
+		self:GetBlock(blockX, blockY, sample_encode_buff)
 
 		for X = 0, lx + w - blockX * 4 do
 			for Y = 0, ly + h - blockY * 4 do
@@ -256,6 +262,8 @@ function AbstractTexture:CaptureRenderTargetCoroutine(bitmap, bW, bH, rx, ry, w,
 		local blockX = fBlockX + 1
 
 		for blockY = sBlockY, fBlockY do
+			self:GetBlock(blockX, blockY, sample_encode_buff)
+
 			for X = 0, lx + w - blockX * 4 do
 				for Y = 0, 3 do
 					local obj = sample_encode_buff[1 + X + Y * 4]
@@ -282,6 +290,8 @@ function AbstractTexture:CaptureRenderTargetCoroutine(bitmap, bW, bH, rx, ry, w,
 		local blockY = fBlockY + 1
 
 		for blockX = sBlockX, fBlockX do
+			self:GetBlock(blockX, blockY, sample_encode_buff)
+
 			for X = 0, 3 do
 				for Y = 0, ly + h - blockY * 4 do
 					local obj = sample_encode_buff[1 + X + Y * 4]
@@ -307,6 +317,8 @@ function AbstractTexture:CaptureRenderTargetCoroutine(bitmap, bW, bH, rx, ry, w,
 	if not fitx and not fity then
 		local blockX = fBlockX + 1
 		local blockY = fBlockY + 1
+
+		self:GetBlock(blockX, blockY, sample_encode_buff)
 
 		for X = 0, lx + w - blockX * 4 do
 			for Y = 0, ly + h - blockY * 4 do
