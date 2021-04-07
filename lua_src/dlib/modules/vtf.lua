@@ -168,6 +168,17 @@ VTFObject.AlphaFormats = {
 	IMAGE_FORMAT_BGRX5551 = true,
 }
 
+VTFObject.EightBitAlpha = {
+	IMAGE_FORMAT_RGBA8888 = true,
+	IMAGE_FORMAT_BGRA8888 = true,
+	IMAGE_FORMAT_BGRX8888 = true,
+	IMAGE_FORMAT_ARGB8888 = true,
+	IMAGE_FORMAT_ABGR8888 = true,
+	IMAGE_FORMAT_BGRA4444 = true,
+	IMAGE_FORMAT_BGRA5551 = true,
+	IMAGE_FORMAT_BGRX5551 = true,
+}
+
 local color_white = Color()
 
 local power_of_two = {}
@@ -228,6 +239,7 @@ end
 	`bumpmap_scale` number
 	`mipmap_count` can be a positive number (exact), negative (auto - mipmap_count), or `true` (auto)
 	`depth` number
+	`force_no_eightbitalpha` boolean (do not specify `TEXTUREFLAGS_EIGHTBITALPHA` if applicable)
 
 	@enddesc
 
@@ -314,6 +326,10 @@ function VTFObject.Create(version, width, height, format, extra)
 
 	if extra.mipmap_count == 1 then
 		extra.flags = extra.flags:bor(TEXTUREFLAGS_NOMIP, TEXTUREFLAGS_NOLOD)
+	end
+
+	if VTFObject.EightBitAlpha[VTFObject.Formats[format]] and not extra.force_no_eightbitalpha then
+		extra.flags = extra.flags:bor(TEXTUREFLAGS_EIGHTBITALPHA)
 	end
 
 	extra.resources['\x01\x00\x00'] = nil
