@@ -143,8 +143,6 @@ function AbstractTexture:CaptureRenderTarget(rx, ry, w, h, lx, ly)
 		local blockX = fBlockX + 1
 
 		for blockY = sBlockY, fBlockY do
-			self:GetBlock(blockX, blockY, sample_encode_buff)
-
 			for X = 0, lx + w - blockX * 4 do
 				for Y = 0, 3 do
 					local obj = sample_encode_buff[1 + X + Y * 4]
@@ -160,8 +158,6 @@ function AbstractTexture:CaptureRenderTarget(rx, ry, w, h, lx, ly)
 		local blockY = fBlockY + 1
 
 		for blockX = sBlockX, fBlockX do
-			self:GetBlock(blockX, blockY, sample_encode_buff)
-
 			for X = 0, 3 do
 				for Y = 0, ly + h - blockY * 4 do
 					local obj = sample_encode_buff[1 + X + Y * 4]
@@ -176,8 +172,6 @@ function AbstractTexture:CaptureRenderTarget(rx, ry, w, h, lx, ly)
 	if not fitx and not fity then
 		local blockX = fBlockX + 1
 		local blockY = fBlockY + 1
-
-		self:GetBlock(blockX, blockY, sample_encode_buff)
 
 		for X = 0, lx + w - blockX * 4 do
 			for Y = 0, ly + h - blockY * 4 do
@@ -262,8 +256,6 @@ function AbstractTexture:CaptureRenderTargetCoroutine(bitmap, bW, bH, rx, ry, w,
 		local blockX = fBlockX + 1
 
 		for blockY = sBlockY, fBlockY do
-			self:GetBlock(blockX, blockY, sample_encode_buff)
-
 			for X = 0, lx + w - blockX * 4 do
 				for Y = 0, 3 do
 					local obj = sample_encode_buff[1 + X + Y * 4]
@@ -290,8 +282,6 @@ function AbstractTexture:CaptureRenderTargetCoroutine(bitmap, bW, bH, rx, ry, w,
 		local blockY = fBlockY + 1
 
 		for blockX = sBlockX, fBlockX do
-			self:GetBlock(blockX, blockY, sample_encode_buff)
-
 			for X = 0, 3 do
 				for Y = 0, ly + h - blockY * 4 do
 					local obj = sample_encode_buff[1 + X + Y * 4]
@@ -318,8 +308,6 @@ function AbstractTexture:CaptureRenderTargetCoroutine(bitmap, bW, bH, rx, ry, w,
 		local blockX = fBlockX + 1
 		local blockY = fBlockY + 1
 
-		self:GetBlock(blockX, blockY, sample_encode_buff)
-
 		for X = 0, lx + w - blockX * 4 do
 			for Y = 0, ly + h - blockY * 4 do
 				local obj = sample_encode_buff[1 + X + Y * 4]
@@ -343,6 +331,8 @@ function AbstractTexture:CaptureRenderTargetAlpha(rx, ry, w, h, lx, ly)
 
 	for blockX = sBlockX, fBlockX do
 		for blockY = sBlockY, fBlockY do
+			self:GetBlock(blockX, blockY, sample_encode_buff)
+
 			for X = 0, 3 do
 				for Y = 0, 3 do
 					local obj = sample_encode_buff[1 + X + Y * 4]
@@ -440,10 +430,11 @@ function AbstractTexture:CaptureRenderTargetAlphaCoroutine(bitmap, bW, bH, rx, r
 
 	for blockX = sBlockX, fBlockX do
 		for blockY = sBlockY, fBlockY do
+			self:GetBlock(blockX, blockY, sample_encode_buff)
+
 			for X = 0, 3 do
 				for Y = 0, 3 do
 					local obj = sample_encode_buff[1 + X + Y * 4]
-					--local r, g, b = render.ReadPixel(rx + X + blockX * 4, ry + Y + blockY * 4)
 					local r, g, b = read_bitmap(bitmap, rx + X + blockX * 4, ry + Y + blockY * 4, bW, bH)
 					obj[4] = (r + g + b) / 3
 				end
@@ -456,22 +447,10 @@ function AbstractTexture:CaptureRenderTargetAlphaCoroutine(bitmap, bW, bH, rx, r
 			if SysTime() >= s then
 				callbackBefore()
 
-				--local ref = DLib._RenderCapturePixels
-
 				coroutine_yield(...)
 				s = SysTime() + thersold
 
-				--[[if ref ~= DLib._RenderCapturePixels and DLib._RenderCapturePixels_TextureWorks == DLib._RenderCapturePixels then
-					coroutine_syswait(1)
-					s = SysTime() + thersold
-				end]]
-
 				callbackAfter(done / total)
-
-				--[[if ref ~= DLib._RenderCapturePixels then
-					render.CapturePixels()
-					DLib._RenderCapturePixels_TextureWorks = DLib._RenderCapturePixels
-				end]]
 			end
 		end
 	end
@@ -487,7 +466,6 @@ function AbstractTexture:CaptureRenderTargetAlphaCoroutine(bitmap, bW, bH, rx, r
 			for X = 0, lx + w - blockX * 4 do
 				for Y = 0, 3 do
 					local obj = sample_encode_buff[1 + X + Y * 4]
-					--local r, g, b = render.ReadPixel(rx + X + blockX * 4, ry + Y + blockY * 4)
 					local r, g, b = read_bitmap(bitmap, rx + X + blockX * 4, ry + Y + blockY * 4, bW, bH)
 					obj[4] = (r + g + b) / 3
 				end
@@ -500,22 +478,10 @@ function AbstractTexture:CaptureRenderTargetAlphaCoroutine(bitmap, bW, bH, rx, r
 			if SysTime() >= s then
 				callbackBefore()
 
-				--local ref = DLib._RenderCapturePixels
-
 				coroutine_yield(...)
 				s = SysTime() + thersold
 
-				--[[if ref ~= DLib._RenderCapturePixels and DLib._RenderCapturePixels_TextureWorks == DLib._RenderCapturePixels then
-					coroutine_syswait(1)
-					s = SysTime() + thersold
-				end]]
-
 				callbackAfter(done / total)
-
-				--[[if ref ~= DLib._RenderCapturePixels then
-					render.CapturePixels()
-					DLib._RenderCapturePixels_TextureWorks = DLib._RenderCapturePixels
-				end]]
 			end
 		end
 	end
@@ -529,7 +495,6 @@ function AbstractTexture:CaptureRenderTargetAlphaCoroutine(bitmap, bW, bH, rx, r
 			for X = 0, 3 do
 				for Y = 0, ly + h - blockY * 4 do
 					local obj = sample_encode_buff[1 + X + Y * 4]
-					--local r, g, b = render.ReadPixel(rx + X + blockX * 4, ry + Y + blockY * 4)
 					local r, g, b = read_bitmap(bitmap, rx + X + blockX * 4, ry + Y + blockY * 4, bW, bH)
 					obj[4] = (r + g + b) / 3
 				end
@@ -542,22 +507,10 @@ function AbstractTexture:CaptureRenderTargetAlphaCoroutine(bitmap, bW, bH, rx, r
 			if SysTime() >= s then
 				callbackBefore()
 
-				--local ref = DLib._RenderCapturePixels
-
 				coroutine_yield(...)
 				s = SysTime() + thersold
 
-				--[[if ref ~= DLib._RenderCapturePixels and DLib._RenderCapturePixels_TextureWorks == DLib._RenderCapturePixels then
-					coroutine_syswait(1)
-					s = SysTime() + thersold
-				end]]
-
 				callbackAfter(done / total)
-
-				--[[if ref ~= DLib._RenderCapturePixels then
-					render.CapturePixels()
-					DLib._RenderCapturePixels_TextureWorks = DLib._RenderCapturePixels
-				end]]
 			end
 		end
 	end
@@ -571,7 +524,6 @@ function AbstractTexture:CaptureRenderTargetAlphaCoroutine(bitmap, bW, bH, rx, r
 		for X = 0, lx + w - blockX * 4 do
 			for Y = 0, ly + h - blockY * 4 do
 				local obj = sample_encode_buff[1 + X + Y * 4]
-				--local r, g, b = render.ReadPixel(rx + X + blockX * 4, ry + Y + blockY * 4)
 				local r, g, b = read_bitmap(bitmap, rx + X + blockX * 4, ry + Y + blockY * 4, bW, bH)
 				obj[4] = (r + g + b) / 3
 			end
@@ -750,30 +702,32 @@ function RGBA8888:GetBlock(x, y, export)
 			obj = export[line * 4 + 4]
 			obj[1], obj[2], obj[3], obj[4] = flop(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24))
 		end
-	else
-		local result = {}
-		local index = 1
 
-		for line = 0, 3 do
-			bytes:Seek(edge + x * 16 + y * width * 16 + line * width * 4)
-
-			local color = bytes:ReadUInt32LE()
-			result[line * 4 + 1] = Color(flop(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24)))
-
-			color = bytes:ReadUInt32LE()
-			result[line * 4 + 2] = Color(flop(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24)))
-
-			color = bytes:ReadUInt32LE()
-			result[line * 4 + 3] = Color(flop(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24)))
-
-			color = bytes:ReadUInt32LE()
-			result[line * 4 + 4] = Color(flop(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24)))
-		end
-
-		self.cache[pixel] = result
-
-		return result
+		return export
 	end
+
+	local result = {}
+	local index = 1
+
+	for line = 0, 3 do
+		bytes:Seek(edge + x * 16 + y * width * 16 + line * width * 4)
+
+		local color = bytes:ReadUInt32LE()
+		result[line * 4 + 1] = Color(flop(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24)))
+
+		color = bytes:ReadUInt32LE()
+		result[line * 4 + 2] = Color(flop(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24)))
+
+		color = bytes:ReadUInt32LE()
+		result[line * 4 + 3] = Color(flop(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24)))
+
+		color = bytes:ReadUInt32LE()
+		result[line * 4 + 4] = Color(flop(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16), rshift(band(color, 0xFF000000), 24)))
+	end
+
+	self.cache[pixel] = result
+
+	return result
 end
 
 function RGBA8888:ReadEntireImage(nocache)
@@ -1048,30 +1002,32 @@ function RGB888:GetBlock(x, y, export)
 			obj = export[line * 4 + 4]
 			obj[1], obj[2], obj[3] = flop(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16))
 		end
-	else
-		local result = {}
-		local index = 1
 
-		for line = 0, 3 do
-			bytes:Seek(edge + x * 12 + y * width * 12 + line * width * 3)
-
-			local color = bytes:ReadUInt24LE()
-			result[line * 4 + 1] = Color(flop(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16)))
-
-			color = bytes:ReadUInt24LE()
-			result[line * 4 + 2] = Color(flop(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16)))
-
-			color = bytes:ReadUInt24LE()
-			result[line * 4 + 3] = Color(flop(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16)))
-
-			color = bytes:ReadUInt24LE()
-			result[line * 4 + 4] = Color(flop(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16)))
-		end
-
-		self.cache[pixel] = result
-
-		return result
+		return export
 	end
+
+	local result = {}
+	local index = 1
+
+	for line = 0, 3 do
+		bytes:Seek(edge + x * 12 + y * width * 12 + line * width * 3)
+
+		local color = bytes:ReadUInt24LE()
+		result[line * 4 + 1] = Color(flop(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16)))
+
+		color = bytes:ReadUInt24LE()
+		result[line * 4 + 2] = Color(flop(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16)))
+
+		color = bytes:ReadUInt24LE()
+		result[line * 4 + 3] = Color(flop(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16)))
+
+		color = bytes:ReadUInt24LE()
+		result[line * 4 + 4] = Color(flop(band(color, 0xFF), rshift(band(color, 0xFF00), 8), rshift(band(color, 0xFF0000), 16)))
+	end
+
+	self.cache[pixel] = result
+
+	return result
 end
 
 function RGB888:ReadEntireImage(nocache)
@@ -1536,30 +1492,32 @@ function RGB565:GetBlock(x, y, export)
 			obj = export[line * 4 + 4]
 			obj[1], obj[2], obj[3], obj[4] = decode_color_5_6_5(color)
 		end
-	else
-		local result = {}
-		local index = 1
 
-		for line = 0, 3 do
-			bytes:Seek(edge + x * 8 + y * width * 8 + line * width * 2)
-
-			local color = bytes:ReadUInt16LE()
-			result[line * 4 + 1] = Color(decode_color_5_6_5(color))
-
-			color = bytes:ReadUInt16LE()
-			result[line * 4 + 2] = Color(decode_color_5_6_5(color))
-
-			color = bytes:ReadUInt16LE()
-			result[line * 4 + 3] = Color(decode_color_5_6_5(color))
-
-			color = bytes:ReadUInt16LE()
-			result[line * 4 + 4] = Color(decode_color_5_6_5(color))
-		end
-
-		self.cache[pixel] = result
-
-		return result
+		return export
 	end
+
+	local result = {}
+	local index = 1
+
+	for line = 0, 3 do
+		bytes:Seek(edge + x * 8 + y * width * 8 + line * width * 2)
+
+		local color = bytes:ReadUInt16LE()
+		result[line * 4 + 1] = Color(decode_color_5_6_5(color))
+
+		color = bytes:ReadUInt16LE()
+		result[line * 4 + 2] = Color(decode_color_5_6_5(color))
+
+		color = bytes:ReadUInt16LE()
+		result[line * 4 + 3] = Color(decode_color_5_6_5(color))
+
+		color = bytes:ReadUInt16LE()
+		result[line * 4 + 4] = Color(decode_color_5_6_5(color))
+	end
+
+	self.cache[pixel] = result
+
+	return result
 end
 
 function RGB565:ReadEntireImage(nocache)
