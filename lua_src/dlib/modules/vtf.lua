@@ -1475,6 +1475,17 @@ end
 
 --[[
 	@doc
+	@fname VTF:GetBytesBuffer
+
+	@returns
+	table: DLib.BytesBuffer/ImmutableBytesBuffer
+]]
+function VTF:GetBytesBuffer()
+	return self.bytes
+end
+
+--[[
+	@doc
 	@fname VTF:RemoveFlags
 	@args number flags
 
