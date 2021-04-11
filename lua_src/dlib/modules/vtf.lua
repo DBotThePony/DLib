@@ -156,6 +156,7 @@ VTFObject.Readers.IMAGE_FORMAT_BGRA5551 = DLib.BGRA5551
 VTFObject.Readers.IMAGE_FORMAT_BGRX5551 = DLib.BGRA5551 -- ???
 VTFObject.Readers.IMAGE_FORMAT_I8 = DLib.I8
 VTFObject.Readers.IMAGE_FORMAT_IA88 = DLib.IA88
+VTFObject.Readers.IMAGE_FORMAT_A8 = DLib.A8
 
 VTFObject.AlphaFormats = {
 	IMAGE_FORMAT_DXT3 = true,
@@ -168,6 +169,8 @@ VTFObject.AlphaFormats = {
 	IMAGE_FORMAT_BGRA4444 = true,
 	IMAGE_FORMAT_BGRA5551 = true,
 	IMAGE_FORMAT_BGRX5551 = true,
+	IMAGE_FORMAT_IA88 = true,
+	IMAGE_FORMAT_A8 = true,
 }
 
 VTFObject.EightBitAlpha = {
@@ -179,6 +182,8 @@ VTFObject.EightBitAlpha = {
 	IMAGE_FORMAT_BGRA4444 = true,
 	IMAGE_FORMAT_BGRA5551 = true,
 	IMAGE_FORMAT_BGRX5551 = true,
+	IMAGE_FORMAT_IA88 = true,
+	IMAGE_FORMAT_A8 = true,
 }
 
 local color_white = Color()
