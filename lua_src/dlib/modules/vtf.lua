@@ -138,6 +138,7 @@ end
 
 VTFObject.Readers = {}
 VTFObject.Readers.IMAGE_FORMAT_DXT1 = DLib.DXT1
+VTFObject.Readers.IMAGE_FORMAT_DXT1_ONEBITALPHA = DLib.DXT1
 VTFObject.Readers.IMAGE_FORMAT_DXT3 = DLib.DXT3
 VTFObject.Readers.IMAGE_FORMAT_DXT5 = DLib.DXT5
 VTFObject.Readers.IMAGE_FORMAT_RGBA8888 = DLib.RGBA8888
@@ -339,6 +340,10 @@ function VTFObject.Create(version, width, height, format, extra)
 		extra.flags = extra.flags:bor(TEXTUREFLAGS_EIGHTBITALPHA)
 	end
 
+	if format == IMAGE_FORMAT_DXT1_ONEBITALPHA then
+		extra.flags = extra.flags:bor(TEXTUREFLAGS_ONEBITALPHA)
+	end
+
 	extra.resources['\x01\x00\x00'] = nil
 	extra.resources['\x30\x00\x00'] = nil
 
@@ -366,6 +371,7 @@ function VTFObject.Create(version, width, height, format, extra)
 	bytes:WriteUInt32(0)
 	bytes:WriteFloatLE(extra.bumpmap_scale)
 
+	--bytes:WriteUInt32LE(format == IMAGE_FORMAT_DXT1_ONEBITALPHA and IMAGE_FORMAT_DXT1 or format)
 	bytes:WriteUInt32LE(format)
 	bytes:WriteUByte(extra.mipmap_count)
 
@@ -479,7 +485,11 @@ function VTFObject.Create(version, width, height, format, extra)
 			for face = 1, faces do
 				-- for each Z slice (smallest to largest)
 				for zDepth = 1, extra.depth do
-					reader.Create(w, h, extra.fill, bytes)
+					if format == IMAGE_FORMAT_DXT1_ONEBITALPHA then
+						reader.Create(w, h, extra.fill, bytes, true)
+					else
+						reader.Create(w, h, extra.fill, bytes)
+					end
 				end
 			end
 		end
@@ -537,6 +547,10 @@ function VTF:DecodeHiRes()
 
 					self.structure_buffer[mipmap][frame][face][zDepth] = self.bytes:Slice(self.bytes:Tell(), walk)
 					self.structure[mipmap][frame][face][zDepth] = self.reader(self.bytes, w, h)
+
+					if self.high_res_image_format == IMAGE_FORMAT_DXT1_ONEBITALPHA then
+						self.structure[mipmap][frame][face][zDepth]:SetOneBitAlpha(true)
+					end
 
 					if self.mipmaps[mipmap] == nil then
 						self.mipmaps[mipmap] = self.structure_buffer[mipmap][frame][face][zDepth]

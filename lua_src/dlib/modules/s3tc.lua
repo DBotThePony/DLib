@@ -71,7 +71,7 @@ function DXT1Object.CountBytes(w, h)
 	return max(8, ceil(w * h / 2))
 end
 
-function DXT1Object.Create(width, height, fill, bytes)
+function DXT1Object.Create(width, height, fill, bytes, onebitalpha)
 	assert(width > 0, 'width <= 0')
 	assert(height > 0, 'height <= 0')
 
@@ -83,8 +83,16 @@ function DXT1Object.Create(width, height, fill, bytes)
 	local color0 = encode_color_5_6_5(fill.r * 0.003921568627451, fill.g * 0.003921568627451, fill.b * 0.003921568627451)
 	local filler = string.char(band(color0, 255), band(rshift(color0, 8), 255), band(color0, 255), band(rshift(color0, 8), 255)) .. '\x00\x00\x00\x00'
 
+	if onebitalpha then
+		if fill.a < 127.5 then
+			filler = '\x00\x00\x00\x00\xFF\xFF\xFF\xFF'
+		end
+	end
+
 	if not bytes then
-		return DLib.DXT1(DLib.BytesBuffer(string.rep(filler, width * height / 16)), width, height)
+		local texture = DLib.DXT1(DLib.BytesBuffer(string.rep(filler, width * height / 16)), width, height)
+		texture:SetOneBitAlpha(onebitalpha == true)
+		return texture
 	end
 
 	local pointer = bytes:Tell()
@@ -94,8 +102,12 @@ function DXT1Object.Create(width, height, fill, bytes)
 	local texture = DLib.DXT1(bytes, width, height)
 	bytes:Seek(pointer2)
 
+	texture:SetOneBitAlpha(onebitalpha == true)
+
 	return texture
 end
+
+AccessorFunc(DXT1, 'one_bit_alpha', 'OneBitAlpha')
 
 function DXT1:ctor(bytes, width, height)
 	DLib.AbstractTexture.__init(self, bytes, width, height)
@@ -388,7 +400,7 @@ do
 
 	local palette_bits = {0, 2, 3, 1}
 
-	function EncodeBCColorBlock(pixels, encode_luma, dither, plain_format)
+	function EncodeBCColorBlock(pixels, encode_luma, dither, one_bit_alpha)
 		-- clear buffer
 		for i = 1, 16 do
 			local a = error_buffer[i]
@@ -404,32 +416,54 @@ do
 
 		-- check whenever is it solid block
 
-		local r, g, b = floor(pixels[1][1]), floor(pixels[1][2]), floor(pixels[1][3])
 		local solid = true
+		local r, g, b, a = floor(pixels[1][1]), floor(pixels[1][2]), floor(pixels[1][3]), floor(pixels[1][4])
 
-		for i = 2, 16 do
-			local pixel = pixels[i]
+		if one_bit_alpha then
+			for i = 2, 16 do
+				local pixel = pixels[i]
 
-			if floor(pixel[1]) ~= r or floor(pixel[2]) ~= g or floor(pixel[3]) ~= b then
-				solid = false
-				break
+				if floor(pixel[1]) ~= r or floor(pixel[2]) ~= g or floor(pixel[3]) ~= b or floor(pixel[4]) ~= a then
+					solid = false
+					break
+				end
+			end
+		else
+			for i = 2, 16 do
+				local pixel = pixels[i]
+
+				if floor(pixel[1]) ~= r or floor(pixel[2]) ~= g or floor(pixel[3]) ~= b then
+					solid = false
+					break
+				end
 			end
 		end
 
 		-- solid color block
 		if solid then
-			local wColor0 = encode_color_5_6_5(r * 0.003921568627451, g * 0.003921568627451, b * 0.003921568627451)
-			return wColor0, wColor0, 0
+			if one_bit_alpha then
+				if pixels[1][4] < 127.5 then
+					return 0, 0, -1
+				end
+			else
+				local wColor0 = encode_color_5_6_5(r * 0.003921568627451, g * 0.003921568627451, b * 0.003921568627451)
+				return wColor0, wColor0, 0
+			end
 		end
-
-		local r, g, b, r_error, g_error, b_error
 
 		-- encode and dither
 		for i = 1, 16 do
 			local pixel = pixels[i]
 			local encoded = encoded565_buffer[i]
 			local _error = error_buffer[i]
-			local r, g, b, r_error, g_error, b_error = encode_color_5_6_5_error(pixel[1] + _error[1], pixel[2] + _error[2], pixel[3] + _error[3])
+
+			local r, g, b = pixel[1] + _error[1], pixel[2] + _error[2], pixel[3] + _error[3]
+
+			if one_bit_alpha and pixel[4] < 127.5 then
+				r, g, b = 0, 0, 0
+			end
+
+			r, g, b, r_error, g_error, b_error = encode_color_5_6_5_error(r, g, b)
 
 			if encode_luma then
 				encoded[1], encoded[2], encoded[3] = r * luma_r, g * luma_g, b * luma_b
@@ -462,7 +496,10 @@ do
 		local wColor0, wColor1 = encode_color_5_6_5(color0_r, color0_g, color0_b), encode_color_5_6_5(color1_r, color1_g, color1_b)
 
 		if wColor0 == wColor1 then
-			-- self:SetBlockSolid(x, y, Color(color0_r * 255, color0_g * 255, color0_b * 255))
+			if one_bit_alpha and wColor0 == 0 then
+				return 0, 0, -1
+			end
+
 			return wColor0, wColor0, 0
 		end
 
@@ -522,6 +559,10 @@ do
 
 			local pixel_r, pixel_g, pixel_b = pixel[1] * 0.003921568627451 + _error[1], pixel[2] * 0.003921568627451 + _error[2], pixel[3] * 0.003921568627451 + _error[3]
 
+			if one_bit_alpha and pixel[4] < 127.5 then
+				pixel_r, pixel_g, pixel_b = 0, 0, 0
+			end
+
 			local dot_product = (pixel_r - palette_colors_buffer[1][1]) * direction_r +
 				(pixel_g - palette_colors_buffer[1][2]) * direction_g +
 				(pixel_b - palette_colors_buffer[1][3]) * direction_b
@@ -552,7 +593,7 @@ end
 
 AccessorFunc(DXT1, 'encode_luma', 'EncodeInLuma')
 
-function DXT1:SetBlock(x, y, pixels, pixels_are_plain)
+function DXT1:SetBlock(x, y, pixels, pixels_are_plain, only_update_alpha)
 	assert(x >= 0, '!x >= 0')
 	assert(y >= 0, '!y >= 0')
 	assert(x < self.width_blocks, '!x <= self.width_blocks')
@@ -561,10 +602,10 @@ function DXT1:SetBlock(x, y, pixels, pixels_are_plain)
 	local fColor0, fColor1, written
 
 	if pixels_are_plain then
-		fColor0, fColor1, written = EncodeBCColorBlock(pixels, self.encode_luma or false, self.dither)
+		fColor0, fColor1, written = EncodeBCColorBlock(pixels, self.encode_luma == true, self.dither, self.one_bit_alpha)
 	else
 		EncodePlainPixels(pixels)
-		fColor0, fColor1, written = EncodeBCColorBlock(plain_pixel_block, self.encode_luma or false, self.dither)
+		fColor0, fColor1, written = EncodeBCColorBlock(plain_pixel_block, self.encode_luma == true, self.dither, self.one_bit_alpha)
 	end
 
 	local pixel = y * self.width_blocks + x
@@ -602,6 +643,8 @@ function DXT1:GetBlock(x, y, export)
 
 	local describe = bytes:ReadUInt32LE()
 
+	local one_bit_alpha = self.one_bit_alpha
+
 	if export then
 		local color0_r, color0_g, color0_b = to_color_5_6_5_plain(color0)
 		local color1_r, color1_g, color1_b = to_color_5_6_5_plain(color1)
@@ -630,7 +673,11 @@ function DXT1:GetBlock(x, y, export)
 					obj[3] = (color0_b + color1_b * 2) * 0.33333333333333
 				end
 
-				obj[4] = 255
+				if one_bit_alpha and obj[1] < 1 and obj[2] < 1 and obj[3] < 1 then
+					obj[4] = 0
+				else
+					obj[4] = 255
+				end
 			end
 		else
 			for i = 1, 16 do
@@ -656,7 +703,11 @@ function DXT1:GetBlock(x, y, export)
 					obj[3] = 0
 				end
 
-				obj[4] = 255
+				if one_bit_alpha and obj[1] < 1 and obj[2] < 1 and obj[3] < 1 then
+					obj[4] = 0
+				else
+					obj[4] = 255
+				end
 			end
 		end
 
@@ -689,6 +740,14 @@ function DXT1:GetBlock(x, y, export)
 					(color0_d.b + color1_d.b * 2) * 0.33333333333333
 				)
 			end
+
+			if one_bit_alpha then
+				local obj = decoded[17 - i]
+
+				if obj.r < 1 and obj.g < 1 and obj.b < 1 then
+					obj.a = 0
+				end
+			end
 		end
 	else
 		for i = 1, 16 do
@@ -706,6 +765,14 @@ function DXT1:GetBlock(x, y, export)
 				)
 			else
 				decoded[17 - i] = color_black
+			end
+
+			if one_bit_alpha then
+				local obj = decoded[17 - i]
+
+				if obj.r < 1 and obj.g < 1 and obj.b < 1 then
+					obj.a = 0
+				end
 			end
 		end
 	end
