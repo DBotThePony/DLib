@@ -103,6 +103,24 @@ function AbstractTexture:ctor(bytes, width, height)
 	self.cache = {}
 end
 
+function AbstractTexture:GetPointer()
+	return self.edge
+end
+
+function AbstractTexture:GetBytesBuffer()
+	return self.bytes
+end
+
+function AbstractTexture:ReadBinary()
+	self.bytes:Seek(self.edge)
+	return self.bytes:ReadBinary(self.__class.CountBytes(self.width, self.height))
+end
+
+function AbstractTexture:WriteBinary(str)
+	self.bytes:Seek(self.edge)
+	self.bytes:WriteBinary(str)
+end
+
 local sample_encode_buff = {}
 
 for i = 1, 16 do
