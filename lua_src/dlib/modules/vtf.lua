@@ -641,7 +641,10 @@ function VTF:ctor(bytes)
 		self.faces = 6
 	end
 
-	assert(self.low_res_image_format == VTFObject.Formats.IMAGE_FORMAT_DXT1, 'self.low_res_image_format ~= VTFObject.Formats.IMAGE_FORMAT_DXT1 (' .. self.low_res_image_format .. ' ~= ' .. VTFObject.Formats.IMAGE_FORMAT_DXT1 .. ')')
+	assert(
+		self.low_res_image_format == VTFObject.Formats.IMAGE_FORMAT_DXT1 or
+		self.low_width == 0 and self.low_height == 0
+	, 'self.low_res_image_format ~= VTFObject.Formats.IMAGE_FORMAT_DXT1 (' .. self.low_res_image_format .. ' ~= ' .. VTFObject.Formats.IMAGE_FORMAT_DXT1 .. ')')
 
 	local resolutions = {}
 	local w, h = self.width, self.height
