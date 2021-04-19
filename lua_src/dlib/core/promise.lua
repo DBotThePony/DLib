@@ -46,7 +46,7 @@ local debug_traceback = debug.traceback
 	use `Promise:Catch(function)` and
 	`Promise:Then(function)`
 
-	Alse there is `Promise:Awat(varargForYield)` for use inside coroutine available.
+	Alse there is `Promise:Await(varargForYield)` for use inside coroutine available.
 	@enddesc
 
 	@returns
@@ -59,15 +59,15 @@ local function constructor(handler, ...)
 		error('Promise handler were not provided (function/thread); got ' .. mtype, 2)
 	end
 
-	local self = setmetatable({}, meta)
-
-	self.handlerType = mtype
-	self.handler = handler
-	self.success = false
-	self.executed = false
-	self.executed_finish = false
-	self.failure = false
-	self.traceback = debug_traceback(nil, 2)
+	local self = setmetatable({
+		handlerType = mtype,
+		handler = handler,
+		success = false,
+		executed = false,
+		executed_finish = false,
+		failure = false,
+		traceback = debug_traceback(nil, 2),
+	}, meta)
 
 	self:execute(...)
 
