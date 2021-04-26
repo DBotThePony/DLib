@@ -243,6 +243,7 @@ class GON.Structure
 				pos2 = bytesbuffer\Tell()
 				len = pos2 - pos
 				bytesbuffer\Move(-len - 2)
+				error("Unable to write value for #{provider\GetIdentity()} because it is too big (#{len} bytes)!") if len >= 0xFFFF
 				bytesbuffer\WriteUInt16(len)
 				bytesbuffer\Move(len)
 			else
