@@ -90,6 +90,7 @@ class GON.IDataProvider
 		return @
 
 	Serialize: (bytesbuffer) => error('Not implemented')
+	AnalyzeSize: => false
 	GetValue: => @value
 	GetStructure: => @structure
 	GetHeapID: => @heapid
@@ -196,6 +197,29 @@ class GON.Structure
 		@root = provider
 
 	IsHeapBig: => @long_heap or #@heap >= 0xFFFF
+
+	AnalyzeSize: =>
+		size = 12 + 4 + 1
+
+		if @next_reg_id ~= 0
+			size += 1
+			size += #@identity_registry[i] + 1 for i = 0, @next_reg_id - 1
+		else
+			size += 2
+
+		for provider in *@heap
+			size += 1
+
+			if provider\IsKnownValue()
+				size += 2
+				analyze = provider\AnalyzeSize()
+				return false if not analyze
+				size += analyze
+			else
+				size += 2 + #provider\BinaryData()
+
+		size += @IsHeapBig() and 4 or 2 if @root
+		return size
 
 	WriteHeader: (bytesbuffer) =>
 		bytesbuffer\WriteBinary('\xF7\x7FDLib.GON\x00\x02')
@@ -324,6 +348,10 @@ class GON.Structure
 		return @
 
 	CreateBuffer: =>
+		if analyze = @AnalyzeSize()
+			bytesbuffer = DLib.BytesBuffer.Allocate(analyze)
+			return @WriteFile(bytesbuffer)
+
 		bytesbuffer = DLib.BytesBuffer()
 		return @WriteFile(bytesbuffer)
 
@@ -332,6 +360,7 @@ class GON.Structure
 class GON.StringProvider extends GON.IDataProvider
 	@_IDENTIFY = 'string'
 	@GetIdentity = => 'builtin:string'
+	AnalyzeSize: => #@value
 	Serialize: (bytesbuffer) => bytesbuffer\WriteBinary(@value)
 	@Deserialize = (bytesbuffer, structure, heapid, length) => GON.StringProvider(structure, heapid)\SetValue(bytesbuffer\ReadBinary(length))
 
@@ -339,6 +368,7 @@ class GON.NumberProvider extends GON.IDataProvider
 	@_IDENTIFY = 'number'
 	@Ask = (value, ltype = luatype(value)) => ltype == 'number' and value == value
 	@GetIdentity = => 'builtin:number'
+	AnalyzeSize: => 8
 	Serialize: (bytesbuffer) => bytesbuffer\WriteDouble(@value)
 	@Deserialize = (bytesbuffer, structure, heapid, length) => GON.NumberProvider(structure, heapid)\SetValue(bytesbuffer\ReadDouble())
 
@@ -349,12 +379,14 @@ class GON.NaNProvider extends GON.IDataProvider
 	@Ask = (value, ltype = luatype(value)) => ltype == 'number' and value ~= value
 	@GetIdentity = => 'builtin:nan'
 	Serialize: (bytesbuffer) =>
+	AnalyzeSize: => 0
 	@Deserialize = (bytesbuffer, structure, heapid, length) => GON.NaNProvider(structure, heapid)
 	GetValue: => nan
 
 class GON.BooleanProvider extends GON.IDataProvider
 	@_IDENTIFY = 'boolean'
 	@GetIdentity = => 'builtin:boolean'
+	AnalyzeSize: => 1
 	Serialize: (bytesbuffer) => bytesbuffer\WriteUByte(@value and 1 or 0)
 	@Deserialize = (bytesbuffer, structure, heapid, length) => GON.BooleanProvider(structure, heapid)\SetValue(bytesbuffer\ReadUByte() == 1)
 
@@ -411,6 +443,23 @@ class GON.TableProvider extends GON.IDataProvider
 
 		return @value
 
+	AnalyzeSize: =>
+		size = 0
+		long_heap = @structure\IsHeapBig()
+
+		if long_heap
+			for key, value in pairs(@_serialized)
+				size += 8
+
+			size += 4
+		else
+			for key, value in pairs(@_serialized)
+				size += 4
+
+			size += 2
+
+		return size
+
 	Serialize: (bytesbuffer) =>
 		long_heap = @structure\IsHeapBig()
 
@@ -461,6 +510,8 @@ class GON.VectorProvider extends GON.IDataProvider
 	@_IDENTIFY = 'Vector'
 	@GetIdentity = => 'gmod:Vector'
 
+	AnalyzeSize: => 24
+
 	Serialize: (bytesbuffer) =>
 		bytesbuffer\WriteDouble(@value.x)
 		bytesbuffer\WriteDouble(@value.y)
@@ -473,6 +524,8 @@ class GON.AngleProvider extends GON.IDataProvider
 	@_IDENTIFY = 'Angle'
 	@GetIdentity = => 'gmod:Angle'
 
+	AnalyzeSize: => 12
+
 	Serialize: (bytesbuffer) =>
 		bytesbuffer\WriteFloat(@value.x)
 		bytesbuffer\WriteFloat(@value.y)
@@ -484,6 +537,8 @@ class GON.AngleProvider extends GON.IDataProvider
 class GON.ColorProvider extends GON.IDataProvider
 	@_IDENTIFY = 'Color'
 	@GetIdentity = => 'dlib:Color'
+
+	AnalyzeSize: => 4
 
 	Serialize: (bytesbuffer) =>
 		bytesbuffer\WriteUByte(@value.r)
@@ -511,6 +566,8 @@ class GON.ConVarProvider extends GON.IDataProvider
 	@_IDENTIFY = 'ConVar'
 	@GetIdentity = => 'gmod:ConVar'
 
+	AnalyzeSize: => #@value\GetName() + 1
+
 	Serialize: (bytesbuffer) => bytesbuffer\WriteString(@value\GetName())
 	@Deserialize = (bytesbuffer, structure, heapid, length) =>
 		GON.ConVarProvider(structure, heapid)\SetValue(ConVar(bytesbuffer\ReadString()))
@@ -518,6 +575,8 @@ class GON.ConVarProvider extends GON.IDataProvider
 class GON.VMatrixProvider extends GON.IDataProvider
 	@_IDENTIFY = 'VMatrix'
 	@GetIdentity = => 'gmod:VMatrix'
+
+	AnalyzeSize: => 8 * 4 * 4
 
 	Serialize: (bytesbuffer) =>
 		tab = @value\ToTable()
@@ -545,12 +604,16 @@ class GON.MaterialProvider extends GON.IDataProvider
 	@_IDENTIFY = 'IMaterial'
 	@GetIdentity = => 'gmod:IMaterial'
 
+	AnalyzeSize: => #@value\GetName() + 1
+
 	Serialize: (bytesbuffer) => bytesbuffer\WriteString(@value\GetName())
 	@Deserialize = (bytesbuffer, structure, heapid, length) => GON.MaterialProvider(structure, heapid)\SetValue(Material(bytesbuffer\ReadString()), nil)
 
 class GON.CTakeDamageInfoProvider extends GON.IDataProvider
 	@_IDENTIFY = {'CTakeDamageInfo', 'LTakeDamageInfo'}
 	@GetIdentity = => 'dlib:LTakeDamageInfo'
+
+	AnalyzeSize: => 80
 
 	@Write = (obj, bytesbuffer) =>
 		with bytesbuffer
