@@ -222,7 +222,7 @@ class GON.Structure
 		return size
 
 	WriteHeader: (bytesbuffer) =>
-		bytesbuffer\WriteBinary('\xF7\x7FDLib.GON\x00\x02')
+		bytesbuffer\WriteBinary('\xF7\x7FDLib.GON\x00\x03')
 
 		if @next_reg_id ~= 0
 			bytesbuffer\WriteUByte(@next_reg_id - 1)
@@ -237,14 +237,13 @@ class GON.Structure
 			bytesbuffer\WriteUByte(provider\GetRegistryID())
 
 			if provider\IsKnownValue()
-				bytesbuffer\WriteUInt16(0)
+				bytesbuffer\WriteUInt32(0)
 				pos = bytesbuffer\Tell()
 				provider\Serialize(bytesbuffer)
 				pos2 = bytesbuffer\Tell()
 				len = pos2 - pos
-				bytesbuffer\Move(-len - 2)
-				error("Unable to write value for #{provider\GetIdentity()} because it is too big (#{len} bytes)!") if len >= 0xFFFF
-				bytesbuffer\WriteUInt16(len)
+				bytesbuffer\Move(-len - 4)
+				bytesbuffer\WriteUInt32(len)
 				bytesbuffer\Move(len)
 			else
 				bytesbuffer\WriteUInt16(provider\Length())
@@ -274,7 +273,8 @@ class GON.Structure
 			@long_heap = true
 
 			return true
-		elseif read == '\xF7\x7FDLib.GON\x00\x02'
+		elseif read == '\xF7\x7FDLib.GON\x00\x02' or read == '\xF7\x7FDLib.GON\x00\x03'
+			@old_value_length = read == '\xF7\x7FDLib.GON\x00\x02'
 			@identity_registry = {}
 			@_identity_registry = {}
 
@@ -306,7 +306,7 @@ class GON.Structure
 			iid = bytesbuffer\ReadUByte()
 			regid = @identity_registry[iid]
 			provider = GON.FindProvider(regid) if regid
-			len = bytesbuffer\ReadUInt16()
+			len = @old_value_length and bytesbuffer\ReadUInt16() or bytesbuffer\ReadUInt32()
 
 			if not provider
 				@heap[heapid] = GON.UnknownValue(@, bytesbuffer\ReadBinary(len), heapid, iid)
