@@ -246,7 +246,7 @@ class GON.Structure
 				bytesbuffer\WriteUInt32(len)
 				bytesbuffer\Move(len)
 			else
-				bytesbuffer\WriteUInt16(provider\Length())
+				bytesbuffer\WriteUInt32(provider\Length())
 				bytesbuffer\WriteBinary(provider\BinaryData())
 
 	WriteRoot: (bytesbuffer) =>
