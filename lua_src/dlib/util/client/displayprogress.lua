@@ -42,7 +42,24 @@ local table = table
 local DisplayProgressList = Util.DisplayProgressList
 
 local max_width = 100
+local next_width_update = 0
 local total_tall = 0
+
+local function ComputeSizes()
+	max_width = next_width_update > SysTime() and max_width or 100
+	total_tall = 0
+
+	for i = 1, #list do
+		local computed = list[i][4] + list[i][5] + 20
+
+		if computed >= max_width then
+			max_width = computed
+			next_width_update = SysTime() + 5
+		end
+
+		total_tall = total_tall + list[i][5] + 4
+	end
+end
 
 for _, data in pairs(DisplayProgressList) do
 	table.insert(list, data)
@@ -69,14 +86,7 @@ function Util.PushProgress(identifier, text, progress)
 		table.insert(list, data)
 		DisplayProgressList[identifier] = data
 
-		max_width = 100
-		total_tall = 0
-
-		for i = 1, #list do
-			max_width = max_width:max(list[i][4] + list[i][5] + 20)
-			total_tall = total_tall + list[i][5] + 4
-		end
-
+		ComputeSizes()
 		return
 	end
 
@@ -87,13 +97,7 @@ function Util.PushProgress(identifier, text, progress)
 	DisplayProgressList[identifier][6] = SysTime() + 10
 	DisplayProgressList[identifier][7] = SysTime() + 13
 
-	max_width = 100
-	total_tall = 0
-
-	for i = 1, #list do
-		max_width = max_width:max(list[i][4] + list[i][5] + 20)
-		total_tall = total_tall + list[i][5] + 4
-	end
+	ComputeSizes()
 end
 
 function Util.PopProgress(identifier)
@@ -112,13 +116,7 @@ function Util.PopProgress(identifier)
 
 	DisplayProgressList[identifier] = nil
 
-	max_width = 100
-	total_tall = 0
-
-	for i = 1, #list do
-		max_width = max_width:max(list[i][4] + list[i][5] + 20)
-		total_tall = total_tall + list[i][5] + 4
-	end
+	ComputeSizes()
 end
 
 local HUDCommons = DLib.HUDCommons
@@ -131,12 +129,17 @@ local ScrW = ScrW
 local function HUDPaint()
 	if #list == 0 then return end
 
+	local time = SysTime()
+
+	if next_width_update < time then
+		ComputeSizes()
+	end
+
 	surface.SetFont('DLib_LoadingNotify')
 
 	local Y = 0
 	local ScrH = ScrH()
 	local ScrW = ScrW()
-	local time = SysTime()
 
 	local max_alpha = 0
 
