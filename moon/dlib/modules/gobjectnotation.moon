@@ -260,6 +260,7 @@ class GON.Structure
 		@long_heap = false
 
 		if read == '\xF7\x7FDLib.GON\x00\x01'
+			@old_value_length = true
 			@identity_registry = {}
 			@_identity_registry = {}
 
