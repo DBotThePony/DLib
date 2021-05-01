@@ -900,3 +900,4 @@ else
 end
 
 timer.Simple(0, I18n.UpdateLang)
+I18n.UpdateLang()
