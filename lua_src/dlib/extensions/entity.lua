@@ -271,11 +271,7 @@ local VehicleListIterable = {}
 local yield = coroutine.yield
 
 local function rebuildVehicleList()
-	local vehlist = list.GetForEdit('Vehicles')
-
-	for i = 1, #vehlist do
-		local data = vehlist[i]
-
+	for classname, data in pairs(list.GetForEdit('Vehicles')) do
 		if data.Model then
 			VehicleListIterable[data.Model:lower()] = data
 			yield()
