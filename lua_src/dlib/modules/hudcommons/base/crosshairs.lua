@@ -61,8 +61,8 @@ function meta:RegisterCrosshairHandle()
 	self.UpcomingAccuracy = 1
 
 	self:AddHookCustom('HUDShouldDraw', 'CrosshairShouldDraw', nil, 6)
+	self:AddHookCustom('HUDPaint', 'InternalDrawCrosshair', nil, 6)
 	self:AddHook('TFA_DrawCrosshair')
-	self:AddPaintHook('InternalDrawCrosshair')
 end
 
 function meta:DrawCrosshairGeneric(x, y, accuracy)
@@ -252,6 +252,8 @@ end
 
 function meta:InternalDrawCrosshair(ply)
 	if not self.ENABLE_CROSSHAIRS:GetBool() then return end
+	ply = ply or self:SelectPlayer()
+
 	if not self:GetVarAlive() or not self:WeaponsInVehicle() then return end
 	local useEnt = self:GetVarEntityInUse()
 
