@@ -164,7 +164,10 @@ local function update()
 		yield()
 	end
 
-	for i, ply in ipairs(player.GetAll()) do
+	local players = player.GetAll()
+	for i = 1, #players do
+		local ply = players[i]
+		if not ply then continue end
 		if IsValid(ply) then
 			local newstatus = ply:GetFriendStatusDLib()
 

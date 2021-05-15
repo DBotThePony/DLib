@@ -107,7 +107,10 @@ local yield = coroutine.yield
 local IsValid = FindMetaTable('Entity').IsValid
 
 function DLib.UpdateLastNicks()
-	for i, ply in ipairs(player.GetHumans()) do
+	local players = player.GetHumans()
+	for i = 1, #players do
+		local ply = players[i]
+		if not ply then continue end
 		if IsValid(ply) then
 			local lastname = ply:Nick()
 			local lastnick = lastname
