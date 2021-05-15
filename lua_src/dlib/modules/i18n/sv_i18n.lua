@@ -156,7 +156,7 @@ if game.SinglePlayer() then
 		for i, ply in ipairs(GetHumans()) do
 			local name = GetName(ply)
 
-			if #name < 4 then
+			if name == '' then
 				SetName(ply, '_bad_playername_' .. ply:UserID())
 			end
 		end
@@ -167,7 +167,7 @@ if game.SinglePlayer() then
 			if IsValid(ply) then
 				local name = GetName(ply)
 
-				if #name < 4 then
+				if name == '' then
 					SetName(ply, '_bad_playername_' .. ply:UserID())
 				end
 
@@ -180,7 +180,7 @@ else
 		for i, ply in ipairs(GetHumans()) do
 			local name = GetName(ply)
 
-			if #name < 4 then
+			if name == '' then
 				SetName(ply, '_bad_playername_' .. ply:UserID())
 			end
 
@@ -197,7 +197,7 @@ else
 			if IsValid(ply) then
 				local name = GetName(ply)
 
-				if #name < 4 then
+				if name == '' then
 					SetName(ply, '_bad_playername_' .. ply:UserID())
 				end
 
