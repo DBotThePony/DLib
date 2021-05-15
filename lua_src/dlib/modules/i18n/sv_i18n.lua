@@ -149,25 +149,35 @@ local IsValid = FindMetaTable('Entity').IsValid
 local GetHumans = player.GetHumans
 local yield = coroutine.yield
 
-local function tickPlayers()
-	for i, ply in ipairs(GetHumans()) do
-		local name = GetName(ply)
+local tickPlayers, tickPlayersYieldable
 
-		if #name < 4 then
-			SetName(ply, '_bad_playername_' .. ply:UserID())
-		end
+if game.SinglePlayer() then
+	function tickPlayers()
+		for i, ply in ipairs(GetHumans()) do
+			local name = GetName(ply)
 
-		local nick = ply:Nick()
-
-		if I18n.exists(nick) then
-			ply:Kick('[DLib.I18n] Bad player name. Contact server\'s staff if you changed name to this using serverside nickname system by a mistake.')
+			if #name < 4 then
+				SetName(ply, '_bad_playername_' .. ply:UserID())
+			end
 		end
 	end
-end
 
-local function tickPlayersYieldable()
-	for i, ply in ipairs(GetHumans()) do
-		if IsValid(ply) then
+	function tickPlayersYieldable()
+		for i, ply in ipairs(GetHumans()) do
+			if IsValid(ply) then
+				local name = GetName(ply)
+
+				if #name < 4 then
+					SetName(ply, '_bad_playername_' .. ply:UserID())
+				end
+
+				yield()
+			end
+		end
+	end
+else
+	function tickPlayers()
+		for i, ply in ipairs(GetHumans()) do
 			local name = GetName(ply)
 
 			if #name < 4 then
@@ -179,8 +189,26 @@ local function tickPlayersYieldable()
 			if I18n.exists(nick) then
 				ply:Kick('[DLib.I18n] Bad player name. Contact server\'s staff if you changed name to this using serverside nickname system by a mistake.')
 			end
+		end
+	end
 
-			yield()
+	function tickPlayersYieldable()
+		for i, ply in ipairs(GetHumans()) do
+			if IsValid(ply) then
+				local name = GetName(ply)
+
+				if #name < 4 then
+					SetName(ply, '_bad_playername_' .. ply:UserID())
+				end
+
+				local nick = ply:Nick()
+
+				if I18n.exists(nick) then
+					ply:Kick('[DLib.I18n] Bad player name. Contact server\'s staff if you changed name to this using serverside nickname system by a mistake.')
+				end
+
+				yield()
+			end
 		end
 	end
 end
@@ -201,8 +229,5 @@ net.receive('dlib.clientlang', function(len, ply)
 	hook.Run('DLib.PlayerLanguageChanges', ply, old, ply.DLib_Lang)
 end)
 
-if not game.SinglePlayer() then
-	hook.AddTask('Think', 'DLib Update Friend List', tickPlayersYieldable)
-	timer.Remove('DLib.TickPlayerNames')
-	hook.Add('PlayerSpawn', 'DLib.TickPlayerNames', timer.Simple:Wrap(0, tickPlayers))
-end
+hook.AddTask('Think', 'DLib Update Friend List', tickPlayersYieldable)
+hook.Add('PlayerSpawn', 'DLib.TickPlayerNames', timer.Simple:Wrap(0, tickPlayers))
