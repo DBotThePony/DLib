@@ -83,7 +83,7 @@ function PANEL:Init()
 	local _self = self
 
 	function havatar:Think()
-		if not IsValid(_self) or not inheritableVisible(_self) then
+		if not IsValid(_self) or not _self:IsVisibleRecursive() then
 			_self:AvatarHide()
 		end
 	end

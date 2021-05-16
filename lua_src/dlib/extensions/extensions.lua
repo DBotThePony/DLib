@@ -24,6 +24,7 @@ local PhysObj = FindMetaTable('PhysObj')
 local vectorMeta = FindMetaTable('Vector')
 local vehicleMeta = FindMetaTable('Vehicle')
 local entMeta = FindMetaTable('Entity')
+local panelMeta = FindMetaTable('Panel')
 local Color = Color
 local math = math
 local ipairs = ipairs
@@ -774,9 +775,7 @@ if CLIENT then
 	net.receive('dlib.limithitfix', function()
 		hook.Run('LimitHit', net.ReadString())
 	end)
-end
 
-if CLIENT then
 	local surface = surface
 	surface._DLibPlaySound = surface._DLibPlaySound or surface.PlaySound
 
@@ -842,6 +841,26 @@ if CLIENT then
 		dlib_screenscale_mul_get = dlib_screenscale_mul:GetFloat(1):max(0)
 		DLib.TriggerScreenSizeUpdate(ScrWL(), ScrHL(), ScrWL(), ScrHL())
 	end, 'DLib')
+
+	--[[
+		@doc
+		@fname Panel:IsVisibleRecursive
+
+		@desc
+		whenever is panel visible to user
+		@enddesc
+
+		@returns
+		boolean
+	]]
+	function panelMeta:IsVisibleRecursive()
+		repeat
+			if not self:IsVisible() then return false end
+			self = self:GetParent()
+		until not IsValid(self)
+
+		return true
+	end
 end
 
 local SysTime = SysTime
