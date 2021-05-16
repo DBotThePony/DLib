@@ -37,7 +37,7 @@ function PANEL:AvatarHide()
 	self.havatar:KillFocus()
 	self.havatar:SetMouseInputEnabled(false)
 	self.havatar:SetKeyboardInputEnabled(false)
-	self.havatar.hover = false
+	self.hover = false
 	self:SetSkin('DLib_Black')
 end
 
@@ -59,6 +59,15 @@ function PANEL:OnMousePressed(key)
 	end
 end
 
+local function inheritableVisible(self)
+	repeat
+		if not self:IsVisible() then return false end
+		self = self:GetParent()
+	until not IsValid(self)
+
+	return true
+end
+
 function PANEL:Init()
 	self:SetCursor('hand')
 
@@ -70,6 +79,14 @@ function PANEL:Init()
 	self.havatar = havatar
 	havatar:SetVisible(false)
 	havatar:SetSize(184, 184)
+
+	local _self = self
+
+	function havatar:Think()
+		if not IsValid(_self) or not inheritableVisible(_self) then
+			_self:AvatarHide()
+		end
+	end
 
 	hook.Add('OnSpawnMenuClose', self, self.AvatarHide)
 
