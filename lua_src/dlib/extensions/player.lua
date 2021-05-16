@@ -179,6 +179,10 @@ function plyMeta:EyeAnglesFixed()
 	return self:GetVehicle():GetAngles() + self:EyeAngles()
 end
 
+if VERSION >= 210500 then
+	plyMeta.EyeAnglesFixed = FindMetaTable('Entity').EyeAngles
+end
+
 --[[
 	@doc
 	@fname Player:GetInfoBool
