@@ -172,7 +172,7 @@ class DLib.CacheManager
 
 	CleanupIfFull: =>
 		size = @TotalSize()
-		limit = @convar and @convar\GetInt()\max(@minimal) or @limit
+		limit = @convar and @convar\GetInt()\max(@minimal or 0) or @limit
 		return false if size <= limit
 		return false if #@state == 0
 
@@ -186,7 +186,7 @@ class DLib.CacheManager
 
 		while size >= limit and #@state ~= 0
 			obj = @state[#@state]
-			break if size < limit * 2 and obj.last_access < sessionstart
+			break if size < limit * 2 and obj.last_access > sessionstart
 			@state[#@state] = nil
 			@state_hash[obj.hash] = nil
 			file.Delete(string.format('%s/%s/%s.%s', @folder, obj.hash\sub(1, 2), obj.hash, @extension))
