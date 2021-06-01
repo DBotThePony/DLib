@@ -32,6 +32,8 @@ local DLib = DLib
 local unpack = unpack
 local SysTime = SysTime
 
+local developer = ConVar('developer')
+
 local coroutine = coroutine
 local coroutine_resume = coroutine.resume
 local coroutine_status = coroutine.status
@@ -493,13 +495,21 @@ end
 ]]
 function hook.Add(event, stringID, callback, priority)
 	if not isstring(event) then
-		ErrorNoHalt(debug.traceback('bad argument #1 to hook.Add (string expected, got ' .. type(event) .. ')', 2) .. '\n')
+		local trace = traceback('bad argument #1 to hook.Add (string expected, got ' .. type(event) .. ')', 2) .. '\n'
+
+		if developer:GetBool() or trace:find('VLL2:VM') then
+			ErrorNoHalt(trace)
+		end
 
 		return
 	end
 
 	if type(callback) ~= 'function' and type(stringID) ~= 'thread' then
-		ErrorNoHalt(debug.traceback('bad argument #3 to hook.Add (function expected, got ' .. type(callback) .. ')', 2) .. '\n')
+		local trace = traceback('bad argument #3 to hook.Add (function expected, got ' .. type(callback) .. ')', 2) .. '\n'
+
+		if developer:GetBool() or trace:find('VLL2:VM') then
+			ErrorNoHalt(trace)
+		end
 
 		return
 	end
@@ -988,7 +998,6 @@ local last_trace, last_error
 local getinfo = debug.getinfo
 local find = string.find
 local rep = string.rep
-local developer = ConVar('developer')
 local hide_trace = CreateConVar('dlib_hide_hooktrace', '1', {FCVAR_ARCHIVE}, 'This bullshit exists solely for workshop hamsters (users)')
 
 local function catchError(err)
