@@ -51,7 +51,6 @@ class DLib.CacheManager
 				readbyte = fread\ReadByte()
 				readop = readbyte ~= 0
 				hash = readhash(fread)
-				print('readhash', hash)
 
 				if readop
 					overwrites_or_removes += 1 if @state_hash[hash]
@@ -234,7 +233,6 @@ class DLib.CacheManager
 
 		deleted = 0
 		deleted_size = 0
-		@fhandle = file.Open(@folder .. '/swap.dat', 'ab', 'DATA') if not @fhandle
 
 		for i = #@state, 1, -1
 			obj = @state[i]
@@ -243,12 +241,16 @@ class DLib.CacheManager
 			@state_hash[obj.hash] = nil
 			deleted_size += obj.size
 			deleted += 1
-			@fhandle\WriteByte(0)
-			writehash(@fhandle, obj.hash)
 
 		if deleted > 0
 			DLib.LMessage('message.dlib.cache_manager.cleanup', @folder, deleted, DLib.I18n.FormatAnyBytesLong(deleted_size))
-			@fhandle\Flush()
+
+			@fhandle\Close() if @fhandle
+			@fhandle = nil
+			-- file.Delete does not close open handles
+			-- so to truncate the swap file we just open in write mode
+			file.Open(@folder .. '/swap.dat', 'wb', 'DATA')\Close()
+			@fhandle = file.Open(@folder .. '/swap.dat', 'ab', 'DATA')
 
 		return deleted > 0
 
