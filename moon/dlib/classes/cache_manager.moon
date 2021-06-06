@@ -20,6 +20,15 @@
 
 sorter = (a, b) -> a.last_access > b.last_access
 
+writehash = (handle, input) ->
+	handle\WriteULong(tonumber(input\sub(1, 8), 16))
+	handle\WriteULong(tonumber(input\sub(9, 16), 16))
+	handle\WriteULong(tonumber(input\sub(17, 24), 16))
+	handle\WriteULong(tonumber(input\sub(25, 32), 16))
+	handle\WriteULong(tonumber(input\sub(33, 40), 16))
+
+readhash = (handle) -> string.format('%08x%08x%08x%08x%08x', handle\ReadULong(), handle\ReadULong(), handle\ReadULong(), handle\ReadULong(), handle\ReadULong())
+
 class DLib.CacheManager
 	new: (folder, limit, extension = 'dat') =>
 		assert(isstring(folder), 'isstring(folder)')
@@ -32,17 +41,64 @@ class DLib.CacheManager
 		@limit = limit
 		@extension = extension
 
-		if file.Exists(folder .. '/swap.json', 'DATA')
+		if file.Exists(folder .. '/swap.dat', 'DATA')
+			fread = file.Open(folder .. '/swap.dat', 'rb', 'DATA')
+			@state_hash = {}
+			@dirty = false
+			overwrites_or_removes = 0
+
+			while fread\Tell() < fread\Size()
+				readbyte = fread\ReadByte()
+				readop = readbyte ~= 0
+				hash = readhash(fread)
+				print('readhash', hash)
+
+				if readop
+					overwrites_or_removes += 1 if @state_hash[hash]
+
+					@state_hash[hash] = {
+						hash: hash
+						created: fread\ReadDouble()
+						last_access: fread\ReadDouble()
+						last_modify: fread\ReadDouble()
+						size: fread\ReadULong()
+					}
+				else
+					@state_hash[hash] = nil
+					overwrites_or_removes += 1
+
+			@state = [v for k, v in pairs(@state_hash)]
+
+			if overwrites_or_removes > #@state * 4 or overwrites_or_removes > 40000
+				@VacuumSwap()
+
+			fread\Close()
+		elseif file.Exists(folder .. '/swap.json', 'DATA')
 			@state = util.JSONToTable(file.Read(folder .. '/swap.json', 'DATA'))
 
 			if @state
 				@dirty = false
 				@state_hash = {}
 				@state_hash[state.hash] = state for state in *@state
+
+				@fhandle = file.Open(@folder .. '/swap.dat', 'ab', 'DATA') if not @fhandle
+
+				for data in *@state
+					with data
+						@fhandle\WriteByte(1)
+						writehash(@fhandle, .hash)
+						@fhandle\WriteDouble(.created)
+						@fhandle\WriteDouble(.last_modify)
+						@fhandle\WriteDouble(.last_access)
+						@fhandle\WriteULong(.size)
+
+				@fhandle\Flush()
 			else
 				@state = {}
 				@state_hash = {}
 				@Rescan()
+
+			file.Delete(folder .. '/swap.json')
 		else
 			@state = {}
 			@state_hash = {}
@@ -51,6 +107,7 @@ class DLib.CacheManager
 	Rescan: =>
 		files, folders = file.Find(@folder .. '/*', 'DATA')
 		found_hashes = {}
+		@fhandle = file.Open(@folder .. '/swap.dat', 'ab', 'DATA') if not @fhandle
 
 		for folder in *folders
 			if #folder == 2
@@ -71,6 +128,12 @@ class DLib.CacheManager
 
 						table.insert(@state, data)
 						@state_hash[hash] = data
+						@fhandle\WriteByte(1)
+						writehash(@fhandle, hash)
+						@fhandle\WriteDouble(time)
+						@fhandle\WriteDouble(time)
+						@fhandle\WriteDouble(time)
+						@fhandle\WriteULong(data.size)
 
 		for i = #@state, 1, -1
 			data = @state[i]
@@ -79,7 +142,7 @@ class DLib.CacheManager
 				table.remove(@state, i)
 				@state_hash[data.hash] = nil
 
-		@SaveSwap()
+		@fhandle\Flush()
 		return @
 
 	SetConVar: (convar = CreateConVar(@folder .. '_size', @limit, {FCVAR_ARCHIVE}, 'Cache size in bytes'), minimal = 0) =>
@@ -88,19 +151,35 @@ class DLib.CacheManager
 		return @
 
 	SaveSwap: =>
-		file.Write(@folder .. '/swap.json', util.TableToJSON(@state, true))
+		@fhandle\Flush() if @fhandle
 		@dirty = false
 		return @
 
 	SaveSwapIfDirty: =>
-		return false if not @dirty
-		@SaveSwap()
-		return true
+		@fhandle\Flush() if @fhandle
+		@dirty = false
+		return @
 
 	SaveSwapIfDirtyForLong: =>
-		return false if not @dirty or @dirty + 10 > SysTime()
-		@SaveSwap()
-		return true
+		@fhandle\Flush() if @fhandle
+		@dirty = false
+		return @
+
+	VacuumSwap: =>
+		@fhandle\Close() if @fhandle
+		@fhandle = nil
+		fhandle = file.Open(@folder .. '/swap.dat', 'wb', 'DATA')
+
+		for data in *@state
+			with data
+				fhandle\WriteByte(1)
+				writehash(fhandle, .hash)
+				fhandle\WriteDouble(.created)
+				fhandle\WriteDouble(.last_modify)
+				fhandle\WriteDouble(.last_access)
+				fhandle\WriteULong(.size)
+
+		fhandle\Close()
 
 	SetExtension: (extension) => @extension = assert(isstring(extension) and extension, 'isstring(extension)')
 	GetExtension: => @extension
@@ -155,6 +234,7 @@ class DLib.CacheManager
 
 		deleted = 0
 		deleted_size = 0
+		@fhandle = file.Open(@folder .. '/swap.dat', 'ab', 'DATA') if not @fhandle
 
 		for i = #@state, 1, -1
 			obj = @state[i]
@@ -163,10 +243,12 @@ class DLib.CacheManager
 			@state_hash[obj.hash] = nil
 			deleted_size += obj.size
 			deleted += 1
+			@fhandle\WriteByte(0)
+			writehash(@fhandle, obj.hash)
 
 		if deleted > 0
 			DLib.LMessage('message.dlib.cache_manager.cleanup', @folder, deleted, DLib.I18n.FormatAnyBytesLong(deleted_size))
-			@SaveSwap()
+			@fhandle\Flush()
 
 		return deleted > 0
 
@@ -183,6 +265,7 @@ class DLib.CacheManager
 
 		deleted = 0
 		deleted_size = 0
+		@fhandle = file.Open(@folder .. '/swap.dat', 'ab', 'DATA') if not @fhandle
 
 		while size >= limit and #@state ~= 0
 			obj = @state[#@state]
@@ -193,10 +276,12 @@ class DLib.CacheManager
 			size -= obj.size
 			deleted_size += obj.size
 			deleted += 1
+			@fhandle\WriteByte(0)
+			writehash(@fhandle, obj.hash)
 
 		if deleted > 0
 			DLib.LMessage('message.dlib.cache_manager.cleanup', @folder, deleted, DLib.I18n.FormatAnyBytesLong(deleted_size))
-			@SaveSwap()
+			@fhandle\Flush()
 
 		return deleted > 0
 
@@ -222,6 +307,8 @@ class DLib.CacheManager
 		path = string.format('%s/%s/%s.%s', @folder, key\sub(1, 2), key, @extension)
 		file.Write(path, value)
 
+		@fhandle = file.Open(@folder .. '/swap.dat', 'ab', 'DATA') if not @fhandle
+
 		if not @state_hash[key]
 			data = {
 				hash: key
@@ -236,7 +323,15 @@ class DLib.CacheManager
 			.last_access = os.time()
 			.size = #value
 
+			@fhandle\WriteByte(1)
+			writehash(@fhandle, .hash)
+			@fhandle\WriteDouble(.created)
+			@fhandle\WriteDouble(.last_modify)
+			@fhandle\WriteDouble(.last_access)
+			@fhandle\WriteULong(.size)
+
 		@dirty = SysTime() if not @dirty
 		@CleanupIfFull()
-		@SaveSwapIfDirty()
+		@fhandle\Flush()
+
 		return path
