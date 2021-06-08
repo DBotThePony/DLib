@@ -78,7 +78,12 @@ class DLib.CacheManager
 			if @state
 				@dirty = false
 				@state_hash = {}
-				@state_hash[state.hash] = state for state in *@state
+
+				for state in *@state
+					if file.Exists(@folder .. '/' .. state.hash\sub(1, 2) .. '/' .. state.hash .. '.' .. @extension, 'DATA')
+						@state_hash[state.hash] = state
+
+				@state = [v for k, v in pairs(@state_hash)]
 
 				@fhandle = file.Open(@folder .. '/swap.dat', 'ab', 'DATA') if not @fhandle
 
