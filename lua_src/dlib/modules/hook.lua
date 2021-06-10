@@ -161,7 +161,7 @@ if ghook ~= DLib.ghook then
 		hook.include = hook.include or include
 		local linclude = hook.include
 
-		function _G.include(fil)
+		function _G.include(fil, ...)
 			if fil:find('ulib') and fil:find('hook') then
 				if DLib.DEBUG_MODE:GetBool() then
 					DLib.Message('--------------------')
@@ -174,7 +174,7 @@ if ghook ~= DLib.ghook then
 				return
 			end
 
-			return linclude(fil)
+			return linclude(fil, ...)
 		end
 
 		oldHooks = {}
