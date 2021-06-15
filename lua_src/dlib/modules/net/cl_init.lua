@@ -35,6 +35,13 @@ cvars.AddChangeCallback('dlib_net_window_size', Net.UpdateWindowProperties, 'DLi
 cvars.AddChangeCallback('dlib_net_dgram_size', Net.UpdateWindowProperties, 'DLib.Net')
 cvars.AddChangeCallback('dlib_net_compress_size', Net.UpdateWindowProperties, 'DLib.Net')
 
+if Net.use_unreliable == nil then
+	Net.use_unreliable = true
+end
+
+Net.reliable_score = Net.reliable_score or 0
+Net.reliable_score_dg = Net.reliable_score_dg or 0
+
 Net.network_position = Net.network_position or 0
 Net.accumulated_size = Net.accumulated_size or 0
 Net.queued_buffers = Net.queued_buffers or {}
@@ -99,10 +106,10 @@ function Net.Think()
 		_net.Start('dlib_net_ack1', true)
 		_net.SendToServer()
 
-		Net.last_expected_ack = time + 10
+		Net.last_expected_ack = time + Net.reliable_window
 
 		if Net.last_expected_ack_chunks then
-			Net.last_expected_ack_chunks = time + 10
+			Net.last_expected_ack_chunks = time + Net.reliable_window
 		end
 	end
 
@@ -112,10 +119,10 @@ function Net.Think()
 		_net.SendToServer()
 
 		if Net.last_expected_ack then
-			Net.last_expected_ack = time + 10
+			Net.last_expected_ack = time + Net.reliable_window
 		end
 
-		Net.last_expected_ack_chunks = time + 10
+		Net.last_expected_ack_chunks = time + Net.reliable_window
 	end
 
 	if Net.process_next and Net.process_next < time then

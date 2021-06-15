@@ -62,6 +62,8 @@ Net.message_datagram_limit = 0x400
 Net.datagram_queue_size_limit = 0x10000 -- idiot proofing from flooding server's memory with trash data
 Net.window_size_limit = 0x1000000 -- idiot proofing from flooding server's memory with trash data
 
+Net.reliable_window = 6
+
 function Net.UpdateWindowProperties()
 	Net.window_size_limit = Net.WINDOW_SIZE_LIMIT:GetInt(0x1000000)
 	Net.datagram_queue_size_limit = Net.DGRAM_SIZE_LIMIT:GetInt(0x10000)
@@ -201,8 +203,8 @@ local SysTime = SysTime
 _net.receive('dlib_net_ack1', function(_, ply)
 	-- yeah
 	local namespace = Net.Namespace(CLIENT and Net or ply)
-	namespace.last_expected_ack = SysTime() + 10
-	namespace.last_expected_ack_chunks = SysTime() + 10
+	namespace.last_expected_ack = SysTime() + Net.reliable_window
+	namespace.last_expected_ack_chunks = SysTime() + Net.reliable_window
 
 	namespace.server_chunk_ack = true
 	namespace.server_datagram_ack = true
@@ -223,8 +225,8 @@ _net.receive('dlib_net_ack2', function(_, ply)
 	debug('Ask 2')
 
 	local namespace = Net.Namespace(CLIENT and Net or ply)
-	namespace.last_expected_ack = SysTime() + 10
-	namespace.last_expected_ack_chunks = SysTime() + 10
+	namespace.last_expected_ack = SysTime() + Net.reliable_window
+	namespace.last_expected_ack_chunks = SysTime() + Net.reliable_window
 	namespace.server_chunk_ack = true
 	namespace.server_datagram_ack = true
 end)
@@ -253,7 +255,7 @@ _net.receive('dlib_net_chunk', function(_, ply)
 
 	if namespace.next_expected_chunk > chunkid then return end
 
-	_net.Start('dlib_net_chunk_ack')
+	_net.Start('dlib_net_chunk_ack', namespace.use_unreliable)
 	_net.WriteUInt32(chunkid)
 	_net.WriteUInt16(current_chunk)
 
@@ -341,7 +343,7 @@ _net.receive('dlib_net_datagram', function(_, ply)
 
 	local namespace = Net.Namespace(CLIENT and Net or ply)
 
-	_net.Start('dlib_net_datagram_ack', true)
+	_net.Start('dlib_net_datagram_ack', namespace.use_unreliable)
 
 	local startread = SysTime()
 
@@ -743,7 +745,13 @@ function Net.DispatchChunk(ply)
 		namespace.last_expected_ack_chunks = SysTime() + 10
 	end
 
-	_net.Start('dlib_net_chunk', true)
+	namespace.reliable_score = namespace.reliable_score + 1
+
+	if namespace.reliable_score >= 4 then
+		namespace.use_unreliable = false
+	end
+
+	_net.Start('dlib_net_chunk', namespace.use_unreliable)
 	_net.WriteUInt32(data.chunkid)
 	_net.WriteUInt16(chunkNum)
 	_net.WriteUInt16(data.total_chunks)
@@ -765,6 +773,7 @@ _net.receive('dlib_net_chunk_ack', function(_, ply)
 	local namespace = Net.Namespace(CLIENT and Net or ply)
 
 	namespace.server_chunk_ack = true
+	namespace.reliable_score = math.max(0, namespace.reliable_score - 1.5)
 
 	local chunkid = _net.ReadUInt32()
 	local current_chunk = _net.ReadUInt16()
@@ -792,8 +801,13 @@ function Net.DispatchDatagram(ply)
 	local namespace = Net.Namespace(CLIENT and Net or ply)
 
 	namespace.server_datagram_ack = false
+	namespace.reliable_score_dg = namespace.reliable_score_dg + 1
 
-	_net.Start('dlib_net_datagram', true)
+	if namespace.reliable_score_dg >= 4 then
+		namespace.use_unreliable = false
+	end
+
+	_net.Start('dlib_net_datagram', namespace.use_unreliable)
 
 	local lastkey
 
@@ -825,6 +839,7 @@ _net.receive('dlib_net_datagram_ack', function(length, ply)
 	local namespace = Net.Namespace(CLIENT and Net or ply)
 
 	namespace.server_datagram_ack = true
+	namespace.reliable_score_dg = math.max(0, namespace.reliable_score_dg - 1.5)
 
 	for i = 1, length / 32 do
 		local readid = _net.ReadUInt32()

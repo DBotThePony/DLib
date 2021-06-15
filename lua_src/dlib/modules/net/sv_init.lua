@@ -147,6 +147,12 @@ function Net.Namespace(target)
 		return Net.Namespace(target.dlib_net)
 	end
 
+	if target.use_unreliable == nil then
+		target.use_unreliable = true
+	end
+
+	target.reliable_score = target.reliable_score or 0
+	target.reliable_score_dg = target.reliable_score_dg or 0
 	target.network_position = target.network_position or 0
 	target.accumulated_size = target.accumulated_size or 0
 	target.queued_buffers = target.queued_buffers or {}
@@ -209,7 +215,7 @@ function Net.Think()
 			_net.Start('dlib_net_ack1', true)
 			_net.Send(ply)
 
-			namespace.last_expected_ack = time + 10
+			namespace.last_expected_ack = time + Net.reliable_window
 		end
 
 		if namespace.last_expected_ack_chunks and namespace.last_expected_ack_chunks < time then
@@ -217,7 +223,7 @@ function Net.Think()
 			_net.Start('dlib_net_ack1', true)
 			_net.Send(ply)
 
-			namespace.last_expected_ack_chunks = time + 10
+			namespace.last_expected_ack_chunks = time + Net.reliable_window
 		end
 
 		if namespace.server_datagrams_num_warn ~= namespace.server_datagrams_num then
