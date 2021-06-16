@@ -744,3 +744,11 @@ gui.dlib.filemanager.copy_path = 'Copy path'
 gui.dlib.filemanager.copy_date = 'Copy modify date'
 gui.dlib.filemanager.copy_size = 'Copy size'
 gui.dlib.filemanager.delete = 'Delete'
+gui.dlib.filemanager.error = 'error'
+gui.dlib.filemanager.folder = 'folder'
+
+gui.dlib.filemanager.make_folder.title = 'New folder'
+gui.dlib.filemanager.make_folder.description = 'Please input name of folder. Keep in mind, the " and : are restricted symbols even\nunder Linux systems for Lua code in Garry\'s Mod.'
+
+gui.dlib.filemanager.make_folder.error_title = 'Invalid name'
+gui.dlib.filemanager.make_folder.error_description = 'Name contains special or forbidden symbols, being completely empty,\nsuch path already exists, being too long or it occupy special filename.'

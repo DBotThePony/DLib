@@ -425,6 +425,7 @@ end
 
 function PANEL:OnRowRightClick(line)
 	local path = canonizeString(self:GetRootedPath() .. line:GetValue(1))
+	local rooted_path = self:GetRootedPath()
 	local menu = DermaMenu()
 
 	menu:AddOption('gui.dlib.filemanager.open', function()
@@ -454,10 +455,63 @@ function PANEL:OnRowRightClick(line)
 	if self:IsPathWritable(path) then
 		menu:AddSpacer()
 
+		menu:AddOption('gui.dlib.filemanager.make_folder.title', function()
+			local _text = ''
+
+			local function request()
+				Derma_StringRequest(
+					'gui.dlib.filemanager.make_folder.title',
+					'gui.dlib.filemanager.make_folder.description',
+					_text,
+					function(text)
+						text = text:lower()
+						_text = text
+
+						if text:find('"', 1, true) or text:find(':', 1, true) or text:find('/', 1, true) or text == '.' or text == '' or text == '..' or #text >= 253 or file.Exists(rooted_path .. text, self.data_folder) then
+							Derma_Query(
+								'gui.dlib.filemanager.make_folder.error_description',
+								'gui.dlib.filemanager.make_folder.error_title',
+
+								'gui.misc.ok',
+								request,
+								'gui.misc.cancel'
+							)
+
+							return
+						end
+
+						file.mkdir(rooted_path:gsub('^[dD][aA][tT][aA]/', '') .. text)
+
+						if not file.IsDir(rooted_path .. text, self.data_folder) then
+							Derma_Query(
+								'gui.dlib.filemanager.make_folder.error_description',
+								'gui.dlib.filemanager.make_folder.error_title',
+
+								'gui.misc.ok',
+								request,
+								'gui.misc.cancel'
+							)
+						else
+							self:ScanCurrentDirectory()
+							self:RebuildFileList()
+						end
+					end,
+					nil,
+					'gui.misc.ok',
+					'gui.misc.cancel'
+				)
+			end
+
+			request()
+		end)
+
 		local sub, button = menu:AddSubMenu('gui.dlib.filemanager.delete')
 
-		sub:AddSubMenu('gui.dlib.filemanager.delete', function()
+		sub:AddOption('gui.dlib.filemanager.delete', function()
 			file.Delete(path)
+
+			self:ScanCurrentDirectory()
+			self:RebuildFileList()
 		end)
 	end
 
@@ -676,10 +730,22 @@ function PANEL:FMThink()
 				local name = self.row_tasks[i]:GetValue(1)
 
 				if not self.row_tasks[i].is_folder then
-					self.row_tasks[i]:SetValue(3, DLib.I18n.FormatAnyBytes(file.Size(root .. name, self.data_folder)))
+					local count = file.Size(root .. name, self.data_folder)
+
+					if count then
+						self.row_tasks[i]:SetValue(3, DLib.I18n.FormatAnyBytes(count))
+					else
+						self.row_tasks[i]:SetValue(3, 'gui.dlib.filemanager.error')
+					end
 				end
 
-				self.row_tasks[i]:SetValue(2, DLib.string.qdate(file.Time(root .. name, self.data_folder), true))
+				local time = file.Time(root .. name, self.data_folder)
+
+				if time then
+					self.row_tasks[i]:SetValue(2, DLib.string.qdate(time, true))
+				else
+					self.row_tasks[i]:SetValue(2, 'gui.dlib.filemanager.error')
+				end
 
 				exhaust = exhaust - 1
 
@@ -706,7 +772,7 @@ function PANEL:RebuildFileList()
 	if search == '' then
 		for i, data in ipairs(self._file_list) do
 			if data[2] then
-				self.row_tasks[i] = self.folder_contents:AddLine(data[1], '???', 'folder')
+				self.row_tasks[i] = self.folder_contents:AddLine(data[1], '???', 'gui.dlib.filemanager.folder')
 				self.row_tasks[i].is_folder = true
 			else
 				self.row_tasks[i] = self.folder_contents:AddLine(data[1], '???', '???')
@@ -717,7 +783,7 @@ function PANEL:RebuildFileList()
 		for i, data in ipairs(self._file_list) do
 			if data[1]:lower():find(search, 1, true) or data[1] == '..' then
 				if data[2] then
-					self.row_tasks[i] = self.folder_contents:AddLine(data[1], '???', 'folder')
+					self.row_tasks[i] = self.folder_contents:AddLine(data[1], '???', 'gui.dlib.filemanager.folder')
 					self.row_tasks[i].is_folder = true
 				else
 					self.row_tasks[i] = self.folder_contents:AddLine(data[1], '???', '???')
