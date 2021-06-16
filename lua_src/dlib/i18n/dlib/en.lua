@@ -705,3 +705,42 @@ info.entity.xen_spore_large.name = "Large Xen Spore"
 info.entity.xen_spore_medium.name = "Medium Xen Spore"
 info.entity.xen_spore_small.name = "Small Xen Spore"
 info.entity.xen_tree.name = "Xen Tree"
+
+gui.dlib.filemanager.title_open = 'Select file to open'
+gui.dlib.filemanager.title_read = 'Select file to read'
+gui.dlib.filemanager.title_write = 'Select file to write'
+gui.dlib.filemanager.title_open_dir = 'Select directory to open'
+gui.dlib.filemanager.file_name = 'File name:'
+gui.dlib.filemanager.open = 'Open'
+gui.dlib.filemanager.quick_search = 'Quick search files...'
+
+gui.dlib.filemanager.overwrite.title = 'Overwrite an existing file %s?'
+gui.dlib.filemanager.overwrite.description = 'File %s already exists. Are you sure you want to overwrite it?'
+
+gui.dlib.filemanager.not_exists.title = 'Not found'
+gui.dlib.filemanager.not_exists.description = 'The path you have specified can not be found by your operating system.'
+
+gui.dlib.filemanager.not_writable.title = 'Not writable destination'
+gui.dlib.filemanager.not_writable.description = 'The path you have specified can not be written into by Lua code of Garry\'s Mod.'
+
+gui.dlib.filemanager.not_writable_ext.title = 'Not writable extension'
+gui.dlib.filemanager.not_writable_ext.description = 'The file extension you have specified can not be written into by Lua code of Garry\'s Mod.'
+
+gui.dlib.filemanager.not_writable_dir.title = 'Not writable'
+gui.dlib.filemanager.not_writable_dir.description = 'The path you have specified require directories to be created\nwhich can not be create by Lua code of Garry\'s Mod.'
+
+gui.dlib.filemanager.dir_is_file.title = 'Invalid path'
+gui.dlib.filemanager.dir_is_file.description = 'The path you have specified contain files, utilized as directories.'
+
+gui.dlib.filemanager.destination_is_dir.title = 'Destination is a directory'
+gui.dlib.filemanager.destination_is_dir.description = 'The path you have specified is a directory, can not create a new file there.'
+
+gui.dlib.filemanager.file_list.name = 'Name'
+gui.dlib.filemanager.file_list.last_change = 'Last modified'
+gui.dlib.filemanager.file_list.size = 'Size'
+
+gui.dlib.filemanager.copy_filename = 'Copy name'
+gui.dlib.filemanager.copy_path = 'Copy path'
+gui.dlib.filemanager.copy_date = 'Copy modify date'
+gui.dlib.filemanager.copy_size = 'Copy size'
+gui.dlib.filemanager.delete = 'Delete'

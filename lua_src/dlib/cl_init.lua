@@ -83,6 +83,7 @@ DLib.ClientInclude('vgui/skin/draw/window.lua')
 
 DLib.ClientInclude('vgui/util.lua')
 DLib.ClientInclude('vgui/window.lua')
+DLib.ClientInclude('vgui/filebrowser.lua')
 
 DLib.ClientInclude('util/client/scrsize.lua')
 DLib.ClientInclude('util/client/chat.lua')

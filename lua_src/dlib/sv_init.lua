@@ -100,6 +100,7 @@ AddCSLuaFile('dlib/vgui/skin/icons.lua')
 AddCSLuaFile('dlib/vgui/skin.lua')
 AddCSLuaFile('dlib/vgui/util.lua')
 AddCSLuaFile('dlib/vgui/window.lua')
+AddCSLuaFile('dlib/vgui/filebrowser.lua')
 
 include('dlib/util/server/chat.lua')
 
