@@ -430,26 +430,26 @@ function PANEL:OnRowRightClick(line)
 
 	menu:AddOption('gui.dlib.filemanager.open', function()
 		self:DoubleClickLine(line)
-	end)
+	end):SetIcon('icon16/accept.png')
 
 	if line:GetValue(1) ~= '..' then
 		menu:AddOption('gui.dlib.filemanager.copy_filename', function()
 			SetClipboardText(line:GetValue(1))
-		end)
+		end):SetIcon('icon16/page.png')
 
 		menu:AddOption('gui.dlib.filemanager.copy_path', function()
 			SetClipboardText(path)
-		end)
+		end):SetIcon('icon16/page.png')
 	end
 
 	menu:AddOption('gui.dlib.filemanager.copy_date', function()
 		SetClipboardText(line:GetValue(2))
-	end)
+	end):SetIcon('icon16/page.png')
 
-	if line:GetValue(1) ~= '..' then
+	if not line.is_folder then
 		menu:AddOption('gui.dlib.filemanager.copy_size', function()
 			SetClipboardText(line:GetValue(3))
-		end)
+		end):SetIcon('icon16/page.png')
 	end
 
 	if self:IsPathWritable(path) then
@@ -503,16 +503,19 @@ function PANEL:OnRowRightClick(line)
 			end
 
 			request()
-		end)
+		end):SetIcon('icon16/folder_add.png')
 
-		local sub, button = menu:AddSubMenu('gui.dlib.filemanager.delete')
+		if line:GetValue(1) ~= '..' then
+			local sub, button = menu:AddSubMenu('gui.dlib.filemanager.delete')
+			button:SetIcon('icon16/delete.png')
 
-		sub:AddOption('gui.dlib.filemanager.delete', function()
-			file.Delete(path)
+			sub:AddOption('gui.dlib.filemanager.delete', function()
+				file.Delete(path)
 
-			self:ScanCurrentDirectory()
-			self:RebuildFileList()
-		end)
+				self:ScanCurrentDirectory()
+				self:RebuildFileList()
+			end):SetIcon('icon16/delete.png')
+		end
 	end
 
 	menu:Open()
