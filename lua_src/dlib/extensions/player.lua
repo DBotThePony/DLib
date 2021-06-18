@@ -179,7 +179,7 @@ function plyMeta:EyeAnglesFixed()
 	return self:GetVehicle():GetAngles() + self:EyeAngles()
 end
 
-if VERSION >= 210500 then
+if VERSION >= 210500 and VERSION < 210600 then
 	plyMeta.EyeAnglesFixed = FindMetaTable('Entity').EyeAngles
 end
 
