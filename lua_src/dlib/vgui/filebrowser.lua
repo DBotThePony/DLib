@@ -427,6 +427,11 @@ function PANEL:OnRowRightClick(line)
 	local path = canonizeString(self:GetRootedPath() .. line:GetValue(1))
 	local rooted_path = self:GetRootedPath()
 	local menu = DermaMenu()
+	local path_to_data_dir = path
+
+	if self.data_folder ~= 'DATA' then
+		path_to_data_dir = path_to_data_dir:gsub('^[dD][aA][tT][aA]/', '')
+	end
 
 	menu:AddOption('gui.dlib.filemanager.open', function()
 		self:DoubleClickLine(line)
@@ -480,7 +485,7 @@ function PANEL:OnRowRightClick(line)
 							return
 						end
 
-						file.mkdir(rooted_path:gsub('^[dD][aA][tT][aA]/', '') .. text)
+						file.mkdir(path_to_data_dir .. text)
 
 						if not file.IsDir(rooted_path .. text, self.data_folder) then
 							Derma_Query(
@@ -510,10 +515,23 @@ function PANEL:OnRowRightClick(line)
 			button:SetIcon('icon16/delete.png')
 
 			sub:AddOption('gui.dlib.filemanager.delete', function()
-				file.Delete(path)
+				if file.IsDir(path, self.data_folder) then
+					local _files, _dirs = file.Find(path .. '*', self.data_folder)
 
-				self:ScanCurrentDirectory()
-				self:RebuildFileList()
+					if #_files == #_dirs and #_files == 0 then
+						file.Delete(path_to_data_dir)
+
+						self:ScanCurrentDirectory()
+						self:RebuildFileList()
+					else
+						Derma_Message('gui.dlib.filemanager.dir_not_empty.description', 'gui.dlib.filemanager.dir_not_empty.title', 'gui.misc.ok')
+					end
+				else
+					file.Delete(path_to_data_dir)
+
+					self:ScanCurrentDirectory()
+					self:RebuildFileList()
+				end
 			end):SetIcon('icon16/delete.png')
 		end
 	end

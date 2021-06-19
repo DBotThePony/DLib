@@ -747,6 +747,9 @@ gui.dlib.filemanager.delete = 'Delete'
 gui.dlib.filemanager.error = 'error'
 gui.dlib.filemanager.folder = 'folder'
 
+gui.dlib.filemanager.dir_not_empty.title = 'Folder not empty'
+gui.dlib.filemanager.dir_not_empty.description = 'Folder can not be removed with files in it.'
+
 gui.dlib.filemanager.make_folder.title = 'New folder'
 gui.dlib.filemanager.make_folder.description = 'Please input name of folder. Keep in mind, the " and : are restricted symbols even\nunder Linux systems for Lua code in Garry\'s Mod.'
 
