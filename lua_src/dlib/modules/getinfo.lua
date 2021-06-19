@@ -37,6 +37,7 @@ local plyMeta = FindMetaTable('Player')
 local entMeta = FindMetaTable('Entity')
 DLib.GetInfo = DLib.GetInfo or {}
 local GetInfo = DLib.GetInfo
+DLib.getinfo = GetInfo
 
 GetInfo.Bank = GetInfo.Bank or {}
 GetInfo.BankCRC = GetInfo.BankCRC or {}
