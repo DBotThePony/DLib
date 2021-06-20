@@ -85,6 +85,56 @@ local function isExtensionWritable(path)
 	return false
 end
 
+function PANEL:MakeFolder(rooted_path, path_to_data_dir)
+	local _text = ''
+
+	local function request()
+		Derma_StringRequest(
+			'gui.dlib.filemanager.make_folder.title',
+			'gui.dlib.filemanager.make_folder.description',
+			_text,
+			function(text)
+				text = text:lower()
+				_text = text
+
+				if text:find('"', 1, true) or text:find(':', 1, true) or text:find('/', 1, true) or text == '.' or text == '' or text == '..' or #text >= 253 or file.Exists(rooted_path .. text, self.data_folder) then
+					Derma_Query(
+						'gui.dlib.filemanager.make_folder.error_description',
+						'gui.dlib.filemanager.make_folder.error_title',
+
+						'gui.misc.ok',
+						request,
+						'gui.misc.cancel'
+					)
+
+					return
+				end
+
+				file.mkdir(path_to_data_dir .. text)
+
+				if not file.IsDir(rooted_path .. text, self.data_folder) then
+					Derma_Query(
+						'gui.dlib.filemanager.make_folder.error_description',
+						'gui.dlib.filemanager.make_folder.error_title',
+
+						'gui.misc.ok',
+						request,
+						'gui.misc.cancel'
+					)
+				else
+					self:ScanCurrentDirectory()
+					self:RebuildFileList()
+				end
+			end,
+			nil,
+			'gui.misc.ok',
+			'gui.misc.cancel'
+		)
+	end
+
+	request()
+end
+
 function PANEL:Init()
 	self:SetSize(1000, 700)
 
@@ -121,6 +171,7 @@ function PANEL:Init()
 	self.backward_button = vgui.Create('DButton', self.dock_top)
 	self.forward_button = vgui.Create('DButton', self.dock_top)
 	self.up_button = vgui.Create('DButton', self.dock_top)
+	self.new_folder_button = vgui.Create('DButton', self.dock_top)
 	self.address_bar = vgui.Create('DTextEntry', self.dock_top)
 	self.quick_search = vgui.Create('DTextEntry', self.dock_top)
 
@@ -144,14 +195,16 @@ function PANEL:Init()
 	self.backward_button:Dock(LEFT)
 	self.forward_button:Dock(LEFT)
 	self.up_button:Dock(LEFT)
+	self.new_folder_button:Dock(LEFT)
 	self.quick_search:Dock(RIGHT)
 	self.address_bar:Dock(FILL)
 
 	self.backward_button:SetZPos(0)
 	self.forward_button:SetZPos(1)
 	self.up_button:SetZPos(2)
-	self.address_bar:SetZPos(3)
-	self.quick_search:SetZPos(4)
+	self.new_folder_button:SetZPos(3)
+	self.address_bar:SetZPos(4)
+	self.quick_search:SetZPos(5)
 
 	self.filename_label:Dock(LEFT)
 	self.filename_bar:Dock(FILL)
@@ -163,6 +216,7 @@ function PANEL:Init()
 	self.backward_button:DockMargin(2, 0, 2, 0)
 	self.forward_button:DockMargin(2, 0, 2, 0)
 	self.up_button:DockMargin(2, 0, 2, 0)
+	self.new_folder_button:DockMargin(2, 0, 2, 0)
 	self.address_bar:DockMargin(2, 0, 0, 0)
 	self.quick_search:DockMargin(5, 0, 0, 0)
 
@@ -185,14 +239,17 @@ function PANEL:Init()
 	self.backward_button:SetText('')
 	self.forward_button:SetText('')
 	self.up_button:SetText('')
+	self.new_folder_button:SetText('')
 
 	self.backward_button:SetIcon('icon16/arrow_left.png')
 	self.forward_button:SetIcon('icon16/arrow_right.png')
 	self.up_button:SetIcon('icon16/arrow_up.png')
+	self.new_folder_button:SetIcon('icon16/folder_add.png')
 
 	self.backward_button:SetWide(24)
 	self.forward_button:SetWide(24)
 	self.up_button:SetWide(24)
+	self.new_folder_button:SetWide(24)
 
 	self.folder_contents:AddColumn('gui.dlib.filemanager.file_list.name')
 	self.folder_contents:AddColumn('gui.dlib.filemanager.file_list.last_change')
@@ -354,6 +411,17 @@ function PANEL:Init()
 		_self.backward_button:SetEnabled(_self:GetHasBackward())
 	end
 
+	function self.new_folder_button:DoClick()
+		local rooted_path = _self:GetRootedPath()
+		local path_to_data_dir = rooted_path
+
+		if _self.data_folder ~= 'DATA' then
+			path_to_data_dir = path_to_data_dir:gsub('^[dD][aA][tT][aA]/', '')
+		end
+
+		_self:MakeFolder(rooted_path, path_to_data_dir)
+	end
+
 	timer.Simple(0.1, function() if IsValid(self) then self:ThinkFirst() end end)
 
 	hook.Add('Think', self, self.FMThink)
@@ -428,9 +496,11 @@ function PANEL:OnRowRightClick(line)
 	local rooted_path = self:GetRootedPath()
 	local menu = DermaMenu()
 	local path_to_data_dir = path
+	local rooted_path_to_data_dir = rooted_path
 
 	if self.data_folder ~= 'DATA' then
 		path_to_data_dir = path_to_data_dir:gsub('^[dD][aA][tT][aA]/', '')
+		rooted_path_to_data_dir = rooted_path_to_data_dir:gsub('^[dD][aA][tT][aA]/', '')
 	end
 
 	menu:AddOption('gui.dlib.filemanager.open', function()
@@ -461,53 +531,7 @@ function PANEL:OnRowRightClick(line)
 		menu:AddSpacer()
 
 		menu:AddOption('gui.dlib.filemanager.make_folder.title', function()
-			local _text = ''
-
-			local function request()
-				Derma_StringRequest(
-					'gui.dlib.filemanager.make_folder.title',
-					'gui.dlib.filemanager.make_folder.description',
-					_text,
-					function(text)
-						text = text:lower()
-						_text = text
-
-						if text:find('"', 1, true) or text:find(':', 1, true) or text:find('/', 1, true) or text == '.' or text == '' or text == '..' or #text >= 253 or file.Exists(rooted_path .. text, self.data_folder) then
-							Derma_Query(
-								'gui.dlib.filemanager.make_folder.error_description',
-								'gui.dlib.filemanager.make_folder.error_title',
-
-								'gui.misc.ok',
-								request,
-								'gui.misc.cancel'
-							)
-
-							return
-						end
-
-						file.mkdir(path_to_data_dir .. text)
-
-						if not file.IsDir(rooted_path .. text, self.data_folder) then
-							Derma_Query(
-								'gui.dlib.filemanager.make_folder.error_description',
-								'gui.dlib.filemanager.make_folder.error_title',
-
-								'gui.misc.ok',
-								request,
-								'gui.misc.cancel'
-							)
-						else
-							self:ScanCurrentDirectory()
-							self:RebuildFileList()
-						end
-					end,
-					nil,
-					'gui.misc.ok',
-					'gui.misc.cancel'
-				)
-			end
-
-			request()
+			self:MakeFolder(rooted_path, rooted_path_to_data_dir)
 		end):SetIcon('icon16/folder_add.png')
 
 		if line:GetValue(1) ~= '..' then
@@ -516,7 +540,7 @@ function PANEL:OnRowRightClick(line)
 
 			sub:AddOption('gui.dlib.filemanager.delete', function()
 				if file.IsDir(path, self.data_folder) then
-					local _files, _dirs = file.Find(path .. '*', self.data_folder)
+					local _files, _dirs = file.Find(path .. '/*', self.data_folder)
 
 					if #_files == #_dirs and #_files == 0 then
 						file.Delete(path_to_data_dir)
@@ -707,6 +731,8 @@ function PANEL:SetPathString(path, auto_rescan)
 
 	if auto_rescan == nil then auto_rescan = true end
 
+	self.new_folder_button:SetEnabled(self:IsPathWritable(self.current_path_str))
+
 	if not self.think_first or not auto_rescan then return end
 
 	self:ScanCurrentDirectory()
@@ -719,6 +745,8 @@ function PANEL:SetPath(path, auto_rescan)
 	canonize(path)
 	self.current_path_str = table.concat(path, '/')
 	self.address_bar:SetValue('/' .. self.current_path_str)
+
+	self.new_folder_button:SetEnabled(self:IsPathWritable(self.current_path_str))
 
 	if auto_rescan == nil then auto_rescan = true end
 
