@@ -829,7 +829,7 @@ function PANEL:FMThink()
 					end
 				end
 
-				local time = file.Time(root .. name, self.data_folder)
+				local time = file.Time(canonizeString(root .. name), self.data_folder)
 
 				if time then
 					self.row_tasks[i]:SetValue(2, DLib.string.qdate(time, true))
