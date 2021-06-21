@@ -275,7 +275,7 @@ function PANEL:Init()
 	end
 
 	function self.folder_contents:OnRowRightClick(_, line)
-		_self:OnRowRightClick(line)
+		_self:OnRowRightClick(self:GetSelected())
 	end
 
 	function self.folder_contents:OnRowSelected(_, line)
@@ -491,43 +491,49 @@ function PANEL:CallSelectFile(path)
 
 end
 
-function PANEL:OnRowRightClick(line)
-	local path = canonizeString(self:GetRootedPath() .. line:GetValue(1))
-	local rooted_path = self:GetRootedPath()
+function PANEL:OnRowRightClick(lines)
+	local line = #lines == 1 and lines[1] or false
+	local path, rooted_path, path_to_data_dir, rooted_path_to_data_dir
+
 	local menu = DermaMenu()
-	local path_to_data_dir = path
-	local rooted_path_to_data_dir = rooted_path
 
-	if self.data_folder ~= 'DATA' then
-		path_to_data_dir = path_to_data_dir:gsub('^[dD][aA][tT][aA]/', '')
-		rooted_path_to_data_dir = rooted_path_to_data_dir:gsub('^[dD][aA][tT][aA]/', '')
-	end
+	if line then
+		path = canonizeString(self:GetRootedPath() .. line:GetValue(1))
+		rooted_path = self:GetRootedPath()
+		path_to_data_dir = path
+		rooted_path_to_data_dir = rooted_path
 
-	menu:AddOption('gui.dlib.filemanager.open', function()
-		self:DoubleClickLine(line)
-	end):SetIcon('icon16/accept.png')
+		if self.data_folder ~= 'DATA' then
+			path_to_data_dir = path_to_data_dir:gsub('^[dD][aA][tT][aA]/', '')
+			rooted_path_to_data_dir = rooted_path_to_data_dir:gsub('^[dD][aA][tT][aA]/', '')
+		end
 
-	if line:GetValue(1) ~= '..' then
-		menu:AddOption('gui.dlib.filemanager.copy_filename', function()
-			SetClipboardText(line:GetValue(1))
+		menu:AddOption('gui.dlib.filemanager.open', function()
+			self:DoubleClickLine(line)
+		end):SetIcon('icon16/accept.png')
+
+		if line:GetValue(1) ~= '..' then
+			menu:AddOption('gui.dlib.filemanager.copy_filename', function()
+				SetClipboardText(line:GetValue(1))
+			end):SetIcon('icon16/page.png')
+
+			menu:AddOption('gui.dlib.filemanager.copy_path', function()
+				SetClipboardText(path)
+			end):SetIcon('icon16/page.png')
+		end
+
+		menu:AddOption('gui.dlib.filemanager.copy_date', function()
+			SetClipboardText(line:GetValue(2))
 		end):SetIcon('icon16/page.png')
 
-		menu:AddOption('gui.dlib.filemanager.copy_path', function()
-			SetClipboardText(path)
-		end):SetIcon('icon16/page.png')
+		if not line.is_folder then
+			menu:AddOption('gui.dlib.filemanager.copy_size', function()
+				SetClipboardText(line:GetValue(3))
+			end):SetIcon('icon16/page.png')
+		end
 	end
 
-	menu:AddOption('gui.dlib.filemanager.copy_date', function()
-		SetClipboardText(line:GetValue(2))
-	end):SetIcon('icon16/page.png')
-
-	if not line.is_folder then
-		menu:AddOption('gui.dlib.filemanager.copy_size', function()
-			SetClipboardText(line:GetValue(3))
-		end):SetIcon('icon16/page.png')
-	end
-
-	if self:IsPathWritable(path) then
+	if line and self:IsPathWritable(path) then
 		menu:AddSpacer()
 
 		menu:AddOption('gui.dlib.filemanager.make_folder.title', function()
@@ -558,6 +564,41 @@ function PANEL:OnRowRightClick(line)
 				end
 			end):SetIcon('icon16/delete.png')
 		end
+	else
+		local sub, button = menu:AddSubMenu('gui.dlib.filemanager.delete')
+		button:SetIcon('icon16/delete.png')
+
+		sub:AddOption('gui.dlib.filemanager.delete', function()
+			for i, line in ipairs(lines) do
+				path = canonizeString(self:GetRootedPath() .. line:GetValue(1))
+				rooted_path = self:GetRootedPath()
+				path_to_data_dir = path
+				rooted_path_to_data_dir = rooted_path
+
+				if self.data_folder ~= 'DATA' then
+					path_to_data_dir = path_to_data_dir:gsub('^[dD][aA][tT][aA]/', '')
+					rooted_path_to_data_dir = rooted_path_to_data_dir:gsub('^[dD][aA][tT][aA]/', '')
+				end
+
+				if file.IsDir(path, self.data_folder) then
+					local _files, _dirs = file.Find(path .. '/*', self.data_folder)
+
+					if #_files == #_dirs and #_files == 0 then
+						file.Delete(path_to_data_dir)
+
+						self:ScanCurrentDirectory()
+						self:RebuildFileList()
+					--else
+					--  Derma_Message('gui.dlib.filemanager.dir_not_empty.description', 'gui.dlib.filemanager.dir_not_empty.title', 'gui.misc.ok')
+					end
+				else
+					file.Delete(path_to_data_dir)
+
+					self:ScanCurrentDirectory()
+					self:RebuildFileList()
+				end
+			end
+		end):SetIcon('icon16/delete.png')
 	end
 
 	menu:Open()
