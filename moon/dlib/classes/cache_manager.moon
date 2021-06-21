@@ -68,10 +68,10 @@ class DLib.CacheManager
 
 			@state = [v for k, v in pairs(@state_hash)]
 
+			fread\Close()
+
 			if overwrites_or_removes > #@state * 4 or overwrites_or_removes > 40000
 				@VacuumSwap()
-
-			fread\Close()
 		elseif file.Exists(folder .. '/swap.json', 'DATA')
 			@state = util.JSONToTable(file.Read(folder .. '/swap.json', 'DATA'))
 
@@ -174,6 +174,10 @@ class DLib.CacheManager
 		@fhandle = nil
 		fhandle = file.Open(@folder .. '/swap.dat', 'wb', 'DATA')
 
+		if not fhandle
+			DLib.LMessageError('message.dlib.cache_manager.vaccum_failure', @folder)
+			return
+
 		for data in *@state
 			with data
 				fhandle\WriteByte(1)
@@ -184,6 +188,8 @@ class DLib.CacheManager
 				fhandle\WriteULong(.size)
 
 		fhandle\Close()
+
+		@fhandle = file.Open(@folder .. '/swap.dat', 'ab', 'DATA')
 
 	SetExtension: (extension) => @extension = assert(isstring(extension) and extension, 'isstring(extension)')
 	GetExtension: => @extension

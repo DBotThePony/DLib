@@ -296,3 +296,4 @@ message.dlib.cache_manager.total_size = 'Менеджер кеша %q храни
 message.dlib.cache_manager.cleanup_not_required = '%q не требует очистки'
 message.dlib.cache_manager.nothing_to_remove = '%q пуст'
 message.dlib.cache_manager.rescanned = 'Менеджер кеша %q просканировал диск на наличие существующих файлов'
+message.dlib.cache_manager.vaccum_failure = 'Менеджер кеша %q не смог пропылесосить swap.dat (ошибка открытия файла для записи)'
