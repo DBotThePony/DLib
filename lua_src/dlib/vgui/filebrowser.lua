@@ -491,6 +491,168 @@ function PANEL:CallSelectFile(path)
 
 end
 
+local function file_scanner(path_list, tree_files, tree_dirs)
+	local index = 1
+	local size = 0
+
+	while index <= #path_list do
+		local path = path_list[index]
+
+		local scan_files, scan_dirs = file.Find(path .. '/*', 'DATA')
+
+		for i, path2 in ipairs(scan_files) do
+			table.insert(tree_files, path .. '/' .. path2)
+
+			local get_size = file.Size(path .. '/' .. path2, 'DATA')
+
+			if get_size then
+				size = size + get_size
+			end
+
+			if i % 10 == 0 then
+				coroutine.yield(#tree_files, #tree_dirs, size)
+			end
+		end
+
+		for i, path2 in ipairs(scan_dirs) do
+			table.insert(path_list, path .. '/' .. path2)
+		end
+
+		table.insert(tree_dirs, path)
+		index = index + 1
+
+		coroutine.yield(#tree_files, #tree_dirs, size)
+	end
+
+	return #tree_files, #tree_dirs, size
+end
+
+--surface.CreateFont('dlib_fm_status', {
+--  font = 'PT Sans Mono',
+--  extended = true,
+--  size = 18,
+--})
+
+local function run_scanner(path_list, validity)
+	local id = 'fm_scan_task' .. SysTime()
+
+	local window = vgui.Create('DLib_Window')
+
+	window:SetTitle('gui.dlib.filemanager.scanning.title')
+	window:SetSize(300, 170)
+	window:Center()
+
+	local bar1 = vgui.Create('EditablePanel', window)
+	local bar2 = vgui.Create('EditablePanel', window)
+	local bar3 = vgui.Create('EditablePanel', window)
+	local bar4 = vgui.Create('EditablePanel', window)
+
+	bar1:Dock(TOP)
+	bar2:Dock(TOP)
+	bar3:Dock(TOP)
+	bar4:Dock(TOP)
+
+	bar1:DockMargin(0, 2, 0, 2, 0)
+	bar2:DockMargin(0, 2, 0, 2, 0)
+	bar3:DockMargin(0, 2, 0, 2, 0)
+	bar4:DockMargin(0, 2, 0, 2, 0)
+
+	local cancel = vgui.Create('DButton', bar4)
+
+	cancel:SetText('gui.misc.cancel')
+	-- cancel:SetFont('dlib_fm_status')
+	cancel.DoClick = window.Close:Wrap(window)
+	cancel:Dock(RIGHT)
+	cancel:SizeToContents()
+	cancel:SetWide(cancel:GetWide() + 50)
+
+	local pfiles = vgui.Create('DLabel', bar1)
+	local pdirs = vgui.Create('DLabel', bar2)
+	local psize = vgui.Create('DLabel', bar3)
+
+	local pfiles_count = vgui.Create('DLabel', bar1)
+	local pdirs_count = vgui.Create('DLabel', bar2)
+	local psize_count = vgui.Create('DLabel', bar3)
+
+	-- pfiles:SetFont('dlib_fm_status')
+	-- pdirs:SetFont('dlib_fm_status')
+	-- psize:SetFont('dlib_fm_status')
+	-- pfiles_count:SetFont('dlib_fm_status')
+	-- pdirs_count:SetFont('dlib_fm_status')
+	-- psize_count:SetFont('dlib_fm_status')
+
+	pfiles:SetText('gui.dlib.filemanager.scanning.files')
+	pdirs:SetText('gui.dlib.filemanager.scanning.dirs')
+	psize:SetText('gui.dlib.filemanager.scanning.size')
+	pfiles_count:SetText('0')
+	pdirs_count:SetText('0')
+	psize_count:SetText(DLib.I18n.FormatAnyBytesLong(0))
+
+	pfiles:Dock(FILL)
+	pfiles_count:Dock(RIGHT)
+	pdirs:Dock(FILL)
+	pdirs_count:Dock(RIGHT)
+	psize:Dock(FILL)
+	psize_count:Dock(RIGHT)
+
+	pfiles:DockMargin(10, 0, 0, 0)
+	pfiles_count:DockMargin(0, 0, 10, 0)
+	pdirs:DockMargin(10, 0, 0, 0)
+	pdirs_count:DockMargin(0, 0, 10, 0)
+	psize:DockMargin(10, 0, 0, 0)
+	psize_count:DockMargin(0, 0, 10, 0)
+
+	local tree_files, tree_dirs, copy = {}, {}, {}
+
+	for i, path in ipairs(path_list) do
+		if file.IsDir(path, 'DATA') then
+			table.insert(copy, path)
+		else
+			table.insert(tree_files, path)
+		end
+	end
+
+	local thread = coroutine.create(file_scanner)
+	local _, files_count, dirs_count, size = coroutine.resume(thread, copy, tree_files, tree_dirs)
+
+	if coroutine.status(thread) == 'dead' then
+		pfiles_count:SetText(files_count:tostring())
+		pfiles_count:SizeToContents()
+		pdirs_count:SetText(dirs_count:tostring())
+		pdirs_count:SizeToContents()
+		psize_count:SetText(DLib.I18n.FormatAnyBytesLong(size))
+		psize_count:SizeToContents()
+
+		return DLib.Promise(function(resolve, reject)
+			resolve(tree_files, tree_dirs, size)
+		end)
+	end
+
+	return DLib.Promise(function(resolve, reject)
+		hook.Add('Think', id, function()
+			if validity and not IsValid(validity) or not IsValid(window) then
+				hook.Remove('Think', id)
+				reject('User input')
+				return
+			end
+
+			_, files_count, dirs_count, size = coroutine.resume(thread, path_list, tree_files, tree_dirs, status)
+
+			pfiles_count:SetText(files_count:tostring())
+			pdirs_count:SetText(dirs_count:tostring())
+			psize_count:SetText(DLib.I18n.FormatAnyBytesLong(size))
+			pfiles_count:SizeToContents()
+			pdirs_count:SizeToContents()
+			psize_count:SizeToContents()
+
+			if coroutine.status(thread) == 'dead' then
+				hook.Remove('Think', id)
+				resolve(tree_files, tree_dirs, size)
+			end
+		end)
+	end)
+end
+
 function PANEL:OnRowRightClick(lines)
 	local line = #lines == 1 and lines[1] or false
 	local path, rooted_path, path_to_data_dir, rooted_path_to_data_dir
@@ -535,6 +697,10 @@ function PANEL:OnRowRightClick(lines)
 
 	if line and self:IsPathWritable(path) then
 		menu:AddSpacer()
+
+		menu:AddOption('a', function()
+			run_scanner({path_to_data_dir})
+		end):SetIcon('icon16/folder_add.png')
 
 		menu:AddOption('gui.dlib.filemanager.make_folder.title', function()
 			self:MakeFolder(rooted_path, rooted_path_to_data_dir)

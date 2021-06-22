@@ -756,3 +756,8 @@ gui.dlib.filemanager.make_folder.description = 'Please input name of folder. Kee
 
 gui.dlib.filemanager.make_folder.error_title = 'Invalid name'
 gui.dlib.filemanager.make_folder.error_description = 'Name contains special or forbidden symbols, being completely empty,\nsuch path already exists, being too long or it occupy special filename.'
+
+gui.dlib.filemanager.scanning.title = 'Finding files and folders...'
+gui.dlib.filemanager.scanning.files = 'Files:'
+gui.dlib.filemanager.scanning.dirs = 'Folders:'
+gui.dlib.filemanager.scanning.size = 'Size:'
