@@ -569,6 +569,8 @@ function PANEL:OnRowRightClick(lines)
 		button:SetIcon('icon16/delete.png')
 
 		sub:AddOption('gui.dlib.filemanager.delete', function()
+			local changed = false
+
 			for i, line in ipairs(lines) do
 				path = canonizeString(self:GetRootedPath() .. line:GetValue(1))
 				rooted_path = self:GetRootedPath()
@@ -585,18 +587,19 @@ function PANEL:OnRowRightClick(lines)
 
 					if #_files == #_dirs and #_files == 0 then
 						file.Delete(path_to_data_dir)
-
-						self:ScanCurrentDirectory()
-						self:RebuildFileList()
+						changed = true
 					--else
 					--  Derma_Message('gui.dlib.filemanager.dir_not_empty.description', 'gui.dlib.filemanager.dir_not_empty.title', 'gui.misc.ok')
 					end
 				else
 					file.Delete(path_to_data_dir)
-
-					self:ScanCurrentDirectory()
-					self:RebuildFileList()
+					changed = true
 				end
+			end
+
+			if changed then
+				self:ScanCurrentDirectory()
+				self:RebuildFileList()
 			end
 		end):SetIcon('icon16/delete.png')
 	end
