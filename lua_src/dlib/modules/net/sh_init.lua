@@ -256,6 +256,7 @@ _net.receive('dlib_net_chunk', function(_, ply)
 	_net.Start('dlib_net_chunk_ack', namespace.use_unreliable)
 	_net.WriteUInt32(chunkid)
 	_net.WriteUInt16(current_chunk)
+	_net.WriteBool(namespace.next_expected_chunk > chunkid)
 
 	if CLIENT then
 		_net.SendToServer()
@@ -777,14 +778,22 @@ _net.receive('dlib_net_chunk_ack', function(_, ply)
 
 	local chunkid = _net.ReadUInt32()
 	local current_chunk = _net.ReadUInt16()
+	local discard_the_rest = _net.ReadBool()
 
 	debug(
-		string_format('ACKed chunk %d with position %d',
-		chunkid, current_chunk))
+		string_format('ACKed chunk %d with position %d (discard %s)',
+		chunkid, current_chunk, tostring(discard_the_rest)))
 
-	for _, data in ipairs(namespace.server_chunks) do
+	for i, data in ipairs(namespace.server_chunks) do
 		if data.chunkid == chunkid then
-			data.chunks[current_chunk] = nil
+			if discard_the_rest then
+				table_remove(namespace.server_chunks, i)
+				namespace.server_chunks_num = namespace.server_chunks_num - 1
+				namespace.server_queued_size = namespace.server_queued_size - data.length
+			else
+				data.chunks[current_chunk] = nil
+			end
+
 			break
 		end
 	end
