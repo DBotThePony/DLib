@@ -495,6 +495,8 @@ local function file_scanner(path_list, tree_files, tree_dirs)
 	local index = 1
 	local size = 0
 
+	coroutine.yield(0, 0, 0, '')
+
 	while index <= #path_list do
 		local path = path_list[index]
 
@@ -526,12 +528,6 @@ local function file_scanner(path_list, tree_files, tree_dirs)
 
 	return #tree_files, #tree_dirs, size, ''
 end
-
---surface.CreateFont('dlib_fm_status', {
---  font = 'PT Sans Mono',
---  extended = true,
---  size = 18,
---})
 
 local function run_scanner(path_list, validity)
 	local id = 'fm_scan_task' .. SysTime()
@@ -585,13 +581,6 @@ local function run_scanner(path_list, validity)
 	local pdirs_count = vgui.Create('DLabel', bar2)
 	local psize_count = vgui.Create('DLabel', bar3)
 
-	-- pfiles:SetFont('dlib_fm_status')
-	-- pdirs:SetFont('dlib_fm_status')
-	-- psize:SetFont('dlib_fm_status')
-	-- pfiles_count:SetFont('dlib_fm_status')
-	-- pdirs_count:SetFont('dlib_fm_status')
-	-- psize_count:SetFont('dlib_fm_status')
-
 	pfiles:SetText('gui.dlib.filemanager.scanning.files')
 	pdirs:SetText('gui.dlib.filemanager.scanning.dirs')
 	psize:SetText('gui.dlib.filemanager.scanning.size')
@@ -626,20 +615,6 @@ local function run_scanner(path_list, validity)
 	local thread = coroutine.create(file_scanner)
 	local _, files_count, dirs_count, size, file_path = coroutine.resume(thread, copy, tree_files, tree_dirs)
 
-	if coroutine.status(thread) == 'dead' then
-		pfiles_count:SetText(files_count:tostring())
-		pfiles_count:SizeToContents()
-		pdirs_count:SetText(dirs_count:tostring())
-		pdirs_count:SizeToContents()
-		psize_count:SetText(DLib.I18n.FormatAnyBytesLong(size))
-		psize_count:SizeToContents()
-		current_file_label:SetText(file_path)
-
-		return DLib.Promise(function(resolve, reject)
-			resolve(tree_files, tree_dirs, size)
-		end)
-	end
-
 	return DLib.Promise(function(resolve, reject)
 		hook.Add('Think', id, function()
 			if validity and not IsValid(validity) or not IsValid(window) then
@@ -661,6 +636,126 @@ local function run_scanner(path_list, validity)
 			if coroutine.status(thread) == 'dead' then
 				hook.Remove('Think', id)
 				resolve(tree_files, tree_dirs, size)
+				window:Close()
+			end
+		end)
+	end)
+end
+
+local function longer_first(a, b)
+	return a > b
+end
+
+local function tree_delete_worker(tree_files, tree_dirs)
+	local total_files, total_dirs = #tree_files, #tree_dirs
+
+	coroutine.yield(total_files, left_dirs, '')
+
+	for i, path in ipairs(tree_files) do
+		file.Delete(path)
+
+		if i % 10 == 0 then
+			coroutine.yield(total_files - i, total_dirs, path)
+		end
+	end
+
+	table.sort(tree_dirs, longer_first)
+
+	for i, path in ipairs(tree_dirs) do
+		file.Delete(path)
+
+		if i % 10 == 0 then
+			coroutine.yield(0, total_dirs - i, path)
+		end
+	end
+
+	return 0, 0, ''
+end
+
+local function delete_tree(tree_files, tree_dirs)
+	local id = 'fm_delete_task' .. SysTime()
+
+	local window = vgui.Create('DLib_Window')
+
+	window:SetTitle('gui.dlib.filemanager.deleting.title')
+	window:SetSize(400, 200)
+	window:Center()
+
+	local bar1 = vgui.Create('EditablePanel', window)
+	local bar2 = vgui.Create('EditablePanel', window)
+	local bar4 = vgui.Create('EditablePanel', window)
+	local current_file_label = vgui.Create('DLabel', window)
+
+	bar1:Dock(TOP)
+	bar2:Dock(TOP)
+	bar4:Dock(TOP)
+	current_file_label:Dock(TOP)
+
+	bar1:DockMargin(0, 2, 0, 2, 0)
+	bar2:DockMargin(0, 2, 0, 2, 0)
+	bar4:DockMargin(0, 2, 0, 2, 0)
+	current_file_label:DockMargin(0, 5, 0, 5, 0)
+
+	bar1:SetZPos(0)
+	bar2:SetZPos(1)
+	bar4:SetZPos(4)
+	current_file_label:SetZPos(3)
+
+	current_file_label:SetText('...')
+
+	local cancel = vgui.Create('DButton', bar4)
+
+	cancel:SetText('gui.misc.cancel')
+	-- cancel:SetFont('dlib_fm_status')
+	cancel.DoClick = window.Close:Wrap(window)
+	cancel:Dock(RIGHT)
+	cancel:SizeToContents()
+	cancel:SetWide(cancel:GetWide() + 50)
+
+	local pfiles = vgui.Create('DLabel', bar1)
+	local pdirs = vgui.Create('DLabel', bar2)
+
+	local pfiles_count = vgui.Create('DLabel', bar1)
+	local pdirs_count = vgui.Create('DLabel', bar2)
+
+	pfiles:SetText('gui.dlib.filemanager.deleting.files')
+	pdirs:SetText('gui.dlib.filemanager.deleting.dirs')
+	pfiles_count:SetText('0')
+	pdirs_count:SetText('0')
+
+	pfiles:Dock(FILL)
+	pfiles_count:Dock(RIGHT)
+	pdirs:Dock(FILL)
+	pdirs_count:Dock(RIGHT)
+
+	pfiles:DockMargin(10, 0, 0, 0)
+	pfiles_count:DockMargin(0, 0, 10, 0)
+	pdirs:DockMargin(10, 0, 0, 0)
+	pdirs_count:DockMargin(0, 0, 10, 0)
+
+	local thread = coroutine.create(tree_delete_worker)
+	local _, files_count, dirs_count, file_path = coroutine.resume(thread, tree_files, tree_dirs)
+
+	return DLib.Promise(function(resolve, reject)
+		hook.Add('Think', id, function()
+			if validity and not IsValid(validity) or not IsValid(window) then
+				hook.Remove('Think', id)
+				reject('User input')
+				return
+			end
+
+			_, files_count, dirs_count, file_path = coroutine.resume(thread, path_list, tree_files, tree_dirs, status)
+
+			pfiles_count:SetText(files_count:tostring())
+			pdirs_count:SetText(dirs_count:tostring())
+			pfiles_count:SizeToContents()
+			pdirs_count:SizeToContents()
+			current_file_label:SetText(file_path)
+
+			if coroutine.status(thread) == 'dead' then
+				hook.Remove('Think', id)
+				resolve()
+				window:Close()
 			end
 		end)
 	end)
@@ -668,15 +763,19 @@ end
 
 function PANEL:OnRowRightClick(lines)
 	local line = #lines == 1 and lines[1] or false
-	local path, rooted_path, path_to_data_dir, rooted_path_to_data_dir
+	local path, path_to_data_dir
+	local rooted_path = self:GetRootedPath()
+	local rooted_path_to_data_dir = rooted_path
+
+	if self.data_folder ~= 'DATA' then
+		rooted_path_to_data_dir = rooted_path_to_data_dir:gsub('^[dD][aA][tT][aA]/', '')
+	end
 
 	local menu = DermaMenu()
 
 	if line then
-		path = canonizeString(self:GetRootedPath() .. line:GetValue(1))
-		rooted_path = self:GetRootedPath()
+		path = canonizeString(rooted_path .. line:GetValue(1))
 		path_to_data_dir = path
-		rooted_path_to_data_dir = rooted_path
 
 		if self.data_folder ~= 'DATA' then
 			path_to_data_dir = path_to_data_dir:gsub('^[dD][aA][tT][aA]/', '')
@@ -708,79 +807,55 @@ function PANEL:OnRowRightClick(lines)
 		end
 	end
 
-	if line and self:IsPathWritable(path) then
+	if self:IsPathWritable(rooted_path) then
 		menu:AddSpacer()
 
-		menu:AddOption('a', function()
-			run_scanner({path_to_data_dir})
-		end):SetIcon('icon16/folder_add.png')
+		if line then
+			menu:AddOption('gui.dlib.filemanager.make_folder.title', function()
+				self:MakeFolder(rooted_path, rooted_path_to_data_dir)
+			end):SetIcon('icon16/folder_add.png')
+		end
 
-		menu:AddOption('gui.dlib.filemanager.make_folder.title', function()
-			self:MakeFolder(rooted_path, rooted_path_to_data_dir)
-		end):SetIcon('icon16/folder_add.png')
-
-		if line:GetValue(1) ~= '..' then
+		if not line or line:GetValue(1) ~= '..' then
 			local sub, button = menu:AddSubMenu('gui.dlib.filemanager.delete')
 			button:SetIcon('icon16/delete.png')
 
 			sub:AddOption('gui.dlib.filemanager.delete', function()
-				if file.IsDir(path, self.data_folder) then
-					local _files, _dirs = file.Find(path .. '/*', self.data_folder)
+				local path_lines = {}
 
-					if #_files == #_dirs and #_files == 0 then
-						file.Delete(path_to_data_dir)
+				for i, line in ipairs(lines) do
+					if line:GetValue(1) ~= '..' then
+						path = canonizeString(self:GetRootedPath() .. line:GetValue(1))
 
-						self:ScanCurrentDirectory()
-						self:RebuildFileList()
-					else
-						Derma_Message('gui.dlib.filemanager.dir_not_empty.description', 'gui.dlib.filemanager.dir_not_empty.title', 'gui.misc.ok')
+						if self.data_folder ~= 'DATA' then
+							path = path:gsub('^[dD][aA][tT][aA]/', '')
+						end
+
+						table.insert(path_lines, path)
 					end
-				else
-					file.Delete(path_to_data_dir)
-
-					self:ScanCurrentDirectory()
-					self:RebuildFileList()
 				end
+
+				if #path_lines == 0 then return end
+
+				run_scanner(path_lines):Then(function(tree_files, tree_dirs, size)
+					Derma_Query(
+						DLib.I18n.Localize('gui.dlib.filemanager.delete_confirm.description', #tree_files, DLib.I18n.FormatAnyBytesLong(size)),
+						'gui.dlib.filemanager.delete_confirm.title',
+
+						'gui.misc.confirm',
+						function()
+							delete_tree(tree_files, tree_dirs):Then(function()
+								if IsValid(self) then
+									self:ScanCurrentDirectory()
+									self:RebuildFileList()
+								end
+							end)
+						end,
+						'gui.misc.cancel'
+					)
+				end)
 			end):SetIcon('icon16/delete.png')
 		end
-	else
-		local sub, button = menu:AddSubMenu('gui.dlib.filemanager.delete')
-		button:SetIcon('icon16/delete.png')
-
-		sub:AddOption('gui.dlib.filemanager.delete', function()
-			local changed = false
-
-			for i, line in ipairs(lines) do
-				path = canonizeString(self:GetRootedPath() .. line:GetValue(1))
-				rooted_path = self:GetRootedPath()
-				path_to_data_dir = path
-				rooted_path_to_data_dir = rooted_path
-
-				if self.data_folder ~= 'DATA' then
-					path_to_data_dir = path_to_data_dir:gsub('^[dD][aA][tT][aA]/', '')
-					rooted_path_to_data_dir = rooted_path_to_data_dir:gsub('^[dD][aA][tT][aA]/', '')
-				end
-
-				if file.IsDir(path, self.data_folder) then
-					local _files, _dirs = file.Find(path .. '/*', self.data_folder)
-
-					if #_files == #_dirs and #_files == 0 then
-						file.Delete(path_to_data_dir)
-						changed = true
-					--else
-					--  Derma_Message('gui.dlib.filemanager.dir_not_empty.description', 'gui.dlib.filemanager.dir_not_empty.title', 'gui.misc.ok')
-					end
-				else
-					file.Delete(path_to_data_dir)
-					changed = true
-				end
-			end
-
-			if changed then
-				self:ScanCurrentDirectory()
-				self:RebuildFileList()
-			end
-		end):SetIcon('icon16/delete.png')
 	end
 
 	menu:Open()

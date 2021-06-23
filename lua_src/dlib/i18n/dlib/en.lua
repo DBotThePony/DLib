@@ -761,3 +761,10 @@ gui.dlib.filemanager.scanning.title = 'Finding files and folders...'
 gui.dlib.filemanager.scanning.files = 'Files:'
 gui.dlib.filemanager.scanning.dirs = 'Folders:'
 gui.dlib.filemanager.scanning.size = 'Size:'
+
+gui.dlib.filemanager.deleting.title = 'Deleting files and folders'
+gui.dlib.filemanager.deleting.files = 'Files left:'
+gui.dlib.filemanager.deleting.dirs = 'Folders left:'
+
+gui.dlib.filemanager.delete_confirm.title = 'Are you sure you want to delete these files?'
+gui.dlib.filemanager.delete_confirm.description = 'Those %d files (%s) will be gone forever! (a very long time!)'
