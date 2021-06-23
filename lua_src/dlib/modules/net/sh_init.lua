@@ -253,8 +253,6 @@ _net.receive('dlib_net_chunk', function(_, ply)
 
 	local namespace = Net.Namespace(CLIENT and Net or ply)
 
-	if namespace.next_expected_chunk > chunkid then return end
-
 	_net.Start('dlib_net_chunk_ack', namespace.use_unreliable)
 	_net.WriteUInt32(chunkid)
 	_net.WriteUInt16(current_chunk)
@@ -264,6 +262,8 @@ _net.receive('dlib_net_chunk', function(_, ply)
 	else
 		_net.Send(ply)
 	end
+
+	if namespace.next_expected_chunk > chunkid then return end
 
 	local data = namespace.queued_chunks[chunkid]
 
