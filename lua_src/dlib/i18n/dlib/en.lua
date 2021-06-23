@@ -768,3 +768,14 @@ gui.dlib.filemanager.deleting.dirs = 'Folders left:'
 
 gui.dlib.filemanager.delete_confirm.title = 'Are you sure you want to delete these files?'
 gui.dlib.filemanager.delete_confirm.description = 'Those %d files (%s) will be gone forever! (a very long time!)'
+
+gui.dlib.filemanager.clone.title = 'Clone...'
+gui.dlib.filemanager.clone.description = 'Specify copy name, it must be unique.\nOnly ASCII characters are allowed.\nOnly lowercase letters are allowed'
+
+gui.dlib.filemanager.clone.worker.title = 'Copying files'
+gui.dlib.filemanager.clone.worker.files = 'Files copied:'
+gui.dlib.filemanager.clone.worker.dirs = 'Folders created:'
+gui.dlib.filemanager.clone.worker.size = 'Written:'
+
+gui.dlib.filemanager.clone.error.title = 'Clonning error'
+gui.dlib.filemanager.clone.error.description = 'Name contains special or forbidden symbols, being completely empty,\nsuch path already exists, being too long or it occupy special filename.'
