@@ -510,7 +510,7 @@ local function file_scanner(path_list, tree_files, tree_dirs)
 			end
 
 			if i % 10 == 0 then
-				coroutine.yield(#tree_files, #tree_dirs, size)
+				coroutine.yield(#tree_files, #tree_dirs, size, path .. '/' .. path2)
 			end
 		end
 
@@ -521,10 +521,10 @@ local function file_scanner(path_list, tree_files, tree_dirs)
 		table.insert(tree_dirs, path)
 		index = index + 1
 
-		coroutine.yield(#tree_files, #tree_dirs, size)
+		coroutine.yield(#tree_files, #tree_dirs, size, path)
 	end
 
-	return #tree_files, #tree_dirs, size
+	return #tree_files, #tree_dirs, size, ''
 end
 
 --surface.CreateFont('dlib_fm_status', {
@@ -539,23 +539,34 @@ local function run_scanner(path_list, validity)
 	local window = vgui.Create('DLib_Window')
 
 	window:SetTitle('gui.dlib.filemanager.scanning.title')
-	window:SetSize(300, 170)
+	window:SetSize(400, 200)
 	window:Center()
 
 	local bar1 = vgui.Create('EditablePanel', window)
 	local bar2 = vgui.Create('EditablePanel', window)
 	local bar3 = vgui.Create('EditablePanel', window)
 	local bar4 = vgui.Create('EditablePanel', window)
+	local current_file_label = vgui.Create('DLabel', window)
 
 	bar1:Dock(TOP)
 	bar2:Dock(TOP)
 	bar3:Dock(TOP)
 	bar4:Dock(TOP)
+	current_file_label:Dock(TOP)
 
 	bar1:DockMargin(0, 2, 0, 2, 0)
 	bar2:DockMargin(0, 2, 0, 2, 0)
 	bar3:DockMargin(0, 2, 0, 2, 0)
 	bar4:DockMargin(0, 2, 0, 2, 0)
+	current_file_label:DockMargin(0, 5, 0, 5, 0)
+
+	bar1:SetZPos(0)
+	bar2:SetZPos(1)
+	bar3:SetZPos(2)
+	bar4:SetZPos(4)
+	current_file_label:SetZPos(3)
+
+	current_file_label:SetText('...')
 
 	local cancel = vgui.Create('DButton', bar4)
 
@@ -613,7 +624,7 @@ local function run_scanner(path_list, validity)
 	end
 
 	local thread = coroutine.create(file_scanner)
-	local _, files_count, dirs_count, size = coroutine.resume(thread, copy, tree_files, tree_dirs)
+	local _, files_count, dirs_count, size, file_path = coroutine.resume(thread, copy, tree_files, tree_dirs)
 
 	if coroutine.status(thread) == 'dead' then
 		pfiles_count:SetText(files_count:tostring())
@@ -622,6 +633,7 @@ local function run_scanner(path_list, validity)
 		pdirs_count:SizeToContents()
 		psize_count:SetText(DLib.I18n.FormatAnyBytesLong(size))
 		psize_count:SizeToContents()
+		current_file_label:SetText(file_path)
 
 		return DLib.Promise(function(resolve, reject)
 			resolve(tree_files, tree_dirs, size)
@@ -636,7 +648,7 @@ local function run_scanner(path_list, validity)
 				return
 			end
 
-			_, files_count, dirs_count, size = coroutine.resume(thread, path_list, tree_files, tree_dirs, status)
+			_, files_count, dirs_count, size, file_path = coroutine.resume(thread, path_list, tree_files, tree_dirs, status)
 
 			pfiles_count:SetText(files_count:tostring())
 			pdirs_count:SetText(dirs_count:tostring())
@@ -644,6 +656,7 @@ local function run_scanner(path_list, validity)
 			pfiles_count:SizeToContents()
 			pdirs_count:SizeToContents()
 			psize_count:SizeToContents()
+			current_file_label:SetText(file_path)
 
 			if coroutine.status(thread) == 'dead' then
 				hook.Remove('Think', id)
