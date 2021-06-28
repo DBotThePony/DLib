@@ -19,6 +19,7 @@
 -- DEALINGS IN THE SOFTWARE.
 
 local DLib = DLib
+local run_scanner, run_clone_tree, run_move_tree, delete_tree
 
 local PANEL = {}
 
@@ -172,6 +173,7 @@ function PANEL:Init()
 	self.forward_button = vgui.Create('DButton', self.dock_top)
 	self.up_button = vgui.Create('DButton', self.dock_top)
 	self.new_folder_button = vgui.Create('DButton', self.dock_top)
+	self.paste_button = vgui.Create('DButton', self.dock_top)
 	self.address_bar = vgui.Create('DTextEntry', self.dock_top)
 	self.quick_search = vgui.Create('DTextEntry', self.dock_top)
 
@@ -196,6 +198,7 @@ function PANEL:Init()
 	self.forward_button:Dock(LEFT)
 	self.up_button:Dock(LEFT)
 	self.new_folder_button:Dock(LEFT)
+	self.paste_button:Dock(LEFT)
 	self.quick_search:Dock(RIGHT)
 	self.address_bar:Dock(FILL)
 
@@ -203,8 +206,9 @@ function PANEL:Init()
 	self.forward_button:SetZPos(1)
 	self.up_button:SetZPos(2)
 	self.new_folder_button:SetZPos(3)
-	self.address_bar:SetZPos(4)
-	self.quick_search:SetZPos(5)
+	self.paste_button:SetZPos(4)
+	self.address_bar:SetZPos(5)
+	self.quick_search:SetZPos(6)
 
 	self.filename_label:Dock(LEFT)
 	self.filename_bar:Dock(FILL)
@@ -217,6 +221,7 @@ function PANEL:Init()
 	self.forward_button:DockMargin(2, 0, 2, 0)
 	self.up_button:DockMargin(2, 0, 2, 0)
 	self.new_folder_button:DockMargin(2, 0, 2, 0)
+	self.paste_button:DockMargin(2, 0, 2, 0)
 	self.address_bar:DockMargin(2, 0, 0, 0)
 	self.quick_search:DockMargin(5, 0, 0, 0)
 
@@ -240,16 +245,19 @@ function PANEL:Init()
 	self.forward_button:SetText('')
 	self.up_button:SetText('')
 	self.new_folder_button:SetText('')
+	self.paste_button:SetText('')
 
 	self.backward_button:SetIcon('icon16/arrow_left.png')
 	self.forward_button:SetIcon('icon16/arrow_right.png')
 	self.up_button:SetIcon('icon16/arrow_up.png')
 	self.new_folder_button:SetIcon('icon16/folder_add.png')
+	self.paste_button:SetIcon('icon16/folder_page.png')
 
 	self.backward_button:SetWide(24)
 	self.forward_button:SetWide(24)
 	self.up_button:SetWide(24)
 	self.new_folder_button:SetWide(24)
+	self.paste_button:SetWide(24)
 
 	self.folder_contents:AddColumn('gui.dlib.filemanager.file_list.name')
 	self.folder_contents:AddColumn('gui.dlib.filemanager.file_list.last_change')
@@ -390,6 +398,7 @@ function PANEL:Init()
 
 	self.forward_button:SetEnabled(false)
 	self.backward_button:SetEnabled(false)
+	self.paste_button:SetEnabled(false)
 
 	function self.forward_button:DoClick()
 		_self.path_history_ptr = _self.path_history_ptr + 1
@@ -420,6 +429,78 @@ function PANEL:Init()
 		end
 
 		_self:MakeFolder(rooted_path, path_to_data_dir)
+	end
+
+	function self.paste_button:DoClick()
+		local cpath = _self.current_path_str:lower()
+		local cpath2 = _self.current_path_str
+		local _type = _self.remembered_path_type
+		local context = _self.remembered_path_context
+		local rooted = _self:GetRootedPath()
+
+		if system.IsWindows() and cpath == context:lower() then
+			Derma_Message('gui.dlib.filemanager.same_path.description', 'gui.dlib.filemanager.same_path.title', 'gui.misc.ok')
+			return
+		end
+
+		for i, path in ipairs(_self.remembered_path_list) do
+			path = path:lower()
+
+			if cpath:startsWith(path) then
+				Derma_Message('gui.dlib.filemanager.same_path.description', 'gui.dlib.filemanager.same_path.title', 'gui.misc.ok')
+				return
+			end
+		end
+
+		run_scanner(_self.remembered_path_list, _self):Then(function(tree_files, tree_dirs, size)
+			local _tree_files, _tree_dirs = {}, {}
+			local len = #context
+
+			if len ~= 0 then len = len + 1 end
+
+			for i, path in ipairs(tree_dirs) do
+				table.insert(_tree_dirs, cpath2 .. path:sub(len))
+			end
+
+			for i, path in ipairs(tree_files) do
+				_tree_files[path] = cpath2 .. path:sub(len)
+			end
+
+			if _type then
+				run_clone_tree(_tree_files, _tree_dirs, size):Then(function()
+					if IsValid(_self) then
+						_self:ScanCurrentDirectory()
+						_self:RebuildFileList()
+					end
+				end):Catch(function()
+					if IsValid(_self) then
+						_self:ScanCurrentDirectory()
+						_self:RebuildFileList()
+					end
+				end)
+			else
+				run_move_tree(_tree_files, _tree_dirs, size):Then(function()
+					if IsValid(_self) then
+						delete_tree(tree_files, tree_dirs):Then(function()
+							if IsValid(_self) then
+								_self:ScanCurrentDirectory()
+								_self:RebuildFileList()
+							end
+						end):Catch(function()
+							if IsValid(_self) then
+								_self:ScanCurrentDirectory()
+								_self:RebuildFileList()
+							end
+						end)
+					end
+				end):Catch(function()
+					if IsValid(_self) then
+						_self:ScanCurrentDirectory()
+						_self:RebuildFileList()
+					end
+				end)
+			end
+		end)
 	end
 
 	timer.Simple(0.1, function() if IsValid(self) then self:ThinkFirst() end end)
@@ -529,7 +610,7 @@ local function file_scanner(path_list, tree_files, tree_dirs)
 	return #tree_files, #tree_dirs, size, ''
 end
 
-local function run_scanner(path_list, validity)
+function run_scanner(path_list, validity)
 	local id = 'fm_scan_task' .. SysTime()
 
 	local window = vgui.Create('DLib_Window')
@@ -676,7 +757,7 @@ local function tree_delete_worker(tree_files, tree_dirs)
 	return 0, 0, ''
 end
 
-local function delete_tree(tree_files, tree_dirs)
+function delete_tree(tree_files, tree_dirs)
 	local id = 'fm_delete_task' .. SysTime()
 
 	local window = vgui.Create('DLib_Window')
@@ -826,7 +907,7 @@ local function clone_tree_worker(tree_files, tree_dirs)
 	return copied, dirs, copied_size, ''
 end
 
-local function run_clone_tree(tree_files, tree_dirs, total_size)
+function run_clone_tree(tree_files, tree_dirs, total_size)
 	local id = 'fm_clone_task' .. SysTime()
 
 	local total_dirs, total_files = #tree_dirs, table.Count(tree_files)
@@ -931,6 +1012,190 @@ local function run_clone_tree(tree_files, tree_dirs, total_size)
 	end)
 end
 
+local function move_tree_worker(tree_files, tree_dirs)
+	local copied, copied_size = 0, 0
+	local dirs = #tree_dirs
+
+	table.sort(tree_dirs, longer_last)
+
+	coroutine.yield(0, 0, 0, '')
+
+	for i, path in ipairs(tree_dirs) do
+		file.mkdir(path)
+		coroutine.yield(0, i, 0, path)
+	end
+
+	local systime = SysTime() + 0.02
+
+	for _from, _to in pairs(tree_files) do
+		if file.Exists(_to, 'DATA') then
+			copied = copied + 1
+
+			if SysTime() > systime then
+				coroutine.yield(copied, dirs, copied_size, path .. ' ALREADY EXISTS')
+				systime = SysTime() + 0.02
+			end
+		else
+			if not file.Rename(_from, _to) then
+				local open_read = file.Open(_from, 'rb', 'DATA')
+
+				if open_read then
+					local open_write = file.Open(_to, 'wb', 'DATA')
+
+					if open_write then
+						while open_read:Size() > open_write:Tell() do
+							local read = open_read:Read(math.max(open_read:Size() - open_write:Tell(), 0x00020000))
+							open_write:Write(read)
+							copied_size = copied_size + #read
+
+							open_write:Flush()
+
+							if SysTime() > systime then
+								coroutine.yield(copied, dirs, copied_size, _to)
+								systime = SysTime() + 0.02
+							end
+						end
+
+						open_write:Close()
+					end
+
+					open_read:Close()
+				end
+			end
+
+			copied = copied + 1
+
+			if SysTime() > systime then
+				coroutine.yield(copied, dirs, copied_size, _to)
+				systime = SysTime() + 0.02
+			end
+		end
+	end
+
+	return copied, dirs, copied_size, ''
+end
+
+function run_move_tree(tree_files, tree_dirs, total_size)
+	local id = 'fm_clone_task' .. SysTime()
+
+	local total_dirs, total_files = #tree_dirs, table.Count(tree_files)
+
+	local window = vgui.Create('DLib_Window')
+
+	window:SetTitle('gui.dlib.filemanager.move.worker.title')
+	window:SetSize(400, 200)
+	window:Center()
+
+	local bar1 = vgui.Create('EditablePanel', window)
+	local bar2 = vgui.Create('EditablePanel', window)
+	local bar3 = vgui.Create('EditablePanel', window)
+	local bar4 = vgui.Create('EditablePanel', window)
+	local current_file_label = vgui.Create('DLabel', window)
+
+	bar1:Dock(TOP)
+	bar2:Dock(TOP)
+	bar3:Dock(TOP)
+	bar4:Dock(TOP)
+	current_file_label:Dock(TOP)
+
+	bar1:DockMargin(0, 2, 0, 2, 0)
+	bar2:DockMargin(0, 2, 0, 2, 0)
+	bar3:DockMargin(0, 2, 0, 2, 0)
+	bar4:DockMargin(0, 2, 0, 2, 0)
+	current_file_label:DockMargin(0, 5, 0, 5, 0)
+
+	bar1:SetZPos(0)
+	bar2:SetZPos(1)
+	bar3:SetZPos(2)
+	bar4:SetZPos(4)
+	current_file_label:SetZPos(3)
+
+	current_file_label:SetText('...')
+
+	local cancel = vgui.Create('DButton', bar4)
+
+	cancel:SetText('gui.misc.cancel')
+	-- cancel:SetFont('dlib_fm_status')
+	cancel.DoClick = window.Close:Wrap(window)
+	cancel:Dock(RIGHT)
+	cancel:SizeToContents()
+	cancel:SetWide(cancel:GetWide() + 50)
+
+	local pfiles = vgui.Create('DLabel', bar1)
+	local pdirs = vgui.Create('DLabel', bar2)
+	local psize = vgui.Create('DLabel', bar3)
+
+	local pfiles_count = vgui.Create('DLabel', bar1)
+	local pdirs_count = vgui.Create('DLabel', bar2)
+	local psize_count = vgui.Create('DLabel', bar3)
+
+	pfiles:SetText('gui.dlib.filemanager.move.worker.files')
+	pdirs:SetText('gui.dlib.filemanager.move.worker.dirs')
+	psize:SetText('gui.dlib.filemanager.move.worker.size')
+	pfiles_count:SetText(string.format('%d / %d', 0, total_files))
+	pdirs_count:SetText(string.format('%d / %d', 0, total_dirs))
+	psize_count:SetText(string.format('%s / %s', DLib.I18n.FormatAnyBytesLong(0), DLib.I18n.FormatAnyBytesLong(total_size)))
+
+	pfiles:Dock(FILL)
+	pfiles_count:Dock(RIGHT)
+	pdirs:Dock(FILL)
+	pdirs_count:Dock(RIGHT)
+	psize:Dock(FILL)
+	psize_count:Dock(RIGHT)
+
+	pfiles:DockMargin(10, 0, 0, 0)
+	pfiles_count:DockMargin(0, 0, 10, 0)
+	pdirs:DockMargin(10, 0, 0, 0)
+	pdirs_count:DockMargin(0, 0, 10, 0)
+	psize:DockMargin(10, 0, 0, 0)
+	psize_count:DockMargin(0, 0, 10, 0)
+
+	local thread = coroutine.create(move_tree_worker)
+	local _, files_count, dirs_count, size, file_path = coroutine.resume(thread, tree_files, tree_dirs)
+
+	return DLib.Promise(function(resolve, reject)
+		hook.Add('Think', id, function()
+			if validity and not IsValid(validity) or not IsValid(window) then
+				hook.Remove('Think', id)
+				reject('User input')
+				return
+			end
+
+			_, files_count, dirs_count, size, file_path = coroutine.resume(thread, path_list, tree_files, tree_dirs, status)
+
+			pfiles_count:SetText(string.format('%d / %d', files_count, total_files))
+			pdirs_count:SetText(string.format('%d / %d', dirs_count, total_dirs))
+			psize_count:SetText(string.format('%s / %s', DLib.I18n.FormatAnyBytesLong(size), DLib.I18n.FormatAnyBytesLong(total_size)))
+			pfiles_count:SizeToContents()
+			pdirs_count:SizeToContents()
+			psize_count:SizeToContents()
+			current_file_label:SetText(file_path)
+
+			if coroutine.status(thread) == 'dead' then
+				hook.Remove('Think', id)
+				resolve(tree_files, tree_dirs, size)
+				window:Close()
+			end
+		end)
+	end)
+end
+
+function PANEL:RememberPathList(path_list, context, type)
+	self.remembered_path_list = assert(path_list, 'path_list')
+	self.remembered_path_context = assert(context, 'context')
+	assert(type ~= nil, 'type ~= nil')
+	self.remembered_path_type = type
+	self.paste_button:SetEnabled(true)
+end
+
+function PANEL:ForgetPathList()
+	if not self.remembered_path_list then return end
+	self.remembered_path_list = nil
+	self.remembered_path_context = nil
+	self.remembered_path_type = nil
+	self.paste_button:SetEnabled(false)
+end
+
 function PANEL:OnRowRightClick(lines)
 	local line = #lines == 1 and lines[1] or false
 	local path, path_to_data_dir
@@ -979,6 +1244,57 @@ function PANEL:OnRowRightClick(lines)
 	if self:IsPathWritable(rooted_path) then
 		menu:AddSpacer()
 
+		if not line or line:GetValue(1) ~= '..' and self.data_folder == 'DATA' then
+			local path_lines, path_lines_writable = {}, {}
+
+			for i, line in ipairs(lines) do
+				if line:GetValue(1) ~= '..' then
+					path = canonizeString(self:GetRootedPath() .. line:GetValue(1))
+
+					if self.data_folder ~= 'DATA' then
+						path = path:gsub('^[dD][aA][tT][aA]/', '')
+					end
+
+					if self:IsPathWritable(path) then
+						table.insert(path_lines_writable, path)
+					end
+
+					table.insert(path_lines, path)
+				end
+			end
+
+			if #path_lines ~= 0 then
+				menu:AddOption('gui.dlib.filemanager.copy.title', function()
+					if IsValid(self) then
+						self:RememberPathList(path_lines, self:GetRootedPath(), true)
+					end
+				end):SetIcon('icon16/page_add.png')
+			end
+
+			if #path_lines_writable ~= 0 then
+				menu:AddOption('gui.dlib.filemanager.cut.title', function()
+					if IsValid(self) then
+						Derma_Query(
+							'gui.dlib.filemanager.cut.description',
+							'gui.dlib.filemanager.cut.title',
+
+							'gui.misc.ok',
+							function()
+								if IsValid(self) then
+									self:RememberPathList(path_lines_writable, self:GetRootedPath(), false)
+								end
+							end,
+							'gui.misc.cancel'
+						)
+					end
+				end):SetIcon('icon16/page_go.png')
+			end
+
+			if #path_lines_writable ~= 0 or #path_lines ~= 0 then
+				menu:AddSpacer()
+			end
+		end
+
 		if line then
 			if line:GetValue(1) ~= '..' then
 				menu:AddOption('gui.dlib.filemanager.clone.title', function()
@@ -1026,7 +1342,7 @@ function PANEL:OnRowRightClick(lines)
 									return
 								end
 
-								run_scanner({path_to_data_dir}):Then(function(tree_files, tree_dirs, size)
+								run_scanner({path_to_data_dir}, self):Then(function(tree_files, tree_dirs, size)
 									local _tree_files, _tree_dirs = {}, {}
 
 									if line.is_folder then
@@ -1099,7 +1415,7 @@ function PANEL:OnRowRightClick(lines)
 
 				if #path_lines == 0 then return end
 
-				run_scanner(path_lines):Then(function(tree_files, tree_dirs, size)
+				run_scanner(path_lines, self):Then(function(tree_files, tree_dirs, size)
 					Derma_Query(
 						DLib.I18n.Localize('gui.dlib.filemanager.delete_confirm.description', #tree_files, DLib.I18n.FormatAnyBytesLong(size)),
 						'gui.dlib.filemanager.delete_confirm.title',

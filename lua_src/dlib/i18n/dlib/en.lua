@@ -748,6 +748,9 @@ gui.dlib.filemanager.delete = 'Delete'
 gui.dlib.filemanager.error = 'error'
 gui.dlib.filemanager.folder = 'folder'
 
+gui.dlib.filemanager.same_path.title = 'Same or sublying path'
+gui.dlib.filemanager.same_path.description = 'You can not put files in the same directory or subdirectory'
+
 gui.dlib.filemanager.dir_not_empty.title = 'Folder not empty'
 gui.dlib.filemanager.dir_not_empty.description = 'Folder can not be removed with files in it.'
 
@@ -769,6 +772,10 @@ gui.dlib.filemanager.deleting.dirs = 'Folders left:'
 gui.dlib.filemanager.delete_confirm.title = 'Are you sure you want to delete these files?'
 gui.dlib.filemanager.delete_confirm.description = 'Those %d files (%s) will be gone forever! (a very long time!)'
 
+gui.dlib.filemanager.copy.title = 'Copy'
+gui.dlib.filemanager.cut.title = 'Cut'
+gui.dlib.filemanager.cut.description = 'Cut feature is unstable and should be used carefully.\nIn general, you should use '
+
 gui.dlib.filemanager.clone.title = 'Clone...'
 gui.dlib.filemanager.clone.description = 'Specify copy name, it must be unique.\nOnly ASCII characters are allowed.\nOnly lowercase letters are allowed'
 
@@ -776,6 +783,11 @@ gui.dlib.filemanager.clone.worker.title = 'Copying files'
 gui.dlib.filemanager.clone.worker.files = 'Files copied:'
 gui.dlib.filemanager.clone.worker.dirs = 'Folders created:'
 gui.dlib.filemanager.clone.worker.size = 'Written:'
+
+gui.dlib.filemanager.move.worker.title = 'Moving files'
+gui.dlib.filemanager.move.worker.files = 'Files moved:'
+gui.dlib.filemanager.move.worker.dirs = 'Folders created:'
+gui.dlib.filemanager.move.worker.size = 'Written:'
 
 gui.dlib.filemanager.clone.error.title = 'Clonning error'
 gui.dlib.filemanager.clone.error.description = 'Name contains special or forbidden symbols, being completely empty,\nsuch path already exists, being too long or it occupy special filename.'
