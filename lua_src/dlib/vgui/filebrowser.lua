@@ -481,6 +481,8 @@ function PANEL:Init()
 			else
 				run_move_tree(_tree_files, _tree_dirs, size):Then(function()
 					if IsValid(_self) then
+						_self:ForgetPathList()
+
 						delete_tree(tree_files, tree_dirs):Then(function()
 							if IsValid(_self) then
 								_self:ScanCurrentDirectory()
@@ -495,6 +497,8 @@ function PANEL:Init()
 					end
 				end):Catch(function()
 					if IsValid(_self) then
+						_self:ForgetPathList()
+
 						_self:ScanCurrentDirectory()
 						_self:RebuildFileList()
 					end
