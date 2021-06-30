@@ -1072,10 +1072,28 @@ function hook.CallStatic(event, hookTable, ...)
 			return
 		end
 
-		local state = dlib_has_nothing_to_do_with_this_traceback(gamemodeFunction, catchError, hookTable, ...)
+		local state, errormsg = dlib_has_nothing_to_do_with_this_traceback(gamemodeFunction, catchError, hookTable, ...)
 
 		if not state then
-			ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n' .. last_trace .. '\n')
+			if not last_error then
+				last_error = errormsg
+			end
+
+			if last_trace then
+				ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n' .. last_trace .. '\n')
+			elseif errormsg then
+				local _getinfo = getinfo(gamemodeFunction)
+
+				if _getinfo and _getinfo.short_src then
+					ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n  1. GM:' .. event .. '[' .. _getinfo.short_src .. ']\n')
+				else
+					ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n  1. GM:' .. event .. '\n')
+				end
+			else
+				ErrorNoHalt('\n[ERROR] Lua state is detorating away! This is very likely going to result into game crash! Hook GM:' .. event .. " didn't executed properly! Unable to provide traceback since error handler gave up!\n")
+			end
+
+			last_trace, last_error = nil, nil
 		end
 
 		return
@@ -1085,10 +1103,28 @@ function hook.CallStatic(event, hookTable, ...)
 	local nextevent = events[i]
 
 	::loop::
-	local state = dlib_has_nothing_to_do_with_this_traceback(nextevent, catchError, ...)
+	local state, errormsg = dlib_has_nothing_to_do_with_this_traceback(nextevent, catchError, ...)
 
 	if not state then
-		ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n' .. last_trace .. '\n')
+		if not last_error then
+			last_error = errormsg
+		end
+
+		if last_trace then
+			ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n' .. last_trace .. '\n')
+		elseif errormsg then
+			local _getinfo = getinfo(nextevent)
+
+			if _getinfo and _getinfo.short_src then
+				ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n  1. event:' .. event .. '[' .. _getinfo.short_src .. ']\n')
+			else
+				ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n  1. event:' .. event .. '\n')
+			end
+		else
+			ErrorNoHalt('\n[ERROR] Lua state is detorating away! This is very likely going to result into game crash! Hook GM:' .. event .. " didn't executed properly! Unable to provide traceback since error handler gave up!\n")
+		end
+
+		last_trace, last_error = nil, nil
 	end
 
 	i = i + 1
@@ -1108,10 +1144,28 @@ function hook.CallStatic(event, hookTable, ...)
 		return
 	end
 
-	local state = dlib_has_nothing_to_do_with_this_traceback(gamemodeFunction, catchError, hookTable, ...)
+	local state, errormsg = dlib_has_nothing_to_do_with_this_traceback(gamemodeFunction, catchError, hookTable, ...)
 
 	if not state then
-		ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n' .. last_trace .. '\n')
+		if not last_error then
+			last_error = errormsg
+		end
+
+		if last_trace then
+			ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n' .. last_trace .. '\n')
+		elseif errormsg then
+			local _getinfo = getinfo(gamemodeFunction)
+
+			if _getinfo and _getinfo.short_src then
+				ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n  1. GM:' .. event .. '[' .. _getinfo.short_src .. ']\n')
+			else
+				ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n  1. GM:' .. event .. '\n')
+			end
+		else
+			ErrorNoHalt('\n[ERROR] Lua state is detorating away! This is very likely going to result into game crash! Hook GM:' .. event .. " didn't executed properly! Unable to provide traceback since error handler gave up!\n")
+		end
+
+		last_trace, last_error = nil, nil
 	end
 end
 
@@ -1180,8 +1234,27 @@ function hook.Call2(event, hookTable, ...)
 	state, Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M = dlib_has_nothing_to_do_with_this_traceback(nextevent, catchError, ...)
 
 	if not state then
+		if not last_error then
+			last_error = Q
+		end
+
 		Q = nil
-		ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n' .. last_trace .. '\n')
+
+		if last_trace then
+			ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n' .. last_trace .. '\n')
+		elseif errormsg then
+			local _getinfo = getinfo(nextevent)
+
+			if _getinfo and _getinfo.short_src then
+				ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n  1. event:' .. event .. '[' .. _getinfo.short_src .. ']\n')
+			else
+				ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n  1. event:' .. event .. '\n')
+			end
+		else
+			ErrorNoHalt('\n[ERROR] Lua state is detorating away! This is very likely going to result into game crash! Hook GM:' .. event .. " didn't executed properly! Unable to provide traceback since error handler gave up!\n")
+		end
+
+		last_trace, last_error = nil, nil
 	end
 
 	if Q ~= nil then
@@ -1226,8 +1299,28 @@ function hook.Call2(event, hookTable, ...)
 		state, Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M = dlib_has_nothing_to_do_with_this_traceback(gamemodeFunction, catchError, hookTable, ...)
 
 		if not state then
+			if not last_error then
+				last_error = Q
+			end
+
 			Q = nil
-			ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n' .. last_trace .. '\n')
+
+			if last_trace then
+				ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n' .. last_trace .. '\n')
+			elseif errormsg then
+				local _getinfo = getinfo(gamemodeFunction)
+
+				if _getinfo and _getinfo.short_src then
+					ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n  1. GM:' .. event .. '[' .. _getinfo.short_src .. ']\n')
+				else
+					ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n  1. GM:' .. event .. '\n')
+				end
+			else
+				ErrorNoHalt('\n[ERROR] Lua state is detorating away! This is very likely going to result into game crash! Hook GM:' .. event .. " didn't executed properly! Unable to provide traceback since error handler gave up!\n")
+			end
+
+			last_trace, last_error = nil, nil
+			return
 		end
 
 		return Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M
@@ -1236,8 +1329,27 @@ function hook.Call2(event, hookTable, ...)
 	state, Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M = dlib_has_nothing_to_do_with_this_traceback(gamemodeFunction, catchError, hookTable, ...)
 
 	if not state then
+		if not last_error then
+			last_error = Q
+		end
+
 		Q = nil
-		ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n' .. last_trace .. '\n')
+
+		if last_trace then
+			ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n' .. last_trace .. '\n')
+		elseif errormsg then
+			local _getinfo = getinfo(gamemodeFunction)
+
+			if _getinfo and _getinfo.short_src then
+				ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n  1. GM:' .. event .. '[' .. _getinfo.short_src .. ']\n')
+			else
+				ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n  1. GM:' .. event .. '\n')
+			end
+		else
+			ErrorNoHalt('\n[ERROR] Lua state is detorating away! This is very likely going to result into game crash! Hook GM:' .. event .. " didn't executed properly! Unable to provide traceback since error handler gave up!\n")
+		end
+
+		last_trace, last_error = nil, nil
 	end
 
 	local i = 1
