@@ -1081,7 +1081,7 @@ function hook.CallStatic(event, hookTable, ...)
 
 			if last_trace then
 				ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n' .. last_trace .. '\n')
-			elseif errormsg then
+			elseif last_error then
 				local _getinfo = getinfo(gamemodeFunction)
 
 				if _getinfo and _getinfo.short_src then
@@ -1112,7 +1112,7 @@ function hook.CallStatic(event, hookTable, ...)
 
 		if last_trace then
 			ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n' .. last_trace .. '\n')
-		elseif errormsg then
+		elseif last_error then
 			local _getinfo = getinfo(nextevent)
 
 			if _getinfo and _getinfo.short_src then
@@ -1153,7 +1153,7 @@ function hook.CallStatic(event, hookTable, ...)
 
 		if last_trace then
 			ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n' .. last_trace .. '\n')
-		elseif errormsg then
+		elseif last_error then
 			local _getinfo = getinfo(gamemodeFunction)
 
 			if _getinfo and _getinfo.short_src then
@@ -1242,7 +1242,7 @@ function hook.Call2(event, hookTable, ...)
 
 		if last_trace then
 			ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n' .. last_trace .. '\n')
-		elseif errormsg then
+		elseif last_error then
 			local _getinfo = getinfo(nextevent)
 
 			if _getinfo and _getinfo.short_src then
@@ -1307,7 +1307,7 @@ function hook.Call2(event, hookTable, ...)
 
 			if last_trace then
 				ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n' .. last_trace .. '\n')
-			elseif errormsg then
+			elseif last_error then
 				local _getinfo = getinfo(gamemodeFunction)
 
 				if _getinfo and _getinfo.short_src then
@@ -1337,7 +1337,7 @@ function hook.Call2(event, hookTable, ...)
 
 		if last_trace then
 			ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n' .. last_trace .. '\n')
-		elseif errormsg then
+		elseif last_error then
 			local _getinfo = getinfo(gamemodeFunction)
 
 			if _getinfo and _getinfo.short_src then
