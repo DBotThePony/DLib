@@ -33,6 +33,27 @@ OPERATION_REMOVE = 0
 OPERATION_ADD = 1
 OPERATION_ATIME = 2
 
+coroutine_yield = coroutine.yield
+SysTime = SysTime
+
+if DLib.CacheManagerHandles
+	for _, {handle} in pairs(DLib.CacheManagerHandles)
+		handle\Flush()
+
+	table.Empty(DLib.CacheManagerHandles)
+else
+	DLib.CacheManagerHandles = {}
+
+hook.AddTask 'Think', 'DLib Cache Manager Flushes', ->
+	t = SysTime()
+
+	for key, {handle, time} in pairs(DLib.CacheManagerHandles)
+		if time < t
+			handle\Flush()
+			DLib.CacheManagerHandles[key] = nil
+
+		coroutine_yield()
+
 class DLib.CacheManager
 	new: (folder, limit, extension = 'dat') =>
 		assert(isstring(folder), 'isstring(folder)')
@@ -113,6 +134,7 @@ class DLib.CacheManager
 			@Rescan()
 
 	Rescan: =>
+		DLib.CacheManagerHandles[@folder] = nil
 		files, folders = file.Find(@folder .. '/*', 'DATA')
 		found_hashes = {}
 		@fhandle = file.Open(@folder .. '/swap.dat', 'ab', 'DATA') if not @fhandle
@@ -172,6 +194,7 @@ class DLib.CacheManager
 
 	VacuumSwap: =>
 		@fhandle\Close() if @fhandle
+		DLib.CacheManagerHandles[@folder] = nil
 		@fhandle = nil
 		fhandle = file.Open(@folder .. '/swap.dat', 'wb', 'DATA')
 
@@ -312,6 +335,11 @@ class DLib.CacheManager
 				writehash(@fhandle, @state_hash[key].hash)
 				@fhandle\WriteDouble(@state_hash[key].last_access)
 
+				if data = DLib.CacheManagerHandles[@folder]
+					data[2] = math.min(data[2] + 2, SysTime() + 10)
+				else
+					DLib.CacheManagerHandles[@folder] = {@fhandle, SysTime() + 2}
+
 			return string.format('%s/%s/%s.%s', @folder, key\sub(1, 2), key, @extension)
 
 		return false
@@ -326,6 +354,11 @@ class DLib.CacheManager
 			@fhandle\WriteByte(OPERATION_ATIME)
 			writehash(@fhandle, @state_hash[key].hash)
 			@fhandle\WriteDouble(@state_hash[key].last_access)
+
+			if data = DLib.CacheManagerHandles[@folder]
+				data[2] = math.min(data[2] + 2, SysTime() + 10)
+			else
+				DLib.CacheManagerHandles[@folder] = {@fhandle, SysTime() + 2}
 
 		return file.Read(string.format('%s/%s/%s.%s', @folder, key\sub(1, 2), key, @extension), 'DATA')
 
@@ -357,7 +390,11 @@ class DLib.CacheManager
 			@fhandle\WriteDouble(.last_access)
 			@fhandle\WriteULong(.size)
 
+		if data = DLib.CacheManagerHandles[@folder]
+			data[2] = math.min(data[2] + 2, SysTime() + 10)
+		else
+			DLib.CacheManagerHandles[@folder] = {@fhandle, SysTime() + 2}
+
 		@CleanupIfFull()
-		@fhandle\Flush()
 
 		return path
