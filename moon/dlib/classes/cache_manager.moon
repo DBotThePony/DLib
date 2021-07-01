@@ -29,6 +29,10 @@ writehash = (handle, input) ->
 
 readhash = (handle) -> string.format('%08x%08x%08x%08x%08x', handle\ReadULong(), handle\ReadULong(), handle\ReadULong(), handle\ReadULong(), handle\ReadULong())
 
+OPERATION_REMOVE = 0
+OPERATION_ADD = 1
+OPERATION_ATIME = 2
+
 class DLib.CacheManager
 	new: (folder, limit, extension = 'dat') =>
 		assert(isstring(folder), 'isstring(folder)')
@@ -44,7 +48,6 @@ class DLib.CacheManager
 		if file.Exists(folder .. '/swap.dat', 'DATA')
 			fread = file.Open(folder .. '/swap.dat', 'rb', 'DATA')
 			@state_hash = {}
-			@dirty = false
 			overwrites_or_removes = 0
 
 			while fread\Tell() < fread\Size()
@@ -52,7 +55,7 @@ class DLib.CacheManager
 				readop = readbyte ~= 0
 				hash = readhash(fread)
 
-				if readop
+				if readbyte == OPERATION_ADD
 					overwrites_or_removes += 1 if @state_hash[hash]
 
 					@state_hash[hash] = {
@@ -62,9 +65,11 @@ class DLib.CacheManager
 						last_modify: fread\ReadDouble()
 						size: fread\ReadULong()
 					}
-				else
+				elseif readbyte == OPERATION_REMOVE
 					@state_hash[hash] = nil
 					overwrites_or_removes += 1
+				elseif readbyte == OPERATION_ATIME
+					@state_hash[hash].last_access = fread\ReadDouble() if @state_hash[hash]
 
 			@state = [v for k, v in pairs(@state_hash)]
 
@@ -76,7 +81,6 @@ class DLib.CacheManager
 			@state = util.JSONToTable(file.Read(folder .. '/swap.json', 'DATA'))
 
 			if @state
-				@dirty = false
 				@state_hash = {}
 
 				for state in *@state
@@ -89,7 +93,7 @@ class DLib.CacheManager
 
 				for data in *@state
 					with data
-						@fhandle\WriteByte(1)
+						@fhandle\WriteByte(OPERATION_ADD)
 						writehash(@fhandle, .hash)
 						@fhandle\WriteDouble(.created)
 						@fhandle\WriteDouble(.last_modify)
@@ -132,7 +136,7 @@ class DLib.CacheManager
 
 						table.insert(@state, data)
 						@state_hash[hash] = data
-						@fhandle\WriteByte(1)
+						@fhandle\WriteByte(OPERATION_ADD)
 						writehash(@fhandle, hash)
 						@fhandle\WriteDouble(time)
 						@fhandle\WriteDouble(time)
@@ -156,17 +160,14 @@ class DLib.CacheManager
 
 	SaveSwap: =>
 		@fhandle\Flush() if @fhandle
-		@dirty = false
 		return @
 
 	SaveSwapIfDirty: =>
 		@fhandle\Flush() if @fhandle
-		@dirty = false
 		return @
 
 	SaveSwapIfDirtyForLong: =>
 		@fhandle\Flush() if @fhandle
-		@dirty = false
 		return @
 
 	VacuumSwap: =>
@@ -180,7 +181,7 @@ class DLib.CacheManager
 
 		for data in *@state
 			with data
-				fhandle\WriteByte(1)
+				fhandle\WriteByte(OPERATION_ADD)
 				writehash(fhandle, .hash)
 				fhandle\WriteDouble(.created)
 				fhandle\WriteDouble(.last_modify)
@@ -289,7 +290,7 @@ class DLib.CacheManager
 			size -= obj.size
 			deleted_size += obj.size
 			deleted += 1
-			@fhandle\WriteByte(0)
+			@fhandle\WriteByte(OPERATION_REMOVE)
 			writehash(@fhandle, obj.hash)
 
 		if deleted > 0
@@ -302,17 +303,30 @@ class DLib.CacheManager
 
 	HasGetHash: (key) =>
 		if @state_hash[key]
+			should_update = @state_hash[key].last_access + 10 < os.time()
 			@state_hash[key].last_access = os.time()
-			@dirty = SysTime() if not @dirty
-			@SaveSwapIfDirtyForLong()
+
+			if should_update
+				@fhandle = file.Open(@folder .. '/swap.dat', 'ab', 'DATA') if not @fhandle
+				@fhandle\WriteByte(OPERATION_ATIME)
+				writehash(@fhandle, @state_hash[key].hash)
+				@fhandle\WriteDouble(@state_hash[key].last_access)
+
 			return string.format('%s/%s/%s.%s', @folder, key\sub(1, 2), key, @extension)
 
 		return false
 
 	GetHash: (key, if_none) =>
 		return if_none if not @state_hash[key]
+		should_update = @state_hash[key].last_access + 10 < os.time()
 		@state_hash[key].last_access = os.time()
-		@dirty = SysTime() if not @dirty
+
+		if should_update
+			@fhandle = file.Open(@folder .. '/swap.dat', 'ab', 'DATA') if not @fhandle
+			@fhandle\WriteByte(OPERATION_ATIME)
+			writehash(@fhandle, @state_hash[key].hash)
+			@fhandle\WriteDouble(@state_hash[key].last_access)
+
 		return file.Read(string.format('%s/%s/%s.%s', @folder, key\sub(1, 2), key, @extension), 'DATA')
 
 	SetHash: (key, value) =>
@@ -336,14 +350,13 @@ class DLib.CacheManager
 			.last_access = os.time()
 			.size = #value
 
-			@fhandle\WriteByte(1)
+			@fhandle\WriteByte(OPERATION_ADD)
 			writehash(@fhandle, .hash)
 			@fhandle\WriteDouble(.created)
 			@fhandle\WriteDouble(.last_modify)
 			@fhandle\WriteDouble(.last_access)
 			@fhandle\WriteULong(.size)
 
-		@dirty = SysTime() if not @dirty
 		@CleanupIfFull()
 		@fhandle\Flush()
 
