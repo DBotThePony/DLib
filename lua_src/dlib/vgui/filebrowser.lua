@@ -186,6 +186,7 @@ function PANEL:Init()
 
 	self.folder_tree = vgui.Create('DTree', self.dock_middle)
 	self.folder_contents = vgui.Create('DListView', self.dock_middle)
+	self.folder_contents:SetSortable(false)
 
 	self.dock_middle:SetLeft(self.folder_tree)
 	self.dock_middle:SetRight(self.folder_contents)
