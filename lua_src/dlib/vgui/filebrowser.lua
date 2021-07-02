@@ -138,6 +138,7 @@ end
 
 function PANEL:Init()
 	self:SetSize(1000, 700)
+	self:Center()
 
 	self.row_tasks = {}
 	self.row_tasks_ptr = 1
