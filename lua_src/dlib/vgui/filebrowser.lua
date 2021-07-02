@@ -589,8 +589,11 @@ function PANEL:SetFileMode(mode)
 end
 
 PANEL.MODE_READ_FILE = 0
+PANEL.MODE_READ = 0
+PANEL.MODE_OPEN = 0
 PANEL.MODE_OPEN_DIRECTORY = 1
 PANEL.MODE_WIRTE_FILE = 2
+PANEL.MODE_WIRTE = 2
 PANEL.MODE_READ_WRITE = 3
 
 function PANEL:CallSelectFile(path, stripped_ext, stripped, stripped_dir)
