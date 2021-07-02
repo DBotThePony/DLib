@@ -146,7 +146,7 @@ local table = table
 
 --[[
 	@doc
-	@fname function:lateApply
+	@fname function:lazyApply
 	@args vararg prepend
 	@alias function:SingleWrap
 
@@ -166,7 +166,7 @@ function fnlib:SingleWrap(...)
 end
 
 fnlib.singleWrap = fnlib.SingleWrap
-fnlib.lateApply = fnlib.SingleWrap
+fnlib.lazyApply = fnlib.SingleWrap
 
 --[[
 	@doc
