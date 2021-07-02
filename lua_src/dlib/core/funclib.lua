@@ -146,8 +146,9 @@ local table = table
 
 --[[
 	@doc
-	@fname function:SingleWrap
+	@fname function:lateApply
 	@args vararg prepend
+	@alias function:SingleWrap
 
 	@desc
 	makes a function which on call calls `self` with `prepend` arguments unpacked
@@ -165,11 +166,13 @@ function fnlib:SingleWrap(...)
 end
 
 fnlib.singleWrap = fnlib.SingleWrap
+fnlib.lateApply = fnlib.SingleWrap
 
 --[[
 	@doc
-	@fname function:Wrap
+	@fname function:curry
 	@args vararg prepend
+	@alias function:Wrap
 	@alias function:fp
 	@alias function:Partial
 
@@ -196,6 +199,7 @@ fnlib.fp = fnlib.Wrap
 fnlib.Partial = fnlib.Wrap
 fnlib.wrap = fnlib.Wrap
 fnlib.partial = fnlib.Wrap
+fnlib.curry = fnlib.Wrap
 
 --[[
 	@doc
@@ -223,7 +227,8 @@ fnlib.flipFull = fnlib.FlipFull
 
 --[[
 	@doc
-	@fname function:Flip
+	@fname function:flipSingle
+	@alias function:FlipSingle
 
 	@desc
 	packs a function and flips it's first two arguments (further are untouched)
@@ -232,28 +237,13 @@ fnlib.flipFull = fnlib.FlipFull
 	@returns
 	function: a function to call
 ]]
-function fnlib:Flip()
+function fnlib:FlipSingle()
 	return function(a, b, ...)
 		return self(b, a, ...)
 	end
 end
 
-fnlib.flip = fnlib.Flip
-
---[[
-	@doc
-	@fname function:Id
-	@args vararg arguments
-
-	@returns
-	function: self
-	vararg: arguments
-]]
-function fnlib:Id(...)
-	return self, ...
-end
-
-fnlib.identity = fnlib.Id
+fnlib.flipSingle = fnlib.FlipSingle
 
 -- func:Compose(func2, func3, func4) ->
 -- func(func2(func3(func4(...))))
@@ -274,9 +264,9 @@ end
 
 --[[
 	@doc
-	@fname function:Compose
+	@fname function:compose
 	@args function tableOfOrList
-	@alias function:fc
+	@alias function:Compose
 
 	@desc
 	packs all functions to be called in chain. `func1:Compose(func2, func3, func4) -> func1(func2(func3(func4(arguments passed))))`
@@ -293,23 +283,7 @@ function fnlib:Compose(funcList, ...)
 	end
 end
 
-fnlib.fc = fnlib.Compose
 fnlib.compose = fnlib.Compose
-
---[[
-	@doc
-	@fname function:ReverseArgs
-	@args vararg arguments
-
-	@returns
-	vararg: flipped arguments list. same as `unpack(table.flip({...}))`
-]]
-function fnlib:ReverseArgs(...)
-	return unpack(table.flip({...}))
-end
-
-fnlib.reverseArgs = fnlib.ReverseArgs
-fnlib.reverse = fnlib.ReverseArgs
 
 --[[
 	@doc
