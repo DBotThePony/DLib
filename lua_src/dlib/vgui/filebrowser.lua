@@ -557,6 +557,10 @@ function PANEL:SetDataFolder()
 	error('Not implemented')
 end
 
+function PANEL:SetFilenameBar(value)
+	return self.filename_bar:SetValue(value)
+end
+
 function PANEL:IsPathWritable(path)
 	if path:find('"', 1, true) or path:find(':', 1, true) then return false end
 
