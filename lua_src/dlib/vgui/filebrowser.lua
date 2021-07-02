@@ -279,6 +279,13 @@ function PANEL:Init()
 
 	local _self = self
 
+	function self.folder_tree:OnNodeSelected(node)
+		if self._ignore then return end
+		self._ignore = true
+		_self:OpenUserInput(node:GetFolder())
+		self._ignore = false
+	end
+
 	function self.folder_contents:DoDoubleClick(_, line)
 		_self:DoubleClickLine(line)
 	end
@@ -541,6 +548,14 @@ AccessorFunc(PANEL, 'current_path_str', 'PathString')
 AccessorFunc(PANEL, 'current_path', 'Path')
 AccessorFunc(PANEL, 'file_mode', 'FileMode')
 AccessorFunc(PANEL, 'extension', 'AutoExtension')
+
+function PANEL:SetFmod()
+	error('Not implemented')
+end
+
+function PANEL:SetDataFolder()
+	error('Not implemented')
+end
 
 function PANEL:IsPathWritable(path)
 	if path:find('"', 1, true) or path:find(':', 1, true) then return false end
@@ -1699,6 +1714,11 @@ end
 
 function PANEL:RebuildFileList()
 	self.folder_contents:Clear()
+
+	if IsValid(self.folder_contents.VBar) then
+		self.folder_contents.VBar:SetScroll(0)
+	end
+
 	self.row_tasks = {}
 	self.row_tasks_ptr = 1
 
@@ -1717,19 +1737,61 @@ function PANEL:RebuildFileList()
 	else
 		for i, data in ipairs(self._file_list) do
 			if data[1]:lower():find(search, 1, true) or data[1] == '..' then
+				local makerow
+
 				if data[2] then
-					self.row_tasks[i] = self.folder_contents:AddLine(data[1], '???', 'gui.dlib.filemanager.folder')
-					self.row_tasks[i].is_folder = true
+					makerow = self.folder_contents:AddLine(data[1], '???', 'gui.dlib.filemanager.folder')
 				else
-					self.row_tasks[i] = self.folder_contents:AddLine(data[1], '???', '???')
-					self.row_tasks[i].is_folder = false
+					makerow = self.folder_contents:AddLine(data[1], '???', '???')
 				end
+
+				makerow.is_folder = data[2]
+				table.insert(self.row_tasks, makerow)
+			end
+		end
+	end
+end
+
+local function search_node_tree(self)
+	local search_tree = self.folder_tree:Root():GetChildNodes()
+	local valid = true
+
+	while valid and search_tree and #search_tree > 0 do
+		valid = false
+
+		for i, node in ipairs(search_tree) do
+			local getpath = node:GetFolder()
+
+			if getpath == self.current_path_str then
+				self.folder_tree._ignore = true
+				node:InternalDoClick()
+				node:SetExpanded(true)
+				self.folder_tree:ScrollToChild(node)
+				self.folder_tree._ignore = false
+				break
+			elseif self.current_path_str:startsWith(getpath .. '/') then
+				search_tree = node:GetChildNodes()
+				node:SetExpanded(true)
+				valid = true
+				break
 			end
 		end
 	end
 end
 
 function PANEL:ScanCurrentDirectory()
+	--local delay = false
+
+	if not self.folder_tree._populated then
+		--delay = true
+		self.folder_tree._populated = true
+
+		for i, dir in ipairs(select(2, file.Find('*', self.data_folder))) do
+			local node = self.folder_tree:AddNode(dir)
+			node:MakeFolder(dir, self.data_folder)
+		end
+	end
+
 	local root = self:GetRootedPath()
 	local files, dirs = file.Find(root .. '*', self.data_folder)
 
@@ -1751,6 +1813,10 @@ function PANEL:ScanCurrentDirectory()
 	for i, _file in ipairs(files) do
 		table.insert(self._file_list, {_file, false})
 	end
+
+	if self.folder_tree._ignore then return end
+
+	search_node_tree(self)
 end
 
 DLib.FileManagerPanel = PANEL
