@@ -1775,6 +1775,7 @@ local function search_node_tree(self)
 				self.folder_tree._ignore = false
 				break
 			elseif self.current_path_str:startsWith(getpath .. '/') then
+				node:PopulateChildrenAndSelf()
 				search_tree = node:GetChildNodes()
 				node:SetExpanded(true)
 				valid = true
