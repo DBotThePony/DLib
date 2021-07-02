@@ -1575,7 +1575,7 @@ function PANEL:OpenUserInput(path, notify)
 				Derma_Message('gui.dlib.filemanager.destination_is_dir.description', 'gui.dlib.filemanager.destination_is_dir.title', 'gui.misc.ok')
 				return false
 			elseif exists then
-				self:OpenOverwriteModal(new_path, line:GetValue(1))
+				self:OpenOverwriteModal(new_path, filename)
 			else
 				self:DoCallSelectFile(new_path)
 			end
