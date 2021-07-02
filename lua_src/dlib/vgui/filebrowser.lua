@@ -581,7 +581,7 @@ function PANEL:SetFileMode(mode)
 		self:SetTitle('gui.dlib.filemanager.title_open_dir')
 	elseif mode == self.MODE_WIRTE_FILE then
 		self:SetTitle('gui.dlib.filemanager.title_write')
-	elseif mode == self.MODE_READ_WIRTE then
+	elseif mode == self.MODE_READ_WRITE then
 		self:SetTitle('gui.dlib.filemanager.title_open')
 	else
 		error('Unknown file mode: ' .. mode)
@@ -591,7 +591,7 @@ end
 PANEL.MODE_READ_FILE = 0
 PANEL.MODE_OPEN_DIRECTORY = 1
 PANEL.MODE_WIRTE_FILE = 2
-PANEL.MODE_READ_WIRTE = 3
+PANEL.MODE_READ_WRITE = 3
 
 function PANEL:CallSelectFile(path, stripped_ext, stripped, stripped_dir)
 
@@ -1519,7 +1519,7 @@ function PANEL:OpenUserInput(path, notify)
 
 			return false
 		end
-	elseif self.file_mode == self.MODE_READ_WIRTE then
+	elseif self.file_mode == self.MODE_READ_WRITE then
 		if not exists then
 			if notify then
 				Derma_Message('gui.dlib.filemanager.not_exists.description', 'gui.dlib.filemanager.not_exists.title', 'gui.misc.ok')
@@ -1609,7 +1609,7 @@ function PANEL:DoubleClickLine(line)
 		self:PushBackHistory(new_path)
 	elseif self.file_mode == self.MODE_READ_FILE then
 		self:DoCallSelectFile(new_path)
-	elseif self.file_mode == self.MODE_READ_WIRTE then
+	elseif self.file_mode == self.MODE_READ_WRITE then
 		if not isExtensionWritable(new_path) then
 			Derma_Message('gui.dlib.filemanager.not_writable_ext.description', 'gui.dlib.filemanager.not_writable_ext.title', 'gui.misc.ok')
 		elseif self:IsPathWritable(new_path) then
