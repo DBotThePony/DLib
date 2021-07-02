@@ -593,8 +593,20 @@ PANEL.MODE_OPEN_DIRECTORY = 1
 PANEL.MODE_WIRTE_FILE = 2
 PANEL.MODE_READ_WIRTE = 3
 
-function PANEL:CallSelectFile(path)
+function PANEL:CallSelectFile(path, stripped_ext, stripped, stripped_dir)
 
+end
+
+function PANEL:DoCallSelectFile(path)
+	local split = path:split('/')
+	local stripped = split[#split]:find('(.-)%.')
+	local status = self:CallSelectFile(path, split[#split], stripped, table.concat(split, '/', 1, #split - 1))
+
+	if status == true then
+		self:Close()
+	end
+
+	return status
 end
 
 local function file_scanner(path_list, tree_files, tree_dirs)
@@ -1499,7 +1511,7 @@ function PANEL:OpenUserInput(path, notify)
 		return true, true
 	elseif self.file_mode == self.MODE_READ_FILE then
 		if exists then
-			self:CallSelectFile(new_path)
+			self:DoCallSelectFile(new_path)
 		else
 			if notify then
 				Derma_Message('gui.dlib.filemanager.not_exists.description', 'gui.dlib.filemanager.not_exists.title', 'gui.misc.ok')
@@ -1537,7 +1549,7 @@ function PANEL:OpenUserInput(path, notify)
 				end
 			end
 
-			self:CallSelectFile(new_path)
+			self:DoCallSelectFile(new_path)
 		elseif notify then
 			Derma_Message('gui.dlib.filemanager.not_writable.description', 'gui.dlib.filemanager.not_writable.title', 'gui.misc.ok')
 			return false
@@ -1565,7 +1577,7 @@ function PANEL:OpenUserInput(path, notify)
 			elseif exists then
 				self:OpenOverwriteModal(new_path, line:GetValue(1))
 			else
-				self:CallSelectFile(new_path)
+				self:DoCallSelectFile(new_path)
 			end
 		elseif notify then
 			Derma_Message('gui.dlib.filemanager.not_writable.description', 'gui.dlib.filemanager.not_writable.title', 'gui.misc.ok')
@@ -1596,12 +1608,12 @@ function PANEL:DoubleClickLine(line)
 		self:RebuildFileList()
 		self:PushBackHistory(new_path)
 	elseif self.file_mode == self.MODE_READ_FILE then
-		self:CallSelectFile(new_path)
+		self:DoCallSelectFile(new_path)
 	elseif self.file_mode == self.MODE_READ_WIRTE then
 		if not isExtensionWritable(new_path) then
 			Derma_Message('gui.dlib.filemanager.not_writable_ext.description', 'gui.dlib.filemanager.not_writable_ext.title', 'gui.misc.ok')
 		elseif self:IsPathWritable(new_path) then
-			self:CallSelectFile(new_path)
+			self:DoCallSelectFile(new_path)
 		else
 			Derma_Message('gui.dlib.filemanager.not_writable.description', 'gui.dlib.filemanager.not_writable.title', 'gui.misc.ok')
 		end
@@ -1623,7 +1635,7 @@ function PANEL:OpenOverwriteModal(path, name)
 		DLib.I18n.Localize('gui.dlib.filemanager.overwrite.description', name),
 		DLib.I18n.Localize('gui.dlib.filemanager.overwrite.title', name),
 		'gui.misc.ok',
-		function() if IsValid(self) then self:CallSelectFile(path) end end,
+		function() if IsValid(self) then self:DoCallSelectFile(path) end end,
 		'gui.misc.cancel'
 	)
 end
