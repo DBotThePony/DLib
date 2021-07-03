@@ -217,18 +217,18 @@ for i, row in ipairs(prefix) do
 end
 
 info.dlib.si.bytes_short.bytes = '%s B'
-info.dlib.si.bytes_short.kilo = '%.2f KB'
-info.dlib.si.bytes_short.mega = '%.2f MB'
-info.dlib.si.bytes_short.giga = '%.2f GB'
-info.dlib.si.bytes_short.tera = '%.2f TB'
-info.dlib.si.bytes_short.peta = '%.2f PB'
+info.dlib.si.bytes_short.kilo = '%.2f KiB'
+info.dlib.si.bytes_short.mega = '%.2f MiB'
+info.dlib.si.bytes_short.giga = '%.2f GiB'
+info.dlib.si.bytes_short.tera = '%.2f TiB'
+info.dlib.si.bytes_short.peta = '%.2f PiB'
 
 info.dlib.si.bytes.bytes = '%s bytes'
-info.dlib.si.bytes.kilo = '%.2f kilobytes'
-info.dlib.si.bytes.mega = '%.2f megabytes'
-info.dlib.si.bytes.giga = '%.2f gigabytes'
-info.dlib.si.bytes.tera = '%.2f terabytes'
-info.dlib.si.bytes.peta = '%.2f petabytes'
+info.dlib.si.bytes.kilo = '%.2f kibibytes'
+info.dlib.si.bytes.mega = '%.2f mebibytes'
+info.dlib.si.bytes.giga = '%.2f gibibytes'
+info.dlib.si.bytes.tera = '%.2f tebibytes'
+info.dlib.si.bytes.peta = '%.2f pebibytes'
 
 --[==[
 local units = [[hertz    Hz  frequency   1/s     s−1
