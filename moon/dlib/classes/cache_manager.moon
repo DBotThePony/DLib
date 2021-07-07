@@ -253,7 +253,7 @@ class DLib.CacheManager
 		concommand.Add name, (ply) ->
 			return if IsValid(ply) and SERVER
 
-			if not @CleanupIfFull()
+			if not @CleanupIfFull(true)
 				DLib.LMessage('message.dlib.cache_manager.cleanup_not_required', @folder)
 
 	AddCommandRemoveEverything: (name = @folder .. '_clear') =>
@@ -289,11 +289,11 @@ class DLib.CacheManager
 
 		return deleted > 0
 
-	CleanupIfFull: =>
+	CleanupIfFull: (demand = false) =>
 		size = @TotalSize()
 		limit = @convar and @convar\GetInt()\max(@minimal or 0) or @limit
 		return false if limit <= 0
-		return false if size <= limit * 1.2
+		return false if size <= limit * (demand and 1 or 1.2)
 		return false if #@state == 0
 
 		table.sort(@state, sorter)
