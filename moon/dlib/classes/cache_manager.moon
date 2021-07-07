@@ -322,45 +322,105 @@ class DLib.CacheManager
 
 		return deleted > 0
 
-	HasHash: (key) => @state_hash[key] and string.format('%s/%s/%s.%s', @folder, key\sub(1, 2), key, @extension) or false
+	HasHash: (key) =>
+		get_data = @state_hash[key]
+		return false if not get_data
+
+		format_path = string.format('%s/%s/%s.%s', @folder, key\sub(1, 2), key, @extension)
+
+		if not get_data.checked
+			get_data.checked = true
+
+			if not file.Exists(format_path, 'DATA')
+				get_data = nil
+
+				for i, data in ipairs(@state)
+					if data.hash == key
+						table.remove(@state, i)
+						break
+
+				@fhandle = file.Open(@folder .. '/swap.dat', 'ab', 'DATA') if not @fhandle
+				@fhandle\WriteByte(OPERATION_REMOVE)
+				writehash(@fhandle, key)
+				return false
+
+		return format_path
 
 	HasGetHash: (key) =>
-		if @state_hash[key]
-			should_update = @state_hash[key].last_access + 10 < os.time()
-			@state_hash[key].last_access = os.time()
+		if get_data = @state_hash[key]
+			format_path = string.format('%s/%s/%s.%s', @folder, key\sub(1, 2), key, @extension)
+
+			if not get_data.checked
+				get_data.checked = true
+
+				if not file.Exists(format_path, 'DATA')
+					get_data = nil
+
+					for i, data in ipairs(@state)
+						if data.hash == key
+							table.remove(@state, i)
+							break
+
+					@fhandle = file.Open(@folder .. '/swap.dat', 'ab', 'DATA') if not @fhandle
+					@fhandle\WriteByte(OPERATION_REMOVE)
+					writehash(@fhandle, key)
+					return false
+
+			should_update = get_data.last_access + 10 < os.time()
+			get_data.last_access = os.time()
 
 			if should_update
 				@fhandle = file.Open(@folder .. '/swap.dat', 'ab', 'DATA') if not @fhandle
 				@fhandle\WriteByte(OPERATION_ATIME)
-				writehash(@fhandle, @state_hash[key].hash)
-				@fhandle\WriteDouble(@state_hash[key].last_access)
+				writehash(@fhandle, key)
+				@fhandle\WriteDouble(get_data.last_access)
 
 				if data = DLib.CacheManagerHandles[@folder]
 					data[2] = math.min(data[2] + 2, SysTime() + 10)
 				else
 					DLib.CacheManagerHandles[@folder] = {@fhandle, SysTime() + 2}
 
-			return string.format('%s/%s/%s.%s', @folder, key\sub(1, 2), key, @extension)
+			return format_path
 
 		return false
 
 	GetHash: (key, if_none) =>
-		return if_none if not @state_hash[key]
-		should_update = @state_hash[key].last_access + 10 < os.time()
-		@state_hash[key].last_access = os.time()
+		get_data = @state_hash[key]
+		return if_none if not get_data
+
+		format_path = string.format('%s/%s/%s.%s', @folder, key\sub(1, 2), key, @extension)
+
+		if not get_data.checked
+			get_data.checked = true
+
+			if not file.Exists(format_path, 'DATA')
+				get_data = nil
+
+				for i, data in ipairs(@state)
+					if data.hash == key
+						table.remove(@state, i)
+						break
+
+				@fhandle = file.Open(@folder .. '/swap.dat', 'ab', 'DATA') if not @fhandle
+				@fhandle\WriteByte(OPERATION_REMOVE)
+				writehash(@fhandle, key)
+				return if_none
+
+		should_update = get_data.last_access + 10 < os.time()
+		get_data.last_access = os.time()
 
 		if should_update
 			@fhandle = file.Open(@folder .. '/swap.dat', 'ab', 'DATA') if not @fhandle
 			@fhandle\WriteByte(OPERATION_ATIME)
-			writehash(@fhandle, @state_hash[key].hash)
-			@fhandle\WriteDouble(@state_hash[key].last_access)
+			writehash(@fhandle, get_data.hash)
+			@fhandle\WriteDouble(get_data.last_access)
 
 			if data = DLib.CacheManagerHandles[@folder]
 				data[2] = math.min(data[2] + 2, SysTime() + 10)
 			else
 				DLib.CacheManagerHandles[@folder] = {@fhandle, SysTime() + 2}
 
-		return file.Read(string.format('%s/%s/%s.%s', @folder, key\sub(1, 2), key, @extension), 'DATA')
+		return file.Read(format_path, 'DATA')
 
 	SetHash: (key, value) =>
 		file.mkdir(string.format('%s/%s', @folder, key\sub(1, 2)))
