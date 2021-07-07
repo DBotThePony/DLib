@@ -297,3 +297,88 @@ message.dlib.cache_manager.cleanup_not_required = '%q не требует очи
 message.dlib.cache_manager.nothing_to_remove = '%q пуст'
 message.dlib.cache_manager.rescanned = 'Менеджер кеша %q просканировал диск на наличие существующих файлов'
 message.dlib.cache_manager.vaccum_failure = 'Менеджер кеша %q не смог пропылесосить swap.dat (ошибка открытия файла для записи)'
+
+gui.dlib.filemanager.title_open = 'Выберите файл для открытия'
+gui.dlib.filemanager.title_read = 'Выберите файл для чтения'
+gui.dlib.filemanager.title_write = 'Выберите файл для записи'
+gui.dlib.filemanager.title_open_dir = 'Выберите папку для открытия'
+gui.dlib.filemanager.file_name = 'Имя файла:'
+gui.dlib.filemanager.open = 'Открыть'
+gui.dlib.filemanager.quick_search = 'Быстрый поиск...'
+
+gui.dlib.filemanager.overwrite.title = 'Перезаписать %s?'
+gui.dlib.filemanager.overwrite.description = 'Файл %s уже существует. Вы уверены что хотите его перезаписать?'
+
+gui.dlib.filemanager.not_exists.title = 'Не найдено'
+gui.dlib.filemanager.not_exists.description = 'Система не может найти указанный путь.'
+
+gui.dlib.filemanager.not_writable.title = 'Не перезаписываемая цель'
+gui.dlib.filemanager.not_writable.description = 'Путь, который вы указали, невозможно открыть для записи.'
+
+gui.dlib.filemanager.not_writable_ext.title = 'Не перезаписываемое расширение файла'
+gui.dlib.filemanager.not_writable_ext.description = 'Расширение файла, который вы указали, невозможно открыть для записи.'
+
+gui.dlib.filemanager.not_writable_dir.title = 'Не перезаписываемый путь'
+gui.dlib.filemanager.not_writable_dir.description = 'Путь, который вы указали, не может быть изменён через Lua код.'
+
+gui.dlib.filemanager.dir_is_file.title = 'Плохой путь'
+gui.dlib.filemanager.dir_is_file.description = 'Путь, который вы указали, уже существует, и является файлом, а не папка.'
+
+gui.dlib.filemanager.destination_is_dir.title = 'Путь является папкой'
+gui.dlib.filemanager.destination_is_dir.description = 'Путь, который вы указали, уже существует, и является папка.'
+
+gui.dlib.filemanager.file_list.name = 'Имя'
+gui.dlib.filemanager.file_list.last_change = 'Последнее изменение'
+gui.dlib.filemanager.file_list.size = 'Размер'
+
+gui.dlib.filemanager.copy_filename = 'Скопировать имя'
+gui.dlib.filemanager.copy_path = 'Copy путь'
+gui.dlib.filemanager.copy_date = 'Copy последнее изменение'
+gui.dlib.filemanager.copy_size = 'Copy размер'
+gui.dlib.filemanager.delete = 'Удалить'
+gui.dlib.filemanager.error = 'ошибка'
+gui.dlib.filemanager.folder = 'папка'
+
+gui.dlib.filemanager.same_path.title = 'Неверный путь'
+gui.dlib.filemanager.same_path.description = 'Цель находится в той же или в нижележащей папке.'
+
+gui.dlib.filemanager.dir_not_empty.title = 'Папка не пуста'
+gui.dlib.filemanager.dir_not_empty.description = 'Папка с файлами не может быть удалена.'
+
+gui.dlib.filemanager.make_folder.title = 'Новая папка'
+gui.dlib.filemanager.make_folder.description = 'Укажите имя папки. Имя файла должно содержать только строчные буквы, не содержать " и : (и другие символы если вы на Microsoft Windows)\nбыть на английском и не быть существующим файлом.'
+
+gui.dlib.filemanager.make_folder.error_title = 'Неверное имя папки'
+gui.dlib.filemanager.make_folder.error_description = 'Имя содержит запрещённые символы, уже существует, полностью пустое, зарезервированно или слишком длинное.'
+
+gui.dlib.filemanager.scanning.title = 'Поиск файлов и папок...'
+gui.dlib.filemanager.scanning.files = 'Файлов:'
+gui.dlib.filemanager.scanning.dirs = 'Папок:'
+gui.dlib.filemanager.scanning.size = 'Размер:'
+
+gui.dlib.filemanager.deleting.title = 'Удаление папок и файлов'
+gui.dlib.filemanager.deleting.files = 'Осталось файлов:'
+gui.dlib.filemanager.deleting.dirs = 'Осталось папок:'
+
+gui.dlib.filemanager.delete_confirm.title = 'Вы уверены что хотите удалить эти файлы и папки?'
+gui.dlib.filemanager.delete_confirm.description = '%d файлов (%s) пропадут навсегда!'
+
+gui.dlib.filemanager.copy.title = 'Копировать'
+gui.dlib.filemanager.cut.title = 'Вырезать'
+gui.dlib.filemanager.cut.description = '"Вырезать" нестабильно и может дать сбой, повредив или уничтожив ваши данныею\nЛучше всего используйте свой менеджер файлов.'
+
+gui.dlib.filemanager.clone.title = 'Клоинровать...'
+gui.dlib.filemanager.clone.description = 'Укажите имя файла. Имя файла должно содержать только строчные буквы, не содержать " и : (и другие символы если вы на Microsoft Windows)\nбыть на английском и не быть существующим файлом.'
+
+gui.dlib.filemanager.clone.worker.title = 'Копирование файлов'
+gui.dlib.filemanager.clone.worker.files = 'Файлов скопировано:'
+gui.dlib.filemanager.clone.worker.dirs = 'Папок создано:'
+gui.dlib.filemanager.clone.worker.size = 'Записано:'
+
+gui.dlib.filemanager.move.worker.title = 'Перемещение файлов'
+gui.dlib.filemanager.move.worker.files = 'Файлов перемещено:'
+gui.dlib.filemanager.move.worker.dirs = 'Папок создано:'
+gui.dlib.filemanager.move.worker.size = 'Записано:'
+
+gui.dlib.filemanager.clone.error.title = 'Ошибка клонирования'
+gui.dlib.filemanager.clone.error.description = 'Имя содержит запрещённые символы, уже существует, полностью пустое, зарезервированно или слишком длинное.'

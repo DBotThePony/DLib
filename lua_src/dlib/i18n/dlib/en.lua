@@ -774,7 +774,7 @@ gui.dlib.filemanager.delete_confirm.description = 'Those %d files (%s) will be g
 
 gui.dlib.filemanager.copy.title = 'Copy'
 gui.dlib.filemanager.cut.title = 'Cut'
-gui.dlib.filemanager.cut.description = 'Cut feature is unstable and should be used carefully.\nIn general, you should use '
+gui.dlib.filemanager.cut.description = 'Cut feature is unstable and should be used carefully.\nIn general, you should use copy, make sure everything is in place and then delete old object\nOr better use your file manager.'
 
 gui.dlib.filemanager.clone.title = 'Clone...'
 gui.dlib.filemanager.clone.description = 'Specify copy name, it must be unique.\nOnly ASCII characters are allowed.\nOnly lowercase letters are allowed'
