@@ -292,7 +292,8 @@ class DLib.CacheManager
 	CleanupIfFull: =>
 		size = @TotalSize()
 		limit = @convar and @convar\GetInt()\max(@minimal or 0) or @limit
-		return false if size <= limit
+		return false if limit <= 0
+		return false if size <= limit * 1.2
 		return false if #@state == 0
 
 		table.sort(@state, sorter)
