@@ -577,12 +577,16 @@ function PANEL:SetFileMode(mode)
 
 	if mode == self.MODE_READ_FILE then
 		self:SetTitle('gui.dlib.filemanager.title_read')
+		self.open_file_button:SetText('gui.dlib.filemanager.open')
 	elseif mode == self.MODE_OPEN_DIRECTORY then
 		self:SetTitle('gui.dlib.filemanager.title_open_dir')
+		self.open_file_button:SetText('gui.dlib.filemanager.open')
 	elseif mode == self.MODE_WIRTE_FILE then
 		self:SetTitle('gui.dlib.filemanager.title_write')
+		self.open_file_button:SetText('gui.dlib.filemanager.write')
 	elseif mode == self.MODE_READ_WRITE then
 		self:SetTitle('gui.dlib.filemanager.title_open')
+		self.open_file_button:SetText('gui.dlib.filemanager.open')
 	else
 		error('Unknown file mode: ' .. mode)
 	end

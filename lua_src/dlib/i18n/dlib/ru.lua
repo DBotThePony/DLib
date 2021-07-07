@@ -304,6 +304,7 @@ gui.dlib.filemanager.title_write = 'Выберите файл для запис�
 gui.dlib.filemanager.title_open_dir = 'Выберите папку для открытия'
 gui.dlib.filemanager.file_name = 'Имя файла:'
 gui.dlib.filemanager.open = 'Открыть'
+gui.dlib.filemanager.write = 'Записать'
 gui.dlib.filemanager.quick_search = 'Быстрый поиск...'
 
 gui.dlib.filemanager.overwrite.title = 'Перезаписать %s?'

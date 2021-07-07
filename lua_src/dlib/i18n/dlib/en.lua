@@ -713,6 +713,7 @@ gui.dlib.filemanager.title_write = 'Select file to write'
 gui.dlib.filemanager.title_open_dir = 'Select directory to open'
 gui.dlib.filemanager.file_name = 'File name:'
 gui.dlib.filemanager.open = 'Open'
+gui.dlib.filemanager.write = 'Write'
 gui.dlib.filemanager.quick_search = 'Quick search files...'
 
 gui.dlib.filemanager.overwrite.title = 'Overwrite an existing file %s?'
