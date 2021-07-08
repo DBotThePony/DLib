@@ -337,21 +337,58 @@ end)
 local SysTime = SysTime
 
 _net.receive('dlib_net_datagram', function(_, ply)
-	-- TODO: Too many datagrams at once can create unordered execution, causing undefined behvaior
-	-- such as removing buffers too early (before every datagram belonging to that buffer execute)
 	if SERVER and not IsValid(ply) then return end
 	local readnetid = _net.ReadUInt16()
 
 	local namespace = Net.Namespace(CLIENT and Net or ply)
 
-	_net.Start('dlib_net_datagram_ack', namespace.use_unreliable)
-
 	local startread = SysTime()
+	local datagram_list = {}
+	local hash_list = {}
 
 	while readnetid > 0 do
 		local startpos = _net.ReadUInt32()
 		local endpos = _net.ReadUInt32()
 		local dgram_id = _net.ReadUInt32()
+
+		table.insert(datagram_list, {readnetid, startpos, endpos, dgram_id})
+		table.insert(hash_list, string.format('%.6d %.12d %.12d %.12d', readnetid, startpos, endpos, dgram_id))
+
+		readnetid = _net.ReadUInt16()
+
+		if (SysTime() - startread) >= 0.1 then
+			if CLIENT then
+				DLib.MessageWarning('[!!!] DLib.Net: Reading datagram list from server took more than 100 ms!')
+			else
+				DLib.MessageWarning('[!!!] DLib.Net: Reading datagram list from ', ply, ' took more than 100 ms!')
+			end
+
+			return
+		end
+	end
+
+	local a, b, c, d = DLib.Util.QuickMD5Binary(table.concat(hash_list, ' '))
+	local _a, _b, _c, _d = _net.ReadUInt32(), _net.ReadUInt32(), _net.ReadUInt32(), _net.ReadUInt32()
+
+	_net.Start('dlib_net_datagram_ack', namespace.use_unreliable)
+
+	if a ~= _a or b ~= _b or c ~= _c or d ~= _d then
+		if CLIENT then
+			DLib.MessageWarning('[!!!] DLib.Net: Received corrupted datagram list from server (expected hash ' .. string.format('%08x%08x%08x%08x', _a, _b, _c, _d) .. ' got ' .. string.format('%08x%08x%08x%08x', a, b, c, d) .. ')')
+			_net.SendToServer()
+		else
+			DLib.MessageWarning('[!!!] DLib.Net: Received corrupted datagram list from ', ply, ' (expected hash ' .. string.format('%08x%08x%08x%08x', _a, _b, _c, _d) .. ' got ' .. string.format('%08x%08x%08x%08x', a, b, c, d) .. ')')
+			_net.Send(ply)
+		end
+
+		return
+	end
+
+	for i, _read in ipairs(datagram_list) do
+		local startpos = _read[2]
+		local endpos = _read[3]
+		local dgram_id = _read[4]
+		local readnetid = _read[1]
 		_net.WriteUInt32(dgram_id)
 
 		debug(
@@ -377,18 +414,6 @@ _net.receive('dlib_net_datagram', function(_, ply)
 					DLib.MessageWarning('DLib.Net: Queued ', namespace.queued_datagrams_num, ' datagrams from ', ply, '!')
 				end
 			end
-		end
-
-		readnetid = _net.ReadUInt16()
-
-		if (SysTime() - startread) >= 0.1 then
-			if CLIENT then
-				DLib.MessageWarning('[!!!] DLib.Net: Reading datagram list from server took more than 100 ms!')
-			else
-				DLib.MessageWarning('[!!!] DLib.Net: Reading datagram list from ', ply, ' took more than 100 ms!')
-			end
-
-			break
 		end
 	end
 
@@ -816,6 +841,8 @@ function Net.DispatchDatagram(ply)
 		namespace.use_unreliable = false
 	end
 
+	local hash_list = {}
+
 	_net.Start('dlib_net_datagram', namespace.use_unreliable)
 
 	local lastkey
@@ -834,7 +861,15 @@ function Net.DispatchDatagram(ply)
 		_net.WriteUInt32(data.startpos)
 		_net.WriteUInt32(data.endpos)
 		_net.WriteUInt32(data.dgram_id)
+
+		table.insert(hash_list, string.format('%.6d %.12d %.12d %.12d', data.id, data.startpos, data.endpos, data.dgram_id))
 	end
+
+	local a, b, c, d = DLib.Util.QuickMD5Binary(table.concat(hash_list, ' '))
+	_net.WriteUInt32(a)
+	_net.WriteUInt32(b)
+	_net.WriteUInt32(c)
+	_net.WriteUInt32(d)
 
 	if CLIENT then
 		_net.SendToServer()
