@@ -931,6 +931,12 @@ _net.receive('dlib_net_datagram_ack', function(length, ply)
 	local namespace = Net.Namespace(CLIENT and Net or ply)
 
 	namespace.server_datagram_ack = true
+
+	if length / 32 < 1 then
+		namespace.reliable_score_dg = math.max(0, namespace.reliable_score_dg - 0.5)
+		return
+	end
+
 	namespace.reliable_score_dg = math.max(0, namespace.reliable_score_dg - 1.5)
 
 	for i = 1, length / 32 do
