@@ -269,7 +269,7 @@ _net.receive('dlib_net_chunk', function(_, ply)
 			DLib.MessageWarning('[!!!] DLib.Net: Received corrupted chunk from server (expected hash ' .. string.format('%08x%08x%08x%08x', _a, _b, _c, _d) .. ' got ' .. string.format('%08x%08x%08x%08x', a, b, c, d) .. ')')
 			_net.SendToServer()
 		else
-			DLib.MessageWarning('[!!!] DLib.Net: Received corrupted chunk from ', ply, ' (expected hash ' .. string.format('%08x%08x%08x%08x', _a, _b, _c, _d) .. ' got ' .. string.format('%08x%08x%08x%08x', a, b, c, d) .. ')')
+			-- DLib.MessageWarning('[!!!] DLib.Net: Received corrupted chunk from ', ply, ' (expected hash ' .. string.format('%08x%08x%08x%08x', _a, _b, _c, _d) .. ' got ' .. string.format('%08x%08x%08x%08x', a, b, c, d) .. ')')
 			_net.Send(ply)
 		end
 
@@ -404,7 +404,7 @@ _net.receive('dlib_net_datagram', function(_, ply)
 			DLib.MessageWarning('[!!!] DLib.Net: Received corrupted datagram list from server (expected hash ' .. string.format('%08x%08x%08x%08x', _a, _b, _c, _d) .. ' got ' .. string.format('%08x%08x%08x%08x', a, b, c, d) .. ')')
 			_net.SendToServer()
 		else
-			DLib.MessageWarning('[!!!] DLib.Net: Received corrupted datagram list from ', ply, ' (expected hash ' .. string.format('%08x%08x%08x%08x', _a, _b, _c, _d) .. ' got ' .. string.format('%08x%08x%08x%08x', a, b, c, d) .. ')')
+			-- DLib.MessageWarning('[!!!] DLib.Net: Received corrupted datagram list from ', ply, ' (expected hash ' .. string.format('%08x%08x%08x%08x', _a, _b, _c, _d) .. ' got ' .. string.format('%08x%08x%08x%08x', a, b, c, d) .. ')')
 			_net.Send(ply)
 		end
 
