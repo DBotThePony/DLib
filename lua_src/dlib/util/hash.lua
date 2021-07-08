@@ -263,6 +263,14 @@ function meta:Digest()
 	return self.digest_hex
 end
 
+function meta:DigestBinary()
+	if not self.digest_hex then
+		self:_Digest()
+	end
+
+	return overflow(bit.bswap(self.A)), overflow(bit.bswap(self.B)), overflow(bit.bswap(self.C)), overflow(bit.bswap(self.D))
+end
+
 DLib.Util.MD5 = DLib.CreateMoonClassBare('MD5', meta, {})
 
 --[[
@@ -280,6 +288,10 @@ DLib.Util.MD5 = DLib.CreateMoonClassBare('MD5', meta, {})
 
 function DLib.Util.QuickMD5(str)
 	return DLib.Util.MD5():Update(str):Digest()
+end
+
+function DLib.Util.QuickMD5Binary(str)
+	return DLib.Util.MD5():Update(str):DigestBinary()
 end
 
 local metasha1 = {}
@@ -425,6 +437,18 @@ function metasha1:_Digest()
 		overflow(self.H4))
 end
 
+function metasha1:DigestBinary()
+	if not self.digest_hex then
+		self:_Digest()
+	end
+
+	return  overflow(self.H0),
+			overflow(self.H1),
+			overflow(self.H2),
+			overflow(self.H3),
+			overflow(self.H4)
+end
+
 DLib.Util.SHA1 = DLib.CreateMoonClassBare('SHA1', metasha1, {})
 
 --[[
@@ -442,6 +466,10 @@ DLib.Util.SHA1 = DLib.CreateMoonClassBare('SHA1', metasha1, {})
 
 function DLib.Util.QuickSHA1(str)
 	return DLib.Util.SHA1():Update(str):Digest()
+end
+
+function DLib.Util.QuickSHA1Binary(str)
+	return DLib.Util.SHA1():Update(str):DigestBinary()
 end
 
 local metasha224 = {}
@@ -707,6 +735,20 @@ do
 		)
 	end
 
+	function metasha224:DigestBinary()
+		if not self.digest_hex then
+			self:_Digest()
+		end
+
+		return  overflow(self.H0),
+				overflow(self.H1),
+				overflow(self.H2),
+				overflow(self.H3),
+				overflow(self.H4),
+				overflow(self.H5),
+				overflow(self.H6)
+	end
+
 	function metasha256:_Digest()
 		_Digest(self)
 
@@ -722,6 +764,21 @@ do
 			overflow(self.H6),
 			overflow(self.H7)
 		)
+	end
+
+	function metasha256:DigestBinary()
+		if not self.digest_hex then
+			self:_Digest()
+		end
+
+		return  overflow(self.H0),
+				overflow(self.H1),
+				overflow(self.H2),
+				overflow(self.H3),
+				overflow(self.H4),
+				overflow(self.H5),
+				overflow(self.H6),
+				overflow(self.H7)
 	end
 end
 
@@ -751,6 +808,10 @@ function DLib.Util.QuickSHA256(str)
 	return DLib.Util.SHA256():Update(str):Digest()
 end
 
+function DLib.Util.QuickSHA256Binary(str)
+	return DLib.Util.SHA256():Update(str):DigestBinary()
+end
+
 --[[
 	@doc
 	@fname DLib.Util.QuickSHA224
@@ -766,6 +827,10 @@ end
 
 function DLib.Util.QuickSHA224(str)
 	return DLib.Util.SHA224():Update(str):Digest()
+end
+
+function DLib.Util.QuickSHA224Binary(str)
+	return DLib.Util.SHA224():Update(str):DigestBinary()
 end
 
 local plyMeta = FindMetaTable('Player')
