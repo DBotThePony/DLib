@@ -247,13 +247,40 @@ _net.receive('dlib_net_chunk', function(_, ply)
 	local length = _net.ReadUInt16()
 	local chunk = _net.ReadData(length)
 
+	local a, b, c, d = DLib.Util.QuickMD5Binary(string.format(
+		'%.12d %.8d %.8d %.12d %.12d %d ',
+		chunkid,
+		current_chunk,
+		chunks,
+		startpos,
+		endpos,
+		is_compressed and 1 or 0
+	) .. chunk)
+
+	local _a, _b, _c, _d = _net.ReadUInt32(), _net.ReadUInt32(), _net.ReadUInt32(), _net.ReadUInt32()
+	local namespace = Net.Namespace(CLIENT and Net or ply)
+
+	_net.Start('dlib_net_chunk_ack', namespace.use_unreliable)
+
+	if a ~= _a or b ~= _b or c ~= _c or d ~= _d then
+		_net.WriteBool(false)
+
+		if CLIENT then
+			DLib.MessageWarning('[!!!] DLib.Net: Received corrupted chunk from server (expected hash ' .. string.format('%08x%08x%08x%08x', _a, _b, _c, _d) .. ' got ' .. string.format('%08x%08x%08x%08x', a, b, c, d) .. ')')
+			_net.SendToServer()
+		else
+			DLib.MessageWarning('[!!!] DLib.Net: Received corrupted chunk from ', ply, ' (expected hash ' .. string.format('%08x%08x%08x%08x', _a, _b, _c, _d) .. ' got ' .. string.format('%08x%08x%08x%08x', a, b, c, d) .. ')')
+			_net.Send(ply)
+		end
+
+		return
+	end
+
 	debug(
 		string_format('Received chunk: Chunkid %d, current chunk number %d, total chunks %d, position: %d->%d, compressed: %s, lenght: %s',
 		chunkid, current_chunk, chunks, startpos, endpos, is_compressed and 'Yes' or 'No', length))
 
-	local namespace = Net.Namespace(CLIENT and Net or ply)
-
-	_net.Start('dlib_net_chunk_ack', namespace.use_unreliable)
+	_net.WriteBool(true)
 	_net.WriteUInt32(chunkid)
 	_net.WriteUInt16(current_chunk)
 	_net.WriteBool(namespace.next_expected_chunk > chunkid)
@@ -787,6 +814,21 @@ function Net.DispatchChunk(ply)
 	_net.WriteUInt16(#chunkData)
 	_net.WriteData(chunkData, #chunkData)
 
+	local a, b, c, d = DLib.Util.QuickMD5Binary(string.format(
+		'%.12d %.8d %.8d %.12d %.12d %d ',
+		data.chunkid,
+		chunkNum,
+		data.total_chunks,
+		data.startpos,
+		data.endpos,
+		data.is_compressed and 1 or 0
+	) .. chunkData)
+
+	_net.WriteUInt32(a)
+	_net.WriteUInt32(b)
+	_net.WriteUInt32(c)
+	_net.WriteUInt32(d)
+
 	if CLIENT then
 		_net.SendToServer()
 	else
@@ -799,6 +841,12 @@ _net.receive('dlib_net_chunk_ack', function(_, ply)
 	local namespace = Net.Namespace(CLIENT and Net or ply)
 
 	namespace.server_chunk_ack = true
+
+	if not _net.ReadBool() then
+		namespace.reliable_score = math.max(0, namespace.reliable_score - 0.5)
+		return
+	end
+
 	namespace.reliable_score = math.max(0, namespace.reliable_score - 1.5)
 
 	local chunkid = _net.ReadUInt32()
