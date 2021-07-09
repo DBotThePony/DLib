@@ -895,16 +895,14 @@ function Net.DispatchDatagram(ply)
 
 	_net.Start('dlib_net_datagram', namespace.use_unreliable)
 
-	local lastkey
+	local lastkey, data
 
 	for i = 0, Net.message_datagram_limit - 1 do
-		local index, data = next(namespace.server_datagrams, lastkey)
+		lastkey, data = next(namespace.server_datagrams, lastkey)
 
-		if not index then
+		if not lastkey then
 			break
 		end
-
-		lastkey = index
 
 		_net.WriteUInt16(data.id)
 		_net.WriteUInt32(data.startpos)
