@@ -306,8 +306,9 @@ _net.receive('dlib_net_chunk', function(_, ply)
 		if namespace.queued_chunks_num > 21 and namespace.queued_chunks_num % 20 == 0 then
 			if CLIENT then
 				DLib.MessageWarning('DLib.Net: Queued ', namespace.queued_chunks_num, ' chunks from server!')
-			else
+			elseif (namespace.in_chunks_last_warning or 0) < SysTime() then
 				DLib.MessageWarning('DLib.Net: Queued ', namespace.queued_chunks_num, ' chunks from ', ply, '!')
+				namespace.in_chunks_last_warning = SysTime() + 4
 			end
 		end
 	end
@@ -437,8 +438,9 @@ _net.receive('dlib_net_datagram', function(_, ply)
 			if namespace.queued_datagrams_num > 2001 and namespace.queued_datagrams_num % 100 == 0 then
 				if CLIENT then
 					DLib.MessageWarning('DLib.Net: Queued ', namespace.queued_datagrams_num, ' datagrams from server!')
-				else
+				elseif (namespace.in_datagrams_last_warning or 0) < SysTime() then
 					DLib.MessageWarning('DLib.Net: Queued ', namespace.queued_datagrams_num, ' datagrams from ', ply, '!')
+					namespace.in_datagrams_last_warning = SysTime() + 4
 				end
 			end
 		end
@@ -899,7 +901,6 @@ function Net.DispatchDatagram(ply)
 		local index, data = next(namespace.server_datagrams, lastkey)
 
 		if not index then
-			_net.WriteUInt16(0)
 			break
 		end
 
@@ -912,6 +913,8 @@ function Net.DispatchDatagram(ply)
 
 		table.insert(hash_list, string.format('%.6d %.12d %.12d %.12d', data.id, data.startpos, data.endpos, data.dgram_id))
 	end
+
+	_net.WriteUInt16(0)
 
 	local a, b, c, d = DLib.Util.QuickMD5Binary(table.concat(hash_list, ' '))
 	_net.WriteUInt32(a)
@@ -950,9 +953,10 @@ _net.receive('dlib_net_datagram_ack', function(length, ply)
 
 	if namespace.server_datagrams_num > 2001 then
 		if CLIENT then
-			DLib.MessageWarning('DLib.Net: STILL have queued ', namespace.server_datagrams_num, ' datagrams for server!')
-		else
-			DLib.MessageWarning('DLib.Net: STILL have queued ', namespace.server_datagrams_num, ' datagrams for ', ply, '!')
+			DLib.MessageWarning('DLib.Net: Queued ', namespace.server_datagrams_num, ' datagrams for server!')
+		elseif (namespace.datagram_last_warning or 0) < SysTime() then
+			DLib.MessageWarning('DLib.Net: Queued ', namespace.server_datagrams_num, ' datagrams for ', ply, '!')
+			namespace.datagram_last_warning = SysTime() + 4
 		end
 	end
 

@@ -229,16 +229,18 @@ function Net.Think()
 		if namespace.server_datagrams_num_warn ~= namespace.server_datagrams_num then
 			namespace.server_datagrams_num_warn = namespace.server_datagrams_num
 
-			if namespace.server_datagrams_num > 2001 then
+			if namespace.server_datagrams_num > 2001 and (namespace.datagram_last_warning or 0) < SysTime() then
 				DLib.MessageWarning('DLib.Net: Queued ', namespace.server_datagrams_num, ' datagrams for ', ply, '!')
+				namespace.datagram_last_warning = SysTime() + 4
 			end
 		end
 
 		if namespace.server_queued_num_warn ~= namespace.server_queued_num then
 			namespace.server_queued_num_warn = namespace.server_queued_num
 
-			if namespace.server_queued_num > 2001 then
+			if namespace.server_queued_num > 2001 and (namespace.chunk_last_warning or 0) < SysTime() then
 				DLib.MessageWarning('DLib.Net: Queued ', namespace.server_queued_num, ' message payloads for ', ply, '!')
+				namespace.chunk_last_warning = SysTime() + 4
 			end
 		end
 	end
