@@ -27,7 +27,10 @@ writehash = (handle, input) ->
 	handle\WriteULong(tonumber(input\sub(25, 32), 16))
 	handle\WriteULong(tonumber(input\sub(33, 40), 16))
 
-readhash = (handle) -> string.format('%08x%08x%08x%08x%08x', handle\ReadULong(), handle\ReadULong(), handle\ReadULong(), handle\ReadULong(), handle\ReadULong())
+readhash = (handle) ->
+	a, b, c, d, e = handle\ReadULong(), handle\ReadULong(), handle\ReadULong(), handle\ReadULong(), handle\ReadULong()
+	return if not a or not b or not c or not d or not e
+	return string.format('%08x%08x%08x%08x%08x', a, b, c, d, e)
 
 OPERATION_REMOVE = 0
 OPERATION_ADD = 1
@@ -70,21 +73,59 @@ class DLib.CacheManager
 			fread = file.Open(folder .. '/swap.dat', 'rb', 'DATA')
 			@state_hash = {}
 			overwrites_or_removes = 0
+			read_error = false
+			local read_error_near
 
 			while fread\Tell() < fread\Size()
 				readbyte = fread\ReadByte()
+
+				if not readbyte
+					read_error = true
+					read_error_near = 'cache entry operation'
+					break
+
 				readop = readbyte ~= 0
 				hash = readhash(fread)
+
+				if not hash
+					read_error = true
+					read_error_near = 'sha256 hash path'
+					break
 
 				if readbyte == OPERATION_ADD
 					overwrites_or_removes += 1 if @state_hash[hash]
 
+					created = fread\ReadDouble()
+					last_access = fread\ReadDouble()
+					last_modify = fread\ReadDouble()
+					size = fread\ReadULong()
+
+					if not created
+						read_error = true
+						read_error_near = 'metadata <creation>'
+						break
+
+					if not last_access
+						read_error = true
+						read_error_near = 'metadata <last_access>'
+						break
+
+					if not last_modify
+						read_error = true
+						read_error_near = 'metadata <last_modify>'
+						break
+
+					if not size
+						read_error = true
+						read_error_near = 'metadata <size>'
+						break
+
 					@state_hash[hash] = {
 						hash: hash
-						created: fread\ReadDouble()
-						last_access: fread\ReadDouble()
-						last_modify: fread\ReadDouble()
-						size: fread\ReadULong()
+						:created
+						:last_access
+						:last_modify
+						:size
 					}
 				elseif readbyte == OPERATION_REMOVE
 					@state_hash[hash] = nil
@@ -96,7 +137,12 @@ class DLib.CacheManager
 
 			fread\Close()
 
-			if overwrites_or_removes > #@state * 4 or overwrites_or_removes > 40000
+			if read_error
+				DLib.MessageError('data/' .. folder .. '/swap.dat has been tampered with. Read error near ', read_error_near)
+				DLib.MessageError('Forcing reconstruction of data/' .. folder .. '/swap.dat')
+				file.Delete(folder .. '/swap.dat')
+				@Rescan()
+			elseif overwrites_or_removes > #@state * 4 or overwrites_or_removes > 40000
 				@VacuumSwap()
 		elseif file.Exists(folder .. '/swap.json', 'DATA')
 			@state = util.JSONToTable(file.Read(folder .. '/swap.json', 'DATA'))
