@@ -19,6 +19,7 @@
 -- DEALINGS IN THE SOFTWARE.
 
 local DLib = DLib
+local Entity = Entity
 local Net = DLib.Net
 
 Net.Pool('dlib_nw2_pool')
@@ -80,6 +81,7 @@ local NWVarsVector = Net.NWVarsVector
 local entMeta = FindMetaTable('Entity')
 
 local EntIndex = entMeta.EntIndex
+local IsValid = entMeta.IsValid
 local next = next
 local bor = bit.bor
 local rawequal = rawequal
@@ -106,6 +108,14 @@ local function write_list(_list, write)
 	end
 end
 
+local function write_entity(index)
+	if index < 1 or index > 65000 or not IsValid(Entity(index)) then
+		Net.WriteUInt16(0)
+	else
+		Net.WriteUInt16(index)
+	end
+end
+
 local function Think()
 	if not Net._var_dirty then return end
 	Net._var_dirty = false
@@ -121,7 +131,7 @@ local function Think()
 	write_list(NWVarsBoolDirty, Net.WriteBool)
 	Net.WriteUInt16(0xFFFF)
 
-	write_list(NWVarsEntityDirty, Net.WriteEntity)
+	write_list(NWVarsEntityDirty, write_entity)
 	Net.WriteUInt16(0xFFFF)
 
 	write_list(NWVarsStringDirty, Net.WriteString)
