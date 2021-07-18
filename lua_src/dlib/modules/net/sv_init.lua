@@ -35,6 +35,7 @@ cvars.AddChangeCallback('dlib_net_dgram_size', Net.UpdateWindowProperties, 'DLib
 cvars.AddChangeCallback('dlib_net_compress_size', Net.UpdateWindowProperties, 'DLib.Net')
 
 Net.pool = _net.pool
+Net.Pool = _net.pool
 Net.pool('dlib_net_datagram')
 Net.pool('dlib_net_datagram_ack')
 Net.pool('dlib_net_ack1')
@@ -246,4 +247,4 @@ function Net.Think()
 	end
 end
 
-hook.Add('Think', 'DLib.Net.ThinkChunks', Net.Think)
+hook.Add('Think', 'DLib.Net.ThinkChunks', Net.Think, 10)

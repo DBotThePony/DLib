@@ -140,8 +140,11 @@ DLib.SharedInclude('modules/predictedvars.lua')
 DLib.net = DLib.net or {}
 DLib.Net = DLib.net
 DLib.SharedInclude('modules/net/sh_init.lua')
+DLib.SharedInclude('modules/net/sh_nwvars2.lua')
 DLib.ClientInclude('modules/net/cl_init.lua')
+DLib.ClientInclude('modules/net/cl_nwvars2.lua')
 DLib.ServerInclude('modules/net/sv_init.lua')
+DLib.ServerInclude('modules/net/sv_nwvars2.lua')
 
 DLib.SharedInclude('modules/getinfo.lua')
 
