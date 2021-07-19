@@ -141,9 +141,17 @@ function Net.SendOmit(data)
 	Net.Send(filter)
 end
 
+local isentity = isentity
+local GetTable = FindMetaTable('Entity').GetTable
+
 function Net.Namespace(target)
-	if type(target) == 'Player' then
-		if target.dlib_net ~= nil then return target.dlib_net end
+	if isentity(target) then
+		local get_target = GetTable(target).dlib_net
+
+		if get_target ~= nil then
+			return get_target
+		end
+
 		target.dlib_net = {}
 		return Net.Namespace(target.dlib_net)
 	end
@@ -151,6 +159,9 @@ function Net.Namespace(target)
 	if target.use_unreliable == nil then
 		target.use_unreliable = true
 	end
+
+	target.total_traffic_in = target.total_traffic_in or 0
+	target.total_traffic_out = target.total_traffic_out or 0
 
 	target.reliable_score = target.reliable_score or 0
 	target.reliable_score_dg = target.reliable_score_dg or 0

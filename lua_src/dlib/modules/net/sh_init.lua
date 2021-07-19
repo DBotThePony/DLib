@@ -62,6 +62,9 @@ Net.message_datagram_limit = 0x400
 Net.datagram_queue_size_limit = 0x10000 -- idiot proofing from flooding server's memory with trash data
 Net.window_size_limit = 0x1000000 -- idiot proofing from flooding server's memory with trash data
 
+Net.total_traffic_in = Net.total_traffic_in or 0
+Net.total_traffic_out = Net.total_traffic_out or 0
+
 Net.reliable_window = 6
 
 function Net.UpdateWindowProperties()
@@ -237,7 +240,7 @@ local table_concat = table.concat
 local util_Decompress = util.Decompress
 local table_insert = table.insert
 
-_net.receive('dlib_net_chunk', function(_, ply)
+_net.receive('dlib_net_chunk', function(length_bits, ply)
 	local chunkid = _net.ReadUInt32()
 	local current_chunk = _net.ReadUInt16()
 	local chunks = _net.ReadUInt16()
@@ -260,10 +263,13 @@ _net.receive('dlib_net_chunk', function(_, ply)
 	local _a, _b, _c, _d = _net.ReadUInt32(), _net.ReadUInt32(), _net.ReadUInt32(), _net.ReadUInt32()
 	local namespace = Net.Namespace(CLIENT and Net or ply)
 
+	namespace.total_traffic_in = namespace.total_traffic_in + math.floor(length_bits / 8) + ((length_bits % 8 ~= 0) and 1 or 0)
+
 	_net.Start('dlib_net_chunk_ack', namespace.use_unreliable)
 
 	if a ~= _a or b ~= _b or c ~= _c or d ~= _d then
 		_net.WriteBool(false)
+		namespace.total_traffic_out = namespace.total_traffic_out + 4
 
 		if CLIENT then
 			DLib.MessageWarning('[!!!] DLib.Net: Received corrupted chunk from server (expected hash ' .. string.format('%08x%08x%08x%08x', _a, _b, _c, _d) .. ' got ' .. string.format('%08x%08x%08x%08x', a, b, c, d) .. ')')
@@ -286,8 +292,10 @@ _net.receive('dlib_net_chunk', function(_, ply)
 	_net.WriteBool(namespace.next_expected_chunk > chunkid)
 
 	if CLIENT then
+		Net.total_traffic_out = Net.total_traffic_out + net.BytesWritten() + 3
 		_net.SendToServer()
 	else
+		namespace.total_traffic_out = namespace.total_traffic_out + net.BytesWritten() + 3
 		_net.Send(ply)
 	end
 
@@ -364,11 +372,13 @@ end)
 
 local SysTime = SysTime
 
-_net.receive('dlib_net_datagram', function(_, ply)
+_net.receive('dlib_net_datagram', function(length_bits, ply)
 	if SERVER and not IsValid(ply) then return end
 	local readnetid = _net.ReadUInt16()
 
 	local namespace = Net.Namespace(CLIENT and Net or ply)
+
+	namespace.total_traffic_in = namespace.total_traffic_in + math.floor(length_bits / 8) + ((length_bits % 8 ~= 0) and 1 or 0)
 
 	local startread = SysTime()
 	local datagram_list = {}
@@ -399,6 +409,8 @@ _net.receive('dlib_net_datagram', function(_, ply)
 	local _a, _b, _c, _d = _net.ReadUInt32(), _net.ReadUInt32(), _net.ReadUInt32(), _net.ReadUInt32()
 
 	_net.Start('dlib_net_datagram_ack', namespace.use_unreliable)
+
+	namespace.total_traffic_out = namespace.total_traffic_out + 3
 
 	if a ~= _a or b ~= _b or c ~= _c or d ~= _d then
 		if CLIENT then
@@ -447,8 +459,10 @@ _net.receive('dlib_net_datagram', function(_, ply)
 	end
 
 	if CLIENT then
+		Net.total_traffic_out = Net.total_traffic_out + net.BytesWritten() + 3
 		_net.SendToServer()
 	else
+		namespace.total_traffic_out = namespace.total_traffic_out + net.BytesWritten() + 3
 		_net.Send(ply)
 	end
 
@@ -832,15 +846,19 @@ function Net.DispatchChunk(ply)
 	_net.WriteUInt32(d)
 
 	if CLIENT then
+		Net.total_traffic_out = Net.total_traffic_out + net.BytesWritten() + 3
 		_net.SendToServer()
 	else
+		namespace.total_traffic_out = namespace.total_traffic_out + net.BytesWritten() + 3
 		_net.Send(ply)
 	end
 end
 
-_net.receive('dlib_net_chunk_ack', function(_, ply)
+_net.receive('dlib_net_chunk_ack', function(length_bits, ply)
 	if SERVER and not IsValid(ply) then return end
 	local namespace = Net.Namespace(CLIENT and Net or ply)
+
+	namespace.total_traffic_in = namespace.total_traffic_in + math.floor(length_bits / 8) + ((length_bits % 8 ~= 0) and 1 or 0)
 
 	namespace.server_chunk_ack = true
 
@@ -921,26 +939,29 @@ function Net.DispatchDatagram(ply)
 	_net.WriteUInt32(d)
 
 	if CLIENT then
+		Net.total_traffic_out = Net.total_traffic_out + net.BytesWritten() + 3
 		_net.SendToServer()
 	else
+		namespace.total_traffic_out = namespace.total_traffic_out + net.BytesWritten() + 3
 		_net.Send(ply)
 	end
 end
 
-_net.receive('dlib_net_datagram_ack', function(length, ply)
+_net.receive('dlib_net_datagram_ack', function(length_bits, ply)
 	if SERVER and not IsValid(ply) then return end
 	local namespace = Net.Namespace(CLIENT and Net or ply)
 
+	namespace.total_traffic_in = namespace.total_traffic_in + math.floor(length_bits / 8) + ((length_bits % 8 ~= 0) and 1 or 0)
 	namespace.server_datagram_ack = true
 
-	if length / 32 < 1 then
+	if length_bits / 32 < 1 then
 		namespace.reliable_score_dg = math.max(0, namespace.reliable_score_dg - 0.5)
 		return
 	end
 
 	namespace.reliable_score_dg = math.max(0, namespace.reliable_score_dg - 1.5)
 
-	for i = 1, length / 32 do
+	for i = 1, length_bits / 32 do
 		local readid = _net.ReadUInt32()
 
 		if namespace.server_datagrams[readid] then

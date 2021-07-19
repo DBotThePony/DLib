@@ -421,10 +421,11 @@ local function PostDrawHUD()
 
 	y = y + 10
 	y = draw_boxed('DLib.Net', y)
-	y = draw_boxed(string_format('Bytes As-Server %s/As-Client %s', I18n.FormatKilobytes(Net.server_position), I18n.FormatKilobytes(Net.network_position)), y)
-	y = draw_boxed(string_format('Next datagram As-Server %d/As-Client %d', Net.next_datagram_id, Net.next_expected_datagram), y)
-	y = draw_boxed(string_format('Queued As-Server Chunks %d/Datagrams %d', Net.server_chunks_num, Net.server_datagrams_num), y)
-	y = draw_boxed(string_format('Queued As-Client Chunks %d/Datagrams %d', Net.queued_chunks_num, Net.queued_datagrams_num), y)
+	y = draw_boxed(string_format('Network bytes out %s/in %s', I18n.FormatKilobytes(Net.total_traffic_out), I18n.FormatKilobytes(Net.total_traffic_in)), y)
+	y = draw_boxed(string_format('Payload bytes out %s/in %s', I18n.FormatKilobytes(Net.server_position), I18n.FormatKilobytes(Net.network_position)), y)
+	y = draw_boxed(string_format('Next datagram out %d/As-Client %d', Net.next_datagram_id, Net.next_expected_datagram), y)
+	y = draw_boxed(string_format('Queued out Chunks %d/Datagrams %d', Net.server_chunks_num, Net.server_datagrams_num), y)
+	y = draw_boxed(string_format('Queued in Chunks %d/Datagrams %d', Net.queued_chunks_num, Net.queued_datagrams_num), y)
 	y = draw_boxed(string_format('Input buffer %s', I18n.FormatKilobytes(Net.accumulated_size)), y)
 
 	y = 0
