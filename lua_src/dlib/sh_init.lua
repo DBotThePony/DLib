@@ -137,7 +137,7 @@ DLib.SharedInclude('modules/lerp.lua')
 DLib.SharedInclude('modules/sh_cami.lua')
 DLib.SharedInclude('modules/predictedvars.lua')
 
-DLib.net = DLib.net or {}
+DLib.net = DLib.net or DLib.Net or {}
 DLib.Net = DLib.net
 DLib.SharedInclude('modules/net/sh_init.lua')
 DLib.SharedInclude('modules/net/sh_nwvars2.lua')

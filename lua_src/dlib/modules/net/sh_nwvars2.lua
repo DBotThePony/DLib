@@ -290,9 +290,9 @@ end
 
 define('UInt', 0, function(value) return assert(value and value >= 0 and value, 'value is lesser than zero') end, isnumber, 'number')
 define('Int', 0, nil, isnumber, 'number')
-define('Float', 0, nil, isnumber), 'number'
-define('Bool', false, isbool, 'boolean')
-define('String', '', isstring, 'string')
+define('Float', 0, nil, isnumber, 'number')
+define('Bool', false, nil, isbool, 'boolean')
+define('String', '', nil, isstring, 'string')
 define('Entity', NULL, function(value) return isnumber(value) and Entity(value) or value end, isentity, 'Entity')
 define('Angle', Angle(), Angle, isangle, 'Angle')
 define('Vector', Vector(), Vector, isvector, 'Vector')
