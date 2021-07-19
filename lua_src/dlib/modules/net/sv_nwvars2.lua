@@ -108,6 +108,19 @@ local function write_list(_list, write)
 	end
 end
 
+local function write_list_replicate(_list, write)
+	for ent, dirty_list in next, _list do
+		Net.WriteUInt16(ent)
+
+		for network_name, write_value in next, dirty_list do
+			Net.WriteUInt16(Net.GetVarName(network_name))
+			write(write_value)
+		end
+
+		Net.WriteUInt16(0)
+	end
+end
+
 local function write_entity(index)
 	if index < 1 or index > 65000 or not IsValid(Entity(index)) then
 		Net.WriteUInt16(0)
@@ -144,6 +157,33 @@ local function Think()
 	Net.WriteUInt16(0xFFFF)
 
 	Net.Broadcast()
+end
+
+function Net.ReplicateVars(ply)
+	Net.Start('dlib_nw2_set')
+
+	write_list_replicate(NWVarsInt, Net.WriteInt32)
+	Net.WriteUInt16(0xFFFF)
+
+	write_list_replicate(NWVarsFloat, Net.WriteDouble)
+	Net.WriteUInt16(0xFFFF)
+
+	write_list_replicate(NWVarsBool, Net.WriteBool)
+	Net.WriteUInt16(0xFFFF)
+
+	write_list_replicate(NWVarsEntity, write_entity)
+	Net.WriteUInt16(0xFFFF)
+
+	write_list_replicate(NWVarsString, Net.WriteString)
+	Net.WriteUInt16(0xFFFF)
+
+	write_list_replicate(NWVarsAngle, Net.WriteAngleDouble)
+	Net.WriteUInt16(0xFFFF)
+
+	write_list_replicate(NWVarsVector, Net.WriteVectorDouble)
+	Net.WriteUInt16(0xFFFF)
+
+	Net.Send(ply)
 end
 
 local function EntityRemoved(self)
@@ -185,10 +225,15 @@ local function EntityRemoved(self)
 	Net.Broadcast()
 end
 
+local function PlayerAuthed(ply)
+	Net.ReplicateNWVarNameList(ply)
+	Net.ReplicateVars(ply)
+end
+
 hook.Add('Think', 'DLib.Net.ThinkNWVars', Think, -2)
 hook.Add('EntityRemoved', 'DLib.Net Remove Tracked Entity', EntityRemoved, -10)
-hook.Add('PlayerAuthed', 'DLib.Net Send NWVar Name Databank', Net.ReplicateNWVarNameList)
+hook.Add('PlayerAuthed', 'DLib.Net Send NWVar Name Databank', PlayerAuthed)
 
 for i, ply in ipairs(player.GetHumans()) do
-	Net.ReplicateNWVarNameList(ply)
+	PlayerAuthed(ply)
 end
