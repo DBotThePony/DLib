@@ -36,7 +36,7 @@ local __MAGIC_UNSET = Net.__MAGIC_UNSET
 
 local NWTrackedEnts = Net.NWTrackedEnts
 
-local function define(name, defaultIfNone, copy)
+local function define(name, defaultIfNone, copy, _assert, _assert_type)
 	Net['NWVars' .. name] = Net['NWVars' .. name] or {}
 
 	if SERVER then
@@ -124,6 +124,10 @@ local function define(name, defaultIfNone, copy)
 	if name == 'Entity' then
 		if CLIENT then
 			entMeta['DLibSetNW' .. name] = function(self, name, setvalue)
+				if not _assert(setvalue) then
+					error('Bad argument #2 to DLibSetNW' .. name .. ' (' .. _assert_type .. ' expected, got ' .. type(setvalue) .. ')')
+				end
+
 				local index = EntIndex(self)
 
 				if isentity(setvalue) then
@@ -153,6 +157,10 @@ local function define(name, defaultIfNone, copy)
 			end
 		else
 			entMeta['DLibSetNW' .. name] = function(self, name, setvalue)
+				if not _assert(setvalue) then
+					error('Bad argument #2 to DLibSetNW' .. name .. ' (' .. _assert_type .. ' expected, got ' .. type(setvalue) .. ')')
+				end
+
 				local index = EntIndex(self)
 
 				if isentity(setvalue) then
@@ -204,6 +212,10 @@ local function define(name, defaultIfNone, copy)
 	else
 		if CLIENT then
 			entMeta['DLibSetNW' .. name] = function(self, name, setvalue)
+				if not _assert(setvalue) then
+					error('Bad argument #2 to DLibSetNW' .. name .. ' (' .. _assert_type .. ' expected, got ' .. type(setvalue) .. ')')
+				end
+
 				local index = EntIndex(self)
 
 				if index > 0 then
@@ -228,6 +240,10 @@ local function define(name, defaultIfNone, copy)
 			end
 		else
 			entMeta['DLibSetNW' .. name] = function(self, name, setvalue)
+				if not _assert(setvalue) then
+					error('Bad argument #2 to DLibSetNW' .. name .. ' (' .. _assert_type .. ' expected, got ' .. type(setvalue) .. ')')
+				end
+
 				local index = EntIndex(self)
 
 				if index > 0 then
@@ -272,11 +288,11 @@ local function define(name, defaultIfNone, copy)
 	end
 end
 
-define('UInt', 0, function(value) return assert(value and value >= 0 and value, 'value is lesser than zero') end)
-define('Int', 0)
-define('Float', 0)
-define('Bool', false)
-define('String', '')
-define('Entity', NULL, function(value) return isnumber(value) and Entity(value) or value end)
-define('Angle', Angle(), Angle)
-define('Vector', Vector(), Vector)
+define('UInt', 0, function(value) return assert(value and value >= 0 and value, 'value is lesser than zero') end, isnumber, 'number')
+define('Int', 0, nil, isnumber, 'number')
+define('Float', 0, nil, isnumber), 'number'
+define('Bool', false, isbool, 'boolean')
+define('String', '', isstring, 'string')
+define('Entity', NULL, function(value) return isnumber(value) and Entity(value) or value end, isentity, 'Entity')
+define('Angle', Angle(), Angle, isangle, 'Angle')
+define('Vector', Vector(), Vector, isvector, 'Vector')
