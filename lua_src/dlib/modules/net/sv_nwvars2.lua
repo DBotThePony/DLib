@@ -122,10 +122,22 @@ local function write_list_replicate(_list, write)
 end
 
 local function write_entity(index)
-	if index < 1 or index > 65000 or not IsValid(Entity(index)) then
-		Net.WriteUInt16(0)
+	if isnumber(index) then
+		if index < 1 or index > 65000 or not IsValid(Entity(index)) then
+			Net.WriteUInt16(0)
+		else
+			Net.WriteUInt16(index)
+		end
+	elseif isentity(index) and IsValid(index) then
+		index = index:EntIndex()
+
+		if index < 1 or index > 65000 or not IsValid(Entity(index)) then
+			Net.WriteUInt16(0)
+		else
+			Net.WriteUInt16(index)
+		end
 	else
-		Net.WriteUInt16(index)
+		Net.WriteUInt16(0)
 	end
 end
 
