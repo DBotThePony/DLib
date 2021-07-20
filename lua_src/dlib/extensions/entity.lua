@@ -423,13 +423,19 @@ if CLIENT then
 		return self._dlib_vehfix or NULL
 	end
 
+	local player_GetAll = player.GetAll
+
 	local function Think()
-		for i, ply in ipairs(player.GetAll()) do
+		local _list = player_GetAll()
+
+		for i = 1, #_list do
+			local ply = _list[i]
 			local ply2 = GetTable(ply)
 			local veh = GetVehicle(ply)
 
 			if veh ~= ply2._dlib_vehfix then
 				if IsValid(ply2._dlib_vehfix) then
+					hook.Run('PlayerLeaveVehicle', ply, ply2._dlib_vehfix)
 					ply2._dlib_vehfix._dlib_vehfix = NULL
 				end
 
@@ -437,12 +443,13 @@ if CLIENT then
 
 				if IsValid(veh) then
 					veh._dlib_vehfix = ply
+					hook.Run('PlayerEnteredVehicle', ply, veh, 0)
 				end
 			end
 		end
 	end
 
-	hook.Add('Think', 'DLib.GetDriverFix', Think)
+	hook.Add('Think', 'DLib.GetDriverFix', Think, -10)
 
 	--[[
 		@doc
