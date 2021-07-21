@@ -161,6 +161,20 @@ function baseclass:ctor()
 	self.classes = {}
 end
 
+function baseclass:Empty(name)
+	if not self.classes[name] then
+		self.classes[name] = {}
+	end
+
+	table.Empty(self.classes[name])
+
+	return self.classes[name]
+end
+
+function baseclass:Has(name)
+	return self.classes[name] ~= nil
+end
+
 function baseclass:Get(name)
 	if not self.classes[name] then
 		self.classes[name] = {}
