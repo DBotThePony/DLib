@@ -51,13 +51,15 @@ net.receive('dlib_physgun_hold', function()
 	startTooHeavy, endTooHeavy, heavyType = 0, 0, false
 end)
 
-function meta:RegisterCrosshairHandle(default, tfa, dynamic, dynamic_always)
-	default, tfa, dynamic, dynamic_always = default or '1', tfa or '1', dynamic or '1', dynamic_always or '1'
+function meta:RegisterCrosshairHandle(default, tfa, dynamic, dynamic_always, static_scale)
+	default, tfa, dynamic, dynamic_always, static_scale = default or '1', tfa or '1', dynamic or '1', dynamic_always or '1', static_scale or '0'
 
 	self.ENABLE_CROSSHAIRS = self:CreateConVar('crosshairs', default, 'Enable custom crosshairs')
 	self.ENABLE_CROSSHAIRS_TFA = self:CreateConVar('crosshairs_tfa', tfa, 'Handle (replace) TFA Base crosshairs')
 	self.DYNAMIC_CROSSHAIR = self:CreateConVar('crosshairs_dynamic', dynamic, 'Dynamic scaling crosshair based on distance')
 	self.DYNAMIC_CROSSHAIR_ALWAYS = self:CreateConVar('crosshairs_dynamic_always', dynamic_always, 'Always show dynamic crosshair, instead of only in third person')
+
+	self.STATIC_CROSSHAIR_SCALE = self:CreateConVar('crosshairs_static_scale', static_scale, 'Static scale crosshair')
 
 	self._nextDisableCrosshair = true
 	self.lastDistAccuracyMult = 1
@@ -294,7 +296,7 @@ function meta:InternalDrawCrosshair(ply)
 	local mapping = mapping[typedef]
 	local wclass = self:GetVarWeaponClass()
 
-	if mapping ~= 'DrawCrosshairRPG' and mapping ~= 'DrawCrosshairNade' and self.DYNAMIC_CROSSHAIR:GetBool() and (self.DYNAMIC_CROSSHAIR_ALWAYS:GetBool() or lastShouldDrawLocalPlayer and ply == LocalPlayer()) then
+	if not self.STATIC_CROSSHAIR_SCALE:GetBool() and mapping ~= 'DrawCrosshairRPG' and mapping ~= 'DrawCrosshairNade' and self.DYNAMIC_CROSSHAIR:GetBool() and (self.DYNAMIC_CROSSHAIR_ALWAYS:GetBool() or lastShouldDrawLocalPlayer and ply == LocalPlayer()) then
 		local newAcc = (tr.StartPos:Distance(tr.HitPos) / 256):pow(1 / 3) * (90 / (lastFOV or ply:GetFOV())):pow(1.19) * 0.4
 		self.lastDistAccuracyMult = Lerp(FrameTime() * 4, self.lastDistAccuracyMult, newAcc)
 
@@ -354,12 +356,17 @@ function meta:TFA_DrawCrosshair(weapon, x, y)
 	self.handledTFA = true
 
 	local ttype = weapon:GetType()
-	local points, gap = weapon:CalculateConeRecoil()
 
-	if ttype == 'Shotgun' then
-		UpcomingAccuracy = UpcomingAccuracy * (points / 0.05) * 1.25
+	if self.STATIC_CROSSHAIR_SCALE:GetBool() then
+		UpcomingAccuracy = 1
 	else
-		UpcomingAccuracy = UpcomingAccuracy * (points / 0.02) * 1.45
+		local points, gap = weapon:CalculateConeRecoil()
+
+		if ttype == 'Shotgun' then
+			UpcomingAccuracy = UpcomingAccuracy * (points / 0.05) * 1.25
+		else
+			UpcomingAccuracy = UpcomingAccuracy * (points / 0.02) * 1.45
+		end
 	end
 
 	return true
