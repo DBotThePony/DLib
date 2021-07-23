@@ -451,6 +451,15 @@ if CLIENT then
 
 	hook.Add('Think', 'DLib.GetDriverFix', Think, -10)
 
+	local function EntityRemoved(ent)
+		if IsValid(ent._dlib_vehfix) then
+			hook.Run('PlayerLeaveVehicle', ent._dlib_vehfix, ent)
+			ent._dlib_vehfix._dlib_vehfix = NULL
+		end
+	end
+
+	hook.Add('EntityRemoved', 'DLib.GetDriverFix', EntityRemoved, -10)
+
 	--[[
 		@doc
 		@fname Vehicle:GetPrintName
