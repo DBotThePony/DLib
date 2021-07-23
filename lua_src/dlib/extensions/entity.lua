@@ -425,6 +425,25 @@ if CLIENT then
 
 	local player_GetAll = player.GetAll
 
+	--[[
+		@doc
+		@hook PlayerLeaveVehicle
+		@args Player ply, Vehicle vehicle
+
+		@desc
+		Same as !g:PlayerLeaveVehicle but this hook is now shared
+		@enddesc
+	]]
+
+	--[[
+		@doc
+		@hook PlayerEnteredVehicle
+		@args Player ply, Vehicle vehicle, number slot = 0
+
+		@desc
+		Same as !g:PlayerEnteredVehicle but this hook is now shared
+		@enddesc
+	]]
 	local function Think()
 		local _list = player_GetAll()
 
