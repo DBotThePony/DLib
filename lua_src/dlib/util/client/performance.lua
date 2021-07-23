@@ -321,9 +321,13 @@ local render_SetMaterial = render.SetMaterial
 local render_DrawScreenQuad = render.DrawScreenQuad
 local render_SetScissorRect = render.SetScissorRect
 local render_SetScissorRect = render.SetScissorRect
-local jit_status = jit.status
-local CurTime = CurTime
-local RealTime = RealTime
+
+local mat_dxlevel = ConVar('mat_dxlevel')
+local mat_picmip = ConVar('mat_picmip')
+local mat_specular = ConVar('mat_specular')
+local cl_drawhud = ConVar('cl_drawhud')
+local crosshair = ConVar('crosshair')
+local mat_hdr_level = ConVar('mat_hdr_level')
 
 local function PostDrawHUD()
 	if not dlib_performance:GetBool() then return end
@@ -404,7 +408,7 @@ local function PostDrawHUD()
 	y = draw_boxed(string_format('Reported viewport: %dx%d', ScrW(), ScrH()), y)
 
 	y = y + 30
-	y = draw_boxed(string_format('JIT status: %s', jit_status() and 'Enabled' or 'Disabled'), y)
+	y = draw_boxed(string_format('JIT status: %s', jit.status() and 'Enabled' or 'Disabled'), y)
 	y = draw_boxed(jit_features, y)
 
 	y = y + 30
@@ -438,7 +442,12 @@ local function PostDrawHUD()
 		y = y + 48
 	end
 
-	draw_boxed_right(string_format('LuaVM Mem: %s / %s', last_memory, last_max_memory_text), y)
+	y = draw_boxed_right(string_format('LuaVM Mem: %s / %s', last_memory, last_max_memory_text), y)
+	y = draw_boxed_right(string_format('DirectX level: %d', mat_dxlevel:GetInt()), y)
+	y = draw_boxed_right(string_format('P: %d S: %d DH: %d C: %d', mat_picmip:GetInt(), mat_specular:GetInt(), cl_drawhud:GetInt(), crosshair:GetInt()), y)
+	y = draw_boxed_right(string_format('Pixel shaders 1.4: %s 2.0: %s; Vertex shaders 2.0: %s', render.SupportsPixelShaders_1_4() and 'true' or 'false', render.SupportsPixelShaders_2_0() and 'true' or 'false', render.SupportsVertexShaders_2_0() and 'true' or 'false'), y)
+	local mat_hdr_level = mat_hdr_level:GetInt()
+	y = draw_boxed_right(string_format('HDR Supported: %s; Level: %s', render.SupportsHDR() and 'true' or 'false', mat_hdr_level <= 0 and 'disabled' or mat_hdr_level == 1 and 'partial' or 'full'), y)
 
 	cam_End2D()
 end
