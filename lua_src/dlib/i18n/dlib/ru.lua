@@ -276,6 +276,7 @@ gui.dlib.menu.settings.replace_missing_textures = 'Подменять отсут
 gui.dlib.menu.settings.oldalpha = 'Старый ползунок альфа канала'
 gui.dlib.menu.settings.oldhue = 'Старый ползунок цвета'
 gui.dlib.menu.settings.wangbars = 'Ползунки цвета'
+gui.dlib.menu.settings.performance_screen = 'Экран производительности'
 
 info.dlib.si.bytes_short.bytes = '%s Б'
 info.dlib.si.bytes_short.kilo = '%.2f КиБ'

@@ -357,6 +357,7 @@ gui.dlib.menu.settings.replace_missing_textures_sugar = 'sugarrush'
 gui.dlib.menu.settings.oldalpha = 'Enable old alpha bar'
 gui.dlib.menu.settings.oldhue = 'Enable old hue bar'
 gui.dlib.menu.settings.wangbars = 'Enable color wangs'
+gui.dlib.menu.settings.performance_screen = 'Display performance stats'
 
 -- seems like that on server install required files are corrupted
 
