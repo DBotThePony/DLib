@@ -414,7 +414,36 @@ local function PostDrawHUD()
 	y = draw_boxed(string_format('EyeAngles(%.3f %.3f %.3f)', eye_angles:Unpack()), y)
 	y = draw_boxed(string_format('Velocity(%.3f %.3f %.3f)', velocity:Unpack()), y)
 	y = draw_boxed(string_format('game.GetTimeScale(%.2f); host_timescale: %.2f / %.2f', game.GetTimeScale(), host_timescale:GetFloat(), sv_cheats:GetBool() and host_timescale:GetFloat() or 1), y)
-	y = draw_boxed(string_format('Tickrate: %.2f; Ticks: %.6d', 1 / engine.TickInterval(), engine.TickCount()), y)
+
+	local interval = math.floor(0.5 + 1 / engine.TickInterval())
+
+	if interval < 66 and interval > 44 then
+		surface_SetTextColor(255, 249, 205)
+	elseif interval <= 44 and interval > 33 then
+		surface_SetTextColor(255, 240, 140)
+	elseif interval <= 33 and interval > 22 then
+		surface_SetTextColor(255, 229, 55)
+	elseif interval <= 22 and interval > 16 then
+		surface_SetTextColor(255, 124, 124)
+	elseif interval <= 16 then
+		surface_SetTextColor(255, 0, 0)
+	elseif interval > 66 and interval <= 88 then
+		surface_SetTextColor(210, 255, 173)
+	elseif interval > 88 and interval <= 128 then
+		surface_SetTextColor(160, 255, 83)
+	elseif interval > 128 and interval <= 160 then
+		surface_SetTextColor(255, 240, 140)
+	elseif interval > 160 and interval <= 200 then
+		surface_SetTextColor(255, 229, 55)
+	elseif interval > 200 and interval <= 240 then
+		surface_SetTextColor(255, 124, 124)
+	elseif interval > 240 then
+		surface_SetTextColor(255, 0, 0)
+	end
+
+	y = draw_boxed(string_format('Tickrate: %.2f; Ticks: %.6d', interval, engine.TickCount()), y)
+
+	surface_SetTextColor(200, 200, 200)
 
 	y = y + 10
 	y = draw_boxed('DLib.Net', y)
