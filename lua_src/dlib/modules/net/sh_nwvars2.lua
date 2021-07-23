@@ -288,11 +288,55 @@ local function define(name, defaultIfNone, copy, _assert, _assert_type)
 	end
 end
 
+local function read_entity_for_var(value)
+	return isnumber(value) and Entity(value) or value
+end
+
 define('UInt', 0, function(value) return assert(value and value >= 0 and value, 'value is lesser than zero') end, isnumber, 'number')
 define('Int', 0, nil, isnumber, 'number')
 define('Float', 0, nil, isnumber, 'number')
 define('Bool', false, nil, isbool, 'boolean')
 define('String', '', nil, isstring, 'string')
-define('Entity', NULL, function(value) return isnumber(value) and Entity(value) or value end, isentity, 'Entity')
+define('Entity', NULL, read_entity_for_var, isentity, 'Entity')
 define('Angle', Angle(), Angle, isangle, 'Angle')
 define('Vector', Vector(), Vector, isvector, 'Vector')
+
+local function assemble_var_table(self, var_table, read_table, read_function)
+	if not read_table then return end
+
+	if read_function then
+		for key, value in next, read_table do
+			var_table[key] = read_function(value)
+		end
+	else
+		for key, value in next, read_table do
+			var_table[key] = value
+		end
+	end
+end
+
+function entMeta:DLibGetNWVarTable()
+	local assemble = {
+		uint = {},
+		int = {},
+		float = {},
+		bool = {},
+		string = {},
+		entity = {},
+		angle = {},
+		vector = {},
+	}
+
+	local index = self:EntIndex()
+
+	assemble_var_table(self, assemble.uint, Net.NWVarsUInt[index])
+	assemble_var_table(self, assemble.int, Net.NWVarsInt[index])
+	assemble_var_table(self, assemble.float, Net.NWVarsFloat[index])
+	assemble_var_table(self, assemble.bool, Net.NWVarsBool[index])
+	assemble_var_table(self, assemble.string, Net.NWVarsString[index])
+	assemble_var_table(self, assemble.entity, Net.NWVarsEntity[index], read_entity_for_var)
+	assemble_var_table(self, assemble.angle, Net.NWVarsAngle[index], Angle)
+	assemble_var_table(self, assemble.vector, Net.NWVarsVector[index], Vector)
+
+	return assemble
+end
