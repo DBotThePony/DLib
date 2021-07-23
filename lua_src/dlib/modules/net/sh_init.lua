@@ -263,13 +263,22 @@ _net.receive('dlib_net_chunk', function(length_bits, ply)
 	local _a, _b, _c, _d = _net.ReadUInt32(), _net.ReadUInt32(), _net.ReadUInt32(), _net.ReadUInt32()
 	local namespace = Net.Namespace(CLIENT and Net or ply)
 
-	namespace.total_traffic_in = namespace.total_traffic_in + math.floor(length_bits / 8) + ((length_bits % 8 ~= 0) and 1 or 0)
+	Net.total_traffic_in = Net.total_traffic_in + math.floor(length_bits / 8) + ((length_bits % 8 ~= 0) and 1 or 0)
+
+	if SERVER then
+		namespace.total_traffic_in = namespace.total_traffic_in + math.floor(length_bits / 8) + ((length_bits % 8 ~= 0) and 1 or 0)
+	end
 
 	_net.Start('dlib_net_chunk_ack', namespace.use_unreliable)
 
 	if a ~= _a or b ~= _b or c ~= _c or d ~= _d then
 		_net.WriteBool(false)
-		namespace.total_traffic_out = namespace.total_traffic_out + 4
+
+		Net.total_traffic_out = Net.total_traffic_out + 4
+
+		if SERVER then
+			namespace.total_traffic_out = namespace.total_traffic_out + 4
+		end
 
 		if CLIENT then
 			DLib.MessageWarning('[!!!] DLib.Net: Received corrupted chunk from server (expected hash ' .. string.format('%08x%08x%08x%08x', _a, _b, _c, _d) .. ' got ' .. string.format('%08x%08x%08x%08x', a, b, c, d) .. ')')
@@ -291,8 +300,9 @@ _net.receive('dlib_net_chunk', function(length_bits, ply)
 	_net.WriteUInt16(current_chunk)
 	_net.WriteBool(namespace.next_expected_chunk > chunkid)
 
+	Net.total_traffic_out = Net.total_traffic_out + net.BytesWritten() + 3
+
 	if CLIENT then
-		Net.total_traffic_out = Net.total_traffic_out + net.BytesWritten() + 3
 		_net.SendToServer()
 	else
 		namespace.total_traffic_out = namespace.total_traffic_out + net.BytesWritten() + 3
@@ -378,7 +388,11 @@ _net.receive('dlib_net_datagram', function(length_bits, ply)
 
 	local namespace = Net.Namespace(CLIENT and Net or ply)
 
-	namespace.total_traffic_in = namespace.total_traffic_in + math.floor(length_bits / 8) + ((length_bits % 8 ~= 0) and 1 or 0)
+	Net.total_traffic_in = Net.total_traffic_in + math.floor(length_bits / 8) + ((length_bits % 8 ~= 0) and 1 or 0)
+
+	if SERVER then
+		namespace.total_traffic_in = namespace.total_traffic_in + math.floor(length_bits / 8) + ((length_bits % 8 ~= 0) and 1 or 0)
+	end
 
 	local startread = SysTime()
 	local datagram_list = {}
@@ -410,15 +424,16 @@ _net.receive('dlib_net_datagram', function(length_bits, ply)
 
 	_net.Start('dlib_net_datagram_ack', namespace.use_unreliable)
 
-	namespace.total_traffic_out = namespace.total_traffic_out + 3
-
 	if a ~= _a or b ~= _b or c ~= _c or d ~= _d then
+		Net.total_traffic_out = Net.total_traffic_out + 3
+
 		if CLIENT then
 			DLib.MessageWarning('[!!!] DLib.Net: Received corrupted datagram list from server (expected hash ' .. string.format('%08x%08x%08x%08x', _a, _b, _c, _d) .. ' got ' .. string.format('%08x%08x%08x%08x', a, b, c, d) .. ')')
 			_net.SendToServer()
 		else
 			-- DLib.MessageWarning('[!!!] DLib.Net: Received corrupted datagram list from ', ply, ' (expected hash ' .. string.format('%08x%08x%08x%08x', _a, _b, _c, _d) .. ' got ' .. string.format('%08x%08x%08x%08x', a, b, c, d) .. ')')
 			_net.Send(ply)
+			namespace.total_traffic_out = namespace.total_traffic_out + 3
 		end
 
 		return
@@ -458,8 +473,9 @@ _net.receive('dlib_net_datagram', function(length_bits, ply)
 		end
 	end
 
+	Net.total_traffic_out = Net.total_traffic_out + net.BytesWritten() + 3
+
 	if CLIENT then
-		Net.total_traffic_out = Net.total_traffic_out + net.BytesWritten() + 3
 		_net.SendToServer()
 	else
 		namespace.total_traffic_out = namespace.total_traffic_out + net.BytesWritten() + 3
@@ -845,8 +861,9 @@ function Net.DispatchChunk(ply)
 	_net.WriteUInt32(c)
 	_net.WriteUInt32(d)
 
+	Net.total_traffic_out = Net.total_traffic_out + net.BytesWritten() + 3
+
 	if CLIENT then
-		Net.total_traffic_out = Net.total_traffic_out + net.BytesWritten() + 3
 		_net.SendToServer()
 	else
 		namespace.total_traffic_out = namespace.total_traffic_out + net.BytesWritten() + 3
@@ -858,7 +875,11 @@ _net.receive('dlib_net_chunk_ack', function(length_bits, ply)
 	if SERVER and not IsValid(ply) then return end
 	local namespace = Net.Namespace(CLIENT and Net or ply)
 
-	namespace.total_traffic_in = namespace.total_traffic_in + math.floor(length_bits / 8) + ((length_bits % 8 ~= 0) and 1 or 0)
+	Net.total_traffic_in = Net.total_traffic_in + math.floor(length_bits / 8) + ((length_bits % 8 ~= 0) and 1 or 0)
+
+	if SERVER then
+		namespace.total_traffic_in = namespace.total_traffic_in + math.floor(length_bits / 8) + ((length_bits % 8 ~= 0) and 1 or 0)
+	end
 
 	namespace.server_chunk_ack = true
 
@@ -938,8 +959,9 @@ function Net.DispatchDatagram(ply)
 	_net.WriteUInt32(c)
 	_net.WriteUInt32(d)
 
+	Net.total_traffic_out = Net.total_traffic_out + net.BytesWritten() + 3
+
 	if CLIENT then
-		Net.total_traffic_out = Net.total_traffic_out + net.BytesWritten() + 3
 		_net.SendToServer()
 	else
 		namespace.total_traffic_out = namespace.total_traffic_out + net.BytesWritten() + 3
@@ -951,7 +973,12 @@ _net.receive('dlib_net_datagram_ack', function(length_bits, ply)
 	if SERVER and not IsValid(ply) then return end
 	local namespace = Net.Namespace(CLIENT and Net or ply)
 
-	namespace.total_traffic_in = namespace.total_traffic_in + math.floor(length_bits / 8) + ((length_bits % 8 ~= 0) and 1 or 0)
+	Net.total_traffic_in = Net.total_traffic_in + math.floor(length_bits / 8) + ((length_bits % 8 ~= 0) and 1 or 0)
+
+	if SERVER then
+		namespace.total_traffic_in = namespace.total_traffic_in + math.floor(length_bits / 8) + ((length_bits % 8 ~= 0) and 1 or 0)
+	end
+
 	namespace.server_datagram_ack = true
 
 	if length_bits / 32 < 1 then
