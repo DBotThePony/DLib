@@ -31,6 +31,7 @@ local math = math
 local ScreenSize = ScreenSize
 local RealTimeL = RealTimeL
 local CurTime = UnPredictedCurTime
+local crosshair = ConVar('crosshair')
 
 local startTooHeavy, endTooHeavy, heavyType = 0, 0, false
 local startOpenClaws, endOpenClaws, clawsType = 0, 0, false
@@ -50,11 +51,13 @@ net.receive('dlib_physgun_hold', function()
 	startTooHeavy, endTooHeavy, heavyType = 0, 0, false
 end)
 
-function meta:RegisterCrosshairHandle()
-	self.ENABLE_CROSSHAIRS = self:CreateConVar('crosshairs', '1', 'Enable custom crosshairs')
-	self.ENABLE_CROSSHAIRS_TFA = self:CreateConVar('crosshairs_tfa', '1', 'Handle (replace) TFA Base crosshairs')
-	self.DYNAMIC_CROSSHAIR = self:CreateConVar('crosshairs_dynamic', '1', 'Dynamic scaling crosshair based on distance')
-	self.DYNAMIC_CROSSHAIR_ALWAYS = self:CreateConVar('crosshairs_dynamic_always', '1', 'Always show dynamic crosshair, instead of only in third person')
+function meta:RegisterCrosshairHandle(default, tfa, dynamic, dynamic_always)
+	default, tfa, dynamic, dynamic_always = default or '1', tfa or '1', dynamic or '1', dynamic_always or '1'
+
+	self.ENABLE_CROSSHAIRS = self:CreateConVar('crosshairs', default, 'Enable custom crosshairs')
+	self.ENABLE_CROSSHAIRS_TFA = self:CreateConVar('crosshairs_tfa', tfa, 'Handle (replace) TFA Base crosshairs')
+	self.DYNAMIC_CROSSHAIR = self:CreateConVar('crosshairs_dynamic', dynamic, 'Dynamic scaling crosshair based on distance')
+	self.DYNAMIC_CROSSHAIR_ALWAYS = self:CreateConVar('crosshairs_dynamic_always', dynamic_always, 'Always show dynamic crosshair, instead of only in third person')
 
 	self._nextDisableCrosshair = true
 	self.lastDistAccuracyMult = 1
@@ -251,6 +254,7 @@ function meta:GetUpcomingAccuracy(val)
 end
 
 function meta:InternalDrawCrosshair(ply)
+	if not crosshair:GetBool() then return end
 	if not self.ENABLE_CROSSHAIRS:GetBool() then return end
 	ply = ply or self:SelectPlayer()
 
