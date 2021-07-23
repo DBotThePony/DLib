@@ -62,6 +62,7 @@ function Net.GetVarName(name)
 	return index
 end
 
+local NWVarsUIntDirty = Net.NWVarsUIntDirty
 local NWVarsIntDirty = Net.NWVarsIntDirty
 local NWVarsFloatDirty = Net.NWVarsFloatDirty
 local NWVarsBoolDirty = Net.NWVarsBoolDirty
@@ -70,6 +71,7 @@ local NWVarsStringDirty = Net.NWVarsStringDirty
 local NWVarsAngleDirty = Net.NWVarsAngleDirty
 local NWVarsVectorDirty = Net.NWVarsVectorDirty
 
+local NWVarsUInt = Net.NWVarsUInt
 local NWVarsInt = Net.NWVarsInt
 local NWVarsFloat = Net.NWVarsFloat
 local NWVarsBool = Net.NWVarsBool
@@ -147,6 +149,9 @@ local function Think()
 
 	Net.Start('dlib_nw2_set')
 
+	write_list(NWVarsUIntDirty, Net.WriteUInt32)
+	Net.WriteUInt16(0xFFFF)
+
 	write_list(NWVarsIntDirty, Net.WriteInt32)
 	Net.WriteUInt16(0xFFFF)
 
@@ -173,6 +178,9 @@ end
 
 function Net.ReplicateVars(ply)
 	Net.Start('dlib_nw2_set')
+
+	write_list_replicate(NWVarsUInt, Net.WriteUInt32)
+	Net.WriteUInt16(0xFFFF)
 
 	write_list_replicate(NWVarsInt, Net.WriteInt32)
 	Net.WriteUInt16(0xFFFF)
@@ -204,6 +212,7 @@ local function EntityRemoved(self)
 
 	if index < 1 then return end
 
+	NWVarsUIntDirty[index] = nil
 	NWVarsIntDirty[index] = nil
 	NWVarsFloatDirty[index] = nil
 	NWVarsBoolDirty[index] = nil
@@ -212,6 +221,7 @@ local function EntityRemoved(self)
 	NWVarsAngleDirty[index] = nil
 	NWVarsVectorDirty[index] = nil
 
+	NWVarsUInt[index] = nil
 	NWVarsInt[index] = nil
 	NWVarsFloat[index] = nil
 	NWVarsBool[index] = nil

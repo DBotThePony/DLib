@@ -39,6 +39,7 @@ Net.Receive('dlib_nw2_pool', function()
 	end
 end)
 
+local NWVarsUInt = Net.NWVarsUInt
 local NWVarsInt = Net.NWVarsInt
 local NWVarsFloat = Net.NWVarsFloat
 local NWVarsBool = Net.NWVarsBool
@@ -87,6 +88,7 @@ local function read_list(_list, read)
 end
 
 Net.Receive('dlib_nw2_set', function()
+	read_list(NWVarsUInt, Net.ReadUInt32)
 	read_list(NWVarsInt, Net.ReadInt32)
 	read_list(NWVarsFloat, Net.ReadDouble)
 	read_list(NWVarsBool, Net.ReadBool)
