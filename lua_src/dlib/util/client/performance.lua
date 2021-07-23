@@ -406,22 +406,15 @@ local function PostDrawHUD()
 	y = draw_boxed(unformat_version, y)
 	y = draw_boxed(last_fps_account, y)
 	y = draw_boxed(string_format('Reported viewport: %dx%d', ScrW(), ScrH()), y)
+	y = draw_boxed(string_format('Gamemode: %s', engine.ActiveGamemode()), y)
 
 	y = y + 30
-	y = draw_boxed(string_format('JIT status: %s', jit.status() and 'Enabled' or 'Disabled'), y)
-	y = draw_boxed(jit_features, y)
-
-	y = y + 30
-	y = draw_boxed(features[1], y)
-	y = draw_boxed(features[2], y)
-	y = draw_boxed(features[3], y)
-
-	y = y + 30
-	y = draw_boxed(string_format('CurTime(): %.4f RealTime(): %.4f SysTime(): %.4f', CurTime(), RealTime(), SysTime()), y)
+	y = draw_boxed(string_format('CurTime(%.4f) RealTime(%.4f) SysTime(%.4f)', CurTime(), RealTime(), SysTime()), y)
 	y = draw_boxed(string_format('EyePos(%.3f %.3f %.3f)', eye_pos:Unpack()), y)
 	y = draw_boxed(string_format('EyeAngles(%.3f %.3f %.3f)', eye_angles:Unpack()), y)
 	y = draw_boxed(string_format('Velocity(%.3f %.3f %.3f)', velocity:Unpack()), y)
-	y = draw_boxed(string_format('game.GetTimeScale(): %.2f; host_timescale: %.2f / %.2f', game.GetTimeScale(), host_timescale:GetFloat(), sv_cheats:GetBool() and host_timescale:GetFloat() or 1), y)
+	y = draw_boxed(string_format('game.GetTimeScale(%.2f); host_timescale: %.2f / %.2f', game.GetTimeScale(), host_timescale:GetFloat(), sv_cheats:GetBool() and host_timescale:GetFloat() or 1), y)
+	y = draw_boxed(string_format('Tickrate: %.2f; Ticks: %.6d', 1 / engine.TickInterval(), engine.TickCount()), y)
 
 	y = y + 10
 	y = draw_boxed('DLib.Net', y)
@@ -442,12 +435,19 @@ local function PostDrawHUD()
 		y = y + 48
 	end
 
-	y = draw_boxed_right(string_format('LuaVM Mem: %s / %s', last_memory, last_max_memory_text), y)
+	y = draw_boxed_right(string_format('LuaVM Mem: %s / %s', last_memory, last_max_memory_text), y) + 10
 	y = draw_boxed_right(string_format('DirectX level: %d', mat_dxlevel:GetInt()), y)
 	y = draw_boxed_right(string_format('P: %d S: %d DH: %d C: %d', mat_picmip:GetInt(), mat_specular:GetInt(), cl_drawhud:GetInt(), crosshair:GetInt()), y)
 	y = draw_boxed_right(string_format('Pixel shaders 1.4: %s 2.0: %s; Vertex shaders 2.0: %s', render.SupportsPixelShaders_1_4() and 'true' or 'false', render.SupportsPixelShaders_2_0() and 'true' or 'false', render.SupportsVertexShaders_2_0() and 'true' or 'false'), y)
 	local mat_hdr_level = mat_hdr_level:GetInt()
-	y = draw_boxed_right(string_format('HDR Supported: %s; Level: %s', render.SupportsHDR() and 'true' or 'false', mat_hdr_level <= 0 and 'disabled' or mat_hdr_level == 1 and 'partial' or 'full'), y)
+	y = draw_boxed_right(string_format('HDR Supported: %s; Level: %s', render.SupportsHDR() and 'true' or 'false', mat_hdr_level <= 0 and 'disabled' or mat_hdr_level == 1 and 'partial' or 'full'), y) + 30
+
+	y = draw_boxed_right(string_format('JIT status: %s', jit.status() and 'Enabled' or 'Disabled'), y)
+	y = draw_boxed_right(jit_features, y) + 30
+
+	y = draw_boxed_right(features[1], y)
+	y = draw_boxed_right(features[2], y)
+	y = draw_boxed_right(features[3], y)
 
 	cam_End2D()
 end
