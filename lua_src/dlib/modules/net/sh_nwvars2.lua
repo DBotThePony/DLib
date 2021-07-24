@@ -274,23 +274,25 @@ local function define(name, defaultIfNone, copy, _assert, _assert_type)
 
 					NWTrackedEnts[setvalue] = true
 
-					local _dirty = dirty[index]
+					if oldvalue ~= setvalue then
+						local _dirty = dirty[index]
 
-					if setvalue == nil then
-						if _dirty then
-							_dirty[Net.GetVarName(name)] = __MAGIC_UNSET
+						if setvalue == nil then
+							if _dirty then
+								_dirty[Net.GetVarName(name)] = __MAGIC_UNSET
+							else
+								dirty[index] = {[Net.GetVarName(name)] = __MAGIC_UNSET}
+							end
 						else
-							dirty[index] = {[Net.GetVarName(name)] = __MAGIC_UNSET}
+							if _dirty then
+								_dirty[Net.GetVarName(name)] = setvalue
+							else
+								dirty[index] = {[Net.GetVarName(name)] = setvalue}
+							end
 						end
-					else
-						if _dirty then
-							_dirty[Net.GetVarName(name)] = setvalue
-						else
-							dirty[index] = {[Net.GetVarName(name)] = setvalue}
-						end
+
+						Net._var_dirty = true
 					end
-
-					Net._var_dirty = true
 				else
 					local value = GetTable(self)[self_index]
 
@@ -366,23 +368,25 @@ local function define(name, defaultIfNone, copy, _assert, _assert_type)
 
 					call_callback(self, index, name, oldvalue, setvalue)
 
-					local _dirty = dirty[index]
+					if oldvalue ~= setvalue then
+						local _dirty = dirty[index]
 
-					if setvalue == nil then
-						if _dirty then
-							_dirty[Net.GetVarName(name)] = __MAGIC_UNSET
+						if setvalue == nil then
+							if _dirty then
+								_dirty[Net.GetVarName(name)] = __MAGIC_UNSET
+							else
+								dirty[index] = {[Net.GetVarName(name)] = __MAGIC_UNSET}
+							end
 						else
-							dirty[index] = {[Net.GetVarName(name)] = __MAGIC_UNSET}
+							if _dirty then
+								_dirty[Net.GetVarName(name)] = setvalue
+							else
+								dirty[index] = {[Net.GetVarName(name)] = setvalue}
+							end
 						end
-					else
-						if _dirty then
-							_dirty[Net.GetVarName(name)] = setvalue
-						else
-							dirty[index] = {[Net.GetVarName(name)] = setvalue}
-						end
+
+						Net._var_dirty = true
 					end
-
-					Net._var_dirty = true
 				else
 					local value = GetTable(self)[self_index]
 
