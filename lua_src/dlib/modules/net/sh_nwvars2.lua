@@ -29,6 +29,8 @@ local entMeta = FindMetaTable('Entity')
 local EntIndex = entMeta.EntIndex
 local GetTable = entMeta.GetTable
 
+local game_GetWorld = game.GetWorld
+
 Net.NWTrackedEnts = Net.NWTrackedEnts or {}
 Net.NWVarNameRegistry = Net.NWVarNameRegistry or {}
 Net.__MAGIC_UNSET = Net.__MAGIC_UNSET or {}
@@ -204,7 +206,7 @@ local function define(name, defaultIfNone, copy, _assert, _assert_type)
 	if name == 'Entity' then
 		if CLIENT then
 			entMeta['DLibSetNW' .. name] = function(self, name, setvalue)
-				assert(IsValid(self), 'IsValid(self)', 2)
+				assert(IsValid(self) or self == game_GetWorld(), 'IsValid(self)', 2)
 
 				if not _assert(setvalue) then
 					error('Bad argument #2 to DLibSetNW' .. name .. ' (' .. _assert_type .. ' expected, got ' .. type(setvalue) .. ')', 2)
@@ -245,7 +247,7 @@ local function define(name, defaultIfNone, copy, _assert, _assert_type)
 			end
 		else
 			entMeta['DLibSetNW' .. name] = function(self, name, setvalue)
-				assert(IsValid(self), 'IsValid(self)', 2)
+				assert(IsValid(self) or self == game_GetWorld(), 'IsValid(self)', 2)
 
 				if not _assert(setvalue) then
 					error('Bad argument #2 to DLibSetNW' .. name .. ' (' .. _assert_type .. ' expected, got ' .. type(setvalue) .. ')', 2)
@@ -311,7 +313,7 @@ local function define(name, defaultIfNone, copy, _assert, _assert_type)
 	else
 		if CLIENT then
 			entMeta['DLibSetNW' .. name] = function(self, name, setvalue)
-				assert(IsValid(self), 'IsValid(self)', 2)
+				assert(IsValid(self) or self == game_GetWorld(), 'IsValid(self)', 2)
 
 				if not _assert(setvalue) then
 					error('Bad argument #2 to DLibSetNW' .. name .. ' (' .. _assert_type .. ' expected, got ' .. type(setvalue) .. ')', 2)
@@ -347,7 +349,7 @@ local function define(name, defaultIfNone, copy, _assert, _assert_type)
 			end
 		else
 			entMeta['DLibSetNW' .. name] = function(self, name, setvalue)
-				assert(IsValid(self), 'IsValid(self)', 2)
+				assert(IsValid(self) or self == game_GetWorld(), 'IsValid(self)', 2)
 
 				if not _assert(setvalue) then
 					error('Bad argument #2 to DLibSetNW' .. name .. ' (' .. _assert_type .. ' expected, got ' .. type(setvalue) .. ')', 2)
