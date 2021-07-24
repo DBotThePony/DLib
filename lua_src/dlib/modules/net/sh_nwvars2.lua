@@ -36,16 +36,21 @@ local __MAGIC_UNSET = Net.__MAGIC_UNSET
 
 local NWTrackedEnts = Net.NWTrackedEnts
 
+local IsValid = entMeta.IsValid
+
 local function define(name, defaultIfNone, copy, _assert, _assert_type)
 	Net['NWVars' .. name] = Net['NWVars' .. name] or {}
+	Net['NWVars' .. name .. 'Callbacks'] = Net['NWVars' .. name .. 'Callbacks'] or {}
 
 	if SERVER then
 		Net['NWVars' .. name .. 'Dirty'] = Net['NWVars' .. name .. 'Dirty'] or {}
 	end
 
 	local registry = Net['NWVars' .. name]
+	local callbacks = Net['NWVars' .. name .. 'Callbacks']
 	local dirty = Net['NWVars' .. name .. 'Dirty']
 	local self_index = '_dnw2_' .. name
+	local self_index_callbacks = '_dnw2_' .. name .. '_cb'
 
 	if copy then
 		entMeta['DLibGetNW' .. name] = function(self, name, ifNone)
@@ -121,11 +126,88 @@ local function define(name, defaultIfNone, copy, _assert, _assert_type)
 		end
 	end
 
+	local function call_callback(self, index, name, old_value, new_value)
+		if index > 0 then
+			local callback = callbacks[index]
+
+			if callback then
+				callback = callback[name]
+
+				if callback then
+					callback(self, name, old_value, new_value)
+				end
+			end
+		else
+			local callback = GetTable(self)[self_index_callbacks]
+
+			if callback then
+				callback = callback[name]
+
+				if callback then
+					callback(self, name, old_value, new_value)
+				end
+			end
+		end
+	end
+
+	entMeta['DLibGetNWVarProxy' .. name] = function(self, name)
+		assert(IsValid(self), 'IsValid(self)', 2)
+		assert(isstring(name), 'isstring(name)', 2)
+
+		local index = EntIndex(self)
+
+		if index > 0 then
+			local callback = callbacks[index]
+
+			if callback then
+				return callback[name]
+			end
+		else
+			local get_table = GetTable(self)
+			local callback = get_table[self_index_callbacks]
+
+			if callback then
+				return callback[name]
+			end
+		end
+	end
+
+	entMeta['DLibSetNWVarProxy' .. name] = function(self, name, setfunc)
+		assert(IsValid(self), 'IsValid(self)', 2)
+		assert(isstring(name), 'isstring(name)', 2)
+		assert(setfunc == nil or isfunction(setfunc), 'setfunc == nil or isfunction(setfunc)', 2)
+
+		local index = EntIndex(self)
+
+		if index > 0 then
+			local callback = callbacks[index]
+
+			if not callback then
+				callback = {}
+				callbacks[index] = callback
+			end
+
+			callback[name] = setfunc
+		else
+			local get_table = GetTable(self)
+			local callback = get_table[self_index_callbacks]
+
+			if not callback then
+				callback = {}
+				get_table[self_index_callbacks] = callback
+			end
+
+			callback[name] = setfunc
+		end
+	end
+
 	if name == 'Entity' then
 		if CLIENT then
 			entMeta['DLibSetNW' .. name] = function(self, name, setvalue)
+				assert(IsValid(self), 'IsValid(self)', 2)
+
 				if not _assert(setvalue) then
-					error('Bad argument #2 to DLibSetNW' .. name .. ' (' .. _assert_type .. ' expected, got ' .. type(setvalue) .. ')')
+					error('Bad argument #2 to DLibSetNW' .. name .. ' (' .. _assert_type .. ' expected, got ' .. type(setvalue) .. ')', 2)
 				end
 
 				local index = EntIndex(self)
@@ -143,7 +225,10 @@ local function define(name, defaultIfNone, copy, _assert, _assert_type)
 						registry[index] = value
 					end
 
+					local oldvalue = value[name]
 					value[name] = setvalue
+
+					call_callback(self, index, name, oldvalue, setvalue)
 				else
 					local value = GetTable(self)[self_index]
 
@@ -152,13 +237,18 @@ local function define(name, defaultIfNone, copy, _assert, _assert_type)
 						self[self_index] = value
 					end
 
+					local oldvalue = value[name]
 					value[name] = setvalue
+
+					call_callback(self, index, name, oldvalue, setvalue)
 				end
 			end
 		else
 			entMeta['DLibSetNW' .. name] = function(self, name, setvalue)
+				assert(IsValid(self), 'IsValid(self)', 2)
+
 				if not _assert(setvalue) then
-					error('Bad argument #2 to DLibSetNW' .. name .. ' (' .. _assert_type .. ' expected, got ' .. type(setvalue) .. ')')
+					error('Bad argument #2 to DLibSetNW' .. name .. ' (' .. _assert_type .. ' expected, got ' .. type(setvalue) .. ')', 2)
 				end
 
 				local index = EntIndex(self)
@@ -177,7 +267,11 @@ local function define(name, defaultIfNone, copy, _assert, _assert_type)
 
 					if value[name] == setvalue then return end
 
+					local oldvalue = value[name]
 					value[name] = setvalue
+
+					call_callback(self, index, name, oldvalue, setvalue)
+
 					NWTrackedEnts[setvalue] = true
 
 					local _dirty = dirty[index]
@@ -205,15 +299,20 @@ local function define(name, defaultIfNone, copy, _assert, _assert_type)
 						self[self_index] = value
 					end
 
+					local oldvalue = value[name]
 					value[name] = setvalue
+
+					call_callback(self, index, name, oldvalue, setvalue)
 				end
 			end
 		end
 	else
 		if CLIENT then
 			entMeta['DLibSetNW' .. name] = function(self, name, setvalue)
+				assert(IsValid(self), 'IsValid(self)', 2)
+
 				if not _assert(setvalue) then
-					error('Bad argument #2 to DLibSetNW' .. name .. ' (' .. _assert_type .. ' expected, got ' .. type(setvalue) .. ')')
+					error('Bad argument #2 to DLibSetNW' .. name .. ' (' .. _assert_type .. ' expected, got ' .. type(setvalue) .. ')', 2)
 				end
 
 				local index = EntIndex(self)
@@ -226,7 +325,10 @@ local function define(name, defaultIfNone, copy, _assert, _assert_type)
 						registry[index] = value
 					end
 
+					local oldvalue = value[name]
 					value[name] = setvalue
+
+					call_callback(self, index, name, oldvalue, setvalue)
 				else
 					local value = GetTable(self)[self_index]
 
@@ -235,13 +337,18 @@ local function define(name, defaultIfNone, copy, _assert, _assert_type)
 						self[self_index] = value
 					end
 
+					local oldvalue = value[name]
 					value[name] = setvalue
+
+					call_callback(self, index, name, oldvalue, setvalue)
 				end
 			end
 		else
 			entMeta['DLibSetNW' .. name] = function(self, name, setvalue)
+				assert(IsValid(self), 'IsValid(self)', 2)
+
 				if not _assert(setvalue) then
-					error('Bad argument #2 to DLibSetNW' .. name .. ' (' .. _assert_type .. ' expected, got ' .. type(setvalue) .. ')')
+					error('Bad argument #2 to DLibSetNW' .. name .. ' (' .. _assert_type .. ' expected, got ' .. type(setvalue) .. ')', 2)
 				end
 
 				local index = EntIndex(self)
@@ -254,7 +361,10 @@ local function define(name, defaultIfNone, copy, _assert, _assert_type)
 						registry[index] = value
 					end
 
+					local oldvalue = value[name]
 					value[name] = setvalue
+
+					call_callback(self, index, name, oldvalue, setvalue)
 
 					local _dirty = dirty[index]
 
@@ -281,7 +391,10 @@ local function define(name, defaultIfNone, copy, _assert, _assert_type)
 						self[self_index] = value
 					end
 
+					local oldvalue = value[name]
 					value[name] = setvalue
+
+					call_callback(self, index, name, oldvalue, setvalue)
 				end
 			end
 		end

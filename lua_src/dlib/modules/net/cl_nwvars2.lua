@@ -48,6 +48,15 @@ local NWVarsString = Net.NWVarsString
 local NWVarsAngle = Net.NWVarsAngle
 local NWVarsVector = Net.NWVarsVector
 
+local NWVarsUIntCallbacks = Net.NWVarsUIntCallbacks
+local NWVarsIntCallbacks = Net.NWVarsIntCallbacks
+local NWVarsFloatCallbacks = Net.NWVarsFloatCallbacks
+local NWVarsBoolCallbacks = Net.NWVarsBoolCallbacks
+local NWVarsEntityCallbacks = Net.NWVarsEntityCallbacks
+local NWVarsStringCallbacks = Net.NWVarsStringCallbacks
+local NWVarsAngleCallbacks = Net.NWVarsAngleCallbacks
+local NWVarsVectorCallbacks = Net.NWVarsVectorCallbacks
+
 local NWVarNameRegistry = Net.NWVarNameRegistry
 local NWTrackedEnts = Net.NWTrackedEnts
 
@@ -60,10 +69,18 @@ local function read_entity()
 	return id
 end
 
-local function read_list(_list, read)
+local function read_list(_list, _callbacks, read)
 	local read_entity_id = Net.ReadUInt16()
 
 	while read_entity_id ~= 0xFFFF do
+		local read_entity = Entity(read_entity_id)
+		local callback_list = _callbacks[read_entity_id]
+
+		if not read_entity:IsValid() then
+			read_entity = nil
+			callback_list = nil
+		end
+
 		local storage = _list[read_entity_id]
 
 		if not storage then
@@ -75,9 +92,21 @@ local function read_list(_list, read)
 
 		while read_network_id ~= 0 do
 			if band(read_network_id, 0x7000) ~= 0 then
-				storage[assert(NWVarNameRegistry[band(read_network_id, invert_mask)], 'Net.NWVarNameRegistry[read_network_id]')] = nil
+				local lookup = assert(NWVarNameRegistry[band(read_network_id, invert_mask)], 'Net.NWVarNameRegistry[read_network_id]')
+				local oldvalue = storage[lookup]
+				storage[lookup] = nil
+
+				if callback_list and callback_list[lookup] then
+					callback_list[lookup](read_entity, lookup, oldvalue, nil)
+				end
 			else
-				storage[assert(NWVarNameRegistry[read_network_id], 'Net.NWVarNameRegistry[read_network_id]')] = read()
+				local lookup = assert(NWVarNameRegistry[read_network_id], 'Net.NWVarNameRegistry[read_network_id]')
+				local oldvalue = storage[lookup]
+				storage[lookup] = read()
+
+				if callback_list and callback_list[lookup] then
+					callback_list[lookup](read_entity, lookup, oldvalue, storage[lookup])
+				end
 			end
 
 			read_network_id = Net.ReadUInt16()
@@ -88,19 +117,20 @@ local function read_list(_list, read)
 end
 
 Net.Receive('dlib_nw2_set', function()
-	read_list(NWVarsUInt, Net.ReadUInt32)
-	read_list(NWVarsInt, Net.ReadInt32)
-	read_list(NWVarsFloat, Net.ReadDouble)
-	read_list(NWVarsBool, Net.ReadBool)
-	read_list(NWVarsEntity, read_entity)
-	read_list(NWVarsString, Net.ReadString)
-	read_list(NWVarsAngle, Net.ReadAngleDouble)
-	read_list(NWVarsVector, Net.ReadVectorDouble)
+	read_list(NWVarsUInt,   NWVarsUIntCallbacks,   Net.ReadUInt32)
+	read_list(NWVarsInt,    NWVarsIntCallbacks,    Net.ReadInt32)
+	read_list(NWVarsFloat,  NWVarsFloatCallbacks,  Net.ReadDouble)
+	read_list(NWVarsBool,   NWVarsBoolCallbacks,   Net.ReadBool)
+	read_list(NWVarsEntity, NWVarsEntityCallbacks, read_entity)
+	read_list(NWVarsString, NWVarsStringCallbacks, Net.ReadString)
+	read_list(NWVarsAngle,  NWVarsAngleCallbacks,  Net.ReadAngleDouble)
+	read_list(NWVarsVector, NWVarsVectorCallbacks, Net.ReadVectorDouble)
 end)
 
 Net.Receive('dlib_nw2_delete', function()
 	local index = Net.ReadUInt16()
 
+	NWVarsUInt[index] = nil
 	NWVarsInt[index] = nil
 	NWVarsFloat[index] = nil
 	NWVarsBool[index] = nil
