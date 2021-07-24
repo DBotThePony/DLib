@@ -109,6 +109,8 @@ Net.Receive('dlib_nw2_delete', function()
 	NWVarsAngle[index] = nil
 	NWVarsVector[index] = nil
 
+	DLib.NW.NETWORK_DB[index] = nil
+
 	if NWTrackedEnts[index] then
 		for ent, data_list in next, NWVarsEntity do
 			for network_name, value in next, data_list do

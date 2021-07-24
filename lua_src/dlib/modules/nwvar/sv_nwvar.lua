@@ -20,7 +20,6 @@
 
 net.pool('DLib.NetworkedVar')
 net.pool('DLib.NetworkedVarFull')
-net.pool('DLib.NetworkedRemove')
 
 local nw = DLib.nw
 local DLib = DLib
@@ -89,12 +88,6 @@ local function EntityRemoved(ent)
 	if not nw.NETWORK_DB[euid] then return end
 
 	nw.NETWORK_DB[euid] = nil
-
-	timer.Simple(0, function()
-		net.Start('DLib.NetworkedRemove')
-		net.WriteUInt(euid, 12)
-		net.Broadcast()
-	end)
 end
 
 local function command(ply)

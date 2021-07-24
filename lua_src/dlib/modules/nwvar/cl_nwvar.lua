@@ -33,11 +33,6 @@ function entMeta:SetDLibVar(var, val)
 	hook.Run('DLib.EntityVarsChanges', self, var, val)
 end
 
-local function NetworkedRemove()
-	local uid = net.ReadUInt(12)
-	nw.NETWORK_DB[uid] = nil
-end
-
 local function NetworkedVar()
 	local id = net.ReadUInt(32)
 
@@ -102,7 +97,6 @@ local function KeyPress()
 	net.SendToServer()
 end
 
-net.Receive('DLib.NetworkedRemove', NetworkedRemove)
 net.Receive('DLib.NetworkedVarFull', NetworkedVarFull)
 net.Receive('DLib.NetworkedVar', NetworkedVar)
 hook.Add('KeyPress', 'DLib.NWRequire', KeyPress)
