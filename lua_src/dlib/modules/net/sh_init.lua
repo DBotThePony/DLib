@@ -789,6 +789,7 @@ function Net.DispatchChunk(ply)
 				if chunk_data_pending[2] < SysTime() then
 					data.chunks[chunk_num_pending] = chunk_data_pending[1]
 					namespace.reliable_score = namespace.reliable_score + 1
+					namespace.unacked_payload = math.max(0, namespace.unacked_payload - #chunk_data_pending[1])
 				end
 			end
 
