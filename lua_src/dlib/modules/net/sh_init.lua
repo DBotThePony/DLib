@@ -788,6 +788,7 @@ function Net.DispatchChunk(ply)
 			for chunk_num_pending, chunk_data_pending in next, data.pending_chunks do
 				if chunk_data_pending[2] < SysTime() then
 					data.chunks[chunk_num_pending] = chunk_data_pending[1]
+					data.pending_chunks[chunk_num_pending] = nil
 					namespace.reliable_score = namespace.reliable_score + 1
 					namespace.unacked_payload = math.max(0, namespace.unacked_payload - #chunk_data_pending[1])
 				end
@@ -864,7 +865,7 @@ function Net.DispatchChunk(ply)
 			string_format('Chunk %d is fully dispatched to target!',
 			data.chunkid))
 
-		table_remove(namespace.server_chunks, 1)
+		table_remove(namespace.server_chunks, choose_id)
 		namespace.server_chunks_num = namespace.server_chunks_num - 1
 		namespace.server_queued_size = namespace.server_queued_size - data.length
 
