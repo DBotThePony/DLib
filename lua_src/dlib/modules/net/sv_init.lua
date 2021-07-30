@@ -28,6 +28,8 @@ Net.DGRAM_SIZE_LIMIT = CreateConVar('dlib_net_dgram_size', '65536', {}, 'limit i
 Net.USE_COMPRESSION = CreateConVar('dlib_net_compress', '1', {FCVAR_REPLICATED, FCVAR_NOTIFY}, 'Use LZMA compression. Keep in mind source engine got one builtin serverside! Disable if DLib.Net performance is low.')
 Net.COMPRESSION_LIMIT = CreateConVar('dlib_net_compress_size', '16384', {}, 'Size in bytes >= of single chunk to compress. Too low or too high values can impact performance.')
 
+Net.USE_WINDOW = CreateConVar('dlib_net_use_window', '1', {}, 'Use window to wildly improve network performance with high RTT')
+
 Net.UpdateWindowProperties()
 
 cvars.AddChangeCallback('dlib_net_buffer_size', Net.UpdateWindowProperties, 'DLib.Net')
@@ -217,11 +219,11 @@ function Net.Think()
 		local ply = iter[i]
 		local namespace = Net.Namespace(ply)
 
-		if (namespace.server_chunk_ack or namespace.unacked_payload < Net.window_size_limit_payload) and (#namespace.server_queued ~= 0 or #namespace.server_chunks ~= 0) then
+		if (namespace.server_chunk_ack or namespace.unacked_payload < Net.window_size_limit_payload and Net.USE_WINDOW:GetBool()) and (#namespace.server_queued ~= 0 or #namespace.server_chunks ~= 0) then
 			Net.DispatchChunk(ply)
 		end
 
-		if (namespace.server_datagram_ack or namespace.unacked_datagrams < Net.window_size_limit_payload) and namespace.server_datagrams_num > 0 then
+		if (namespace.server_datagram_ack or namespace.unacked_datagrams < Net.window_size_limit_payload and Net.USE_WINDOW:GetBool()) and namespace.server_datagrams_num > 0 then
 			Net.DispatchDatagram(ply)
 		end
 

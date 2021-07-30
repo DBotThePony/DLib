@@ -29,6 +29,8 @@ Net.USE_COMPRESSION = CreateConVar('dlib_net_compress_cl', '1', {}, 'Use LZMA co
 Net.USE_COMPRESSION_SV = CreateConVar('dlib_net_compress', '1', {FCVAR_REPLICATED, FCVAR_NOTIFY}, 'Whenever server accept LZMA compressed payloads.')
 Net.COMPRESSION_LIMIT = CreateConVar('dlib_net_compress_size', '16384', {}, 'Size in bytes >= of single chunk to compress. Too low or too high values can impact performance.')
 
+Net.USE_WINDOW = CreateConVar('dlib_net_use_window_cl', '1', {}, 'Use window to wildly improve network performance with high RTT')
+
 Net.UpdateWindowProperties()
 
 cvars.AddChangeCallback('dlib_net_buffer_size', Net.UpdateWindowProperties, 'DLib.Net')
@@ -96,11 +98,11 @@ end
 local SysTime = SysTime
 
 function Net.Think()
-	if (Net.server_chunk_ack or Net.unacked_payload < Net.window_size_limit_payload) and (#Net.server_queued ~= 0 or #Net.server_chunks ~= 0) then
+	if (Net.server_chunk_ack or Net.unacked_payload < Net.window_size_limit_payload and Net.USE_WINDOW:GetBool()) and (#Net.server_queued ~= 0 or #Net.server_chunks ~= 0) then
 		Net.DispatchChunk()
 	end
 
-	if (Net.server_datagram_ack or Net.unacked_datagrams < Net.window_size_limit_datagram) and Net.server_datagrams_num > 0 then
+	if (Net.server_datagram_ack or Net.unacked_datagrams < Net.window_size_limit_datagram and Net.USE_WINDOW:GetBool()) and Net.server_datagrams_num > 0 then
 		Net.DispatchDatagram()
 	end
 
