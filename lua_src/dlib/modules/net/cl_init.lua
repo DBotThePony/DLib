@@ -23,7 +23,7 @@ local DLib = DLib
 local _net = net
 local Net = DLib.Net
 
-Net.WINDOW_SIZE_LIMIT = CreateConVar('dlib_net_window_size', '16777216', {}, 'limit in bytes. Too low may impact addons depending on DLib.Net')
+Net.BUFFER_SIZE_LIMIT = CreateConVar('dlib_net_buffer_size', '16777216', {}, 'limit in bytes. Too low may impact addons depending on DLib.Net')
 Net.DGRAM_SIZE_LIMIT = CreateConVar('dlib_net_dgram_size', '65536', {}, 'limit in messages count. Too low may impact addons depending on DLib.Net')
 Net.USE_COMPRESSION = CreateConVar('dlib_net_compress_cl', '1', {}, 'Use LZMA compression. Disable if Net performance is low.')
 Net.USE_COMPRESSION_SV = CreateConVar('dlib_net_compress', '1', {FCVAR_REPLICATED, FCVAR_NOTIFY}, 'Whenever server accept LZMA compressed payloads.')
@@ -31,7 +31,7 @@ Net.COMPRESSION_LIMIT = CreateConVar('dlib_net_compress_size', '16384', {}, 'Siz
 
 Net.UpdateWindowProperties()
 
-cvars.AddChangeCallback('dlib_net_window_size', Net.UpdateWindowProperties, 'DLib.Net')
+cvars.AddChangeCallback('dlib_net_buffer_size', Net.UpdateWindowProperties, 'DLib.Net')
 cvars.AddChangeCallback('dlib_net_dgram_size', Net.UpdateWindowProperties, 'DLib.Net')
 cvars.AddChangeCallback('dlib_net_compress_size', Net.UpdateWindowProperties, 'DLib.Net')
 

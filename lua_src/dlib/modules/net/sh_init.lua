@@ -60,7 +60,7 @@ Net.message_size_limit = 0x4000
 Net.message_chunk_limit = 0x4000
 Net.message_datagram_limit = 0x400
 Net.datagram_queue_size_limit = 0x10000 -- idiot proofing from flooding server's memory with trash data
-Net.window_size_limit = 0x1000000 -- idiot proofing from flooding server's memory with trash data
+Net.buffer_size_limit = 0x1000000 -- idiot proofing from flooding server's memory with trash data
 
 Net.total_traffic_in = Net.total_traffic_in or 0
 Net.total_traffic_out = Net.total_traffic_out or 0
@@ -68,7 +68,7 @@ Net.total_traffic_out = Net.total_traffic_out or 0
 Net.reliable_window = 6
 
 function Net.UpdateWindowProperties()
-	Net.window_size_limit = Net.WINDOW_SIZE_LIMIT:GetInt(0x1000000)
+	Net.buffer_size_limit = Net.BUFFER_SIZE_LIMIT:GetInt(0x1000000)
 	Net.datagram_queue_size_limit = Net.DGRAM_SIZE_LIMIT:GetInt(0x10000)
 	Net.message_size_limit = Net.COMPRESSION_LIMIT:GetInt(0x4000)
 end
@@ -353,7 +353,7 @@ _net.receive('dlib_net_chunk', function(length_bits, ply)
 
 		if data.is_compressed then
 			if CLIENT or Net.USE_COMPRESSION:GetBool() then
-				stringdata = util_Decompress(stringdata, Net.window_size_limit - namespace.accumulated_size)
+				stringdata = util_Decompress(stringdata, Net.buffer_size_limit - namespace.accumulated_size)
 
 				if not stringdata then
 					namespace.queued_chunks[chunkid] = nil
@@ -681,7 +681,7 @@ function Net.Dispatch(ply)
 
 	local namespace = Net.Namespace(CLIENT and Net or ply)
 
-	if SERVER and (namespace.server_datagrams_num > Net.datagram_queue_size_limit or namespace.server_queued_size > Net.window_size_limit) then
+	if SERVER and (namespace.server_datagrams_num > Net.datagram_queue_size_limit or namespace.server_queued_size > Net.buffer_size_limit) then
 		return
 	end
 

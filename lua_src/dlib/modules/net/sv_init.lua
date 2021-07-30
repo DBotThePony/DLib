@@ -23,14 +23,14 @@ local DLib = DLib
 local _net = net
 local Net = DLib.Net
 
-Net.WINDOW_SIZE_LIMIT = CreateConVar('dlib_net_window_size', '16777216', {}, 'limit in bytes. Too high values weaken server\'s security, too low may impact addons depending on DLib.Net')
+Net.BUFFER_SIZE_LIMIT = CreateConVar('dlib_net_buffer_size', '16777216', {}, 'limit in bytes. Too high values weaken server\'s security, too low may impact addons depending on DLib.Net')
 Net.DGRAM_SIZE_LIMIT = CreateConVar('dlib_net_dgram_size', '65536', {}, 'limit in messages count. Too high values weaken server\'s security, too low may impact addons depending on DLib.Net')
 Net.USE_COMPRESSION = CreateConVar('dlib_net_compress', '1', {FCVAR_REPLICATED, FCVAR_NOTIFY}, 'Use LZMA compression. Keep in mind source engine got one builtin serverside! Disable if DLib.Net performance is low.')
 Net.COMPRESSION_LIMIT = CreateConVar('dlib_net_compress_size', '16384', {}, 'Size in bytes >= of single chunk to compress. Too low or too high values can impact performance.')
 
 Net.UpdateWindowProperties()
 
-cvars.AddChangeCallback('dlib_net_window_size', Net.UpdateWindowProperties, 'DLib.Net')
+cvars.AddChangeCallback('dlib_net_buffer_size', Net.UpdateWindowProperties, 'DLib.Net')
 cvars.AddChangeCallback('dlib_net_dgram_size', Net.UpdateWindowProperties, 'DLib.Net')
 cvars.AddChangeCallback('dlib_net_compress_size', Net.UpdateWindowProperties, 'DLib.Net')
 
