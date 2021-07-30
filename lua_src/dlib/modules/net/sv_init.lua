@@ -151,7 +151,7 @@ function Net.Namespace(target)
 		local get_target = GetTable(target).dlib_net
 
 		if get_target ~= nil then
-			return Net.Namespace(get_target)
+			return get_target
 		end
 
 		target.dlib_net = {}
@@ -219,11 +219,11 @@ function Net.Think()
 		local ply = iter[i]
 		local namespace = Net.Namespace(ply)
 
-		if (namespace.server_chunk_ack or namespace.unacked_payload < Net.window_size_limit_payload and Net.USE_WINDOW:GetBool()) and (#namespace.server_queued ~= 0 or #namespace.server_chunks ~= 0) then
+		if (namespace.server_chunk_ack or namespace.use_unreliable and namespace.unacked_payload < Net.window_size_limit_payload and Net.USE_WINDOW:GetBool()) and (#namespace.server_queued ~= 0 or #namespace.server_chunks ~= 0) then
 			Net.DispatchChunk(ply)
 		end
 
-		if (namespace.server_datagram_ack or namespace.unacked_datagrams < Net.window_size_limit_payload and Net.USE_WINDOW:GetBool()) and namespace.server_datagrams_num > 0 then
+		if (namespace.server_datagram_ack or namespace.use_unreliable and namespace.unacked_datagrams < Net.window_size_limit_payload and Net.USE_WINDOW:GetBool()) and namespace.server_datagrams_num > 0 then
 			Net.DispatchDatagram(ply)
 		end
 

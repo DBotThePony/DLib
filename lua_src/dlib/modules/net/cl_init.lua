@@ -98,11 +98,11 @@ end
 local SysTime = SysTime
 
 function Net.Think()
-	if (Net.server_chunk_ack or Net.unacked_payload < Net.window_size_limit_payload and Net.USE_WINDOW:GetBool()) and (#Net.server_queued ~= 0 or #Net.server_chunks ~= 0) then
+	if (Net.server_chunk_ack or Net.use_unreliable and Net.unacked_payload < Net.window_size_limit_payload and Net.USE_WINDOW:GetBool()) and (#Net.server_queued ~= 0 or #Net.server_chunks ~= 0) then
 		Net.DispatchChunk()
 	end
 
-	if (Net.server_datagram_ack or Net.unacked_datagrams < Net.window_size_limit_datagram and Net.USE_WINDOW:GetBool()) and Net.server_datagrams_num > 0 then
+	if (Net.server_datagram_ack or Net.use_unreliable and Net.unacked_datagrams < Net.window_size_limit_datagram and Net.USE_WINDOW:GetBool()) and Net.server_datagrams_num > 0 then
 		Net.DispatchDatagram()
 	end
 
