@@ -52,6 +52,8 @@ Net.server_position = Net.server_position or 0
 Net.server_chunks = Net.server_chunks or {}
 Net.server_queued = Net.server_queued or {}
 Net.server_datagrams = Net.server_datagrams or {}
+Net.server_datagrams_pending = Net.server_datagrams_pending or {}
+Net.next_sensible_pending_dg_check = Net.next_sensible_pending_dg_check or 0
 
 Net.queued_buffers_num = Net.queued_buffers_num or 0
 Net.queued_chunks_num = Net.queued_chunks_num or 0
@@ -68,6 +70,9 @@ Net.server_queued_size = Net.server_queued_size or 0
 
 Net.next_datagram_id = Net.next_datagram_id or 0
 Net.next_chunk_id = Net.next_chunk_id or 0
+
+Net.unacked_payload = Net.unacked_payload or 0
+Net.unacked_datagrams = Net.unacked_datagrams or 0
 
 if Net.server_datagram_ack == nil then
 	Net.server_datagram_ack = true
@@ -91,11 +96,11 @@ end
 local SysTime = SysTime
 
 function Net.Think()
-	if Net.server_chunk_ack and (#Net.server_queued ~= 0 or #Net.server_chunks ~= 0) then
+	if (Net.server_chunk_ack or Net.unacked_payload < Net.window_size_limit_payload) and (#Net.server_queued ~= 0 or #Net.server_chunks ~= 0) then
 		Net.DispatchChunk()
 	end
 
-	if Net.server_datagram_ack and Net.server_datagrams_num > 0 then
+	if (Net.server_datagram_ack or Net.unacked_datagrams < Net.window_size_limit_datagram) and Net.server_datagrams_num > 0 then
 		Net.DispatchDatagram()
 	end
 

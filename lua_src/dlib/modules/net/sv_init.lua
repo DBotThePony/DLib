@@ -149,7 +149,7 @@ function Net.Namespace(target)
 		local get_target = GetTable(target).dlib_net
 
 		if get_target ~= nil then
-			return get_target
+			return Net.Namespace(get_target)
 		end
 
 		target.dlib_net = {}
@@ -162,6 +162,9 @@ function Net.Namespace(target)
 
 	target.total_traffic_in = target.total_traffic_in or 0
 	target.total_traffic_out = target.total_traffic_out or 0
+
+	target.unacked_payload = target.unacked_payload or 0
+	target.unacked_datagrams = target.unacked_datagrams or 0
 
 	target.reliable_score = target.reliable_score or 0
 	target.reliable_score_dg = target.reliable_score_dg or 0
@@ -178,10 +181,15 @@ function Net.Namespace(target)
 	target.server_chunks = target.server_chunks or {}
 	target.server_chunks_num = target.server_chunks_num or 0
 	target.server_queued = target.server_queued or {}
+
 	target.server_queued_num = target.server_queued_num or 0
 	target.server_queued_size = target.server_queued_size or 0
+
 	target.server_datagrams = target.server_datagrams or {}
+	target.server_datagrams_pending = target.server_datagrams_pending or {}
 	target.server_datagrams_num = target.server_datagrams_num or 0
+	target.next_sensible_pending_dg_check = target.next_sensible_pending_dg_check or 0
+
 	target.next_expected_datagram = target.next_expected_datagram or 0
 	target.next_expected_chunk = target.next_expected_chunk or 0
 
@@ -209,11 +217,11 @@ function Net.Think()
 		local ply = iter[i]
 		local namespace = Net.Namespace(ply)
 
-		if namespace.server_chunk_ack and (#namespace.server_queued ~= 0 or #namespace.server_chunks ~= 0) then
+		if (namespace.server_chunk_ack or namespace.unacked_payload < Net.window_size_limit_payload) and (#namespace.server_queued ~= 0 or #namespace.server_chunks ~= 0) then
 			Net.DispatchChunk(ply)
 		end
 
-		if namespace.server_datagram_ack and namespace.server_datagrams_num > 0 then
+		if (namespace.server_datagram_ack or namespace.unacked_datagrams < Net.window_size_limit_payload) and namespace.server_datagrams_num > 0 then
 			Net.DispatchDatagram(ply)
 		end
 

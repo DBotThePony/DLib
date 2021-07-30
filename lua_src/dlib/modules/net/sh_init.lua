@@ -62,6 +62,9 @@ Net.message_datagram_limit = 0x400
 Net.datagram_queue_size_limit = 0x10000 -- idiot proofing from flooding server's memory with trash data
 Net.buffer_size_limit = 0x1000000 -- idiot proofing from flooding server's memory with trash data
 
+Net.window_size_limit_payload = 0x4000 -- 16 KiB. Up to this data can be sent in quick succession without confirmation from other's party.
+Net.window_size_limit_datagram = 256 -- 256 messages. Up to this datagrams can be sent in quick succession without confirmation from other's party.
+
 Net.total_traffic_in = Net.total_traffic_in or 0
 Net.total_traffic_out = Net.total_traffic_out or 0
 
@@ -240,6 +243,10 @@ local table_concat = table.concat
 local util_Decompress = util.Decompress
 local table_insert = table.insert
 
+---------------------------------------
+-- Receive chunk from other side
+---------------------------------------
+
 _net.receive('dlib_net_chunk', function(length_bits, ply)
 	local chunkid = _net.ReadUInt32()
 	local current_chunk = _net.ReadUInt16()
@@ -382,6 +389,10 @@ end)
 
 local SysTime = SysTime
 
+---------------------------------------
+-- Receive datagram list from other side
+---------------------------------------
+
 _net.receive('dlib_net_datagram', function(length_bits, ply)
 	if SERVER and not IsValid(ply) then return end
 	local readnetid = _net.ReadUInt16()
@@ -487,6 +498,10 @@ end)
 
 local pairs = pairs
 local next = next
+
+---------------------------------------
+-- Process network events from other side
+---------------------------------------
 
 function Net.ProcessIncomingQueue(namespace, ply)
 	if CLIENT and not AreEntitiesAvailable() then return end
@@ -643,6 +658,10 @@ end
 
 local ipairs = ipairs
 
+---------------------------------------
+-- Discard network events from other side if not fully received
+---------------------------------------
+
 function Net.DiscardAndFire(namespace)
 	namespace = CLIENT and Net or namespace
 	local discarded_num, discarded_bytes = 0, 0
@@ -669,6 +688,10 @@ function Net.DiscardAndFire(namespace)
 
 	Net.ProcessIncomingQueue(namespace)
 end
+
+---------------------------------------
+-- Queue datagram for sending to other side
+---------------------------------------
 
 function Net.Dispatch(ply)
 	local namespace = Net.Namespace(CLIENT and Net or ply)
@@ -743,10 +766,42 @@ end
 local util_Compress = util.Compress
 local math_min = math.min
 
+---------------------------------------
+-- Send payload over network to other side
+---------------------------------------
+
 function Net.DispatchChunk(ply)
 	local namespace = Net.Namespace(CLIENT and Net or ply)
 
-	if #namespace.server_queued ~= 0 and #namespace.server_chunks == 0 then
+	if #namespace.server_chunks == 0 and #namespace.server_queued == 0 then return end
+
+	local choose_id = 1
+	local chunkNum, chunkData
+	::START_CHOOSE_DATA::
+
+	local data = namespace.server_chunks[choose_id]
+
+	if data then
+		chunkNum, chunkData = next(data.chunks)
+
+		if not chunkNum and next(data.pending_chunks) then
+			for chunk_num_pending, chunk_data_pending in next, data.pending_chunks do
+				if chunk_data_pending[2] < SysTime() then
+					data.chunks[chunk_num_pending] = chunk_data_pending[1]
+					namespace.reliable_score = namespace.reliable_score + 1
+				end
+			end
+
+			chunkNum, chunkData = next(data.chunks)
+		end
+
+		if not chunkNum and next(data.pending_chunks) then
+			choose_id = choose_id + 1
+			goto START_CHOOSE_DATA
+		end
+	end
+
+	if #namespace.server_queued ~= 0 and not chunkNum then
 		local stringbuilder = {}
 		local startpos, endpos = 0xFFFFFFFFF, 0
 
@@ -774,6 +829,7 @@ function Net.DispatchChunk(ply)
 
 		local data = {
 			chunks = {},
+			pending_chunks = {},
 			is_compressed = compressed ~= nil,
 			startpos = startpos,
 			endpos = endpos,
@@ -800,11 +856,9 @@ function Net.DispatchChunk(ply)
 		namespace.server_queued_num = 0
 	end
 
-	if #namespace.server_chunks == 0 then return end
-	local data = namespace.server_chunks[1]
-	local chunkNum, chunkData = next(data.chunks)
+	if not data then return end
 
-	if not chunkNum then
+	if not chunkNum and not next(data.pending_chunks) then
 		debug(
 			string_format('Chunk %d is fully dispatched to target!',
 			data.chunkid))
@@ -821,7 +875,8 @@ function Net.DispatchChunk(ply)
 			namespace.last_expected_ack_chunks = nil
 		end
 
-		return Net.DispatchChunk(ply)
+		-- return Net.DispatchChunk(ply)
+		return
 	end
 
 	namespace.server_chunk_ack = false
@@ -830,8 +885,7 @@ function Net.DispatchChunk(ply)
 		namespace.last_expected_ack_chunks = SysTime() + 10
 	end
 
-	namespace.reliable_score = namespace.reliable_score + 1
-
+	-- print('chunk reliable score', namespace.reliable_score)
 	if namespace.reliable_score >= 4 then
 		namespace.use_unreliable = false
 	end
@@ -845,6 +899,10 @@ function Net.DispatchChunk(ply)
 	_net.WriteBool(data.is_compressed)
 	_net.WriteUInt16(#chunkData)
 	_net.WriteData(chunkData, #chunkData)
+
+	namespace.unacked_payload = namespace.unacked_payload + #chunkData
+	data.pending_chunks[chunkNum] = {chunkData, SysTime() + 1}
+	data.chunks[chunkNum] = nil
 
 	local a, b, c, d = DLib.Util.QuickMD5Binary(string.format(
 		'%.12d %.8d %.8d %.12d %.12d %d ',
@@ -870,6 +928,10 @@ function Net.DispatchChunk(ply)
 		_net.Send(ply)
 	end
 end
+
+---------------------------------------
+-- Receive ACK from other side that it got our payload
+---------------------------------------
 
 _net.receive('dlib_net_chunk_ack', function(length_bits, ply)
 	if SERVER and not IsValid(ply) then return end
@@ -905,7 +967,10 @@ _net.receive('dlib_net_chunk_ack', function(length_bits, ply)
 				namespace.server_chunks_num = namespace.server_chunks_num - 1
 				namespace.server_queued_size = namespace.server_queued_size - data.length
 			else
+				namespace.unacked_payload = math.max(0, namespace.unacked_payload - #(data.chunks[current_chunk] or data.pending_chunks[current_chunk] and data.pending_chunks[current_chunk][1] or ''))
+				-- print('sub unacked_paload by ', #(data.chunks[current_chunk] or data.pending_chunks[current_chunk] and data.pending_chunks[current_chunk][1] or ''))
 				data.chunks[current_chunk] = nil
+				data.pending_chunks[current_chunk] = nil
 			end
 
 			break
@@ -919,29 +984,57 @@ _net.receive('dlib_net_chunk_ack', function(length_bits, ply)
 	end
 end)
 
+---------------------------------------
+-- Send datagram list over network to other side
+---------------------------------------
+
 function Net.DispatchDatagram(ply)
 	if SERVER and not IsValid(ply) then return end
 	local namespace = Net.Namespace(CLIENT and Net or ply)
 
-	namespace.server_datagram_ack = false
-	namespace.reliable_score_dg = namespace.reliable_score_dg + 1
+	local time = SysTime()
+	local pending_until = time + 1
 
+	if namespace.next_sensible_pending_dg_check < time then
+		for key, data in pairs(namespace.server_datagrams_pending) do
+			if data.pending_until < time then
+				namespace.server_datagrams[key] = data
+				namespace.server_datagrams_pending[key] = nil
+				namespace.unacked_datagrams = namespace.unacked_datagrams - 1
+				namespace.reliable_score_dg = namespace.reliable_score_dg + 0.05
+			end
+
+			namespace.next_sensible_pending_dg_check = math.min(namespace.next_sensible_pending_dg_check, data.pending_until)
+		end
+
+		namespace.next_sensible_pending_dg_check = math.max(namespace.next_sensible_pending_dg_check, time)
+	end
+
+	if not next(namespace.server_datagrams) then return end
+
+	local hash_list = {}
+
+	namespace.server_datagram_ack = false
+
+	-- print('datagram reliable score', namespace.reliable_score_dg)
 	if namespace.reliable_score_dg >= 4 then
 		namespace.use_unreliable = false
 	end
-
-	local hash_list = {}
 
 	_net.Start('dlib_net_datagram', namespace.use_unreliable)
 
 	local lastkey, data
 
 	for i = 0, Net.message_datagram_limit - 1 do
-		lastkey, data = next(namespace.server_datagrams, lastkey)
+		lastkey, data = next(namespace.server_datagrams)
 
 		if not lastkey then
 			break
 		end
+
+		namespace.server_datagrams_pending[lastkey] = data
+		data.pending_until = pending_until
+		namespace.server_datagrams[lastkey] = nil
 
 		_net.WriteUInt16(data.id)
 		_net.WriteUInt32(data.startpos)
@@ -959,6 +1052,7 @@ function Net.DispatchDatagram(ply)
 	_net.WriteUInt32(c)
 	_net.WriteUInt32(d)
 
+	namespace.unacked_datagrams = namespace.unacked_datagrams + #hash_list
 	Net.total_traffic_out = Net.total_traffic_out + net.BytesWritten() + 3
 
 	if CLIENT then
@@ -968,6 +1062,10 @@ function Net.DispatchDatagram(ply)
 		_net.Send(ply)
 	end
 end
+
+---------------------------------------
+-- Receive ACK from other side that it got our datagram list
+---------------------------------------
 
 _net.receive('dlib_net_datagram_ack', function(length_bits, ply)
 	if SERVER and not IsValid(ply) then return end
@@ -994,6 +1092,13 @@ _net.receive('dlib_net_datagram_ack', function(length_bits, ply)
 		if namespace.server_datagrams[readid] then
 			namespace.server_datagrams[readid] = nil
 			namespace.server_datagrams_num = namespace.server_datagrams_num - 1
+
+			namespace.unacked_datagrams = math.max(0, namespace.unacked_datagrams - 1)
+		elseif namespace.server_datagrams_pending[readid] then
+			namespace.server_datagrams_pending[readid] = nil
+			namespace.server_datagrams_num = namespace.server_datagrams_num - 1
+
+			namespace.unacked_datagrams = math.max(0, namespace.unacked_datagrams - 1)
 		end
 	end
 
@@ -1340,11 +1445,11 @@ Net.WriteVars = {
 	[TYPE_NBYTE]        = function(typeid, value) Net.AccessWriteBuffer():WriteUByte(math_abs(value))       end,
 	[TYPE_UBYTE]        = function(typeid, value) Net.AccessWriteBuffer():WriteUByte(value)     end,
 
-	[TYPE_NINT]     = function(typeid, value) Net.AccessWriteBuffer():WriteUInt(math_abs(value))        end,
-	[TYPE_UINT]     = function(typeid, value) Net.AccessWriteBuffer():WriteUInt(value)      end,
+	[TYPE_NINT]         = function(typeid, value) Net.AccessWriteBuffer():WriteUInt(math_abs(value))        end,
+	[TYPE_UINT]         = function(typeid, value) Net.AccessWriteBuffer():WriteUInt(value)      end,
 
-	[TYPE_NINT]     = function(typeid, value) Net.AccessWriteBuffer():WriteUInt(math_abs(value))        end,
-	[TYPE_UINT]     = function(typeid, value) Net.AccessWriteBuffer():WriteUInt(value)      end,
+	[TYPE_NINT]         = function(typeid, value) Net.AccessWriteBuffer():WriteUInt(math_abs(value))        end,
+	[TYPE_UINT]         = function(typeid, value) Net.AccessWriteBuffer():WriteUInt(value)      end,
 
 	[TYPE_NLONG]        = function(typeid, value) Net.AccessWriteBuffer():WriteULong(math_abs(value))       end,
 	[TYPE_ULONG]        = function(typeid, value) Net.AccessWriteBuffer():WriteULong(value)     end,
@@ -1406,32 +1511,32 @@ end
 
 Net.ReadVars = {
 	[TYPE_NIL]      = function ()   return nil end,
-	[TYPE_STRING]   = function ()   return Net.ReadString() end,
-	[TYPE_NUMBER]   = function ()   return Net.ReadDouble() end,
-	[TYPE_TABLE]    = function ()   return Net.ReadTable() end,
-	[TYPE_BOOL]     = function ()   return Net.ReadBool() end,
-	[TYPE_ENTITY]   = function ()   return Net.ReadEntity() end,
-	[TYPE_VECTOR]   = function ()   return Net.ReadVector() end,
-	[TYPE_ANGLE]    = function ()   return Net.ReadAngle() end,
-	[TYPE_MATRIX]   = function ()   return Net.ReadMatrix() end,
-	[TYPE_COLOR]    = function ()   return Net.ReadColor() end,
+	[TYPE_STRING]   = function ()   return Net.ReadString()                     end,
+	[TYPE_NUMBER]   = function ()   return Net.ReadDouble()                     end,
+	[TYPE_TABLE]    = function ()   return Net.ReadTable()                      end,
+	[TYPE_BOOL]     = function ()   return Net.ReadBool()                       end,
+	[TYPE_ENTITY]   = function ()   return Net.ReadEntity()                     end,
+	[TYPE_VECTOR]   = function ()   return Net.ReadVector()                     end,
+	[TYPE_ANGLE]    = function ()   return Net.ReadAngle()                      end,
+	[TYPE_MATRIX]   = function ()   return Net.ReadMatrix()                     end,
+	[TYPE_COLOR]    = function ()   return Net.ReadColor()                      end,
 
-	[TYPE_NSHORT]       = function() return -Net.AccessReadBuffer():ReadUShort()        end,
-	[TYPE_USHORT]       = function() return Net.AccessReadBuffer():ReadUShort()     end,
+	[TYPE_NSHORT]   = function()    return -Net.AccessReadBuffer():ReadUShort() end,
+	[TYPE_USHORT]   = function()    return Net.AccessReadBuffer():ReadUShort()  end,
 
-	[TYPE_NBYTE]        = function() return -Net.AccessReadBuffer():ReadUByte()     end,
-	[TYPE_UBYTE]        = function() return Net.AccessReadBuffer():ReadUByte()      end,
+	[TYPE_NBYTE]    = function()    return -Net.AccessReadBuffer():ReadUByte()  end,
+	[TYPE_UBYTE]    = function()    return Net.AccessReadBuffer():ReadUByte()   end,
 
-	[TYPE_NINT]     = function() return -Net.AccessReadBuffer():ReadUInt()      end,
-	[TYPE_UINT]     = function() return Net.AccessReadBuffer():ReadUInt()       end,
+	[TYPE_NINT]     = function()    return -Net.AccessReadBuffer():ReadUInt()   end,
+	[TYPE_UINT]     = function()    return Net.AccessReadBuffer():ReadUInt()    end,
 
-	[TYPE_NINT]     = function() return -Net.AccessReadBuffer():ReadUInt()      end,
-	[TYPE_UINT]     = function() return Net.AccessReadBuffer():ReadUInt()       end,
+	[TYPE_NINT]     = function()    return -Net.AccessReadBuffer():ReadUInt()   end,
+	[TYPE_UINT]     = function()    return Net.AccessReadBuffer():ReadUInt()    end,
 
-	[TYPE_NLONG]        = function() return -Net.AccessReadBuffer():ReadULong()     end,
-	[TYPE_ULONG]        = function() return Net.AccessReadBuffer():ReadULong()      end,
+	[TYPE_NLONG]    = function()    return -Net.AccessReadBuffer():ReadULong()  end,
+	[TYPE_ULONG]    = function()    return Net.AccessReadBuffer():ReadULong()   end,
 
-	[TYPE_FLOAT]        = function() return Net.ReadFloat()     end,
+	[TYPE_FLOAT]    = function()    return Net.ReadFloat()                      end,
 }
 
 function Net.ReadType(typeid)
