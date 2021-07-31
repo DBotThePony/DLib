@@ -856,6 +856,12 @@ function Net.DispatchChunk(ply)
 
 		namespace.server_queued = {}
 		namespace.server_queued_num = 0
+
+		data = namespace.server_chunks[1]
+
+		if data then
+			chunkNum, chunkData = next(data.chunks)
+		end
 	end
 
 	if not data then return end
@@ -871,10 +877,12 @@ function Net.DispatchChunk(ply)
 
 		if namespace.server_datagrams_num == 0 then
 			namespace.last_expected_ack = nil
+			namespace.unacked_datagrams = 0
 		end
 
 		if namespace.server_chunks_num == 0 then
 			namespace.last_expected_ack_chunks = nil
+			namespace.unacked_payload = 0
 		end
 
 		-- return Net.DispatchChunk(ply)
@@ -981,6 +989,7 @@ _net.receive('dlib_net_chunk_ack', function(length_bits, ply)
 
 	if namespace.server_chunks_num == 0 then
 		namespace.last_expected_ack_chunks = nil
+		namespace.unacked_payload = 0
 	else
 		namespace.last_expected_ack_chunks = SysTime() + 10
 	end
@@ -1115,6 +1124,7 @@ _net.receive('dlib_net_datagram_ack', function(length_bits, ply)
 
 	if namespace.server_datagrams_num == 0 then
 		namespace.last_expected_ack = nil
+		namespace.unacked_datagrams = 0
 	else
 		namespace.last_expected_ack = SysTime() + 10
 	end
