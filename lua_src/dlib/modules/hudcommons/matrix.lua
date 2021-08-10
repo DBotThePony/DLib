@@ -107,7 +107,7 @@ end
 	Angle
 ]]
 function HUDCommons.MatrixAngle(mult)
-	return Angle(0, HUDCommons.Position2.ShiftX * (mult or 1), 0)
+	return Angle(0, HUDCommons.Position2.ShiftX() * (mult or 1), 0)
 end
 
 --[[

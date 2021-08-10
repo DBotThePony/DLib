@@ -53,6 +53,11 @@ HUDCommons.Position2 = HUDCommons.Position2 or {}
 local Pos2 = HUDCommons.Position2
 
 local ShiftX = 0
+
+function Pos2.ShiftX()
+	return ShiftX
+end
+
 local ShiftX_Ground = 0
 local ShiftX_Weapon = 0
 local ShiftY = 0
