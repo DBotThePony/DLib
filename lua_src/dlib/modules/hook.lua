@@ -495,22 +495,12 @@ end
 ]]
 function hook.Add(event, stringID, callback, priority)
 	if not isstring(event) then
-		local trace = traceback('bad argument #1 to hook.Add (string expected, got ' .. type(event) .. ')', 2) .. '\n'
-
-		if developer:GetBool() or trace:find('VLL2:VM') then
-			ErrorNoHalt(trace)
-		end
-
+		ErrorNoHalt(traceback('bad argument #1 to hook.Add (string expected, got ' .. type(event) .. ')', 2) .. '\n')
 		return
 	end
 
 	if type(callback) ~= 'function' and type(stringID) ~= 'thread' then
-		local trace = traceback('bad argument #3 to hook.Add (function expected, got ' .. type(callback) .. ')', 2) .. '\n'
-
-		if developer:GetBool() or trace:find('VLL2:VM') then
-			ErrorNoHalt(trace)
-		end
-
+		ErrorNoHalt(traceback('bad argument #3 to hook.Add (function expected, got ' .. type(callback) .. ')', 2) .. '\n')
 		return
 	end
 
