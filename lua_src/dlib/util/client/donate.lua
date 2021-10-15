@@ -113,6 +113,7 @@ local timelimit = 60 * 120
 local function Think()
 	if NEVER_ASK:GetBool() then return end
 	if IsValid(cPnl) then return end
+	if #DLib.RegisteredAddons < 1 then return end
 
 	if RealTimeL() - timelimit > lastMove then
 		makeWindow()
