@@ -162,7 +162,9 @@ function Net.Namespace(target)
 		target.use_unreliable = true
 	end
 
-	target.total_traffic_in = target.total_traffic_in or 0
+	target.use_unreliable_next_try = target.use_unreliable_next_try or 0
+
+	target.total_traffic_out = target.total_traffic_out or 0
 	target.total_traffic_out = target.total_traffic_out or 0
 
 	target.unacked_payload = target.unacked_payload or 0
@@ -218,6 +220,11 @@ function Net.Think()
 	for i = 1, #iter do
 		local ply = iter[i]
 		local namespace = Net.Namespace(ply)
+
+		if namespace.use_unreliable_next_try < time and not namespace.use_unreliable then
+			namespace.use_unreliable = true
+			ply:DLibSetNWBool('dlib_net_unreliable', true)
+		end
 
 		if (namespace.server_chunk_ack or namespace.use_unreliable and namespace.unacked_payload < Net.window_size_limit_payload and Net.USE_WINDOW:GetBool()) and (#namespace.server_queued ~= 0 or #namespace.server_chunks ~= 0) then
 			Net.DispatchChunk(ply)

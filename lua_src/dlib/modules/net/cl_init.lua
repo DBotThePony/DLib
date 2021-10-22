@@ -41,6 +41,8 @@ if Net.use_unreliable == nil then
 	Net.use_unreliable = true
 end
 
+Net.use_unreliable_next_try = Net.use_unreliable_next_try or 0
+
 Net.reliable_score = Net.reliable_score or 0
 Net.reliable_score_dg = Net.reliable_score_dg or 0
 
@@ -98,6 +100,12 @@ end
 local SysTime = SysTime
 
 function Net.Think()
+	local time = SysTime()
+
+	if Net.use_unreliable_next_try < time then
+		Net.use_unreliable = true
+	end
+
 	if (Net.server_chunk_ack or Net.use_unreliable and Net.unacked_payload < Net.window_size_limit_payload and Net.USE_WINDOW:GetBool()) and (#Net.server_queued ~= 0 or #Net.server_chunks ~= 0) then
 		Net.DispatchChunk()
 	end
@@ -105,8 +113,6 @@ function Net.Think()
 	if (Net.server_datagram_ack or Net.use_unreliable and Net.unacked_datagrams < Net.window_size_limit_datagram and Net.USE_WINDOW:GetBool()) and Net.server_datagrams_num > 0 then
 		Net.DispatchDatagram()
 	end
-
-	local time = SysTime()
 
 	if Net.last_expected_ack and Net.last_expected_ack < time then
 		-- can ANYONE HEAR MEEEE?
