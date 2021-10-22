@@ -898,6 +898,10 @@ function Net.DispatchChunk(ply)
 	-- print('chunk reliable score', namespace.reliable_score)
 	if namespace.reliable_score >= 4 then
 		namespace.use_unreliable = false
+
+		if SERVER then
+			ply:DLibSetNWBool('dlib_net_unreliable', false)
+		end
 	end
 
 	_net.Start('dlib_net_chunk', namespace.use_unreliable)
@@ -1030,6 +1034,10 @@ function Net.DispatchDatagram(ply)
 	-- print('datagram reliable score', namespace.reliable_score_dg)
 	if namespace.reliable_score_dg >= 4 then
 		namespace.use_unreliable = false
+
+		if SERVER then
+			ply:DLibSetNWBool('dlib_net_unreliable', false)
+		end
 	end
 
 	_net.Start('dlib_net_datagram', namespace.use_unreliable)

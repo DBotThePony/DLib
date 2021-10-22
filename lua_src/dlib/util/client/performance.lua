@@ -59,6 +59,7 @@ local surface_GetTextSize = surface.GetTextSize
 
 local Net = DLib.Net
 local I18n = DLib.I18n
+local ply
 
 local function refresh()
 	graph_rt_1 = GetRenderTarget('graph_profile_rt1' .. ScrW() .. '_' .. ScrH(), ScrW(), ScrH())
@@ -334,7 +335,7 @@ local function PostDrawHUD()
 	if not graph_rt_1 then refresh() end
 
 	if not features then
-		local ply = LocalPlayer()
+		ply = LocalPlayer()
 
 		features = {
 			string_format('Singleplayer: %s', game.SinglePlayer() and 'Yes' or 'No'),
@@ -450,9 +451,28 @@ local function PostDrawHUD()
 	y = draw_boxed(string_format('Network bytes out %s/in %s', I18n.FormatKilobytes(Net.total_traffic_out), I18n.FormatKilobytes(Net.total_traffic_in)), y)
 	y = draw_boxed(string_format('Payload bytes out %s/in %s', I18n.FormatKilobytes(Net.server_position), I18n.FormatKilobytes(Net.network_position)), y)
 	y = draw_boxed(string_format('Next datagram out %d/in %d', Net.next_datagram_id, Net.next_expected_datagram), y)
-	y = draw_boxed(string_format('Queued out Chunks %d/Datagrams %d', Net.server_chunks_num, Net.server_datagrams_num), y)
-	y = draw_boxed(string_format('Queued in Chunks %d/Datagrams %d', Net.queued_chunks_num, Net.queued_datagrams_num), y)
+	y = draw_boxed(string_format('Queued out Chunks %d/Datagrams %d; queued in Chunks %d/Datagrams %d', Net.server_chunks_num, Net.server_datagrams_num, Net.queued_chunks_num, Net.queued_datagrams_num), y)
 	y = draw_boxed(string_format('Input buffer %s', I18n.FormatKilobytes(Net.accumulated_size)), y)
+
+	if Net.use_unreliable then
+		surface_SetTextColor(200, 255, 200)
+		y = draw_boxed('Using unreliable channel', y)
+		surface_SetTextColor(200, 200, 200)
+	else
+		surface_SetTextColor(255, 200, 200)
+		y = draw_boxed('Using reliable channel; suffered network losses earlier', y)
+		surface_SetTextColor(200, 200, 200)
+	end
+
+	if ply:DLibGetNWBool('dlib_net_unreliable', true) then
+		surface_SetTextColor(200, 255, 200)
+		y = draw_boxed('Server is using unreliable channel', y)
+		surface_SetTextColor(200, 200, 200)
+	else
+		surface_SetTextColor(255, 200, 200)
+		y = draw_boxed('Server is using reliable channel; suffered network losses earlier', y)
+		surface_SetTextColor(200, 200, 200)
+	end
 
 	y = 0
 

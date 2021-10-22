@@ -269,3 +269,7 @@ function Net.Think()
 end
 
 hook.Add('Think', 'DLib.Net.ThinkChunks', Net.Think, 10)
+
+for k, ply in ipairs(player.GetAll()) do
+	ply:DLibSetNWBool('dlib_net_unreliable', Net.Namespace(ply).use_unreliable)
+end
