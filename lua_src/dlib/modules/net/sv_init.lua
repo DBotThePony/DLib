@@ -164,7 +164,7 @@ function Net.Namespace(target)
 
 	target.use_unreliable_next_try = target.use_unreliable_next_try or 0
 
-	target.total_traffic_out = target.total_traffic_out or 0
+	target.total_traffic_in = target.total_traffic_in or 0
 	target.total_traffic_out = target.total_traffic_out or 0
 
 	target.unacked_payload = target.unacked_payload or 0
