@@ -19,6 +19,7 @@
 -- DEALINGS IN THE SOFTWARE.
 
 local DLib = DLib
+local SERVER = SERVER
 local Net = DLib.Net
 local isnumber = isnumber
 local Entity = Entity
@@ -40,6 +41,203 @@ local NWTrackedEnts = Net.NWTrackedEnts
 
 local IsValid = entMeta.IsValid
 
+local array_meta = {}
+
+local function _NotifySet(self, key)
+	if not SERVER then return end
+
+	self.dirty[key] = true
+
+	if not self.bdirty then
+		self.bdirty = true
+		Net.NWVarsArrayDirty[#Net.NWVarsArrayDirty + 1] = self
+		Net._var_dirty = true
+	end
+end
+
+function array_meta:Add(value)
+	self:Put(#self.store + 1, value)
+end
+
+function array_meta:Put(index, value)
+	if self.store[index] ~= value then
+		self.store[index] = value
+		_NotifySet(self, index)
+	end
+end
+
+function array_meta:pairs()
+	return pairs(self.store)
+end
+
+function array_meta:ipairs()
+	return ipairs(self.store)
+end
+
+function array_meta:Keys()
+	return table.GetKeys(self.store)
+end
+
+function array_meta:Copy()
+	local build = {}
+
+	if copy then
+		for k, v in pairs(self.store) do
+			build[k] = copy(v)
+		end
+	else
+		for k, v in pairs(self.store) do
+			build[k] = v
+		end
+	end
+
+	return build
+end
+
+function array_meta:Get(index, if_none)
+	local value = self.store[index]
+
+	if value ~= nil then
+		if copy then return copy(value) end
+		return value
+	end
+
+	if if_none == nil then return defaultIfNone end
+	return if_none
+end
+
+function array_meta:Remove(index)
+	local value = self.store[index]
+
+	if value ~= nil then
+		self.store[index] = nil
+		_NotifySet(self, index)
+		return value
+	end
+end
+
+function array_meta:RemoveMember(value)
+	local index = self:IndexOf(value)
+
+	if index ~= nil then
+		self:Remove(index)
+		return true
+	end
+
+	return false
+end
+
+array_meta.RemoveValue = array_meta.RemoveMember
+
+function array_meta:Has(value)
+	for k, v in pairs(self.store) do
+		if v == value then return true end
+	end
+
+	return false
+end
+
+function array_meta:IndexOf(value)
+	for k, v in pairs(self.store) do
+		if v == value then return k end
+	end
+end
+
+function array_meta:NonEmpty()
+	return next(self.store) ~= nil
+end
+
+do
+	Net.NWVarsArray = Net.NWVarsArray or {}
+	Net.NWVarsArrayDirty = Net.NWVarsArrayDirty or {}
+
+	local registry_array = Net.NWVarsArray
+	local self_index_array = '_dnw2_a'
+
+	local function create_array_for(index, key, ent)
+		return setmetatable({
+			ent = ent,
+			ient = index,
+			key = key,
+			store = {},
+			dirty = {},
+			bdirty = false,
+			copy = copy
+		}, {
+			__index = array_meta
+		})
+	end
+
+	local function create_array(self, key)
+		local index = EntIndex(self)
+		local value
+
+		if index > 0 then
+			value = registry_array[index]
+
+			if not value then
+				registry_array[index] = {}
+				value = registry_array[index]
+			end
+		else
+			value = GetTable(self)[self_index_array]
+
+			if not value then
+				value = {}
+				self[self_index_array] = value
+			end
+		end
+
+		local make = create_array_for(index, key, self)
+		value[key] = make
+		return make
+	end
+
+	Net._create_array = create_array
+	Net._create_array_for = create_array_for
+
+	function entMeta:DLibGetNWTable(name, create_if_empty)
+		if create_if_empty == nil then create_if_empty = true end
+		local index = EntIndex(self)
+
+		if index > 0 then
+			local value = registry_array[index]
+
+			if not value then
+				if not create_if_empty then return end
+				return create_array(self, name, copy)
+			end
+
+			value = value[name]
+
+			if value == nil then
+				if not create_if_empty then return end
+				return create_array(self, name, copy)
+			end
+
+			return value
+		else
+			local value = GetTable(self)[self_index_array]
+
+			if not value then
+				if not create_if_empty then return end
+				return create_array(self, name, copy)
+			end
+
+			value = value[name]
+
+			if value == nil then
+				if not create_if_empty then return end
+				return create_array(self, name, copy)
+			end
+
+			return value
+		end
+	end
+
+	entMeta.DLibGetNWArray = entMeta.DLibGetNWTable
+end
+
 local function define(name, defaultIfNone, copy, _assert, _assert_type)
 	Net['NWVars' .. name] = Net['NWVars' .. name] or {}
 	Net['NWVars' .. name .. 'Callbacks'] = Net['NWVars' .. name .. 'Callbacks'] or {}
@@ -54,7 +252,9 @@ local function define(name, defaultIfNone, copy, _assert, _assert_type)
 	local self_index = '_dnw2_' .. name
 	local self_index_callbacks = '_dnw2_' .. name .. '_cb'
 
+	-- Getters
 	if copy then
+		-- Getter with output copy
 		entMeta['DLibGetNW' .. name] = function(self, name, ifNone)
 			if ifNone == nil then ifNone = defaultIfNone end
 			local index = EntIndex(self)
@@ -91,6 +291,7 @@ local function define(name, defaultIfNone, copy, _assert, _assert_type)
 			end
 		end
 	else
+		-- Getter without output copy
 		entMeta['DLibGetNW' .. name] = function(self, name, ifNone)
 			if ifNone == nil then ifNone = defaultIfNone end
 			local index = EntIndex(self)
@@ -152,6 +353,7 @@ local function define(name, defaultIfNone, copy, _assert, _assert_type)
 		end
 	end
 
+	-- Var proxy getter
 	entMeta['DLibGetNWVarProxy' .. name] = function(self, name)
 		assert(IsValid(self), 'IsValid(self)', 2)
 		assert(isstring(name), 'isstring(name)', 2)
@@ -174,6 +376,7 @@ local function define(name, defaultIfNone, copy, _assert, _assert_type)
 		end
 	end
 
+	-- Var proxy setter
 	entMeta['DLibSetNWVarProxy' .. name] = function(self, name, setfunc)
 		assert(IsValid(self), 'IsValid(self)', 2)
 		assert(isstring(name), 'isstring(name)', 2)
@@ -203,6 +406,7 @@ local function define(name, defaultIfNone, copy, _assert, _assert_type)
 		end
 	end
 
+	-- Var setter for entity
 	if name == 'Entity' then
 		if CLIENT then
 			entMeta['DLibSetNW' .. name] = function(self, name, setvalue)
@@ -311,6 +515,7 @@ local function define(name, defaultIfNone, copy, _assert, _assert_type)
 			end
 		end
 	else
+		-- Var setter (regular)
 		if CLIENT then
 			entMeta['DLibSetNW' .. name] = function(self, name, setvalue)
 				assert(IsValid(self) or self == game_GetWorld(), 'IsValid(self)', 2)

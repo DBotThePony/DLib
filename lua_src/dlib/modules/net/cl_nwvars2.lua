@@ -116,6 +116,8 @@ local function read_list(_list, _callbacks, read)
 	end
 end
 
+local NWVarsArray = Net.NWVarsArray
+
 Net.Receive('dlib_nw2_set', function()
 	read_list(NWVarsUInt,   NWVarsUIntCallbacks,   Net.ReadUInt32)
 	read_list(NWVarsInt,    NWVarsIntCallbacks,    Net.ReadInt32)
@@ -125,6 +127,36 @@ Net.Receive('dlib_nw2_set', function()
 	read_list(NWVarsString, NWVarsStringCallbacks, Net.ReadString)
 	read_list(NWVarsAngle,  NWVarsAngleCallbacks,  Net.ReadAngleDouble)
 	read_list(NWVarsVector, NWVarsVectorCallbacks, Net.ReadVectorDouble)
+
+	local read_entity_id = Net.ReadUInt16()
+
+	while read_entity_id ~= 0xFFFF do
+		local read_network_id = Net.ReadUInt16()
+		local lookup = assert(NWVarNameRegistry[read_network_id], 'Net.NWVarNameRegistry[read_network_id]')
+		local storage = NWVarsArray[read_entity_id]
+
+		if not storage then
+			storage = {}
+			NWVarsArray[read_entity_id] = storage
+		end
+
+		local array = storage[lookup]
+
+		if not array then
+			array = Net._create_array_for(read_entity_id, lookup, Entity(read_entity_id))
+			storage[lookup] = array
+		end
+
+		local store = array.store
+		local read_key = Net.ReadType()
+
+		while read_key ~= nil do
+			store[read_key] = Net.ReadType()
+			read_key = Net.ReadType()
+		end
+
+		read_entity_id = Net.ReadUInt16()
+	end
 end)
 
 Net.Receive('dlib_nw2_delete', function()
@@ -138,6 +170,8 @@ Net.Receive('dlib_nw2_delete', function()
 	NWVarsString[index] = nil
 	NWVarsAngle[index] = nil
 	NWVarsVector[index] = nil
+
+	NWVarsArray[index] = nil
 
 	DLib.NW.NETWORK_DB[index] = nil
 

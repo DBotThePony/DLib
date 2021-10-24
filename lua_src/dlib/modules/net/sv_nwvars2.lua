@@ -143,6 +143,9 @@ local function write_entity(index)
 	end
 end
 
+local NWVarsArray = Net.NWVarsArray
+local NWVarsArrayDirty = Net.NWVarsArrayDirty
+
 local function Think()
 	if not Net._var_dirty then return end
 	Net._var_dirty = false
@@ -171,6 +174,26 @@ local function Think()
 	Net.WriteUInt16(0xFFFF)
 
 	write_list(NWVarsVectorDirty, Net.WriteVectorDouble)
+	Net.WriteUInt16(0xFFFF)
+
+	for i = #NWVarsArrayDirty, 1, -1 do
+		local dirty_list = NWVarsArrayDirty[i]
+
+		Net.WriteUInt16(dirty_list.ient)
+		Net.WriteUInt16(Net.GetVarName(dirty_list.key))
+
+		dirty_list.bdirty = false
+		local dirty, store = dirty_list.dirty, dirty_list.store
+
+		for key in next, dirty do
+			Net.WriteType(key)
+			Net.WriteType(store[key])
+		end
+
+		Net.WriteType(nil)
+		NWVarsArrayDirty[i] = nil
+	end
+
 	Net.WriteUInt16(0xFFFF)
 
 	Net.Broadcast()
@@ -203,6 +226,22 @@ function Net.ReplicateVars(ply)
 	write_list_replicate(NWVarsVector, Net.WriteVectorDouble)
 	Net.WriteUInt16(0xFFFF)
 
+	for index, list in pairs(NWVarsArray) do
+		Net.WriteUInt16(index)
+		Net.WriteUInt16(Net.GetVarName(list.key))
+
+		local store = list.store
+
+		for key, value in next, store do
+			Net.WriteType(key)
+			Net.WriteType(value)
+		end
+
+		Net.WriteType(nil)
+	end
+
+	Net.WriteUInt16(0xFFFF)
+
 	Net.Send(ply)
 end
 
@@ -229,6 +268,15 @@ local function EntityRemoved(self)
 	NWVarsString[index] = nil
 	NWVarsAngle[index] = nil
 	NWVarsVector[index] = nil
+
+	NWVarsArray[index] = nil
+	-- NWVarsArrayDirty[index] = nil
+
+	for i = #NWVarsArrayDirty, 1, -1 do
+		if NWVarsArrayDirty[i].ient == index then
+			table.remove(NWVarsArrayDirty, i)
+		end
+	end
 
 	if NWTrackedEnts[index] then
 		for ent, data_list in next, NWVarsEntity do
