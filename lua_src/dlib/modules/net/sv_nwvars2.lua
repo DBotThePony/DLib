@@ -227,17 +227,19 @@ function Net.ReplicateVars(ply)
 	Net.WriteUInt16(0xFFFF)
 
 	for index, list in pairs(NWVarsArray) do
-		Net.WriteUInt16(index)
-		Net.WriteUInt16(Net.GetVarName(list.key))
+		for k, v in pairs(list) do
+			Net.WriteUInt16(index)
+			Net.WriteUInt16(Net.GetVarName(v.key))
 
-		local store = list.store
+			local store = v.store
 
-		for key, value in next, store do
-			Net.WriteType(key)
-			Net.WriteType(value)
+			for key, value in next, store do
+				Net.WriteType(key)
+				Net.WriteType(value)
+			end
+
+			Net.WriteType(nil)
 		end
-
-		Net.WriteType(nil)
 	end
 
 	Net.WriteUInt16(0xFFFF)
