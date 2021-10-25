@@ -337,7 +337,7 @@ class DLib.CacheManager
 
 	CleanupIfFull: (demand = false) =>
 		size = @TotalSize()
-		limit = @convar and @convar\GetInt()\max(@minimal or 0) or @limit
+		limit = @convar and @convar\GetFloat()\max(@minimal or 0) or @limit
 		return false if limit <= 0
 		return false if size <= limit * (demand and 1 or 1.2)
 		return false if #@state == 0
