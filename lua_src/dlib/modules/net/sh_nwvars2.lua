@@ -197,6 +197,8 @@ do
 	Net._create_array_for = create_array_for
 
 	function entMeta:DLibGetNWTable(name, create_if_empty)
+		assert(IsValid(self) or self == game_GetWorld(), 'IsValid(self)', 2)
+
 		if create_if_empty == nil then create_if_empty = true end
 		local index = EntIndex(self)
 
@@ -256,6 +258,8 @@ local function define(name, defaultIfNone, copy, _assert, _assert_type)
 	if copy then
 		-- Getter with output copy
 		entMeta['DLibGetNW' .. name] = function(self, name, ifNone)
+			assert(IsValid(self) or self == game_GetWorld(), 'IsValid(self)', 2)
+
 			if ifNone == nil then ifNone = defaultIfNone end
 			local index = EntIndex(self)
 
@@ -293,6 +297,8 @@ local function define(name, defaultIfNone, copy, _assert, _assert_type)
 	else
 		-- Getter without output copy
 		entMeta['DLibGetNW' .. name] = function(self, name, ifNone)
+			assert(IsValid(self) or self == game_GetWorld(), 'IsValid(self)', 2)
+
 			if ifNone == nil then ifNone = defaultIfNone end
 			local index = EntIndex(self)
 
@@ -355,6 +361,8 @@ local function define(name, defaultIfNone, copy, _assert, _assert_type)
 
 	-- Var proxy getter
 	entMeta['DLibGetNWVarProxy' .. name] = function(self, name)
+		if not self:IsValid() then error('Tried to use a NULL Entity!', 2) end
+
 		assert(IsValid(self), 'IsValid(self)', 2)
 		assert(isstring(name), 'isstring(name)', 2)
 
