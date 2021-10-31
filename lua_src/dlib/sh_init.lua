@@ -108,6 +108,7 @@ DLib.MessageNoNL('Initializing DLib GLua extensions ... ')
 DLib.SharedInclude('modules/hook.lua')
 
 DLib.SharedInclude('util/combathelper.lua')
+DLib.SharedInclude('util/lerp.lua')
 
 DLib.SharedInclude('modules/bitworker.lua')
 
@@ -133,7 +134,6 @@ DLib.SharedInclude('modules/bytesbuffer.lua')
 DLib.SharedInclude('util/hash.lua')
 DLib.SharedInclude('modules/nbt.lua')
 DLib.SharedInclude('modules/gobjectnotation.lua')
-DLib.SharedInclude('modules/lerp.lua')
 DLib.SharedInclude('modules/sh_cami.lua')
 DLib.SharedInclude('modules/predictedvars.lua')
 

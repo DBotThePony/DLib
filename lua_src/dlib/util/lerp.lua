@@ -28,6 +28,24 @@ end
 
 --[[
 	@doc
+	@fname SDK_SimpleSpline
+	@args T value
+
+	@desc
+	The "SimpleSpline" inline function from Source SDK, utilized in many of
+	Source Engine's functions.
+	@enddesc
+
+	@returns
+	T: lerped value
+]]
+function _G.SDK_SimpleSpline(value)
+	local square = value * value
+	return 3 * square - 2 * square * value
+end
+
+--[[
+	@doc
 	@fname LerpQuintic
 	@args T t, T from, T to
 
