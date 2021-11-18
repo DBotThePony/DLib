@@ -98,6 +98,8 @@ function Net.SendToServer()
 end
 
 local SysTime = SysTime
+local LocalPlayer = LocalPlayer
+local IsValid = FindMetaTable('Entity').IsValid
 
 function Net.Think()
 	local time = SysTime()
@@ -138,7 +140,7 @@ function Net.Think()
 		Net.last_expected_ack_chunks = time + Net.reliable_window
 	end
 
-	if Net.process_next and Net.process_next < time then
+	if Net.process_next and Net.process_next < time and IsValid(LocalPlayer()) then
 		Net.process_next = nil
 		Net.ProcessIncomingQueue(DLib.Net)
 	end
