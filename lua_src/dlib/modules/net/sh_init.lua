@@ -1432,6 +1432,18 @@ function Net.WriteTable(tab)
 	Net.WriteType()
 end
 
+function Net.WriteTableProtected(tab)
+	for k, v in pairs(tab) do
+		if Net.CanWriteType(k) and Net.CanWriteType(v) then
+			Net.WriteType(k)
+			Net.WriteType(v)
+		end
+	end
+
+	-- End of table
+	Net.WriteType()
+end
+
 function Net.ReadTable()
 	local tab = {}
 
@@ -1487,6 +1499,18 @@ Net.WriteVars = {
 
 local IsColor = IsColor
 local TypeID = TypeID
+
+function Net.CanWriteType(v)
+	local typeid
+
+	if IsColor(v) then
+		typeid = TYPE_COLOR
+	else
+		typeid = TypeID(v)
+	end
+
+	return Net.WriteVars[typeid] ~= nil
+end
 
 function Net.WriteType(v)
 	local typeid
