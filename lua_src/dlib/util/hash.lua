@@ -465,6 +465,10 @@ DLib.Util.SHA1 = DLib.CreateMoonClassBare('SHA1', metasha1, {})
 ]]
 
 function DLib.Util.QuickSHA1(str)
+	if util.SHA1 then
+		return util.SHA1(str)
+	end
+
 	return DLib.Util.SHA1():Update(str):Digest()
 end
 
@@ -805,6 +809,10 @@ DLib.Util.SHA224 = DLib.CreateMoonClassBare('SHA224', metasha224, {})
 ]]
 
 function DLib.Util.QuickSHA256(str)
+	if util.SHA256 then
+		return util.SHA256(str)
+	end
+
 	return DLib.Util.SHA256():Update(str):Digest()
 end
 
