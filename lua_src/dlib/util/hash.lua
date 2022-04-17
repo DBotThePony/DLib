@@ -458,6 +458,8 @@ DLib.Util.SHA1 = DLib.CreateMoonClassBare('SHA1', metasha1, {})
 
 	@desc
 	Equals to `return DLib.Util.SHA1():Update(str):Digest()`
+	If running sufficiently new Garry's Mod version, this is transparently replaced
+	by !g:util.SHA1
 	@enddesc
 
 	@returns
@@ -802,6 +804,8 @@ DLib.Util.SHA224 = DLib.CreateMoonClassBare('SHA224', metasha224, {})
 
 	@desc
 	Equals to `return DLib.Util.SHA256():Update(str):Digest()`
+	If running sufficiently new Garry's Mod version, this is transparently replaced
+	by !g:util.SHA256
 	@enddesc
 
 	@returns
