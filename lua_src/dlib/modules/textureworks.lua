@@ -607,7 +607,7 @@ function RGBA8888Object.Create(width, height, fill, bytes)
 	local filler = string.char(r, g, b, a)
 
 	if not bytes then
-		return DLib.RGBA8888(DLib.BytesBuffer(string.rep(filler, width * height)), width, height)
+		return DLib.RGBA8888(DLib.BytesBuffer.AllocatePattern(filler, width * height), width, height)
 	end
 
 	local pointer = bytes:Tell()
@@ -825,7 +825,7 @@ function ARGB8888Object.Create(width, height, fill, bytes)
 	local filler = string.char(a, r, g, b)
 
 	if not bytes then
-		return DLib.ARGB8888(DLib.BytesBuffer(string.rep(filler, width * height)), width, height)
+		return DLib.ARGB8888(DLib.BytesBuffer.AllocatePattern(filler, width * height), width, height)
 	end
 
 	local pointer = bytes:Tell()
@@ -863,7 +863,7 @@ function BGRA8888Object.Create(width, height, fill, bytes)
 	local filler = string.char(b, g, r, a)
 
 	if not bytes then
-		return DLib.BGRA8888(DLib.BytesBuffer(string.rep(filler, width * height)), width, height)
+		return DLib.BGRA8888(DLib.BytesBuffer.AllocatePattern(filler, width * height), width, height)
 	end
 
 	local pointer = bytes:Tell()
@@ -902,7 +902,7 @@ function ABGR8888Object.Create(width, height, fill, bytes)
 	local filler = string.char(a, b, g, r)
 
 	if not bytes then
-		return DLib.ABGR8888(DLib.BytesBuffer(string.rep(filler, width * height)), width, height)
+		return DLib.ABGR8888(DLib.BytesBuffer.AllocatePattern(filler, width * height), width, height)
 	end
 
 	local pointer = bytes:Tell()
@@ -940,7 +940,7 @@ function RGB888Object.Create(width, height, fill, bytes)
 	local filler = string.char(r, g, b)
 
 	if not bytes then
-		return DLib.RGB888(DLib.BytesBuffer(string.rep(filler, width * height)), width, height)
+		return DLib.RGB888(DLib.BytesBuffer.AllocatePattern(filler, width * height), width, height)
 	end
 
 	local pointer = bytes:Tell()
@@ -1121,7 +1121,7 @@ function BGR888Object.Create(width, height, fill, bytes)
 	local filler = string.char(b, g, r)
 
 	if not bytes then
-		return DLib.BGR888(DLib.BytesBuffer(string.rep(filler, width * height)), width, height)
+		return DLib.BGR888(DLib.BytesBuffer.AllocatePattern(filler, width * height), width, height)
 	end
 
 	local pointer = bytes:Tell()
@@ -1344,7 +1344,7 @@ function RGB565Object.Create(width, height, fill, bytes)
 	local filler = string.char(band(color, 0xFF), rshift(color, 8))
 
 	if not bytes then
-		return DLib.RGB565(DLib.BytesBuffer(string.rep(filler, width * height)), width, height)
+		return DLib.RGB565(DLib.BytesBuffer.AllocatePattern(filler, width * height), width, height)
 	end
 
 	local pointer = bytes:Tell()
@@ -1613,7 +1613,7 @@ function BGR565Object.Create(width, height, fill, bytes)
 	local filler = string.char(band(color, 0xFF), rshift(color, 8))
 
 	if not bytes then
-		return DLib.BGR565(DLib.BytesBuffer(string.rep(filler, width * height)), width, height)
+		return DLib.BGR565(DLib.BytesBuffer.AllocatePattern(filler, width * height), width, height)
 	end
 
 	local pointer = bytes:Tell()
@@ -1653,7 +1653,7 @@ function BGRA4444Object.Create(width, height, fill, bytes)
 	local filler = string.char(band(color, 0xFF), rshift(color, 8))
 
 	if not bytes then
-		return DLib.BGRA4444(DLib.BytesBuffer(string.rep(filler, width * height)), width, height)
+		return DLib.BGRA4444(DLib.BytesBuffer.AllocatePattern(filler, width * height), width, height)
 	end
 
 	local pointer = bytes:Tell()
@@ -1693,7 +1693,7 @@ function BGRA5551Object.Create(width, height, fill, bytes)
 	local filler = string.char(band(color, 0xFF), rshift(color, 8))
 
 	if not bytes then
-		return DLib.BGRA5551(DLib.BytesBuffer(string.rep(filler, width * height)), width, height)
+		return DLib.BGRA5551(DLib.BytesBuffer.AllocatePattern(filler, width * height), width, height)
 	end
 
 	local pointer = bytes:Tell()
@@ -1761,7 +1761,7 @@ function I8Object.Create(width, height, fill, bytes)
 	local filler = string.char(to_luma_rec601(floor(fill.r), floor(fill.g), floor(fill.b)))
 
 	if not bytes then
-		return DLib.I8(DLib.BytesBuffer(string.rep(filler, width * height)), width, height)
+		return DLib.I8(DLib.BytesBuffer.AllocatePattern(filler, width * height), width, height)
 	end
 
 	local pointer = bytes:Tell()
@@ -1956,7 +1956,7 @@ function IA88Object.Create(width, height, fill, bytes)
 	local filler = string.char(to_luma_rec601(floor(fill.r), floor(fill.g), floor(fill.b)), floor(fill.a))
 
 	if not bytes then
-		return DLib.I8(DLib.BytesBuffer(string.rep(filler, width * height)), width, height)
+		return DLib.I8(DLib.BytesBuffer.AllocatePattern(filler, width * height), width, height)
 	end
 
 	local pointer = bytes:Tell()
@@ -2183,7 +2183,7 @@ function A8Object.Create(width, height, fill, bytes)
 	local filler = string.char(floor(fill.a))
 
 	if not bytes then
-		return DLib.A8(DLib.BytesBuffer(string.rep(filler, width * height)), width, height)
+		return DLib.A8(DLib.BytesBuffer.AllocatePattern(filler, width * height), width, height)
 	end
 
 	local pointer = bytes:Tell()

@@ -90,7 +90,7 @@ function DXT1Object.Create(width, height, fill, bytes, onebitalpha)
 	end
 
 	if not bytes then
-		local texture = DLib.DXT1(DLib.BytesBuffer(string.rep(filler, width * height / 16)), width, height)
+		local texture = DLib.DXT1(DLib.BytesBuffer.AllocatePattern(filler, width * height / 16), width, height)
 		texture:SetOneBitAlpha(onebitalpha == true)
 		return texture
 	end
@@ -817,7 +817,7 @@ function DXT3Object.Create(width, height, fill, bytes)
 		band(rshift(color0, 8), 255)) .. '\x00\x00\x00\x00'
 
 	if not bytes then
-		return DLib.DXT3(DLib.BytesBuffer(string.rep(filler, width * height / 16)), width, height)
+		return DLib.DXT3(DLib.BytesBuffer.AllocatePattern(filler, width * height / 16), width, height)
 	end
 
 	local pointer = bytes:Tell()
@@ -1067,7 +1067,7 @@ function DXT5Object.Create(width, height, fill, bytes)
 		band(rshift(color0, 8), 255)) .. '\x00\x00\x00\x00'
 
 	if not bytes then
-		return DLib.DXT5(DLib.BytesBuffer(string.rep(filler, width * height / 16)), width, height)
+		return DLib.DXT5(DLib.BytesBuffer.AllocatePattern(filler, width * height / 16), width, height)
 	end
 
 	local pointer = bytes:Tell()

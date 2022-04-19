@@ -284,7 +284,7 @@ function meta:ctor(stringIn)
 
 		for i = 1, math_floor(length / 4) do
 			local a, b, c, d = string_byte(stringIn, (i - 1) * 4 + 1, (i - 1) * 4 + 4)
-			bytes[i] = a + lshift(b, 8) + lshift(c, 16) + lshift(d, 24)
+			bytes[i] = bor(a, lshift(b, 8), lshift(c, 16), lshift(d, 24))
 		end
 
 		self.bytes = bytes
@@ -296,10 +296,10 @@ function meta:ctor(stringIn)
 			bytes[#bytes + 1] = string_byte(stringIn, length)
 		elseif _length == 2 then
 			local a, b = string_byte(stringIn, length - 1, length)
-			bytes[#bytes + 1] = a + lshift(b, 8)
+			bytes[#bytes + 1] = bor(a, lshift(b, 8))
 		elseif _length == 3 then
 			local a, b, c = string_byte(stringIn, length - 2, length)
-			bytes[#bytes + 1] = a + lshift(b, 8) + lshift(c, 16)
+			bytes[#bytes + 1] = bor(a, lshift(b, 8), lshift(c, 16))
 		end
 	else
 		self.bytes = {}
@@ -320,6 +320,79 @@ function metaclass.Allocate(length)
 	end
 
 	buff.length = length
+
+	return buff
+end
+
+local rol = bit.rol
+
+function metaclass.AllocatePattern(pattern, repeats)
+	local buff = DLib.BytesBuffer()
+	local bytes = buff.bytes
+
+	if #pattern == 1 then
+		-- ровно байт
+		local a = string_byte(pattern, 1)
+		local full = bor(a, lshift(a, 8), lshift(a, 16), lshift(a, 24))
+
+		for i = 1, math_floor(repeats / 4) do
+			bytes[i] = full
+		end
+
+		local _length = band(repeats, 3)
+
+		if _length == 1 then
+			bytes[#bytes + 1] = a
+		elseif _length == 2 then
+			bytes[#bytes + 1] = bor(a, lshift(a, 8))
+		elseif _length == 3 then
+			bytes[#bytes + 1] = bor(a, lshift(a, 8), lshift(a, 16))
+		end
+
+		buff.length = repeats
+	elseif #pattern == 2 then
+		-- ровно 2 байта
+		local a, b = string_byte(pattern, 1, 2)
+		local full = bor(a, lshift(b, 8), lshift(a, 16), lshift(b, 24))
+
+		for i = 1, math_floor(repeats / 2) do
+			bytes[i] = full
+		end
+
+		if band(repeats, 1) == 1 then
+			bytes[#bytes + 1] = bor(a, lshift(b, 8))
+		end
+
+		buff.length = repeats * 2
+		-- 3 байта не имеют логики, так как требуют зацикливание и встречаются довольно редко
+		-- поэтому они обрабатываются как обычно
+	elseif #pattern == 4 then
+		-- ровно 4 байта
+		local a, b, c, d = string_byte(pattern, 1, 4)
+		local full = bor(a, lshift(b, 8), lshift(c, 16), lshift(d, 24))
+
+		for i = 1, repeats do
+			bytes[i] = full
+		end
+
+		buff.length = repeats * 4
+	elseif #pattern % 4 == 0 then
+		-- выровнено по границе в 4 байта
+		local pbyte = DLib.BytesBuffer(pattern)
+		local bytesPattern = pbyte.bytes
+		local len = #bytesPattern
+
+		for rep = 1, repeats do
+			for i = 1, len do
+				bytes[(rep - 1) * len + i] = bytesPattern[i]
+			end
+		end
+
+		buff.length = repeats * len * 4
+	else
+		-- никакой специальной логики
+		meta.ctor(buff, string.rep(pattern, repeats))
+	end
 
 	return buff
 end
