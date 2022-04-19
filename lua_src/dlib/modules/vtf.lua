@@ -1653,7 +1653,8 @@ function VTF:CaptureRenderTargetCoroutine(opts, y, width, height, rx, ry, ...)
 			height = height,
 			rx = rx,
 			ry = ry,
-			yield_args = {...}
+			yield_args = {...},
+			pop_rendertarget = false,
 		}
 	end
 
@@ -1663,23 +1664,20 @@ function VTF:CaptureRenderTargetCoroutine(opts, y, width, height, rx, ry, ...)
 	if opts.ry == nil then opts.ry = 0 end
 	if opts.width == nil then opts.width = math.min(ScrW() - opts.rx, self.width - 1) end
 	if opts.height == nil then opts.height = math.min(ScrH() - opts.ry, self.height - 1) end
+	if opts.pop_rendertarget == nil then opts.pop_rendertarget = false end
 
 	local identifier
 
 	if opts.before == nil and opts.after == nil then
-		local rt = render.GetRenderTarget()
 		identifier = string.format('vtf_rt_%d', DLib._NEXT_VTF_PROGRESS_IDENTIFIER)
 		DLib._NEXT_VTF_PROGRESS_IDENTIFIER = DLib._NEXT_VTF_PROGRESS_IDENTIFIER + 1
 		local text = DLib.I18n.Localize('gui.dlib.notify.vtf_encoding')
 
 		function opts.before()
-			-- idk
-			render.PopRenderTarget()
+
 		end
 
 		function opts.after(progress)
-			-- idk
-			render.PushRenderTarget(rt)
 			DLib.Util.PushProgress(identifier, text, progress)
 		end
 	end
@@ -1693,6 +1691,11 @@ function VTF:CaptureRenderTargetCoroutine(opts, y, width, height, rx, ry, ...)
 	assert(opts.ry + opts.height < self.height, 'y + height < self.height')
 
 	local bitmap = render.CapturePixelsBitmap()
+
+	if opts.pop_rendertarget then
+		render.PopRenderTarget()
+	end
+
 	local bW, bH = ScrW(), ScrH()
 	local texture = self:GetTexture(opts.mipmap or self.m_upcomping_mipmap, opts.frame or self.m_upcomping_frame, opts.face or self.m_upcomping_face, opts.depth or self.m_upcomping_depth)
 	texture:CaptureRenderTargetCoroutine(bitmap, bW, bH, opts.x, opts.y, opts.width, opts.height, opts.rx, opts.ry, opts.before, opts.after, opts.thersold, unpack(opts.yield_args))
@@ -1810,7 +1813,8 @@ function VTF:CaptureRenderTargetAsAlphaCoroutine(opts, y, width, height, rx, ry,
 			height = height,
 			rx = rx,
 			ry = ry,
-			yield_args = {...}
+			yield_args = {...},
+			pop_rendertarget = false,
 		}
 	end
 
@@ -1820,21 +1824,20 @@ function VTF:CaptureRenderTargetAsAlphaCoroutine(opts, y, width, height, rx, ry,
 	if opts.ry == nil then opts.ry = 0 end
 	if opts.width == nil then opts.width = math.min(ScrW() - opts.rx, self.width - 1) end
 	if opts.height == nil then opts.height = math.min(ScrH() - opts.ry, self.height - 1) end
+	if opts.pop_rendertarget == nil then opts.pop_rendertarget = false end
 
 	local identifier
 
 	if opts.before == nil and opts.after == nil then
-		local rt = render.GetRenderTarget()
 		identifier = string.format('vtf_rta_%d', DLib._NEXT_VTF_PROGRESS_IDENTIFIER)
 		DLib._NEXT_VTF_PROGRESS_IDENTIFIER = DLib._NEXT_VTF_PROGRESS_IDENTIFIER + 1
 		local text = DLib.I18n.Localize('gui.dlib.notify.vtf_encoding_alpha')
 
 		function opts.before()
-			render.PopRenderTarget()
+
 		end
 
 		function opts.after(progress)
-			render.PushRenderTarget(rt)
 			DLib.Util.PushProgress(identifier, text, progress)
 		end
 	end
@@ -1848,6 +1851,11 @@ function VTF:CaptureRenderTargetAsAlphaCoroutine(opts, y, width, height, rx, ry,
 	assert(opts.ry + opts.height < self.height, 'y + height < self.height')
 
 	local bitmap = render.CapturePixelsBitmap()
+
+	if opts.pop_rendertarget then
+		render.PopRenderTarget()
+	end
+
 	local bW, bH = ScrW(), ScrH()
 	local texture = self:GetTexture(opts.mipmap or self.m_upcomping_mipmap, opts.frame or self.m_upcomping_frame, opts.face or self.m_upcomping_face, opts.depth or self.m_upcomping_depth)
 	texture:CaptureRenderTargetAlphaCoroutine(bitmap, bW, bH, opts.x, opts.y, opts.width, opts.height, opts.rx, opts.ry, opts.before, opts.after, opts.thersold, unpack(opts.yield_args))
