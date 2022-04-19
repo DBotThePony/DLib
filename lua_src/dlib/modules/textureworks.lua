@@ -50,8 +50,13 @@ if CLIENT then
 		local unpack = unpack
 		local ScrW = ScrW
 		local ScrH = ScrH
+		local jit = jit
 
 		function render.CapturePixelsBitmap()
+			local old = jit.status()
+
+			jit.off()
+
 			render.CapturePixels()
 			local buildbuff = {}
 
@@ -81,7 +86,13 @@ if CLIENT then
 				buildbuff[build_index] = string_char(unpack(buff, 1, buff_index - 1))
 			end
 
-			return table.concat(buildbuff, '')
+			local built = table.concat(buildbuff, '')
+
+			if old then
+				jit.on()
+			end
+
+			return built
 		end
 	end
 end
