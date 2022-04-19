@@ -31,12 +31,22 @@
 
 local color_black = Color(0, 0, 0)
 local color_white = Color()
-local min, max, ceil, floor, clamp, round = math.min, math.max, math.ceil, math.floor, math.clamp, math.round
+local min, max, ceil, floor = math.min, math.max, math.ceil, math.floor
 local band, bor, rshift, lshift = bit.band, bit.bor, bit.rshift, bit.lshift
 local assert = assert
 local Color = Color
 local DLib = DLib
 local string = string
+
+local function clamp(a, b, c)
+	if a < b then return b end
+	if a > c then return c end
+	return a
+end
+
+local function round(num)
+	return floor(num + 0.5)
+end
 
 -- decode byte swapped (big endian ready) 5, 6, 5 color
 local function to_color_5_6_5(value)
@@ -157,9 +167,9 @@ do
 
 	-- 255, 255, 255 rgb encoded to 5 6 5 palette as floats
 	local function encode_color_5_6_5_error(r, g, b)
-		local _r = round(r * 0.12156862745098)
-		local _g = round(g * 0.24705882352941)
-		local _b = round(b * 0.12156862745098)
+		local _r = floor(r * 0.12156862745098 + 0.5)
+		local _g = floor(g * 0.24705882352941 + 0.5)
+		local _b = floor(b * 0.12156862745098 + 0.5)
 
 		return _r * 0.032258064516129, _g * 0.015873015873016, _b * 0.032258064516129, r - _r * 8.2258064516129, g - _g * 4.047619047619, b - _b * 8.2258064516129
 	end
@@ -313,9 +323,13 @@ do
 		for sample = 1, 8 do
 			-- calculate colors of palette for each 4 bit value
 			for palette_index = 1, 4 do
-				palette_colors_buffer[palette_index][1] = color0_r * palette_const_lowkey[palette_index] + color1_r * palette_const_highkey[palette_index]
-				palette_colors_buffer[palette_index][2] = color0_g * palette_const_lowkey[palette_index] + color1_g * palette_const_highkey[palette_index]
-				palette_colors_buffer[palette_index][3] = color0_b * palette_const_lowkey[palette_index] + color1_b * palette_const_highkey[palette_index]
+				local highkey = palette_const_highkey[palette_index]
+				local lowkey = palette_const_lowkey[palette_index]
+				local _color = palette_colors_buffer[palette_index]
+
+				_color[1] = color0_r * lowkey + color1_r * highkey
+				_color[2] = color0_g * lowkey + color1_g * highkey
+				_color[3] = color0_b * lowkey + color1_b * highkey
 			end
 
 			direction_r, direction_g, direction_b = color1_r - color0_r, color1_g - color0_g, color1_b - color0_b
@@ -506,40 +520,46 @@ do
 		-- final colors
 		local fColor0, fColor1
 
+		local buff1 = palette_colors_buffer[1]
+		local buff2 = palette_colors_buffer[2]
+
 		if wColor0 > wColor1 then
 			fColor0, fColor1 = wColor0, wColor1
 
-			palette_colors_buffer[1][1] = color0_r
-			palette_colors_buffer[1][2] = color0_g
-			palette_colors_buffer[1][3] = color0_b
+			buff1[1] = color0_r
+			buff1[2] = color0_g
+			buff1[3] = color0_b
 
-			palette_colors_buffer[2][1] = color1_r
-			palette_colors_buffer[2][2] = color1_g
-			palette_colors_buffer[2][3] = color1_b
+			buff2[1] = color1_r
+			buff2[2] = color1_g
+			buff2[3] = color1_b
 		else
 			fColor0, fColor1 = wColor1, wColor0
 
-			palette_colors_buffer[1][1] = color1_r
-			palette_colors_buffer[1][2] = color1_g
-			palette_colors_buffer[1][3] = color1_b
+			buff1[1] = color1_r
+			buff1[2] = color1_g
+			buff1[3] = color1_b
 
-			palette_colors_buffer[2][1] = color0_r
-			palette_colors_buffer[2][2] = color0_g
-			palette_colors_buffer[2][3] = color0_b
+			buff2[1] = color0_r
+			buff2[2] = color0_g
+			buff2[3] = color0_b
 		end
 
-		palette_colors_buffer[3][1] = palette_colors_buffer[1][1] * 0.666666667 + palette_colors_buffer[2][1] * 0.333333334
-		palette_colors_buffer[3][2] = palette_colors_buffer[1][2] * 0.666666667 + palette_colors_buffer[2][2] * 0.333333334
-		palette_colors_buffer[3][3] = palette_colors_buffer[1][3] * 0.666666667 + palette_colors_buffer[2][3] * 0.333333334
+		local buff3 = palette_colors_buffer[3]
+		local buff4 = palette_colors_buffer[4]
 
-		palette_colors_buffer[4][1] = palette_colors_buffer[1][1] * 0.333333334 + palette_colors_buffer[2][1] * 0.666666667
-		palette_colors_buffer[4][2] = palette_colors_buffer[1][2] * 0.333333334 + palette_colors_buffer[2][2] * 0.666666667
-		palette_colors_buffer[4][3] = palette_colors_buffer[1][3] * 0.333333334 + palette_colors_buffer[2][3] * 0.666666667
+		buff3[1] = buff1[1] * 0.666666667 + buff2[1] * 0.333333334
+		buff3[2] = buff1[2] * 0.666666667 + buff2[2] * 0.333333334
+		buff3[3] = buff1[3] * 0.666666667 + buff2[3] * 0.333333334
+
+		buff4[1] = buff1[1] * 0.333333334 + buff2[1] * 0.666666667
+		buff4[2] = buff1[2] * 0.333333334 + buff2[2] * 0.666666667
+		buff4[3] = buff1[3] * 0.333333334 + buff2[3] * 0.666666667
 
 		local direction_r, direction_g, direction_b =
-			palette_colors_buffer[2][1] - palette_colors_buffer[1][1],
-			palette_colors_buffer[2][2] - palette_colors_buffer[1][2],
-			palette_colors_buffer[2][3] - palette_colors_buffer[1][3]
+			buff2[1] - buff1[1],
+			buff2[2] - buff1[2],
+			buff2[3] - buff1[3]
 
 		local scale = 3 / (direction_r * direction_r + direction_g * direction_g + direction_b * direction_b)
 		direction_r, direction_g, direction_b = direction_r * scale, direction_g * scale, direction_b * scale
@@ -563,11 +583,11 @@ do
 				pixel_r, pixel_g, pixel_b = 0, 0, 0
 			end
 
-			local dot_product = (pixel_r - palette_colors_buffer[1][1]) * direction_r +
-				(pixel_g - palette_colors_buffer[1][2]) * direction_g +
-				(pixel_b - palette_colors_buffer[1][3]) * direction_b
+			local dot_product = (pixel_r - buff1[1]) * direction_r +
+				(pixel_g - buff1[2]) * direction_g +
+				(pixel_b - buff1[3]) * direction_b
 
-			local palette_index = dot_product < 0 and 0 or dot_product > 3 and 1 or palette_bits[round(dot_product) + 1]
+			local palette_index = dot_product < 0 and 0 or dot_product > 3 and 1 or palette_bits[floor(dot_product + 0.5) + 1]
 			local chosen_color = palette_colors_buffer[palette_index + 1]
 
 			local r_error, g_error, b_error = pixel_r - chosen_color[1], pixel_g - chosen_color[2], pixel_b - chosen_color[3]
