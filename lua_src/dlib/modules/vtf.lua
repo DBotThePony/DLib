@@ -1692,12 +1692,13 @@ function VTF:CaptureRenderTargetCoroutine(opts, y, width, height, rx, ry, ...)
 
 	local bitmap = render.CapturePixelsBitmap()
 
+	local bW, bH = ScrW(), ScrH()
+	local texture = self:GetTexture(opts.mipmap or self.m_upcomping_mipmap, opts.frame or self.m_upcomping_frame, opts.face or self.m_upcomping_face, opts.depth or self.m_upcomping_depth)
+
 	if opts.pop_rendertarget then
 		render.PopRenderTarget()
 	end
 
-	local bW, bH = ScrW(), ScrH()
-	local texture = self:GetTexture(opts.mipmap or self.m_upcomping_mipmap, opts.frame or self.m_upcomping_frame, opts.face or self.m_upcomping_face, opts.depth or self.m_upcomping_depth)
 	texture:CaptureRenderTargetCoroutine(bitmap, bW, bH, opts.x, opts.y, opts.width, opts.height, opts.rx, opts.ry, opts.before, opts.after, opts.thersold, unpack(opts.yield_args))
 
 	if identifier then
@@ -1852,12 +1853,13 @@ function VTF:CaptureRenderTargetAsAlphaCoroutine(opts, y, width, height, rx, ry,
 
 	local bitmap = render.CapturePixelsBitmap()
 
+	local bW, bH = ScrW(), ScrH()
+	local texture = self:GetTexture(opts.mipmap or self.m_upcomping_mipmap, opts.frame or self.m_upcomping_frame, opts.face or self.m_upcomping_face, opts.depth or self.m_upcomping_depth)
+
 	if opts.pop_rendertarget then
 		render.PopRenderTarget()
 	end
 
-	local bW, bH = ScrW(), ScrH()
-	local texture = self:GetTexture(opts.mipmap or self.m_upcomping_mipmap, opts.frame or self.m_upcomping_frame, opts.face or self.m_upcomping_face, opts.depth or self.m_upcomping_depth)
 	texture:CaptureRenderTargetAlphaCoroutine(bitmap, bW, bH, opts.x, opts.y, opts.width, opts.height, opts.rx, opts.ry, opts.before, opts.after, opts.thersold, unpack(opts.yield_args))
 
 	if identifier then
