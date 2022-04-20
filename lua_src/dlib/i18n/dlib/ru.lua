@@ -384,3 +384,7 @@ gui.dlib.filemanager.move.worker.size = 'Записано:'
 
 gui.dlib.filemanager.clone.error.title = 'Ошибка клонирования'
 gui.dlib.filemanager.clone.error.description = 'Имя содержит запрещённые символы, уже существует, полностью пустое, зарезервированно или слишком длинное.'
+
+message.dlib.capture_pixels.profile = 'Профайлинг render.CapturePixelsBitmap...'
+message.dlib.capture_pixels.profile_jit = 'Профайлинг render.CapturePixelsBitmap завершён, используется LuaJIT (JIT ~ %.3f ms < interp ~ %.3f ms на 4096 пикселя)'
+message.dlib.capture_pixels.profile_interp = 'Профайлинг render.CapturePixelsBitmap завершён, используется Интерпретирование (JIT ~ %.3f ms > interp ~ %.3f ms на 4096 пикселя))'

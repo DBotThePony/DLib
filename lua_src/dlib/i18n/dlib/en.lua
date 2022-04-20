@@ -793,3 +793,7 @@ gui.dlib.filemanager.move.worker.size = 'Written:'
 
 gui.dlib.filemanager.clone.error.title = 'Clonning error'
 gui.dlib.filemanager.clone.error.description = 'Name contains special or forbidden symbols, being completely empty,\nsuch path already exists, being too long or it occupy special filename.'
+
+message.dlib.capture_pixels.profile = 'Profiling render.CapturePixelsBitmap...'
+message.dlib.capture_pixels.profile_jit = 'render.CapturePixelsBitmap profiling completed, using LuaJIT (JIT ~ %.3f ms < interp ~ %.3f ms per 4096 pixels)'
+message.dlib.capture_pixels.profile_interp = 'render.CapturePixelsBitmap profiling completed, using Interpretation (JIT ~ %.3f ms > interp ~ %.3f ms per 4096 pixels)'

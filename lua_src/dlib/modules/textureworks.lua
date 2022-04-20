@@ -52,10 +52,32 @@ if CLIENT then
 		local ScrH = ScrH
 		local jit = jit
 
+		local profiling = true
+		local profileJit = {}
+		local profileInterp = {}
+		local SysTime = SysTime
+
+		local useJIT
+		local profilingRounds = 8
+
 		function render.CapturePixelsBitmap()
 			local old = jit.status()
 
-			jit.off()
+			if profiling then
+				DLib.LMessage('message.dlib.capture_pixels.profile')
+
+				if #profileJit < profilingRounds then
+					jit.on()
+				elseif #profileInterp < profilingRounds then
+					jit.off()
+				else
+					profiling = false
+				end
+			elseif useJIT then
+				jit.on()
+			else
+				jit.off()
+			end
 
 			render.CapturePixels()
 			local buildbuff = {}
@@ -64,6 +86,8 @@ if CLIENT then
 
 			local buff_index = 1
 			local build_index = 1
+
+			local stamp = SysTime()
 
 			for y = 0, h - 1 do
 				for x = 0, w - 1 do
@@ -82,6 +106,33 @@ if CLIENT then
 				end
 			end
 
+			local time = (SysTime() - stamp) / (w * h / 4096)
+
+			if profiling then
+				if #profileJit < profilingRounds then
+					table.insert(profileJit, time)
+				elseif #profileInterp < profilingRounds then
+					table.insert(profileInterp, time)
+
+					if #profileInterp == 4 then
+						local meanJit = math.average(unpack(profileJit))
+						local meanInterp = math.average(unpack(profileInterp))
+
+						useJIT = meanJit < meanInterp
+
+						if useJIT then
+							DLib.LMessage('message.dlib.capture_pixels.profile_jit', meanJit * 1000, meanInterp * 1000)
+						else
+							DLib.LWarning('message.dlib.capture_pixels.profile_interp', meanJit * 1000, meanInterp * 1000)
+						end
+
+						profiling = false
+					end
+				else
+					profiling = false
+				end
+			end
+
 			if build_index > 1 then
 				buildbuff[build_index] = string_char(unpack(buff, 1, buff_index - 1))
 			end
@@ -90,6 +141,8 @@ if CLIENT then
 
 			if old then
 				jit.on()
+			else
+				jit.off()
 			end
 
 			return built
