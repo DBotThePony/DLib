@@ -106,7 +106,7 @@ function DXT1Object.Create(width, height, fill, bytes, onebitalpha)
 	end
 
 	local pointer = bytes:Tell()
-	bytes:WriteBinary(string.rep(filler, width * height / 16))
+	bytes:WriteBinaryRep(filler, width * height / 16)
 	local pointer2 = bytes:Tell()
 	bytes:Seek(pointer)
 	local texture = DLib.DXT1(bytes, width, height)
@@ -841,7 +841,7 @@ function DXT3Object.Create(width, height, fill, bytes)
 	end
 
 	local pointer = bytes:Tell()
-	bytes:WriteBinary(string.rep(filler, width * height / 16))
+	bytes:WriteBinaryRep(filler, width * height / 16)
 	local pointer2 = bytes:Tell()
 	bytes:Seek(pointer)
 	local texture = DLib.DXT3(bytes, width, height)
@@ -1091,7 +1091,7 @@ function DXT5Object.Create(width, height, fill, bytes)
 	end
 
 	local pointer = bytes:Tell()
-	bytes:WriteBinary(string.rep(filler, width * height / 16))
+	bytes:WriteBinaryRep(filler, width * height / 16)
 	local pointer2 = bytes:Tell()
 	bytes:Seek(pointer)
 	local texture = DLib.DXT5(bytes, width, height)

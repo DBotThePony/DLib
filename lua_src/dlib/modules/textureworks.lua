@@ -611,7 +611,7 @@ function RGBA8888Object.Create(width, height, fill, bytes)
 	end
 
 	local pointer = bytes:Tell()
-	bytes:WriteBinary(string.rep(filler, width * height))
+	bytes:WriteBinaryRep(filler, width * height)
 	local pointer2 = bytes:Tell()
 	bytes:Seek(pointer)
 	local texture = DLib.RGBA8888(bytes, width, height)
@@ -829,7 +829,7 @@ function ARGB8888Object.Create(width, height, fill, bytes)
 	end
 
 	local pointer = bytes:Tell()
-	bytes:WriteBinary(string.rep(filler, width * height))
+	bytes:WriteBinaryRep(filler, width * height)
 	local pointer2 = bytes:Tell()
 	bytes:Seek(pointer)
 	local texture = DLib.ARGB8888(bytes, width, height)
@@ -867,7 +867,7 @@ function BGRA8888Object.Create(width, height, fill, bytes)
 	end
 
 	local pointer = bytes:Tell()
-	bytes:WriteBinary(string.rep(filler, width * height))
+	bytes:WriteBinaryRep(filler, width * height)
 	local pointer2 = bytes:Tell()
 	bytes:Seek(pointer)
 	local texture = DLib.BGRA8888(bytes, width, height)
@@ -906,7 +906,7 @@ function ABGR8888Object.Create(width, height, fill, bytes)
 	end
 
 	local pointer = bytes:Tell()
-	bytes:WriteBinary(string.rep(filler, width * height))
+	bytes:WriteBinaryRep(filler, width * height)
 	local pointer2 = bytes:Tell()
 	bytes:Seek(pointer)
 	local texture = DLib.ABGR8888(bytes, width, height)
@@ -944,7 +944,7 @@ function RGB888Object.Create(width, height, fill, bytes)
 	end
 
 	local pointer = bytes:Tell()
-	bytes:WriteBinary(string.rep(filler, width * height))
+	bytes:WriteBinaryRep(filler, width * height)
 	local pointer2 = bytes:Tell()
 	bytes:Seek(pointer)
 	local texture = DLib.RGB888(bytes, width, height)
@@ -1125,7 +1125,7 @@ function BGR888Object.Create(width, height, fill, bytes)
 	end
 
 	local pointer = bytes:Tell()
-	bytes:WriteBinary(string.rep(filler, width * height))
+	bytes:WriteBinaryRep(filler, width * height)
 	local pointer2 = bytes:Tell()
 	bytes:Seek(pointer)
 	local texture = DLib.BGR888(bytes, width, height)
@@ -1348,7 +1348,7 @@ function RGB565Object.Create(width, height, fill, bytes)
 	end
 
 	local pointer = bytes:Tell()
-	bytes:WriteBinary(string.rep(filler, width * height))
+	bytes:WriteBinaryRep(filler, width * height)
 	local pointer2 = bytes:Tell()
 	bytes:Seek(pointer)
 	local texture = DLib.RGB565(bytes, width, height)
@@ -1617,7 +1617,7 @@ function BGR565Object.Create(width, height, fill, bytes)
 	end
 
 	local pointer = bytes:Tell()
-	bytes:WriteBinary(string.rep(filler, width * height))
+	bytes:WriteBinaryRep(filler, width * height)
 	local pointer2 = bytes:Tell()
 	bytes:Seek(pointer)
 	local texture = DLib.BGR565(bytes, width, height)
@@ -1657,7 +1657,7 @@ function BGRA4444Object.Create(width, height, fill, bytes)
 	end
 
 	local pointer = bytes:Tell()
-	bytes:WriteBinary(string.rep(filler, width * height))
+	bytes:WriteBinaryRep(filler, width * height)
 	local pointer2 = bytes:Tell()
 	bytes:Seek(pointer)
 	local texture = DLib.BGRA4444(bytes, width, height)
@@ -1697,7 +1697,7 @@ function BGRA5551Object.Create(width, height, fill, bytes)
 	end
 
 	local pointer = bytes:Tell()
-	bytes:WriteBinary(string.rep(filler, width * height))
+	bytes:WriteBinaryRep(filler, width * height)
 	local pointer2 = bytes:Tell()
 	bytes:Seek(pointer)
 	local texture = DLib.BGRA5551(bytes, width, height)
@@ -1765,7 +1765,7 @@ function I8Object.Create(width, height, fill, bytes)
 	end
 
 	local pointer = bytes:Tell()
-	bytes:WriteBinary(string.rep(filler, width * height))
+	bytes:WriteBinaryRep(filler, width * height)
 	local pointer2 = bytes:Tell()
 	bytes:Seek(pointer)
 	local texture = DLib.I8(bytes, width, height)
@@ -1960,7 +1960,7 @@ function IA88Object.Create(width, height, fill, bytes)
 	end
 
 	local pointer = bytes:Tell()
-	bytes:WriteBinary(string.rep(filler, width * height))
+	bytes:WriteBinaryRep(filler, width * height)
 	local pointer2 = bytes:Tell()
 	bytes:Seek(pointer)
 	local texture = DLib.I8(bytes, width, height)
@@ -2187,7 +2187,7 @@ function A8Object.Create(width, height, fill, bytes)
 	end
 
 	local pointer = bytes:Tell()
-	bytes:WriteBinary(string.rep(filler, width * height))
+	bytes:WriteBinaryRep(filler, width * height)
 	local pointer2 = bytes:Tell()
 	bytes:Seek(pointer)
 	local texture = DLib.A8(bytes, width, height)

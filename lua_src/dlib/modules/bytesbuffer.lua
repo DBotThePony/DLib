@@ -719,6 +719,16 @@ local function assertType(valueIn, desiredType, funcName)
 	error(funcName .. ' - input is not a ' .. desiredType .. '! typeof ' .. type(valueIn), 3)
 end
 
+local function assertNumber(valueIn, funcName)
+	if isnumber(valueIn) then return end
+	error(funcName .. ' - input is not a number! typeof ' .. type(valueIn), 3)
+end
+
+local function assertString(valueIn, funcName)
+	if isstring(valueIn) then return end
+	error(funcName .. ' - input is not a string! typeof ' .. type(valueIn), 3)
+end
+
 local function assertRange(valueIn, min, max, funcName)
 	if valueIn >= min and valueIn <= max then return end
 	error(funcName .. ' - size overflow (' .. min .. ' -> ' .. max .. ' vs ' .. valueIn .. ')', 3)
@@ -748,7 +758,7 @@ meta.EndOfStream = meta.IsEOF
 	BytesBuffer: self
 ]]
 function meta:WriteUByte(valueIn)
-	assertType(valueIn, 'number', 'WriteUByte')
+	assertNumber(valueIn, 'WriteUByte')
 	assertRange(valueIn, 0, 0xFF, 'WriteUByte')
 
 	valueIn = math_floor(valueIn)
@@ -810,14 +820,14 @@ end
 -- Primitive read/write
 -- wrap overflow
 function meta:WriteByte_2(valueIn)
-	assertType(valueIn, 'number', 'WriteByte')
+	assertNumber(valueIn, 'WriteByte')
 	assertRange(valueIn, -0x80, 0x7F, 'WriteByte')
 	return self:WriteUByte(math_floor(valueIn) + 0x80)
 end
 
 -- one's component
 function meta:WriteByte(valueIn)
-	assertType(valueIn, 'number', 'WriteByte')
+	assertNumber(valueIn, 'WriteByte')
 	assertRange(valueIn, -0x80, 0x7F, 'WriteByte')
 	return self:WriteUByte(wrap(math_floor(valueIn), 0x80))
 end
@@ -826,7 +836,7 @@ meta.WriteInt8 = meta.WriteByte
 meta.WriteUInt8 = meta.WriteUByte
 
 function meta:WriteChar(char)
-	assertType(char, 'string', 'WriteChar')
+	assertString(char, 'WriteChar')
 	assert(#char == 1, 'Input is not a single char!')
 	self:WriteUByte(string_byte(char))
 	return self
@@ -908,31 +918,31 @@ end
 	BytesBuffer: self
 ]]
 function meta:WriteInt16_2(valueIn)
-	assertType(valueIn, 'number', 'WriteInt16')
+	assertNumber(valueIn, 'WriteInt16')
 	assertRange(valueIn, -0x8000, 0x7FFF, 'WriteInt16')
 	return self:WriteUInt16(math_floor(valueIn) + 0x8000)
 end
 
 function meta:WriteInt16(valueIn)
-	assertType(valueIn, 'number', 'WriteInt16')
+	assertNumber(valueIn, 'WriteInt16')
 	assertRange(valueIn, -0x8000, 0x7FFF, 'WriteInt16')
 	return self:WriteUInt16(wrap(math_floor(valueIn), 0x8000))
 end
 
 function meta:WriteInt16LE_2(valueIn)
-	assertType(valueIn, 'number', 'WriteInt16LE')
+	assertNumber(valueIn, 'WriteInt16LE')
 	assertRange(valueIn, -0x8000, 0x7FFF, 'WriteInt16LE')
 	return self:WriteUInt16LE(math_floor(valueIn) + 0x8000)
 end
 
 function meta:WriteInt16LE(valueIn)
-	assertType(valueIn, 'number', 'WriteInt16LE')
+	assertNumber(valueIn, 'WriteInt16LE')
 	assertRange(valueIn, -0x8000, 0x7FFF, 'WriteInt16LE')
 	return self:WriteUInt16LE(wrap(math_floor(valueIn), 0x8000))
 end
 
 function meta:WriteUInt16(valueIn)
-	assertType(valueIn, 'number', 'WriteUInt16')
+	assertNumber(valueIn, 'WriteUInt16')
 	assertRange(valueIn, 0, 0xFFFF, 'WriteUInt16')
 
 	local pointer = self.pointer
@@ -965,7 +975,7 @@ function meta:WriteUInt16(valueIn)
 end
 
 function meta:WriteUInt16LE(valueIn)
-	assertType(valueIn, 'number', 'WriteUInt16LE')
+	assertNumber(valueIn, 'WriteUInt16LE')
 	assertRange(valueIn, 0, 0xFFFF, 'WriteUInt16LE')
 
 	local pointer = self.pointer
@@ -1074,31 +1084,31 @@ meta.WriteUShortLE = meta.WriteUInt16LE
 	BytesBuffer: self
 ]]
 function meta:WriteInt24_2(valueIn)
-	assertType(valueIn, 'number', 'WriteInt24')
+	assertNumber(valueIn, 'WriteInt24')
 	assertRange(valueIn, -0x800000, 0x7FFFFF, 'WriteInt24')
 	return self:WriteUInt24(math_floor(valueIn) + 0x8000)
 end
 
 function meta:WriteInt24(valueIn)
-	assertType(valueIn, 'number', 'WriteInt24')
+	assertNumber(valueIn, 'WriteInt24')
 	assertRange(valueIn, -0x800000, 0x7FFFFF, 'WriteInt24')
 	return self:WriteUInt24(wrap(math_floor(valueIn), 0x800000))
 end
 
 function meta:WriteInt24LE_2(valueIn)
-	assertType(valueIn, 'number', 'WriteInt24LE')
+	assertNumber(valueIn, 'WriteInt24LE')
 	assertRange(valueIn, -0x800000, 0x7FFFFF, 'WriteInt24LE')
 	return self:WriteUInt24LE(math_floor(valueIn) + 0x800000)
 end
 
 function meta:WriteInt24LE(valueIn)
-	assertType(valueIn, 'number', 'WriteInt24LE')
+	assertNumber(valueIn, 'WriteInt24LE')
 	assertRange(valueIn, -0x800000, 0x7FFFFF, 'WriteInt24LE')
 	return self:WriteUInt24LE(wrap(math_floor(valueIn), 0x800000))
 end
 
 function meta:WriteUInt24(valueIn)
-	assertType(valueIn, 'number', 'WriteUInt24')
+	assertNumber(valueIn, 'WriteUInt24')
 	assertRange(valueIn, 0, 0xFFFFFF, 'WriteUInt24')
 
 	local pointer = self.pointer
@@ -1137,7 +1147,7 @@ function meta:WriteUInt24(valueIn)
 end
 
 function meta:WriteUInt24LE(valueIn)
-	assertType(valueIn, 'number', 'WriteUInt24LE')
+	assertNumber(valueIn, 'WriteUInt24LE')
 	assertRange(valueIn, 0, 0xFFFFFF, 'WriteUInt24LE')
 
 	local pointer = self.pointer
@@ -1251,19 +1261,19 @@ end
 	BytesBuffer: self
 ]]
 function meta:WriteInt32_2(valueIn)
-	assertType(valueIn, 'number', 'WriteInt32')
+	assertNumber(valueIn, 'WriteInt32')
 	assertRange(valueIn, -0x80000000, 0x7FFFFFFF, 'WriteInt32')
 	return self:WriteUInt32(math_floor(valueIn) + 0x80000000)
 end
 
 function meta:WriteInt32(valueIn)
-	assertType(valueIn, 'number', 'WriteInt32')
+	assertNumber(valueIn, 'WriteInt32')
 	assertRange(valueIn, -0x80000000, 0x7FFFFFFF, 'WriteInt32')
 	return self:WriteUInt32(wrap(math_floor(valueIn), 0x80000000))
 end
 
 function meta:WriteUInt32(valueIn)
-	assertType(valueIn, 'number', 'WriteUInt32')
+	assertNumber(valueIn, 'WriteUInt32')
 	assertRange(valueIn, 0, 0xFFFFFFFF, 'WriteUInt32')
 
 	local pointer = self.pointer
@@ -1308,19 +1318,19 @@ function meta:WriteUInt32(valueIn)
 end
 
 function meta:WriteInt32LE_2(valueIn)
-	assertType(valueIn, 'number', 'WriteInt32LE')
+	assertNumber(valueIn, 'WriteInt32LE')
 	assertRange(valueIn, -0x80000000, 0x7FFFFFFF, 'WriteInt32LE')
 	return self:WriteUInt32LE(math_floor(valueIn) + 0x80000000)
 end
 
 function meta:WriteInt32LE(valueIn)
-	assertType(valueIn, 'number', 'WriteInt32LE')
+	assertNumber(valueIn, 'WriteInt32LE')
 	assertRange(valueIn, -0x80000000, 0x7FFFFFFF, 'WriteInt32LE')
 	return self:WriteUInt32LE(wrap(math_floor(valueIn), 0x80000000))
 end
 
 function meta:WriteUInt32LE(valueIn)
-	assertType(valueIn, 'number', 'WriteUInt32')
+	assertNumber(valueIn, 'WriteUInt32')
 	assertRange(valueIn, 0, 0xFFFFFFFF, 'WriteUInt32')
 
 	local pointer = self.pointer
@@ -2023,7 +2033,7 @@ meta.ReadULongLE = meta.ReadUInt32LE
 	BytesBuffer: self
 ]]
 function meta:WriteFloatSlow(valueIn)
-	assertType(valueIn, 'number', 'WriteFloat')
+	assertNumber(valueIn, 'WriteFloat')
 	local bits = BitWorker.FloatToBinaryIEEE(valueIn, 8, 23)
 	local bitsInNumber = BitWorker.BinaryToUInteger(bits)
 	return self:WriteUInt32(bitsInNumber)
@@ -2055,12 +2065,12 @@ end
 	BytesBuffer: self
 ]]
 function meta:WriteFloat(valueIn)
-	assertType(valueIn, 'number', 'WriteFloat')
+	assertNumber(valueIn, 'WriteFloat')
 	return self:WriteInt32(BitWorker.FastFloatToBinaryIEEE(valueIn))
 end
 
 function meta:WriteFloatLE(valueIn)
-	assertType(valueIn, 'number', 'WriteFloatLE')
+	assertNumber(valueIn, 'WriteFloatLE')
 	return self:WriteInt32LE(BitWorker.FastFloatToBinaryIEEE(valueIn))
 end
 
@@ -2127,7 +2137,7 @@ end
 	BytesBuffer: self
 ]]
 function meta:WriteDoubleSlow(valueIn)
-	assertType(valueIn, 'number', 'WriteDouble')
+	assertNumber(valueIn, 'WriteDouble')
 	local bits = BitWorker.FloatToBinaryIEEE(valueIn, 11, 52)
 	local bytes = BitWorker.BitsToBytes(bits)
 
@@ -2163,7 +2173,7 @@ end
 	BytesBuffer: self
 ]]
 function meta:WriteDouble(valueIn)
-	assertType(valueIn, 'number', 'WriteDouble')
+	assertNumber(valueIn, 'WriteDouble')
 
 	local int1, int2 = BitWorker.FastDoubleToBinaryIEEE(valueIn)
 
@@ -2174,7 +2184,7 @@ function meta:WriteDouble(valueIn)
 end
 
 function meta:WriteDoubleLE(valueIn)
-	assertType(valueIn, 'number', 'WriteDouble')
+	assertNumber(valueIn, 'WriteDouble')
 
 	local int1, int2 = BitWorker.FastDoubleToBinaryIEEE(valueIn)
 
@@ -2249,7 +2259,7 @@ end
 ]]
 -- String
 function meta:WriteString(stringIn)
-	assertType(stringIn, 'string', 'WriteString')
+	assertString(stringIn, 'WriteString')
 
 	if #stringIn == 0 then
 		self:WriteUByte(0)
@@ -2276,7 +2286,7 @@ function meta:WriteString(stringIn)
 		if c == 0 then error('NUL in input string at ' .. ((i - 1) * 4 + 3)) end
 		if d == 0 then error('NUL in input string at ' .. ((i - 1) * 4 + 4)) end
 
-		set_4_bytes_le(optimized, _pointer, bytes, a + lshift(b, 8) + lshift(c, 16) + lshift(d, 24))
+		set_4_bytes_le(optimized, _pointer, bytes, bor(a,  lshift(b, 8), lshift(c, 16), lshift(d, 24)))
 		_pointer = _pointer + 4
 	end
 
@@ -2286,10 +2296,10 @@ function meta:WriteString(stringIn)
 		set_1_bytes_le(optimized, _pointer, bytes, string_byte(stringIn, length))
 	elseif _length == 2 then
 		local a, b = string_byte(stringIn, length - 1, length)
-		set_2_bytes_le(optimized, _pointer, bytes, a + lshift(b, 8))
+		set_2_bytes_le(optimized, _pointer, bytes, bor(a, lshift(b, 8)))
 	elseif _length == 3 then
 		local a, b, c = string_byte(stringIn, length - 2, length)
-		set_2_bytes_le(optimized, _pointer, bytes, a + lshift(b, 8))
+		set_2_bytes_le(optimized, _pointer, bytes, bor(a, lshift(b, 8)))
 		set_1_bytes_le(optimized, _pointer + 2, bytes, c)
 	end
 
@@ -2343,7 +2353,7 @@ end
 	BytesBuffer: self
 ]]
 function meta:WriteBinary(stringIn)
-	assertType(stringIn, 'string', 'WriteBinary')
+	assertString(stringIn, 'WriteBinary')
 
 	if #stringIn == 0 then
 		return self
@@ -2363,7 +2373,7 @@ function meta:WriteBinary(stringIn)
 
 	for i = 1, math_floor(length / 4) do
 		local a, b, c, d = string_byte(stringIn, (i - 1) * 4 + 1, (i - 1) * 4 + 4)
-		set_4_bytes_le(optimized, _pointer, bytes, a + lshift(b, 8) + lshift(c, 16) + lshift(d, 24))
+		set_4_bytes_le(optimized, _pointer, bytes, bor(a,  lshift(b, 8), lshift(c, 16), lshift(d, 24)))
 		_pointer = _pointer + 4
 	end
 
@@ -2373,10 +2383,126 @@ function meta:WriteBinary(stringIn)
 		set_1_bytes_le(optimized, _pointer, bytes, string_byte(stringIn, length))
 	elseif _length == 2 then
 		local a, b = string_byte(stringIn, length - 1, length)
-		set_2_bytes_le(optimized, _pointer, bytes, a + lshift(b, 8))
+		set_2_bytes_le(optimized, _pointer, bytes, bor(a, lshift(b, 8)))
 	elseif _length == 3 then
 		local a, b, c = string_byte(stringIn, length - 2, length)
-		set_2_bytes_le(optimized, _pointer, bytes, a + lshift(b, 8))
+		set_2_bytes_le(optimized, _pointer, bytes, bor(a, lshift(b, 8)))
+		set_1_bytes_le(optimized, _pointer + 2, bytes, c)
+	end
+
+	_pointer = _pointer + _length
+
+	self.pointer = _pointer - self:CurrentSliceStart()
+	self.length = self.length:max(_pointer)
+
+	return self
+end
+
+local function circular(stringIn)
+	local bytes = {string_byte(stringIn, 1, #stringIn)}
+	local index = 1
+	local maxIndex = #stringIn
+
+	local function get()
+		local byte = bytes[index]
+		index = index + 1
+
+		if index > maxIndex then
+			index = 1
+		end
+
+		return byte
+	end
+
+	local optimized
+
+	if band(maxIndex, 3) == 0 then
+		function optimized()
+			local byteA = bytes[index]
+			local byteB = bytes[index + 1]
+			local byteC = bytes[index + 2]
+			local byteD = bytes[index + 3]
+
+			index = index + 4
+
+			if index > maxIndex then
+				index = 1
+			end
+
+			return byteA, byteB, byteC, byteD
+		end
+	else
+		function optimized()
+			return get(), get(), get(), get()
+		end
+	end
+
+	return function(length)
+		if length == 4 then
+			return get(), get(), get(), get()
+		elseif length == 3 then
+			return get(), get(), get()
+		elseif length == 2 then
+			return get(), get()
+		else
+			return get()
+		end
+	end, optimized
+end
+
+--[[
+	@doc
+	@fname BytesBuffer:WriteBinaryRep
+	@alias BytesBuffer:WriteDataRep
+	@args string binary
+
+	@desc
+	Writes binary string, repeated `repeats` times.
+	Slightly slower than pairting WriteBinary + string.rep,
+	but wildly more memory efficient
+	@enddesc
+
+	@returns
+	BytesBuffer: self
+]]
+function meta:WriteBinaryRep(stringIn, repeats)
+	assertString(stringIn, 'WriteBinaryRep')
+	assertNumber(repeats, 'WriteBinaryRep')
+
+	if #stringIn == 0 then
+		return self
+	end
+
+	local circular, circular4 = circular(stringIn)
+	local realLength = #stringIn * repeats
+
+	local _pointer = self.pointer + self:CurrentSliceStart()
+	local bytes = self.bytes
+
+	for pointer = rshift(self.pointer + self:CurrentSliceStart(), 2), rshift(self.pointer + realLength + self:CurrentSliceStart(), 2) + 1 do
+		if bytes[pointer] == nil then
+			bytes[pointer] = 0
+		end
+	end
+
+	local optimized = self.o
+
+	for i = 1, math_floor(realLength / 4) do
+		local a, b, c, d = circular4()
+		set_4_bytes_le(optimized, _pointer, bytes, bor(a,  lshift(b, 8), lshift(c, 16), lshift(d, 24)))
+		_pointer = _pointer + 4
+	end
+
+	local _length = band(realLength, 3)
+
+	if _length == 1 then
+		set_1_bytes_le(optimized, _pointer, bytes, circular(1))
+	elseif _length == 2 then
+		local a, b = circular(2)
+		set_2_bytes_le(optimized, _pointer, bytes, bor(a, lshift(b, 8)))
+	elseif _length == 3 then
+		local a, b, c = circular(3)
+		set_2_bytes_le(optimized, _pointer, bytes, bor(a, lshift(b, 8)))
 		set_1_bytes_le(optimized, _pointer + 2, bytes, c)
 	end
 
@@ -2409,6 +2535,7 @@ function meta:ReadBinary(readAmount)
 end
 
 meta.WriteData = meta.WriteBinary
+meta.WriteDataRep = meta.WriteBinaryRep
 meta.ReadData = meta.ReadBinary
 
 function meta:ReadChar()
