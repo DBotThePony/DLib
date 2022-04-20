@@ -2473,6 +2473,14 @@ function meta:WriteBinaryRep(stringIn, repeats)
 		return self
 	end
 
+	if #stringIn > 7960 then
+		for i = 1, repeats do
+			self:WriteBinary(stringIn)
+		end
+
+		return self
+	end
+
 	local circular, circular4 = circular(stringIn)
 	local realLength = #stringIn * repeats
 
