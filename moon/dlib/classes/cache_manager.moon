@@ -142,6 +142,7 @@ class DLib.CacheManager
 				DLib.MessageError('Forcing reconstruction of data/' .. folder .. '/swap.dat')
 				file.Delete(folder .. '/swap.dat')
 				@Rescan()
+				@VacuumSwap()
 			elseif overwrites_or_removes > #@state * 4 or overwrites_or_removes > 40000
 				@VacuumSwap()
 		elseif file.Exists(folder .. '/swap.json', 'DATA')
