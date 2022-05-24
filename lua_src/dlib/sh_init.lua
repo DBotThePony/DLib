@@ -165,6 +165,8 @@ DLib.SharedInclude('modules/s3tc.lua')
 DLib.SharedInclude('modules/vtf.lua')
 DLib.SharedInclude('classes/cache_manager.lua')
 
+DLib.SharedInclude('util/timer.lua')
+
 DLib.SharedInclude('enums/gmod.lua')
 DLib.SharedInclude('enums/keymapping.lua')
 DLib.SharedInclude('enums/sdk.lua')
