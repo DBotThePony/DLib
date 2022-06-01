@@ -67,6 +67,9 @@ function DLib.MakeTimer(name, timerFunction, oldTable)
 		return
 	end
 
+	local iteratingTimer
+	local removeIteratingTimer = false
+
 	function meta.Pause(id)
 		if not isstring(id) then
 			error('Bad argument #1 to Pause (string expected, got ' .. type(id) .. ')', 2)
@@ -75,6 +78,10 @@ function DLib.MakeTimer(name, timerFunction, oldTable)
 		if paused[id] then return false end
 		local found = find(id)
 		if not found then return false end
+
+		if iteratingTimer == id then
+			removeIteratingTimer = true
+		end
 
 		paused[id] = found
 		found.ends = found.ends - timerFunction()
@@ -435,11 +442,22 @@ function DLib.MakeTimer(name, timerFunction, oldTable)
 			error('Bad argument #1 to Remove (string expected, got ' .. type(id) .. ')', 2)
 		end
 
+		local found = paused[id]
+
+		if found then
+			paused[id] = nil
+			return true, found
+		end
+
 		local prev
 		local next = head
 
 		while next do
 			if next.id == id then
+				if iteratingTimer == id then
+					removeIteratingTimer = true
+				end
+
 				if prev then
 					prev.next = next.next
 
@@ -482,41 +500,24 @@ function DLib.MakeTimer(name, timerFunction, oldTable)
 		local next = head
 
 		while next and next.ends <= time do
+			local _next = next.next
+
 			_protectedCallback = next.callback
+			iteratingTimer = next.id
+			removeIteratingTimer = false
 			ProtectedCall(protectedCallback)
 			_protectedCallback = nil -- очистка gc handle
 
 			next.repeats = next.repeats - 1
 
-			local _next = next.next
-
-			if next.repeats <= 0 then
-				if next.prev then
-					next.prev.next = next.next
-				end
-
-				if next.next then
-					next.next.prev = next.prev
-				end
-
-				if head == next then
-					head = next.next
-				end
-
-				if tail == next then
-					tail = next.prev
-				end
-			else
-				next.ends = time + next.delay - (time - next.ends)
-
-				if next.next and next.next.ends < next.ends then
-					-- теперь нам надо "всплыть" по листу
-					if next.next then
-						next.next.prev = next.prev
-					end
-
+			if not removeIteratingTimer then
+				if next.repeats <= 0 then
 					if next.prev then
 						next.prev.next = next.next
+					end
+
+					if next.next then
+						next.next.prev = next.prev
 					end
 
 					if head == next then
@@ -526,12 +527,38 @@ function DLib.MakeTimer(name, timerFunction, oldTable)
 					if tail == next then
 						tail = next.prev
 					end
+				else
+					next.ends = time + next.delay - (time - next.ends)
 
-					next.next = nil
-					next.prev = nil
+					if next.next and next.next.ends < next.ends then
+						-- теперь нам надо "всплыть" по листу
+						if next.next then
+							next.next.prev = next.prev
+						end
 
-					insertQueue(next)
+						if next.prev then
+							next.prev.next = next.next
+						end
+
+						if head == next then
+							head = next.next
+						end
+
+						if tail == next then
+							tail = next.prev
+						end
+
+						next.next = nil
+						next.prev = nil
+
+						insertQueue(next)
+					end
 				end
+			elseif next.repeats <= 0 and paused[iteratingTimer] then
+				-- мы поставили на паузу "мёртвый" таймер...
+				meta.Remove(iteratingTimer)
+			else
+				next.ends = time + next.delay - (time - next.ends)
 			end
 
 			next = _next
