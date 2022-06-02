@@ -2045,8 +2045,8 @@ function meta:CreateFont(fontBase, fontData)
 
 		for name, mapped in pairs(fontNames) do
 			if type(mapped) == 'string' then
-				surface.SetFont(mapped)
-				--fontNames[name .. '_SIZE_W'], fontNames[name .. '_SIZE_H'] = surface.GetTextSize('W')
+				-- surface.SetFont(mapped)
+				-- fontNames[name .. '_SIZE_W'], fontNames[name .. '_SIZE_H'] = surface.GetTextSize('W')
 				fontSizes[name .. '_SIZE_W'], fontSizes[name .. '_SIZE_H'] = name, name
 			end
 		end
