@@ -53,9 +53,9 @@ HUDCommons.ColorsVarsN_Proxies = HUDCommons.ColorsVarsN_Proxies or {}
 	@enddesc
 
 	@returns
-	function: returns color. DO NOT MODIFY IT! (e.g. change alpha). Use cloning methods as described on !c:Color
+	function: returns reference to color table, stays the same; reason behind functional usage is legacy code compat
 ]]
-function HUDCommons.CreateColor(class, name, r, g, b, a)
+function HUDCommons.DefineColor(class, name, r, g, b, a)
 	if type(r) == 'table' then
 		g = r.g
 		b = r.b
@@ -73,10 +73,10 @@ function HUDCommons.CreateColor(class, name, r, g, b, a)
 	b = (b or 255):clamp(0, 255):floor()
 	a = (a or 255):clamp(0, 255):floor()
 
-	local rn = 'h_color_' .. class .. '_r'
-	local gn = 'h_color_' .. class .. '_g'
-	local bn = 'h_color_' .. class .. '_b'
-	local an = 'h_color_' .. class .. '_a'
+	local rn = 'dlib_color_' .. class .. '_r'
+	local gn = 'dlib_color_' .. class .. '_g'
+	local bn = 'dlib_color_' .. class .. '_b'
+	local an = 'dlib_color_' .. class .. '_a'
 
 	HUDCommons.ColorsVars[class] = {
 		name = name,
@@ -121,9 +121,11 @@ function HUDCommons.CreateColor(class, name, r, g, b, a)
 	end
 end
 
+HUDCommons.CreateColor = HUDCommons.DefineColor
+
 --[[
 	@doc
-	@fname DLib.HUDCommons.CreateColorN
+	@fname DLib.HUDCommons.DefineColorNoAlpha
 	@args string classname, string name, number r, number g, number b, number a
 
 	@client
@@ -133,9 +135,9 @@ end
 	@enddesc
 
 	@returns
-	function: returns color. Passing a number as first argument will modify the alpha of color and still return the color.
+	function: returns reference to color table. Passing a number as first argument will modify the alpha of color and still return the color.
 ]]
-function HUDCommons.CreateColorN(class, name, r, g, b, a)
+function HUDCommons.DefineColorNoAlpha(class, name, r, g, b, a)
 	if type(r) == 'table' then
 		g = r.g
 		b = r.b
@@ -152,9 +154,9 @@ function HUDCommons.CreateColorN(class, name, r, g, b, a)
 	b = (b or 255):clamp(0, 255):floor()
 	a = (a or 255):clamp(0, 255):floor()
 
-	local rn = class .. '_r'
-	local gn =  class .. '_g'
-	local bn = class .. '_b'
+	local rn = 'dlib_colorn_' .. class .. '_r'
+	local gn = 'dlib_colorn_' .. class .. '_g'
+	local bn = 'dlib_colorn_' .. class .. '_b'
 
 	HUDCommons.ColorsVarsN[class] = {
 		name = name,
@@ -206,9 +208,11 @@ function HUDCommons.CreateColorN(class, name, r, g, b, a)
 	end
 end
 
+HUDCommons.CreateColorN = HUDCommons.DefineColorNoAlpha
+
 --[[
 	@doc
-	@fname DLib.HUDCommons.CreateColorN2
+	@fname DLib.HUDCommons.DefineColorNoAlphaDirect
 	@args string classname, string name, number r, number g, number b, number a
 
 	@client
@@ -220,7 +224,7 @@ end
 	@returns
 	Color: this color is being updated by the base internally, so you don't have to call function. You *are* allowed to edit alpha channel of this color.
 ]]
-function HUDCommons.CreateColorN2(class, ...)
+function HUDCommons.DefineColorNoAlphaDirect(class, ...)
 	local colorProxy = Color()
 	local color = HUDCommons.CreateColorN(class, ...)
 	HUDCommons.ColorsVarsN_Proxies[class] = colorProxy
@@ -232,21 +236,23 @@ function HUDCommons.CreateColorN2(class, ...)
 	return colorProxy
 end
 
+HUDCommons.CreateColorN2 = HUDCommons.DefineColorNoAlphaDirect
+
 --[[
 	@doc
-	@fname DLib.HUDCommons.CreateColor2
+	@fname DLib.HUDCommons.DefineColorDirect
 	@args string classname, string name, number r, number g, number b, number a
 
 	@client
 
 	@desc
-	same as `DLib.HUDCommons.CreateColor` but returns color which is always valid
+	same as `DLib.HUDCommons.DefineColor` but returns color which is always valid
 	@enddesc
 
 	@returns
 	Color: this color is being updated by the base internally, so you don't have to call function. You *are not* allowed to edit alpha channel of this color.
 ]]
-function HUDCommons.CreateColor2(class, ...)
+function HUDCommons.DefineColorDirect(class, ...)
 	local colorProxy = Color()
 	local color = HUDCommons.CreateColor(class, ...)
 	HUDCommons.ColorsVars_Proxies[class] = colorProxy
@@ -258,10 +264,14 @@ function HUDCommons.CreateColor2(class, ...)
 	return colorProxy
 end
 
+HUDCommons.CreateColor2 = HUDCommons.DefineColorDirect
+
 function HUDCommons.GetColor(class)
 	return HUDCommons.Colors[class]
 end
 
-function HUDCommons.GetColorN(class)
+function HUDCommons.GetColorNoAlpha(class)
 	return HUDCommons.ColorsN[class]
 end
+
+HUDCommons.GetColorN = HUDCommons.GetColorNoAlpha

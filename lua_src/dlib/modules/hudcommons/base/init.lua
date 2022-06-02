@@ -450,99 +450,107 @@ end
 
 --[[
 	@doc
-	@fname HUDCommonsBase:CreateColor
+	@fname HUDCommonsBase:DefineColor
 	@args string classname, string name, number r, number g, number b, number a
 
 	@client
 
 	@desc
-	Proper way to call `HUDCommons.CreateColor` if you build your HUD on `HUDCommonsBase`
+	Proper way to call `HUDCommons.DefineColor` if you build your HUD on `HUDCommonsBase`
 	@enddesc
 
 	@returns
 	function
 ]]
-function meta:CreateColor(class, name, r, g, b, a)
+function meta:DefineColor(class, name, r, g, b, a)
 	local name2 = self:GetID() .. '_' .. class
 
 	if not table.qhasValue(self.colorNames, name2) then
 		table.insert(self.colorNames, name2)
 	end
 
-	return HUDCommons.CreateColor(name, self:GetName() .. ' ' .. name, r, g, b, a)
+	return HUDCommons.DefineColor(name, self:GetName() .. ' ' .. name, r, g, b, a)
 end
+
+meta.CreateColor = meta.DefineColor
 
 --[[
 	@doc
-	@fname HUDCommonsBase:CreateColor2
+	@fname HUDCommonsBase:DefineColorDirect
 	@args string classname, string name, number r, number g, number b, number a
 
 	@client
 
 	@desc
-	Proper way to call `HUDCommons.CreateColor2` if you build your HUD on `HUDCommonsBase`
+	Proper way to call `HUDCommons.DefineColorDirect` if you build your HUD on `HUDCommonsBase`
 	@enddesc
 
 	@returns
 	function
 ]]
-function meta:CreateColor2(class, name, r, g, b, a)
+function meta:DefineColorDirect(class, name, r, g, b, a)
 	local name2 = self:GetID() .. '_' .. class
 
 	if not table.qhasValue(self.colorNames, name2) then
 		table.insert(self.colorNames, name2)
 	end
 
-	return HUDCommons.CreateColor2(self:GetID() .. '_' .. class, self:GetName() .. ' ' .. name, r, g, b, a)
+	return HUDCommons.DefineColorDirect(self:GetID() .. '_' .. class, self:GetName() .. ' ' .. name, r, g, b, a)
 end
+
+meta.CreateColor2 = meta.DefineColorDirect
 
 --[[
 	@doc
-	@fname HUDCommonsBase:CreateColorN
+	@fname HUDCommonsBase:DefineColorNoAlpha
 	@args string classname, string name, number r, number g, number b, number a
 
 	@client
 
 	@desc
-	Proper way to call `HUDCommons.CreateColorN` if you build your HUD on `HUDCommonsBase`
+	Proper way to call `HUDCommons.DefineColorNoAlpha` if you build your HUD on `HUDCommonsBase`
 	@enddesc
 
 	@returns
 	function
 ]]
-function meta:CreateColorN(class, name, r, g, b, a)
+function meta:DefineColorNoAlpha(class, name, r, g, b, a)
 	local name2 = self:GetID() .. '_' .. class
 
 	if not table.qhasValue(self.colorNamesN, name2) then
 		table.insert(self.colorNamesN, name2)
 	end
 
-	return HUDCommons.CreateColorN(self:GetID() .. '_' .. class, self:GetName() .. ' ' .. name, r, g, b, a)
+	return HUDCommons.DefineColorNoAlpha(self:GetID() .. '_' .. class, self:GetName() .. ' ' .. name, r, g, b, a)
 end
+
+meta.CreateColorN = meta.DefineColorNoAlpha
 
 --[[
 	@doc
-	@fname HUDCommonsBase:CreateColorN2
+	@fname HUDCommonsBase:CreateColorNoAlphaDirect
 	@args string classname, string name, number r, number g, number b, number a
 
 	@client
 
 	@desc
-	Proper way to call `HUDCommons.CreateColorN2` if you build your HUD on `HUDCommonsBase`
+	Proper way to call `HUDCommons.CreateColorNoAlphaDirect` if you build your HUD on `HUDCommonsBase`
 	@enddesc
 
 	@returns
 	Color
 ]]
-function meta:CreateColorN2(class, name, r, g, b, a)
+function meta:DefineColorNoAlphaDirect(class, name, r, g, b, a)
 	local name2 = self:GetID() .. '_' .. class
 
 	if not table.qhasValue(self.colorNamesN, name2) then
 		table.insert(self.colorNamesN, name2)
 	end
 
-	return HUDCommons.CreateColorN2(self:GetID() .. '_' .. class, self:GetName() .. ' ' .. name, r, g, b, a)
+	return HUDCommons.DefineColorNoAlphaDirect(self:GetID() .. '_' .. class, self:GetName() .. ' ' .. name, r, g, b, a)
 end
+
+meta.CreateColorN2 = meta.DefineColorNoAlphaDirect
 
 --[[
 	@doc
