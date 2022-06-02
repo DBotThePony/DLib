@@ -1907,6 +1907,8 @@ function meta:CreateFont(fontBase, fontData)
 		fontAspectRatio = fontData.size / fontData.osize
 	end
 
+	local nameList = {}
+
 	fontNames.REGULAR = font .. '_REGULAR'
 	fontNames.ITALIC = font .. '_ITALIC'
 
@@ -1930,6 +1932,7 @@ function meta:CreateFont(fontBase, fontData)
 	local fontSizes = {}
 
 	local function buildFonts()
+		table.Empty(nameList)
 		fontData.font = cvarFont:GetString():trim()
 
 		if fontData.font == '' then
@@ -2059,7 +2062,7 @@ function meta:CreateFont(fontBase, fontData)
 	self:TrackConVar('fonts_' .. fontBase:lower(), 'fonts', buildFonts)
 	self:TrackConVar('fontw_' .. fontBase:lower(), 'fonts', buildFonts)
 
-	return setmetatable({}, {
+	return setmetatable(nameList, {
 		__index = function(self, key)
 			local fullName = fontNames[key]
 
