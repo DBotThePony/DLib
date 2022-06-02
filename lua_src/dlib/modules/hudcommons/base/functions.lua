@@ -1926,6 +1926,9 @@ function meta:CreateFont(fontBase, fontData)
 
 	fontData.extended = true
 
+	local fontDatas
+	local fontSizes = {}
+
 	local function buildFonts()
 		fontData.font = cvarFont:GetString():trim()
 
@@ -1936,16 +1939,16 @@ function meta:CreateFont(fontBase, fontData)
 		fontData.weight = weightVar:GetInt(defweight):clamp(100, 1000)
 		fontData.size = sizeVar:GetFloat(defsize):clamp(0.01, 70) * fontAspectRatio
 
-		local fontDatas = {}
+		fontDatas = {}
 
-		surface.CreateFont(fontNames.REGULAR, fontData)
+		--surface.CreateFont(fontNames.REGULAR, fontData)
 		fontDatas[fontNames.REGULAR] = fontData
 		fontData._mapping = 'REGULAR'
 
 		do
 			local newData = table.Copy(fontData)
 			newData.italic = true
-			surface.CreateFont(fontNames.ITALIC, newData)
+			--surface.CreateFont(fontNames.ITALIC, newData)
 			fontDatas[fontNames.ITALIC] = newData
 			newData._mapping = 'ITALIC'
 		end
@@ -1954,7 +1957,7 @@ function meta:CreateFont(fontBase, fontData)
 			local newData = table.Copy(fontData)
 			newData.scanlines = 4
 			newData.blursize = fontData.size / 8
-			surface.CreateFont(fontNames.STRIKE, newData)
+			--surface.CreateFont(fontNames.STRIKE, newData)
 			fontDatas[fontNames.STRIKE] = newData
 			newData._mapping = 'STRIKE'
 		end
@@ -1963,7 +1966,7 @@ function meta:CreateFont(fontBase, fontData)
 			local newData = table.Copy(fontData)
 			newData.scanlines = 4
 			newData.blursize = fontData.size / 4
-			surface.CreateFont(fontNames.BLURRY_STRIKE, newData)
+			--surface.CreateFont(fontNames.BLURRY_STRIKE, newData)
 			fontDatas[fontNames.BLURRY_STRIKE] = newData
 			newData._mapping = 'BLURRY_STRIKE'
 		end
@@ -1973,7 +1976,7 @@ function meta:CreateFont(fontBase, fontData)
 			newData.italic = true
 			newData.scanlines = 4
 			newData.blursize = fontData.size / 2
-			surface.CreateFont(fontNames.BLURRY_STRIKE_ITALIC, newData)
+			--surface.CreateFont(fontNames.BLURRY_STRIKE_ITALIC, newData)
 			fontDatas[fontNames.BLURRY_STRIKE_ITALIC] = newData
 			newData._mapping = 'BLURRY_STRIKE_ITALIC'
 		end
@@ -1981,7 +1984,7 @@ function meta:CreateFont(fontBase, fontData)
 		do
 			local newData = table.Copy(fontData)
 			newData.blursize = fontData.size / 8
-			surface.CreateFont(fontNames.BLURRY, newData)
+			--surface.CreateFont(fontNames.BLURRY, newData)
 			fontDatas[fontNames.BLURRY] = newData
 			newData._mapping = 'BLURRY'
 		end
@@ -1989,7 +1992,7 @@ function meta:CreateFont(fontBase, fontData)
 		do
 			local newData = table.Copy(fontData)
 			newData.blursize = fontData.size / 16
-			surface.CreateFont(fontNames.BLURRY_ROUGH, newData)
+			--surface.CreateFont(fontNames.BLURRY_ROUGH, newData)
 			fontDatas[fontNames.BLURRY_ROUGH] = newData
 			newData._mapping = 'BLURRY_ROUGH'
 		end
@@ -1997,7 +2000,7 @@ function meta:CreateFont(fontBase, fontData)
 		do
 			local newData = table.Copy(fontData)
 			newData.scanlines = 4
-			surface.CreateFont(fontNames.STRIKE_SHARP, newData)
+			--surface.CreateFont(fontNames.STRIKE_SHARP, newData)
 			fontDatas[fontNames.STRIKE_SHARP] = newData
 			newData._mapping = 'STRIKE_SHARP'
 		end
@@ -2007,7 +2010,7 @@ function meta:CreateFont(fontBase, fontData)
 			newData.italic = true
 			newData.scanlines = 4
 			newData.blursize = 8
-			surface.CreateFont(fontNames.STRIKE_ITALIC, newData)
+			--surface.CreateFont(fontNames.STRIKE_ITALIC, newData)
 			fontDatas[fontNames.STRIKE_ITALIC] = newData
 			newData._mapping = 'STRIKE_ITALIC'
 		end
@@ -2016,7 +2019,7 @@ function meta:CreateFont(fontBase, fontData)
 			local newData = table.Copy(fontData)
 			newData.italic = true
 			newData.blursize = 8
-			surface.CreateFont(fontNames.BLURRY_ITALIC, newData)
+			--surface.CreateFont(fontNames.BLURRY_ITALIC, newData)
 			fontDatas[fontNames.BLURRY_ITALIC] = newData
 			newData._mapping = 'BLURRY_ITALIC'
 		end
@@ -2025,23 +2028,26 @@ function meta:CreateFont(fontBase, fontData)
 			local newData = table.Copy(fontData)
 			newData.italic = true
 			newData.scanlines = 4
-			surface.CreateFont(fontNames.STRIKE_SHARP_ITALIC, newData)
+			--surface.CreateFont(fontNames.STRIKE_SHARP_ITALIC, newData)
 			fontDatas[fontNames.STRIKE_SHARP_ITALIC] = newData
 			newData._mapping = 'STRIKE_SHARP_ITALIC'
 		end
 
-		for mapped, data in pairs(fontDatas) do
+		for _, mapped in ipairs(table.GetKeys(fontDatas)) do
+			local data = fontDatas[mapped]
 			local newData = table.Copy(data)
 			newData.additive = true
 			newData._mapping = newData._mapping .. '_ADDITIVE'
 			fontNames[newData._mapping] = mapped .. '_ADDITIVE'
-			surface.CreateFont(mapped .. '_ADDITIVE', newData)
+			fontDatas[mapped .. '_ADDITIVE'] = newData
+			--surface.CreateFont(mapped .. '_ADDITIVE', newData)
 		end
 
 		for name, mapped in pairs(fontNames) do
 			if type(mapped) == 'string' then
 				surface.SetFont(mapped)
-				fontNames[name .. '_SIZE_W'], fontNames[name .. '_SIZE_H'] = surface.GetTextSize('W')
+				--fontNames[name .. '_SIZE_W'], fontNames[name .. '_SIZE_H'] = surface.GetTextSize('W')
+				fontSizes[name .. '_SIZE_W'], fontSizes[name .. '_SIZE_H'] = name, name
 			end
 		end
 
@@ -2053,7 +2059,28 @@ function meta:CreateFont(fontBase, fontData)
 	self:TrackConVar('fonts_' .. fontBase:lower(), 'fonts', buildFonts)
 	self:TrackConVar('fontw_' .. fontBase:lower(), 'fonts', buildFonts)
 
-	return fontNames
+	return setmetatable({}, {
+		__index = function(self, key)
+			local fullName = fontNames[key]
+
+			if fullName then
+				surface.CreateFont(fullName, fontDatas[fullName])
+				self[key] = fullName
+			else
+				fullName = fontSizes[key]
+
+				if fullName then
+					surface.SetFont(self[fullName])
+					self[fullName .. '_SIZE_W'], self[fullName .. '_SIZE_H'] = surface.GetTextSize('W')
+					return rawget(self, key)
+				end
+
+				return fullName
+			end
+
+			return fullName
+		end
+	})
 end
 
 function meta:ScreenSizeChanged(ow, oh, w, h)
