@@ -1907,8 +1907,6 @@ function meta:CreateFont(fontBase, fontData)
 		fontAspectRatio = fontData.size / fontData.osize
 	end
 
-	local nameList = {}
-
 	fontNames.REGULAR = font .. '_REGULAR'
 	fontNames.ITALIC = font .. '_ITALIC'
 
@@ -1931,8 +1929,36 @@ function meta:CreateFont(fontBase, fontData)
 	local fontDatas
 	local fontSizes = {}
 
+	local nameList = self.fontsNamesList[fontBase] or setmetatable({}, {
+		__index = function(self, key)
+			local fullName = fontNames[key]
+
+			if fullName then
+				surface.CreateFont(fullName, fontDatas[fullName])
+				self[key] = fullName
+			else
+				fullName = fontSizes[key]
+
+				if fullName then
+					surface.SetFont(self[fullName])
+					self[fullName .. '_SIZE_W'], self[fullName .. '_SIZE_H'] = surface.GetTextSize('W')
+					return rawget(self, key)
+				end
+
+				return fullName
+			end
+
+			return fullName
+		end
+	})
+
+	self.fontsNamesList[fontBase] = nameList
+
 	local function buildFonts()
-		table.Empty(nameList)
+		for _, key in ipairs(table.GetKeys(nameList)) do
+			nameList[key] = nil
+		end
+
 		fontData.font = cvarFont:GetString():trim()
 
 		if fontData.font == '' then
@@ -2062,28 +2088,7 @@ function meta:CreateFont(fontBase, fontData)
 	self:TrackConVar('fonts_' .. fontBase:lower(), 'fonts', buildFonts)
 	self:TrackConVar('fontw_' .. fontBase:lower(), 'fonts', buildFonts)
 
-	return setmetatable(nameList, {
-		__index = function(self, key)
-			local fullName = fontNames[key]
-
-			if fullName then
-				surface.CreateFont(fullName, fontDatas[fullName])
-				self[key] = fullName
-			else
-				fullName = fontSizes[key]
-
-				if fullName then
-					surface.SetFont(self[fullName])
-					self[fullName .. '_SIZE_W'], self[fullName .. '_SIZE_H'] = surface.GetTextSize('W')
-					return rawget(self, key)
-				end
-
-				return fullName
-			end
-
-			return fullName
-		end
-	})
+	return nameList
 end
 
 function meta:ScreenSizeChanged(ow, oh, w, h)

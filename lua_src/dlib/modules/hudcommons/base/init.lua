@@ -75,6 +75,7 @@ function meta:ctor(hudID, hudName)
 	self.think = {}
 	self.fonts = {}
 	self.fontsNames = {}
+	self.fontsNamesList = {}
 	self.convars = {}
 
 	self.colorNames = {}
