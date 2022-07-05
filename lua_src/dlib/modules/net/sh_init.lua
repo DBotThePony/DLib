@@ -307,12 +307,12 @@ _net.receive('dlib_net_chunk', function(length_bits, ply)
 	_net.WriteUInt16(current_chunk)
 	_net.WriteBool(namespace.next_expected_chunk > chunkid)
 
-	Net.total_traffic_out = Net.total_traffic_out + net.BytesWritten() + 3
+	Net.total_traffic_out = Net.total_traffic_out + _net.BytesWritten() + 3
 
 	if CLIENT then
 		_net.SendToServer()
 	else
-		namespace.total_traffic_out = namespace.total_traffic_out + net.BytesWritten() + 3
+		namespace.total_traffic_out = namespace.total_traffic_out + _net.BytesWritten() + 3
 		_net.Send(ply)
 	end
 
@@ -484,12 +484,12 @@ _net.receive('dlib_net_datagram', function(length_bits, ply)
 		end
 	end
 
-	Net.total_traffic_out = Net.total_traffic_out + net.BytesWritten() + 3
+	Net.total_traffic_out = Net.total_traffic_out + _net.BytesWritten() + 3
 
 	if CLIENT then
 		_net.SendToServer()
 	else
-		namespace.total_traffic_out = namespace.total_traffic_out + net.BytesWritten() + 3
+		namespace.total_traffic_out = namespace.total_traffic_out + _net.BytesWritten() + 3
 		_net.Send(ply)
 	end
 
@@ -937,12 +937,12 @@ function Net.DispatchChunk(ply)
 	_net.WriteUInt32(c)
 	_net.WriteUInt32(d)
 
-	Net.total_traffic_out = Net.total_traffic_out + net.BytesWritten() + 3
+	Net.total_traffic_out = Net.total_traffic_out + _net.BytesWritten() + 3
 
 	if CLIENT then
 		_net.SendToServer()
 	else
-		namespace.total_traffic_out = namespace.total_traffic_out + net.BytesWritten() + 3
+		namespace.total_traffic_out = namespace.total_traffic_out + _net.BytesWritten() + 3
 		_net.Send(ply)
 	end
 end
@@ -1080,12 +1080,12 @@ function Net.DispatchDatagram(ply)
 	_net.WriteUInt32(d)
 
 	namespace.unacked_datagrams = namespace.unacked_datagrams + #hash_list
-	Net.total_traffic_out = Net.total_traffic_out + net.BytesWritten() + 3
+	Net.total_traffic_out = Net.total_traffic_out + _net.BytesWritten() + 3
 
 	if CLIENT then
 		_net.SendToServer()
 	else
-		namespace.total_traffic_out = namespace.total_traffic_out + net.BytesWritten() + 3
+		namespace.total_traffic_out = namespace.total_traffic_out + _net.BytesWritten() + 3
 		_net.Send(ply)
 	end
 end
