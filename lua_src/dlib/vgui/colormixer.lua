@@ -615,6 +615,9 @@ function PANEL:DisableTallLayout()
 	self.palette_button:SetParent(self.rgb_canvas)
 	self.palette_button:Dock(RIGHT)
 
+	self.wang_label_rgb:SetVisible(true)
+	self.wang_label_hsv:SetVisible(true)
+
 	self:SetTall(260)
 	self:InvalidateLayout()
 end
@@ -645,6 +648,9 @@ function PANEL:EnableTallLayout()
 
 	self.palette_button:SetParent(self.hex_canvas)
 	self.palette_button:Dock(LEFT)
+
+	self.wang_label_rgb:SetVisible(false)
+	self.wang_label_hsv:SetVisible(false)
 
 	self:SetTall(320)
 	self:InvalidateLayout()
