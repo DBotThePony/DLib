@@ -183,6 +183,11 @@ local wang_panels = table.qcopy(rgba)
 table.append(wang_panels, hsv)
 
 function PANEL:Init()
+	self.label = vgui.Create('DLabel', self)
+	self.label:Dock(TOP)
+	self.label:SetVisible(false)
+	self.label:SetText('')
+
 	self.wang_canvas = vgui.Create('EditablePanel', self)
 	self.wang_canvas:Dock(RIGHT)
 	-- self.wang_canvas:SetWide(200)
@@ -520,6 +525,29 @@ end
 
 function PANEL:GetPalette()
 	return true
+end
+
+function PANEL:SetLabel(text)
+	if not isstring(text) and text ~= nil then
+		error('Bad argument #1 to SetLabel (string expected, got ' .. type(text) .. ')')
+	end
+
+	if not text or text == '' then
+		self.label:SetText('')
+		self.label:SetVisible(false)
+		return
+	end
+
+	self.label:SetVisible(true)
+	self.label:SetText(text)
+end
+
+function PANEL:SetLabelFont(font)
+	if not isstring(text) then
+		error('Bad argument #1 to SetLabelFont (string expected, got ' .. type(text) .. ')')
+	end
+
+	self.label:SetFont(text)
 end
 
 function PANEL:ParseHexInput(input, fromForm)
