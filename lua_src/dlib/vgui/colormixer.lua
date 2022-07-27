@@ -588,6 +588,9 @@ function PANEL:ParseHexInput(input, fromForm)
 end
 
 function PANEL:DisableTallLayout()
+	if not self.tall_layout then return end
+	self.tall_layout = false
+
 	self.color_cube:Dock(FILL)
 	self.color_cube:DockMargin(0, 0, 0, 0)
 
@@ -623,6 +626,9 @@ function PANEL:DisableTallLayout()
 end
 
 function PANEL:EnableTallLayout()
+	if self.tall_layout then return end
+	self.tall_layout = true
+
 	self.color_cube:Dock(TOP)
 	self.color_cube:SetTall(200)
 	self.color_cube:DockMargin(4, 4, 4, 4)
@@ -657,10 +663,6 @@ function PANEL:EnableTallLayout()
 end
 
 function PANEL:SetTallLayout(shoulddo)
-	if self.tall_layout == shoulddo then return end
-
-	self.tall_layout = shoulddo
-
 	if shoulddo then
 		self:EnableTallLayout()
 	else
