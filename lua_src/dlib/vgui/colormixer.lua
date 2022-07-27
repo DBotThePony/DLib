@@ -219,7 +219,7 @@ function PANEL:Init()
 	for i, panelname in ipairs(wang_panels) do
 		if panelname == 'hue' then
 			self.wang_label_hsv = vgui.Create('DLabel', self.wang_canvas)
-			self.wang_label_hsv:SetText('   HSV')
+			self.wang_label_hsv:SetText('HSV')
 			self.wang_label_hsv:Dock(TOP)
 			self.wang_label_hsv:DockMargin(0, 5, 0, 5)
 			self.wang_label_hsv:SetZPos(i + add)
