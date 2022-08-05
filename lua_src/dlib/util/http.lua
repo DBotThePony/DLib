@@ -207,7 +207,7 @@ local function escapeUnicode(input)
 	local buf = ''
 
 	for char in input:gmatch('.') do
-		buf = buf .. '%' .. string.format('%X', string.byte(char))
+		buf = string.format('%s%%%X', buf, string.byte(char))
 	end
 
 	return buf
