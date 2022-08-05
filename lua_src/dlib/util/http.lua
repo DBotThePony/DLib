@@ -214,7 +214,7 @@ local function escapeUnicode(input)
 end
 
 local function escape(input)
-	return '%' .. string.format('%X', string.byte(input))
+	return string.format('%%%X', string.byte(input))
 end
 
 --[[
