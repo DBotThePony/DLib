@@ -21,6 +21,8 @@
 
 export PrintMessage
 
+ENABLE = CreateConVar('dlib_replace_printmessage', '1', 0, 'Replace PrintMessage with more meaningful one')
+
 _G.NOTIFY_GENERIC = 0
 _G.NOTIFY_ERROR = 1
 _G.NOTIFY_UNDO = 2
@@ -29,7 +31,11 @@ _G.NOTIFY_CLEANUP = 4
 
 net.pool('DLib.Notify.PrintMessage')
 
-PrintMessage = (mode, message) ->
+__DLib_PrintMessage = __DLib_PrintMessage or PrintMessage
+
+PrintMessage = (mode, message, ...) ->
+	return __DLib_PrintMessage(mode, message, ...) if not ENABLE\GetBool()
+
 	if message\sub(#message) == '\n'
 		message = message\sub(1, #message - 1)
 
@@ -40,7 +46,11 @@ PrintMessage = (mode, message) ->
 
 plyMeta = FindMetaTable 'Player'
 
-plyMeta.PrintMessage = (mode, message) =>
+plyMeta.__DLib_PrintMessage = plyMeta.__DLib_PrintMessage or plyMeta.PrintMessage
+
+plyMeta.PrintMessage = (mode, message, ...) =>
+	return @__DLib_PrintMessage(mode, message, ...) if not ENABLE\GetBool()
+
 	if message\sub(#message) == '\n'
 		message = message\sub(1, #message - 1)
 
