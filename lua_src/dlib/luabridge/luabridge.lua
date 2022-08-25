@@ -69,7 +69,7 @@ if CLIENT then
 		local weapons = GetWeapons(ply)
 		if not weapons then return end
 
-		for k, wep in ipairs(weapons) do
+		for k, wep in pairs(weapons) do
 			if IsValid(wep) then
 				local tab = GetTable(wep)
 
