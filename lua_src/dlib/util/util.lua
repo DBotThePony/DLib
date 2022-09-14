@@ -31,6 +31,7 @@ local IsValid = IsValid
 local LVector = DLib.LVector
 local Vector = Vector
 local Angle = Angle
+local istable = istable
 
 if CLIENT then
 	concommand.Add('dlib_gui_openurl', function(_, _, args)
@@ -306,7 +307,7 @@ local function InternalPrintLoop(tableIn, level, recursionCheck)
 		MsgC(TABLE_TOKEN_COLOR, ']', EQUALS_COLOR, ' = ')
 		local value = tableIn[key]
 
-		if type(value) == 'table' then
+		if istable(value) then
 			MsgC(TABLE_TOKEN_COLOR, '{')
 			local useSpaces = InternalPrintLoop(value, level + 1, strict and '' or recursionCheck or {})
 
@@ -317,6 +318,11 @@ local function InternalPrintLoop(tableIn, level, recursionCheck)
 			end
 		else
 			local tp = type(value)
+
+			if tp == 'table' then
+				tp = rawtype(tp)
+			end
+
 			MsgC(getValueString(tp, value))
 			MsgC(TABLE_TOKEN_COLOR, ',\n')
 		end
