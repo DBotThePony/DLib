@@ -594,3 +594,14 @@ do
 		return concat(buffer, '')
 	end
 end
+
+function util.RandomUUID()
+	return string.format('%.8x-%.4x-%.4x-%.4x-%.8x%.4x',
+		math.random(0, 0xFFFFFFFF), -- 32
+		math.random(0, 0xFFFF), -- 48
+		math.random(0, 0xFFFF), -- 64
+		math.random(0, 0xFFFF), -- 80
+		math.random(0, 0xFFFFFFFF), -- 112
+		math.random(0, 0xFFFF) -- 128
+	)
+end
