@@ -255,18 +255,6 @@ function wepMeta:GetClip2()
 	return self:Clip2()
 end
 
---[[
-	@doc
-	@fname Player:GetMaxArmor
-
-	@returns
-	number
-]]
--- placeholder for now
-function plyMeta:GetMaxArmor()
-	return 100
-end
-
 local VehicleListIterable = {}
 local yield = coroutine.yield
 
