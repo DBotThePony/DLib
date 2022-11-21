@@ -30,7 +30,6 @@ _G.rawtype = _G.rawtype or type
 _G.type = _G.rawtype
 
 local rawtype = rawtype
-local useFallback = false
 
 local function getmeta(meta)
 	return meta.MetaName
@@ -64,11 +63,7 @@ local function luatype(var)
 	end
 
 	if rawequal(meta, nil) then
-		if useFallback then
-			return rawtype(var)
-		end
-
-		return 'table'
+		return rawtype(var)
 	end
 
 	local mstatus, metaname = pcall(getmeta, meta)
