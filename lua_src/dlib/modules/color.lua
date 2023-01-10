@@ -410,7 +410,7 @@ end
 	@args number hue, number saturation, number value
 
 	@desc
-	!g:HSVToColor with metatable fixed
+	!g:HSVToColor with metatable fixed (calls original function and setmetatable' it)
 	@enddesc
 
 	@returns
