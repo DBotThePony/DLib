@@ -33,7 +33,7 @@ local sql = sql
 
 local Vector_Unpack = FindMetaTable('Vector').Unpack
 local Angle_Unpack = FindMetaTable('Angle').Unpack
-local IsColor = IsColor
+local IsColor = IsColorDuck
 local luatype = luatype
 local string_rep = string.rep
 local string_byte = string.byte

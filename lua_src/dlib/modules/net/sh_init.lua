@@ -1497,7 +1497,7 @@ Net.WriteVars = {
 	[TYPE_FLOAT]        = function(typeid, value) Net.WriteFloat(value)     end,
 }
 
-local IsColor = IsColor
+local IsColor = IsColorDuck
 local TypeID = TypeID
 
 function Net.CanWriteType(v)

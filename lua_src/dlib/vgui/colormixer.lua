@@ -916,6 +916,8 @@ function PANEL:UpdateFromHSVWangs(...)
 	self:UpdateData(...)
 end
 
+local IsColor = IsColorDuck
+
 function PANEL:_SetColor(r, g, b, a)
 	if IsColor(r) then
 		r, g, b, a = r.r, r.g, r.b, r.a

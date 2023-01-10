@@ -38,6 +38,10 @@ debug.getregistry().Color = colorMeta
 
 local min = math.min
 
+_G.iscolor = IsColor
+
+local IsColor
+
 --[[
 	@doc
 	@fname Color
@@ -93,8 +97,7 @@ end
 
 --[[
 	@doc
-	@fname IsColor
-	@replaces
+	@fname IsColorDuck
 	@args any value
 
 	@desc
@@ -106,7 +109,6 @@ end
 	boolean
 ]]
 _G.Color = Color
-local IsColor
 
 --[[
 	@doc
@@ -149,8 +151,9 @@ do
 	end
 end
 
-_G.iscolor = IsColor
-_G.IsColor = IsColor
+
+_G.IsColorDuck = IsColor
+_G.iscolorduck = IsColor
 
 --[[
 	@doc

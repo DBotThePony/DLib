@@ -326,7 +326,7 @@ function VTFObject.Create(version, width, height, format, extra)
 	assert(extra.frames >= 1, 'extra.frames >= 1', 2)
 	assert(extra.first_frame >= 0, 'extra.first_frame >= 0', 2)
 	assert(extra.mipmap_count >= 1, 'extra.mipmap_count >= 1', 2)
-	assert(IsColor(extra.fill), 'IsColor(extra.fill)', 2)
+	assert(IsColorDuck(extra.fill), 'IsColorDuck(extra.fill)', 2)
 
 	if extra.mipmap_count > power_of_two[math.min(width, height)] then
 		error(string.format('Can not create image with %d mip levels due to image size of %dx%d', extra.mipmap_count, width, height), 2)
