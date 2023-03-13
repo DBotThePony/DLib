@@ -84,6 +84,8 @@ function DLib.PrettyPrint(val, newline, valType)
 	end
 end
 
+local IsValidPlayer = FindMetaTable('Player').IsValid or FindMetaTable('Entity').IsValid
+
 function DLib.GetPrettyPrint(val, valType)
 	valType = valType or type(val)
 
@@ -98,13 +100,17 @@ function DLib.GetPrettyPrint(val, valType)
 			return DEFAULT_TEXT_COLOR, val
 		end
 	elseif valType == 'Player' then
-		local nick = val:Nick()
+		if IsValidPlayer(val) then
+			local nick = val:Nick()
 
-		if val.SteamName and val:SteamName() ~= val:Nick() then
-			nick = nick .. ' (' .. val:SteamName() .. ')'
+			if val.SteamName and val:SteamName() ~= val:Nick() then
+				nick = nick .. ' (' .. val:SteamName() .. ')'
+			end
+
+			return team and team.GetColor(val:Team()) or ENTITY_COLOR, nick, STEAMID_COLOR, '<' .. val:SteamID() .. '>'
+		else
+			return ENTITY_COLOR, '[NULL Player]'
 		end
-
-		return team and team.GetColor(val:Team()) or ENTITY_COLOR, nick, STEAMID_COLOR, '<' .. val:SteamID() .. '>'
 	elseif valType == 'Entity' then
 		return ENTITY_COLOR, tostring(val)
 	elseif valType == 'NPC' then
