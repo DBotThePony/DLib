@@ -63,9 +63,10 @@ local function refreshRT()
 end
 
 refreshRT()
-timer.Simple(0, refreshRT)
+
 hook.Add('ScreenResolutionChanged', 'DLib Refresh Blur', refreshRT)
 hook.Add('InvalidateMaterialCache', 'DLib Refresh Blur', refreshRT)
+hook.Once('PostRender', refreshRT)
 
 DLib.blur = DLib.blur or {}
 local blur = DLib.blur
