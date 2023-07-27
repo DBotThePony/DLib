@@ -470,7 +470,7 @@ function meta:DefineColor(class, name, r, g, b, a)
 		table.insert(self.colorNames, name2)
 	end
 
-	return HUDCommons.DefineColor(name, self:GetName() .. ' ' .. name, r, g, b, a)
+	return HUDCommons.DefineColor(name2, self:GetName() .. ' ' .. name, r, g, b, a)
 end
 
 meta.CreateColor = meta.DefineColor
@@ -496,7 +496,7 @@ function meta:DefineColorDirect(class, name, r, g, b, a)
 		table.insert(self.colorNames, name2)
 	end
 
-	return HUDCommons.DefineColorDirect(self:GetID() .. '_' .. class, self:GetName() .. ' ' .. name, r, g, b, a)
+	return HUDCommons.DefineColorDirect(name2, self:GetName() .. ' ' .. name, r, g, b, a)
 end
 
 meta.CreateColor2 = meta.DefineColorDirect
@@ -522,7 +522,7 @@ function meta:DefineColorNoAlpha(class, name, r, g, b, a)
 		table.insert(self.colorNamesN, name2)
 	end
 
-	return HUDCommons.DefineColorNoAlpha(self:GetID() .. '_' .. class, self:GetName() .. ' ' .. name, r, g, b, a)
+	return HUDCommons.DefineColorNoAlpha(name2, self:GetName() .. ' ' .. name, r, g, b, a)
 end
 
 meta.CreateColorN = meta.DefineColorNoAlpha
@@ -548,7 +548,7 @@ function meta:DefineColorNoAlphaDirect(class, name, r, g, b, a)
 		table.insert(self.colorNamesN, name2)
 	end
 
-	return HUDCommons.DefineColorNoAlphaDirect(self:GetID() .. '_' .. class, self:GetName() .. ' ' .. name, r, g, b, a)
+	return HUDCommons.DefineColorNoAlphaDirect(name2, self:GetName() .. ' ' .. name, r, g, b, a)
 end
 
 meta.CreateColorN2 = meta.DefineColorNoAlphaDirect
