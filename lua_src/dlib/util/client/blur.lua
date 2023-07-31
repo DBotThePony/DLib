@@ -76,8 +76,8 @@ local render = render
 local surface = surface
 local DLib = DLib
 
-local mat_BlurX = Material("pp/blurx")
-local mat_BlurY = Material("pp/blury")
+local mat_BlurX = Material('pp/blurx')
+local mat_BlurY = Material('pp/blury')
 local tex_Bloom1 = render.GetBloomTex1()
 
 -- wtf is with original BlurRenderTarget ?
@@ -87,7 +87,7 @@ local function BlurRenderTarget(rt, sizex, sizey, passes)
 	mat_BlurX:SetFloat('$size', sizex)
 	mat_BlurY:SetFloat('$size', sizey)
 
-	for i = 1, passes + 1 do
+	for i = 1, passes do
 		render.PushRenderTarget(tex_Bloom1)
 		render.SetMaterial(mat_BlurX)
 		render.DrawScreenQuad()
