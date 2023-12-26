@@ -232,7 +232,6 @@ DLib.SharedInclude('luabridge/loading_stages.lua')
 DLib.SharedInclude('luabridge/savetable.lua')
 
 DLib.ClientInclude('modules/workarounds/entlang.lua')
-DLib.SharedInclude('modules/workarounds/killfeed.lua')
 DLib.SharedInclude('modules/workarounds/starfall.lua')
 
 DLib.hl2wdata = DLib.SharedInclude('data/hl2sweps.lua')
