@@ -513,10 +513,6 @@ function colorMeta:__add(target)
 	end
 
 	if type(target) == 'number' then
-		local r, g, b = mathLogic(self.r, target, self.g, self.b)
-		g, r, b = mathLogic(g, target, r, b)
-		b, r, g = mathLogic(b, target, r, g)
-
 		return Color(NormalizeColor(self.r + target, self.g + target, self.b + target)):SetAlpha(self.a)
 	elseif type(target) == 'Vector' then
 		return self + target:ToColor()
