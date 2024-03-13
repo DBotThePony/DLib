@@ -18,7 +18,14 @@
 -- OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
--- performance and functionality to the core
+--[[
+	General purpose hook replacement, compatible with ULib's priorities
+
+	Custom features include:
+	- Post modifiers, these are called with values returned by hook
+	- Unlimited priorities; "priority" number can be anything, including math.huge
+	- Copy-on-write event tables; calling hook.Remove during ongoing hook.Call will not have any side-effects
+]]
 
 local pairs = pairs
 local ipairs = ipairs
@@ -939,39 +946,6 @@ local function Run(...)
 	return hook.Run2(...)
 end
 
-local __static1 = {
-	'HUDPaint',
-	'PreDrawHUD',
-	'PostDrawHUD',
-	'Initialize',
-	'InitPostEntity',
-	'PreGamemodeInit',
-	'PostGamemodeInit',
-	'PostGamemodeInitialize',
-	'PreGamemodeInitialize',
-	'PostGamemodeLoaded',
-	'PreGamemodeLoaded',
-	'PostRenderVGUI',
-	'OnGamemodeLoaded',
-
-	'CreateMove',
-	'StartCommand',
-	'SetupMove',
-
-	'PostRender',
-	'Think',
-	'Tick',
-}
-
-local __static = {}
-
-for i, str in ipairs(__static1) do
-	__static[str] = true
-end
-
--- these hooks can't return any values
-hook.StaticHooks = __static
-
 --[[
 	@doc
 	@fname hook.HasHooks
@@ -991,60 +965,6 @@ local rep = string.rep
 
 --[[
 	@doc
-	@fname hook.CallStatic
-	@args string event, table hookTable, vararg arguments
-
-	@desc
-	functions called can not interrupt call loop by returning arguments
-	can not return arguments
-	internall used to call some of most popular hooks
-	which will break the game if at least one function in hook list will return value
-	@enddesc
-
-	@internal
-]]
-function hook.CallStatic(event, hookTable, ...)
-	local events = __tableOptimized[event]
-
-	if events == nil then
-		if hookTable == nil then
-			return
-		end
-
-		local gamemodeFunction = hookTable[event]
-
-		if gamemodeFunction ~= nil then
-			gamemodeFunction(hookTable, ...)
-		end
-
-		return
-	end
-
-	local i = 1
-	local nextevent = events[i]
-
-	::loop::
-	nextevent(...)
-	i = i + 1
-	nextevent = events[i]
-
-	if nextevent ~= nil then
-		goto loop
-	end
-
-	if hookTable == nil then
-		return
-	end
-
-	local gamemodeFunction = hookTable[event]
-
-	if gamemodeFunction ~= nil then
-		gamemodeFunction(hookTable, ...)
-	end
-end
-
---[[
-	@doc
 	@fname hook.Call
 	@replaces
 	@args string event, table hookTable, vararg arguments
@@ -1054,11 +974,6 @@ end
 ]]
 function hook.Call2(event, hookTable, ...)
 	if __disabled[event] then
-		return
-	end
-
-	if __static[event] then
-		hook.CallStatic(event, hookTable, ...)
 		return
 	end
 
