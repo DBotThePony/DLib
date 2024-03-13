@@ -59,7 +59,6 @@ hook.__tableOptimized = hook.__tableOptimized or {}
 hook.__table = hook.__table or {}
 hook.__tableGmod = hook.__tableGmod or {}
 hook.__tableModifiersPost = hook.__tableModifiersPost or {}
-hook.__tableModifiersPostOptimized = hook.__tableModifiersPostOptimized or {}
 hook.__disabled = hook.__disabled or {}
 
 hook.__tableTasks = hook.__tableTasks or {}
@@ -69,7 +68,6 @@ local __disabled = hook.__disabled
 local __tableOptimized = hook.__tableOptimized
 local __tableGmod = hook.__tableGmod
 local __tableModifiersPost = hook.__tableModifiersPost
-local __tableModifiersPostOptimized = hook.__tableModifiersPostOptimized
 local __tableTasks = hook.__tableTasks
 
 -- ULib compatibility
@@ -93,32 +91,12 @@ end
 
 --[[
 	@doc
-	@fname hook.GetDLibOptimizedTable
-	@returns
-	table: of `eventName -> array of functions`
-]]
-function hook.GetDLibOptimizedTable()
-	return __tableOptimized
-end
-
---[[
-	@doc
 	@fname hook.GetDLibModifiers
 	@returns
 	table
 ]]
 function hook.GetDLibModifiers()
 	return __tableModifiersPost
-end
-
---[[
-	@doc
-	@fname hook.GetDLibSortedTable
-	@returns
-	table
-]]
-function hook.GetDLibSortedTable()
-	return __tableOptimized
 end
 
 --[[
@@ -241,6 +219,7 @@ function hook.DisableHook(event, stringID)
 		end
 
 		__disabled[event] = true
+		hook.Reconstruct(event)
 		return true
 	end
 
@@ -465,6 +444,7 @@ function hook.EnableHook(event, stringID)
 		end
 
 		__disabled[event] = nil
+		hook.Reconstruct(event)
 		return true
 	end
 
@@ -707,7 +687,7 @@ function hook.AddPostModifier(event, stringID, callback)
 	}
 
 	__tableModifiersPost[event][stringID] = hookData
-	hook.ReconstructPostModifiers(event)
+	hook.Reconstruct(event)
 	return true, hookData
 end
 
@@ -727,67 +707,11 @@ function hook.RemovePostModifier(event, stringID)
 	if __tableModifiersPost[event][stringID] then
 		local old = __tableModifiersPost[event][stringID]
 		__tableModifiersPost[event][stringID] = nil
-		hook.ReconstructPostModifiers(event)
+		hook.Reconstruct(event)
 		return true, old
 	end
 
 	return false
-end
-
---[[
-	@doc
-	@fname hook.ReconstructPostModifiers
-	@args string event
-
-	@internal
-
-	@desc
-	builds optimized hook table
-	@enddesc
-
-	@returns
-	table: sorted array of functions
-	table: sorted array of hookData
-]]
-function hook.ReconstructPostModifiers(eventToReconstruct)
-	if not eventToReconstruct then
-		for event, tab in pairs(__tableModifiersPost) do
-			hook.ReconstructPostModifiers(event)
-		end
-
-		return
-	end
-
-	if __tableModifiersPost[eventToReconstruct] == nil then
-		__tableModifiersPostOptimized[eventToReconstruct] = nil
-		return
-	end
-
-	__tableModifiersPostOptimized[eventToReconstruct] = {}
-	local event = __tableModifiersPost[eventToReconstruct]
-	local target = __tableModifiersPostOptimized[eventToReconstruct]
-	local index = 1
-
-	if event then
-		for stringID, hookData in pairs(event) do
-			local applicable = false
-
-			if hookData.typeof then
-				applicable = true
-			else
-				if hookData.id:IsValid() then
-					applicable = true
-				else
-					event[stringID] = nil
-				end
-			end
-
-			if applicable then
-				target[index] = hookData.callback or hookData.funcToCall
-				index = index + 1
-			end
-		end
-	end
 end
 
 --[[
@@ -815,6 +739,18 @@ function hook.ListAllHooks(includeDisabled)
 	return output
 end
 
+local function gamemodePassthrough(event, tab, ...)
+	if tab ~= nil then
+		local fn = tab[event]
+
+		if fn ~= nil then
+			return fn(tab, ...)
+		end
+	end
+end
+
+local function identity() end
+
 --[[
 	@doc
 	@fname hook.Reconstruct
@@ -839,49 +775,50 @@ function hook.Reconstruct(eventToReconstruct)
 		return
 	end
 
-	if not __table[eventToReconstruct] then
-		__tableOptimized[eventToReconstruct] = nil
+	if __disabled[eventToReconstruct] then
+		__tableOptimized[eventToReconstruct] = identity
+		return
+	elseif not __table[eventToReconstruct] then
+		__tableOptimized[eventToReconstruct] = gamemodePassthrough
 		return
 	end
 
-	__tableOptimized[eventToReconstruct] = {}
-
 	local index = 1
-	local priorityTable = __table[eventToReconstruct]
 	local inboundgmod = __tableGmod[eventToReconstruct]
-	local target = __tableOptimized[eventToReconstruct]
 
-	for priority, hookList in SortedPairs(priorityTable) do
+	local callables = {}
+
+	for priority, hookList in SortedPairs(__table[eventToReconstruct]) do
 		for stringID, hookData in pairs(hookList) do
 			if not hookData.disabled then
-				local applicable = false
+				local isValid = false
 
 				if hookData.typeof then
-					applicable = true
+					isValid = true
 				elseif hookData.isthread then
 					if coroutine_status(hookData.id) == 'dead' then
 						hookList[stringID] = nil
 						inboundgmod[stringID] = nil
 					else
-						applicable = true
+						isValid = true
 					end
 				else
 					if hookData.id:IsValid() then
-						applicable = true
+						isValid = true
 					else
 						hookList[stringID] = nil
 						inboundgmod[stringID] = nil
 					end
 				end
 
-				if applicable then
+				if isValid then
 					local callable
 
 					if hookData.typeof then
 						callable = hookData.callback or hookData.funcToCall
 					elseif hookData.isthread then
 						local self = hookData.id
-						local upfuncCallableSelf = hookData.callback
+						local upvalue = hookData.callback
 
 						function callable(...)
 							if coroutine_status(self) == 'dead' then
@@ -889,11 +826,11 @@ function hook.Reconstruct(eventToReconstruct)
 								return
 							end
 
-							return upfuncCallableSelf(self, ...)
+							return upvalue(self, ...)
 						end
 					else
 						local self = hookData.id
-						local upfuncCallableSelf = hookData.callback or hookData.funcToCall
+						local upvalue = hookData.callback or hookData.funcToCall
 
 						function callable(...)
 							if not self:IsValid() then
@@ -901,7 +838,7 @@ function hook.Reconstruct(eventToReconstruct)
 								return
 							end
 
-							return upfuncCallableSelf(self, ...)
+							return upvalue(self, ...)
 						end
 					end
 
@@ -913,11 +850,9 @@ function hook.Reconstruct(eventToReconstruct)
 						function callable(...)
 							THIS_CALLS = THIS_CALLS + 1
 							local t = SysTime()
-							local Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M = upfuncProfiled(...)
-							local t2 = SysTime()
-
-							THIS_RUNTIME = THIS_RUNTIME + (t2 - t)
-							return Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M
+							local a, b, c, d, e, f = upfuncProfiled(...)
+							THIS_RUNTIME = THIS_RUNTIME + (SysTime() - t)
+							return a, b, c, d, e, f
 						end
 
 						function hookData.profileEnds()
@@ -926,15 +861,94 @@ function hook.Reconstruct(eventToReconstruct)
 						end
 					end
 
-					target[index] = callable
+					callables[index] = callable
 					index = index + 1
 				end
 			end
 		end
 	end
 
-	if index == 1 then
-		__tableOptimized[eventToReconstruct] = nil
+	local post = {}
+	local postIndex = 1
+
+	if __tableModifiersPost[eventToReconstruct] ~= nil then
+		local event = __tableModifiersPost[eventToReconstruct]
+
+		for stringID, hookData in pairs(event) do
+			local isValid = false
+
+			if hookData.typeof then
+				isValid = true
+			else
+				if hookData.id:IsValid() then
+					isValid = true
+				else
+					event[stringID] = nil
+				end
+			end
+
+			if isValid then
+				post[postIndex] = hookData.callback or hookData.funcToCall
+				postIndex = postIndex + 1
+			end
+		end
+	end
+
+	if index == 1 and postIndex == 1 then
+		__tableOptimized[eventToReconstruct] = gamemodePassthrough
+	elseif index ~= 1 and postIndex == 1 then
+		__tableOptimized[eventToReconstruct] = function(event, tab, ...)
+			local a, b, c, d, e, f
+
+			for i = 1, index - 1 do
+				a, b, c, d, e, f = callables[i](...)
+				if a ~= nil then return a, b, c, d, e, f end
+			end
+
+			return gamemodePassthrough(event, tab, ...)
+		end
+	elseif index == 1 and postIndex ~= 1 then
+		__tableOptimized[eventToReconstruct] = function(event, tab, ...)
+			if tab ~= nil then
+				a, b, c, d, e, f = gamemodePassthrough(event, tab, ...)
+
+				if a ~= nil then
+					for i2 = 1, postIndex - 1 do
+						a, b, c, d, e, f = post[i2](a, b, c, d, e, f)
+					end
+
+					return a, b, c, d, e, f
+				end
+			end
+		end
+	else
+		__tableOptimized[eventToReconstruct] = function(event, tab, ...)
+			local a, b, c, d, e, f
+
+			for i = 1, index - 1 do
+				a, b, c, d, e, f = callables[i](...)
+
+				if a ~= nil then
+					for i2 = 1, postIndex - 1 do
+						a, b, c, d, e, f = post[i2](a, b, c, d, e, f)
+					end
+
+					return a, b, c, d, e, f
+				end
+			end
+
+			if tab ~= nil then
+				a, b, c, d, e, f = gamemodePassthrough(event, tab, ...)
+
+				if a ~= nil then
+					for i2 = 1, postIndex - 1 do
+						a, b, c, d, e, f = post[i2](a, b, c, d, e, f)
+					end
+
+					return a, b, c, d, e, f
+				end
+			end
+		end
 	end
 end
 
@@ -973,111 +987,8 @@ local rep = string.rep
 	vararg: values
 ]]
 function hook.Call2(event, hookTable, ...)
-	if __disabled[event] then
-		return
-	end
-
-	local post = __tableModifiersPostOptimized[event]
-	local events = __tableOptimized[event]
-
-	local a, b, c, d, e, f
-
-	if events == nil then
-		if hookTable == nil then
-			return
-		end
-
-		local gamemodeFunction = hookTable[event]
-
-		if gamemodeFunction == nil then
-			return
-		end
-
-		if post == nil then
-			return gamemodeFunction(hookTable, ...)
-		end
-
-		a, b, c, d, e, f = gamemodeFunction(hookTable, ...)
-		local i = 1
-		local nextevent = post[i]
-
-		::post_mloop1::
-		a, b, c, d, e, f = nextevent(a, b, c, d, e, f)
-
-		i = i + 1
-		nextevent = post[i]
-
-		if nextevent ~= nil then
-			goto post_mloop1
-		end
-
-		return a, b, c, d, e, f
-	end
-
-	local i = 1
-	local nextevent = events[i]
-
-	::loop::
-	a, b, c, d, e, f = nextevent(...)
-
-	if a ~= nil then
-		if post == nil then
-			return a, b, c, d, e, f
-		end
-
-		local i = 1
-		local nextevent = post[i]
-
-		::post_mloop2::
-		a, b, c, d, e, f = nextevent(a, b, c, d, e, f)
-
-		i = i + 1
-		nextevent = post[i]
-
-		if nextevent ~= nil then
-			goto post_mloop2
-		end
-
-		return a, b, c, d, e, f
-	end
-
-	i = i + 1
-	nextevent = events[i]
-
-	if nextevent ~= nil then
-		goto loop
-	end
-
-	if hookTable == nil then
-		return
-	end
-
-	local gamemodeFunction = hookTable[event]
-
-	if gamemodeFunction == nil then
-		return
-	end
-
-	if post == nil then
-		return gamemodeFunction(hookTable, ...)
-	end
-
-	a, b, c, d, e, f = gamemodeFunction(hookTable, ...)
-
-	local i = 1
-	local nextevent = post[i]
-
-	::post_mloop3::
-	a, b, c, d, e, f = nextevent(a, b, c, d, e, f)
-
-	i = i + 1
-	nextevent = post[i]
-
-	if nextevent ~= nil then
-		goto post_mloop3
-	end
-
-	return a, b, c, d, e, f
+	local receiver = __tableOptimized[event] or gamemodePassthrough
+	return receiver(event, hookTable, ...)
 end
 
 
