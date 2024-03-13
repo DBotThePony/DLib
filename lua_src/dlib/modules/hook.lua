@@ -988,51 +988,6 @@ local last_trace, last_error
 local getinfo = debug.getinfo
 local find = string.find
 local rep = string.rep
-local hide_trace = CreateConVar('dlib_hide_hooktrace', '1', {FCVAR_ARCHIVE}, 'This bullshit exists solely for workshop hamsters (users)')
-
-local function catchError(err)
-	last_error = err
-	last_trace = ''
-
-	local i = 2
-	local l = 1
-	local info, infoup = getinfo(i), getinfo(i + 1)
-
-	local developer = not hide_trace:GetBool() or developer:GetBool()
-	local prevdlib = false
-
-	while info do
-		local isdlib = not developer and (find(info.source, 'dlib/modules/hook.lua', 1, true) or info.name == 'dlib_has_nothing_to_do_with_this_traceback')
-		local fnname = info.name ~= '' and info.name or 'unknown'
-
-		if infoup and infoup.name == 'dlib_has_nothing_to_do_with_this_traceback' then
-			fnname = '__event'
-		end
-
-		if info.name == 'dlib_has_nothing_to_do_with_this_traceback' then
-			if not developer then goto SKIP end
-			fnname = 'xpcall'
-		end
-
-		if not isdlib then
-			if last_trace == '' then
-				last_trace = '  1. ' .. fnname .. ' - ' .. info.short_src .. ':' .. info.currentline
-			else
-				last_trace = last_trace .. '\n' .. rep(' ', l + 1) .. l .. '. ' .. fnname .. ' - ' .. info.short_src .. ':' .. info.currentline
-			end
-
-			l = l + 1
-		end
-
-		::SKIP::
-
-		i = i + 1
-		info = infoup
-		infoup = getinfo(i + 1)
-	end
-end
-
-local dlib_has_nothing_to_do_with_this_traceback = xpcall
 
 --[[
 	@doc
@@ -1058,32 +1013,8 @@ function hook.CallStatic(event, hookTable, ...)
 
 		local gamemodeFunction = hookTable[event]
 
-		if gamemodeFunction == nil then
-			return
-		end
-
-		local state, errormsg = dlib_has_nothing_to_do_with_this_traceback(gamemodeFunction, catchError, hookTable, ...)
-
-		if not state then
-			if not last_error then
-				last_error = errormsg
-			end
-
-			if last_trace then
-				ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n' .. last_trace .. '\n')
-			elseif last_error then
-				local _getinfo = getinfo(gamemodeFunction)
-
-				if _getinfo and _getinfo.short_src then
-					ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n  1. GM:' .. event .. '[' .. _getinfo.short_src .. ']\n')
-				else
-					ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n  1. GM:' .. event .. '\n')
-				end
-			else
-				ErrorNoHalt('\n[ERROR] Lua state is detorating away! This is very likely going to result into game crash! Hook GM:' .. event .. " didn't executed properly! Unable to provide traceback since error handler gave up!\n")
-			end
-
-			last_trace, last_error = nil, nil
+		if gamemodeFunction ~= nil then
+			gamemodeFunction(hookTable, ...)
 		end
 
 		return
@@ -1093,30 +1024,7 @@ function hook.CallStatic(event, hookTable, ...)
 	local nextevent = events[i]
 
 	::loop::
-	local state, errormsg = dlib_has_nothing_to_do_with_this_traceback(nextevent, catchError, ...)
-
-	if not state then
-		if not last_error then
-			last_error = errormsg
-		end
-
-		if last_trace then
-			ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n' .. last_trace .. '\n')
-		elseif last_error then
-			local _getinfo = getinfo(nextevent)
-
-			if _getinfo and _getinfo.short_src then
-				ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n  1. event:' .. event .. '[' .. _getinfo.short_src .. ']\n')
-			else
-				ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n  1. event:' .. event .. '\n')
-			end
-		else
-			ErrorNoHalt('\n[ERROR] Lua state is detorating away! This is very likely going to result into game crash! Hook GM:' .. event .. " didn't executed properly! Unable to provide traceback since error handler gave up!\n")
-		end
-
-		last_trace, last_error = nil, nil
-	end
-
+	nextevent(...)
 	i = i + 1
 	nextevent = events[i]
 
@@ -1130,32 +1038,8 @@ function hook.CallStatic(event, hookTable, ...)
 
 	local gamemodeFunction = hookTable[event]
 
-	if gamemodeFunction == nil then
-		return
-	end
-
-	local state, errormsg = dlib_has_nothing_to_do_with_this_traceback(gamemodeFunction, catchError, hookTable, ...)
-
-	if not state then
-		if not last_error then
-			last_error = errormsg
-		end
-
-		if last_trace then
-			ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n' .. last_trace .. '\n')
-		elseif last_error then
-			local _getinfo = getinfo(gamemodeFunction)
-
-			if _getinfo and _getinfo.short_src then
-				ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n  1. GM:' .. event .. '[' .. _getinfo.short_src .. ']\n')
-			else
-				ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n  1. GM:' .. event .. '\n')
-			end
-		else
-			ErrorNoHalt('\n[ERROR] Lua state is detorating away! This is very likely going to result into game crash! Hook GM:' .. event .. " didn't executed properly! Unable to provide traceback since error handler gave up!\n")
-		end
-
-		last_trace, last_error = nil, nil
+	if gamemodeFunction ~= nil then
+		gamemodeFunction(hookTable, ...)
 	end
 end
 
@@ -1173,8 +1057,6 @@ function hook.Call2(event, hookTable, ...)
 		return
 	end
 
-	ITERATING = event
-
 	if __static[event] then
 		hook.CallStatic(event, hookTable, ...)
 		return
@@ -1183,7 +1065,7 @@ function hook.Call2(event, hookTable, ...)
 	local post = __tableModifiersPostOptimized[event]
 	local events = __tableOptimized[event]
 
-	local state, Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M
+	local a, b, c, d, e, f
 
 	if events == nil then
 		if hookTable == nil then
@@ -1200,12 +1082,12 @@ function hook.Call2(event, hookTable, ...)
 			return gamemodeFunction(hookTable, ...)
 		end
 
-		Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M = gamemodeFunction(hookTable, ...)
+		a, b, c, d, e, f = gamemodeFunction(hookTable, ...)
 		local i = 1
 		local nextevent = post[i]
 
 		::post_mloop1::
-		Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M = nextevent(Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M)
+		a, b, c, d, e, f = nextevent(a, b, c, d, e, f)
 
 		i = i + 1
 		nextevent = post[i]
@@ -1214,49 +1096,25 @@ function hook.Call2(event, hookTable, ...)
 			goto post_mloop1
 		end
 
-		return Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M
+		return a, b, c, d, e, f
 	end
 
 	local i = 1
 	local nextevent = events[i]
 
 	::loop::
-	state, Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M = dlib_has_nothing_to_do_with_this_traceback(nextevent, catchError, ...)
+	a, b, c, d, e, f = nextevent(...)
 
-	if not state then
-		if not last_error then
-			last_error = Q
-		end
-
-		Q = nil
-
-		if last_trace then
-			ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n' .. last_trace .. '\n')
-		elseif last_error then
-			local _getinfo = getinfo(nextevent)
-
-			if _getinfo and _getinfo.short_src then
-				ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n  1. event:' .. event .. '[' .. _getinfo.short_src .. ']\n')
-			else
-				ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n  1. event:' .. event .. '\n')
-			end
-		else
-			ErrorNoHalt('\n[ERROR] Lua state is detorating away! This is very likely going to result into game crash! Hook GM:' .. event .. " didn't executed properly! Unable to provide traceback since error handler gave up!\n")
-		end
-
-		last_trace, last_error = nil, nil
-	end
-
-	if Q ~= nil then
+	if a ~= nil then
 		if post == nil then
-			return Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M
+			return a, b, c, d, e, f
 		end
 
 		local i = 1
 		local nextevent = post[i]
 
 		::post_mloop2::
-		Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M = nextevent(Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M)
+		a, b, c, d, e, f = nextevent(a, b, c, d, e, f)
 
 		i = i + 1
 		nextevent = post[i]
@@ -1265,7 +1123,7 @@ function hook.Call2(event, hookTable, ...)
 			goto post_mloop2
 		end
 
-		return Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M
+		return a, b, c, d, e, f
 	end
 
 	i = i + 1
@@ -1286,67 +1144,16 @@ function hook.Call2(event, hookTable, ...)
 	end
 
 	if post == nil then
-		state, Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M = dlib_has_nothing_to_do_with_this_traceback(gamemodeFunction, catchError, hookTable, ...)
-
-		if not state then
-			if not last_error then
-				last_error = Q
-			end
-
-			Q = nil
-
-			if last_trace then
-				ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n' .. last_trace .. '\n')
-			elseif last_error then
-				local _getinfo = getinfo(gamemodeFunction)
-
-				if _getinfo and _getinfo.short_src then
-					ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n  1. GM:' .. event .. '[' .. _getinfo.short_src .. ']\n')
-				else
-					ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n  1. GM:' .. event .. '\n')
-				end
-			else
-				ErrorNoHalt('\n[ERROR] Lua state is detorating away! This is very likely going to result into game crash! Hook GM:' .. event .. " didn't executed properly! Unable to provide traceback since error handler gave up!\n")
-			end
-
-			last_trace, last_error = nil, nil
-			return
-		end
-
-		return Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M
+		return gamemodeFunction(hookTable, ...)
 	end
 
-	state, Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M = dlib_has_nothing_to_do_with_this_traceback(gamemodeFunction, catchError, hookTable, ...)
-
-	if not state then
-		if not last_error then
-			last_error = Q
-		end
-
-		Q = nil
-
-		if last_trace then
-			ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n' .. last_trace .. '\n')
-		elseif last_error then
-			local _getinfo = getinfo(gamemodeFunction)
-
-			if _getinfo and _getinfo.short_src then
-				ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n  1. GM:' .. event .. '[' .. _getinfo.short_src .. ']\n')
-			else
-				ErrorNoHalt('\n[ERROR] ' .. last_error .. '\n  1. GM:' .. event .. '\n')
-			end
-		else
-			ErrorNoHalt('\n[ERROR] Lua state is detorating away! This is very likely going to result into game crash! Hook GM:' .. event .. " didn't executed properly! Unable to provide traceback since error handler gave up!\n")
-		end
-
-		last_trace, last_error = nil, nil
-	end
+	a, b, c, d, e, f = gamemodeFunction(hookTable, ...)
 
 	local i = 1
 	local nextevent = post[i]
 
 	::post_mloop3::
-	Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M = nextevent(Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M)
+	a, b, c, d, e, f = nextevent(a, b, c, d, e, f)
 
 	i = i + 1
 	nextevent = post[i]
@@ -1355,7 +1162,7 @@ function hook.Call2(event, hookTable, ...)
 		goto post_mloop3
 	end
 
-	return Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M
+	return a, b, c, d, e, f
 end
 
 
