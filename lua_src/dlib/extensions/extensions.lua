@@ -64,11 +64,15 @@ local worldspawn, worldspawnPhys
 
 -- shut up dumb addons
 function PhysObj:EnableCollisions(newStatus)
+	if not PhysObj.IsValid(self) then
+		error('Tried to use NULL entity!', 2)
+	end
+
 	worldspawn = worldspawn or Entity(0)
 	worldspawnPhys = worldspawnPhys or worldspawn:GetPhysicsObject()
 
 	if worldspawnPhys == self then
-		print(debug.traceback('Attempt to call :EnableCollisions() on World PhysObj!', 2))
+		error('Attempt to call :EnableCollisions() on World PhysObj!', 2)
 		return
 	end
 
