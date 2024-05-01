@@ -73,14 +73,12 @@ local function Color(r, g, b, a)
 	b = min(tonumber(b) or 255, 255)
 	a = min(tonumber(a) or 255, 255)
 
-	local newObj = {
+	return setmetatable({
 		r = r,
 		g = g,
 		b = b,
 		a = a,
-	}
-
-	return setmetatable(newObj, colorMeta)
+	}, colorMeta)
 end
 
 --[[
@@ -120,25 +118,17 @@ _G.Color = Color
 	Color: copied color with modified alpha
 ]]
 function _G.ColorAlpha(target, newAlpha)
-	if not IsColor(target) then
-		error('Input is not a color! typeof ' .. type(target))
-	end
-
-	if target.Copy then
-		return target:Copy():SetAlpha(newAlpha)
-	else
-		return Color(target.r, target.g, target.b, newAlpha)
-	end
+	return Color(target.r, target.g, target.b, newAlpha)
 end
 
 do
 	local pcall = pcall
 
 	local function getMeta(object)
-		return type(object.r) == 'number' and
-			type(object.g) == 'number' and
-			type(object.b) == 'number' and
-			type(object.a) == 'number'
+		return isnumber(object.r) and
+			isnumber(object.g) and
+			isnumber(object.b) and
+			isnumber(object.a)
 	end
 
 	function IsColor(object)
