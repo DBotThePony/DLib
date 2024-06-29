@@ -121,6 +121,8 @@ function _G.ColorAlpha(target, newAlpha)
 	return Color(target.r, target.g, target.b, newAlpha)
 end
 
+local isnumber = isnumber
+
 do
 	local pcall = pcall
 
@@ -877,6 +879,12 @@ end
 	Color: copy
 ]]
 function colorMeta:Lerp(lerpValue, lerpTo)
+	if isnumber(lerpTo) and IsColor(lerpValue) then
+		local temp = lerpTo
+		lerpTo = lerpValue
+		lerpValue = temp
+	end
+
 	if not IsColor(lerpTo) then
 		error('Color:Lerp - second argument is not a color!')
 	end
