@@ -879,10 +879,13 @@ end
 	Color: copy
 ]]
 function colorMeta:Lerp(lerpValue, lerpTo)
+	local lerpAlpha = false
+
 	if isnumber(lerpTo) and IsColor(lerpValue) then
 		local temp = lerpTo
 		lerpTo = lerpValue
 		lerpValue = temp
+		lerpAlpha = true
 	end
 
 	if not IsColor(lerpTo) then
@@ -893,7 +896,11 @@ function colorMeta:Lerp(lerpValue, lerpTo)
 	local g = Lerp(lerpValue, self.g, lerpTo.g)
 	local b = Lerp(lerpValue, self.b, lerpTo.b)
 
-	return Color(r, g, b, self.a)
+	if lerpAlpha then
+		return Color(r, g, b, Lerp(lerpValue, self.a, lerpTo.a))
+	else
+		return Color(r, g, b, self.a)
+	end
 end
 
 --[[
