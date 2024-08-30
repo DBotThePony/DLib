@@ -270,10 +270,10 @@ _net.receive('dlib_net_chunk', function(length_bits, ply)
 	local _a, _b, _c, _d = _net.ReadUInt32(), _net.ReadUInt32(), _net.ReadUInt32(), _net.ReadUInt32()
 	local namespace = Net.Namespace(CLIENT and Net or ply)
 
-	Net.total_traffic_in = Net.total_traffic_in + math.floor(length_bits / 8) + ((length_bits % 8 ~= 0) and 1 or 0)
+	Net.total_traffic_in = Net.total_traffic_in + math.ceil(length_bits / 8)
 
 	if SERVER then
-		namespace.total_traffic_in = namespace.total_traffic_in + math.floor(length_bits / 8) + ((length_bits % 8 ~= 0) and 1 or 0)
+		namespace.total_traffic_in = namespace.total_traffic_in + math.ceil(length_bits / 8)
 	end
 
 	_net.Start('dlib_net_chunk_ack', namespace.use_unreliable)
@@ -399,10 +399,10 @@ _net.receive('dlib_net_datagram', function(length_bits, ply)
 
 	local namespace = Net.Namespace(CLIENT and Net or ply)
 
-	Net.total_traffic_in = Net.total_traffic_in + math.floor(length_bits / 8) + ((length_bits % 8 ~= 0) and 1 or 0)
+	Net.total_traffic_in = Net.total_traffic_in + math.ceil(length_bits / 8)
 
 	if SERVER then
-		namespace.total_traffic_in = namespace.total_traffic_in + math.floor(length_bits / 8) + ((length_bits % 8 ~= 0) and 1 or 0)
+		namespace.total_traffic_in = namespace.total_traffic_in + math.ceil(length_bits / 8)
 	end
 
 	local startread = SysTime()
@@ -955,10 +955,10 @@ _net.receive('dlib_net_chunk_ack', function(length_bits, ply)
 	if SERVER and not IsValid(ply) then return end
 	local namespace = Net.Namespace(CLIENT and Net or ply)
 
-	Net.total_traffic_in = Net.total_traffic_in + math.floor(length_bits / 8) + ((length_bits % 8 ~= 0) and 1 or 0)
+	Net.total_traffic_in = Net.total_traffic_in + math.ceil(length_bits / 8)
 
 	if SERVER then
-		namespace.total_traffic_in = namespace.total_traffic_in + math.floor(length_bits / 8) + ((length_bits % 8 ~= 0) and 1 or 0)
+		namespace.total_traffic_in = namespace.total_traffic_in + math.ceil(length_bits / 8)
 	end
 
 	namespace.server_chunk_ack = true
@@ -1098,10 +1098,10 @@ _net.receive('dlib_net_datagram_ack', function(length_bits, ply)
 	if SERVER and not IsValid(ply) then return end
 	local namespace = Net.Namespace(CLIENT and Net or ply)
 
-	Net.total_traffic_in = Net.total_traffic_in + math.floor(length_bits / 8) + ((length_bits % 8 ~= 0) and 1 or 0)
+	Net.total_traffic_in = Net.total_traffic_in + math.ceil(length_bits / 8)
 
 	if SERVER then
-		namespace.total_traffic_in = namespace.total_traffic_in + math.floor(length_bits / 8) + ((length_bits % 8 ~= 0) and 1 or 0)
+		namespace.total_traffic_in = namespace.total_traffic_in + math.ceil(length_bits / 8)
 	end
 
 	namespace.server_datagram_ack = true
