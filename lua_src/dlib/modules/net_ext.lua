@@ -214,7 +214,13 @@ net.pool = util.AddNetworkString
 
 local function export(net)
 	function net.ReadPlayer()
-		return Entity(net.ReadUInt(8))
+		local index = net.ReadUInt(8)
+
+		if index == 0 then
+			return NULL
+		else
+			return Entity(index)
+		end
 	end
 
 	function net.WriteTypedArray(input, callFunc)
@@ -278,9 +284,14 @@ local function export(net)
 	end
 
 	function net.WritePlayer(ply)
-		local i = ply:EntIndex()
-		net.WriteUInt(i, 8)
-		return i
+		if IsValid(ply) and ply:IsPlayer() then
+			local i = ply:EntIndex()
+			net.WriteUInt(i, 8)
+			return i
+		else
+			net.WriteUInt(0, 8)
+			return 0
+		end
 	end
 
 	function net.GReadInt(val)
