@@ -23,12 +23,12 @@ local DLib = DLib
 local _net = net
 local Net = DLib.Net
 
-Net.BUFFER_SIZE_LIMIT = CreateConVar('dlib_net_buffer_size', '16777216', {}, 'limit in bytes. Too high values weaken server\'s security, too low may impact addons depending on DLib.Net')
-Net.DGRAM_SIZE_LIMIT = CreateConVar('dlib_net_dgram_size', '65536', {}, 'limit in messages count. Too high values weaken server\'s security, too low may impact addons depending on DLib.Net')
-Net.USE_COMPRESSION = CreateConVar('dlib_net_compress', '1', {FCVAR_REPLICATED, FCVAR_NOTIFY}, 'Use LZMA compression. Keep in mind source engine got one builtin serverside! Disable if DLib.Net performance is low.')
-Net.COMPRESSION_LIMIT = CreateConVar('dlib_net_compress_size', '16384', {}, 'Size in bytes >= of single chunk to compress. Too low or too high values can impact performance.')
+Net.BUFFER_SIZE_LIMIT = CreateConVar('dlib_net_buffer_size', '16777216', {FCVAR_ARCHIVE, FCVAR_REPLICATED, FCVAR_NOTIFY}, 'limit in bytes. Too high values weaken server\'s security, too low may impact addons depending on DLib.Net')
+Net.DGRAM_SIZE_LIMIT = CreateConVar('dlib_net_dgram_size', '65536', {FCVAR_ARCHIVE, FCVAR_REPLICATED, FCVAR_NOTIFY}, 'limit in messages count. Too high values weaken server\'s security, too low may impact addons depending on DLib.Net')
+Net.USE_COMPRESSION = CreateConVar('dlib_net_compress', '1', {FCVAR_ARCHIVE, FCVAR_REPLICATED, FCVAR_NOTIFY}, 'Use LZMA compression. Keep in mind source engine got one builtin serverside! Disable if DLib.Net performance is low.')
+Net.COMPRESSION_LIMIT = CreateConVar('dlib_net_compress_size', '16384', {FCVAR_ARCHIVE, FCVAR_REPLICATED, FCVAR_NOTIFY}, 'Size in bytes >= of single chunk to compress. Too low or too high values can impact performance.')
 
-Net.USE_WINDOW = CreateConVar('dlib_net_use_window', '1', {}, 'Use window to wildly improve network performance with high RTT')
+Net.USE_WINDOW = CreateConVar('dlib_net_use_window', '1', {FCVAR_ARCHIVE, FCVAR_REPLICATED, FCVAR_NOTIFY}, 'Use window to wildly improve network performance with high RTT')
 
 Net.UpdateWindowProperties()
 

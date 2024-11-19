@@ -247,6 +247,8 @@ local table_insert = table.insert
 -- Receive chunk from other side
 ---------------------------------------
 
+local SinglePlayer = game.SinglePlayer()
+
 _net.receive('dlib_net_chunk', function(length_bits, ply)
 	local chunkid = _net.ReadUInt32()
 	local current_chunk = _net.ReadUInt16()
@@ -359,7 +361,7 @@ _net.receive('dlib_net_chunk', function(length_bits, ply)
 		namespace.accumulated_size = namespace.accumulated_size - #stringdata
 
 		if data.is_compressed then
-			if CLIENT or Net.USE_COMPRESSION:GetBool() then
+			if (CLIENT or Net.USE_COMPRESSION:GetBool()) and not SinglePlayer then
 				stringdata = util_Decompress(stringdata, Net.buffer_size_limit - namespace.accumulated_size)
 
 				if not stringdata then
@@ -822,7 +824,7 @@ function Net.DispatchChunk(ply)
 		local build = table_concat(stringbuilder, '')
 		local compressed
 
-		if #build > Net.message_size_limit and Net.USE_COMPRESSION:GetBool() and (SERVER or Net.USE_COMPRESSION_SV:GetBool()) then
+		if #build > Net.message_size_limit and Net.USE_COMPRESSION:GetBool() and (SERVER or Net.USE_COMPRESSION_SV:GetBool()) and not SinglePlayer then
 			compressed = util_Compress(build)
 		end
 
