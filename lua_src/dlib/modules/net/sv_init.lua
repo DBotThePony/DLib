@@ -146,11 +146,15 @@ end
 local isentity = isentity
 local GetTable = FindMetaTable('Entity').GetTable
 
+-- Singleplayer fix
+Net._salty_salt = Net._salty_salt or SysTime()
+local _salty_salt = Net._salty_salt
+
 function Net.Namespace(target)
 	if isentity(target) then
 		local get_target = GetTable(target).dlib_net
 
-		if get_target ~= nil then
+		if get_target ~= nil and get_target.salt == _salty_salt then
 			return get_target
 		end
 
@@ -162,6 +166,7 @@ function Net.Namespace(target)
 		target.use_unreliable = true
 	end
 
+	target.salt = _salty_salt
 	target.use_unreliable_next_try = target.use_unreliable_next_try or 0
 
 	target.total_traffic_in = target.total_traffic_in or 0
