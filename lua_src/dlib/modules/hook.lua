@@ -1069,9 +1069,11 @@ setmetatable(hook, {
 if ghook ~= DLib.ghook and ents.GetCount() < 10 then
 	DLib.ghook = ghook
 
-	for k, v in pairs(ghook) do
-		rawset(ghook, k, nil)
-	end
+	rawset(ghook, 'GetTable', nil)
+	rawset(ghook, 'Add', nil)
+	rawset(ghook, 'Remove', nil)
+	rawset(ghook, 'Run', nil)
+	rawset(ghook, 'Call', nil)
 
 	setmetatable(DLib.ghook, {
 		__index = hook,
