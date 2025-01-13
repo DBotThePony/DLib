@@ -910,7 +910,7 @@ function hook.Reconstruct(eventToReconstruct)
 	elseif index == 1 and postIndex ~= 1 then
 		__tableOptimized[eventToReconstruct] = function(event, tab, ...)
 			if tab ~= nil then
-				a, b, c, d, e, f = gamemodePassthrough(event, tab, ...)
+				local a, b, c, d, e, f = gamemodePassthrough(event, tab, ...)
 
 				if a ~= nil then
 					for i2 = 1, postIndex - 1 do
