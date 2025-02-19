@@ -22,7 +22,7 @@
 local LocalPlayer = LocalPlayer
 local net = net
 local plyMeta = FindMetaTable('Player')
-local cl_dlib_steamfriends = CreateConVar('cl_dlib_steamfriends', '1', {FCVAR_ARCHIVE, FCVAR_USERINFO}, 'Consider Steam friends as DLib friends')
+local cl_dlib_steamfriends = CreateConVar('cl_dlib_steamfriends', '0', {FCVAR_ARCHIVE, FCVAR_USERINFO}, 'Consider Steam friends as DLib friends')
 
 plyMeta.GetFriendStatusDLib = plyMeta.GetFriendStatusDLib or plyMeta.GetFriendStatus
 
