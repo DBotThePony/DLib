@@ -42,9 +42,13 @@ meta.MetaName = 'number'
 ]]
 
 if not meta.__dlib_sf_patch then
-	function meta:__index(key)
-		return meta[key] or math[key] or bit[key]
-	end
+	-- TODO: this slows down things considerably, but gmod change around feb 2025 broke something
+	--  and regular __index no longer works
+	setmetatable(meta, {
+		__index = function(self, key)
+			return rawget(self, key) or math[key] or bit[key]
+		end
+	})
 end
 
 function meta:IsValid()
