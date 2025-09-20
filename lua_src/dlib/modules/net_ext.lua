@@ -499,7 +499,7 @@ end
 local Color = Color
 
 function net.WriteColor(colIn, writeAlpha)
-	if not IsColorDuck(colIn) then
+	if not IsColorDuck(colIn, writeAlpha) then
 		error('Attempt to write a color which is not a color! ' .. type(colIn))
 	end
 

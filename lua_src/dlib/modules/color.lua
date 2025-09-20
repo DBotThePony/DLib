@@ -133,13 +133,24 @@ do
 			isnumber(object.a)
 	end
 
-	function IsColor(object)
+	local function getMetaWithoutAlpha(object)
+		return isnumber(object.r) and
+			isnumber(object.g) and
+			isnumber(object.b)
+	end
+
+	function IsColor(object, checkAlpha)
 		if getmetatable(object) == colorMeta then
 			return true
 		end
 
-		local cstatus, cresult = pcall(getMeta, object)
-		return cstatus and cresult
+		if checkAlpha ~= false then
+			local cstatus, cresult = pcall(getMeta, object)
+			return cstatus and cresult
+		else
+			local cstatus, cresult = pcall(getMetaWithoutAlpha, object)
+			return cstatus and cresult
+		end
 	end
 end
 
