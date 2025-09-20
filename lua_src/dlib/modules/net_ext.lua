@@ -498,7 +498,7 @@ end
 
 local Color = Color
 
-function net.WriteColor(colIn)
+function net.WriteColor(colIn, writeAlpha)
 	if not IsColorDuck(colIn) then
 		error('Attempt to write a color which is not a color! ' .. type(colIn))
 	end
@@ -506,9 +506,12 @@ function net.WriteColor(colIn)
 	net.WriteUInt(colIn.r, 8)
 	net.WriteUInt(colIn.g, 8)
 	net.WriteUInt(colIn.b, 8)
-	net.WriteUInt(colIn.a, 8)
+
+	if writeAlpha ~= false then
+		net.WriteUInt(colIn.a, 8)
+	end
 end
 
-function net.ReadColor()
-	return Color(net.ReadUInt(8), net.ReadUInt(8), net.ReadUInt(8), net.ReadUInt(8))
+function net.ReadColor(hasAlpha)
+	return Color(net.ReadUInt(8), net.ReadUInt(8), net.ReadUInt(8), hasAlpha ~= false and net.ReadUInt(8) or 255)
 end
