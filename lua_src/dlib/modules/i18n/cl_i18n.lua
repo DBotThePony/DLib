@@ -188,8 +188,15 @@ cvars.AddChangeCallback('gmod_language_dlib_dbg_cl', function()
 end, 'DLib')
 
 local function vguiPanelCreated(self)
-	local classname = self:GetClassName():lower()
-	if classname:find('textentry') or classname:lower():find('input') or classname:lower():find('editor') then return end
+	local rawClassname = self:GetClassName()
+
+	if not isstring(rawClassname) then
+		DLib.MessageError('Created a panel which is lacking a classname?! ' .. tostring(self))
+		return
+	end
+
+	local classname = rawClassname:lower()
+	if classname:find('textentry') or classname:find('input') or classname:find('editor') then return end
 
 	DefaultPanelCreated(self)
 	LabelPanelCreated(self)
