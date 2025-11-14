@@ -157,4 +157,34 @@ hook.Add('Think', 'DLib.Notify', Think)
 
 timer.Simple(0, Notify.CreateDefaultDispatchers)
 
+do
+	ENABLE_REPLACEMENT = CreateConVar('dlib_replace_printmessage', '1', FCVAR_REPLICATED, 'Replace PrintMessage with more meaningful one')
+
+	plyMeta = FindMetaTable 'Player'
+	plyMeta.__DLib_PrintMessage = plyMeta.__DLib_PrintMessage or plyMeta.PrintMessage
+
+	plyMeta.PrintMessage = (mode, message, ...) =>
+		return @__DLib_PrintMessage(mode, message, ...) if not ENABLE_REPLACEMENT\GetBool()
+		return if self ~= LocalPlayer()
+
+		if message\sub(#message) == '\n'
+			message = message\sub(1, #message - 1)
+
+		message = language.GetPhrase(message\sub(2)) if message[1] == '#'
+
+		if mode == HUD_PRINTCENTER
+			rebuild = {color_white, message}
+
+			if DLib.i18n.exists(message)
+				rebuild = DLib.i18n.rebuildTable(rebuild, color_white)
+
+			notif = Notify.CreateCentered(rebuild)
+			notif\Start()
+		elseif mode == HUD_PRINTTALK
+			print(message)
+			chat.AddText(message)
+		elseif mode == HUD_PRINTCONSOLE or mode == HUD_PRINTNOTIFY
+			print(message)
+
+
 return Notify

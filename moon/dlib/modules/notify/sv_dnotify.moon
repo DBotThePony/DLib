@@ -21,7 +21,7 @@
 
 export PrintMessage
 
-ENABLE = CreateConVar('dlib_replace_printmessage', '1', 0, 'Replace PrintMessage with more meaningful one')
+ENABLE = CreateConVar('dlib_replace_printmessage', '1', FCVAR_REPLICATED, 'Replace PrintMessage with more meaningful one')
 
 _G.NOTIFY_GENERIC = 0
 _G.NOTIFY_ERROR = 1
