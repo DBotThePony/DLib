@@ -132,9 +132,9 @@ Think = ->
 	return if not Notify.DefaultDispatchers
 	for i, dsp in pairs Notify.DefaultDispatchers do dsp\Think!
 
-NetHook = ->
-	mode = net.ReadUInt(4)
-	message = net.ReadString()
+ENABLE_REPLACEMENT = CreateConVar('dlib_replace_printmessage', '1', FCVAR_REPLICATED, 'Replace PrintMessage with more meaningful one')
+
+PrintMessageImpl = (mode, message) ->
 	message = language.GetPhrase(message\sub(2)) if message[1] == '#'
 
 	if mode == HUD_PRINTCENTER
@@ -151,6 +151,11 @@ NetHook = ->
 	elseif mode == HUD_PRINTCONSOLE or mode == HUD_PRINTNOTIFY
 		print(message)
 
+NetHook = ->
+	mode = net.ReadUInt(4)
+	message = net.ReadString()
+	PrintMessageImpl(mode, message)
+
 hook.Add('HUDPaint', 'DLib.Notify', HUDPaint)
 net.Receive('DLib.Notify.PrintMessage', NetHook)
 hook.Add('Think', 'DLib.Notify', Think)
@@ -158,8 +163,6 @@ hook.Add('Think', 'DLib.Notify', Think)
 timer.Simple(0, Notify.CreateDefaultDispatchers)
 
 do
-	ENABLE_REPLACEMENT = CreateConVar('dlib_replace_printmessage', '1', FCVAR_REPLICATED, 'Replace PrintMessage with more meaningful one')
-
 	plyMeta = FindMetaTable 'Player'
 	plyMeta.__DLib_PrintMessage = plyMeta.__DLib_PrintMessage or plyMeta.PrintMessage
 
@@ -170,21 +173,6 @@ do
 		if message\sub(#message) == '\n'
 			message = message\sub(1, #message - 1)
 
-		message = language.GetPhrase(message\sub(2)) if message[1] == '#'
-
-		if mode == HUD_PRINTCENTER
-			rebuild = {color_white, message}
-
-			if DLib.i18n.exists(message)
-				rebuild = DLib.i18n.rebuildTable(rebuild, color_white)
-
-			notif = Notify.CreateCentered(rebuild)
-			notif\Start()
-		elseif mode == HUD_PRINTTALK
-			print(message)
-			chat.AddText(message)
-		elseif mode == HUD_PRINTCONSOLE or mode == HUD_PRINTNOTIFY
-			print(message)
-
+		PrintMessageImpl(mode, message)
 
 return Notify
