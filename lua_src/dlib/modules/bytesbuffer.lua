@@ -1468,16 +1468,19 @@ meta.WriteUIntLE = meta.WriteUInt32LE
 	@returns
 	BytesBuffer: self
 ]]
+	-- TODO: This is utterly broken!
 function meta:WriteInt64_2(valueIn)
 	self:WriteUInt64(valueIn + 0x100000000)
 	return self
 end
 
+-- TODO: This is utterly broken!
 function meta:WriteInt64(valueIn)
 	self:WriteUInt64(wrap(valueIn, 0x100000000))
 	return self
 end
 
+-- TODO: This is utterly broken!
 function meta:WriteUInt64(valueIn)
 	self:WriteUInt32((valueIn - valueIn % 0xFFFFFFFF) / 0xFFFFFFFF)
 	valueIn = valueIn % 0xFFFFFFFF
@@ -1485,16 +1488,19 @@ function meta:WriteUInt64(valueIn)
 	return self
 end
 
+-- TODO: This is utterly broken!
 function meta:WriteInt64LE_2(valueIn)
 	self:WriteUInt64LE(valueIn + 0x100000000)
 	return self
 end
 
+-- TODO: This is utterly broken!
 function meta:WriteInt64(valueIn)
 	self:WriteUInt64LE(wrap(valueIn, 0x100000000))
 	return self
 end
 
+-- TODO: This is utterly broken!
 function meta:WriteUInt64LE(valueIn)
 	local div = valueIn % 0xFFFFFFFF
 	self:WriteUInt32(div)
@@ -1947,14 +1953,17 @@ meta.ReadUIntLE = meta.ReadUInt32LE
 	@returns
 	number
 ]]
+-- TODO: This is utterly broken!
 function meta:ReadInt64_2()
 	return self:ReadUInt64() - 0x100000000
 end
 
+-- TODO: This is utterly broken!
 function meta:ReadInt64()
 	return unwrap(self:ReadUInt64(), 0x100000000)
 end
 
+-- TODO: This is utterly broken!
 function meta:ReadUInt64()
 	self:CheckOverflow('UInt64', 8)
 
@@ -1979,14 +1988,17 @@ function meta:ReadUInt64()
 		value
 end
 
+-- TODO: This is utterly broken!
 function meta:ReadInt64LE_2()
 	return self:ReadUInt64LE() - 0x100000000
 end
 
+-- TODO: This is utterly broken!
 function meta:ReadInt64()
 	return unwrap(self:ReadUInt64LE(), 0x100000000)
 end
 
+-- TODO: This is utterly broken!
 function meta:ReadUInt64LE()
 	self:CheckOverflow('UInt64LE', 8)
 

@@ -387,6 +387,7 @@ local maxint = 0x100000000
 	@returns
 	number: 64 bit integer
 ]]
+-- TODO: This is utterly broken!
 function net.WriteBigUInt(val)
 	local first = val % maxint
 	local second = (val - first) / maxint
@@ -394,6 +395,7 @@ function net.WriteBigUInt(val)
 	net.WriteUInt32(second)
 end
 
+-- TODO: This is utterly broken!
 function net.ReadBigUInt(val)
 	local first = net.ReadUInt32()
 	local second = net.ReadUInt32()
@@ -401,11 +403,13 @@ function net.ReadBigUInt(val)
 	return first + second * maxint
 end
 
+-- TODO: This is utterly broken!
 function net.WriteBigInt(val)
 	net.WriteBool(val >= 0)
 	net.WriteBigUInt(val:abs())
 end
 
+-- TODO: This is utterly broken!
 function net.ReadBigInt()
 	local sign = net.ReadBool()
 	local value = net.ReadBigUInt()
@@ -417,10 +421,8 @@ function net.ReadBigInt()
 	return -value
 end
 
-net.WriteUInt64 = net.WriteBigUInt
 net.WriteInt64 = net.WriteBigInt
 
-net.ReadUInt64 = net.ReadBigUInt
 net.ReadInt64 = net.ReadBigInt
 
 --[[
