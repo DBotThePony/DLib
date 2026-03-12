@@ -858,8 +858,10 @@ function I18n.UpdateLang()
 
 		if grablang[i] == '' then
 			table.remove(grablang, i)
-		elseif grablang[i] == 'gmod' then
+		elseif grablang[i] == 'gmod' and gmod_language then
 			grablang[i] = gmod_language:GetString():lower():trim()
+		elseif grablang[i] == 'gmod' then
+			table.remove(grablang, i) -- could have been 'en', but whateva; its gonna fallback to english eventually anyway
 		end
 	end
 
@@ -887,16 +889,18 @@ if CLIENT then
 else
 	cvars.AddChangeCallback('gmod_language_dlib_sv', I18n.UpdateLang, 'DLib')
 
-	local value = gmod_language:GetString()
+	if gmod_language then
+		local value = gmod_language:GetString()
 
-	hook.Add('Think', 'dlib_gmod_language_hack', function()
-		local value2 = gmod_language:GetString()
+		hook.Add('Think', 'dlib_gmod_language_hack', function()
+			local value2 = gmod_language:GetString()
 
-		if value2 ~= value then
-			I18n.UpdateLang()
-			value = value2
-		end
-	end)
+			if value2 ~= value then
+				I18n.UpdateLang()
+				value = value2
+			end
+		end)
+	end
 end
 
 timer.Simple(0, I18n.UpdateLang)
